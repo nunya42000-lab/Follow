@@ -1,0 +1,288 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+/* ---------------------------------- */
+/* --- THEME COLORS (CSS Variables) --- */
+/* ---------------------------------- */
+
+/* Dark Mode (Default) */
+:root {
+    --bg-main: #1f2937;           /* Main background */
+    --bg-footer: #1f2937;         /* Footer background */
+    --text-color: #ffffff;
+    --card-bg: #374151;           /* Input button background */
+    --card-text: #ffffff;
+    --btn-control-gray: #6b7280;  /* DEL button default */
+    --btn-control-gray-active: #4b5563; /* DEL button active */
+}
+
+/* Light Mode Overrides (when body has 'light' class) */
+/* --- THIS SECTION IS FIXED --- */
+.light {
+    --bg-main: #ffffff;           /* Light background */
+    --bg-footer: #ffffff;         /* Footer background (now matches body) */
+    --text-color: #1f2937;
+    --card-bg: #e5e7eb;           /* Light gray for pad buttons */
+    --card-text: #1f2937;
+    --btn-control-gray: #9ca3af; 
+    --btn-control-gray-active: #6b7280;
+}
+
+/* Apply theme variables */
+body {
+    background-color: var(--bg-main);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+}
+#input-footer {
+    background-color: var(--bg-footer);
+    border-top-color: var(--text-color);
+}
+.btn-input {
+    color: var(--card-text);
+}
+
+/* Custom styles for number boxes */
+.number-box {
+    height: 40px; 
+    line-height: 40px; 
+    font-size: 1.1rem; 
+    font-weight: 700; 
+    transition: height 0.2s, line-height 0.2s, font-size 0.2s; 
+}
+
+/* ------------------------------ */
+/* --- Dialer-Style Button Base --- */
+/* ------------------------------ */
+.btn-input {
+    transition: all 0.15s ease-in-out;
+    position: relative; 
+    font-weight: 700;
+    border-radius: 9999px; /* Fully rounded/circular look */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.1); 
+    height: 64px; 
+}
+
+/* Default style for number buttons */
+.btn-pad-number {
+    background-color: var(--card-bg);
+    font-size: 1.5rem; /* text-2xl */
+}
+
+/* Subtle Active state for player input feedback */
+.btn-pad-number:active {
+    transform: scale(0.95);
+    background-color: var(--btn-control-gray-active);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* --- FLASH for Demo Effects --- */
+.btn-pad-number.bananas-flash {
+    background-color: #3b82f6; 
+    box-shadow: 0 0 15px 5px rgba(59, 130, 246, 0.7); 
+    transform: scale(1.05); 
+}
+.btn-pad-number.demo-flash-rounds15 {
+    background-color: #10b981; 
+    box-shadow: 0 0 15px 5px rgba(16, 185, 129, 0.7); 
+    transform: scale(1.05); 
+}
+
+/* --- Control Button Styles --- */
+.btn-control {
+    font-size: 1.8rem; 
+    height: 64px; 
+    border-radius: 9999px; 
+    color: var(--card-text); 
+}
+
+/* Backspace/DEL button styling (uses gray theme) */
+.btn-control[data-action="backspace"] {
+    background-color: var(--btn-control-gray);
+    color: white; 
+}
+.btn-control[data-action="backspace"]:active {
+    background-color: var(--btn-control-gray-active);
+    transform: scale(0.95);
+}
+
+/* --- NEW: Voice Input Active Style --- */
+.btn-control[data-action="voice-input"].voice-active {
+    background-color: var(--tw-color-btn-control-red, #dc2626);
+    box-shadow: 0 0 15px 5px rgba(220, 38, 38, 0.7);
+    transform: scale(1.05);
+}
+
+/* -------------------------- */
+/* --- PIANO KEY STYLES --- */
+/* -------------------------- */
+#piano-keys {
+    position: relative; 
+    display: flex; 
+    width: 100%;
+    height: 200px;
+    background-color: #333; 
+}
+.key-container {
+    width: calc(100% / 7);
+    position: relative;
+    height: 100%;
+}
+
+.piano-key-white {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #333;
+    border-top: none; 
+    border-bottom: 2px solid #555; 
+    background-color: #ffffff; 
+    background-image: linear-gradient(to bottom, #ffffff, #f0f0f0);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.05); 
+    color: #1f2937; 
+    font-weight: 700; 
+    font-size: 1.6rem; 
+    padding-bottom: 15px; 
+    border-radius: 0 0 5px 5px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    z-index: 1; 
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    transition: all 0.15s ease-in-out; 
+}
+
+.piano-key-white:active, .piano-key-white.flash {
+    transform: translateY(2px); 
+    box-shadow: 0 0 20px 7px rgba(255, 238, 0, 0.9), inset 0 0 10px rgba(0,0,0,0.1); 
+    background-image: linear-gradient(to bottom, #ffea00, #ffe066); 
+    border-bottom: 2px solid #f0ad4e; 
+}
+
+.piano-key-black {
+    height: 65%; 
+    width: 13%; 
+    background-color: #000000; 
+    background-image: linear-gradient(to top, #111111, #222222);
+    box-shadow: 0 6px 10px rgba(0,0,0,0.6); 
+    border: 1px solid #333;
+    border-top: none;
+    border-bottom: 2px solid #000;
+    border-radius: 0 0 5px 5px;
+    position: absolute; 
+    top: 0;
+    z-index: 2; 
+    color: white; 
+    font-weight: 600; 
+    font-size: 1rem; 
+    display: flex;
+    align-items: flex-end; 
+    justify-content: center;
+    padding-bottom: 5px;
+    cursor: pointer;
+    transition: all 0.05s ease-in-out;
+}
+
+.piano-key-black:active, .piano-key-black.flash {
+    transform: translateY(3px); 
+    height: calc(65% - 3px); 
+    box-shadow: 0 0 15px 5px rgba(255, 69, 0, 0.9), 0 2px 3px rgba(0,0,0,0.4); 
+    background-image: linear-gradient(to top, #664400, #4c3300); 
+    border-bottom: 2px solid #f0adad;
+}
+
+/* Black Key Positioning */
+.black-1 { left: calc((100% / 7) * 1 - (13% / 2)); }
+.black-2 { left: calc((100% / 7) * 2 - (13% / 2)); }
+.black-3 { left: calc((100% / 7) * 4 - (13% / 2)); }
+.black-4 { left: calc((100% / 7) * 5 - (13% / 2)); }
+.black-5 { left: calc((100% / 7) * 6 - (13% / 2)); }
+
+/* Help content styling */
+#help-content-container h4 {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 700; /* font-bold */
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid #e5e7eb; /* gray-200 */
+}
+.dark #help-content-container h4 {
+    border-bottom: 1px solid #4b5563; /* gray-600 */
+}
+#help-content-container p {
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+#help-content-container ul {
+    list-style: disc;
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Styles for Prompt Box */
+.prompt-box {
+    width: 100%;
+    height: 150px; /* Fixed height for consistency */
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid #9ca3af; /* gray-400 */
+    background-color: #f3f4f6; /* gray-100 */
+    color: #1f2937; /* gray-800 */
+    font-family: monospace;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    resize: none;
+}
+.dark .prompt-box {
+    background-color: #4b5563; /* gray-600 */
+    color: #ffffff;
+    border-color: #6b7280; /* gray-500 */
+}
+
+.copy-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: white;
+    background-color: var(--tw-color-btn-control-blue, #2563eb);
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-bottom: 1rem; /* Space between buttons */
+}
+.copy-button:hover {
+    background-color: var(--tw-color-btn-control-blue-active, #1e40af);
+}
+.copy-button.copied {
+    background-color: #10b981; /* green-500 */
+}
+
+/* NEW: Help Tab Styles */
+.help-tab-button {
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    color: #6b7280; /* gray-500 */
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+}
+.dark .help-tab-button {
+    color: #9ca3af; /* gray-400 */
+}
+.help-tab-button:hover {
+    color: #374151; /* gray-700 */
+}
+.dark .help-tab-button:hover {
+    color: #e5e7eb; /* gray-200 */
+}
+.help-tab-button.active-tab {
+    color: var(--tw-color-primary-app, #4f46e5);
+    border-bottom-color: var(--tw-color-primary-app, #4f46e5);
+  }
+                                      

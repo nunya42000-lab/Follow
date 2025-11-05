@@ -1,21 +1,7 @@
-/**
- * Triggers a short vibration, if enabled and supported.
- * UPDATED: Re-added try...catch to prevent OS-level errors
- * from halting script execution.
- */
-function vibrate(duration = 10) {
-    if (settings.isHapticsEnabled && 'vibrate' in navigator) {
-        try {
-            navigator.vibrate(duration);
-        } catch (e) {
-            // Haptics failed, but we don't want it to break the app
-            console.warn("Haptic feedback failed.", e);
-        }
-    }
-}
+// REMOVED: vibrate() function
 
 function addValue(value) {
-    vibrate(); // <<< ADDED HAPTICS
+    // REMOVED: vibrate();
     
     const state = getCurrentState();
     const { sequences, sequenceCount } = state;
@@ -60,7 +46,7 @@ function addValue(value) {
 }
 
 function handleBackspace() {
-    vibrate(20); // <<< ADDED HAPTICS
+    // REMOVED: vibrate(20);
     
     const state = getCurrentState();
     const { sequences, sequenceCount } = state;
@@ -95,7 +81,7 @@ function handleBackspace() {
 
 
 // --- Backspace Speed Deleting Logic ---
-
+// ... (this whole section is unchanged) ...
 function stopSpeedDeleting() {
     if (initialDelayTimer) clearTimeout(initialDelayTimer);
     if (speedDeleteInterval) clearInterval(speedDeleteInterval);
@@ -139,11 +125,7 @@ function handleBackspaceEnd() {
 }
 
 // --- Voice Input Functions (TEXT-BASED) ---
-
-/**
- * Processes the transcript from the text input field.
- * This function only processes VALUES, not commands.
- */
+// ... (this function is unchanged) ...
 function processVoiceTranscript(transcript) {
     if (!transcript) return;
     
@@ -216,7 +198,7 @@ function handleRestoreDefaults() {
     if (audioPlaybackToggle) audioPlaybackToggle.checked = settings.isAudioPlaybackEnabled;
     if (voiceInputToggle) voiceInputToggle.checked = settings.isVoiceInputEnabled;
     if (sliderLockToggle) sliderLockToggle.checked = settings.areSlidersLocked;
-    if (hapticsToggle) hapticsToggle.checked = settings.isHapticsEnabled;
+    // hapticsToggle REMOVED
 
     // Sliders
     if (bananasSpeedSlider) bananasSpeedSlider.value = settings.bananasSpeedMultiplier * 100;
@@ -238,5 +220,4 @@ function handleRestoreDefaults() {
     
     // 5. Close the modal
     closeSettingsModal();
-        }
-        
+}

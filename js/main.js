@@ -23,6 +23,10 @@ function assignDomElements() {
     closeShare = document.getElementById('close-share');
     copyLinkButton = document.getElementById('copy-link-button'); 
     nativeShareButton = document.getElementById('native-share-button'); 
+
+    // NEW: Support Modal
+    supportModal = document.getElementById('support-modal');
+    closeSupportModalBtn = document.getElementById('close-support-modal');
     
     // Welcome Modal
     welcomeModal = document.getElementById('welcome-modal');
@@ -58,7 +62,7 @@ function assignDomElements() {
     audioPlaybackToggle = document.getElementById('audio-playback-toggle');
     voiceInputToggle = document.getElementById('voice-input-toggle');
     sliderLockToggle = document.getElementById('slider-lock-toggle');
-    hapticsToggle = document.getElementById('haptics-toggle');
+    // hapticsToggle REMOVED
     showWelcomeToggle = document.getElementById('show-welcome-toggle');
 
     // Sliders
@@ -88,6 +92,56 @@ function initializeListeners() {
     document.addEventListener('click', (event) => {
         const button = event.target.closest('button');
         if (!button) return;
+
+        // NEW: Handle copy buttons in Support Modal
+        if (button.classList.contains('copy-button')) {
+            const targetId = button.dataset.copyTarget;
+            const copyableElement = document.querySelector(`[data-copyable-id="${targetId}"]`);
+            
+            if (!copyableElement) return;
+
+            const textToCopy = copyableElement.value || copyableElement.textContent;
+
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = textToCopy.trim();
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            
+            try {
+                document.execCommand('copy');
+                
+                // Reset all other copy buttons
+                if(supportModal) {
+                    supportModal.querySelectorAll('.copy-button').forEach(btn => {
+                        if (btn.disabled) {
+                            btn.disabled = false;
+                            btn.classList.remove('!bg-btn-control-green');
+                            btn.textContent = 'Copy';
+                        }
+                    });
+                }
+
+                // Set this button to "Copied!"
+                button.disabled = true;
+                button.classList.add('!bg-btn-control-green');
+                button.textContent = 'Copied!';
+                
+                setTimeout(() => {
+                    if (button.disabled) {
+                        button.disabled = false;
+                        button.classList.remove('!bg-btn-control-green');
+                        button.textContent = 'Copy';
+                    }
+                }, 2000);
+
+            } catch (err) {
+                console.error('Failed to copy: ', err);
+                button.textContent = 'Error';
+            }
+            
+            document.body.removeChild(tempTextArea);
+            return;
+        }
 
         const { value, action, mode, modeSelect, copyTarget } = button.dataset;
 
@@ -128,8 +182,12 @@ function initializeListeners() {
             openShareModal();
             return;
         }
+        if (action === 'open-support') { // NEW
+            openSupportModal();
+            return;
+        }
 
-        // --- NEW: Share Modal Actions ---
+        // --- Share Modal Actions ---
         if (action === 'copy-link') {
             navigator.clipboard.writeText(window.location.href).then(() => {
                 button.disabled = true;
@@ -298,11 +356,7 @@ function initializeListeners() {
         updateVoiceInputVisibility();
         saveState();
     });
-    if (hapticsToggle) hapticsToggle.addEventListener('change', (e) => {
-        settings.isHapticsEnabled = e.target.checked;
-        if (settings.isHapticsEnabled) vibrate(50);
-        saveState();
-    });
+    // hapticsToggle listener REMOVED
     if (sliderLockToggle) sliderLockToggle.addEventListener('change', (e) => {
         settings.areSlidersLocked = e.target.checked;
         updateSliderLockState();
@@ -334,7 +388,8 @@ function initializeListeners() {
     
     // Other Modals
     if (closeHelp) closeHelp.addEventListener('click', closeHelpModal);
-    if (closeShare) closeShare.addEventListener('click', closeShareModal); 
+    if (closeShare) closeShare.addEventListener('click', closeShareModal);
+    if (closeSupportModalBtn) closeSupportModalBtn.addEventListener('click', closeSupportModal); // NEW
 }
 
 // --- Initialization ---

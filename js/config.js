@@ -50,6 +50,6 @@ const DEFAULT_SETTINGS = {
     followsChunkSize: 3, 
     followsInterSequenceDelay: 500,
     currentMode: 'bananas',
-    isHapticsEnabled: true, // NEW
-    showWelcomeScreen: true, // NEW
+    // isHapticsEnabled: true, // REMOVED
+    showWelcomeScreen: true,
 };

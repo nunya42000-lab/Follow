@@ -168,7 +168,7 @@ function openSettingsModal() {
     if (audioPlaybackToggle) audioPlaybackToggle.checked = settings.isAudioPlaybackEnabled; 
     if (voiceInputToggle) voiceInputToggle.checked = settings.isVoiceInputEnabled;
     if (sliderLockToggle) sliderLockToggle.checked = settings.areSlidersLocked; 
-    if (hapticsToggle) hapticsToggle.checked = settings.isHapticsEnabled;
+    // hapticsToggle REMOVED
 
     if (bananasSpeedSlider) bananasSpeedSlider.value = settings.bananasSpeedMultiplier * 100;
     updateSpeedDisplay(settings.bananasSpeedMultiplier, bananasSpeedDisplay);
@@ -196,7 +196,7 @@ function closeSettingsModal() {
     }
 }
 
-// --- UPDATED: Help Modal Logic (with Tabs) ---
+// --- Help Modal Logic ---
 
 function openHelpModal() {
     // Generate content for all tabs
@@ -204,6 +204,7 @@ function openHelpModal() {
     generateModesHelp();
     generateSettingsHelp();
     generatePromptsHelp();
+    // generateSupportHelp(); // REMOVED
     
     // Set up tab listeners
     if (helpTabNav) {
@@ -289,6 +290,7 @@ function generateGeneralHelp() {
             <li><span class="font-bold">Backspace (←):</span> Removes the last entered value.</li>
             <li><span class="font-bold">Settings (⚙️):</span> Opens the main settings panel, where you can change modes, adjust speeds, and toggle features.</li>
             <li><span class="font-bold">Share (📤):</span> Inside Settings, this button shows a QR code and share options to open the app on another device.</li>
+            <li><span class="font-bold">Support (☕️):</span> Inside Settings, this button opens a modal with ways to support the developer.</li>
         </ul>
         
         <h4 class="text-primary-app">Global Features</h4>
@@ -296,7 +298,6 @@ function generateGeneralHelp() {
             <li><span class="font-bold">Voice Input (🎤):</span> When enabled in Settings, a text field appears. Tap it to use your <strong>keyboard's</strong> microphone (dictation) to enter numbers. The sequence updates instantly.</li>
             <li><span class="font-bold">Speed Deleting:</span> Hold the backspace key to quickly delete many entries (On by default).</li>
             <li><span class="font-bold">Audio Playback:</span> Speaks the sequence during demo playback (On by default).</li>
-            <li><span class="font-bold">Vibration (Haptics):</span> Provides a short vibration on key presses for tactile feedback (On by default).</li>
         </ul>
     `;
 }
@@ -367,7 +368,6 @@ function generateSettingsHelp() {
             <li><span class="font-bold">Speed Deleting:</span> Lets you hold Backspace (←) to delete rapidly.</li>
             <li><span class="font-bold">Audio Playback (Speak):</span> Speaks the numbers/notes during demo playback.</li>
             <li><span class="font-bold">Voice Input (Keyboard):</span> Shows/hides the 🎤 text input field for keyboard dictation.</li>
-            <li><span class="font-bold">Vibration (Haptics):</span> Enables/disables tactile feedback on key presses.</li>
             <li><span class="font-bold">Lock Sliders:</span> Prevents accidental changes to the speed and size sliders.</li>
             <li><span class="font-bold">Mode-Specific Autoplay:</span> Each mode (Bananas, Follows, Piano) has its own toggle to control if it plays back automatically after an input.</li>
             <li><span class="font-bold">15 rounds Auto-Clear/Advance:</span> Toggles if the app automatically clears the sequence and moves to the next round after playback.</li>
@@ -404,7 +404,7 @@ function generatePromptsHelp() {
 function openShareModal() {
     closeSettingsModal();
     if (shareModal) {
-        // NEW: Check for Web Share API
+        // Check for Web Share API
         if (navigator.share) {
             if (nativeShareButton) nativeShareButton.classList.remove('hidden');
         } else {
@@ -433,8 +433,36 @@ function closeShareModal() {
         setTimeout(() => shareModal.classList.add('pointer-events-none'), 300);
     }
 }
+
+// --- NEW: Support Modal Functions ---
+function openSupportModal() {
+    closeSettingsModal();
+    if (supportModal) {
+        // Reset all copy buttons
+        supportModal.querySelectorAll('.copy-button').forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('!bg-btn-control-green');
+            btn.textContent = 'Copy';
+        });
+        
+        supportModal.classList.remove('opacity-0', 'pointer-events-none');
+        supportModal.querySelector('div').classList.remove('scale-90');
+    }
+}
+
+function closeSupportModal() {
+    if (supportModal) {
+        supportModal.querySelector('div').classList.add('scale-9D0');
+        supportModal.classList.add('opacity-0');
+        setTimeout(() => supportModal.classList.add('pointer-events-none'), 300);
+    }
+}
     
 // --- Theme, Speed, and Scale Control ---
+
+// ... (functions updateTheme, updateModeSpeed, updateSpeedDisplay, 
+//     updateScaleDisplay, updateSliderLockState, updateMode, 
+//     updateVoiceInputVisibility are all unchanged) ...
 
 function updateTheme(isDark) {
     settings.isDarkMode = isDark;
@@ -504,7 +532,7 @@ function updateVoiceInputVisibility() {
         });
     }
 }
-
+    
 // --- Generic Modal/Message Box Implementation ---
 
 function showModal(title, message, onConfirm, confirmText = 'OK', cancelText = 'Cancel') {
@@ -546,4 +574,4 @@ function closeModal() {
         customModal.classList.add('opacity-0');
         setTimeout(() => customModal.classList.add('pointer-events-none'), 300);
     }
-        }
+}

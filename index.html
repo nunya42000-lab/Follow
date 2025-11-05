@@ -129,8 +129,8 @@
                             <option value="4">4 Sequences</option>
                         </select>
                     </div>
-
-                                        <div id="follows-chunk-setting" class="mb-6">
+                    
+                    <div id="follows-chunk-setting" class="mb-6">
                         <label for="follows-chunk-size-select" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Numbers per sequence (playback)</label>
                         <select id="follows-chunk-size-select" class="w-full h-12 px-4 py-2 text-lg font-semibold text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-app">
                             <option value="2">2</option>
@@ -144,16 +144,30 @@
                         <label for="follows-delay-select" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Delay between sequences (playback)</label>
                         <select id="follows-delay-select" class="w-full h-12 px-4 py-2 text-lg font-semibold text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-app">
                             <option value="0">0.0s</option>
+                            <option value="100">0.1s</option>
+                            <option value="200">0.2s</option>
+                            <option value="300">0.3s</option>
+                            <option value="400">0.4s</option>
                             <option value="500" selected>0.5s (Default)</option>
+                            <option value="600">0.6s</option>
+                            <option value="700">0.7s</option>
+                            <option value="800">0.8s</option>
+                            <option value="900">0.9s</option>
                             <option value="1000">1.0s</option>
-                            <option value="1500">1.5s</option>
-                            <option value="2000">2.0s</option>
                         </select>
                     </div>
-                    </div>
+                </div>
 
                 <div class="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <p class="block text-gray-700 dark:text-gray-300 text-xl font-bold mb-4">Toggles</p>
+                    
+                    <div class="flex items-center justify-between mb-6">
+                        <label for="show-welcome-toggle" class="text-gray-700 dark:text-gray-300 text-lg font-semibold">Show Welcome Screen</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="show-welcome-toggle" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                        </label>
+                    </div>
                     
                     <div class="flex items-center justify-between mb-6">
                         <label for="dark-mode-toggle" class="text-gray-700 dark:text-gray-300 text-lg font-semibold">Dark Mode</label>
@@ -296,13 +310,13 @@
     
     <div id="help-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full m-4 transform scale-90 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-hidden">
-
-                        <div class="p-6 pb-4">
+            
+            <div class="p-6 pb-4">
                 <h3 class="text-2xl font-bold text-gray-900 dark:text-white pb-3">Application Instructions & Help 📚</h3>
             </div>
 
             <div class="px-6 border-b border-gray-200 dark:border-gray-700">
-                <nav id="help-tab-nav" class="flex space-x-4">
+                <nav id="help-tab-nav" class="flex space-x-2">
                     <button data-tab="general" class="help-tab-button active-tab">General</button>
                     <button data-tab="modes" class="help-tab-button">Modes</button>
                     <button data-tab="settings" class="help-tab-button">Settings</button>
@@ -520,5 +534,4 @@ Let's start with Round 1.</textarea>
     <script src="js/main.js"></script>
 
 </body>
-                        </html>
-                        
+</html>

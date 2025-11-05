@@ -158,7 +158,7 @@ function openSettingsModal() {
     if (followsChunkSizeSelect) followsChunkSizeSelect.value = settings.followsChunkSize;
     if (followsDelaySelect) followsDelaySelect.value = settings.followsInterSequenceDelay; 
     
-    if (showWelcomeToggle) showWelcomeToggle.checked = settings.showWelcomeScreen; // NEW
+    if (showWelcomeToggle) showWelcomeToggle.checked = settings.showWelcomeScreen;
     if (darkModeToggle) darkModeToggle.checked = settings.isDarkMode;
     if (speedDeleteToggle) speedDeleteToggle.checked = settings.isSpeedDeletingEnabled; 
     if (pianoAutoplayToggle) pianoAutoplayToggle.checked = settings.isPianoAutoplayEnabled; 
@@ -288,7 +288,7 @@ function generateGeneralHelp() {
             <li><span class="font-bold">Play (▶):</span> Plays back the current sequence(s). The demo will flash the keys and (if enabled) speak the values.</li>
             <li><span class="font-bold">Backspace (←):</span> Removes the last entered value.</li>
             <li><span class="font-bold">Settings (⚙️):</span> Opens the main settings panel, where you can change modes, adjust speeds, and toggle features.</li>
-            <li><span class="font-bold">Share (📤):</span> Inside Settings, this button shows a QR code to open the app on another device.</li>
+            <li><span class="font-bold">Share (📤):</span> Inside Settings, this button shows a QR code and share options to open the app on another device.</li>
         </ul>
         
         <h4 class="text-primary-app">Global Features</h4>
@@ -402,8 +402,25 @@ function generatePromptsHelp() {
     
 // --- Share Modal Functions ---
 function openShareModal() {
-    closeSettingsModal(); 
+    closeSettingsModal();
     if (shareModal) {
+        // NEW: Check for Web Share API
+        if (navigator.share) {
+            if (nativeShareButton) nativeShareButton.classList.remove('hidden');
+        } else {
+            if (nativeShareButton) nativeShareButton.classList.add('hidden');
+        }
+        
+        // Reset copy button text
+        if (copyLinkButton) {
+            copyLinkButton.disabled = false;
+            copyLinkButton.classList.remove('!bg-btn-control-green');
+            copyLinkButton.innerHTML = `
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"></path><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"></path></svg>
+                Copy Link
+            `;
+        }
+
         shareModal.classList.remove('opacity-0', 'pointer-events-none');
         shareModal.querySelector('div').classList.remove('scale-90');
     }
@@ -530,4 +547,3 @@ function closeModal() {
         setTimeout(() => customModal.classList.add('pointer-events-none'), 300);
     }
         }
-    

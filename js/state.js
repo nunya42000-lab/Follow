@@ -17,8 +17,7 @@ let speedDeleteInterval = null;
 var sequenceContainer = null;
 var customModal = null, modalTitle = null, modalMessage = null, modalConfirm = null, modalCancel = null;
 var shareModal = null, closeShare = null;
-var copyLinkButton = null, nativeShareButton = null;
-var supportModal = null, closeSupportModalBtn = null; // NEW
+var copyLinkButton = null, nativeShareButton = null; // NEW Share Modal Buttons
 var welcomeModal = null, closeWelcomeModalBtn = null, dontShowWelcomeToggle = null;
 var settingsModal = null, settingsModeToggleButton = null, settingsModeDropdown = null;
 var openHelpButton = null, openShareButton = null, closeSettings = null;
@@ -26,7 +25,7 @@ var followsCountSelect = null, followsChunkSizeSelect = null, followsDelaySelect
 var helpModal = null, helpContentContainer = null, helpTabNav = null, closeHelp = null;
 var darkModeToggle = null, speedDeleteToggle = null, pianoAutoplayToggle = null;
 var bananasAutoplayToggle = null, followsAutoplayToggle = null, rounds15ClearAfterPlaybackToggle = null;
-var audioPlaybackToggle = null, voiceInputToggle = null, sliderLockToggle = null; // hapticsToggle REMOVED
+var audioPlaybackToggle = null, voiceInputToggle = null, sliderLockToggle = null, hapticsToggle = null;
 var showWelcomeToggle = null;
 var bananasSpeedSlider = null, bananasSpeedDisplay = null;
 var pianoSpeedSlider = null, pianoSpeedDisplay = null;
@@ -128,4 +127,4 @@ function getInitialState(mode) {
                 nextSequenceIndex: 0 
             };
     }
-}
+    }

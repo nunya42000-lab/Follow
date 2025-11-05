@@ -25,6 +25,7 @@ var helpModal = null, helpContentContainer = null, helpTabNav = null, closeHelp 
 var darkModeToggle = null, speedDeleteToggle = null, pianoAutoplayToggle = null;
 var bananasAutoplayToggle = null, followsAutoplayToggle = null, rounds15ClearAfterPlaybackToggle = null;
 var audioPlaybackToggle = null, voiceInputToggle = null, sliderLockToggle = null, hapticsToggle = null;
+var showWelcomeToggle = null; // NEW
 var bananasSpeedSlider = null, bananasSpeedDisplay = null;
 var pianoSpeedSlider = null, pianoSpeedDisplay = null;
 var rounds15SpeedSlider = null, rounds15SpeedDisplay = null;
@@ -125,5 +126,4 @@ function getInitialState(mode) {
                 nextSequenceIndex: 0 
             };
     }
-    }
-        
+}

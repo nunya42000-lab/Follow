@@ -57,6 +57,7 @@ function assignDomElements() {
     voiceInputToggle = document.getElementById('voice-input-toggle');
     sliderLockToggle = document.getElementById('slider-lock-toggle');
     hapticsToggle = document.getElementById('haptics-toggle');
+    showWelcomeToggle = document.getElementById('show-welcome-toggle'); // NEW
 
     // Sliders
     bananasSpeedSlider = document.getElementById('bananas-speed-slider');
@@ -202,6 +203,7 @@ function initializeListeners() {
     if (closeWelcomeModalBtn) closeWelcomeModalBtn.addEventListener('click', closeWelcomeModal);
     if (dontShowWelcomeToggle) dontShowWelcomeToggle.addEventListener('change', (e) => {
         settings.showWelcomeScreen = !e.target.checked;
+        if (showWelcomeToggle) showWelcomeToggle.checked = settings.showWelcomeScreen; // Sync settings toggle
         saveState();
     });
     
@@ -227,6 +229,11 @@ function initializeListeners() {
     });
     
     // Toggles
+    if (showWelcomeToggle) showWelcomeToggle.addEventListener('change', (e) => { // NEW
+        settings.showWelcomeScreen = e.target.checked;
+        if (dontShowWelcomeToggle) dontShowWelcomeToggle.checked = !settings.showWelcomeScreen; // Sync welcome modal toggle
+        saveState();
+    });
     if (darkModeToggle) darkModeToggle.addEventListener('change', (e) => updateTheme(e.target.checked));
     if (speedDeleteToggle) speedDeleteToggle.addEventListener('change', (e) => {
         settings.isSpeedDeletingEnabled = e.target.checked;
@@ -258,7 +265,7 @@ function initializeListeners() {
         updateVoiceInputVisibility();
         saveState();
     });
-    if (hapticsToggle) hapticsToggle.addEventListener('change', (e) => { // NEW
+    if (hapticsToggle) hapticsToggle.addEventListener('change', (e) => {
         settings.isHapticsEnabled = e.target.checked;
         if (settings.isHapticsEnabled) vibrate(50);
         saveState();
@@ -321,9 +328,9 @@ window.onload = function() {
     updateSpeedDisplay(settings.rounds15SpeedMultiplier, rounds15SpeedDisplay);
     updateScaleDisplay(settings.uiScaleMultiplier, uiScaleDisplay);
     updateSliderLockState();
-    updateVoiceInputVisibility(); // <<< This will now work
+    updateVoiceInputVisibility();
     
-    initializeListeners(); // <<< This will now work
+    initializeListeners();
     
     // Load the last used mode
     updateMode(settings.currentMode || 'bananas');
@@ -336,4 +343,3 @@ window.onload = function() {
     // Pre-load audio
     if (settings.isAudioPlaybackEnabled) speak(" "); 
 };
-      

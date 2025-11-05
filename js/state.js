@@ -82,7 +82,6 @@ function loadState() {
             };
         }
     } catch (error) {
-        // This block is now correct and clean
         console.error("Failed to load state from localStorage:", error);
         // Clear bad data
         localStorage.removeItem(SETTINGS_KEY);
@@ -126,4 +125,5 @@ function getInitialState(mode) {
                 nextSequenceIndex: 0 
             };
     }
-}
+    }
+        

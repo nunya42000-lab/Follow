@@ -21,8 +21,8 @@ function assignDomElements() {
     // Share Modal
     shareModal = document.getElementById('share-modal');
     closeShare = document.getElementById('close-share');
-    copyLinkButton = document.getElementById('copy-link-button'); // NEW
-    nativeShareButton = document.getElementById('native-share-button'); // NEW
+    copyLinkButton = document.getElementById('copy-link-button'); 
+    nativeShareButton = document.getElementById('native-share-button'); 
     
     // Welcome Modal
     welcomeModal = document.getElementById('welcome-modal');
@@ -345,7 +345,8 @@ window.onload = function() {
     assignDomElements(); // <<< ASSIGN ALL DOM VARIABLES
  
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js')
+        // UPDATED: Register with absolute path and explicit scope
+        navigator.serviceWorker.register('/Follow/sw.js', { scope: '/Follow/' })
             .then((registration) => {
                 console.log('Service Worker registered with scope:', registration.scope);
             })

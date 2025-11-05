@@ -85,6 +85,7 @@ function closeWelcomeModal() {
     if (!welcomeModal) return;
     if (dontShowWelcomeToggle) {
         settings.showWelcomeScreen = !dontShowWelcomeToggle.checked;
+        if (showWelcomeToggle) showWelcomeToggle.checked = settings.showWelcomeScreen; // Sync settings toggle
         saveState(); // Save the setting
     }
     welcomeModal.querySelector('div').classList.add('scale-90');
@@ -157,6 +158,7 @@ function openSettingsModal() {
     if (followsChunkSizeSelect) followsChunkSizeSelect.value = settings.followsChunkSize;
     if (followsDelaySelect) followsDelaySelect.value = settings.followsInterSequenceDelay; 
     
+    if (showWelcomeToggle) showWelcomeToggle.checked = settings.showWelcomeScreen; // NEW
     if (darkModeToggle) darkModeToggle.checked = settings.isDarkMode;
     if (speedDeleteToggle) speedDeleteToggle.checked = settings.isSpeedDeletingEnabled; 
     if (pianoAutoplayToggle) pianoAutoplayToggle.checked = settings.isPianoAutoplayEnabled; 
@@ -320,7 +322,7 @@ function generateModesHelp() {
             <li><span class="font-bold">Sequences:</span> Choose 2, 3, or 4 sequences in Settings.</li>
             <li><span class="font-bold">Demo (▶):</span> Plays back all sequences in "chunks".</li>
             <li><span class="font-bold">Chunk Size:</span> In Settings, set how many numbers to play from one sequence before moving to the next (e.g., 3 from S1, 3 from S2...).</li>
-            <li><span class="font-bold">Inter-Sequence Delay:</span> In Settings, add a pause (0.0s - 2.0s) when playback switches from one sequence to the next.</li>
+            <li><span class="font-bold">Inter-Sequence Delay:</span> In Settings, add a pause (0.0s - 1.0s) when playback switches from one sequence to the next.</li>
             <li><span class="font-bold">Autoplay Option:</span> Plays the demo automatically after you add a number to the *last* sequence.</li>
         </ul>
         
@@ -355,11 +357,12 @@ function generateSettingsHelp() {
             <li><span class="font-bold">Current Mode:</span> Tap this button to open a dropdown and switch between Bananas, Follows, Piano, and 15 rounds.</li>
             <li><span class="font-bold">Follows Sequences:</span> (Follows mode only) Choose 2, 3, or 4 active sequences.</li>
             <li><span class="font-bold">Numbers per sequence:</span> (Follows mode only) Sets the "chunk size" for playback (e.g., play 3 from S1, then 3 from S2...).</li>
-            <li><span class="font-bold">Delay between sequences:</span> (Follows mode only) Adds a pause when the demo switches between sequences.</li>
+            <li><span class="font-bold">Delay between sequences:</span> (Follows mode only) Adds a pause (0.0s - 1.0s) when the demo switches between sequences.</li>
         </ul>
         
         <h4 class="text-primary-app">Toggles</h4>
         <ul>
+            <li><span class="font-bold">Show Welcome Screen:</span> Toggles the introductory pop-up screen when you first open the app.</li>
             <li><span class="font-bold">Dark Mode:</span> Toggles the entire app between Dark and Light themes.</li>
             <li><span class="font-bold">Speed Deleting:</span> Lets you hold Backspace (←) to delete rapidly.</li>
             <li><span class="font-bold">Audio Playback (Speak):</span> Speaks the numbers/notes during demo playback.</li>
@@ -378,7 +381,7 @@ function generateSettingsHelp() {
         
         <h4 class="text-primary-app">Other</h4>
         <ul>
-            <li><span class="font-bold">Restore Defaults:</span> Resets *all* settings and clears *all* saved sequences back to their original state.</li>
+            <li><span class="font-bold">Restore Defaults:</span> Resets *all* settings (including 'Show Welcome Screen') and clears *all* saved sequences back to their original state.</li>
         </ul>
     `;
 }
@@ -526,4 +529,5 @@ function closeModal() {
         customModal.classList.add('opacity-0');
         setTimeout(() => customModal.classList.add('pointer-events-none'), 300);
     }
-}
+        }
+    

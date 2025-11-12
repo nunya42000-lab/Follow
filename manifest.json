@@ -1,7 +1,7 @@
 {
   "name": "Follow Me",
   "short_name": "FollowMe",
-  "start_url": "./",
+  "start_url": "/Follow/",
   "display": "standalone",
   "background_color": "#1f2937",
   "theme_color": "#4f46e5",
@@ -19,7 +19,5 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
-}
   ]
 }

@@ -28,7 +28,7 @@ function assignDomElements() {
     supportModal = document.getElementById('support-modal');
     closeSupportModalBtn = document.getElementById('close-support-modal');
     
-    // NEW: Feedback Modal
+    // Feedback Modal
     feedbackModal = document.getElementById('feedback-modal');
     closeFeedbackModalBtn = document.getElementById('close-feedback-modal');
     feedbackSendBtn = document.getElementById('feedback-send-button');
@@ -45,8 +45,8 @@ function assignDomElements() {
     settingsModeDropdown = document.getElementById('settings-mode-dropdown');
     openShareButton = document.getElementById('open-share-button');
     openHelpButton = document.getElementById('open-help-button');
-    openSupportButton = document.getElementById('open-support-button'); // NEW
-    openFeedbackButton = document.getElementById('open-feedback-button'); // NEW
+    openSupportButton = document.getElementById('open-support-button'); 
+    openFeedbackButton = document.getElementById('open-feedback-button'); 
     closeSettings = document.getElementById('close-settings');
     
     // Settings Controls
@@ -70,7 +70,6 @@ function assignDomElements() {
     audioPlaybackToggle = document.getElementById('audio-playback-toggle');
     voiceInputToggle = document.getElementById('voice-input-toggle');
     sliderLockToggle = document.getElementById('slider-lock-toggle');
-    // hapticsToggle REMOVED
     showWelcomeToggle = document.getElementById('show-welcome-toggle');
 
     // Sliders
@@ -152,7 +151,6 @@ function initializeListeners() {
         const { value, action, mode, modeSelect, copyTarget } = button.dataset;
 
         if (copyTarget) {
-            // ... (Clipboard logic for help prompts) ...
             const targetElement = document.getElementById(copyTarget);
             if (targetElement) {
                 targetElement.select();
@@ -193,18 +191,37 @@ function initializeListeners() {
             openSupportModal();
             return;
         }
-        if (action === 'open-feedback') { // NEW
+        if (action === 'open-feedback') {
             openFeedbackModal();
             return;
         }
 
         // --- Share Modal Actions ---
         if (action === 'copy-link') {
-            // ... (content unchanged) ...
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                button.disabled = true;
+                button.classList.add('!bg-btn-control-green'); 
+                button.innerHTML = `
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                    Copied!
+                `;
+            }).catch(err => {
+                console.error('Failed to copy link: ', err);
+                button.innerHTML = 'Error Copying';
+            });
             return;
         }
+        
         if (action === 'native-share') {
-            // ... (content unchanged) ...
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Follow Me App',
+                    text: 'Check out this sequence memorization app!',
+                    url: window.location.href,
+                })
+                .then(() => console.log('Successful share'))
+                .catch((error) => console.log('Error sharing:', error));
+            }
             return;
         }
 
@@ -242,18 +259,43 @@ function initializeListeners() {
         
         // --- Value Input ---
         if (value && mode === currentMode) {
-            // ... (content unchanged) ...
+            if ((currentMode === 'bananas' || currentMode === 'follows') && /^[1-9]$/.test(value)) {
+                addValue(value); 
+            }
+            else if (currentMode === 'piano' && (/^[1-5]$/.test(value) || /^[A-G]$/.test(value))) {
+                if (!settings.isPianoAutoplayEnabled) flashKey(value, 200);
+                addValue(value);
+            }
+            else if (currentMode === 'rounds15' && /^(?:[1-9]|1[0-2])$/.test(value)) {
+                addValue(value); 
+            }
         }
     });
     
     // Voice (Text) Input Listeners
     if (allVoiceInputs) {
-        // ... (content unchanged) ...
+        allVoiceInputs.forEach(input => {
+            input.addEventListener('input', (event) => {
+                const transcript = event.target.value;
+                if (transcript && transcript.length > 0) {
+                    if (event.target.dataset.mode === currentMode) {
+                        processVoiceTranscript(transcript);
+                        event.target.value = ''; 
+                    } else {
+                        event.target.value = ''; 
+                    }
+                }
+            });
+        });
     }
     
     // Backspace Listeners
     document.querySelectorAll('button[data-action="backspace"]').forEach(btn => {
-        // ... (content unchanged) ...
+        btn.addEventListener('mousedown', handleBackspaceStart);
+        btn.addEventListener('mouseup', handleBackspaceEnd);
+        btn.addEventListener('mouseleave', stopSpeedDeleting);
+        btn.addEventListener('touchstart', handleBackspaceStart, { passive: false });
+        btn.addEventListener('touchend', handleBackspaceEnd);
     });
     
     // --- Modal & Settings Listeners ---
@@ -271,19 +313,26 @@ function initializeListeners() {
     if (closeSettings) closeSettings.addEventListener('click', closeSettingsModal);
     
     if (followsCountSelect) followsCountSelect.addEventListener('change', (event) => {
-        // ... (content unchanged) ...
+        const newCount = parseInt(event.target.value);
+        const state = appState['follows'];
+        state.sequenceCount = newCount;
+        state.nextSequenceIndex = 0;
+        renderSequences();
+        saveState(); 
     });
     if (followsChunkSizeSelect) followsChunkSizeSelect.addEventListener('change', (event) => {
-        // ... (content unchanged) ...
+        settings.followsChunkSize = parseInt(event.target.value);
+        saveState(); 
     });
     if (followsDelaySelect) followsDelaySelect.addEventListener('change', (event) => { 
-        // ... (content unchanged) ...
+        settings.followsInterSequenceDelay = parseInt(event.target.value);
+        saveState(); 
     });
     
     // Toggles
     if (showWelcomeToggle) showWelcomeToggle.addEventListener('change', (e) => {
         settings.showWelcomeScreen = e.target.checked;
-        if (dontShowWelcomeToggle) dontShowWelcomeToggle.checked = !settings.showWelcomeScreen;
+        if (dontShowWelcomeToggle) dontShowWelcomeToggle.checked = !settings.showWelcomeScreen; 
         saveState();
     });
     if (darkModeToggle) darkModeToggle.addEventListener('change', (e) => updateTheme(e.target.checked));
@@ -317,73 +366,6 @@ function initializeListeners() {
         updateVoiceInputVisibility();
         saveState();
     });
-    // hapticsToggle listener REMOVED
-    if (sliderLockToggle) sliderLockToggle.addEventListener('change', (e) => {
-        settings.areSlidersLocked = e.target.checked;
-        updateSliderLockState();
-        saveState();
-    });
-
-    // Sliders
-    function setupSpeedSlider(slider, displayElement, modeKey) {
-        // ... (content unchanged) ...
-    }
-    setupSpeedSlider(bananasSpeedSlider, bananasSpeedDisplay, 'bananas');
-    setupSpeedSlider(pianoSpeedSlider, pianoSpeedDisplay, 'piano');
-    setupSpeedSlider(rounds15SpeedSlider, rounds15SpeedDisplay, 'rounds15');
-    
-    if (uiScaleSlider) {
-        // ... (content unchanged) ...
-    }
-    
-    // Other Modals
-    if (closeHelp) closeHelp.addEventListener('click', closeHelpModal);
-    if (closeShare) closeShare.addEventListener('click', closeShareModal);
-    if (closeSupportModalBtn) closeSupportModalBtn.addEventListener('click', closeSupportModal);
-    
-    // NEW: Feedback Modal Listeners
-    if (closeFeedbackModalBtn) closeFeedbackModalBtn.addEventListener('click', closeFeedbackModal);
-    if (feedbackSendBtn) feedbackSendBtn.addEventListener('click', handleSendFeedback);
-}
-
-// --- Initialization ---
-window.onload = function() {
-    
-    loadState(); // <<< LOAD STATE FIRST
-    
-    assignDomElements(); // <<< ASSIGN ALL DOM VARIABLES
- 
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/Follow/sw.js', { scope: '/Follow/' })
-            .then((registration) => {
-                console.log('Service Worker registered with scope:', registration.scope);
-            })
-            .catch((error) => {
-                console.error('Service Worker registration failed:', error);
-            });
-    }
-
-    // --- Update UI based on loaded state ---
-    updateTheme(settings.isDarkMode);
-    updateSpeedDisplay(settings.bananasSpeedMultiplier, bananasSpeedDisplay);
-    updateSpeedDisplay(settings.pianoSpeedMultiplier, pianoSpeedDisplay);
-    updateSpeedDisplay(settings.rounds15SpeedMultiplier, rounds15SpeedDisplay);
-    updateScaleDisplay(settings.uiScaleMultiplier, uiScaleDisplay);
-    updateSliderLockState();
-    updateVoiceInputVisibility();
-    
-    initializeListeners();
-    
-    // Load the last used mode
-    updateMode(settings.currentMode || 'bananas');
-    
-    if (settings.showWelcomeScreen) {
-        setTimeout(openWelcomeModal, 500);
-    }
-    
-    if (settings.isAudioPlaybackEnabled) speak(" "); 
-};
-le listener REMOVED
     if (sliderLockToggle) sliderLockToggle.addEventListener('change', (e) => {
         settings.areSlidersLocked = e.target.checked;
         updateSliderLockState();
@@ -416,19 +398,22 @@ le listener REMOVED
     // Other Modals
     if (closeHelp) closeHelp.addEventListener('click', closeHelpModal);
     if (closeShare) closeShare.addEventListener('click', closeShareModal);
-    if (closeSupportModalBtn) closeSupportModalBtn.addEventListener('click', closeSupportModal); // NEW
+    if (closeSupportModalBtn) closeSupportModalBtn.addEventListener('click', closeSupportModal);
+    
+    // NEW: Feedback Modal Listeners
+    if (closeFeedbackModalBtn) closeFeedbackModalBtn.addEventListener('click', closeFeedbackModal);
+    if (feedbackSendBtn) feedbackSendBtn.addEventListener('click', handleSendFeedback);
 }
 
 // --- Initialization ---
 window.onload = function() {
     
-    loadState(); // <<< LOAD STATE FIRST
+    loadState(); 
     
-    assignDomElements(); // <<< ASSIGN ALL DOM VARIABLES
+    assignDomElements(); 
  
     if ('serviceWorker' in navigator) {
-        // UPDATED: Register with absolute path and explicit scope
-        navigator.serviceWorker.register('/Follow/sw.js', { scope: '/Follow/' })
+        navigator.serviceWorker.register('./sw.js')
             .then((registration) => {
                 console.log('Service Worker registered with scope:', registration.scope);
             })
@@ -439,10 +424,10 @@ window.onload = function() {
 
     // --- Update UI based on loaded state ---
     updateTheme(settings.isDarkMode);
-    updateSpeedDisplay(settings.bananasSpeedMultiplier, bananasSpeedDisplay);
-    updateSpeedDisplay(settings.pianoSpeedMultiplier, pianoSpeedDisplay);
-    updateSpeedDisplay(settings.rounds15SpeedMultiplier, rounds15SpeedDisplay);
-    updateScaleDisplay(settings.uiScaleMultiplier, uiScaleDisplay);
+    if (bananasSpeedSlider) updateSpeedDisplay(settings.bananasSpeedMultiplier, bananasSpeedDisplay);
+    if (pianoSpeedSlider) updateSpeedDisplay(settings.pianoSpeedMultiplier, pianoSpeedDisplay);
+    if (rounds15SpeedSlider) updateSpeedDisplay(settings.rounds15SpeedMultiplier, rounds15SpeedDisplay);
+    if (uiScaleSlider) updateScaleDisplay(settings.uiScaleMultiplier, uiScaleDisplay);
     updateSliderLockState();
     updateVoiceInputVisibility();
     
@@ -453,7 +438,7 @@ window.onload = function() {
     
     // --- NEW: Show Welcome Modal ---
     if (settings.showWelcomeScreen) {
-        setTimeout(openWelcomeModal, 500); // Give a slight delay
+        setTimeout(openWelcomeModal, 500); 
     }
     
     // Pre-load audio

@@ -18,7 +18,16 @@ const APP_SHELL_URLS = [
     '/Follow/js/ui.js',
     '/Follow/js/core.js',
     '/Follow/js/demo.js',
-    '/Follow/js/main.js'
+    '/Follow/js/main.js',
+    
+    // --- ICONS ADDED HERE ---
+    '/Follow/icons/android-launchericon-48-48.png',
+    '/Follow/icons/android-launchericon-72-72.png',
+    '/Follow/icons/android-launchericon-96-96.png',
+    '/Follow/icons/android-launchericon-144-144.png',
+    '/Follow/icons/android-launchericon-192-192.png',
+    '/Follow/icons/android-launchericon-512-512.png',
+    '/Follow/icons/apple-touch-icon.png'
 ];
 
 // --- Install Event ---
@@ -108,4 +117,3 @@ self.addEventListener('fetch', (event) => {
             })
     );
 });
-                      

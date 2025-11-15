@@ -1,27 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+@import url('httpsat://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 
 /* ---------------------------------- */
 /* --- THEME COLORS (CSS Variables) --- */
 /* ---------------------------------- */
-
-/* Dark Mode (Default) */
 :root {
-    --bg-main: #1f2937;           /* Main background */
-    --bg-footer: #1f2937;         /* Footer background */
+    --bg-main: #1f2937;           
+    --bg-footer: #1f2937;         
     --text-color: #ffffff;
-    --card-bg: #374151;           /* Input button background */
+    --card-bg: #374151;           
     --card-text: #ffffff;
-    --btn-control-gray: #6b7280;  /* DEL button default */
-    --btn-control-gray-active: #4b5563; /* DEL button active */
+    --btn-control-gray: #6b7280;  
+    --btn-control-gray-active: #4b5563; 
 }
-
-/* Light Mode Overrides (when body has 'light' class) */
-/* --- THIS SECTION IS FIXED --- */
 .light {
-    --bg-main: #ffffff;           /* Light background */
-    --bg-footer: #ffffff;         /* Footer background (now matches body) */
+    --bg-main: #ffffff;           
+    --bg-footer: #ffffff;         
     --text-color: #1f2937;
-    --card-bg: #e5e7eb;           /* Light gray for pad buttons */
+    --card-bg: #e5e7eb;           
     --card-text: #1f2937;
     --btn-control-gray: #9ca3af; 
     --btn-control-gray-active: #6b7280;
@@ -35,13 +30,10 @@ body {
 }
 #input-footer {
     background-color: var(--bg-footer);
-    border-top-color: var(--text-color);
 }
 .btn-input {
     color: var(--card-text);
 }
-
-/* Custom styles for number boxes */
 .number-box {
     height: 40px; 
     line-height: 40px; 
@@ -49,10 +41,6 @@ body {
     font-weight: 700; 
     transition: height 0.2s, line-height 0.2s, font-size 0.2s; 
 }
-
-/* ------------------------------ */
-/* --- Dialer-Style Button Base --- */
-/* ------------------------------ */
 .btn-input {
     transition: all 0.15s ease-in-out;
     position: relative; 
@@ -61,41 +49,32 @@ body {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.1); 
     height: 64px; 
 }
-
-/* Default style for number buttons */
 .btn-pad-number {
     background-color: var(--card-bg);
     font-size: 1.5rem; /* text-2xl */
 }
-
-/* Subtle Active state for player input feedback */
 .btn-pad-number:active {
     transform: scale(0.95);
     background-color: var(--btn-control-gray-active);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
-
-/* --- FLASH for Demo Effects --- */
-.btn-pad-number.bananas-flash {
-    background-color: #3b82f6; 
+/* FLASH for Demo Effects */
+.btn-pad-number.key9-flash {
+    background-color: #3b82f6; /* blue-500 */
     box-shadow: 0 0 15px 5px rgba(59, 130, 246, 0.7); 
     transform: scale(1.05); 
 }
-.btn-pad-number.demo-flash-rounds15 {
-    background-color: #10b981; 
+.btn-pad-number.key12-flash {
+    background-color: #10b981; /* green-500 */
     box-shadow: 0 0 15px 5px rgba(16, 185, 129, 0.7); 
     transform: scale(1.05); 
 }
-
-/* --- Control Button Styles --- */
 .btn-control {
     font-size: 1.8rem; 
     height: 64px; 
     border-radius: 9999px; 
     color: var(--card-text); 
 }
-
-/* Backspace/DEL button styling (uses gray theme) */
 .btn-control[data-action="backspace"] {
     background-color: var(--btn-control-gray);
     color: white; 
@@ -103,13 +82,6 @@ body {
 .btn-control[data-action="backspace"]:active {
     background-color: var(--btn-control-gray-active);
     transform: scale(0.95);
-}
-
-/* --- NEW: Voice Input Active Style --- */
-.btn-control[data-action="voice-input"].voice-active {
-    background-color: var(--tw-color-btn-control-red, #dc2626);
-    box-shadow: 0 0 15px 5px rgba(220, 38, 38, 0.7);
-    transform: scale(1.05);
 }
 
 /* -------------------------- */
@@ -127,7 +99,6 @@ body {
     position: relative;
     height: 100%;
 }
-
 .piano-key-white {
     width: 100%;
     height: 100%;
@@ -151,14 +122,12 @@ body {
     justify-content: center;
     transition: all 0.15s ease-in-out; 
 }
-
 .piano-key-white:active, .piano-key-white.flash {
     transform: translateY(2px); 
     box-shadow: 0 0 20px 7px rgba(255, 238, 0, 0.9), inset 0 0 10px rgba(0,0,0,0.1); 
     background-image: linear-gradient(to bottom, #ffea00, #ffe066); 
     border-bottom: 2px solid #f0ad4e; 
 }
-
 .piano-key-black {
     height: 65%; 
     width: 13%; 
@@ -182,7 +151,6 @@ body {
     cursor: pointer;
     transition: all 0.05s ease-in-out;
 }
-
 .piano-key-black:active, .piano-key-black.flash {
     transform: translateY(3px); 
     height: calc(65% - 3px); 
@@ -190,8 +158,6 @@ body {
     background-image: linear-gradient(to top, #664400, #4c3300); 
     border-bottom: 2px solid #f0adad;
 }
-
-/* Black Key Positioning */
 .black-1 { left: calc((100% / 7) * 1 - (13% / 2)); }
 .black-2 { left: calc((100% / 7) * 2 - (13% / 2)); }
 .black-3 { left: calc((100% / 7) * 4 - (13% / 2)); }
@@ -210,37 +176,35 @@ body {
 .dark #help-content-container h4 {
     border-bottom: 1px solid #4b5563; /* gray-600 */
 }
-#help-content-container p {
+#help-content-container p, #help-content-container ul {
     margin-bottom: 1rem;
     line-height: 1.5;
 }
 #help-content-container ul {
     list-style: disc;
     margin-left: 1.5rem;
-    margin-bottom: 1rem;
 }
 
 /* Styles for Prompt Box */
 .prompt-box {
     width: 100%;
-    height: 150px; /* Fixed height for consistency */
+    height: 150px;
     padding: 0.75rem;
     margin-bottom: 0.5rem;
     border-radius: 0.5rem;
-    border: 1px solid #9ca3af; /* gray-400 */
-    background-color: #f3f4f6; /* gray-100 */
-    color: #1f2937; /* gray-800 */
+    border: 1px solid #9ca3af;
+    background-color: #f3f4f6;
+    color: #1f2937;
     font-family: monospace;
     font-size: 0.875rem;
     line-height: 1.25rem;
     resize: none;
 }
 .dark .prompt-box {
-    background-color: #4b5563; /* gray-600 */
+    background-color: #4b5563;
     color: #ffffff;
-    border-color: #6b7280; /* gray-500 */
+    border-color: #6b7280;
 }
-
 .copy-button {
     display: flex;
     align-items: center;
@@ -250,39 +214,113 @@ body {
     font-size: 0.875rem;
     font-weight: 600;
     color: white;
-    background-color: var(--tw-color-btn-control-blue, #2563eb);
+    background-color: #2563eb; /* btn-control-blue */
     border: none;
     border-radius: 0.5rem;
     cursor: pointer;
     transition: background-color 0.2s;
-    margin-bottom: 1rem; /* Space between buttons */
+    margin-bottom: 1rem;
 }
 .copy-button:hover {
-    background-color: var(--tw-color-btn-control-blue-active, #1e40af);
+    background-color: #1e40af; /* btn-control-blue-active */
 }
 .copy-button.copied {
     background-color: #10b981; /* green-500 */
 }
 
-/* UPDATED: Help Tab Styles */
+/* Help Tab Styles */
 .help-tab-button {
-    padding: 0.5rem 0.75rem; /* Reduced horizontal padding */
+    padding: 0.5rem 0.75rem;
     font-weight: 600;
-    color: #6b7280; /* gray-500 */
+    color: #6b7280;
     border-bottom: 3px solid transparent;
     transition: all 0.2s;
 }
 .dark .help-tab-button {
-    color: #9ca3af; /* gray-400 */
+    color: #9ca3af;
 }
 .help-tab-button:hover {
-    color: #374151; /* gray-700 */
+    color: #374151;
 }
 .dark .help-tab-button:hover {
-    color: #e5e7eb; /* gray-200 */
+    color: #e5e7eb;
 }
 .help-tab-button.active-tab {
-    color: var(--tw-color-primary-app, #4f46e5);
-    border-bottom-color: var(--tw-color-primary-app, #4f46e5);
-    }
-    
+    color: #4f46e5; /* primary-app */
+    border-bottom-color: #4f46e5; /* primary-app */
+}
+
+/* Generic select dropdown */
+.select-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+.dark .select-input {
+     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2S00/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+}
+.select-input:disabled {
+    background-color: #e5e7eb; /* gray-200 */
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+.dark .select-input:disabled {
+     background-color: #4b5563; /* gray-600 */
+}
+
+/* Custom range slider */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 0.5rem; /* 8px */
+    background: #e5e7eb; /* gray-200 */
+    border-radius: 9999px; /* rounded-full */
+    outline: none;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+}
+.dark input[type="range"] {
+    background: #4b5563; /* gray-600 */
+}
+input[type="range"]:hover {
+    opacity: 1;
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1.25rem; /* 20px */
+    height: 1.25rem; /* 20px */
+    background: #4f46e5; /* primary-app */
+    border-radius: 9999px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+input[type="range"]::-moz-range-thumb {
+    width: 1.25rem;
+    height: 1.25rem;
+    background: #4f46e5;
+    border-radius: 9999px;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+input[type="range"]:disabled {
+     background: #e5e7eb; /* gray-200 */
+}
+.dark input[type="range"]:disabled {
+     background: #4b5563; /* gray-600 */
+}
+input[type="range"]:disabled::-webkit-slider-thumb {
+    background: #9ca3af; /* gray-400 */
+    cursor: not-allowed;
+}
+input[type="range"]:disabled::-moz-range-thumb {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+ground-color 0.2s ease-in-out;
+}

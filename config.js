@@ -73,21 +73,3 @@
     };
 
 })();
-,
-  measurementId: "G-FN9Y8WVHCL"
-};
-
-// Initialize Firebase
-// We check if firebase is defined to avoid errors if the script didn't load
-if (typeof firebase !== 'undefined') {
-    try {
-        firebase.initializeApp(firebaseConfig);
-        console.log("Firebase initialized successfully");
-    } catch (e) {
-        console.error("Firebase initialization error:", e);
-    }
-} else {
-    console.error("Firebase SDK not loaded. Check index.html");
-}
-
-

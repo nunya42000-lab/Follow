@@ -4,7 +4,7 @@
     const PRESETS_KEY = 'followMePresets_v1';
     let settings = { ...AppConfig.DEFAULT_SETTINGS };
     let appState = {};
-    let appPresets = {}; // <-- NEW: To hold all saved presets
+    let appPresets = {}; 
 
     function getInitialState() {
         return { 
@@ -25,7 +25,7 @@
         }
     }
     
-    // --- NEW PRESET FUNCTIONS ---
+    // --- PRESET FUNCTIONS ---
     function savePresets() {
         try {
             localStorage.setItem(PRESETS_KEY, JSON.stringify(appPresets));
@@ -39,8 +39,12 @@
             const storedPresets = localStorage.getItem(PRESETS_KEY);
             if (storedPresets) {
                 appPresets = JSON.parse(storedPresets);
+                // Ensure default preset exists if user deleted it
+                if (!appPresets["Follow Me"]) {
+                    appPresets["Follow Me"] = { ...AppConfig.DEFAULT_SETTINGS };
+                    savePresets();
+                }
             } else {
-                // Initialize with the default "Follow Me" preset
                 appPresets = {
                     "Follow Me": { ...AppConfig.DEFAULT_SETTINGS }
                 };
@@ -56,7 +60,6 @@
 
     function saveCurrentSettingsAsPreset(name) {
         if (!name) return;
-        // Create a deep copy of the current settings to save
         const settingsToSave = JSON.parse(JSON.stringify(settings));
         appPresets[name] = settingsToSave;
         savePresets();
@@ -66,14 +69,37 @@
         const loaded = appPresets[name];
         if (!loaded) {
             console.error(`Preset "${name}" not found.`);
-            return;
+            return false;
         }
-        // Overwrite current settings with the loaded preset
-        // Use JSON parse/stringify for a deep copy
         settings = JSON.parse(JSON.stringify(loaded));
-        saveState(); // Save the newly loaded settings as the *current* settings
+        saveState(); 
+        return true;
     }
-    // --- END NEW PRESET FUNCTIONS ---
+
+    function renamePreset(oldName, newName) {
+        if (!oldName || !newName || oldName === newName || !appPresets[oldName]) {
+            return false;
+        }
+        appPresets[newName] = appPresets[oldName];
+        delete appPresets[oldName];
+        savePresets();
+        return true;
+    }
+
+    function deletePreset(name) {
+        if (!name || !appPresets[name]) {
+            return false;
+        }
+        // Don't allow deleting the last preset
+        if (Object.keys(appPresets).length <= 1) {
+            UI.showModal("Cannot Delete", "You cannot delete the last preset.", () => UI.closeModal(), "OK", "");
+            return false;
+        }
+        delete appPresets[name];
+        savePresets();
+        return true;
+    }
+    // --- END PRESET FUNCTIONS ---
 
     function loadState() {
         try {
@@ -88,7 +114,6 @@
                 settings = { ...AppConfig.DEFAULT_SETTINGS };
             }
 
-            // ... (rest of the function is the same)
             if (settings.currentMode === 'changing') {
                 settings.currentMode = AppConfig.MODES.UNIQUE_ROUNDS;
             }
@@ -136,7 +161,7 @@
             };
         }
         
-        loadPresets(); // <-- NEW: Load presets on startup
+        loadPresets(); 
     }
 
     function resetToDefaults() {
@@ -147,13 +172,12 @@
             [AppConfig.INPUTS.PIANO]: getInitialState(),
         };
         
-        // Also reset presets
         appPresets = {
             "Follow Me": { ...AppConfig.DEFAULT_SETTINGS }
         };
         
         saveState();
-        savePresets(); // <-- NEW: Save reset presets
+        savePresets(); 
     }
 
     // Expose to global scope
@@ -165,10 +189,11 @@
         getSettings: () => settings,
         getAppState: () => appState,
         getCurrentState: () => appState[settings.currentInput],
-        // --- NEW EXPOSED FUNCTIONS ---
         getPresets: () => appPresets,
         saveCurrentSettingsAsPreset,
-        loadSettingsFromPreset
+        loadSettingsFromPreset,
+        renamePreset,
+        deletePreset
     };
 
 })();

@@ -1,4 +1,4 @@
-@import url('httpsat://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 
 /* ---------------------------------- */
 /* --- THEME COLORS (CSS Variables) --- */
@@ -228,24 +228,24 @@ body {
     background-color: #10b981; /* green-500 */
 }
 
-/* Help Tab Styles */
-.help-tab-button {
+/* Help & Settings Tab Styles */
+.help-tab-button, .settings-tab-button {
     padding: 0.5rem 0.75rem;
     font-weight: 600;
     color: #6b7280;
     border-bottom: 3px solid transparent;
     transition: all 0.2s;
 }
-.dark .help-tab-button {
+.dark .help-tab-button, .dark .settings-tab-button {
     color: #9ca3af;
 }
-.help-tab-button:hover {
+.help-tab-button:hover, .settings-tab-button:hover {
     color: #374151;
 }
-.dark .help-tab-button:hover {
+.dark .help-tab-button:hover, .dark .settings-tab-button:hover {
     color: #e5e7eb;
 }
-.help-tab-button.active-tab {
+.help-tab-button.active-tab, .settings-tab-button.active-tab {
     color: #4f46e5; /* primary-app */
     border-bottom-color: #4f46e5; /* primary-app */
 }
@@ -321,5 +321,4 @@ input[type="range"]:disabled::-webkit-slider-thumb {
 input[type="range"]:disabled::-moz-range-thumb {
     background: #9ca3af;
     cursor: not-allowed;
-    }
-    
+}

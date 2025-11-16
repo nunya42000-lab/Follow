@@ -324,7 +324,7 @@
     }
     
     /**
-     * NEW: Reads from StateManager and populates all controls in the settings modal.
+     * Reads from StateManager and populates all controls in the settings modal.
      */
     function populateSettingsModal() {
         const settings = StateManager.getSettings();
@@ -347,17 +347,19 @@
         updateDelayDisplay(settings.simonInterSequenceDelay, dom.delayDisplay);
         dom.autoclearToggle.checked = settings.isUniqueRoundsAutoClearEnabled;
         
-        // App Controls
+        // App Controls (Playback Tab)
         dom.playbackSpeedSlider.value = settings.playbackSpeed * 100;
         updatePlaybackSpeedDisplay(settings.playbackSpeed * 100, dom.playbackSpeedDisplay);
-        dom.uiScaleSlider.value = settings.uiScaleMultiplier * 100;
-        updateScaleDisplay(settings.uiScaleMultiplier, dom.uiScaleDisplay);
-
-        // App Toggles
-        dom.darkModeToggle.checked = settings.isDarkMode;
-        dom.speedDeleteToggle.checked = settings.isSpeedDeletingEnabled; 
         dom.autoplayToggle.checked = settings.isAutoplayEnabled;
         dom.audioPlaybackToggle.checked = settings.isAudioPlaybackEnabled; 
+
+        // General Tab
+        dom.uiScaleSlider.value = settings.uiScaleMultiplier * 100;
+        updateScaleDisplay(settings.uiScaleMultiplier, dom.uiScaleDisplay);
+        dom.darkModeToggle.checked = settings.isDarkMode;
+
+        // Input Tab
+        dom.speedDeleteToggle.checked = settings.isSpeedDeletingEnabled; 
         dom.voiceInputToggle.checked = settings.isVoiceInputEnabled;
         dom.hapticsToggle.checked = settings.isHapticsEnabled;
 
@@ -365,13 +367,13 @@
     }
     
     /**
-     * NEW: Reads all controls from settings modal and saves them to StateManager.
+     * Reads all controls from settings modal and saves them to StateManager.
      */
     function saveSettingsFromModal() {
         const settings = StateManager.getSettings();
         const state = StateManager.getCurrentState();
 
-        // Game Setup
+        // Game Setup (Tab 1)
         const newMachineCount = parseInt(dom.machinesSlider.value);
         const newMode = dom.modeToggle.checked ? AppConfig.MODES.UNIQUE_ROUNDS : AppConfig.MODES.SIMON;
         const newSInput = dom.inputSelect.value;
@@ -387,17 +389,19 @@
         settings.simonInterSequenceDelay = parseInt(dom.delaySlider.value);
         settings.isUniqueRoundsAutoClearEnabled = dom.autoclearToggle.checked;
         
-        // App Controls
-        settings.playbackSpeed = parseInt(dom.playbackSpeedSlider.value) / 100.0;
-        settings.uiScaleMultiplier = parseInt(dom.uiScaleSlider.value) / 100.0;
-        
-        // App Toggles
-        settings.isAutoplayEnabled = dom.autoplayToggle.checked;
-        settings.isDarkMode = dom.darkModeToggle.checked;
+        // Input (Tab 2)
         settings.isSpeedDeletingEnabled = dom.speedDeleteToggle.checked;
-        settings.isAudioPlaybackEnabled = dom.audioPlaybackToggle.checked;
         settings.isVoiceInputEnabled = dom.voiceInputToggle.checked;
         settings.isHapticsEnabled = dom.hapticsToggle.checked;
+        
+        // Playback (Tab 3)
+        settings.playbackSpeed = parseInt(dom.playbackSpeedSlider.value) / 100.0;
+        settings.isAutoplayEnabled = dom.autoplayToggle.checked;
+        settings.isAudioPlaybackEnabled = dom.audioPlaybackToggle.checked;
+
+        // General (Tab 4)
+        settings.uiScaleMultiplier = parseInt(dom.uiScaleSlider.value) / 100.0;
+        settings.isDarkMode = dom.darkModeToggle.checked;
         
         // --- Apply changes ---
         const newState = StateManager.getCurrentState(); // Gets new state if input changed
@@ -426,13 +430,36 @@
     
     function openSettingsModal() {
         populateSettingsModal(); // Populate with current settings
+        switchSettingsTab('setup'); // Default to first tab
         _toggleModal(dom.settingsModal, true);
     }
 
     function closeSettingsModal() { 
-        // Now just closes. Saving is handled by the button.
+        // Just closes, saving is handled by the button
         _toggleModal(dom.settingsModal, false);
     }
+
+    // --- NEW: Settings Tab Switching ---
+    function switchSettingsTab(tabId) {
+        if (dom.settingsModal) {
+            dom.settingsModal.querySelectorAll('.settings-tab-content').forEach(tab => tab.classList.add('hidden'));
+            dom.settingsModal.querySelectorAll('.settings-tab-button').forEach(btn => btn.classList.remove('active-tab'));
+            
+            const content = document.getElementById(`settings-tab-${tabId}`);
+            if (content) content.classList.remove('hidden');
+            
+            const button = dom.settingsTabNav.querySelector(`button[data-tab="${tabId}"]`);
+            if (button) button.classList.add('active-tab');
+        }
+    }
+    
+    function handleSettingsTabClick(event) {
+        const button = event.target.closest('button[data-tab]');
+        if (button) {
+            switchSettingsTab(button.dataset.tab);
+        }
+    }
+
 
     // --- 7. Help Modal Logic ---
     function openHelpModal() {
@@ -526,11 +553,12 @@
                 <li><span class="font-bold">Full Setup:</span> Opens the main Settings & Setup modal.</li>
             </ul>
             <h4 class="text-primary-app">Settings & Setup (⚙️)</h4>
+            <p>This modal is now tabbed for easier navigation.</p>
             <ul>
-                <li><span class="font-bold">Preset Management:</span> Save, Rename, or Delete your current preset.</li>
-                <li><span class="font-bold">Game Setup:</span> Configure Input, Mode, Machines, and Length here.</li>
-                <li><span class="font-bold">App Controls:</span> Adjust playback speed and sequence size.</li>
-                <li><span class="font-bold">App Toggles:</span> All other toggles (Dark Mode, Haptics, etc.).</li>
+                <li><span class="font-bold">Setup Tab:</span> Manage presets and configure game rules (Input, Mode, Machines, etc.).</li>
+                <li><span class="font-bold">Input Tab:</span> Control *how* you enter data (Manual, Gestures, Mic, Camera) and related helpers.</li>
+                <li><span class="font-bold">Playback Tab:</span> Control *how* the app plays back (Audio, Haptics) and its speed.</li>
+                <li><span class="font-bold">General Tab:</span> App-wide settings like Dark Mode, UI size, and Restore Defaults.</li>
             </ul>`;
     }
     
@@ -649,13 +677,14 @@ Let's start with Round 1.`;
         dom.openHelpButton = document.getElementById('open-help-button');
         dom.closeSettings = document.getElementById('close-settings');
         
-        // Presets
+        // Settings Tabs
+        dom.settingsTabNav = document.getElementById('settings-tab-nav');
+        
+        // Tab 1: Setup
         dom.presetSelect = document.getElementById('preset-select');
         dom.savePresetButton = document.getElementById('save-preset-button');
         dom.renamePresetButton = document.getElementById('rename-preset-button');
         dom.deletePresetButton = document.getElementById('delete-preset-button');
-
-        // Game Setup (in Settings)
         dom.inputSelect = document.getElementById('input-select');
         dom.modeToggle = document.getElementById('mode-toggle');
         dom.modeToggleLabel = document.getElementById('mode-toggle-label');
@@ -672,20 +701,22 @@ Let's start with Round 1.`;
         dom.autoclearToggle = document.getElementById('autoclear-toggle');
         dom.settingAutoclear = document.getElementById('setting-autoclear');
         
-        // App Controls (in Settings)
+        // Tab 2: Input
+        dom.voiceInputToggle = document.getElementById('voice-input-toggle');
+        dom.speedDeleteToggle = document.getElementById('speed-delete-toggle');
+        dom.hapticsToggle = document.getElementById('haptics-toggle');
+
+        // Tab 3: Playback
         dom.playbackSpeedSlider = document.getElementById('playback-speed-slider');
         dom.playbackSpeedDisplay = document.getElementById('playback-speed-display');
+        dom.autoplayToggle = document.getElementById('autoplay-toggle');
+        dom.audioPlaybackToggle = document.getElementById('audio-playback-toggle');
+        
+        // Tab 4: General
+        dom.darkModeToggle = document.getElementById('dark-mode-toggle');
         dom.uiScaleSlider = document.getElementById('ui-scale-slider');
         dom.uiScaleDisplay = document.getElementById('ui-scale-display');
         
-        // App Toggles (in Settings)
-        dom.autoplayToggle = document.getElementById('autoplay-toggle');
-        dom.darkModeToggle = document.getElementById('dark-mode-toggle');
-        dom.speedDeleteToggle = document.getElementById('speed-delete-toggle');
-        dom.audioPlaybackToggle = document.getElementById('audio-playback-toggle');
-        dom.voiceInputToggle = document.getElementById('voice-input-toggle');
-        dom.hapticsToggle = document.getElementById('haptics-toggle');
-
         // Help Modal
         dom.helpModal = document.getElementById('help-modal');
         dom.helpContentContainer = document.getElementById('help-content-container');
@@ -721,9 +752,10 @@ Let's start with Round 1.`;
         updateUniqueRoundsDisplay,
         openGameSetupModal,
         closeGameSetupModal,
-        updateGameSetupVisibility,
         openSettingsModal,
         closeSettingsModal,
+        saveSettingsFromModal, // <-- NEW
+        populateSettingsModal, // <-- NEW
         openHelpModal,
         closeHelpModal,
         openShareModal,
@@ -734,9 +766,8 @@ Let's start with Round 1.`;
         closeSupportModal,
         getDomElements: () => dom,
         renderPresetsDropdown,
-        // --- NEW EXPOSED FUNCTIONS ---
-        populateSettingsModal,
-        saveSettingsFromModal
+        switchSettingsTab, // <-- NEW
+        handleSettingsTabClick // <-- NEW
     };
 
 })();

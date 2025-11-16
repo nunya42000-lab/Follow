@@ -5,7 +5,47 @@
     let speedDeleteInterval = null; 
     let isHoldingBackspace = false;
 
+    // --- NEW: Permission Functions ---
+    async function requestCameraPermission() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            // Got permission. We don't need the stream now, so stop it.
+            stream.getTracks().forEach(track => track.stop());
+            
+            // Update UI
+            const dom = UI.getDomElements();
+            dom.cameraPermissionButton.classList.add('hidden');
+            dom.cameraCalibrateButton.classList.remove('hidden');
+            dom.cameraInputToggle.disabled = false;
+            
+            UI.showModal("Camera Enabled", "Permission granted. You can now calibrate the camera input.", () => UI.closeModal(), "OK", "");
+        } catch (err) {
+            console.error("Camera permission denied:", err);
+            UI.showModal("Camera Error", "You must grant camera permission for this feature to work.", () => UI.closeModal(), "OK", "");
+        }
+    }
+    
+    async function requestMicPermission() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            // Got permission. Stop the stream.
+            stream.getTracks().forEach(track => track.stop());
+            
+            // Update UI
+            const dom = UI.getDomElements();
+            dom.micPermissionButton.classList.add('hidden');
+            dom.micCalibrateButton.classList.remove('hidden');
+            dom.micInputToggle.disabled = false;
+            
+            UI.showModal("Mic Enabled", "Permission granted. You can now calibrate the audio input.", () => UI.closeModal(), "OK", "");
+        } catch (err) {
+            console.error("Mic permission denied:", err);
+            UI.showModal("Mic Error", "You must grant microphone permission for this feature to work.", () => UI.closeModal(), "OK", "");
+        }
+    }
+
     function vibrate(duration = 10) {
+        // ... (code is the same)
         const settings = StateManager.getSettings();
         if (settings.isHapticsEnabled && 'vibrate' in navigator) {
             try {
@@ -17,6 +57,7 @@
     }
 
     function addValue(value) {
+        // ... (code is the same)
         vibrate();
         
         const state = StateManager.getCurrentState();
@@ -35,15 +76,11 @@
         state.sequences[targetIndex].push(value);
         state.nextSequenceIndex++;
         
-        // --- PERFORMANCE FIX ---
-        // Instead of UI.renderSequences(), we just update the machine that changed.
         UI.updateMachineDisplay(targetIndex);
         
-        // Update highlighting for *next* machine if in Simon mode
         if (mode === AppConfig.MODES.SIMON && state.machineCount > 1) {
              UI.updateMachineDisplay(state.nextSequenceIndex % state.machineCount);
         }
-        // ---------------------
         
         if (settings.isAutoplayEnabled) {
             if (mode === AppConfig.MODES.UNIQUE_ROUNDS) {
@@ -66,6 +103,7 @@
     }
 
     function handleBackspace() {
+        // ... (code is the same)
         vibrate(20);
         
         const state = StateManager.getCurrentState();
@@ -90,14 +128,11 @@
             targetSet.pop();
             state.nextSequenceIndex--; 
 
-            // --- PERFORMANCE FIX ---
             UI.updateMachineDisplay(lastClickTargetIndex);
 
-            // Update highlighting for *new* active machine
             if (mode === AppConfig.MODES.SIMON && state.machineCount > 1) {
                 UI.updateMachineDisplay(state.nextSequenceIndex % state.machineCount);
             }
-            // ---------------------
 
             if (mode === AppConfig.MODES.UNIQUE_ROUNDS) {
                  const allKeys = document.querySelectorAll(`#pad-${settings.currentInput} button[data-value]`);
@@ -109,6 +144,7 @@
     }
 
     function stopSpeedDeleting() {
+        // ... (code is the same)
         if (initialDelayTimer) clearTimeout(initialDelayTimer);
         if (speedDeleteInterval) clearInterval(speedDeleteInterval);
         initialDelayTimer = null;
@@ -117,6 +153,7 @@
     }
 
     function handleBackspaceStart(event) {
+        // ... (code is the same)
         event.preventDefault(); 
         stopSpeedDeleting(); 
         isHoldingBackspace = false;
@@ -136,6 +173,7 @@
     }
 
     function handleBackspaceEnd() {
+        // ... (code is the same)
         const wasHolding = isHoldingBackspace;
         const settings = StateManager.getSettings();
         
@@ -153,6 +191,7 @@
     }
 
     function resetUniqueRoundsMode() {
+        // ... (code is the same)
         const state = StateManager.getCurrentState();
         const settings = StateManager.getSettings();
         state.currentRound = 1;
@@ -161,15 +200,14 @@
         const allKeys = document.querySelectorAll(`#pad-${settings.currentInput} button[data-value]`);
         if (allKeys) allKeys.forEach(key => key.disabled = false);
         
-        // --- PERFORMANCE FIX ---
-        UI.updateMachineDisplay(0); // Just update the first machine
-        UI.updateUniqueRoundsDisplay(); // Update the round counter
-        // ---------------------
+        UI.updateMachineDisplay(0); 
+        UI.updateUniqueRoundsDisplay();
         
         StateManager.saveState();
     }
 
     function advanceToUniqueRound() {
+        // ... (code is the same)
         const state = StateManager.getCurrentState();
         const settings = StateManager.getSettings();
         state.currentRound++;
@@ -178,10 +216,8 @@
             UI.showModal('Complete!', `You finished all ${settings.sequenceLength} rounds. Resetting to Round 1.`, () => UI.closeModal(), 'OK', '');
         }
         
-        // --- PERFORMANCE FIX ---
-        UI.updateMachineDisplay(0); // Just update the first machine
-        UI.updateUniqueRoundsDisplay(); // Update the round counter
-        // ---------------------
+        UI.updateMachineDisplay(0); 
+        UI.updateUniqueRoundsDisplay();
 
         StateManager.saveState();
         const allKeys = document.querySelectorAll(`#pad-${settings.currentInput} button[data-value]`);
@@ -189,6 +225,7 @@
     }
 
     function clearUniqueRoundsSequence() {
+        // ... (code is the same)
         const state = StateManager.getCurrentState();
         const sequence = state.sequences[0];
         
@@ -204,7 +241,7 @@
             if (sequence.length > 0) {
                 sequence.pop();
                 state.nextSequenceIndex--;
-                UI.updateMachineDisplay(0); // Update the machine display
+                UI.updateMachineDisplay(0);
             } else {
                 clearInterval(speedDeleteInterval);
                 speedDeleteInterval = null;
@@ -218,6 +255,7 @@
     }
 
     function processVoiceTranscript(transcript) {
+        // ... (code is the same)
         if (!transcript) return;
         
         const cleanTranscript = transcript.toLowerCase().replace(/[\.,]/g, '').trim();
@@ -246,15 +284,8 @@
     }
 
     function handleRestoreDefaults() {
+        // ... (code is the same)
         StateManager.resetToDefaults();
-        const settings = StateManager.getSettings();
-        
-        UI.applyGlobalUiScale(settings.globalUiScale);
-        UI.updateTheme(settings.isDarkMode);
-        UI.updateVoiceInputVisibility();
-        
-        UI.closeSettingsModal(); 
-        setTimeout(UI.openGameSetupModal, 10);
     }
 
     // Expose to global scope
@@ -268,7 +299,9 @@
         clearUniqueRoundsSequence,
         processVoiceTranscript,
         handleRestoreDefaults,
-        vibrate
+        vibrate,
+        requestCameraPermission, // <-- NEW
+        requestMicPermission     // <-- NEW
     };
 
 })();

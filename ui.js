@@ -97,7 +97,7 @@
         }
 
         renderSequences();
-        StateManager.saveState(); 
+        // Do not save state here, saving is now handled by saveSettingsFromModal
     }
 
     function updateVoiceInputVisibility() {
@@ -223,7 +223,7 @@
         }
     }
 
-    // --- 5. Game Setup Modal Logic (MODIFIED) ---
+    // --- 5. Game Setup Modal Logic ---
     function openGameSetupModal() {
         const settings = StateManager.getSettings();
         
@@ -277,16 +277,14 @@
 
     // --- 6. Settings Modal Logic (MODIFIED) ---
     
-    /**
-     * Populates the preset dropdowns.
-     * It can target either dropdown (welcome or settings).
-     */
     function renderPresetsDropdown(selectElement) {
         if (!selectElement) return;
         
         const presets = StateManager.getPresets();
         const settings = StateManager.getSettings();
         const currentSettingsString = JSON.stringify(settings);
+        
+        const currentValue = selectElement.value; // Remember what was selected
         
         selectElement.innerHTML = ''; // Clear existing options
         
@@ -316,22 +314,30 @@
             }
             selectElement.appendChild(option);
         }
+        
+        // Re-select if possible, otherwise let it be custom
+        if (currentPresetName) {
+            selectElement.value = currentPresetName;
+        } else if (selectElement.querySelector(`option[value="${currentValue}"]`)) {
+            selectElement.value = currentValue;
+        }
     }
     
-    function openSettingsModal() {
+    /**
+     * NEW: Reads from StateManager and populates all controls in the settings modal.
+     */
+    function populateSettingsModal() {
         const settings = StateManager.getSettings();
         
-        // --- Populate All Settings ---
         renderPresetsDropdown(dom.presetSelect); // Populate main settings preset dropdown
         
         // Game Setup
         dom.inputSelect.value = settings.currentInput;
         dom.modeToggle.checked = (settings.currentMode === AppConfig.MODES.UNIQUE_ROUNDS);
         
-        // Note: We get machineCount from the *state* for the current input
-        const state = StateManager.getCurrentState();
-        dom.machinesSlider.value = state.machineCount; 
-        updateMachinesDisplay(state.machineCount, dom.machinesDisplay);
+        const state = StateManager.getCurrentState(); // Use *current* state for machine count
+        dom.machinesSlider.value = state.machineCount || 1; 
+        updateMachinesDisplay(state.machineCount || 1, dom.machinesDisplay);
         
         dom.sequenceLengthSlider.value = settings.sequenceLength;
         updateSequenceLengthDisplay(settings.sequenceLength, dom.sequenceLengthDisplay);
@@ -356,11 +362,12 @@
         dom.hapticsToggle.checked = settings.isHapticsEnabled;
 
         updateGameSetupVisibility(); // Show/hide machine/delay settings
-        _toggleModal(dom.settingsModal, true);
     }
-
-    function closeSettingsModal() { 
-        // --- Save ALL settings on close ---
+    
+    /**
+     * NEW: Reads all controls from settings modal and saves them to StateManager.
+     */
+    function saveSettingsFromModal() {
         const settings = StateManager.getSettings();
         const state = StateManager.getCurrentState();
 
@@ -412,8 +419,18 @@
         updateMainUIControlsVisibility();
         updateTheme(settings.isDarkMode);
         updateVoiceInputVisibility();
+        applyGlobalUiScale(settings.globalUiScale); // Re-apply global scale
         
         StateManager.saveState();
+    }
+    
+    function openSettingsModal() {
+        populateSettingsModal(); // Populate with current settings
+        _toggleModal(dom.settingsModal, true);
+    }
+
+    function closeSettingsModal() { 
+        // Now just closes. Saving is handled by the button.
         _toggleModal(dom.settingsModal, false);
     }
 
@@ -704,7 +721,7 @@ Let's start with Round 1.`;
         updateUniqueRoundsDisplay,
         openGameSetupModal,
         closeGameSetupModal,
-        updateGameSetupVisibility, // Still needed for settings modal
+        updateGameSetupVisibility,
         openSettingsModal,
         closeSettingsModal,
         openHelpModal,
@@ -716,7 +733,10 @@ Let's start with Round 1.`;
         openSupportModal,
         closeSupportModal,
         getDomElements: () => dom,
-        renderPresetsDropdown // Expose for main.js
+        renderPresetsDropdown,
+        // --- NEW EXPOSED FUNCTIONS ---
+        populateSettingsModal,
+        saveSettingsFromModal
     };
 
 })();

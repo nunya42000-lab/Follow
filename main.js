@@ -1,7 +1,7 @@
 (function() {
     'use strict';
     
-    // --- New: Helper function to apply all settings visually ---
+    // --- Helper function to apply all settings visually ---
     function applyAllSettings() {
         const settings = StateManager.getSettings();
         UI.applyGlobalUiScale(settings.globalUiScale);
@@ -39,6 +39,7 @@
                 return;
             }
             
+            // --- MODAL/ACTION BUTTONS ---
             if (action === 'open-settings') { UI.openSettingsModal(); return; }
             if (action === 'open-help') { UI.closeSettingsModal(); UI.openHelpModal(); return; }
             if (action === 'open-share') { UI.openShareModal(); return; }
@@ -74,8 +75,7 @@
                           'This will reset all settings, presets, and sequences. Are you sure?', 
                           () => {
                               AppCore.handleRestoreDefaults();
-                              applyAllSettings(); // Visually apply new defaults
-                              UI.closeSettingsModal();
+                              UI.populateSettingsModal(); // Refresh modal with defaults
                           }, 
                           'Restore', 
                           'Cancel');
@@ -92,6 +92,7 @@
                 return;
             }
             
+            // --- VALUE BUTTONS ---
             if (value && input === settings.currentInput) {
                 // ... (code is the same)
                 if (input === AppConfig.INPUTS.KEY9 && /^[1-9]$/.test(value)) {
@@ -169,6 +170,10 @@
         
         if (dom.welcomeFullSetupButton) dom.welcomeFullSetupButton.addEventListener('click', () => {
             UI.closeGameSetupModal();
+            // Save quick changes before opening full setup
+            StateManager.getSettings().isAutoplayEnabled = dom.welcomeAutoplayToggle.checked;
+            StateManager.getSettings().isAudioPlaybackEnabled = dom.welcomeAudioToggle.checked;
+            StateManager.saveState();
             UI.openSettingsModal();
         });
 
@@ -188,11 +193,17 @@
         });
 
         // --- Modal: Settings (Full Setup) Listeners ---
-        if (dom.closeSettings) dom.closeSettings.addEventListener('click', UI.closeSettingsModal);
+        
+        // This button now SAVES and closes
+        if (dom.closeSettings) dom.closeSettings.addEventListener('click', () => {
+            UI.saveSettingsFromModal();
+            UI.closeSettingsModal();
+        });
         
         // Preset Management
         if (dom.savePresetButton) {
             dom.savePresetButton.addEventListener('click', () => {
+                UI.saveSettingsFromModal(); // Save current changes first
                 const name = prompt("Enter a name for this preset:", "My Preset");
                 if (name) {
                     StateManager.saveCurrentSettingsAsPreset(name);
@@ -227,12 +238,17 @@
                 }
                 UI.showModal("Delete Preset?", `Are you sure you want to delete "${name}"?`, () => {
                     if (StateManager.deletePreset(name)) {
-                        UI.renderPresetsDropdown(dom.presetSelect);
+                        // Load the first available preset
+                        const firstPreset = Object.keys(StateManager.getPresets())[0];
+                        StateManager.loadSettingsFromPreset(firstPreset);
+                        applyAllSettings();
+                        UI.populateSettingsModal(); // Refresh modal
                     }
                 }, "Delete", "Cancel");
             });
         }
 
+        // THIS IS THE FIX:
         if (dom.presetSelect) {
             dom.presetSelect.addEventListener('change', (event) => {
                 const presetName = event.target.value;
@@ -240,13 +256,16 @@
                 
                 StateManager.loadSettingsFromPreset(presetName);
                 
-                // Close and re-open the settings modal to show all the new values
-                UI.closeSettingsModal();
-                setTimeout(UI.openSettingsModal, 350);
+                // REFRESH the modal with the new preset's values
+                UI.populateSettingsModal(); 
+                
+                // Apply changes to the main app
+                applyAllSettings();
             });
         }
         
-        // Game Setup (in Settings)
+        // --- Game Setup (in Settings) ---
+        // Mark as custom on change
         if (dom.inputSelect) dom.inputSelect.addEventListener('change', () => UI.renderPresetsDropdown(dom.presetSelect));
         if (dom.modeToggle) dom.modeToggle.addEventListener('change', () => {
             UI.updateGameSetupVisibility();
@@ -274,27 +293,43 @@
         if (dom.autoclearToggle) dom.autoclearToggle.addEventListener('change', () => UI.renderPresetsDropdown(dom.presetSelect));
 
 
-        // App Controls & Toggles (in Settings)
+        // --- App Controls & Toggles (in Settings) ---
+        // Mark as custom on change
         if (dom.playbackSpeedSlider) dom.playbackSpeedSlider.addEventListener('input', (e) => {
             UI.updatePlaybackSpeedDisplay(parseInt(e.target.value), dom.playbackSpeedDisplay);
-            UI.renderPresetsDropdown(dom.presetSelect); // Mark as custom
+            UI.renderPresetsDropdown(dom.presetSelect);
         });
         if (dom.uiScaleSlider) {
             dom.uiScaleSlider.addEventListener('input', (event) => {
                 const multiplier = parseInt(event.target.value) / 100;
                 UI.updateScaleDisplay(multiplier, dom.uiScaleDisplay);
+                StateManager.getSettings().uiScaleMultiplier = multiplier; // Live update
                 UI.renderSequences();
-                UI.renderPresetsDropdown(dom.presetSelect); // Mark as custom
+                UI.renderPresetsDropdown(dom.presetSelect);
             });
         }
         if (dom.autoplayToggle) dom.autoplayToggle.addEventListener('change', () => UI.renderPresetsDropdown(dom.presetSelect));
-        if (dom.darkModeToggle) dom.darkModeToggle.addEventListener('change', () => UI.renderPresetsDropdown(dom.presetSelect));
+        if (dom.darkModeToggle) dom.darkModeToggle.addEventListener('change', (e) => {
+            StateManager.getSettings().isDarkMode = e.target.checked; // Live update theme
+            UI.updateTheme(e.target.checked);
+            UI.renderPresetsDropdown(dom.presetSelect);
+        });
         if (dom.speedDeleteToggle) dom.speedDeleteToggle.addEventListener('change', () => UI.renderPresetsDropdown(dom.presetSelect));
-        if (dom.audioPlaybackToggle) dom.audioPlaybackToggle.addEventListener('change', () => UI.renderPresetsDropdown(dom.presetSelect));
-        if (dom.voiceInputToggle) dom.voiceInputToggle.addEventListener('change', () => UI.renderPresetsDropdown(dom.presetSelect));
-        if (dom.hapticsToggle) dom.hapticsToggle.addEventListener('change', () => UI.renderPresetsDropdown(dom.presetSelect));
+        if (dom.audioPlaybackToggle) dom.audioPlaybackToggle.addEventListener('change', (e) => {
+             if (e.target.checked) DemoPlayer.speak("Audio");
+            UI.renderPresetsDropdown(dom.presetSelect);
+        });
+        if (dom.voiceInputToggle) dom.voiceInputToggle.addEventListener('change', () => {
+            StateManager.getSettings().isVoiceInputEnabled = dom.voiceInputToggle.checked; // Live update
+            UI.updateVoiceInputVisibility();
+            UI.renderPresetsDropdown(dom.presetSelect);
+        });
+        if (dom.hapticsToggle) dom.hapticsToggle.addEventListener('change', (e) => {
+            if (e.target.checked) AppCore.vibrate(50);
+            UI.renderPresetsDropdown(dom.presetSelect);
+        });
         
-        // Other Modals
+        // --- Other Modals ---
         if (dom.closeHelp) dom.closeHelp.addEventListener('click', UI.closeHelpModal);
         if (dom.closeShare) dom.closeShare.addEventListener('click', UI.closeShareModal);
         if (dom.closeChatModal) dom.closeChatModal.addEventListener('click', UI.closeChatModal);

@@ -3,7 +3,7 @@
 
     // --- 1. DOM Element Variables ---
     const dom = {};
-    let gridClass = 'grid grid-cols-5'; // Default
+    let gridClass = 'grid grid-cols-5';
 
     // --- 2. Modal Management ---
     function _toggleModal(modalElement, forceShow) {
@@ -53,7 +53,7 @@
     function updateTheme(isDark) {
         document.body.classList.toggle('dark', isDark);
         document.body.classList.toggle('light', !isDark);
-        renderSequences(); // Full re-render needed for theme change
+        renderSequences();
     }
 
     function applyGlobalUiScale(scalePercent) {
@@ -67,20 +67,20 @@
         if (displayElement) displayElement.textContent = `${percent}%`;
     }
 
-    function updateMachinesDisplay(count, el) {
-        if(el) el.textContent = count + (count > 1 ? ' Machines' : ' Machine');
+    function updateMachinesDisplay(count, el) { 
+        if(el) el.textContent = count + (count > 1 ? ' Machines' : ' Machine'); 
     }
-    function updateSequenceLengthDisplay(val, el) {
-        if(el) el.textContent = val;
+    function updateSequenceLengthDisplay(val, el) { 
+        if(el) el.textContent = val; 
     }
-    function updatePlaybackSpeedDisplay(val, el) {
-        if(el) el.textContent = val + '%';
+    function updatePlaybackSpeedDisplay(val, el) { 
+        if(el) el.textContent = val + '%'; 
     }
-    function updateChunkDisplay(val, el) {
-        if(el) el.textContent = val;
+    function updateChunkDisplay(val, el) { 
+        if(el) el.textContent = val; 
     }
-    function updateDelayDisplay(val, el) {
-        if(el) el.textContent = (val / 1000).toFixed(1) + 's';
+    function updateDelayDisplay(val, el) { 
+        if(el) el.textContent = (val / 1000).toFixed(1) + 's'; 
     }
 
     function updateInput(newInput) {
@@ -91,13 +91,9 @@
         dom.padKey12.style.display = (newInput === AppConfig.INPUTS.KEY12) ? 'block' : 'none';
         dom.padPiano.style.display = (newInput === AppConfig.INPUTS.PIANO) ? 'block' : 'none';
         
-        // Update settings modal input select if it exists
-        if (dom.inputSelect) {
-            dom.inputSelect.value = newInput;
-        }
-
+        if (dom.inputSelect) { dom.inputSelect.value = newInput; }
         renderSequences();
-        // Do not save state here, saving is now handled by saveSettingsFromModal
+        // Saving is now handled by saveSettingsFromModal
     }
 
     function updateVoiceInputVisibility() {
@@ -123,33 +119,32 @@
         const { machineCount } = state;
         const activeMachines = (settings.currentMode === AppConfig.MODES.UNIQUE_ROUNDS) ? 1 : machineCount;
         
-        dom.sequenceContainer.innerHTML = ''; // Clear container
+        dom.sequenceContainer.innerHTML = ''; 
 
         let layoutClasses = 'gap-4 flex-grow mb-6 transition-all duration-300 pt-1 ';
         let numColumns = 5;
 
         if (settings.currentMode === AppConfig.MODES.SIMON) {
-            if (activeMachines === 1) {
-                layoutClasses += ' flex flex-col max-w-xl mx-auto';
-                numColumns = 5;
-            } else if (activeMachines === 2) {
-                layoutClasses += ' grid grid-cols-2 max-w-3xl mx-auto';
-                numColumns = 4;
-            } else if (activeMachines === 3) {
-                layoutClasses += ' grid grid-cols-3 max-w-4xl mx-auto';
-                numColumns = 4;
-            } else if (activeMachines === 4) {
-                layoutClasses += ' grid grid-cols-4 max-w-5xl mx-auto';
-                numColumns = 3;
+            if (activeMachines === 1) { 
+                layoutClasses += ' flex flex-col max-w-xl mx-auto'; 
+                numColumns = 5; 
+            } else if (activeMachines === 2) { 
+                layoutClasses += ' grid grid-cols-2 max-w-3xl mx-auto'; 
+                numColumns = 4; 
+            } else if (activeMachines === 3) { 
+                layoutClasses += ' grid grid-cols-3 max-w-4xl mx-auto'; 
+                numColumns = 4; 
+            } else if (activeMachines === 4) { 
+                layoutClasses += ' grid grid-cols-4 max-w-5xl mx-auto'; 
+                numColumns = 3; 
             }
         } else {
-             layoutClasses += ' flex flex-col max-w-2xl mx-auto';
+             layoutClasses += ' flex flex-col max-w-2xl mx-auto'; 
              numColumns = 5;
         }
         dom.sequenceContainer.className = layoutClasses;
         gridClass = numColumns > 0 ? `grid grid-cols-${numColumns}` : 'flex flex-wrap';
 
-        // Show Round Display for 'Unique Rounds' mode
         if (settings.currentMode === AppConfig.MODES.UNIQUE_ROUNDS) {
             const roundDisplay = document.createElement('div');
             roundDisplay.className = 'text-center text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100';
@@ -157,20 +152,17 @@
             dom.sequenceContainer.appendChild(roundDisplay);
         }
         
-        // Create containers for each machine
         for(let i=0; i < activeMachines; i++) {
             const sequenceDiv = document.createElement('div');
             const originalClasses = 'p-4 rounded-xl shadow-md transition-all duration-200 bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-gray-100';
             sequenceDiv.className = originalClasses;
             sequenceDiv.dataset.originalClasses = originalClasses;
-            sequenceDiv.id = `machine-${i}`; // ID to target
-            sequenceDiv.innerHTML = `<div class="${gridClass} gap-2 min-h-[50px]"></div>`; // Inner div for numbers
+            sequenceDiv.id = `machine-${i}`; 
+            sequenceDiv.innerHTML = `<div class="${gridClass} gap-2 min-h-[50px]"></div>`; 
             dom.sequenceContainer.appendChild(sequenceDiv);
         }
-
-        // Now, update the content of each machine
-        for(let i=0; i < activeMachines; i++) {
-            updateMachineDisplay(i);
+        for(let i=0; i < activeMachines; i++) { 
+            updateMachineDisplay(i); 
         }
         updateUniqueRoundsDisplay();
     }
@@ -200,7 +192,6 @@
             </span>
         `).join('');
 
-        // Handle active-turn highlighting
         const currentTurnIndex = state.nextSequenceIndex % state.machineCount;
         const isCurrent = (index === currentTurnIndex && state.machineCount > 1 && settings.currentMode === AppConfig.MODES.SIMON);
         const originalClasses = machineDiv.dataset.originalClasses;
@@ -216,7 +207,6 @@
         const state = StateManager.getCurrentState();
         const settings = StateManager.getSettings();
         if (settings.currentMode !== AppConfig.MODES.UNIQUE_ROUNDS) return;
-
         const roundDisplay = document.getElementById('unique-rounds-round-display');
         if (roundDisplay) {
             roundDisplay.textContent = `Round: ${state.currentRound} / ${settings.sequenceLength}`;
@@ -226,32 +216,24 @@
     // --- 5. Game Setup Modal Logic ---
     function openGameSetupModal() {
         const settings = StateManager.getSettings();
-        
-        renderPresetsDropdown(dom.welcomePresetSelect); // Populate welcome preset dropdown
-        
+        renderPresetsDropdown(dom.welcomePresetSelect);
         dom.welcomeAutoplayToggle.checked = settings.isAutoplayEnabled;
         dom.welcomeAudioToggle.checked = settings.isAudioPlaybackEnabled;
         dom.dontShowWelcomeToggle.checked = !settings.showWelcomeScreen;
-        
         _toggleModal(dom.gameSetupModal, true);
     }
 
     function closeGameSetupModal() {
         const settings = StateManager.getSettings();
-        
-        // Save the quick toggles
         settings.isAutoplayEnabled = dom.welcomeAutoplayToggle.checked;
         settings.isAudioPlaybackEnabled = dom.welcomeAudioToggle.checked;
         settings.showWelcomeScreen = !dom.dontShowWelcomeToggle.checked;
-        
         StateManager.saveState(); 
         _toggleModal(dom.gameSetupModal, false);
     }
 
-    // This function is now only for the main settings modal
     function updateGameSetupVisibility() {
-        if (!dom.settingsModal) return; // Guard
-
+        if (!dom.settingsModal) return; 
         const mode = dom.modeToggle.checked ? AppConfig.MODES.UNIQUE_ROUNDS : AppConfig.MODES.SIMON;
         const machineCount = parseInt(dom.machinesSlider.value);
 
@@ -262,31 +244,24 @@
             dom.sequenceLengthLabel.textContent = '4. Unique Rounds';
             dom.modeToggleLabel.textContent = 'On: Unique Rounds';
         }
-        
         dom.machinesSlider.disabled = (mode === AppConfig.MODES.UNIQUE_ROUNDS);
         if (mode === AppConfig.MODES.UNIQUE_ROUNDS) {
              dom.machinesSlider.value = 1;
              updateMachinesDisplay(1, dom.machinesDisplay);
         }
-
         dom.settingAutoclear.style.display = (mode === AppConfig.MODES.UNIQUE_ROUNDS) ? 'flex' : 'none';
-
         const showSimonSettings = (mode === AppConfig.MODES.SIMON && machineCount > 1);
         dom.settingMultiSequenceGroup.style.display = showSimonSettings ? 'block' : 'none';
     }
 
-    // --- 6. Settings Modal Logic (MODIFIED) ---
-    
+    // --- 6. Settings Modal Logic ---
     function renderPresetsDropdown(selectElement) {
         if (!selectElement) return;
-        
         const presets = StateManager.getPresets();
         const settings = StateManager.getSettings();
         const currentSettingsString = JSON.stringify(settings);
-        
-        const currentValue = selectElement.value; // Remember what was selected
-        
-        selectElement.innerHTML = ''; // Clear existing options
+        const currentValue = selectElement.value; 
+        selectElement.innerHTML = '';
         
         let currentPresetName = null;
         for (const name in presets) {
@@ -304,18 +279,14 @@
             customOption.disabled = true;
             selectElement.appendChild(customOption);
         }
-
         for (const name in presets) {
             const option = document.createElement('option');
             option.value = name;
             option.textContent = name;
-            if (name === currentPresetName) {
-                option.selected = true;
-            }
+            if (name === currentPresetName) { option.selected = true; }
             selectElement.appendChild(option);
         }
         
-        // Re-select if possible, otherwise let it be custom
         if (currentPresetName) {
             selectElement.value = currentPresetName;
         } else if (selectElement.querySelector(`option[value="${currentValue}"]`)) {
@@ -323,22 +294,16 @@
         }
     }
     
-    /**
-     * Reads from StateManager and populates all controls in the settings modal.
-     */
     function populateSettingsModal() {
         const settings = StateManager.getSettings();
+        renderPresetsDropdown(dom.presetSelect);
         
-        renderPresetsDropdown(dom.presetSelect); // Populate main settings preset dropdown
-        
-        // Game Setup
+        // Tab 1: Setup
         dom.inputSelect.value = settings.currentInput;
         dom.modeToggle.checked = (settings.currentMode === AppConfig.MODES.UNIQUE_ROUNDS);
-        
-        const state = StateManager.getCurrentState(); // Use *current* state for machine count
+        const state = StateManager.getCurrentState(); 
         dom.machinesSlider.value = state.machineCount || 1; 
         updateMachinesDisplay(state.machineCount || 1, dom.machinesDisplay);
-        
         dom.sequenceLengthSlider.value = settings.sequenceLength;
         updateSequenceLengthDisplay(settings.sequenceLength, dom.sequenceLengthDisplay);
         dom.chunkSlider.value = settings.simonChunkSize;
@@ -347,41 +312,40 @@
         updateDelayDisplay(settings.simonInterSequenceDelay, dom.delayDisplay);
         dom.autoclearToggle.checked = settings.isUniqueRoundsAutoClearEnabled;
         
-        // App Controls (Playback Tab)
+        // Tab 2: Input
+        dom.swipeDeleteToggle.checked = settings.isSwipeToDeleteEnabled;
+        dom.speedDeleteToggle.checked = settings.isSpeedDeletingEnabled; 
+        dom.voiceInputToggle.checked = settings.isVoiceInputEnabled;
+        dom.hapticsToggle.checked = settings.isHapticsEnabled;
+        dom.cameraInputToggle.checked = settings.isCameraInputEnabled;
+        dom.micInputToggle.checked = settings.isMicInputEnabled;
+        
+        // Tab 4: Playback
         dom.playbackSpeedSlider.value = settings.playbackSpeed * 100;
         updatePlaybackSpeedDisplay(settings.playbackSpeed * 100, dom.playbackSpeedDisplay);
         dom.autoplayToggle.checked = settings.isAutoplayEnabled;
         dom.audioPlaybackToggle.checked = settings.isAudioPlaybackEnabled; 
+        dom.visualMetronomeToggle.checked = settings.isVisualMetronomeEnabled;
 
-        // General Tab
+        // Tab 5: General
         dom.uiScaleSlider.value = settings.uiScaleMultiplier * 100;
         updateScaleDisplay(settings.uiScaleMultiplier, dom.uiScaleDisplay);
         dom.darkModeToggle.checked = settings.isDarkMode;
 
-        // Input Tab
-        dom.speedDeleteToggle.checked = settings.isSpeedDeletingEnabled; 
-        dom.voiceInputToggle.checked = settings.isVoiceInputEnabled;
-        dom.hapticsToggle.checked = settings.isHapticsEnabled;
-
-        updateGameSetupVisibility(); // Show/hide machine/delay settings
+        updateGameSetupVisibility();
     }
     
-    /**
-     * Reads all controls from settings modal and saves them to StateManager.
-     */
     function saveSettingsFromModal() {
         const settings = StateManager.getSettings();
         const state = StateManager.getCurrentState();
 
-        // Game Setup (Tab 1)
+        // Tab 1
         const newMachineCount = parseInt(dom.machinesSlider.value);
         const newMode = dom.modeToggle.checked ? AppConfig.MODES.UNIQUE_ROUNDS : AppConfig.MODES.SIMON;
         const newSInput = dom.inputSelect.value;
-
         const didModeChange = settings.currentMode !== newMode;
         const didMachineChange = state.machineCount !== newMachineCount;
         const didInputChange = settings.currentInput !== newSInput;
-
         settings.currentInput = newSInput;
         settings.currentMode = newMode;
         settings.sequenceLength = parseInt(dom.sequenceLengthSlider.value);
@@ -389,22 +353,26 @@
         settings.simonInterSequenceDelay = parseInt(dom.delaySlider.value);
         settings.isUniqueRoundsAutoClearEnabled = dom.autoclearToggle.checked;
         
-        // Input (Tab 2)
+        // Tab 2
+        settings.isSwipeToDeleteEnabled = dom.swipeDeleteToggle.checked;
         settings.isSpeedDeletingEnabled = dom.speedDeleteToggle.checked;
         settings.isVoiceInputEnabled = dom.voiceInputToggle.checked;
         settings.isHapticsEnabled = dom.hapticsToggle.checked;
+        settings.isCameraInputEnabled = dom.cameraInputToggle.checked;
+        settings.isMicInputEnabled = dom.micInputToggle.checked;
         
-        // Playback (Tab 3)
+        // Tab 4
         settings.playbackSpeed = parseInt(dom.playbackSpeedSlider.value) / 100.0;
         settings.isAutoplayEnabled = dom.autoplayToggle.checked;
         settings.isAudioPlaybackEnabled = dom.audioPlaybackToggle.checked;
-
-        // General (Tab 4)
+        settings.isVisualMetronomeEnabled = dom.visualMetronomeToggle.checked;
+        
+        // Tab 5
         settings.uiScaleMultiplier = parseInt(dom.uiScaleSlider.value) / 100.0;
         settings.isDarkMode = dom.darkModeToggle.checked;
         
-        // --- Apply changes ---
-        const newState = StateManager.getCurrentState(); // Gets new state if input changed
+        // Apply changes
+        const newState = StateManager.getCurrentState(); 
         newState.machineCount = (newMode === AppConfig.MODES.UNIQUE_ROUNDS) ? 1 : newMachineCount;
         newState.maxRound = settings.sequenceLength;
 
@@ -418,36 +386,31 @@
             newState.currentRound = 1;
         }
 
-        // Apply visual updates
-        updateInput(settings.currentInput); // This re-renders sequences
+        updateInput(settings.currentInput); 
         updateMainUIControlsVisibility();
         updateTheme(settings.isDarkMode);
         updateVoiceInputVisibility();
-        applyGlobalUiScale(settings.globalUiScale); // Re-apply global scale
+        applyGlobalUiScale(settings.globalUiScale);
         
         StateManager.saveState();
     }
     
     function openSettingsModal() {
-        populateSettingsModal(); // Populate with current settings
-        switchSettingsTab('setup'); // Default to first tab
+        populateSettingsModal();
+        switchSettingsTab('setup');
         _toggleModal(dom.settingsModal, true);
     }
 
     function closeSettingsModal() { 
-        // Just closes, saving is handled by the button
         _toggleModal(dom.settingsModal, false);
     }
 
-    // --- NEW: Settings Tab Switching ---
     function switchSettingsTab(tabId) {
         if (dom.settingsModal) {
             dom.settingsModal.querySelectorAll('.settings-tab-content').forEach(tab => tab.classList.add('hidden'));
             dom.settingsModal.querySelectorAll('.settings-tab-button').forEach(btn => btn.classList.remove('active-tab'));
-            
             const content = document.getElementById(`settings-tab-${tabId}`);
             if (content) content.classList.remove('hidden');
-            
             const button = dom.settingsTabNav.querySelector(`button[data-tab="${tabId}"]`);
             if (button) button.classList.add('active-tab');
         }
@@ -455,11 +418,8 @@
     
     function handleSettingsTabClick(event) {
         const button = event.target.closest('button[data-tab]');
-        if (button) {
-            switchSettingsTab(button.dataset.tab);
-        }
+        if (button) { switchSettingsTab(button.dataset.tab); }
     }
-
 
     // --- 7. Help Modal Logic ---
     function openHelpModal() {
@@ -467,35 +427,27 @@
         generateModesHelp();
         generateSettingsHelp();
         generatePromptsHelp();
-        if (dom.helpTabNav) {
-            dom.helpTabNav.addEventListener('click', handleHelpTabClick);
-        }
+        if (dom.helpTabNav) { dom.helpTabNav.addEventListener('click', handleHelpTabClick); }
         switchHelpTab('general');
         _toggleModal(dom.helpModal, true);
     }
 
     function closeHelpModal() {
-        if (dom.helpTabNav) {
-            dom.helpTabNav.removeEventListener('click', handleHelpTabClick);
-        }
+        if (dom.helpTabNav) { dom.helpTabNav.removeEventListener('click', handleHelpTabClick); }
         _toggleModal(dom.helpModal, false);
     }
 
     function handleHelpTabClick(event) {
-        // ... (code is the same)
         const button = event.target.closest('button[data-tab]');
-        if (button) {
-            switchHelpTab(button.dataset.tab);
-        }
+        if (button) { switchHelpTab(button.dataset.tab); }
     }
 
     function switchHelpTab(tabId) {
-        // ... (code is the same)
-        if (dom.helpContentContainer) {
-            dom.helpContentContainer.querySelectorAll('.help-tab-content').forEach(tab => tab.classList.add('hidden'));
+        if (dom.helpContentContainer) { 
+            dom.helpContentContainer.querySelectorAll('.help-tab-content').forEach(tab => tab.classList.add('hidden')); 
         }
-        if (dom.helpTabNav) {
-            dom.helpTabNav.querySelectorAll('.help-tab-button').forEach(btn => btn.classList.remove('active-tab'));
+        if (dom.helpTabNav) { 
+            dom.helpTabNav.querySelectorAll('.help-tab-button').forEach(btn => btn.classList.remove('active-tab')); 
         }
         const content = document.getElementById(`help-tab-${tabId}`);
         if (content) content.classList.remove('hidden');
@@ -506,7 +458,6 @@
     }
 
     function generateGeneralHelp() {
-        // ... (code is the same)
         const container = document.getElementById('help-tab-general');
         if (!container) return;
         container.innerHTML = `
@@ -517,13 +468,13 @@
                 <li><span class="font-bold">Keypad:</span> Tap the numbers or keys to add to the sequence.</li>
                 <li><span class="font-bold">Play (▶):</span> Plays back the current sequence(s).</li>
                 <li><span class="font-bold">Backspace (←):</span> Removes the last value.</li>
+                <li><span class="font-bold">Swipe Left:</span> A shortcut for Backspace.</li>
                 <li><span class="font-bold">Settings (⚙️):</span> Opens app settings (dark mode, speed, etc.).</li>
                 <li><span class="font-bold">RESET:</span> (Unique Rounds Mode Only) Resets the game to Round 1.</li>
             </ul>`;
     }
 
     function generateModesHelp() {
-        // ... (code is the same)
         const container = document.getElementById('help-tab-modes');
         if (!container) return;
         container.innerHTML = `
@@ -540,7 +491,6 @@
             </ul>`;
     }
 
-    // --- THIS FUNCTION IS MODIFIED ---
     function generateSettingsHelp() {
         const container = document.getElementById('help-tab-settings');
         if (!container) return;
@@ -555,14 +505,14 @@
             <h4 class="text-primary-app">Settings & Setup (⚙️)</h4>
             <p>This modal is now tabbed for easier navigation.</p>
             <ul>
-                <li><span class="font-bold">Setup Tab:</span> Manage presets and configure game rules (Input, Mode, Machines, etc.).</li>
-                <li><span class="font-bold">Input Tab:</span> Control *how* you enter data (Manual, Gestures, Mic, Camera) and related helpers.</li>
-                <li><span class="font-bold">Playback Tab:</span> Control *how* the app plays back (Audio, Haptics) and its speed.</li>
+                <li><span class="font-bold">Setup Tab:</span> Manage presets and configure game rules.</li>
+                <li><span class="font-bold">Input Tab:</span> Control *how* you enter data (Manual, Gestures, Mic, Camera).</li>
+                <li><span class="font-bold">Shortcuts Tab:</span> Map sensors (Shake, Tilt, etc.) to actions (Play, Backspace).</li>
+                <li><span class="font-bold">Playback Tab:</span> Control *how* the app plays back (Audio, Haptics, Visual) and its speed.</li>
                 <li><span class="font-bold">General Tab:</span> App-wide settings like Dark Mode, UI size, and Restore Defaults.</li>
             </ul>`;
     }
     
-    // ... (generatePromptsHelp is the same) ...
     function generatePromptsHelp() {
         const container = document.getElementById('help-tab-prompts');
         if (!container) return;
@@ -607,13 +557,11 @@ Let's start with Round 1.`;
 
         const simonTextarea = document.getElementById('prompt-simon');
         const roundsTextarea = document.getElementById('prompt-unique-rounds');
-        
         if (simonTextarea) simonTextarea.value = simonPrompt.trim();
         if (roundsTextarea) roundsTextarea.value = roundsPrompt.trim();
         
         const simonGroup = document.getElementById('prompt-simon-group');
         const roundsGroup = document.getElementById('prompt-unique-rounds-group');
-
         if (simonGroup) simonGroup.style.display = (mode === AppConfig.MODES.SIMON) ? 'block' : 'none';
         if (roundsGroup) roundsGroup.style.display = (mode === AppConfig.MODES.UNIQUE_ROUNDS) ? 'block' : 'none';
         
@@ -624,7 +572,6 @@ Let's start with Round 1.`;
         }
     }
 
-    // --- 8. Share/Chat/Support Modal Logic ---
     function openShareModal() {
         closeSettingsModal();
         _toggleModal(dom.shareModal, true);
@@ -635,10 +582,12 @@ Let's start with Round 1.`;
     function openSupportModal() { closeSettingsModal(); _toggleModal(dom.supportModal, true); }
     function closeSupportModal() { _toggleModal(dom.supportModal, false); }
 
-    // --- 9. Initialization (MODIFIED) ---
     function assignDomElements() {
-        // Main UI
+        // Main App
         dom.sequenceContainer = document.getElementById('sequence-container');
+        dom.stealthModeOverlay = document.getElementById('stealth-mode-overlay'); 
+        dom.stealthTime = document.getElementById('stealth-time'); 
+        dom.stealthDate = document.getElementById('stealth-date'); 
         
         // Modals
         dom.customModal = document.getElementById('custom-modal');
@@ -646,18 +595,16 @@ Let's start with Round 1.`;
         dom.modalMessage = document.getElementById('modal-message');
         dom.modalConfirm = document.getElementById('modal-confirm');
         dom.modalCancel = document.getElementById('modal-cancel');
-        
         dom.shareModal = document.getElementById('share-modal');
         dom.closeShare = document.getElementById('close-share');
         dom.copyLinkButton = document.getElementById('copy-link-button'); 
         dom.nativeShareButton = document.getElementById('native-share-button'); 
-
         dom.chatModal = document.getElementById('chat-modal');
         dom.closeChatModal = document.getElementById('close-chat-modal');
         dom.supportModal = document.getElementById('support-modal');
         dom.closeSupportModal = document.getElementById('close-support-modal');
         
-        // --- MODIFIED: Game Setup (Welcome) Modal ---
+        // Welcome Modal
         dom.gameSetupModal = document.getElementById('game-setup-modal');
         dom.closeGameSetupModalBtn = document.getElementById('close-game-setup-modal');
         dom.dontShowWelcomeToggle = document.getElementById('dont-show-welcome-toggle');
@@ -669,15 +616,13 @@ Let's start with Round 1.`;
         dom.welcomeHelpButton = document.getElementById('welcome-help-button');
         dom.welcomeFullSetupButton = document.getElementById('welcome-full-setup-button');
 
-        // --- MODIFIED: Settings Modal ---
+        // Settings Modal
         dom.settingsModal = document.getElementById('settings-modal');
         dom.openShareButton = document.getElementById('open-share-button');
         dom.openChatButton = document.getElementById('open-chat-button');
         dom.openSupportButton = document.getElementById('open-support-button');
         dom.openHelpButton = document.getElementById('open-help-button');
         dom.closeSettings = document.getElementById('close-settings');
-        
-        // Settings Tabs
         dom.settingsTabNav = document.getElementById('settings-tab-nav');
         
         // Tab 1: Setup
@@ -702,17 +647,25 @@ Let's start with Round 1.`;
         dom.settingAutoclear = document.getElementById('setting-autoclear');
         
         // Tab 2: Input
+        dom.swipeDeleteToggle = document.getElementById('swipe-delete-toggle');
         dom.voiceInputToggle = document.getElementById('voice-input-toggle');
         dom.speedDeleteToggle = document.getElementById('speed-delete-toggle');
         dom.hapticsToggle = document.getElementById('haptics-toggle');
+        dom.cameraPermissionButton = document.getElementById('camera-permission-button');
+        dom.cameraCalibrateButton = document.getElementById('camera-calibrate-button');
+        dom.micPermissionButton = document.getElementById('mic-permission-button');
+        dom.micCalibrateButton = document.getElementById('mic-calibrate-button');
+        dom.cameraInputToggle = document.getElementById('camera-input-toggle');
+        dom.micInputToggle = document.getElementById('mic-input-toggle');
 
-        // Tab 3: Playback
+        // Tab 4: Playback
         dom.playbackSpeedSlider = document.getElementById('playback-speed-slider');
         dom.playbackSpeedDisplay = document.getElementById('playback-speed-display');
         dom.autoplayToggle = document.getElementById('autoplay-toggle');
         dom.audioPlaybackToggle = document.getElementById('audio-playback-toggle');
+        dom.visualMetronomeToggle = document.getElementById('visual-metronome-toggle');
         
-        // Tab 4: General
+        // Tab 5: General
         dom.darkModeToggle = document.getElementById('dark-mode-toggle');
         dom.uiScaleSlider = document.getElementById('ui-scale-slider');
         dom.uiScaleDisplay = document.getElementById('ui-scale-display');
@@ -731,43 +684,17 @@ Let's start with Round 1.`;
         dom.allVoiceInputs = document.querySelectorAll('.voice-text-input');
     }
 
-    // Expose to global scope
-    window.UI = {
-        assignDomElements,
-        showModal,
-        closeModal,
-        updateTheme,
-        applyGlobalUiScale,
-        updateScaleDisplay,
-        updateMachinesDisplay,
-        updateSequenceLengthDisplay,
-        updatePlaybackSpeedDisplay,
-        updateChunkDisplay,
-        updateDelayDisplay,
-        updateInput,
-        updateVoiceInputVisibility,
-        updateMainUIControlsVisibility,
-        renderSequences,
-        updateMachineDisplay,
-        updateUniqueRoundsDisplay,
-        openGameSetupModal,
-        closeGameSetupModal,
-        openSettingsModal,
-        closeSettingsModal,
-        saveSettingsFromModal, // <-- NEW
-        populateSettingsModal, // <-- NEW
-        openHelpModal,
-        closeHelpModal,
-        openShareModal,
-        closeShareModal,
-        openChatModal,
-        closeChatModal,
-        openSupportModal,
-        closeSupportModal,
-        getDomElements: () => dom,
-        renderPresetsDropdown,
-        switchSettingsTab, // <-- NEW
-        handleSettingsTabClick // <-- NEW
+    return {
+        assignDomElements, showModal, closeModal, updateTheme, applyGlobalUiScale,
+        updateScaleDisplay, updateMachinesDisplay, updateSequenceLengthDisplay,
+        updatePlaybackSpeedDisplay, updateChunkDisplay, updateDelayDisplay, updateInput,
+        updateVoiceInputVisibility, updateMainUIControlsVisibility, renderSequences,
+        updateMachineDisplay, updateUniqueRoundsDisplay, openGameSetupModal,
+        closeGameSetupModal, openSettingsModal, closeSettingsModal, saveSettingsFromModal,
+        populateSettingsModal, openHelpModal, closeHelpModal, openShareModal,
+        closeShareModal, openChatModal, closeChatModal, openSupportModal,
+        closeSupportModal, getDomElements: () => dom, renderPresetsDropdown,
+        switchSettingsTab, handleSettingsTabClick, updateGameSetupVisibility,
+        openStealthMode, closeStealthMode
     };
-
 })();

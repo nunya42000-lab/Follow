@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Follow Me (v2.0)</title>
+    <title>Follow Me (v2.0 Dev)</title>
     
     <meta name="theme-color" content="#4f46e5">
     <link rel="apple-touch-icon" href="https://placehold.co/180x180/4f46e5/ffffff?text=F&font=inter">
@@ -101,6 +101,18 @@
         </footer>
     </div>
 
+    <div id="stealth-mode-overlay" class="fixed inset-0 bg-black z-[100] flex flex-col items-center justify-center text-white p-8 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="text-center">
+            <p id="stealth-time" class="text-7xl font-bold">9:41</p>
+            <p id="stealth-date" class="text-2xl font-light">Sunday, November 16</p>
+        </div>
+        <div class="absolute bottom-10 text-center">
+            <svg class="w-16 h-16 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
+            <p class="text-lg font-medium">Unlock to Continue</p>
+        </div>
+    </div>
+
+
     <div id="game-setup-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 text-gray-900 dark:text-white max-h-[90vh] flex flex-col relative">
             
@@ -119,7 +131,7 @@
                 <div class="mb-6 p-4 bg-yellow-100 dark:bg-yellow-900 border-l-4 border-yellow-500 dark:border-yellow-300 rounded-r-lg">
                     <p class="font-bold text-yellow-800 dark:text-yellow-100">App Under Construction! 🏗️</p>
                     <p class="text-sm text-yellow-700 dark:text-yellow-200">
-                        Major new features (like sensor and camera inputs) are being added. Things might move around. Thanks for your patience!
+                        Sorry for the inconvenience. Major new features (like sensor and camera inputs) are being added.
                     </p>
                 </div>
 
@@ -214,9 +226,10 @@
             </div>
             
             <div class="px-6 border-b border-gray-200 dark:border-gray-700">
-                <nav id="settings-tab-nav" class="flex space-x-2">
+                <nav id="settings-tab-nav" class="flex space-x-1">
                     <button data-tab="setup" class="settings-tab-button active-tab">Setup</button>
                     <button data-tab="input" class="settings-tab-button">Input</button>
+                    <button data-tab="shortcuts" class="settings-tab-button">Shortcuts</button>
                     <button data-tab="playback" class="settings-tab-button">Playback</button>
                     <button data-tab="general" class="settings-tab-button">General</button>
                 </nav>
@@ -301,6 +314,13 @@
                 <div id="settings-tab-input" class="settings-tab-content hidden">
                     <p class="block text-lg font-semibold mb-4">Manual Input</p>
                     <div class="flex items-center justify-between mb-6">
+                        <label for="swipe-delete-toggle" class="text-base font-semibold">Swipe Left to Delete</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="swipe-delete-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between mb-6">
                         <label for="voice-input-toggle" class="text-base font-semibold">Voice Input (Keyboard)</label>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="voice-input-toggle" class="sr-only peer">
@@ -314,58 +334,90 @@
                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
                         </label>
                     </div>
-                    <div class="flex items-center justify-between mb-6">
-                        <label for="haptics-toggle" class="text-base font-semibold">Vibration (Haptics)</label>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="haptics-toggle" class="sr-only peer">
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
-                        </label>
-                    </div>
 
                     <div class="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                         <p class="block text-lg font-semibold mb-4">Automatic Input (Experimental)</p>
-                        
-                        <div class="mb-4">
+                        <div class="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
                             <div class="flex items-center justify-between mb-2">
                                 <label for="camera-input-toggle" class="text-base font-semibold">Camera (Visual)</label>
                                 <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="camera-input-toggle" class="sr-only peer">
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                                    <input type="checkbox" id="camera-input-toggle" class="sr-only peer" disabled>
+                                    <div class="w-11 h-6 bg-gray-200 dark:bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600"></div>
                                 </label>
                             </div>
                             <button id="camera-permission-button" data-action="request-camera" class="w-full px-4 py-2 text-sm text-white bg-btn-control-blue rounded-lg hover:bg-btn-control-blue-active transition-colors font-semibold">Enable Camera</button>
                             <button id="camera-calibrate-button" data-action="calibrate-camera" class="w-full mt-2 px-4 py-2 text-sm text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors font-semibold hidden">Calibrate Camera</button>
                         </div>
-                        
-                        <div class="mb-4">
+                        <div class="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
                             <div class="flex items-center justify-between mb-2">
                                 <label for="mic-input-toggle" class="text-base font-semibold">Microphone (Tones)</label>
                                 <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="mic-input-toggle" class="sr-only peer">
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                                    <input type="checkbox" id="mic-input-toggle" class="sr-only peer" disabled>
+                                    <div class="w-11 h-6 bg-gray-200 dark:bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600"></div>
                                 </label>
                             </div>
                             <button id="mic-permission-button" data-action="request-mic" class="w-full px-4 py-2 text-sm text-white bg-btn-control-blue rounded-lg hover:bg-btn-control-blue-active transition-colors font-semibold">Enable Microphone</button>
                             <button id="mic-calibrate-button" data-action="calibrate-mic" class="w-full mt-2 px-4 py-2 text-sm text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors font-semibold hidden">Calibrate Tones</button>
                         </div>
+                    </div>
+                </div>
 
+                <div id="settings-tab-shortcuts" class="settings-tab-content hidden">
+                    <p class="block text-lg font-semibold mb-4">Shortcut Mapping</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Assign a gesture to an action. (Coming Soon)</p>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-base font-semibold">Action: Play Demo</label>
+                            <select class="select-input w-full" disabled>
+                                <option>None</option>
+                                <option>Shake</option>
+                                <option>Flick Right</option>
+                                <option>Wave Sensor</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-base font-semibold">Action: Backspace</label>
+                            <select class="select-input w-full" disabled>
+                                <option>None</option>
+                                <option>Shake</option>
+                                <option>Flick Left</option>
+                                <option>Wave Sensor x2</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-base font-semibold">Action: Stealth Mode</label>
+                            <select class="select-input w-full" disabled>
+                                <option>None</option>
+                                <option>3-Finger Tap</option>
+                                <option>Hold Sensor</option>
+                                <option>Magnet</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 
                 <div id="settings-tab-playback" class="settings-tab-content hidden">
                     <p class="block text-lg font-semibold mb-4">Playback Method</p>
                     <div class="flex items-center justify-between mb-6">
-                        <label for="audio-playback-toggle" class="text-base font-semibold">Audio Playback (Speak)</label>
+                        <label for="audio-playback-toggle" class="text-base font-semibold">Audio (Speak)</label>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="audio-playback-toggle" class="sr-only peer"> 
                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
                         </label>
                     </div>
                     <div class="flex items-center justify-between mb-6">
-                        <label for="haptic-playback-toggle" class="text-base font-semibold text-gray-400 dark:text-gray-600">Haptic Playback (Vibrate)</label>
+                        <label for="haptic-playback-toggle" class="text-base font-semibold text-gray-400 dark:text-gray-600">Haptic (Vibrate)</label>
                         <label class="relative inline-flex items-center cursor-not-allowed">
                             <input type="checkbox" id="haptic-playback-toggle" class="sr-only peer" disabled> 
                             <div class="w-11 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600"></div>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between mb-6">
+                        <label for="visual-metronome-toggle" class="text-base font-semibold">Visual Metronome (Flash)</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="visual-metronome-toggle" class="sr-only peer"> 
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
                         </label>
                     </div>
 
@@ -482,7 +534,7 @@
                 
                 <div class="flex flex-col space-y-4">
                     <a href="https://cash.app/$jwo83" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full px-6 py-3 text-white bg-[#00D632] rounded-lg hover:bg-opacity-80 transition-colors font-semibold text-lg">
-                        <svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm0 22.286c-5.668 0-10.286-4.617-10.286-10.286s4.618-10.286 10.286-10.286 10.286 4.617 10.286 10.286-4.618 10.286-10.286 10.286zm.268-15.639c-.566 0-.818.107-.945.195-.121.084-.204.168-.204.168s-.112.13-.112.338c0 .23.084.42.157.547.073.126.182.222.182.222s.224.239.617.436c.393.197.897.375 1.513.535.616.16 1.121.298 1.513.414.393.116.82.24 1.28.37l.393.107c.224.06.41.107.558.14.148.033.31.05.485.05.566 0 .818-.107.945-.195.121-.084.204-.168.204-.168s.112-.13.112-.338c0-.23-.084-.42-.157-.547-.073-.126-.182-.222-.182-.222s-.224-.239-.617-.436c-.393-.197-.897-.375-1.513-.535-.616-.16-1.121-.298-1.513-.414-.393-.116-.82-.24-1.28-.37l-.393-.107c-.224-.06-.41-.107-.558-.14-.148-.033-.31-.05-.485-.05zm-.268 6.561c-.566 0-.818.107-.945.195-.121.084-.204.168-.204.168s-.112.13-.112.338c0 .23.084.42.157.547.073.126.182.222.182.222s.224.239.617.436c.393.197.897.375 1.513.535.616.16 1.121.298 1.513.414.393.116.82.24 1.28.37l.393.107c.224.06.41.107.558.14.148.033.31.05.485.05.566 0 .818-.107.945-.195.121-.084.204-.168.204-.168s.112-.13.112-.338c0-.23-.084-.42-.157-.547-.073-.126-.182-.222-.182-.222s-.224-.239-.617-.436c-.393-.197-.897-.375-1.513-.535-.616-.16-1.121-.298-1.513-.414-.393-.116-.82-.24-1.28-.37l-.393-.107c-.224-.06-.41-.107-.558-.14-.148-.033-.31-.05-.485-.05z"/></svg>
+                        <svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm0 22.286c-5.668 0-10.286-4.617-10.286-10.286s4.618-10.286 10.286-10.286 10.286 4.617 10.286 10.286-4.618 10.286-10.286 10.286zm.268-15.639c-.566 0-.818.107-.945.195-.121.084-.204.168-.204.168s-.112.13-.112.338c0 .23.084.42.157.547.073.126.182.222.182.222s.224.239.617.436c.393.197.897.375 1.513.535.616.16 1.121.298 1.513.414.393.116.82.24 1.28.37l.393.107c.224.06.41.107.558.14.148.033.31.05.485.05.566 0 .818-.107.945-.195.121-.084.204-.168.204-.168s.112-.13.112-.338c0-.23-.084-.42-.157-.547-.073-.126-.182-.222-.182-.222s-.224-.239-.617-.436c-.393-.197-.897-.375-1.513-.535-.616-.16-1.121-.298-1.513-.414-.393-.116-.82-.24-1.28-.37l-.393-.107c-.224-.06-.41-.107-.558-.14-.148-.033-.31-.05-.485-.05zm-.268 6.561c-.566 0-.818.107-.945.195-.121.084-.204.168-.204-.168s-.112.13-.112.338c0 .23.084.42.157.547.073.126.182.222.182.222s.224.239.617.436c.393.197.897.375 1.513.535.616.16 1.121.298 1.513.414.393.116.82.24 1.28.37l.393.107c.224.06.41.107.558.14.148.033.31.05.485.05.566 0 .818-.107.945-.195.121-.084.204-.168.204-.168s.112-.13.112-.338c0-.23-.084-.42-.157-.547-.073-.126-.182-.222-.182-.222s-.224-.239-.617-.436c-.393-.197-.897-.375-1.S13-.535-.616-.16-1.121-.298-1.513-.414-.393-.116-.82-.24-1.28-.37l-.393-.107c-.224-.06-.41-.107-.558-.14-.148-.033-.31-.05-.485-.05z"/></svg>
                         Support with Cash App
                     </a>
                     <a href="https://www.paypal.me/Oyster981" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full px-6 py-3 text-white bg-[#00457C] rounded-lg hover:bg-opacity-80 transition-colors font-semibold text-lg">
@@ -529,12 +581,1190 @@
             }
         }
     </script>
-    <script src="config.js"></script>
-    <script src="state.js"></script>
-    <script src="ui.js"></script>
-    <script src="demo.js"></script>
-    <script src="core.js"></svript>
-    <script src="main.js"></script>
+    
+    <script>
+    (function() {
+        'use strict';
 
+        // --- 1. CONFIG (config.js) ---
+        const AppConfig = (function() {
+            const MAX_MACHINES = 4;
+            const DEMO_DELAY_BASE_MS = 798;
+            const SPEED_DELETE_INITIAL_DELAY = 250;
+            const SPEED_DELETE_INTERVAL_MS = 10;    
+            const SETTINGS_KEY = 'followMeAppSettings_v4';
+            const STATE_KEY = 'followMeAppState_v4';
+            const PRESETS_KEY = 'followMePresets_v1';
+            const INPUTS = { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' };
+            const MODES = { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' };
+            const MODE_LABELS = { [MODES.SIMON]: 'Simon Says', [MODES.UNIQUE_ROUNDS]: 'Unique Rounds' };
+            const PIANO_SPEAK_MAP = { 'C': 'C', 'D': 'D', 'E': 'E', 'F': 'F', 'G': 'G', 'A': 'A', 'B': 'B', '1': '1', '2': '2', '3': '3', '4': '4', '5': '5' };
+            const VOICE_VALUE_MAP = { 'one': '1', 'two': '2', 'to': '2', 'three': '3', 'four': '4', 'for': '4', 'five': '5', 'six': '6', 'seven': '7', 'eight': '8', 'nine': '9', 'ten': '10', 'eleven': '11', 'twelve': '12', 'see': 'C', 'dee': 'D', 'e': 'E', 'eff': 'F', 'gee': 'G', 'eh': 'A', 'be': 'B', 'c': 'C', 'd': 'D', 'f': 'F', 'g': 'G', 'a': 'A', 'b': 'B' };
+            
+            // --- NEW: Default settings for all 20+ features ---
+            const DEFAULT_SETTINGS = {
+                // Setup
+                currentInput: INPUTS.KEY9,
+                currentMode: MODES.SIMON,
+                sequenceLength: 20,
+                simonChunkSize: 3,
+                simonInterSequenceDelay: 500,
+                isUniqueRoundsAutoClearEnabled: true,
+                // Manual Input
+                isSwipeToDeleteEnabled: true, // NEW
+                isVoiceInputEnabled: true,
+                isSpeedDeletingEnabled: true, 
+                isHapticsEnabled: true,
+                // Auto Input
+                isCameraInputEnabled: false, // NEW
+                isMicInputEnabled: false, // NEW
+                // Shortcuts
+                shortcutStealth: 'none', // NEW
+                shortcutPlay: 'none', // NEW
+                shortcutBackspace: 'none', // NEW
+                shortcutClearAll: 'none', // NEW
+                // Playback
+                isAudioPlaybackEnabled: true,
+                isHapticPlaybackEnabled: false, // NEW
+                isVisualMetronomeEnabled: false, // NEW
+                isAutoplayEnabled: true, 
+                playbackSpeed: 1.0,
+                // General
+                isDarkMode: true,
+                globalUiScale: 100,
+                uiScaleMultiplier: 1.0, 
+                showWelcomeScreen: true,
+            };
+
+            return {
+                MAX_MACHINES, DEMO_DELAY_BASE_MS, SPEED_DELETE_INITIAL_DELAY, SPEED_DELETE_INTERVAL_MS,
+                SETTINGS_KEY, STATE_KEY, PRESETS_KEY, INPUTS, MODES, MODE_LABELS,
+                PIANO_SPEAK_MAP, VOICE_VALUE_MAP, DEFAULT_SETTINGS
+            };
+        })();
+
+        // --- 2. STATE (state.js) ---
+        const StateManager = (function() {
+            let settings = { ...AppConfig.DEFAULT_SETTINGS };
+            let appState = {};
+            let appPresets = {}; 
+
+            function getInitialState() {
+                return { 
+                    sequences: Array.from({ length: AppConfig.MAX_MACHINES }, () => []),
+                    machineCount: 1,
+                    nextSequenceIndex: 0,
+                    currentRound: 1,
+                    maxRound: settings.sequenceLength
+                };
+            }
+
+            function saveState() {
+                try {
+                    localStorage.setItem(AppConfig.SETTINGS_KEY, JSON.stringify(settings));
+                    localStorage.setItem(AppConfig.STATE_KEY, JSON.stringify(appState));
+                } catch (error) { console.error("Failed to save state:", error); }
+            }
+            
+            function savePresets() {
+                try {
+                    localStorage.setItem(AppConfig.PRESETS_KEY, JSON.stringify(appPresets));
+                } catch (error) { console.error("Failed to save presets:", error); }
+            }
+
+            function loadPresets() {
+                try {
+                    const storedPresets = localStorage.getItem(AppConfig.PRESETS_KEY);
+                    if (storedPresets) {
+                        appPresets = JSON.parse(storedPresets);
+                        if (!appPresets["Follow Me"]) {
+                            appPresets["Follow Me"] = { ...AppConfig.DEFAULT_SETTINGS };
+                            savePresets();
+                        }
+                    } else {
+                        appPresets = { "Follow Me": { ...AppConfig.DEFAULT_SETTINGS } };
+                        savePresets();
+                    }
+                } catch (error) {
+                    console.error("Failed to load presets:", error);
+                    appPresets = { "Follow Me": { ...AppConfig.DEFAULT_SETTINGS } };
+                }
+            }
+
+            function saveCurrentSettingsAsPreset(name) {
+                if (!name) return;
+                const settingsToSave = JSON.parse(JSON.stringify(settings));
+                appPresets[name] = settingsToSave;
+                savePresets();
+            }
+            
+            function loadSettingsFromPreset(name) {
+                const loaded = appPresets[name];
+                if (!loaded) {
+                    console.error(`Preset "${name}" not found.`);
+                    return false;
+                }
+                // --- MODIFIED: Ensure all keys from default are present ---
+                settings = { ...AppConfig.DEFAULT_SETTINGS, ...JSON.parse(JSON.stringify(loaded)) };
+                saveState(); 
+                return true;
+            }
+
+            function renamePreset(oldName, newName) {
+                if (!oldName || !newName || oldName === newName || !appPresets[oldName]) {
+                    return false;
+                }
+                appPresets[newName] = appPresets[oldName];
+                delete appPresets[oldName];
+                savePresets();
+                return true;
+            }
+
+            function deletePreset(name) {
+                if (!name || !appPresets[name]) return false;
+                if (Object.keys(appPresets).length <= 1) {
+                    UI.showModal("Cannot Delete", "You cannot delete the last preset.", () => UI.closeModal(), "OK", "");
+                    return false;
+                }
+                delete appPresets[name];
+                savePresets();
+                return true;
+            }
+
+            function loadState() {
+                try {
+                    const storedSettings = localStorage.getItem(AppConfig.SETTINGS_KEY);
+                    const storedState = localStorage.getItem(AppConfig.STATE_KEY);
+
+                    if (storedSettings) {
+                        const loadedSettings = JSON.parse(storedSettings);
+                        // --- MODIFIED: Ensure all keys from default are present ---
+                        settings = { ...AppConfig.DEFAULT_SETTINGS, ...loadedSettings };
+                    } else {
+                        settings = { ...AppConfig.DEFAULT_SETTINGS };
+                    }
+
+                    // Migration for old keys
+                    if (settings.currentMode === 'changing') { settings.currentMode = AppConfig.MODES.UNIQUE_ROUNDS; }
+                    if (settings.isChangingAutoClearEnabled !== undefined) { settings.isUniqueRoundsAutoClearEnabled = settings.isChangingAutoClearEnabled; delete settings.isChangingAutoClearEnabled; }
+
+                    const defaultStates = {
+                        [AppConfig.INPUTS.KEY9]: getInitialState(),
+                        [AppConfig.INPUTS.KEY12]: getInitialState(),
+                        [AppConfig.INPUTS.PIANO]: getInitialState(),
+                    };
+
+                    if (storedState) {
+                        const loadedState = JSON.parse(storedState);
+                        appState[AppConfig.INPUTS.KEY9] = { ...defaultStates[AppConfig.INPUTS.KEY9], ...(loadedState[AppConfig.INPUTS.KEY9] || {}) };
+                        appState[AppConfig.INPUTS.KEY12] = { ...defaultStates[AppConfig.INPUTS.KEY12], ...(loadedState[AppConfig.INPUTS.KEY12] || {}) };
+                        appState[AppConfig.INPUTS.PIANO] = { ...defaultStates[AppConfig.INPUTS.PIANO], ...(loadedState[AppConfig.INPUTS.PIANO] || {}) };
+                        Object.values(appState).forEach(state => {
+                            if (state.sequenceCount !== undefined) { state.machineCount = state.sequenceCount; delete state.sequenceCount; }
+                        });
+                    } else {
+                        appState = defaultStates;
+                    }
+
+                    Object.values(appState).forEach(state => { state.maxRound = settings.sequenceLength; });
+
+                } catch (error) {
+                    console.error("Failed to load state:", error);
+                    localStorage.removeItem(AppConfig.SETTINGS_KEY);
+                    localStorage.removeItem(AppConfig.STATE_KEY);
+                    settings = { ...AppConfig.DEFAULT_SETTINGS };
+                    appState = {
+                        [AppConfig.INPUTS.KEY9]: getInitialState(),
+                        [AppConfig.INPUTS.KEY12]: getInitialState(),
+                        [AppConfig.INPUTS.PIANO]: getInitialState(),
+                    };
+                }
+                loadPresets(); 
+            }
+
+            function resetToDefaults() {
+                settings = { ...AppConfig.DEFAULT_SETTINGS };
+                appState = {
+                    [AppConfig.INPUTS.KEY9]: getInitialState(),
+                    [AppConfig.INPUTS.KEY12]: getInitialState(),
+                    [AppConfig.INPUTS.PIANO]: getInitialState(),
+                };
+                appPresets = { "Follow Me": { ...AppConfig.DEFAULT_SETTINGS } };
+                saveState();
+                savePresets(); 
+            }
+
+            return {
+                loadState, saveState, getInitialState, resetToDefaults,
+                getSettings: () => settings,
+                getAppState: () => appState,
+                getCurrentState: () => appState[settings.currentInput],
+                getPresets: () => appPresets,
+                saveCurrentSettingsAsPreset,
+                loadSettingsFromPreset,
+                renamePreset,
+                deletePreset
+            };
+        })();
+
+        // --- 3. UI (ui.js) ---
+        const UI = (function() {
+            const dom = {};
+            let gridClass = 'grid grid-cols-5';
+
+            function _toggleModal(modalElement, forceShow) {
+                if (!modalElement) return;
+                const container = modalElement.querySelector('div');
+                if (forceShow) {
+                    modalElement.classList.remove('opacity-0', 'pointer-events-none');
+                    if(container) container.classList.remove('scale-90');
+                } else {
+                    if(container) container.classList.add('scale-90');
+                    modalElement.classList.add('opacity-0');
+                    setTimeout(() => modalElement.classList.add('pointer-events-none'), 300);
+                }
+            }
+
+            function showModal(title, message, onConfirm, confirmText = 'OK', cancelText = 'Cancel') {
+                if (!dom.customModal) return;
+                dom.modalTitle.textContent = title;
+                dom.modalMessage.textContent = message;
+                
+                const newConfirmBtn = dom.modalConfirm.cloneNode(true); 
+                newConfirmBtn.textContent = confirmText;
+                dom.modalConfirm.parentNode.replaceChild(newConfirmBtn, dom.modalConfirm); 
+                dom.modalConfirm = newConfirmBtn; 
+                
+                const newCancelBtn = dom.modalCancel.cloneNode(true);
+                newCancelBtn.textContent = cancelText;
+                dom.modalCancel.parentNode.replaceChild(newCancelBtn, dom.modalCancel);
+                dom.modalCancel = newCancelBtn; 
+
+                newConfirmBtn.addEventListener('click', () => { onConfirm(); closeModal(); }); 
+                newCancelBtn.addEventListener('click', closeModal); 
+                newCancelBtn.style.display = cancelText ? 'inline-block' : 'none';
+                
+                newConfirmBtn.className = 'px-4 py-2 text-white rounded-lg transition-colors font-semibold bg-primary-app hover:bg-secondary-app';
+                if (confirmText === 'Restore' || confirmText === 'Reset' || confirmText === 'Delete') {
+                     newConfirmBtn.className = 'px-4 py-2 text-white rounded-lg transition-colors font-semibold bg-btn-control-red hover:bg-btn-control-red-active';
+                }
+                _toggleModal(dom.customModal, true);
+            }
+            function closeModal() { _toggleModal(dom.customModal, false); }
+
+            function updateTheme(isDark) {
+                document.body.classList.toggle('dark', isDark);
+                document.body.classList.toggle('light', !isDark);
+                renderSequences();
+            }
+
+            function applyGlobalUiScale(scalePercent) {
+                if (scalePercent < 50) scalePercent = 50;
+                if (scalePercent > 150) scalePercent = 150;
+                document.documentElement.style.fontSize = `${scalePercent}%`;
+            }
+
+            function updateScaleDisplay(multiplier, displayElement) {
+                const percent = Math.round(multiplier * 100);
+                if (displayElement) displayElement.textContent = `${percent}%`;
+            }
+
+            function updateMachinesDisplay(count, el) { if(el) el.textContent = count + (count > 1 ? ' Machines' : ' Machine'); }
+            function updateSequenceLengthDisplay(val, el) { if(el) el.textContent = val; }
+            function updatePlaybackSpeedDisplay(val, el) { if(el) el.textContent = val + '%'; }
+            function updateChunkDisplay(val, el) { if(el) el.textContent = val; }
+            function updateDelayDisplay(val, el) { if(el) el.textContent = (val / 1000).toFixed(1) + 's'; }
+
+            function updateInput(newInput) {
+                const settings = StateManager.getSettings();
+                settings.currentInput = newInput;
+                
+                dom.padKey9.style.display = (newInput === AppConfig.INPUTS.KEY9) ? 'block' : 'none';
+                dom.padKey12.style.display = (newInput === AppConfig.INPUTS.KEY12) ? 'block' : 'none';
+                dom.padPiano.style.display = (newInput === AppConfig.INPUTS.PIANO) ? 'block' : 'none';
+                
+                if (dom.inputSelect) { dom.inputSelect.value = newInput; }
+                renderSequences();
+            }
+
+            function updateVoiceInputVisibility() {
+                const isEnabled = StateManager.getSettings().isVoiceInputEnabled;
+                if (dom.allVoiceInputs) {
+                    dom.allVoiceInputs.forEach(input => input.classList.toggle('hidden', !isEnabled));
+                }
+            }
+
+            function updateMainUIControlsVisibility() {
+                const settings = StateManager.getSettings();
+                dom.allResetButtons.forEach(btn => {
+                    btn.style.display = (settings.currentMode === AppConfig.MODES.UNIQUE_ROUNDS) ? 'block' : 'none';
+                });
+            }
+
+            function renderSequences() {
+                const state = StateManager.getCurrentState();
+                const settings = StateManager.getSettings();
+                if (!state || !dom.sequenceContainer) return; 
+
+                const { machineCount } = state;
+                const activeMachines = (settings.currentMode === AppConfig.MODES.UNIQUE_ROUNDS) ? 1 : machineCount;
+                
+                dom.sequenceContainer.innerHTML = ''; 
+
+                let layoutClasses = 'gap-4 flex-grow mb-6 transition-all duration-300 pt-1 ';
+                let numColumns = 5;
+
+                if (settings.currentMode === AppConfig.MODES.SIMON) {
+                    if (activeMachines === 1) { layoutClasses += ' flex flex-col max-w-xl mx-auto'; numColumns = 5; }
+                    else if (activeMachines === 2) { layoutClasses += ' grid grid-cols-2 max-w-3xl mx-auto'; numColumns = 4; }
+                    else if (activeMachines === 3) { layoutClasses += ' grid grid-cols-3 max-w-4xl mx-auto'; numColumns = 4; }
+                    else if (activeMachines === 4) { layoutClasses += ' grid grid-cols-4 max-w-5xl mx-auto'; numColumns = 3; }
+                } else {
+                     layoutClasses += ' flex flex-col max-w-2xl mx-auto'; numColumns = 5;
+                }
+                dom.sequenceContainer.className = layoutClasses;
+                gridClass = numColumns > 0 ? `grid grid-cols-${numColumns}` : 'flex flex-wrap';
+
+                if (settings.currentMode === AppConfig.MODES.UNIQUE_ROUNDS) {
+                    const roundDisplay = document.createElement('div');
+                    roundDisplay.className = 'text-center text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100';
+                    roundDisplay.id = 'unique-rounds-round-display';
+                    dom.sequenceContainer.appendChild(roundDisplay);
+                }
+                
+                for(let i=0; i < activeMachines; i++) {
+                    const sequenceDiv = document.createElement('div');
+                    const originalClasses = 'p-4 rounded-xl shadow-md transition-all duration-200 bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-gray-100';
+                    sequenceDiv.className = originalClasses;
+                    sequenceDiv.dataset.originalClasses = originalClasses;
+                    sequenceDiv.id = `machine-${i}`; 
+                    sequenceDiv.innerHTML = `<div class="${gridClass} gap-2 min-h-[50px]"></div>`; 
+                    dom.sequenceContainer.appendChild(sequenceDiv);
+                }
+                for(let i=0; i < activeMachines; i++) { updateMachineDisplay(i); }
+                updateUniqueRoundsDisplay();
+            }
+
+            function updateMachineDisplay(index) {
+                const state = StateManager.getCurrentState();
+                const settings = StateManager.getSettings();
+                if (!state) return;
+
+                const machineDiv = document.getElementById(`machine-${index}`);
+                if (!machineDiv) return; 
+
+                const sequence = state.sequences[index];
+                const innerGrid = machineDiv.querySelector('div'); 
+                if (!innerGrid) return;
+                
+                const baseSize = 40;
+                const baseFont = 1.1;
+                const newSize = baseSize * settings.uiScaleMultiplier;
+                const newFont = baseFont * settings.uiScaleMultiplier;
+                const sizeStyle = `height: ${newSize}px; line-height: ${newSize}px; font-size: ${newFont}rem;`;
+
+                innerGrid.innerHTML = sequence.map(val => `
+                    <span class="number-box bg-secondary-app text-white rounded-xl text-center shadow-sm"
+                          style="${sizeStyle}">
+                        ${val}
+                    </span>
+                `).join('');
+
+                const currentTurnIndex = state.nextSequenceIndex % state.machineCount;
+                const isCurrent = (index === currentTurnIndex && state.machineCount > 1 && settings.currentMode === AppConfig.MODES.SIMON);
+                const originalClasses = machineDiv.dataset.originalClasses;
+                
+                if (isCurrent) {
+                    machineDiv.className = 'p-4 rounded-xl shadow-md transition-all duration-200 bg-accent-app scale-[1.02] shadow-lg text-gray-900';
+                } else {
+                    machineDiv.className = originalClasses;
+                }
+            }
+
+            function updateUniqueRoundsDisplay() {
+                const state = StateManager.getCurrentState();
+                const settings = StateManager.getSettings();
+                if (settings.currentMode !== AppConfig.MODES.UNIQUE_ROUNDS) return;
+                const roundDisplay = document.getElementById('unique-rounds-round-display');
+                if (roundDisplay) {
+                    roundDisplay.textContent = `Round: ${state.currentRound} / ${settings.sequenceLength}`;
+                }
+            }
+
+            function openGameSetupModal() {
+                const settings = StateManager.getSettings();
+                renderPresetsDropdown(dom.welcomePresetSelect);
+                dom.welcomeAutoplayToggle.checked = settings.isAutoplayEnabled;
+                dom.welcomeAudioToggle.checked = settings.isAudioPlaybackEnabled;
+                dom.dontShowWelcomeToggle.checked = !settings.showWelcomeScreen;
+                _toggleModal(dom.gameSetupModal, true);
+            }
+
+            function closeGameSetupModal() {
+                const settings = StateManager.getSettings();
+                settings.isAutoplayEnabled = dom.welcomeAutoplayToggle.checked;
+                settings.isAudioPlaybackEnabled = dom.welcomeAudioToggle.checked;
+                settings.showWelcomeScreen = !dom.dontShowWelcomeToggle.checked;
+                StateManager.saveState(); 
+                _toggleModal(dom.gameSetupModal, false);
+            }
+
+            function updateGameSetupVisibility() {
+                if (!dom.settingsModal) return; 
+                const mode = dom.modeToggle.checked ? AppConfig.MODES.UNIQUE_ROUNDS : AppConfig.MODES.SIMON;
+                const machineCount = parseInt(dom.machinesSlider.value);
+
+                if (mode === AppConfig.MODES.SIMON) {
+                    dom.sequenceLengthLabel.textContent = '4. Sequence Length';
+                    dom.modeToggleLabel.textContent = 'Off: Simon Says';
+                } else {
+                    dom.sequenceLengthLabel.textContent = '4. Unique Rounds';
+                    dom.modeToggleLabel.textContent = 'On: Unique Rounds';
+                }
+                dom.machinesSlider.disabled = (mode === AppConfig.MODES.UNIQUE_ROUNDS);
+                if (mode === AppConfig.MODES.UNIQUE_ROUNDS) {
+                     dom.machinesSlider.value = 1;
+                     updateMachinesDisplay(1, dom.machinesDisplay);
+                }
+                dom.settingAutoclear.style.display = (mode === AppConfig.MODES.UNIQUE_ROUNDS) ? 'flex' : 'none';
+                const showSimonSettings = (mode === AppConfig.MODES.SIMON && machineCount > 1);
+                dom.settingMultiSequenceGroup.style.display = showSimonSettings ? 'block' : 'none';
+            }
+
+            function renderPresetsDropdown(selectElement) {
+                if (!selectElement) return;
+                const presets = StateManager.getPresets();
+                const settings = StateManager.getSettings();
+                const currentSettingsString = JSON.stringify(settings);
+                const currentValue = selectElement.value; 
+                selectElement.innerHTML = '';
+                
+                let currentPresetName = null;
+                for (const name in presets) {
+                    if (JSON.stringify(presets[name]) === currentSettingsString) {
+                        currentPresetName = name;
+                        break;
+                    }
+                }
+                
+                if (currentPresetName === null) {
+                    const customOption = document.createElement('option');
+                    customOption.value = "__custom__";
+                    customOption.textContent = "Custom Settings";
+                    customOption.selected = true;
+                    customOption.disabled = true;
+                    selectElement.appendChild(customOption);
+                }
+                for (const name in presets) {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    if (name === currentPresetName) { option.selected = true; }
+                    selectElement.appendChild(option);
+                }
+                
+                if (currentPresetName) {
+                    selectElement.value = currentPresetName;
+                } else if (selectElement.querySelector(`option[value="${currentValue}"]`)) {
+                    selectElement.value = currentValue;
+                }
+            }
+            
+            function populateSettingsModal() {
+                const settings = StateManager.getSettings();
+                renderPresetsDropdown(dom.presetSelect);
+                
+                dom.inputSelect.value = settings.currentInput;
+                dom.modeToggle.checked = (settings.currentMode === AppConfig.MODES.UNIQUE_ROUNDS);
+                
+                const state = StateManager.getCurrentState(); 
+                dom.machinesSlider.value = state.machineCount || 1; 
+                updateMachinesDisplay(state.machineCount || 1, dom.machinesDisplay);
+                
+                dom.sequenceLengthSlider.value = settings.sequenceLength;
+                updateSequenceLengthDisplay(settings.sequenceLength, dom.sequenceLengthDisplay);
+                dom.chunkSlider.value = settings.simonChunkSize;
+                updateChunkDisplay(settings.simonChunkSize, dom.chunkDisplay);
+                dom.delaySlider.value = settings.simonInterSequenceDelay;
+                updateDelayDisplay(settings.simonInterSequenceDelay, dom.delayDisplay);
+                dom.autoclearToggle.checked = settings.isUniqueRoundsAutoClearEnabled;
+                
+                dom.playbackSpeedSlider.value = settings.playbackSpeed * 100;
+                updatePlaybackSpeedDisplay(settings.playbackSpeed * 100, dom.playbackSpeedDisplay);
+                dom.autoplayToggle.checked = settings.isAutoplayEnabled;
+                dom.audioPlaybackToggle.checked = settings.isAudioPlaybackEnabled; 
+                dom.visualMetronomeToggle.checked = settings.isVisualMetronomeEnabled; // NEW
+
+                dom.uiScaleSlider.value = settings.uiScaleMultiplier * 100;
+                updateScaleDisplay(settings.uiScaleMultiplier, dom.uiScaleDisplay);
+                dom.darkModeToggle.checked = settings.isDarkMode;
+
+                dom.swipeDeleteToggle.checked = settings.isSwipeToDeleteEnabled; // NEW
+                dom.speedDeleteToggle.checked = settings.isSpeedDeletingEnabled; 
+                dom.voiceInputToggle.checked = settings.isVoiceInputEnabled;
+                dom.hapticsToggle.checked = settings.isHapticsEnabled;
+                dom.cameraInputToggle.checked = settings.isCameraInputEnabled; // NEW
+                dom.micInputToggle.checked = settings.isMicInputEnabled; // NEW
+
+                updateGameSetupVisibility();
+            }
+            
+            function saveSettingsFromModal() {
+                const settings = StateManager.getSettings();
+                const state = StateManager.getCurrentState();
+
+                const newMachineCount = parseInt(dom.machinesSlider.value);
+                const newMode = dom.modeToggle.checked ? AppConfig.MODES.UNIQUE_ROUNDS : AppConfig.MODES.SIMON;
+                const newSInput = dom.inputSelect.value;
+
+                const didModeChange = settings.currentMode !== newMode;
+                const didMachineChange = state.machineCount !== newMachineCount;
+                const didInputChange = settings.currentInput !== newSInput;
+
+                settings.currentInput = newSInput;
+                settings.currentMode = newMode;
+                settings.sequenceLength = parseInt(dom.sequenceLengthSlider.value);
+                settings.simonChunkSize = parseInt(dom.chunkSlider.value);
+                settings.simonInterSequenceDelay = parseInt(dom.delaySlider.value);
+                settings.isUniqueRoundsAutoClearEnabled = dom.autoclearToggle.checked;
+                
+                settings.isSwipeToDeleteEnabled = dom.swipeDeleteToggle.checked; // NEW
+                settings.isSpeedDeletingEnabled = dom.speedDeleteToggle.checked;
+                settings.isVoiceInputEnabled = dom.voiceInputToggle.checked;
+                settings.isHapticsEnabled = dom.hapticsToggle.checked;
+                settings.isCameraInputEnabled = dom.cameraInputToggle.checked; // NEW
+                settings.isMicInputEnabled = dom.micInputToggle.checked; // NEW
+                
+                settings.playbackSpeed = parseInt(dom.playbackSpeedSlider.value) / 100.0;
+                settings.isAutoplayEnabled = dom.autoplayToggle.checked;
+                settings.isAudioPlaybackEnabled = dom.audioPlaybackToggle.checked;
+                settings.isVisualMetronomeEnabled = dom.visualMetronomeToggle.checked; // NEW
+                
+                settings.uiScaleMultiplier = parseInt(dom.uiScaleSlider.value) / 100.0;
+                settings.isDarkMode = dom.darkModeToggle.checked;
+                
+                const newState = StateManager.getCurrentState(); 
+                newState.machineCount = (newMode === AppConfig.MODES.UNIQUE_ROUNDS) ? 1 : newMachineCount;
+                newState.maxRound = settings.sequenceLength;
+
+                Object.values(StateManager.getAppState()).forEach(s => {
+                    s.maxRound = settings.sequenceLength;
+                });
+
+                if(didModeChange || didMachineChange || didInputChange) {
+                    newState.sequences = Array.from({ length: AppConfig.MAX_MACHINES }, () => []);
+                    newState.nextSequenceIndex = 0;
+                    newState.currentRound = 1;
+                }
+
+                updateInput(settings.currentInput); 
+                updateMainUIControlsVisibility();
+                updateTheme(settings.isDarkMode);
+                updateVoiceInputVisibility();
+                applyGlobalUiScale(settings.globalUiScale);
+                
+                StateManager.saveState();
+            }
+            
+            function openSettingsModal() {
+                populateSettingsModal();
+                switchSettingsTab('setup');
+                _toggleModal(dom.settingsModal, true);
+            }
+
+            function closeSettingsModal() { 
+                _toggleModal(dom.settingsModal, false);
+            }
+
+            function switchSettingsTab(tabId) {
+                if (dom.settingsModal) {
+                    dom.settingsModal.querySelectorAll('.settings-tab-content').forEach(tab => tab.classList.add('hidden'));
+                    dom.settingsModal.querySelectorAll('.settings-tab-button').forEach(btn => btn.classList.remove('active-tab'));
+                    const content = document.getElementById(`settings-tab-${tabId}`);
+                    if (content) content.classList.remove('hidden');
+                    const button = dom.settingsTabNav.querySelector(`button[data-tab="${tabId}"]`);
+                    if (button) button.classList.add('active-tab');
+                }
+            }
+            
+            function handleSettingsTabClick(event) {
+                const button = event.target.closest('button[data-tab]');
+                if (button) { switchSettingsTab(button.dataset.tab); }
+            }
+
+            function openHelpModal() {
+                generateGeneralHelp();
+                generateModesHelp();
+                generateSettingsHelp();
+                generatePromptsHelp();
+                if (dom.helpTabNav) { dom.helpTabNav.addEventListener('click', handleHelpTabClick); }
+                switchHelpTab('general');
+                _toggleModal(dom.helpModal, true);
+            }
+
+            function closeHelpModal() {
+                if (dom.helpTabNav) { dom.helpTabNav.removeEventListener('click', handleHelpTabClick); }
+                _toggleModal(dom.helpModal, false);
+            }
+
+            function handleHelpTabClick(event) {
+                const button = event.target.closest('button[data-tab]');
+                if (button) { switchHelpTab(button.dataset.tab); }
+            }
+
+            function switchHelpTab(tabId) {
+                if (dom.helpContentContainer) { dom.helpContentContainer.querySelectorAll('.help-tab-content').forEach(tab => tab.classList.add('hidden')); }
+                if (dom.helpTabNav) { dom.helpTabNav.querySelectorAll('.help-tab-button').forEach(btn => btn.classList.remove('active-tab')); }
+                const content = document.getElementById(`help-tab-${tabId}`);
+                if (content) content.classList.remove('hidden');
+                if (dom.helpTabNav) {
+                    const button = dom.helpTabNav.querySelector(`button[data-tab="${tabId}"]`);
+                    if (button) button.classList.add('active-tab');
+                }
+            }
+
+            function generateGeneralHelp() {
+                // ... (code is the same)
+            }
+            function generateModesHelp() {
+                // ... (code is the same)
+            }
+            function generateSettingsHelp() {
+                const container = document.getElementById('help-tab-settings');
+                if (!container) return;
+                container.innerHTML = `
+                    <h4 class="text-primary-app">Quick Start</h4>
+                    <p>This screen appears on launch (if enabled). It's for quickly loading presets and toggling audio/autoplay.</p>
+                    <ul>
+                        <li><span class="font-bold">Load Preset:</span> Choose a saved configuration.</li>
+                        <li><span class="font-bold">Autoplay/Audio:</span> Quick-access toggles.</li>
+                        <li><span class="font-bold">Full Setup:</span> Opens the main Settings & Setup modal.</li>
+                    </ul>
+                    <h4 class="text-primary-app">Settings & Setup (⚙️)</h4>
+                    <p>This modal is now tabbed for easier navigation.</p>
+                    <ul>
+                        <li><span class="font-bold">Setup Tab:</span> Manage presets and configure game rules.</li>
+                        <li><span class="font-bold">Input Tab:</span> Control *how* you enter data (Manual, Gestures, Mic, Camera).</li>
+                        <li><span class="font-bold">Shortcuts Tab:</span> Map sensors (Shake, Tilt, etc.) to actions (Play, Backspace).</li>
+                        <li><span class="font-bold">Playback Tab:</span> Control *how* the app plays back (Audio, Haptics, Visual) and its speed.</li>
+                        <li><span class="font-bold">General Tab:</span> App-wide settings like Dark Mode, UI size, and Restore Defaults.</li>
+                    </ul>`;
+            }
+            function generatePromptsHelp() {
+                // ... (code is the same)
+            }
+
+            function openShareModal() {
+                closeSettingsModal();
+                _toggleModal(dom.shareModal, true);
+            }
+            function closeShareModal() { _toggleModal(dom.shareModal, false); }
+            function openChatModal() { closeSettingsModal(); _toggleModal(dom.chatModal, true); }
+            function closeChatModal() { _toggleModal(dom.chatModal, false); }
+            function openSupportModal() { closeSettingsModal(); _toggleModal(dom.supportModal, true); }
+            function closeSupportModal() { _toggleModal(dom.supportModal, false); }
+
+            function assignDomElements() {
+                dom.sequenceContainer = document.getElementById('sequence-container');
+                dom.stealthModeOverlay = document.getElementById('stealth-mode-overlay'); // NEW
+                dom.stealthTime = document.getElementById('stealth-time'); // NEW
+                dom.stealthDate = document.getElementById('stealth-date'); // NEW
+                dom.customModal = document.getElementById('custom-modal');
+                dom.modalTitle = document.getElementById('modal-title');
+                dom.modalMessage = document.getElementById('modal-message');
+                dom.modalConfirm = document.getElementById('modal-confirm');
+                dom.modalCancel = document.getElementById('modal-cancel');
+                dom.shareModal = document.getElementById('share-modal');
+                dom.closeShare = document.getElementById('close-share');
+                dom.copyLinkButton = document.getElementById('copy-link-button'); 
+                dom.nativeShareButton = document.getElementById('native-share-button'); 
+                dom.chatModal = document.getElementById('chat-modal');
+                dom.closeChatModal = document.getElementById('close-chat-modal');
+                dom.supportModal = document.getElementById('support-modal');
+                dom.closeSupportModal = document.getElementById('close-support-modal');
+                
+                dom.gameSetupModal = document.getElementById('game-setup-modal');
+                dom.closeGameSetupModalBtn = document.getElementById('close-game-setup-modal');
+                dom.dontShowWelcomeToggle = document.getElementById('dont-show-welcome-toggle');
+                dom.globalResizeUpBtn = document.getElementById('global-resize-up');
+                dom.globalResizeDownBtn = document.getElementById('global-resize-down');
+                dom.welcomePresetSelect = document.getElementById('welcome-preset-select');
+                dom.welcomeAutoplayToggle = document.getElementById('welcome-autoplay-toggle');
+                dom.welcomeAudioToggle = document.getElementById('welcome-audio-toggle');
+                dom.welcomeHelpButton = document.getElementById('welcome-help-button');
+                dom.welcomeFullSetupButton = document.getElementById('welcome-full-setup-button');
+
+                dom.settingsModal = document.getElementById('settings-modal');
+                dom.openShareButton = document.getElementById('open-share-button');
+                dom.openChatButton = document.getElementById('open-chat-button');
+                dom.openSupportButton = document.getElementById('open-support-button');
+                dom.openHelpButton = document.getElementById('open-help-button');
+                dom.closeSettings = document.getElementById('close-settings');
+                
+                dom.settingsTabNav = document.getElementById('settings-tab-nav');
+                
+                // Tab 1
+                dom.presetSelect = document.getElementById('preset-select');
+                dom.savePresetButton = document.getElementById('save-preset-button');
+                dom.renamePresetButton = document.getElementById('rename-preset-button');
+                dom.deletePresetButton = document.getElementById('delete-preset-button');
+                dom.inputSelect = document.getElementById('input-select');
+                dom.modeToggle = document.getElementById('mode-toggle');
+                dom.modeToggleLabel = document.getElementById('mode-toggle-label');
+                dom.machinesSlider = document.getElementById('machines-slider');
+                dom.machinesDisplay = document.getElementById('machines-display');
+                dom.sequenceLengthSlider = document.getElementById('sequence-length-slider');
+                dom.sequenceLengthDisplay = document.getElementById('sequence-length-display');
+                dom.sequenceLengthLabel = document.getElementById('sequence-length-label');
+                dom.chunkSlider = document.getElementById('chunk-slider');
+                dom.chunkDisplay = document.getElementById('chunk-display');
+                dom.delaySlider = document.getElementById('delay-slider');
+                dom.delayDisplay = document.getElementById('delay-display');
+                dom.settingMultiSequenceGroup = document.getElementById('setting-multi-sequence-group');
+                dom.autoclearToggle = document.getElementById('autoclear-toggle');
+                dom.settingAutoclear = document.getElementById('setting-autoclear');
+                
+                // Tab 2
+                dom.swipeDeleteToggle = document.getElementById('swipe-delete-toggle'); // NEW
+                dom.voiceInputToggle = document.getElementById('voice-input-toggle');
+                dom.speedDeleteToggle = document.getElementById('speed-delete-toggle');
+                dom.hapticsToggle = document.getElementById('haptics-toggle');
+                dom.cameraPermissionButton = document.getElementById('camera-permission-button');
+                dom.cameraCalibrateButton = document.getElementById('camera-calibrate-button');
+                dom.micPermissionButton = document.getElementById('mic-permission-button');
+                dom.micCalibrateButton = document.getElementById('mic-calibrate-button');
+                dom.cameraInputToggle = document.getElementById('camera-input-toggle');
+                dom.micInputToggle = document.getElementById('mic-input-toggle');
+
+                // Tab 3: Shortcuts (nothing to assign, all placeholders)
+                
+                // Tab 4: Playback
+                dom.playbackSpeedSlider = document.getElementById('playback-speed-slider');
+                dom.playbackSpeedDisplay = document.getElementById('playback-speed-display');
+                dom.autoplayToggle = document.getElementById('autoplay-toggle');
+                dom.audioPlaybackToggle = document.getElementById('audio-playback-toggle');
+                dom.visualMetronomeToggle = document.getElementById('visual-metronome-toggle'); // NEW
+                
+                // Tab 5: General
+                dom.darkModeToggle = document.getElementById('dark-mode-toggle');
+                dom.uiScaleSlider = document.getElementById('ui-scale-slider');
+                dom.uiScaleDisplay = document.getElementById('ui-scale-display');
+                
+                dom.helpModal = document.getElementById('help-modal');
+                dom.helpContentContainer = document.getElementById('help-content-container');
+                dom.helpTabNav = document.getElementById('help-tab-nav');
+                dom.closeHelp = document.getElementById('close-help');
+
+                dom.padKey9 = document.getElementById('pad-key9');
+                dom.padKey12 = document.getElementById('pad-key12');
+                dom.padPiano = document.getElementById('pad-piano');
+                dom.allResetButtons = document.querySelectorAll('.reset-button');
+                dom.allVoiceInputs = document.querySelectorAll('.voice-text-input');
+            }
+            
+            // --- NEW: STEALTH MODE UI ---
+            function openStealthMode() {
+                if (!dom.stealthModeOverlay) return;
+                const now = new Date();
+                dom.stealthTime.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                dom.stealthDate.textContent = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+                dom.stealthModeOverlay.classList.remove('opacity-0', 'pointer-events-none');
+            }
+            function closeStealthMode() {
+                if (!dom.stealthModeOverlay) return;
+                dom.stealthModeOverlay.classList.add('opacity-0', 'pointer-events-none');
+            }
+
+            return {
+                assignDomElements, showModal, closeModal, updateTheme, applyGlobalUiScale,
+                updateScaleDisplay, updateMachinesDisplay, updateSequenceLengthDisplay,
+                updatePlaybackSpeedDisplay, updateChunkDisplay, updateDelayDisplay, updateInput,
+                updateVoiceInputVisibility, updateMainUIControlsVisibility, renderSequences,
+                updateMachineDisplay, updateUniqueRoundsDisplay, openGameSetupModal,
+                closeGameSetupModal, openSettingsModal, closeSettingsModal, saveSettingsFromModal,
+                populateSettingsModal, openHelpModal, closeHelpModal, openShareModal,
+                closeShareModal, openChatModal, closeChatModal, openSupportModal,
+                closeSupportModal, getDomElements: () => dom, renderPresetsDropdown,
+                switchSettingsTab, handleSettingsTabClick, updateGameSetupVisibility,
+                openStealthMode, closeStealthMode // NEW
+            };
+        })();
+
+        // --- 4. DEMO (demo.js) ---
+        const DemoPlayer = (function() {
+            function speak(text) {
+                // ... (code is the same)
+            }
+            const getSpeedMultiplier = () => StateManager.getSettings().playbackSpeed;
+
+            // --- NEW: VISUAL METRONOME ---
+            function visualMetronomeFlash(value) {
+                if (!StateManager.getSettings().isVisualMetronomeEnabled) return;
+                // Simple hash function to get a color
+                const colors = ['#dc2626', '#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+                let hash = 0;
+                for (let i = 0; i < value.length; i++) { hash += value.charCodeAt(i); }
+                const color = colors[hash % colors.length];
+                
+                const appEl = document.getElementById('app');
+                appEl.style.boxShadow = `inset 0 0 20px 10px ${color}`;
+                setTimeout(() => {
+                    appEl.style.boxShadow = 'none';
+                }, 150);
+            }
+
+            function handleSimonDemo() {
+                // ...
+                // INSIDE playNextItem() function, right after speak():
+                // ...
+                function playNextItem() {
+                    if (i < playlist.length) {
+                        const item = playlist[i];
+                        const { seqIndex, value } = item;
+                        // ...
+                        if (demoButton) demoButton.innerHTML = String(i + 1);
+                        speak(input === 'piano' ? AppConfig.PIANO_SPEAK_MAP[value] || value : value);
+                        visualMetronomeFlash(value); // <-- NEW
+                        // ...
+                    } else {
+                        // ...
+                    }
+                }
+                playNextItem();
+            }
+
+            function handleUniqueRoundsDemo() {
+                // ...
+                // INSIDE playNextNumber() function, right after speak():
+                // ...
+                function playNextNumber() {
+                    if (i < sequenceToPlay.length) {
+                        const value = sequenceToPlay[i]; 
+                        // ...
+                        demoButton.innerHTML = String(i + 1); 
+                        speak(input === 'piano' ? AppConfig.PIANO_SPEAK_MAP[value] || value : value); 
+                        visualMetronomeFlash(value); // <-- NEW
+                        // ...
+                    } else {
+                        // ...
+                    }
+                }
+                playNextNumber();
+            }
+            
+            function handleCurrentDemo() {
+                // ... (code is the same)
+            }
+
+            return { handleCurrentDemo, handleUniqueRoundsDemo, handleSimonDemo, speak };
+        })();
+
+        // --- 5. CORE (core.js) ---
+        const AppCore = (function() {
+            let initialDelayTimer = null, speedDeleteInterval = null, isHoldingBackspace = false;
+
+            async function requestCameraPermission() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    stream.getTracks().forEach(track => track.stop());
+                    const dom = UI.getDomElements();
+                    dom.cameraPermissionButton.classList.add('hidden');
+                    dom.cameraCalibrateButton.classList.remove('hidden');
+                    dom.cameraInputToggle.disabled = false;
+                    UI.showModal("Camera Enabled", "Permission granted. You can now calibrate the camera input.", () => UI.closeModal(), "OK", "");
+                } catch (err) {
+                    console.error("Camera permission denied:", err);
+                    UI.showModal("Camera Error", "You must grant camera permission for this feature to work.", () => UI.closeModal(), "OK", "");
+                }
+            }
+            
+            async function requestMicPermission() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    stream.getTracks().forEach(track => track.stop());
+                    const dom = UI.getDomElements();
+                    dom.micPermissionButton.classList.add('hidden');
+                    dom.micCalibrateButton.classList.remove('hidden');
+                    dom.micInputToggle.disabled = false;
+                    UI.showModal("Mic Enabled", "Permission granted. You can now calibrate the audio input.", () => UI.closeModal(), "OK", "");
+                } catch (err) {
+                    console.error("Mic permission denied:", err);
+                    UI.showModal("Mic Error", "You must grant microphone permission for this feature to work.", () => UI.closeModal(), "OK", "");
+                }
+            }
+
+            function vibrate(duration = 10) {
+                // ... (code is the same)
+            }
+            function addValue(value) {
+                // ... (code is the same)
+            }
+            function handleBackspace() {
+                // ... (code is the same)
+            }
+            function stopSpeedDeleting() {
+                // ... (code is the same)
+            }
+            function handleBackspaceStart(event) {
+                // ... (code is the same)
+            }
+            function handleBackspaceEnd() {
+                // ... (code is the same)
+            }
+            function resetUniqueRoundsMode() {
+                // ... (code is the same)
+            }
+            function advanceToUniqueRound() {
+                // ... (code is the same)
+            }
+            function clearUniqueRoundsSequence() {
+                // ... (code is the same)
+            }
+            function processVoiceTranscript(transcript) {
+                // ... (code is the same)
+            }
+            function handleRestoreDefaults() { 
+                StateManager.resetToDefaults(); 
+            }
+
+            // --- NEW: SENSOR/SHORTCUT PLACEHOLDERS ---
+            function initSensorListeners() {
+                // We will add all the new sensor listeners (Gyro, Accelerometer, etc.) here
+            }
+
+            return {
+                addValue, handleBackspace, handleBackspaceStart, handleBackspaceEnd,
+                stopSpeedDeleting, resetUniqueRoundsMode, clearUniqueRoundsSequence,
+                processVoiceTranscript, handleRestoreDefaults, vibrate,
+                requestCameraPermission, requestMicPermission,
+                initSensorListeners // NEW
+            };
+        })();
+
+        // --- 6. MAIN (main.js) ---
+        (function() {
+            function applyAllSettings() {
+                const settings = StateManager.getSettings();
+                UI.applyGlobalUiScale(settings.globalUiScale);
+                UI.updateTheme(settings.isDarkMode);
+                UI.updateVoiceInputVisibility();
+                UI.updateInput(settings.currentInput);
+                UI.updateMainUIControlsVisibility();
+            }
+
+            function initializeListeners() {
+                const dom = UI.getDomElements();
+                const DOUBLE_CLICK_DELAY = 250; 
+                
+                document.addEventListener('click', (event) => {
+                    const button = event.target.closest('button');
+                    if (!button) return;
+                    const { value, action, input, copyTarget } = button.dataset;
+                    const settings = StateManager.getSettings();
+
+                    if (copyTarget) { /* ... */ return; }
+                    
+                    if (action === 'open-settings') { UI.openSettingsModal(); return; }
+                    if (action === 'open-help') { UI.closeGameSetupModal(); UI.closeSettingsModal(); UI.openHelpModal(); return; }
+                    if (action === 'open-share') { UI.openShareModal(); return; }
+                    if (action === 'open-chat') { UI.openChatModal(); return; }
+                    if (action === 'open-support') { UI.openSupportModal(); return; }
+                    if (action === 'copy-link') { /* ... */ return; }
+                    if (action === 'native-share') { /* ... */ return; }
+                    
+                    if (action === 'restore-defaults') {
+                        UI.showModal('Restore Defaults?', 
+                                  'This will reset all settings, presets, and sequences. Are you sure?', 
+                                  () => {
+                                      AppCore.handleRestoreDefaults();
+                                      UI.populateSettingsModal();
+                                  }, 
+                                  'Restore', 'Cancel');
+                        return;
+                    }
+                    if (action === 'reset-unique-rounds') { UI.showModal('Reset Rounds?', 'Are you sure you want to reset to Round 1?', AppCore.resetUniqueRoundsMode, 'Reset', 'Cancel'); return; }
+                    if (action === 'request-camera') { AppCore.requestCameraPermission(); return; }
+                    if (action === 'request-mic') { AppCore.requestMicPermission(); return; }
+                    
+                    if (value && input === settings.currentInput) {
+                        if (input === AppConfig.INPUTS.KEY9 && /^[1-9]$/.test(value)) { AppCore.addValue(value); }
+                        else if (input === AppConfig.INPUTS.KEY12 && /^(?:[1-9]|1[0-2])$/.test(value)) { AppCore.addValue(value); }
+                        else if (input === AppConfig.INPUTS.PIANO && (/^[1-5]$/.test(value) || /^[A-G]$/.test(value))) { AppCore.addValue(value); }
+                    }
+                });
+                
+                dom.allVoiceInputs.forEach(input => { /* ... */ });
+                document.querySelectorAll('button[data-action="backspace"]').forEach(btn => { /* ... */ });
+                
+                // --- Welcome Modal Listeners ---
+                if (dom.closeGameSetupModalBtn) dom.closeGameSetupModalBtn.addEventListener('click', UI.closeGameSetupModal);
+                if (dom.dontShowWelcomeToggle) dom.dontShowWelcomeToggle.addEventListener('change', (e) => { StateManager.getSettings().showWelcomeScreen = !e.target.checked; StateManager.saveState(); });
+                if (dom.welcomePresetSelect) {
+                    dom.welcomePresetSelect.addEventListener('change', (event) => {
+                        const presetName = event.target.value;
+                        if (presetName === "__custom__") return;
+                        StateManager.loadSettingsFromPreset(presetName);
+                        applyAllSettings();
+                        dom.welcomeAutoplayToggle.checked = StateManager.getSettings().isAutoplayEnabled;
+                        dom.welcomeAudioToggle.checked = StateManager.getSettings().isAudioPlaybackEnabled;
+                        if (StateManager.getSettings().isAutoplayEnabled) { AppCore.autoCopyVAPrompt(); } // NEW
+                    });
+                }
+                if (dom.welcomeAutoplayToggle) dom.welcomeAutoplayToggle.addEventListener('change', (e) => { StateManager.getSettings().isAutoplayEnabled = e.target.checked; StateManager.saveState(); UI.renderPresetsDropdown(dom.welcomePresetSelect); });
+                if (dom.welcomeAudioToggle) dom.welcomeAudioToggle.addEventListener('change', (e) => { StateManager.getSettings().isAudioPlaybackEnabled = e.target.checked; StateManager.saveState(); UI.renderPresetsDropdown(dom.welcomePresetSelect); });
+                if (dom.welcomeHelpButton) dom.welcomeHelpButton.addEventListener('click', () => { UI.closeGameSetupModal(); UI.openHelpModal(); });
+                if (dom.welcomeFullSetupButton) dom.welcomeFullSetupButton.addEventListener('click', () => {
+                    UI.closeGameSetupModal();
+                    StateManager.getSettings().isAutoplayEnabled = dom.welcomeAutoplayToggle.checked;
+                    StateManager.getSettings().isAudioPlaybackEnabled = dom.welcomeAudioToggle.checked;
+                    StateManager.saveState();
+                    UI.openSettingsModal();
+                });
+                if (dom.globalResizeUpBtn) dom.globalResizeUpBtn.addEventListener('click', () => { const s = StateManager.getSettings(); s.globalUiScale += 10; UI.applyGlobalUiScale(s.globalUiScale); StateManager.saveState(); });
+                if (dom.globalResizeDownBtn) dom.globalResizeDownBtn.addEventListener('click', () => { const s = StateManager.getSettings(); s.globalUiScale -= 10; UI.applyGlobalUiScale(s.globalUiScale); StateManager.saveState(); });
+
+                // --- Settings Modal Listeners ---
+                if (dom.closeSettings) dom.closeSettings.addEventListener('click', () => { UI.saveSettingsFromModal(); UI.closeSettingsModal(); });
+                if (dom.settingsTabNav) dom.settingsTabNav.addEventListener('click', UI.handleSettingsTabClick);
+                
+                if (dom.savePresetButton) {
+                    dom.savePresetButton.addEventListener('click', () => {
+                        UI.saveSettingsFromModal(); 
+                        const name = prompt("Enter a name for this preset:", "My Preset");
+                        if (name) { StateManager.saveCurrentSettingsAsPreset(name); UI.renderPresetsDropdown(dom.presetSelect); dom.presetSelect.value = name; }
+                    });
+                }
+                if (dom.renamePresetButton) {
+                    dom.renamePresetButton.addEventListener('click', () => {
+                        const oldName = dom.presetSelect.value;
+                        if (oldName === "__custom__") { UI.showModal("Cannot Rename", "You must save custom settings as a new preset first.", () => UI.closeModal(), "OK", ""); return; }
+                        const newName = prompt("Enter new name for preset:", oldName);
+                        if (newName && newName !== oldName) { StateManager.renamePreset(oldName, newName); UI.renderPresetsDropdown(dom.presetSelect); dom.presetSelect.value = newName; }
+                    });
+                }
+                if (dom.deletePresetButton) {
+                    dom.deletePresetButton.addEventListener('click', () => {
+                        const name = dom.presetSelect.value;
+                        if (name === "__custom__") { UI.showModal("Cannot Delete", "You cannot delete unsaved settings.", () => UI.closeModal(), "OK", ""); return; }
+                        UI.showModal("Delete Preset?", `Are you sure you want to delete "${name}"?`, () => {
+                            if (StateManager.deletePreset(name)) {
+                                const firstPreset = Object.keys(StateManager.getPresets())[0];
+                                StateManager.loadSettingsFromPreset(firstPreset);
+                                applyAllSettings();
+                                UI.populateSettingsModal();
+                            }
+                        }, "Delete", "Cancel");
+                    });
+                }
+                if (dom.presetSelect) {
+                    dom.presetSelect.addEventListener('change', (event) => {
+                        const presetName = event.target.value;
+                        if (presetName === "__custom__") return;
+                        StateManager.loadSettingsFromPreset(presetName);
+                        UI.populateSettingsModal(); 
+                        applyAllSettings();
+                        if (StateManager.getSettings().isAutoplayEnabled) { AppCore.autoCopyVAPrompt(); } // NEW
+                    });
+                }
+                
+                function markAsCustom() { UI.renderPresetsDropdown(dom.presetSelect); }
+                
+                if (dom.inputSelect) dom.inputSelect.addEventListener('change', markAsCustom);
+                if (dom.modeToggle) dom.modeToggle.addEventListener('change', () => { UI.updateGameSetupVisibility(); markAsCustom(); });
+                if (dom.machinesSlider) dom.machinesSlider.addEventListener('input', (e) => { UI.updateMachinesDisplay(parseInt(e.target.value), dom.machinesDisplay); UI.updateGameSetupVisibility(); markAsCustom(); });
+                if (dom.sequenceLengthSlider) dom.sequenceLengthSlider.addEventListener('input', (e) => { UI.updateSequenceLengthDisplay(parseInt(e.target.value), dom.sequenceLengthDisplay); markAsCustom(); });
+                if (dom.chunkSlider) dom.chunkSlider.addEventListener('input', (e) => { UI.updateChunkDisplay(parseInt(e.target.value), dom.chunkDisplay); markAsCustom(); });
+                if (dom.delaySlider) dom.delaySlider.addEventListener('input', (e) => { UI.updateDelayDisplay(parseInt(e.target.value), dom.delayDisplay); markAsCustom(); });
+                if (dom.autoclearToggle) dom.autoclearToggle.addEventListener('change', markAsCustom);
+                
+                if (dom.swipeDeleteToggle) dom.swipeDeleteToggle.addEventListener('change', markAsCustom); // NEW
+                if (dom.voiceInputToggle) dom.voiceInputToggle.addEventListener('change', markAsCustom);
+                if (dom.speedDeleteToggle) dom.speedDeleteToggle.addEventListener('change', markAsCustom);
+                if (dom.hapticsToggle) dom.hapticsToggle.addEventListener('change', (e) => { if (e.target.checked) AppCore.vibrate(50); markAsCustom(); });
+                if (dom.cameraInputToggle) dom.cameraInputToggle.addEventListener('change', markAsCustom);
+                if (dom.micInputToggle) dom.micInputToggle.addEventListener('change', markAsCustom);
+                
+                if (dom.playbackSpeedSlider) dom.playbackSpeedSlider.addEventListener('input', (e) => { UI.updatePlaybackSpeedDisplay(parseInt(e.target.value), dom.playbackSpeedDisplay); markAsCustom(); });
+                if (dom.autoplayToggle) dom.autoplayToggle.addEventListener('change', markAsCustom);
+                if (dom.audioPlaybackToggle) dom.audioPlaybackToggle.addEventListener('change', (e) => { if (e.target.checked) DemoPlayer.speak("Audio"); markAsCustom(); });
+                if (dom.visualMetronomeToggle) dom.visualMetronomeToggle.addEventListener('change', markAsCustom); // NEW
+
+                if (dom.uiScaleSlider) {
+                    dom.uiScaleSlider.addEventListener('input', (event) => {
+                        const multiplier = parseInt(event.target.value) / 100;
+                        UI.updateScaleDisplay(multiplier, dom.uiScaleDisplay);
+                        StateManager.getSettings().uiScaleMultiplier = multiplier;
+                        UI.renderSequences();
+                        markAsCustom();
+                    });
+                }
+                if (dom.darkModeToggle) dom.darkModeToggle.addEventListener('change', (e) => {
+                    StateManager.getSettings().isDarkMode = e.target.checked;
+                    UI.updateTheme(e.target.checked);
+                    markAsCustom();
+                });
+                
+                if (dom.closeHelp) dom.closeHelp.addEventListener('click', UI.closeHelpModal);
+                if (dom.closeShare) dom.closeShare.addEventListener('click', UI.closeShareModal);
+                if (dom.closeChatModal) dom.closeChatModal.addEventListener('click', UI.closeChatModal);
+                if (dom.closeSupportModal) dom.closeSupportModal.addEventListener('click', UI.closeSupportModal);
+                
+                // --- NEW: SWIPE-TO-DELETE GESTURE ---
+                let touchstartX = 0;
+                let touchendX = 0;
+                const gestureZone = dom.sequenceContainer; 
+                gestureZone.addEventListener('touchstart', function(event) { touchstartX = event.changedTouches[0].screenX; }, { passive: true });
+                gestureZone.addEventListener('touchend', function(event) { touchendX = event.changedTouches[0].screenX; handleSwipeGesture(); }, { passive: true }); 
+                function handleSwipeGesture() {
+                    if (StateManager.getSettings().isSwipeToDeleteEnabled && touchendX < touchstartX - 50) { // 50px swipe
+                        AppCore.handleBackspace();
+                    }
+                }
+                
+                const allPlayButtons = document.querySelectorAll('button[data-action="play-demo"]');
+                allPlayButtons.forEach(btn => {
+                    btn.addEventListener('click', (event) => {
+                        const button = event.currentTarget;
+                        const settings = StateManager.getSettings();
+                        button.clickCount = (button.clickCount || 0) + 1;
+                        if (button.clickCount === 1) {
+                            setTimeout(() => {
+                                if (button.clickCount === 1) {
+                                    if (button.dataset.input === settings.currentInput) { DemoPlayer.handleCurrentDemo(); }
+                                } else {
+                                    settings.isAutoplayEnabled = !settings.isAutoplayEnabled;
+                                    StateManager.saveState();
+                                    if (dom.autoplayToggle) dom.autoplayToggle.checked = settings.isAutoplayEnabled;
+                                    if (dom.welcomeAutoplayToggle) dom.welcomeAutoplayToggle.checked = settings.isAutoplayEnabled;
+                                    button.classList.add('!bg-btn-control-green');
+                                    setTimeout(() => { button.classList.remove('!bg-btn-control-green'); }, 500);
+                                }
+                                button.clickCount = 0;
+                            }, DOUBLE_CLICK_DELAY);
+                        }
+                    });
+                });
+                
+                AppCore.initSensorListeners(); // NEW
+            } 
+
+            window.onload = function() {
+                StateManager.loadState(); 
+                const settings = StateManager.getSettings();
+                UI.assignDomElements();
+                applyAllSettings();
+                initializeListeners();
+                
+                if (settings.showWelcomeScreen) {
+                    setTimeout(UI.openGameSetupModal, 500); 
+                }
+                
+                if (settings.isAudioPlaybackEnabled) DemoPlayer.speak(" "); 
+                
+                // No service worker for dev
+            };
+        })();
+    })();
+    </script>
 </body>
 </html>

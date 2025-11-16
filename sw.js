@@ -1,10 +1,10 @@
-const CACHE_NAME = 'follow-me-v1';
+const CACHE_NAME = 'follow-me-v2'; // Updated cache name
 const ASSETS_TO_CACHE = [
     '/',
     'index.html',
     'style.css',
     'manifest.json',
-    '1000021136.jpg', // <-- ADDED YOUR QR CODE
+    '1000021086.jpg', // Your QR code
     'config.js',
     'state.js',
     'ui.js',

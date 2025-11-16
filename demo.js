@@ -18,6 +18,26 @@
 
     const getSpeedMultiplier = () => StateManager.getSettings().playbackSpeed;
 
+    // --- NEW: VISUAL METRONOME ---
+    function visualMetronomeFlash(value) {
+        if (!StateManager.getSettings().isVisualMetronomeEnabled) return;
+        // Simple hash function to get a color
+        const colors = ['#dc2626', '#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+        let hash = 0;
+        for (let i = 0; i < String(value).length; i++) { 
+            hash += String(value).charCodeAt(i); 
+        }
+        const color = colors[hash % colors.length];
+        
+        const appEl = document.getElementById('app');
+        if (!appEl) return;
+        
+        appEl.style.boxShadow = `inset 0 0 20px 10px ${color}`;
+        setTimeout(() => {
+            appEl.style.boxShadow = 'none';
+        }, 150); // Flash duration
+    }
+
     function handleSimonDemo() {
         const state = StateManager.getCurrentState();
         const settings = StateManager.getSettings();
@@ -76,8 +96,12 @@
                 const originalClasses = seqBox ? seqBox.dataset.originalClasses : '';
                 
                 if (demoButton) demoButton.innerHTML = String(i + 1);
+                
+                // --- Triggers ---
                 speak(input === 'piano' ? AppConfig.PIANO_SPEAK_MAP[value] || value : value);
-
+                visualMetronomeFlash(value);
+                // TODO: Add haptic playback trigger here
+                
                 if (key) {
                     if(input === 'piano') key.classList.add('flash');
                     else key.classList.add(flashClass);
@@ -149,7 +173,11 @@
                 let key = document.querySelector(`${padSelector} button[data-value="${value}"]`);
 
                 demoButton.innerHTML = String(i + 1); 
+                
+                // --- Triggers ---
                 speak(input === 'piano' ? AppConfig.PIANO_SPEAK_MAP[value] || value : value); 
+                visualMetronomeFlash(value);
+                // TODO: Add haptic playback trigger here
                 
                 if (key) {
                     if(input === 'piano') key.classList.add('flash');
@@ -197,4 +225,3 @@
     };
 
 })();
-            

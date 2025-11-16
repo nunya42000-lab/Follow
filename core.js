@@ -45,7 +45,6 @@
     }
 
     function vibrate(duration = 10) {
-        // ... (code is the same)
         const settings = StateManager.getSettings();
         if (settings.isHapticsEnabled && 'vibrate' in navigator) {
             try {
@@ -57,7 +56,6 @@
     }
 
     function addValue(value) {
-        // ... (code is the same)
         vibrate();
         
         const state = StateManager.getCurrentState();
@@ -103,7 +101,6 @@
     }
 
     function handleBackspace() {
-        // ... (code is the same)
         vibrate(20);
         
         const state = StateManager.getCurrentState();
@@ -144,7 +141,6 @@
     }
 
     function stopSpeedDeleting() {
-        // ... (code is the same)
         if (initialDelayTimer) clearTimeout(initialDelayTimer);
         if (speedDeleteInterval) clearInterval(speedDeleteInterval);
         initialDelayTimer = null;
@@ -153,7 +149,6 @@
     }
 
     function handleBackspaceStart(event) {
-        // ... (code is the same)
         event.preventDefault(); 
         stopSpeedDeleting(); 
         isHoldingBackspace = false;
@@ -173,7 +168,6 @@
     }
 
     function handleBackspaceEnd() {
-        // ... (code is the same)
         const wasHolding = isHoldingBackspace;
         const settings = StateManager.getSettings();
         
@@ -191,7 +185,6 @@
     }
 
     function resetUniqueRoundsMode() {
-        // ... (code is the same)
         const state = StateManager.getCurrentState();
         const settings = StateManager.getSettings();
         state.currentRound = 1;
@@ -200,14 +193,13 @@
         const allKeys = document.querySelectorAll(`#pad-${settings.currentInput} button[data-value]`);
         if (allKeys) allKeys.forEach(key => key.disabled = false);
         
-        UI.updateMachineDisplay(0); 
-        UI.updateUniqueRoundsDisplay();
+        UI.updateMachineDisplay(0); // Just update the first machine
+        UI.updateUniqueRoundsDisplay(); // Update the round counter
         
         StateManager.saveState();
     }
 
     function advanceToUniqueRound() {
-        // ... (code is the same)
         const state = StateManager.getCurrentState();
         const settings = StateManager.getSettings();
         state.currentRound++;
@@ -216,8 +208,8 @@
             UI.showModal('Complete!', `You finished all ${settings.sequenceLength} rounds. Resetting to Round 1.`, () => UI.closeModal(), 'OK', '');
         }
         
-        UI.updateMachineDisplay(0); 
-        UI.updateUniqueRoundsDisplay();
+        UI.updateMachineDisplay(0); // Just update the first machine
+        UI.updateUniqueRoundsDisplay(); // Update the round counter
 
         StateManager.saveState();
         const allKeys = document.querySelectorAll(`#pad-${settings.currentInput} button[data-value]`);
@@ -225,7 +217,6 @@
     }
 
     function clearUniqueRoundsSequence() {
-        // ... (code is the same)
         const state = StateManager.getCurrentState();
         const sequence = state.sequences[0];
         
@@ -241,7 +232,7 @@
             if (sequence.length > 0) {
                 sequence.pop();
                 state.nextSequenceIndex--;
-                UI.updateMachineDisplay(0);
+                UI.updateMachineDisplay(0); // Update the machine display
             } else {
                 clearInterval(speedDeleteInterval);
                 speedDeleteInterval = null;
@@ -255,7 +246,6 @@
     }
 
     function processVoiceTranscript(transcript) {
-        // ... (code is the same)
         if (!transcript) return;
         
         const cleanTranscript = transcript.toLowerCase().replace(/[\.,]/g, '').trim();
@@ -284,8 +274,21 @@
     }
 
     function handleRestoreDefaults() {
-        // ... (code is the same)
         StateManager.resetToDefaults();
+    }
+
+    // --- NEW: SENSOR/SHORTCUT PLACEHOLDERS ---
+    function initSensorListeners() {
+        // We will add all the new sensor listeners (Gyro, Accelerometer, etc.) here
+        // This function is called by main.js on load
+    }
+    
+    // --- NEW: AUTO-COPY VA PROMPT ---
+    function autoCopyVAPrompt() {
+        // This is a placeholder. We need to generate the prompt text first
+        // then copy it to the clipboard.
+        console.log("Auto-copying VA prompt (not yet implemented)");
+        // navigator.clipboard.writeText(promptText);
     }
 
     // Expose to global scope
@@ -300,8 +303,10 @@
         processVoiceTranscript,
         handleRestoreDefaults,
         vibrate,
-        requestCameraPermission, // <-- NEW
-        requestMicPermission     // <-- NEW
+        requestCameraPermission,
+        requestMicPermission,
+        initSensorListeners,
+        autoCopyVAPrompt
     };
 
 })();

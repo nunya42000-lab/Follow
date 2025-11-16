@@ -4,7 +4,7 @@
     const PRESETS_KEY = 'followMePresets_v1';
     let settings = { ...AppConfig.DEFAULT_SETTINGS };
     let appState = {};
-    let appPresets = {}; 
+    let appPresets = {}; // To hold all saved presets
 
     function getInitialState() {
         return { 
@@ -45,6 +45,7 @@
                     savePresets();
                 }
             } else {
+                // Initialize with the default "Follow Me" preset
                 appPresets = {
                     "Follow Me": { ...AppConfig.DEFAULT_SETTINGS }
                 };
@@ -60,6 +61,7 @@
 
     function saveCurrentSettingsAsPreset(name) {
         if (!name) return;
+        // Create a deep copy of the current settings to save
         const settingsToSave = JSON.parse(JSON.stringify(settings));
         appPresets[name] = settingsToSave;
         savePresets();
@@ -71,8 +73,9 @@
             console.error(`Preset "${name}" not found.`);
             return false;
         }
-        settings = JSON.parse(JSON.stringify(loaded));
-        saveState(); 
+        // Overwrite current settings, ensuring all keys are present
+        settings = { ...AppConfig.DEFAULT_SETTINGS, ...JSON.parse(JSON.stringify(loaded)) };
+        saveState(); // Save the newly loaded settings as the *current* settings
         return true;
     }
 
@@ -108,12 +111,13 @@
 
             if (storedSettings) {
                 const loadedSettings = JSON.parse(storedSettings);
-                delete loadedSettings.areSlidersLocked; 
+                // Ensure all new keys from V2.0 are present
                 settings = { ...AppConfig.DEFAULT_SETTINGS, ...loadedSettings };
             } else {
                 settings = { ...AppConfig.DEFAULT_SETTINGS };
             }
 
+            // --- Migration for old keys ---
             if (settings.currentMode === 'changing') {
                 settings.currentMode = AppConfig.MODES.UNIQUE_ROUNDS;
             }
@@ -121,6 +125,7 @@
                 settings.isUniqueRoundsAutoClearEnabled = settings.isChangingAutoClearEnabled;
                 delete settings.isChangingAutoClearEnabled;
             }
+            // --- End Migration ---
 
             const defaultStates = {
                 [AppConfig.INPUTS.KEY9]: getInitialState(),
@@ -161,7 +166,7 @@
             };
         }
         
-        loadPresets(); 
+        loadPresets(); // Load presets on startup
     }
 
     function resetToDefaults() {
@@ -172,6 +177,7 @@
             [AppConfig.INPUTS.PIANO]: getInitialState(),
         };
         
+        // Also reset presets
         appPresets = {
             "Follow Me": { ...AppConfig.DEFAULT_SETTINGS }
         };

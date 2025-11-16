@@ -235,6 +235,7 @@ body {
     color: #6b7280;
     border-bottom: 3px solid transparent;
     transition: all 0.2s;
+    white-space: nowrap; /* Prevent tabs from wrapping */
 }
 .dark .help-tab-button, .dark .settings-tab-button {
     color: #9ca3af;
@@ -249,6 +250,16 @@ body {
     color: #4f46e5; /* primary-app */
     border-bottom-color: #4f46e5; /* primary-app */
 }
+/* Ensure tab nav can scroll if needed */
+#settings-tab-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    scrollbar-width: none; /* Hide scrollbar for Firefox */
+}
+#settings-tab-nav::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for Chrome/Safari */
+}
+
 
 /* Generic select dropdown */
 .select-input {

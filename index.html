@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Follow Me (v2.0 Dev)</title>
+    
+    <meta name="theme-color" content="#4f46e5">
+    <link rel="apple-touch-icon" href="https://placehold.co/180x180/4f46e5/ffffff?text=F&font=inter">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+        /* ---------------------------------- */
+        /* --- THEME COLORS (CSS Variables) --- */
+        /* ---------------------------------- */
+        :root {
+            --bg-main: #1f2937;           
+            --bg-footer: #1f2937;         
+            --text-color: #ffffff;
+            --card-bg: #374151;           
+            --card-text: #ffffff;
+            --btn-control-gray: #6b7280;  
+            --btn-control-gray-active: #4b5563; 
+        }
+        .light {
+            --bg-main: #ffffff;           
+            --bg-footer: #ffffff;         
+            --text-color: #1f2937;
+            --card-bg: #e5e7eb;           
+            --card-text: #1f2937;
+            --btn-control-gray: #9ca3af; 
+            --btn-control-gray-active: #6b7280;
+        }
+
+        /* Apply theme variables */
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        #input-footer {
+            background-color: var(--bg-footer);
+        }
+        .btn-input {
+            color: var(--card-text);
+        }
+        .number-box {
+            height: 40px; 
+            line-height: 40px; 
+            font-size: 1.1rem; 
+            font-weight: 700; 
+            transition: height 0.2s, line-height 0.2s, font-size 0.2s; 
+        }
+        .btn-input {
+            transition: all 0.15s ease-in-out;
+            position: relative; 
+            font-weight: 700;
+            border-radius: 9999px; /* Fully rounded/circular look */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.1); 
+            height: 64px; 
+        }
+        .btn-pad-number {
+            background-color: var(--card-bg);
+            font-size: 1.5rem; /* text-2xl */
+        }
+        .btn-pad-number:active {
+            transform: scale(0.95);
+            background-color: var(--btn-control-gray-active);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        /* FLASH for Demo Effects */
+        .btn-pad-number.key9-flash {
+            background-color: #3b82f6; /* blue-500 */
+            box-shadow: 0 0 15px 5px rgba(59, 130, 246, 0.7); 
+            transform: scale(1.05); 
+        }
+        .btn-pad-number.key12-flash {
+            background-color: #10b981; /* green-500 */
+            box-shadow: 0 0 15px 5px rgba(16, 185, 129, 0.7); 
+            transform: scale(1.05); 
+        }
+        .btn-control {
+            font-size: 1.8rem; 
+            height: 64px; 
+            border-radius: 9999px; 
+            color: var(--card-text); 
+        }
+        .btn-control[data-action="backspace"] {
+            background-color: var(--btn-control-gray);
+            color: white; 
+        }
+        .btn-control[data-action="backspace"]:active {
+            background-color: var(--btn-control-gray-active);
+            transform: scale(0.95);
+        }
+
+        /* -------------------------- */
+        /* --- PIANO KEY STYLES --- */
+        /* -------------------------- */
+        #piano-keys {
+            position: relative; 
+            display: flex; 
+            width: 100%;
+            height: 200px;
+            background-color: #333; 
+        }
+        .key-container {
+            width: calc(100% / 7);
+            position: relative;
+            height: 100%;
+        }
+        .piano-key-white {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #333;
+            border-top: none; 
+            border-bottom: 2px solid #555; 
+            background-color: #ffffff; 
+            background-image: linear-gradient(to bottom, #ffffff, #f0f0f0);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05); 
+            color: #1f2937; 
+            font-weight: 700; 
+            font-size: 1.6rem; 
+            padding-bottom: 15px; 
+            border-radius: 0 0 5px 5px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            z-index: 1; 
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            transition: all 0.15s ease-in-out; 
+        }
+        .piano-key-white:active, .piano-key-white.flash {
+            transform: translateY(2px); 
+            box-shadow: 0 0 20px 7px rgba(255, 238, 0, 0.9), inset 0 0 10px rgba(0,0,0,0.1); 
+            background-image: linear-gradient(to bottom, #ffea00, #ffe066); 
+            border-bottom: 2px solid #f0ad4e; 
+        }
+        .piano-key-black {
+            height: 65%; 
+            width: 13%; 
+            background-color: #000000; 
+            background-image: linear-gradient(to top, #111111, #222222);
+            box-shadow: 0 6px 10px rgba(0,0,0,0.6); 
+            border: 1px solid #333;
+            border-top: none;
+            border-bottom: 2px solid #000;
+            border-radius: 0 0 5px 5px;
+            position: absolute; 
+            top: 0;
+            z-index: 2; 
+            color: white; 
+            font-weight: 600; 
+            font-size: 1rem; 
+            display: flex;
+            align-items: flex-end; 
+            justify-content: center;
+            padding-bottom: 5px;
+            cursor: pointer;
+            transition: all 0.05s ease-in-out;
+        }
+        .piano-key-black:active, .piano-key-black.flash {
+            transform: translateY(3px); 
+            height: calc(65% - 3px); 
+            box-shadow: 0 0 15px 5px rgba(255, 69, 0, 0.9), 0 2px 3px rgba(0,0,0,0.4); 
+            background-image: linear-gradient(to top, #664400, #4c3300); 
+            border-bottom: 2px solid #f0adad;
+        }
+        .black-1 { left: calc((100% / 7) * 1 - (13% / 2)); }
+        .black-2 { left: calc((100% / 7) * 2 - (13% / 2)); }
+        .black-3 { left: calc((100% / 7) * 4 - (13% / 2)); }
+        .black-4 { left: calc((100% / 7) * 5 - (13% / 2)); }
+        .black-5 { left: calc((100% / 7) * 6 - (13% / 2)); }
+
+        /* Help content styling */
+        #help-content-container h4 {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700; /* font-bold */
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 1px solid #e5e7eb; /* gray-200 */
+        }
+        .dark #help-content-container h4 {
+            border-bottom: 1px solid #4b5563; /* gray-600 */
+        }
+        #help-content-container p, #help-content-container ul {
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        #help-content-container ul {
+            list-style: disc;
+            margin-left: 1.5rem;
+        }
+
+        /* Styles for Prompt Box */
+        .prompt-box {
+            width: 100%;
+            height: 150px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid #9ca3af;
+            background-color: #f3f4f6;
+            color: #1f2937;
+            font-family: monospace;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            resize: none;
+        }
+        .dark .prompt-box {
+            background-color: #4b5563;
+            color: #ffffff;
+            border-color: #6b7280;
+        }
+        .copy-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100px;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: white;
+            background-color: #2563eb; /* btn-control-blue */
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-bottom: 1rem;
+        }
+        .copy-button:hover {
+            background-color: #1e40af; /* btn-control-blue-active */
+        }
+        .copy-button.copied {
+            background-color: #10b981; /* green-500 */
+        }
+
+        /* Help & Settings Tab Styles */
+        .help-tab-button, .settings-tab-button {
+            padding: 0.5rem 0.75rem;
+            font-weight: 600;
+            color: #6b7280;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap; /* Prevent tabs from wrapping */
+        }
+        .dark .help-tab-button, .dark .settings-tab-button {
+            color: #9ca3af;
+        }
+        .help-tab-button:hover, .settings-tab-button:hover {
+            color: #374151;
+        }
+        .dark .help-tab-button:hover, .dark .settings-tab-button:hover {
+            color: #e5e7eb;
+        }
+        .help-tab-button.active-tab, .settings-tab-button.active-tab {
+            color: #4f46e5; /* primary-app */
+            border-bottom-color: #4f46e5; /* primary-app */
+        }
+        /* Ensure tab nav can scroll if needed */
+        #settings-tab-nav {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            scrollbar-width: none; /* Hide scrollbar for Firefox */
+        }
+        #settings-tab-nav::-webkit-scrollbar {
+            display: none; /* Hide scrollbar for Chrome/Safari */
+        }
+
+
+        /* Generic select dropdown */
+        .select-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+        .dark .select-input {
+             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        }
+        .select-input:disabled {
+            background-color: #e5e7eb; /* gray-200 */
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .dark .select-input:disabled {
+             background-color: #4b5563; /* gray-600 */
+        }
+
+        /* Custom range slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 0.5rem; /* 8px */
+            background: #e5e7eb; /* gray-200 */
+            border-radius: 9999px; /* rounded-full */
+            outline: none;
+            opacity: 0.9;
+            transition: opacity 0.2s;
+        }
+        .dark input[type="range"] {
+            background: #4b5563; /* gray-600 */
+        }
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 1.25rem; /* 20px */
+            height: 1.25rem; /* 20px */
+            background: #4f46e5; /* primary-app */
+            border-radius: 9999px;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 1.25rem;
+            height: 1.25rem;
+            background: #4f46e5;
+            border-radius: 9999px;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        input[type="range"]:disabled {
+             background: #e5e7eb; /* gray-200 */
+        }
+        .dark input[type="range"]:disabled {
+             background: #4b5563; /* gray-600 */
+        }
+        input[type="range"]:disabled::-webkit-slider-thumb {
+            background: #9ca3af; /* gray-400 */
+            cursor: not-allowed;
+        }
+        input[type="range"]:disabled::-moz-range-thumb {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="dark min-h-screen flex flex-col font-sans p-4">
+
+    <div id="app" class="max-w-7xl w-full mx-auto flex flex-col flex-grow">
+        
+        <main id="sequence-container" class="flex-grow mb-6 transition-all duration-300 pt-1">
+            </main>
+
+        <footer id="input-footer" class="sticky bottom-0 left-0 right-0 p-4 rounded-xl shadow-2xl border-t-4 border-primary-app">
+            
+            <div id="pad-key9" class="max-w-xs mx-auto">
+                <div class="grid grid-cols-3 gap-3 mb-3">
+                    <button data-value="1" data-input="key9" class="btn-input btn-pad-number">1</button>
+                    <button data-value="2" data-input="key9" class="btn-input btn-pad-number">2</button>
+                    <button data-value="3" data-input="key9" class="btn-input btn-pad-number">3</button>
+                    <button data-value="4" data-input="key9" class="btn-input btn-pad-number">4</button>
+                    <button data-value="5" data-input="key9" class="btn-input btn-pad-number">5</button>
+                    <button data-value="6" data-input="key9" class="btn-input btn-pad-number">6</button>
+                    <button data-value="7" data-input="key9" class="btn-input btn-pad-number">7</button>
+                    <button data-value="8" data-input="key9" class="btn-input btn-pad-number">8</button>
+                    <button data-value="9" data-input="key9" class="btn-input btn-pad-number">9</button>
+                </div>
+                <div class="grid grid-cols-5 gap-3">
+                    <button data-action="play-demo" data-input="key9" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">▶</button> 
+                    <button data-action="reset-unique-rounds" data-input="key9" class="reset-button btn-input btn-control !bg-btn-control-red hover:!bg-btn-control-red-active text-white font-bold rounded-xl text-xl" style="display: none;">
+                        RESET
+                    </button> 
+                    <input type="text" data-input="key9" class="voice-text-input btn-input !bg-primary-app !text-white !text-center !text-2xl !px-0 hidden" placeholder="🎤" title="Keyboard Voice Input">
+                    <button data-action="backspace" data-input="key9" class="btn-input btn-control text-2xl">&larr;</button>
+                    <button data-action="open-settings" data-input="key9" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">⚙️</button>
+                </div>
+            </div>
+
+            <div id="pad-key12" class="max-w-md mx-auto" style="display: none;">
+                <div class="grid grid-cols-4 gap-3 mb-3">
+                    <button data-value="1" data-input="key12" class="btn-input btn-pad-number">1</button>
+                    <button data-value="2" data-input="key12" class="btn-input btn-pad-number">2</button>
+                    <button data-value="3" data-input="key12" class="btn-input btn-pad-number">3</button>
+                    <button data-value="4" data-input="key12" class="btn-input btn-pad-number">4</button>
+                    <button data-value="5" data-input="key12" class="btn-input btn-pad-number">5</button>
+                    <button data-value="6" data-input="key12" class="btn-input btn-pad-number">6</button>
+                    <button data-value="7" data-input="key12" class="btn-input btn-pad-number">7</button>
+                    <button data-value="8" data-input="key12" class="btn-input btn-pad-number">8</button>
+                    <button data-value="9" data-input="key12" class="btn-input btn-pad-number">9</button>
+                    <button data-value="10" data-input="key12" class="btn-input btn-pad-number">10</button>
+                    <button data-value="11" data-input="key12" class="btn-input btn-pad-number">11</button>
+                    <button data-value="12" data-input="key12" class="btn-input btn-pad-number">12</button>
+                </div>
+                <div class="grid grid-cols-5 gap-3">
+                    <button data-action="play-demo" data-input="key12" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-white font-bold rounded-xl text-2xl">▶</button>
+                    <button data-action="reset-unique-rounds" data-input="key12" class="reset-button btn-input btn-control !bg-btn-control-red hover:!bg-btn-control-red-active text-white font-bold rounded-xl text-xl" style="display: none;">
+                        RESET
+                    </button> 
+                    <input type="text" data-input="key12" class="voice-text-input btn-input !bg-primary-app !text-white !text-center !text-2xl !px-0 hidden" placeholder="🎤" title="Keyboard Voice Input">
+                    <button data-action="backspace" data-input="key12" class="btn-input btn-control text-2xl">&larr;</button>
+                    <button data-action="open-settings" data-input="key12" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">⚙️</button>
+                </div>
+            </div>
+
+            <div id="pad-piano" class="max-w-xl mx-auto pt-0 pb-4" style="display: none;">
+                <div id="piano-keys" class="relative h-48 w-full bg-gray-200 rounded-md shadow-inner overflow-hidden mb-4">
+                    <div class="flex h-full w-full">
+                        <div class="key-container"><button data-value="C" data-input="piano" class="piano-key-white btn-input">C</button></div>
+                        <div class="key-container"><button data-value="D" data-input="piano" class="piano-key-white btn-input">D</button></div>
+                        <div class="key-container"><button data-value="E" data-input="piano" class="piano-key-white btn-input">E</button></div>
+                        <div class="key-container"><button data-value="F" data-input="piano" class="piano-key-white btn-input">F</button></div>
+                        <div class="key-container"><button data-value="G" data-input="piano" class="piano-key-white btn-input">G</button></div>
+                        <div class="key-container"><button data-value="A" data-input="piano" class="piano-key-white btn-input">A</button></div>
+                        <div class="key-container"><button data-value="B" data-input="piano" class="piano-key-white btn-input">B</button></div>
+                    </div>
+                    <button data-value="1" data-input="piano" class="piano-key-black btn-input black-1">1</button>
+                    <button data-value="2" data-input="piano" class="piano-key-black btn-input black-2">2</button>
+                    <button data-value="3" data-input="piano" class="piano-key-black btn-input black-3">3</button>
+                    <button data-value="4" data-input="piano" class="piano-key-black btn-input black-4">4</button>
+                    <button data-value="5" data-input="piano" class="piano-key-black btn-input black-5">5</button>
+                </div>
+                <div class="grid grid-cols-5 gap-3 max-w-sm mx-auto">
+                    <button data-action="play-demo" data-input="piano" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">▶</button>
+                    <button data-action="reset-unique-rounds" data-input="piano" class="reset-button btn-input btn-control !bg-btn-control-red hover:!bg-btn-control-red-active text-white font-bold rounded-xl text-xl" style="display: none;">
+                        RESET
+                    </button> 
+                    <input type="text" data-input="piano" class="voice-text-input btn-input !bg-primary-app !text-white !text-center !text-2xl !px-0 hidden" placeholder="🎤" title="Keyboard Voice Input">
+                    <button data-action="backspace" data-input="piano" class="btn-input btn-control text-2xl">&larr;</button>
+                    <button data-action="open-settings" data-input="piano" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">⚙️</button>
+                </div>
+            </div>
+            
+        </footer>
+    </div>
+
+    <div id="stealth-mode-overlay" class="fixed inset-0 bg-black z-[100] flex flex-col items-center justify-center text-white p-8 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="text-center">
+            <p id="stealth-time" class="text-7xl font-bold">9:41</p>
+            <p id="stealth-date" class="text-2xl font-light">Sunday, November 16</p>
+        </div>
+        <div class="absolute bottom-10 text-center">
+            <svg class="w-16 h-16 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
+            <p class="text-lg font-medium">Unlock to Continue</p>
+        </div>
+    </div>
+
+
+    <div id="game-setup-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 text-gray-900 dark:text-white max-h-[90vh] flex flex-col relative">
+            
+            <div class="absolute top-6 left-6 z-10">
+                <label class="block text-center text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Resize</label>
+                <div class="flex space-x-2">
+                    <button id="global-resize-down" class="px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded-md text-lg font-bold hover:bg-gray-300 dark:hover:bg-gray-500">-</button>
+                    <button id="global-resize-up" class="px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded-md text-lg font-bold hover:bg-gray-300 dark:hover:bg-gray-500">+</button>
+                </div>
+            </div>
+            
+            <h3 class="text-2xl font-bold mb-4 text-center border-b dark:border-gray-700 pb-3">👋 Quick Start</h3>
+            
+            <div class="overflow-y-auto py-4 px-1">
+                
+                <div class="mb-6 p-4 bg-yellow-100 dark:bg-yellow-900 border-l-4 border-yellow-500 dark:border-yellow-300 rounded-r-lg">
+                    <p class="font-bold text-yellow-800 dark:text-yellow-100">App Under Construction! 🏗️</p>
+                    <p class="text-sm text-yellow-700 dark:text-yellow-200">
+                        Sorry for the inconvenience. Major new features (like sensor and camera inputs) are being added.
+                    </p>
+                </div>
+
+                <div class="mb-6">
+                    <label for="welcome-preset-select" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Load Preset</label>
+                    <select id="welcome-preset-select" class="select-input w-full h-12 px-4 py-2 text-lg font-semibold text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-app">
+                        </select>
+                </div>
+                
+                <div class="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between mb-6">
+                        <label for="welcome-autoplay-toggle" class="text-gray-700 dark:text-gray-300 text-lg font-semibold">Autoplay</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="welcome-autoplay-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                        </label>
+                    </div>
+
+                    <div class="flex items-center justify-between mb-6">
+                        <label for="welcome-audio-toggle" class="text-gray-700 dark:text-gray-300 text-lg font-semibold">Audio Playback</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="welcome-audio-toggle" class="sr-only peer"> 
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex space-x-3 mb-6">
+                    <button id="welcome-help-button" data-action="open-help" class="w-full px-4 py-3 text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors font-semibold text-lg">
+                        Help ❓
+                    </button>
+                    <button id="welcome-full-setup-button" class="w-full px-4 py-3 text-white bg-btn-control-blue rounded-lg hover:bg-btn-control-blue-active transition-colors font-semibold text-lg">
+                        Full Setup ⚙️
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-4 border-t dark:border-gray-700">
+                <label for="dont-show-welcome-toggle" class="flex items-center text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+                    <input type="checkbox" id="dont-show-welcome-toggle" class="mr-2 h-4 w-4 rounded text-primary-app focus:ring-primary-app">
+                    Don't show this again
+                </label>
+                <button id="close-game-setup-modal" class="px-6 py-2 text-white bg-primary-app rounded-lg hover:bg-secondary-app transition-colors font-semibold">Get Started!</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300">
+            <h3 id="modal-title" class="text-xl font-bold mb-4 text-gray-900 dark:text-white"></h3>
+            <p id="modal-message" class="text-gray-700 dark:text-gray-300 mb-6"></p>
+            <div class="flex justify-end space-x-3">
+                <button id="modal-cancel" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"></button>
+                <button id="modal-confirm" class="px-4 py-2 text-white bg-primary-app rounded-lg hover:bg-secondary-app transition-colors"></button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="share-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 text-center">
+            <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Share This App</h3>
+            <p class="text-gray-700 dark:text-gray-300 mb-4">Scan the code to open this app on another device.</p>
+            <img src="1000021086.jpg" alt="Share QR Code" class="w-64 h-64 mx-auto rounded-lg mb-6 border-4 border-white dark:border-gray-700">
+            
+            <div class="flex flex-col space-y-3 mb-6">
+                <button id="native-share-button" data-action="native-share" class="hidden w-full px-6 py-3 text-white bg-primary-app rounded-lg hover:bg-secondary-app transition-colors font-semibold text-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"></path></svg>
+                    Share...
+                </button>
+                <button id="copy-link-button" data-action="copy-link" class="w-full px-6 py-3 text-white bg-btn-control-blue rounded-lg hover:bg-btn-control-blue-active transition-colors font-semibold text-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 011-1z"></path><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"></path></svg>
+                    Copy Link
+                </button>
+            </div>
+            <button id="close-share" class="w-full px-6 py-2 text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors font-semibold">Close</button>
+        </div>
+    </div>
+    
+    <div id="settings-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full m-4 transform scale-90 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-hidden">
+            
+            <div class="p-6 pb-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Settings & Setup ⚙️</h3>
+                    <div class="flex space-x-3">
+                        <button id="open-share-button" data-action="open-share" class="text-gray-700 dark:text-gray-300 hover:text-primary-app dark:hover:text-primary-app transition-colors text-2xl font-bold focus:outline-none" title="Share App">📤</button>
+                        <button id="open-chat-button" data-action="open-chat" class="text-gray-700 dark:text-gray-300 hover:text-primary-app dark:hover:text-primary-app transition-colors text-2xl font-bold focus:outline-none" title="Comments & Chat">💬</button>
+                        <button id="open-support-button" data-action="open-support" class="text-gray-700 dark:text-gray-300 hover:text-primary-app dark:hover:text-primary-app transition-colors text-2xl font-bold focus:outline-none" title="Support Developer">☕</button>
+                        <button id="open-help-button" data-action="open-help" class="text-gray-700 dark:text-gray-300 hover:text-primary-app dark:hover:text-primary-app transition-colors text-2xl font-bold focus:outline-none" title="View Help & Instructions">❓</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="px-6 border-b border-gray-200 dark:border-gray-700">
+                <nav id="settings-tab-nav" class="flex space-x-1">
+                    <button data-tab="setup" class="settings-tab-button active-tab">Setup</button>
+                    <button data-tab="input" class="settings-tab-button">Input</button>
+                    <button data-tab="shortcuts" class="settings-tab-button">Shortcuts</button>
+                    <button data-tab="playback" class="settings-tab-button">Playback</button>
+                    <button data-tab="general" class="settings-tab-button">General</button>
+                </nav>
+            </div>
+
+            <div class="p-6 pt-4 overflow-y-auto flex-grow text-gray-700 dark:text-gray-300">
+                
+                <div id="settings-tab-setup" class="settings-tab-content">
+                    <div class="mb-6">
+                        <label for="preset-select" class="block text-lg font-semibold mb-2">Preset Management</label>
+                        <select id="preset-select" class="select-input w-full h-11 px-4 py-2 text-base font-semibold text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-app mb-2">
+                            </select>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button id="save-preset-button" class="px-3 py-2 text-white bg-btn-control-blue rounded-lg hover:bg-btn-control-blue-active transition-colors font-semibold">Save New</button>
+                            <button id="rename-preset-button" class="px-3 py-2 text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors font-semibold">Rename</button>
+                            <button id="delete-preset-button" class="px-3 py-2 text-white bg-btn-control-red rounded-lg hover:bg-btn-control-red-active transition-colors font-semibold">Delete</button>
+                        </div>
+                    </div>
+                    <div class="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <p class="block text-lg font-semibold mb-4">Game Configuration</p>
+                        <div class="mb-6 grid grid-cols-1 gap-6">
+                            <div>
+                                <label for="input-select" class="block text-base font-semibold mb-2">1. Input Type</label>
+                                <select id="input-select" class="select-input w-full h-12 px-4 py-2 text-base font-semibold text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-app">
+                                    <option value="key9">9-Key</option>
+                                    <option value="key12">12-Key</option>
+                                    <option value="piano">Piano</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center justify-between mb-0">
+                                <label for="mode-toggle" class="text-base font-semibold">
+                                    2. Game Mode
+                                    <span id="mode-toggle-label" class="block text-sm font-normal text-gray-500 dark:text-gray-400">Off: Simon Says</span>
+                                </label>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="mode-toggle" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <label for="machines-slider" class="block text-base font-semibold mb-2">3. Machines</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="range" id="machines-slider" min="1" max="4" value="1" step="1" class="w-full">
+                                <span id="machines-display" class="text-sm text-gray-500 dark:text-gray-400 w-32 text-center">1 Machine</span>
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <label id="sequence-length-label" for="sequence-length-slider" class="block text-base font-semibold mb-2">4. Sequence Length</label>
+                             <div class="flex items-center space-x-2">
+                                <input type="range" id="sequence-length-slider" min="15" max="25" value="20" step="5" class="w-full">
+                                <span id="sequence-length-display" class="text-sm text-gray-500 dark:text-gray-400 w-32 text-center">20</span>
+                            </div>
+                        </div>
+                        <div id="setting-multi-sequence-group" class="mb-6" style="display: none;">
+                            <p class="block text-base font-semibold mb-2">Multi-Sequence Options</p>
+                            <div class="mb-6">
+                                <label for="chunk-slider" class="block text-sm font-semibold mb-2">Numbers per Sequence</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="range" id="chunk-slider" min="2" max="5" value="3" step="1" class="w-full">
+                                    <span id="chunk-display" class="text-sm text-gray-500 dark:text-gray-400 w-32 text-center">3</span>
+                                </div>
+                            </div>
+                            <div class="mb-6">
+                                <label for="delay-slider" class="block text-sm font-semibold mb-2">Delay Between Sequences</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="range" id="delay-slider" min="0" max="1000" value="500" step="100" class="w-full">
+                                    <span id="delay-display" class="text-sm text-gray-500 dark:text-gray-400 w-32 text-center">0.5s</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="setting-autoclear" class="flex items-center justify-between mb-6" style="display: none;">
+                            <label for="autoclear-toggle" class="text-base font-semibold">Auto Clear/Advance</label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="autoclear-toggle" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="settings-tab-input" class="settings-tab-content hidden">
+                    <p class="block text-lg font-semibold mb-4">Manual Input</p>
+                    <div class="flex items-center justify-between mb-6">
+                        <label for="swipe-delete-toggle" class="text-base font-semibold">Swipe Left to Delete</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="swipe-delete-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between mb-6">
+                        <label for="voice-input-toggle" class="text-base font-semibold">Voice Input (Keyboard)</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="voice-input-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between mb-6">
+                        <label for="speed-delete-toggle" class="text-base font-semibold">Speed Deleting (Hold ←)</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="speed-delete-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between mb-6">
+                        <label for="haptics-toggle" class="text-base font-semibold">Vibration (Haptics)</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="haptics-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                        </label>
+                    </div>
+
+                    <div class="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <p class="block text-lg font-semibold mb-4">Automatic Input (Experimental)</p>
+                        
+                        <div class="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <label for="camera-input-toggle" class="text-base font-semibold">Camera (Visual)</label>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="camera-input-toggle" class="sr-only peer" disabled>
+                                    <div class="w-11 h-6 bg-gray-200 dark:bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600"></div>
+                                </label>
+                            </div>
+                            <button id="camera-permission-button" data-action="request-camera" class="w-full px-4 py-2 text-sm text-white bg-btn-control-blue rounded-lg hover:bg-btn-control-blue-active transition-colors font-semibold">Enable Camera</button>
+                            <button id="camera-calibrate-button" data-action="calibrate-camera" class="w-full mt-2 px-4 py-2 text-sm text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors font-semibold hidden">Calibrate Camera</button>
+                        </div>
+                        
+                        <div class="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <label for="mic-input-toggle" class="text-base font-semibold">Microphone (Tones)</label>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="mic-input-toggle" class="sr-only peer" disabled>
+                                    <div class="w-11 h-6 bg-gray-200 dark:bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600"></div>
+                                </label>
+                            </div>
+                            <button id="mic-permission-button" data-action="request-mic" class="w-full px-4 py-2 text-sm text-white bg-btn-control-blue rounded-lg hover:bg-btn-control-blue-active transition-colors font-semibold">Enable Microphone</button>
+                            <button id="mic-calibrate-button" data-action="calibrate-mic" class="w-full mt-2 px-4 py-2 text-sm text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors font-semibold hidden">Calibrate Tones</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="settings-tab-shortcuts" class="settings-tab-content hidden">
+                    <p class="block text-lg font-semibold mb-4">Shortcut Mapping</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Assign a sensor or gesture to a specific action. (Coming Soon)</p>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-base font-semibold">Action: Play Demo</label>
+                            <select class="select-input w-full" disabled>
+                                <option>None</option>
+                                <option>Shake</option>
+                                <option>Flick Right</option>
+                                <option>Wave Sensor</option>
+                                <option>Short Squeeze</option>
+                                <option>Single Snap</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-base font-semibold">Action: Backspace</label>
+                            <select class="select-input w-full" disabled>
+                                <option>None</option>
+                                <option>Flick Left</option>
+                                <option>Wave Sensor x2</option>
+                                <option>Double Snap</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-base font-semibold">Action: Stealth Mode</label>
+                            <select class="select-input w-full" disabled>
+                                <option>None</option>
+                                <option>Hold Sensor</option>
+                                <option>Magnet</option>
+                                <option>Long Squeeze</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="settings-tab-playback" class="settings-tab-content hidden">
+                    <p class="block text-lg font-semibold mb-4">Playback Method</p>
+                    <div class="flex items-center justify-between mb-6">
+                        <label for="audio-playback-toggle" class="text-base font-semibold">Audio (Speak)</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="audio-playback-toggle" class="sr-only peer"> 
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between mb-6">
+                        <label for="haptic-playback-toggle" class="text-base font-semibold text-gray-400 dark:text-gray-600">Haptic (Vibrate)</label>
+                        <label class="relative inline-flex items-center cursor-not-allowed">
+                            <input type="checkbox" id="haptic-playback-toggle" class="sr-only peer" disabled> 
+                            <div class="w-11 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600"></div>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between mb-6">
+                        <label for="visual-metronome-toggle" class="text-base font-semibold">Visual Metronome (Flash)</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="visual-metronome-toggle" class="sr-only peer"> 
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                        </label>
+                    </div>
+
+                    <div class="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <p class="block text-lg font-semibold mb-4">Playback Controls</p>
+                        <div class="flex items-center justify-between mb-6">
+                            <label for="autoplay-toggle" class="text-base font-semibold">Autoplay</label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="autoplay-toggle" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                            </label>
+                        </div>
+                        <label for="playback-speed-slider" class="block text-base font-semibold mb-2">Playback Speed</label>
+                         <div class="flex items-center space-x-2">
+                            <input type="range" id="playback-speed-slider" min="50" max="150" value="100" step="10" class="w-full">
+                            <span id="playback-speed-display" class="text-sm text-gray-500 dark:text-gray-400 w-32 text-center">100%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="settings-tab-general" class="settings-tab-content hidden">
+                    <p class="block text-lg font-semibold mb-4">General Settings</p>
+                    <div class="flex items-center justify-between mb-6">
+                        <label for="dark-mode-toggle" class="text-base font-semibold">Dark Mode</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="dark-mode-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                        </label>
+                    </div>
+                    <div class="mb-6">
+                        <label for="ui-scale-slider" class="block text-base font-semibold mb-2">Sequence Size</label>
+                        <div class="flex items-center space-x-2">
+                             <input type="range" id="ui-scale-slider" min="50" max="200" value="100" class="w-full">
+                             <span id="ui-scale-display" class="text-sm text-gray-500 dark:text-gray-400 w-32 text-center">100%</span>
+                        </div>
+                    </div>
+                    <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <button data-action="restore-defaults" class="w-full mt-4 px-6 py-2 text-white bg-btn-control-red rounded-lg hover:bg-btn-control-red-active transition-colors font-semibold">Restore All Defaults</button>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="p-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button id="close-settings" class="w-full px-6 py-3 text-white bg-primary-app rounded-lg hover:bg-secondary-app transition-colors font-semibold text-lg">Save & Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="help-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full m-4 transform scale-90 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-hidden">
+            <div class="p-6 pb-4">
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white pb-3">Application Instructions & Help 📚</h3>
+            </div>
+            <div class="px-6 border-b border-gray-200 dark:border-gray-700">
+                <nav id="help-tab-nav" class="flex space-x-2">
+                    <button data-tab="general" class="help-tab-button active-tab">General</button>
+                    <button data-tab="modes" class="help-tab-button">Modes</button>
+                    <button data-tab="settings" class="help-tab-button">Settings</button>
+                    <button data-tab="prompts" class="help-tab-button">Prompts</button>
+                </nav>
+            </div>
+            <div class="p-6 pt-4 overflow-y-auto flex-grow text-gray-700 dark:text-gray-300" id="help-content-container">
+                <div id="help-tab-general" class="help-tab-content"></div>
+                <div id="help-tab-modes" class="help-tab-content hidden"></div>
+                <div id="help-tab-settings" class="help-tab-content hidden"></div>
+                <div id="help-tab-prompts" class="help-tab-content hidden">
+                    <div id="virtual-assistant-prompts" class="hidden">
+                        <h4 class="text-primary-app">Virtual Assistant Prompts</h4>
+                        <p>Use these prompts with a voice assistant. They are generated based on your current settings. Click the 📋 button to copy.</p>
+                        
+                        <div id="prompt-simon-group">
+                            <label for="prompt-simon" class="font-bold text-gray-900 dark:text-white">Simon Says Prompt</label>
+                            <textarea id="prompt-simon" class="prompt-box" readonly></textarea>
+                            <button class="copy-button" data-copy-target="prompt-simon">📋 <span class="ml-2">Copy</span></button>
+                        </div>
+                        
+                        <div id="prompt-unique-rounds-group">
+                            <label for="prompt-unique-rounds" class="font-bold text-gray-900 dark:text-white">Unique Rounds Mode Prompt</label>
+                            <textarea id="prompt-unique-rounds" class="prompt-box" readonly></textarea>
+                            <button class="copy-button" data-copy-target="prompt-unique-rounds">📋 <span class="ml-2">Copy</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex justify-end">
+                    <button id="close-help" class="px-6 py-2 text-white bg-primary-app rounded-lg hover:bg-secondary-app transition-colors font-semibold">Got it!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-md w-full m-4 transform scale-90 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-hidden">
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-b dark:border-gray-700 pb-3">Developer Chat 💬</h3>
+            <div class="overflow-y-auto flex-grow text-gray-700 dark:text-gray-300">
+                <p class="mb-4">Feature coming soon! This will be a place to leave comments and suggestions.</p>
+                <div class="w-full h-64 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center text-gray-500 dark:text-gray-400 font-medium">
+                    Firebase Forum Placeholder
+                </div>
+            </div>
+            <div class="pt-4 border-t dark:border-gray-700 mt-4">
+                <button id="close-chat-modal" class="w-full px-6 py-2 text-white bg-primary-app rounded-lg hover:bg-secondary-app transition-colors font-semibold">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="support-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-md w-full m-4 transform scale-90 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-hidden">
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-b dark:border-gray-700 pb-3">Support Development ☕</h3>
+            <div class="overflow-y-auto flex-grow text-gray-700 dark:text-gray-300">
+                <p class="mb-6">If you find this tool helpful, please consider supporting its development!</p>
+                
+                <div class="flex flex-col space-y-4">
+                    <a href="https://cash.app/$jwo83" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full px-6 py-3 text-white bg-[#00D632] rounded-lg hover:bg-opacity-80 transition-colors font-semibold text-lg">
+                        <svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm0 22.286c-5.668 0-10.286-4.617-10.286-10.286s4.618-10.286 10.286-10.286 10.286 4.617 10.286 10.286-4.618 10.286-10.286 10.286zm.268-15.639c-.566 0-.818.107-.945.195-.121.084-.204.168-.204.168s-.112.13-.112.338c0 .23.084.42.157.547.073.126.182.222.182.222s.224.239.617.436c.393.197.897.375 1.513.535.616.16 1.121.298 1.513.414.393.116.82.24 1.28.37l.393.107c.224.06.41.107.558.14.148.033.31.05.485.05.566 0 .818-.107.945-.195.121-.084.204-.168.204-.168s.112-.13.112-.338c0-.23-.084-.42-.157-.547-.073-.126-.182-.222-.182-.222s-.224-.239-.617-.436c-.393-.197-.897-.375-1.513-.535-.616-.16-1.121-.298-1.513-.414-.393-.116-.82-.24-1.28-.37l-.393-.107c-.224-.06-.41-.107-.558-.14-.148-.033-.31-.05-.485-.05zm-.268 6.561c-.566 0-.818.107-.945.195-.121.084-.204.168-.204.168s-.112.13-.112.338c0 .23.084.42.157.547.073.126.182.222.182.222s.224.239.617.436c.393.197.897.375 1.513.535.616.16 1.121.298 1.513.414.393.116.82.24 1.28.37l.393.107c.224.06.41.107.558.14.148.033.31.05.485.05.566 0 .818-.107.945-.195.121-.084.204-.168.204-.168s.112-.13.112-.338c0-.23-.084-.42-.157-.547-.073-.126-.182-.222-.182-.222s-.224-.239-.617-.436c-.393-.197-.897-.375-1.S13-.535-.616-.16-1.121-.298-1.513-.414-.393-.116-.82-.24-1.28-.37l-.393-.107c-.224-.06-.41-.107-.558-.14-.148-.033-.31-.05-.485-.05z"/></svg>
+                        Support with Cash App
+                    </a>
+                    <a href="https://www.paypal.me/Oyster981" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full px-6 py-3 text-white bg-[#00457C] rounded-lg hover:bg-opacity-80 transition-colors font-semibold text-lg">
+                        <svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.428 1.145c-.247 1.411-.734 4.223-1.025 5.862-.058.324-.138.74-.238 1.132-.304 1.18-.756 2.31-1.28 3.328-.616 1.2-.187 1.55 1.096 1.55h2.133c4.12 0 6.46-1.787 7.027-5.818.528-3.79-1.373-6.052-4.66-6.052h-3.053zm3.172 6.64c.125-.81.65-3.662.775-4.472h1.696c2.03 0 3.32.96 2.87 4.316-.43 3.23-2.1 4.13-4.13 4.13h-1.21zM4.32 3.96c-.24 1.34-.69 3.99-1.01 5.79-.19 1.09-.43 2.19-.69 3.21-.6 2.31.06 3.4 2.21 3.4h2.12c4.12 0 6.46-1.79 7.03-5.82.53-3.79-1.37-6.05-4.66-6.05H4.32zM7.49 10.6c.12-.81.65-3.66.78-4.47h1.69c2.03 0 3.32.96 2.87 4.32-.43 3.22-2.1 4.12-4.13 4.12H7.49v-.03-.08z"/></svg>
+                        Support with PayPal
+                    </a>
+                    
+                    <p class="text-sm text-gray-500 dark:text-gray-400 pt-4">Or copy a wallet address:</p>
+                    <ul class="space-y-3">
+                        <li><strong>Bitcoin (BTC):</strong><br><span class="text-sm text-gray-500 dark:text-gray-400 break-all">bc1quqwthymtfw8ju4tyw5udt8kq2grulhlun9x3jz</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="pt-4 border-t dark:border-gray-700 mt-4">
+                <button id="close-support-modal" class="w-full px-6 py-2 text-white bg-primary-app rounded-lg hover:bg-secondary-app transition-colors font-semibold">Close</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Tailwind Configuration ---
+        tailwind.config = {
+            darkMode: 'class', // Enable class-based dark mode
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        // Base Colors
+                        'primary-app': '#4f46e5', // Indigo
+                        'secondary-app': '#6366f1',
+                        'accent-app': '#a5b4fc',
+                        
+                        // Control Button Colors
+                        'btn-control-red': '#dc2626', 
+                        'btn-control-red-active': '#b91c1c',
+                        'btn-control-blue': '#2563eb', 
+                        'btn-control-blue-active': '#1e40af',
+                        'btn-control-green': '#10b981', 
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="config.js"></script>
+    <script src="state.js"></script>
+    <script src="ui.js"></script>
+    <script src="demo.js"></script>
+    
+    <script src="core.js"></script> 
+    
+    <script src="main.js"></script>
+
+</body>
+</html>

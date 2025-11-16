@@ -334,9 +334,17 @@
                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
                         </label>
                     </div>
+                    <div class="flex items-center justify-between mb-6">
+                        <label for="haptics-toggle" class="text-base font-semibold">Vibration (Haptics)</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="haptics-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                        </label>
+                    </div>
 
                     <div class="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                         <p class="block text-lg font-semibold mb-4">Automatic Input (Experimental)</p>
+                        
                         <div class="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
                             <div class="flex items-center justify-between mb-2">
                                 <label for="camera-input-toggle" class="text-base font-semibold">Camera (Visual)</label>
@@ -348,6 +356,7 @@
                             <button id="camera-permission-button" data-action="request-camera" class="w-full px-4 py-2 text-sm text-white bg-btn-control-blue rounded-lg hover:bg-btn-control-blue-active transition-colors font-semibold">Enable Camera</button>
                             <button id="camera-calibrate-button" data-action="calibrate-camera" class="w-full mt-2 px-4 py-2 text-sm text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors font-semibold hidden">Calibrate Camera</button>
                         </div>
+                        
                         <div class="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
                             <div class="flex items-center justify-between mb-2">
                                 <label for="mic-input-toggle" class="text-base font-semibold">Microphone (Tones)</label>
@@ -364,7 +373,7 @@
 
                 <div id="settings-tab-shortcuts" class="settings-tab-content hidden">
                     <p class="block text-lg font-semibold mb-4">Shortcut Mapping</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Assign a gesture to an action. (Coming Soon)</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Assign a sensor or gesture to a specific action. (Coming Soon)</p>
                     
                     <div class="space-y-4">
                         <div>
@@ -374,24 +383,26 @@
                                 <option>Shake</option>
                                 <option>Flick Right</option>
                                 <option>Wave Sensor</option>
+                                <option>Short Squeeze</option>
+                                <option>Single Snap</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-base font-semibold">Action: Backspace</label>
                             <select class="select-input w-full" disabled>
                                 <option>None</option>
-                                <option>Shake</option>
                                 <option>Flick Left</option>
                                 <option>Wave Sensor x2</option>
+                                <option>Double Snap</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-base font-semibold">Action: Stealth Mode</label>
                             <select class="select-input w-full" disabled>
                                 <option>None</option>
-                                <option>3-Finger Tap</option>
                                 <option>Hold Sensor</option>
                                 <option>Magnet</option>
+                                <option>Long Squeeze</option>
                             </select>
                         </div>
                     </div>
@@ -534,7 +545,7 @@
                 
                 <div class="flex flex-col space-y-4">
                     <a href="https://cash.app/$jwo83" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full px-6 py-3 text-white bg-[#00D632] rounded-lg hover:bg-opacity-80 transition-colors font-semibold text-lg">
-                        <svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm0 22.286c-5.668 0-10.286-4.617-10.286-10.286s4.618-10.286 10.286-10.286 10.286 4.617 10.286 10.286-4.618 10.286-10.286 10.286zm.268-15.639c-.566 0-.818.107-.945.195-.121.084-.204.168-.204.168s-.112.13-.112.338c0 .23.084.42.157.547.073.126.182.222.182.222s.224.239.617.436c.393.197.897.375 1.513.535.616.16 1.121.298 1.513.414.393.116.82.24 1.28.37l.393.107c.224.06.41.107.558.14.148.033.31.05.485.05.566 0 .818-.107.945-.195.121-.084.204-.168.204-.168s.112-.13.112-.338c0-.23-.084-.42-.157-.547-.073-.126-.182-.222-.182-.222s-.224-.239-.617-.436c-.393-.197-.897-.375-1.513-.535-.616-.16-1.121-.298-1.513-.414-.393-.116-.82-.24-1.28-.37l-.393-.107c-.224-.06-.41-.107-.558-.14-.148-.033-.31-.05-.485-.05zm-.268 6.561c-.566 0-.818.107-.945.195-.121.084-.204.168-.204-.168s-.112.13-.112.338c0 .23.084.42.157.547.073.126.182.222.182.222s.224.239.617.436c.393.197.897.375 1.513.535.616.16 1.121.298 1.513.414.393.116.82.24 1.28.37l.393.107c.224.06.41.107.558.14.148.033.31.05.485.05.566 0 .818-.107.945-.195.121-.084.204-.168.204-.168s.112-.13.112-.338c0-.23-.084-.42-.157-.547-.073-.126-.182-.222-.182-.222s-.224-.239-.617-.436c-.393-.197-.897-.375-1.S13-.535-.616-.16-1.121-.298-1.513-.414-.393-.116-.82-.24-1.28-.37l-.393-.107c-.224-.06-.41-.107-.558-.14-.148-.033-.31-.05-.485-.05z"/></svg>
+                        <svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm0 22.286c-5.668 0-10.286-4.617-10.286-10.286s4.618-10.286 10.286-10.286 10.286 4.617 10.286 10.286-4.618 10.286-10.286 10.286zm.268-15.639c-.566 0-.818.107-.945.195-.121.084-.204.168-.204.168s-.112.13-.112.338c0 .23.084.42.157.547.073.126.182.222.182.222s.224.239.617.436c.393.197.897.375 1.513.535.616.16 1.121.298 1.513.414.393.116.82.24 1.28.37l.393.107c.224.06.41.107.558.14.148.033.31.05.485.05.566 0 .818-.107.945-.195.121-.084.204-.168.204-.168s.112-.13.112-.338c0-.23-.084-.42-.157-.547-.073-.126-.182-.222-.182-.222s-.224-.239-.617-.436c-.393-.197-.897-.375-1.513-.535-.616-.16-1.121-.298-1.513-.414-.393-.116-.82-.24-1.28-.37l-.393-.107c-.224-.06-.41-.107-.558-.14-.148-.033-.31-.05-.485-.05zm-.268 6.561c-.566 0-.818.107-.945.195-.121.084-.204.168-.204.168s-.112.13-.112.338c0 .23.084.42.157.547.073.126.182.222.182.222s.224.239.617.436c.393.197.897.375 1.513.535.616.16 1.121.298 1.513.414.393.116.82.24 1.28.37l.393.107c.224.06.41.107.558.14.148.033.31.05.485.05.566 0 .818-.107.945-.195.121-.084.204-.168.204-.168s.112-.13.112-.338c0-.23-.084-.42-.157-.547-.073-.126-.182-.222-.182-.222s-.224-.239-.617-.436c-.393-.197-.897-.375-1.S13-.535-.616-.16-1.121-.298-1.513-.414-.393-.116-.82-.24-1.28-.37l-.393-.107c-.224-.06-.41-.107-.558-.14-.148-.033-.31-.05-.485-.05z"/></svg>
                         Support with Cash App
                     </a>
                     <a href="https://www.paypal.me/Oyster981" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full px-6 py-3 text-white bg-[#00457C] rounded-lg hover:bg-opacity-80 transition-colors font-semibold text-lg">
@@ -582,27 +593,16 @@
         }
     </script>
     
-    <script>
-    (function() {
-        'use strict';
+    <script src="config.js"></script>
+    <script src="state.js"></script>
+    <script src="ui.js"></script>
+    <script src="demo.js"></script>
+    <script src="core.js"></script>
+    <script src="main.js"></script>
 
-        // --- 1. CONFIG (config.js) ---
-        const AppConfig = (function() {
-            const MAX_MACHINES = 4;
-            const DEMO_DELAY_BASE_MS = 798;
-            const SPEED_DELETE_INITIAL_DELAY = 250;
-            const SPEED_DELETE_INTERVAL_MS = 10;    
-            const SETTINGS_KEY = 'followMeAppSettings_v4';
-            const STATE_KEY = 'followMeAppState_v4';
-            const PRESETS_KEY = 'followMePresets_v1';
-            const INPUTS = { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' };
-            const MODES = { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' };
-            const MODE_LABELS = { [MODES.SIMON]: 'Simon Says', [MODES.UNIQUE_ROUNDS]: 'Unique Rounds' };
-            const PIANO_SPEAK_MAP = { 'C': 'C', 'D': 'D', 'E': 'E', 'F': 'F', 'G': 'G', 'A': 'A', 'B': 'B', '1': '1', '2': '2', '3': '3', '4': '4', '5': '5' };
-            const VOICE_VALUE_MAP = { 'one': '1', 'two': '2', 'to': '2', 'three': '3', 'four': '4', 'for': '4', 'five': '5', 'six': '6', 'seven': '7', 'eight': '8', 'nine': '9', 'ten': '10', 'eleven': '11', 'twelve': '12', 'see': 'C', 'dee': 'D', 'e': 'E', 'eff': 'F', 'gee': 'G', 'eh': 'A', 'be': 'B', 'c': 'C', 'd': 'D', 'f': 'F', 'g': 'G', 'a': 'A', 'b': 'B' };
-            
-            // --- NEW: Default settings for all 20+ features ---
-            const DEFAULT_SETTINGS = {
+</body>
+</html>
+const DEFAULT_SETTINGS = {
                 // Setup
                 currentInput: INPUTS.KEY9,
                 currentMode: MODES.SIMON,

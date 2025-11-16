@@ -12,6 +12,7 @@
             const settings = StateManager.getSettings();
 
             if (copyTarget) {
+                // ... (code is the same)
                 const targetElement = document.getElementById(copyTarget);
                 if (targetElement) {
                     targetElement.select();
@@ -28,7 +29,6 @@
                 return;
             }
             
-            // --- NEW: Button Actions ---
             if (action === 'open-settings') { UI.openSettingsModal(); return; }
             if (action === 'open-help') { UI.closeSettingsModal(); UI.openHelpModal(); return; }
             if (action === 'open-share') { UI.openShareModal(); return; }
@@ -36,6 +36,7 @@
             if (action === 'open-support') { UI.openSupportModal(); return; }
 
             if (action === 'copy-link') {
+                // ... (code is the same)
                 navigator.clipboard.writeText(window.location.href).then(() => {
                     button.disabled = true;
                     button.classList.add('!bg-btn-control-green');
@@ -47,6 +48,7 @@
             }
             
             if (action === 'native-share') {
+                // ... (code is the same)
                 if (navigator.share) {
                     navigator.share({
                         title: 'Follow Me App',
@@ -58,6 +60,7 @@
             }
             
             if (action === 'restore-defaults') {
+                // ... (code is the same)
                 UI.showModal('Restore Defaults?', 
                           'This will reset all settings and clear all saved sequences. Are you sure?', 
                           AppCore.handleRestoreDefaults, 
@@ -67,6 +70,7 @@
             }
 
             if (action === 'reset-unique-rounds') {
+                // ... (code is the same)
                 UI.showModal('Reset Rounds?', 'Are you sure you want to reset to Round 1?', AppCore.resetUniqueRoundsMode, 'Reset', 'Cancel');
                 return;
             }
@@ -75,8 +79,8 @@
                 return;
             }
             
-            // Handle Value Clicks
             if (value && input === settings.currentInput) {
+                // ... (code is the same)
                 if (input === AppConfig.INPUTS.KEY9 && /^[1-9]$/.test(value)) {
                     AppCore.addValue(value);
                 }
@@ -90,6 +94,7 @@
         });
         
         dom.allVoiceInputs.forEach(input => {
+            // ... (code is the same)
             input.addEventListener('input', (event) => {
                 const transcript = event.target.value;
                 if (transcript && transcript.length > 0) {
@@ -102,6 +107,7 @@
         });
         
         document.querySelectorAll('button[data-action="backspace"]').forEach(btn => {
+            // ... (code is the same)
             btn.addEventListener('mousedown', AppCore.handleBackspaceStart);
             btn.addEventListener('mouseup', AppCore.handleBackspaceEnd);
             btn.addEventListener('mouseleave', AppCore.stopSpeedDeleting);
@@ -110,6 +116,7 @@
         });
         
         // --- Modal: Game Setup Listeners ---
+        // --- THIS SECTION IS MODIFIED ---
         if (dom.closeGameSetupModalBtn) dom.closeGameSetupModalBtn.addEventListener('click', UI.closeGameSetupModal);
         if (dom.dontShowWelcomeToggle) dom.dontShowWelcomeToggle.addEventListener('change', (e) => {
             const settings = StateManager.getSettings();
@@ -119,12 +126,14 @@
         });
 
         if (dom.globalResizeUpBtn) dom.globalResizeUpBtn.addEventListener('click', () => {
+            // ... (code is the same)
             const settings = StateManager.getSettings();
             settings.globalUiScale += 10;
             UI.applyGlobalUiScale(settings.globalUiScale);
             StateManager.saveState();
         });
         if (dom.globalResizeDownBtn) dom.globalResizeDownBtn.addEventListener('click', () => {
+            // ... (code is the same)
             const settings = StateManager.getSettings();
             settings.globalUiScale -= 10;
             UI.applyGlobalUiScale(settings.globalUiScale);
@@ -134,6 +143,7 @@
         if (dom.inputSelect) dom.inputSelect.addEventListener('change', UI.updateGameSetupVisibility);
         if (dom.modeToggle) dom.modeToggle.addEventListener('change', UI.updateGameSetupVisibility);
         if (dom.machinesSlider) {
+            // ... (code is the same)
             dom.machinesSlider.addEventListener('input', (e) => {
                 UI.updateMachinesDisplay(parseInt(e.target.value), dom.machinesDisplay);
                 UI.updateGameSetupVisibility();
@@ -144,22 +154,59 @@
         if (dom.delaySlider) dom.delaySlider.addEventListener('input', (e) => UI.updateDelayDisplay(parseInt(e.target.value), dom.delayDisplay));
 
         // --- Modal: App Preferences Listeners ---
+        // --- THIS SECTION IS MODIFIED ---
         if (dom.closeSettings) dom.closeSettings.addEventListener('click', UI.closeSettingsModal);
         if (dom.openGameSetupFromSettings) dom.openGameSetupFromSettings.addEventListener('click', () => {
             UI.closeSettingsModal();
             UI.openGameSetupModal();
         });
+        
+        // --- NEW PRESET LISTENERS ---
+        if (dom.savePresetButton) {
+            dom.savePresetButton.addEventListener('click', () => {
+                const name = prompt("Enter a name for this preset:", "My Preset");
+                if (name) {
+                    StateManager.saveCurrentSettingsAsPreset(name);
+                    UI.renderPresetsDropdown(); // Re-render the dropdown
+                    dom.presetSelect.value = name; // Select the new preset
+                }
+            });
+        }
+        
+        if (dom.presetSelect) {
+            dom.presetSelect.addEventListener('change', (event) => {
+                const presetName = event.target.value;
+                if (presetName === "__custom__") return;
+                
+                StateManager.loadSettingsFromPreset(presetName);
+                
+                // Now, we must refresh the app to apply the new settings
+                const settings = StateManager.getSettings();
+                UI.applyGlobalUiScale(settings.globalUiScale);
+                UI.updateTheme(settings.isDarkMode);
+                UI.updateVoiceInputVisibility();
+                UI.updateInput(settings.currentInput); // This re-renders sequences
+                UI.updateMainUIControlsVisibility();
+                
+                // Close and re-open the settings modal to show all the new values
+                UI.closeSettingsModal();
+                setTimeout(UI.openSettingsModal, 350);
+            });
+        }
+        // --- END NEW PRESET LISTENERS ---
 
         if (dom.playbackSpeedSlider) dom.playbackSpeedSlider.addEventListener('input', (e) => {
             const val = parseInt(e.target.value);
             StateManager.getSettings().playbackSpeed = val / 100.0;
             UI.updatePlaybackSpeedDisplay(val, dom.playbackSpeedDisplay);
             StateManager.saveState();
+            UI.renderPresetsDropdown(); // Mark as custom
         });
 
         if (dom.autoplayToggle) dom.autoplayToggle.addEventListener('change', (e) => {
             StateManager.getSettings().isAutoplayEnabled = e.target.checked;
             StateManager.saveState();
+            UI.renderPresetsDropdown(); // Mark as custom
         });
 
         // *** REMOVED dom.showWelcomeToggle listener ***
@@ -168,25 +215,30 @@
             StateManager.getSettings().isDarkMode = e.target.checked;
             UI.updateTheme(e.target.checked);
             StateManager.saveState();
+            UI.renderPresetsDropdown(); // Mark as custom
         });
         if (dom.speedDeleteToggle) dom.speedDeleteToggle.addEventListener('change', (e) => {
             StateManager.getSettings().isSpeedDeletingEnabled = e.target.checked;
             StateManager.saveState();
+            UI.renderPresetsDropdown(); // Mark as custom
         });
         if (dom.audioPlaybackToggle) dom.audioPlaybackToggle.addEventListener('change', (e) => {
             StateManager.getSettings().isAudioPlaybackEnabled = e.target.checked;
             if (StateManager.getSettings().isAudioPlaybackEnabled) DemoPlayer.speak("Audio");
             StateManager.saveState();
+            UI.renderPresetsDropdown(); // Mark as custom
         });
         if (dom.voiceInputToggle) dom.voiceInputToggle.addEventListener('change', (e) => {
             StateManager.getSettings().isVoiceInputEnabled = e.target.checked;
             UI.updateVoiceInputVisibility();
             StateManager.saveState();
+            UI.renderPresetsDropdown(); // Mark as custom
         });
         if (dom.hapticsToggle) dom.hapticsToggle.addEventListener('change', (e) => {
             StateManager.getSettings().isHapticsEnabled = e.target.checked;
             if (StateManager.getSettings().isHapticsEnabled) AppCore.vibrate(50);
             StateManager.saveState();
+            UI.renderPresetsDropdown(); // Mark as custom
         });
 
         if (dom.uiScaleSlider) {
@@ -196,6 +248,7 @@
                 UI.updateScaleDisplay(multiplier, dom.uiScaleDisplay);
                 UI.renderSequences(); // Full re-render needed for size change
                 StateManager.saveState();
+                UI.renderPresetsDropdown(); // Mark as custom
             });
         }
         

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Follow Me (Rewritten v4)</title>
+    <title>Follow Me (Rewritten v5 - Profiles)</title>
     
     <meta name="theme-color" content="#4f46e5">
     <link rel="apple-touch-icon" href="https://placehold.co/180x180/4f46e5/ffffff?text=F&font=inter">
@@ -369,83 +369,63 @@
     <div id="game-setup-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 text-gray-900 dark:text-white max-h-[90vh] flex flex-col relative">
             
-            <div class="absolute top-6 left-6 z-10">
-                <label class="block text-center text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Resize</label>
-                <div class="flex space-x-2">
-                    <button id="global-resize-down" class="px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded-md text-lg font-bold hover:bg-gray-300 dark:hover:bg-gray-500">-</button>
-                    <button id="global-resize-up" class="px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded-md text-lg font-bold hover:bg-gray-300 dark:hover:bg-gray-500">+</button>
-                </div>
-            </div>
-            
-            <h3 class="text-2xl font-bold mb-4 text-center border-b dark:border-gray-700 pb-3">👋 Quick Start Setup</h3>
+            <h3 class="text-2xl font-bold mb-4 text-center border-b dark:border-gray-700 pb-3">👋 Quick Start</h3>
             
             <div class="overflow-y-auto py-4 px-1">
-                <p class="text-gray-700 dark:text-gray-300 mb-6 text-center">Configure your session. You can change this later in Settings.</p>
+                <p class="text-gray-700 dark:text-gray-300 mb-6 text-center">Select a configuration to get started.</p>
 
-                <div class="mb-6 grid grid-cols-1 gap-6">
-                    <div>
-                        <label for="input-select" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">1. Input Type</label>
-                        <select id="input-select" class="select-input w-full h-12 px-4 py-2 text-lg font-semibold text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-app">
-                            <option value="key9">9-Key</option>
-                            <option value="key12">12-Key</option>
-                            <option value="piano">Piano</option>
+                <div class="mb-6">
+                    <label for="config-select" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">1. Setting Configuration</label>
+                    <select id="config-select" class="select-input w-full h-12 px-4 py-2 text-lg font-semibold text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-app">
                         </select>
-                    </div>
-                    
-                    <div class="flex items-center justify-between mb-0">
-                        <label for="mode-toggle" class="text-gray-700 dark:text-gray-300 text-lg font-semibold">
-                            2. Game Mode
-                            <span id="mode-toggle-label" class="block text-sm font-normal text-gray-500 dark:text-gray-400">Off: Simon Says</span>
+                </div>
+                
+                <div class="flex justify-center space-x-3 mb-8">
+                    <button id="config-add" class="px-4 py-2 text-sm text-white bg-btn-control-blue rounded-lg hover:bg-btn-control-blue-active transition-colors font-semibold">New</button>
+                    <button id="config-rename" class="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors font-semibold">Rename</button>
+                    <button id="config-delete" class="px-4 py-2 text-sm text-white bg-btn-control-red rounded-lg hover:bg-btn-control-red-active transition-colors font-semibold">Delete</button>
+                </div>
+
+                <div class="mb-8 grid grid-cols-2 gap-6">
+                    <div class="flex items-center justify-between">
+                        <label for="quick-autoplay-toggle" class="text-gray-700 dark:text-gray-300 text-lg font-semibold">
+                            Autoplay
                         </label>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="mode-toggle" class="sr-only peer">
+                            <input type="checkbox" id="quick-autoplay-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <label for="quick-audio-toggle" class="text-gray-700 dark:text-gray-300 text-lg font-semibold">
+                            Audio
+                        </label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="quick-audio-toggle" class="sr-only peer">
                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
                         </label>
                     </div>
                 </div>
 
-                <div class="mb-6">
-                    <label for="machines-slider" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">3. Machines</label>
-                    <div class="flex items-center space-x-2">
-                        <input type="range" id="machines-slider" min="1" max="4" value="1" step="1" class="w-full">
-                        <span id="machines-display" class="text-sm text-gray-500 dark:text-gray-400 w-32 text-center">1 Machine</span>
-                    </div>
-                </div>
-
-                <div class="mb-6">
-                    <label id="sequence-length-label" for="sequence-length-slider" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">4. Sequence Length</label>
-                     <div class="flex items-center space-x-2">
-                        <input type="range" id="sequence-length-slider" min="15" max="25" value="20" step="5" class="w-full">
-                        <span id="sequence-length-display" class="text-sm text-gray-500 dark:text-gray-400 w-32 text-center">20</span>
-                    </div>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                     <button id="quick-open-help" class="w-full px-6 py-3 text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors font-semibold text-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path></svg>
+                        Help
+                    </button>
+                     <button id="quick-open-settings" class="w-full px-6 py-3 text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors font-semibold text-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01-.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" /></svg>
+                        Settings
+                    </button>
                 </div>
                 
-                <div id="setting-multi-sequence-group" class="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700" style="display: none;">
-                    <p class="block text-gray-700 dark:text-gray-300 text-xl font-bold mb-4">Multi-Sequence Options</p>
-                    <div class="mb-6">
-                        <label for="chunk-slider" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Numbers per Sequence</label>
-                        <div class="flex items-center space-x-2">
-                            <input type="range" id="chunk-slider" min="2" max="5" value="3" step="1" class="w-full">
-                            <span id="chunk-display" class="text-sm text-gray-500 dark:text-gray-400 w-32 text-center">3</span>
-                        </div>
-                    </div>
-                    <div class="mb-6">
-                        <label for="delay-slider" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Delay Between Sequences</label>
-                        <div class="flex items-center space-x-2">
-                            <input type="range" id="delay-slider" min="0" max="1000" value="500" step="100" class="w-full">
-                            <span id="delay-display" class="text-sm text-gray-500 dark:text-gray-400 w-32 text-center">0.5s</span>
-                        </div>
+                <div class="absolute top-6 left-6 z-10">
+                    <label class="block text-center text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Resize</label>
+                    <div class="flex space-x-2">
+                        <button id="global-resize-down" class="px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded-md text-lg font-bold hover:bg-gray-300 dark:hover:bg-gray-500">-</button>
+                        <button id="global-resize-up" class="px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded-md text-lg font-bold hover:bg-gray-300 dark:hover:bg-gray-500">+</button>
                     </div>
                 </div>
-
-                <div id="setting-autoclear" class="flex items-center justify-between mb-6" style="display: none;">
-                    <label for="autoclear-toggle" class="text-gray-700 dark:text-gray-300 text-lg font-semibold">Auto Clear/Advance</label>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="autoclear-toggle" class="sr-only peer">
-                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
-                    </label>
-                </div>
-
             </div>
 
             <div class="flex justify-between items-center pt-4 border-t dark:border-gray-700">
@@ -506,12 +486,78 @@
                 
                 <div class="mb-6">
                     <button id="open-game-setup-from-settings" class="w-full px-6 py-3 text-white bg-primary-app rounded-lg hover:bg-secondary-app transition-colors font-semibold text-lg">
-                        Change Game Setup
+                        Manage Configurations
                     </button>
                 </div>
-
+                
                 <div class="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <h4 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Active Profile Settings</h4>
+                    <div class="mb-6 grid grid-cols-1 gap-6">
+                        <div>
+                            <label for="input-select" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">1. Input Type</label>
+                            <select id="input-select" class="select-input w-full h-12 px-4 py-2 text-lg font-semibold text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-app">
+                                <option value="key9">9-Key</option>
+                                <option value="key12">12-Key</option>
+                                <option value="piano">Piano</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex items-center justify-between mb-0">
+                            <label for="mode-toggle" class="text-gray-700 dark:text-gray-300 text-lg font-semibold">
+                                2. Game Mode
+                                <span id="mode-toggle-label" class="block text-sm font-normal text-gray-500 dark:text-gray-400">Off: Simon Says</span>
+                            </label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="mode-toggle" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label for="machines-slider" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">3. Machines</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="range" id="machines-slider" min="1" max="4" value="1" step="1" class="w-full">
+                            <span id="machines-display" class="text-sm text-gray-500 dark:text-gray-400 w-32 text-center">1 Machine</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label id="sequence-length-label" for="sequence-length-slider" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">4. Sequence Length</label>
+                         <div class="flex items-center space-x-2">
+                            <input type="range" id="sequence-length-slider" min="15" max="25" value="20" step="5" class="w-full">
+                            <span id="sequence-length-display" class="text-sm text-gray-500 dark:text-gray-400 w-32 text-center">20</span>
+                        </div>
+                    </div>
                     
+                    <div id="setting-multi-sequence-group" class="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700" style="display: none;">
+                        <p class="block text-gray-700 dark:text-gray-300 text-xl font-bold mb-4">Multi-Sequence Options</p>
+                        <div class="mb-6">
+                            <label for="chunk-slider" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Numbers per Sequence</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="range" id="chunk-slider" min="2" max="5" value="3" step="1" class="w-full">
+                                <span id="chunk-display" class="text-sm text-gray-500 dark:text-gray-400 w-32 text-center">3</span>
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <label for="delay-slider" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Delay Between Sequences</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="range" id="delay-slider" min="0" max="1000" value="500" step="100" class="w-full">
+                                <span id="delay-display" class="text-sm text-gray-500 dark:text-gray-400 w-32 text-center">0.5s</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="setting-autoclear" class="flex items-center justify-between mb-6" style="display: none;">
+                        <label for="autoclear-toggle" class="text-gray-700 dark:text-gray-300 text-lg font-semibold">Auto Clear/Advance</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="autoclear-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                        </label>
+                    </div>
+                </div>
+                <div class="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <h4 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Global App Settings</h4>
                     <div class="mb-6">
                         <label for="ui-scale-slider" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Sequence Size</label>
                         <div class="flex items-center space-x-2">
@@ -562,9 +608,9 @@
                     </div>
 
                     <div class="flex items-center justify-between mb-6">
-                        <label for="audio-playback-toggle" class="text-gray-700 dark:text-gray-300 text-lg font-semibold">Audio Playback (Speak)</label>
+                        <label for="audio-toggle" class="text-gray-700 dark:text-gray-300 text-lg font-semibold">Audio (Speak)</label>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="audio-playback-toggle" class="sr-only peer"> 
+                            <input type="checkbox" id="audio-toggle" class="sr-only peer"> 
                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
                         </label>
                     </div>
@@ -584,11 +630,16 @@
                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
                         </label>
                     </div>
-                </div>
-
-                <div class="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                     
-                    
+                    <div class="flex items-center justify-between mb-6 opacity-50">
+                        <label for="haptic-playback-toggle" class="text-gray-700 dark:text-gray-300 text-lg font-semibold">Haptic Playback
+                           <span class="block text-sm font-normal text-gray-500 dark:text-gray-400"> (Coming Soon)</span>
+                        </label>
+                        <label class="relative inline-flex items-center cursor-not-allowed">
+                            <input type="checkbox" id="haptic-playback-toggle" class="sr-only peer" disabled>
+                            <div class="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600"></div>
+                        </label>
+                    </div>
 
                 </div>
             </div>
@@ -611,18 +662,19 @@
                 <nav id="help-tab-nav" class="flex space-x-2">
                     <button data-tab="general" class="help-tab-button active-tab">General</button>
                     <button data-tab="modes" class="help-tab-button">Modes</button>
-                    <button data-tab="settings" class="help-tab-button">Settings</button>
                     <button data-tab="prompts" class="help-tab-button">Prompts</button>
+                    <button data-tab="shortcuts" class="help-tab-button">Shortcuts</button>
+                    <button data-tab="stealth" class="help-tab-button">Stealth</button>
                 </nav>
             </div>
             <div class="p-6 pt-4 overflow-y-auto flex-grow text-gray-700 dark:text-gray-300" id="help-content-container">
                 <div id="help-tab-general" class="help-tab-content"></div>
                 <div id="help-tab-modes" class="help-tab-content hidden"></div>
-                <div id="help-tab-settings" class="help-tab-content hidden"></div>
+                
                 <div id="help-tab-prompts" class="help-tab-content hidden">
                     <div id="virtual-assistant-prompts" class="hidden">
                         <h4 class="text-primary-app">Virtual Assistant Prompts</h4>
-                        <p>Use these prompts with a voice assistant. They are generated based on your current settings. Click the 📋 button to copy.</p>
+                        <p>Use these prompts with a voice assistant. They are generated based on your active configuration. **Closing this window will automatically copy the active prompt.**</p>
                         
                         <div id="prompt-simon-group">
                             <label for="prompt-simon" class="font-bold text-gray-900 dark:text-white">Simon Says Prompt</label>
@@ -637,6 +689,32 @@
                         </div>
                     </div>
                 </div>
+                
+                <div id="help-tab-shortcuts" class="help-tab-content hidden">
+                    <h4 class="text-primary-app">Shortcut Command Center (Coming Soon)</h4>
+                    <p>This is where your vision for a "mini command center" will come to life.</p>
+                    <p>You will be able to map different inputs (like a **shake**, **double-tap**, or **swipe**) to specific actions (like **Reset**, **Play Demo**, or **Toggle Autoplay**).</p>
+                    <p>This will be a complex feature we can build out next, requiring one-by-one testing of each input method.</p>
+                </div>
+                <div id="help-tab-stealth" class="help-tab-content hidden">
+                    <h4 class="text-primary-app">Stealth Features (Coming Soon)</h4>
+                    <p>This section will be dedicated to the advanced "stealth" inputs and modes.</p>
+                    
+                    <h4>New Input Methods</h4>
+                    <p>We will explore adding inputs that use your phone's hardware, such as:</p>
+                    <ul>
+                        <li>**Gyroscope "Tilt" Input**</li>
+                        <li>**Camera Pattern Recognition** (Requires ML)</li>
+                        <li>**Microphone Tone/Tap Recognition** (Requires Web Audio API)</li>
+                        <li>**Proximity Sensor "Hand Wave"**</li>
+                        <li>...and the other ideas you mentioned.</li>
+                    </ul>
+                    
+                    <h4>Stealth Mode ("Boss Screen")</h4>
+                    <p>A feature to instantly mask the app, making it look like a lock screen or another innocent application.</p>
+                    <p>These features are the most complex and will require significant effort and browser permissions to implement.</p>
+                </div>
+
             </div>
             <div class="p-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <div class="flex justify-end">
@@ -743,8 +821,8 @@
         const SPEED_DELETE_INITIAL_DELAY = 250;
         const SPEED_DELETE_INTERVAL_MS = 10;    
 
-        const SETTINGS_KEY = 'followMeAppSettings_v4';
-        const STATE_KEY = 'followMeAppState_v4';
+        const SETTINGS_KEY = 'followMeAppSettings_v5';
+        const STATE_KEY = 'followMeAppState_v5';
 
         // Input and Mode Definitions
         const INPUTS = {
@@ -754,11 +832,11 @@
         };
         const MODES = {
             SIMON: 'simon',
-            UNIQUE_ROUNDS: 'unique_rounds' // Renamed
+            UNIQUE_ROUNDS: 'unique_rounds'
         };
         const MODE_LABELS = {
             [MODES.SIMON]: 'Simon Says',
-            [MODES.UNIQUE_ROUNDS]: 'Unique Rounds' // Renamed
+            [MODES.UNIQUE_ROUNDS]: 'Unique Rounds'
         };
 
         const PIANO_SPEAK_MAP = {
@@ -774,28 +852,62 @@
             'c': 'C', 'd': 'D', 'f': 'F', 'g': 'G', 'a': 'A', 'b': 'B'
         };
 
-        const DEFAULT_SETTINGS = {
-            isDarkMode: true,
-            playbackSpeed: 1.0,
-            uiScaleMultiplier: 1.0, 
-            globalUiScale: 100, // New: Global UI scale percentage
-            isSpeedDeletingEnabled: true, 
-            isAutoplayEnabled: true, 
-            isUniqueRoundsAutoClearEnabled: true, // Renamed
-            isAudioPlaybackEnabled: true,
-            isVoiceInputEnabled: true,
-            isHapticsEnabled: true,
-            showWelcomeScreen: true,
+        // --- NEW: Profile-based Settings ---
+        
+        // These settings are specific to a profile
+        const DEFAULT_PROFILE_SETTINGS = {
             currentInput: INPUTS.KEY9,
-            currentMode: MODES.SIMON, // Default mode is OFF (Simon Says)
+            currentMode: MODES.SIMON,
             sequenceLength: 20,
             simonChunkSize: 3,
-            simonInterSequenceDelay: 500
+            simonInterSequenceDelay: 500,
+            isAutoplayEnabled: true, 
+            isUniqueRoundsAutoClearEnabled: true,
+            isAudioEnabled: true, // Renamed
+            isVoiceInputEnabled: true,
+            isHapticsEnabled: true,
+            isSpeedDeletingEnabled: true, 
+            uiScaleMultiplier: 1.0, 
+            machineCount: 1, // Machine count is now per-profile
+        };
+        
+        // These settings are global to the app
+        const DEFAULT_APP_SETTINGS = {
+            globalUiScale: 100,
+            isDarkMode: true,
+            showWelcomeScreen: true,
+            activeProfileId: 'profile_1', // Default active profile
+            profiles: {}, // Will hold all profile settings
+            playbackSpeed: 1.0, // Global speed
+        };
+        
+        // Your requested pre-made profiles
+        const PREMADE_PROFILES = {
+            'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS } },
+            'profile_2': { name: "2 Machines", settings: { 
+                ...DEFAULT_PROFILE_SETTINGS,
+                machineCount: 2,
+                simonChunkSize: 4,
+                simonInterSequenceDelay: 200
+            }},
+            'profile_3': { name: "Bananas", settings: {
+                ...DEFAULT_PROFILE_SETTINGS,
+                sequenceLength: 25
+            }},
+            'profile_4': { name: "Piano", settings: {
+                ...DEFAULT_PROFILE_SETTINGS,
+                currentInput: INPUTS.PIANO
+            }},
+            'profile_5': { name: "15 Rounds", settings: {
+                ...DEFAULT_PROFILE_SETTINGS,
+                currentMode: MODES.UNIQUE_ROUNDS,
+                sequenceLength: 15
+            }}
         };
 
         // --- 2. STATE ---
-        let settings = { ...DEFAULT_SETTINGS };
-        let appState = {}; // Will be populated by loadState
+        let appSettings = { ...DEFAULT_APP_SETTINGS };
+        let appState = {}; // Will be keyed by Profile ID
 
         let initialDelayTimer = null; 
         let speedDeleteInterval = null; 
@@ -806,15 +918,19 @@
         var customModal = null, modalTitle = null, modalMessage = null, modalConfirm = null, modalCancel = null;
         var shareModal = null, closeShare = null, copyLinkButton = null, nativeShareButton = null;
         
-        // --- MODAL: Game Setup (formerly Welcome)
+        // --- MODAL: Game Setup (v5)
         var gameSetupModal = null, closeGameSetupModalBtn = null, dontShowWelcomeToggle = null;
-        var globalResizeUpBtn = null, globalResizeDownBtn = null; // New resize buttons
-        // --- MODAL: Settings
+        var configSelect = null, configAddBtn = null, configRenameBtn = null, configDeleteBtn = null;
+        var quickAutoplayToggle = null, quickAudioToggle = null;
+        var quickOpenHelpBtn = null, quickOpenSettingsBtn = null;
+        var globalResizeUpBtn = null, globalResizeDownBtn = null;
+        
+        // --- MODAL: Settings (v5)
         var settingsModal = null, openHelpButton = null, openShareButton = null, closeSettings = null, openGameSetupFromSettings = null;
-        // --- MODAL: Help
+        // --- MODAL: Help (v5)
         var helpModal = null, helpContentContainer = null, helpTabNav = null, closeHelp = null;
         
-        // --- CONTROLS: Game Setup (in game-setup-modal)
+        // --- CONTROLS: Game Setup (MOVED to settings-modal)
         var inputSelect = null, modeToggle = null, modeToggleLabel = null;
         var machinesSlider = null, machinesDisplay = null;
         var sequenceLengthSlider = null, sequenceLengthDisplay = null, sequenceLengthLabel = null;
@@ -825,9 +941,9 @@
 
         // --- CONTROLS: App Preferences (in settings-modal)
         var playbackSpeedSlider = null, playbackSpeedDisplay = null;
-        var autoplayToggle = null; 
+        var autoplayToggle = null; // Full settings toggle
         var showWelcomeToggle = null, darkModeToggle = null, speedDeleteToggle = null;
-        var audioPlaybackToggle = null, voiceInputToggle = null, hapticsToggle = null;
+        var audioToggle = null, voiceInputToggle = null, hapticsToggle = null; // Renamed audio-playback-toggle
         var uiScaleSlider = null, uiScaleDisplay = null;
 
         // Pads
@@ -836,16 +952,23 @@
         var allResetButtons = null;
 
         /**
-         * Gets the state object for the currently active input.
+         * NEW: Gets the settings object for the currently active profile.
          */
-        const getCurrentState = () => appState[settings.currentInput];
+        const getCurrentProfileSettings = () => appSettings.profiles[appSettings.activeProfileId]?.settings;
+
+        /**
+         * NEW: Gets the state object for the currently active profile.
+         */
+        const getCurrentState = () => appState[appSettings.activeProfileId];
 
         /**
          * Saves the current app state and settings to localStorage.
          */
         function saveState() {
             try {
-                localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+                // Save global settings (which includes all profiles)
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings));
+                // Save all profile states
                 localStorage.setItem(STATE_KEY, JSON.stringify(appState));
             } catch (error) {
                 console.error("Failed to save state to localStorage:", error);
@@ -862,88 +985,103 @@
 
                 if (storedSettings) {
                     const loadedSettings = JSON.parse(storedSettings);
-                    // Remove obsolete settings
-                    delete loadedSettings.areSlidersLocked; 
-                    settings = { ...DEFAULT_SETTINGS, ...loadedSettings };
-                } else {
-                    settings = { ...DEFAULT_SETTINGS };
-                }
-
-                // Migrate old 'changing' mode to 'unique_rounds'
-                if (settings.currentMode === 'changing') {
-                    settings.currentMode = MODES.UNIQUE_ROUNDS;
-                }
-                if (settings.isChangingAutoClearEnabled !== undefined) {
-                    settings.isUniqueRoundsAutoClearEnabled = settings.isChangingAutoClearEnabled;
-                    delete settings.isChangingAutoClearEnabled;
-                }
-
-                const defaultStates = {
-                    [INPUTS.KEY9]: getInitialState(),
-                    [INPUTS.KEY12]: getInitialState(),
-                    [INPUTS.PIANO]: getInitialState(),
-                };
-
-                if (storedState) {
-                    const loadedState = JSON.parse(storedState);
-                    appState[INPUTS.KEY9] = { ...defaultStates[INPUTS.KEY9], ...(loadedState[INPUTS.KEY9] || {}) };
-                    appState[INPUTS.KEY12] = { ...defaultStates[INPUTS.KEY12], ...(loadedState[INPUTS.KEY12] || {}) };
-                    appState[INPUTS.PIANO] = { ...defaultStates[INPUTS.PIANO], ...(loadedState[INPUTS.PIANO] || {}) };
+                    // Merge loaded settings with defaults to ensure new properties are added
+                    appSettings = { ...DEFAULT_APP_SETTINGS, ...loadedSettings };
                     
-                    // Migrate old 'sequenceCount' to 'machineCount'
-                    Object.values(appState).forEach(state => {
-                        if (state.sequenceCount !== undefined) {
-                            state.machineCount = state.sequenceCount;
-                            delete state.sequenceCount;
+                    // Ensure all profiles have all default settings (for non-breaking updates)
+                    Object.keys(appSettings.profiles).forEach(profileId => {
+                        appSettings.profiles[profileId].settings = {
+                            ...DEFAULT_PROFILE_SETTINGS,
+                            ...appSettings.profiles[profileId].settings
+                        };
+                        
+                        // --- MIGRATION ---
+                        // Rename audioPlayback to audio
+                        if (appSettings.profiles[profileId].settings.isAudioPlaybackEnabled !== undefined) {
+                            appSettings.profiles[profileId].settings.isAudioEnabled = appSettings.profiles[profileId].settings.isAudioPlaybackEnabled;
+                            delete appSettings.profiles[profileId].settings.isAudioPlaybackEnabled;
                         }
                     });
-
+                    
                 } else {
-                    appState = defaultStates;
+                    // First time load: populate with pre-made profiles
+                    appSettings.profiles = PREMADE_PROFILES;
                 }
 
-                // Ensure maxRound is synced with settings
-                Object.values(appState).forEach(state => {
-                    state.maxRound = settings.sequenceLength;
+                if (storedState) {
+                    appState = JSON.parse(storedState);
+                }
+                
+                // Ensure a state object exists for every profile
+                Object.keys(appSettings.profiles).forEach(profileId => {
+                    if (!appState[profileId]) {
+                        appState[profileId] = getInitialState();
+                    }
+                    
+                    // --- MIGRATION ---
+                    // Migrate old 'sequenceCount' to 'machineCount'
+                    if (appState[profileId].sequenceCount !== undefined) {
+                        appSettings.profiles[profileId].settings.machineCount = appState[profileId].sequenceCount;
+                        delete appState[profileId].sequenceCount;
+                    }
+                    // Migrate old maxRound to profile settings
+                    if (appState[profileId].maxRound !== undefined) {
+                         appSettings.profiles[profileId].settings.sequenceLength = appState[profileId].maxRound;
+                         delete appState[profileId].maxRound;
+                    }
                 });
+                
+                // Ensure active profile exists, or reset
+                if (!appSettings.profiles[appSettings.activeProfileId]) {
+                    appSettings.activeProfileId = Object.keys(appSettings.profiles)[0] || 'profile_1';
+                }
 
             } catch (error) {
                 console.error("Failed to load state from localStorage:", error);
                 localStorage.removeItem(SETTINGS_KEY);
                 localStorage.removeItem(STATE_KEY);
-                settings = { ...DEFAULT_SETTINGS };
-                appState = {
-                    [INPUTS.KEY9]: getInitialState(),
-                    [INPUTS.KEY12]: getInitialState(),
-                    [INPUTS.PIANO]: getInitialState(),
-                };
+                
+                appSettings = { ...DEFAULT_APP_SETTINGS };
+                appSettings.profiles = PREMADE_PROFILES;
+                
+                appState = {};
+                Object.keys(appSettings.profiles).forEach(profileId => {
+                    appState[profileId] = getInitialState();
+                });
+            }
+            
+            // Rename any legacy audio toggle properties
+            if (appSettings.isAudioPlaybackEnabled !== undefined) {
+                // This was never a global setting, but just in case
+                delete appSettings.isAudioPlaybackEnabled;
             }
         }
 
         /**
-         * Generates a fresh state object.
+         * Generates a fresh state object for a profile.
          */
         function getInitialState() {
             return { 
                 sequences: Array.from({ length: MAX_MACHINES }, () => []),
-                machineCount: 1, // Renamed from sequenceCount
                 nextSequenceIndex: 0,
-                currentRound: 1,
-                maxRound: settings.sequenceLength
+                currentRound: 1
             };
         }
 
         // --- 3. UI ---
 
         /**
-         * Renders the sequence boxes based on the current input and state.
+         * Renders the sequence boxes based on the current profile's state.
          */
         function renderSequences() {
             const state = getCurrentState();
-            if (!state || !sequenceContainer) return; 
+            const profileSettings = getCurrentProfileSettings();
+            if (!state || !profileSettings || !sequenceContainer) return; 
             
-            const { sequences, machineCount } = state; // Renamed
-            const activeSequences = (settings.currentMode === MODES.UNIQUE_ROUNDS) 
+            const { machineCount, currentMode } = profileSettings;
+            const { sequences } = state;
+            
+            const activeSequences = (currentMode === MODES.UNIQUE_ROUNDS) 
                 ? [state.sequences[0]] // Unique Rounds mode only ever shows one sequence
                 : sequences.slice(0, machineCount);
             
@@ -952,9 +1090,9 @@
             const currentTurnIndex = state.nextSequenceIndex % machineCount;
 
             let layoutClasses = 'gap-4 flex-grow mb-6 transition-all duration-300 pt-1 ';
-            let numColumns = 5; // Default for 1 machine or piano/12-key
+            let numColumns = 5;
 
-            if (settings.currentMode === MODES.SIMON) {
+            if (currentMode === MODES.SIMON) {
                 if (machineCount === 1) {
                     layoutClasses += ' flex flex-col max-w-xl mx-auto';
                     numColumns = 5;
@@ -969,18 +1107,16 @@
                     numColumns = 3;
                 }
             } else {
-                // Unique Rounds mode is always single-column
                  layoutClasses += ' flex flex-col max-w-2xl mx-auto';
                  numColumns = 5;
             }
             sequenceContainer.className = layoutClasses;
 
-            // Show Round Display for 'Unique Rounds' mode
-            if (settings.currentMode === MODES.UNIQUE_ROUNDS) {
+            if (currentMode === MODES.UNIQUE_ROUNDS) {
                 const roundDisplay = document.createElement('div');
                 roundDisplay.className = 'text-center text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100';
                 roundDisplay.id = 'unique-rounds-round-display';
-                roundDisplay.textContent = `Round: ${state.currentRound} / ${settings.sequenceLength}`;
+                roundDisplay.textContent = `Round: ${state.currentRound} / ${profileSettings.sequenceLength}`;
                 sequenceContainer.appendChild(roundDisplay);
             }
             
@@ -988,12 +1124,12 @@
             
             const baseSize = 40;
             const baseFont = 1.1;
-            const newSize = baseSize * settings.uiScaleMultiplier;
-            const newFont = baseFont * settings.uiScaleMultiplier;
+            const newSize = baseSize * profileSettings.uiScaleMultiplier;
+            const newFont = baseFont * profileSettings.uiScaleMultiplier;
             const sizeStyle = `height: ${newSize}px; line-height: ${newSize}px; font-size: ${newFont}rem;`;
 
             activeSequences.forEach((set, index) => {
-                const isCurrent = (currentTurnIndex === index && machineCount > 1 && settings.currentMode === MODES.SIMON);
+                const isCurrent = (currentTurnIndex === index && machineCount > 1 && currentMode === MODES.SIMON);
                 const sequenceDiv = document.createElement('div');
                 
                 const originalClasses = `p-4 rounded-xl shadow-md transition-all duration-200 ${isCurrent ? 'bg-accent-app scale-[1.02] shadow-lg text-gray-900' : 'bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-gray-100'}`;
@@ -1013,35 +1149,98 @@
                 sequenceContainer.appendChild(sequenceDiv);
             });
         }
+        
+        // --- Configuration Profile Management ---
+        function populateConfigDropdown() {
+            if (!configSelect) return;
+            configSelect.innerHTML = '';
+            Object.keys(appSettings.profiles).forEach(profileId => {
+                const option = document.createElement('option');
+                option.value = profileId;
+                option.textContent = appSettings.profiles[profileId].name;
+                configSelect.appendChild(option);
+            });
+            configSelect.value = appSettings.activeProfileId;
+        }
 
-        // --- Game Setup Modal ---
+        function switchActiveProfile(newProfileId) {
+            if (!appSettings.profiles[newProfileId]) return;
+            appSettings.activeProfileId = newProfileId;
+            
+            // Update UI
+            updateAllChrome();
+            saveState();
+        }
+        
+        function handleConfigAdd() {
+            const newName = prompt("Enter new configuration name:", "My New Setup");
+            if (!newName) return;
+            
+            const newId = `profile_${Date.now()}`;
+            appSettings.profiles[newId] = {
+                name: newName,
+                settings: { ...DEFAULT_PROFILE_SETTINGS } // Start with defaults
+            };
+            appState[newId] = getInitialState(); // Create state for it
+            
+            appSettings.activeProfileId = newId; // Switch to it
+            populateConfigDropdown();
+            updateAllChrome();
+            saveState();
+        }
+        
+        function handleConfigRename() {
+            const currentProfile = appSettings.profiles[appSettings.activeProfileId];
+            if (!currentProfile) return;
+            
+            const newName = prompt("Enter new name:", currentProfile.name);
+            if (!newName) return;
+            
+            currentProfile.name = newName;
+            populateConfigDropdown();
+            saveState();
+        }
+        
+        function handleConfigDelete() {
+            const profileCount = Object.keys(appSettings.profiles).length;
+            if (profileCount <= 1) {
+                showModal("Cannot Delete", "You must have at least one configuration.", () => closeModal(), "OK", "");
+                return;
+            }
+            
+            const currentProfile = appSettings.profiles[appSettings.activeProfileId];
+            
+            showModal(
+                `Delete "${currentProfile.name}"?`,
+                "This will permanently delete this configuration and its saved sequences. This cannot be undone.",
+                () => {
+                    const profileIdToDelete = appSettings.activeProfileId;
+                    delete appSettings.profiles[profileIdToDelete];
+                    delete appState[profileIdToDelete];
+                    
+                    // Switch to the first available profile
+                    appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
+                    populateConfigDropdown();
+                    updateAllChrome();
+                    saveState();
+                },
+                "Delete",
+                "Cancel"
+            );
+        }
+
+        // --- Game Setup Modal (v5) ---
         function openGameSetupModal() {
             if (!gameSetupModal) return;
 
             // 1. Populate controls with current settings
-            const state = getCurrentState();
+            populateConfigDropdown();
             
-            inputSelect.value = settings.currentInput;
-            modeToggle.checked = (settings.currentMode === MODES.UNIQUE_ROUNDS);
+            const profileSettings = getCurrentProfileSettings();
+            quickAutoplayToggle.checked = profileSettings.isAutoplayEnabled;
+            quickAudioToggle.checked = profileSettings.isAudioEnabled;
             
-            machinesSlider.value = state.machineCount;
-            updateMachinesDisplay(state.machineCount, machinesDisplay);
-            
-            sequenceLengthSlider.value = settings.sequenceLength;
-            updateSequenceLengthDisplay(settings.sequenceLength, sequenceLengthDisplay);
-            
-            chunkSlider.value = settings.simonChunkSize;
-            updateChunkDisplay(settings.simonChunkSize, chunkDisplay);
-            
-            delaySlider.value = settings.simonInterSequenceDelay;
-            updateDelayDisplay(settings.simonInterSequenceDelay, delayDisplay);
-
-            autoclearToggle.checked = settings.isUniqueRoundsAutoClearEnabled;
-            
-            dontShowWelcomeToggle.checked = !settings.showWelcomeScreen;
-
-            // 2. Update visibility based on populated values
-            updateGameSetupVisibility();
+            dontShowWelcomeToggle.checked = !appSettings.showWelcomeScreen;
             
             // 3. Show modal
             gameSetupModal.classList.remove('opacity-0', 'pointer-events-none');
@@ -1050,65 +1249,38 @@
 
         function closeGameSetupModal() {
             if (!gameSetupModal) return;
-
-            // 1. Read values from controls and apply them
-            const newMachineCount = parseInt(machinesSlider.value);
-            const newMode = modeToggle.checked ? MODES.UNIQUE_ROUNDS : MODES.SIMON;
-
-            // Check if core game settings changed
-            const state = getCurrentState();
-            const didModeChange = settings.currentMode !== newMode;
-            const didMachineChange = state.machineCount !== newMachineCount;
-            const didInputChange = settings.currentInput !== inputSelect.value;
             
-            // Apply all settings
-            settings.currentInput = inputSelect.value;
-            settings.currentMode = newMode;
-            settings.sequenceLength = parseInt(sequenceLengthSlider.value);
-            settings.simonChunkSize = parseInt(chunkSlider.value);
-            settings.simonInterSequenceDelay = parseInt(delaySlider.value);
-            settings.isUniqueRoundsAutoClearEnabled = autoclearToggle.checked;
-            settings.showWelcomeScreen = !dontShowWelcomeToggle.checked;
+            // Active profile is already set by the dropdown's 'change' event
             
-            // Update the "Show on Start" toggle in the main settings
-            if (showWelcomeToggle) showWelcomeToggle.checked = settings.showWelcomeScreen;
+            // Save quick toggles to the active profile
+            const profileSettings = getCurrentProfileSettings();
+            profileSettings.isAutoplayEnabled = quickAutoplayToggle.checked;
+            profileSettings.isAudioEnabled = quickAudioToggle.checked;
             
-            // Get new state (for new input)
-            const newState = getCurrentState();
-            newState.machineCount = (newMode === MODES.UNIQUE_ROUNDS) ? 1 : newMachineCount;
-            newState.maxRound = settings.sequenceLength;
-
-            // Sync all states maxRound
-            Object.values(appState).forEach(s => {
-                s.maxRound = settings.sequenceLength;
-            });
-
-            // If game structure changed, reset sequences for the *new* state
-            if(didModeChange || didMachineChange || didInputChange) {
-                newState.sequences = Array.from({ length: MAX_MACHINES }, () => []);
-                newState.nextSequenceIndex = 0;
-                newState.currentRound = 1;
-            }
+            // Save global "show welcome"
+            appSettings.showWelcomeScreen = !dontShowWelcomeToggle.checked;
+            if (showWelcomeToggle) showWelcomeToggle.checked = appSettings.showWelcomeScreen;
             
-            // 2. Update main UI
-            updateInput(settings.currentInput); // This calls renderSequences
-            updateMainUIControlsVisibility(); // This shows/hides reset buttons
-
-            // 3. Save and close
             saveState(); 
+            
+            // Update full settings modal toggles to match
+            if (autoplayToggle) autoplayToggle.checked = profileSettings.isAutoplayEnabled;
+            if (audioToggle) audioToggle.checked = profileSettings.isAudioEnabled;
+            
             gameSetupModal.querySelector('div').classList.add('scale-90');
             gameSetupModal.classList.add('opacity-0');
             setTimeout(() => gameSetupModal.classList.add('pointer-events-none'), 300);
         }
 
         /**
-         * Updates the visibility of settings *within the Game Setup modal*.
+         * Updates visibility of controls *within the main Settings modal*.
          */
-        function updateGameSetupVisibility() {
-            if (!gameSetupModal) return;
-
-            const mode = modeToggle.checked ? MODES.UNIQUE_ROUNDS : MODES.SIMON;
-            const machineCount = parseInt(machinesSlider.value);
+        function updateSettingsModalVisibility() {
+            if (!settingsModal) return;
+            
+            const profileSettings = getCurrentProfileSettings();
+            const mode = profileSettings.currentMode;
+            const machineCount = profileSettings.machineCount;
 
             // Update labels
             if (mode === MODES.SIMON) {
@@ -1138,35 +1310,68 @@
          * Updates visibility of controls on the *main UI* (pads, reset buttons).
          */
         function updateMainUIControlsVisibility() {
+            const profileSettings = getCurrentProfileSettings();
             // Show/hide reset buttons on pads
             allResetButtons.forEach(btn => {
-                btn.style.display = (settings.currentMode === MODES.UNIQUE_ROUNDS) ? 'block' : 'none';
+                btn.style.display = (profileSettings.currentMode === MODES.UNIQUE_ROUNDS) ? 'block' : 'none';
             });
         }
 
 
-        // --- App Preferences Modal ---
+        // --- App Preferences Modal (v5) ---
         function openSettingsModal() {
-            // Load current state into settings controls
-            playbackSpeedSlider.value = settings.playbackSpeed * 100;
-            updatePlaybackSpeedDisplay(settings.playbackSpeed * 100, playbackSpeedDisplay);
+            const profileSettings = getCurrentProfileSettings();
             
-            showWelcomeToggle.checked = settings.showWelcomeScreen;
-            darkModeToggle.checked = settings.isDarkMode;
-            speedDeleteToggle.checked = settings.isSpeedDeletingEnabled; 
-            autoplayToggle.checked = settings.isAutoplayEnabled;
-            audioPlaybackToggle.checked = settings.isAudioPlaybackEnabled; 
-            voiceInputToggle.checked = settings.isVoiceInputEnabled;
-            hapticsToggle.checked = settings.isHapticsEnabled;
-
-            uiScaleSlider.value = settings.uiScaleMultiplier * 100;
-            updateScaleDisplay(settings.uiScaleMultiplier, uiScaleDisplay);
+            // --- Load Global Settings ---
+            playbackSpeedSlider.value = appSettings.playbackSpeed * 100;
+            updatePlaybackSpeedDisplay(appSettings.playbackSpeed * 100, playbackSpeedDisplay);
+            showWelcomeToggle.checked = appSettings.showWelcomeScreen;
+            darkModeToggle.checked = appSettings.isDarkMode;
+            
+            // --- Load Active Profile Settings ---
+            inputSelect.value = profileSettings.currentInput;
+            modeToggle.checked = (profileSettings.currentMode === MODES.UNIQUE_ROUNDS);
+            machinesSlider.value = profileSettings.machineCount;
+            updateMachinesDisplay(profileSettings.machineCount, machinesDisplay);
+            sequenceLengthSlider.value = profileSettings.sequenceLength;
+            updateSequenceLengthDisplay(profileSettings.sequenceLength, sequenceLengthDisplay);
+            chunkSlider.value = profileSettings.simonChunkSize;
+            updateChunkDisplay(profileSettings.simonChunkSize, chunkDisplay);
+            delaySlider.value = profileSettings.simonInterSequenceDelay;
+            updateDelayDisplay(profileSettings.simonInterSequenceDelay, delayDisplay);
+            autoclearToggle.checked = profileSettings.isUniqueRoundsAutoClearEnabled;
+            
+            uiScaleSlider.value = profileSettings.uiScaleMultiplier * 100;
+            updateScaleDisplay(profileSettings.uiScaleMultiplier, uiScaleDisplay);
+            
+            speedDeleteToggle.checked = profileSettings.isSpeedDeletingEnabled; 
+            autoplayToggle.checked = profileSettings.isAutoplayEnabled;
+            audioToggle.checked = profileSettings.isAudioEnabled; 
+            voiceInputToggle.checked = profileSettings.isVoiceInputEnabled;
+            hapticsToggle.checked = profileSettings.isHapticsEnabled;
+            
+            // Update visibility based on loaded values
+            updateSettingsModalVisibility();
             
             settingsModal.classList.remove('opacity-0', 'pointer-events-none');
             settingsModal.querySelector('div').classList.remove('scale-90');
         }
+        
+        function saveSettingsModal() {
+            // All controls in the settings modal now save *directly* to the
+            // active profile or global app settings.
+            saveState();
+            
+            // Update quick toggles to match
+            if (quickAutoplayToggle) quickAutoplayToggle.checked = getCurrentProfileSettings().isAutoplayEnabled;
+            if (quickAudioToggle) quickAudioToggle.checked = getCurrentProfileSettings().isAudioEnabled;
+            
+            // Trigger full UI refresh
+            updateAllChrome();
+        }
 
         function closeSettingsModal() {
+            saveSettingsModal(); // Save on close
             settingsModal.querySelector('div').classList.add('scale-90');
             settingsModal.classList.add('opacity-0');
             setTimeout(() => settingsModal.classList.add('pointer-events-none'), 300);
@@ -1176,7 +1381,6 @@
         function openHelpModal() {
             generateGeneralHelp();
             generateModesHelp();
-            generateSettingsHelp();
             generatePromptsHelp(); // Dynamically builds prompts
             if (helpTabNav) {
                 helpTabNav.addEventListener('click', handleHelpTabClick);
@@ -1190,6 +1394,19 @@
             if (helpTabNav) {
                 helpTabNav.removeEventListener('click', handleHelpTabClick);
             }
+            
+            // NEW: Auto-Copy VA Prompt
+            const promptTab = helpTabNav.querySelector('button[data-tab="prompts"]');
+            if (promptTab && promptTab.classList.contains('active-tab')) {
+                const profileSettings = getCurrentProfileSettings();
+                const mode = profileSettings.currentMode;
+                const targetId = (mode === MODES.SIMON) ? 'prompt-simon' : 'prompt-unique-rounds';
+                const promptText = document.getElementById(targetId);
+                if (promptText && navigator.clipboard) {
+                    navigator.clipboard.writeText(promptText.value).catch(err => console.warn('Auto-copy failed', err));
+                }
+            }
+            
             helpModal.querySelector('div').classList.add('scale-90');
             helpModal.classList.add('opacity-0');
             setTimeout(() => helpModal.classList.add('pointer-events-none'), 300);
@@ -1222,13 +1439,16 @@
             if (!container) return;
             container.innerHTML = `
                 <h4 class="text-primary-app">App Overview</h4>
-                <p>This is a multi-mode sequence tracker. Use the Setup screen (on launch or in Settings) to configure your game.</p>
+                <p>This is a multi-mode sequence tracker with customizable profiles.</p>
+                <p>Use the **Quick Start** modal (on launch) to select your saved **Configuration Profile**. You can add, rename, or delete profiles from there.</p>
+                <p>All detailed settings for the *active* profile (like machine count, mode, etc.) are in the main **Settings (⚙️)** menu.</p>
+                
                 <h4 class="text-primary-app">Basic Controls</h4>
                 <ul>
                     <li><span class="font-bold">Keypad:</span> Tap the numbers or keys to add to the sequence.</li>
                     <li><span class="font-bold">Play (▶):</span> Plays back the current sequence(s).</li>
                     <li><span class="font-bold">Backspace (←):</span> Removes the last value.</li>
-                    <li><span class="font-bold">Settings (⚙️):</span> Opens app preferences (dark mode, speed, etc.).</li>
+                    <li><span class="font-bold">Settings (⚙️):</span> Opens app preferences.</li>
                     <li><span class="font-bold">RESET:</span> (Unique Rounds Mode Only) Resets the game to Round 1.</li>
                 </ul>
             `;
@@ -1239,40 +1459,18 @@
             if (!container) return;
             container.innerHTML = `
                 <h4 class="text-primary-app">Inputs (The Keypads)</h4>
+                <p>Set in Settings ➔ Active Profile Settings</p>
                 <ul>
                     <li><span class="font-bold">9-Key:</span> A 3x3 grid (1-9).</li>
                     <li><span class="font-bold">12-Key:</span> A 4x3 grid (1-12).</li>
                     <li><span class="font-bold">Piano:</span> A 7-key piano with 5 sharps.</li>
                 </ul>
+                
                 <h4 class="text-primary-app">Modes (The Logic)</h4>
+                <p>Set in Settings ➔ Active Profile Settings</p>
                 <ul>
                     <li><span class="font-bold">Simon Says (Default):</span> Standard mode. Enter values up to the Sequence Length. Supports 1-4 machines.</li>
                     <li><span class="font-bold">Unique Rounds:</span> A round-based game. The sequence length increases by one each round, up to the Sequence Length (15, 20, or 25). This mode is always single-machine.</li>
-                </ul>
-            `;
-        }
-
-        function generateSettingsHelp() {
-            const container = document.getElementById('help-tab-settings');
-            if (!container) return;
-            container.innerHTML = `
-                <h4 class="text-primary-app">Game Setup</h4>
-                <p>Accessed on launch or via the "Change Game Setup" button in Preferences.</p>
-                <ul>
-                    <li><span class="font-bold">Input:</span> Choose your keypad (9-Key, 12-Key, Piano).</li>
-                    <li><span class="font-bold">Game Mode:</span> Toggle between 'Simon Says' (off) and 'Unique Rounds' (on).</li>
-                    <li><span class="font-bold">Machines:</span> (Simon Says only) Choose 1-4 machines.</li>
-                    <li><span class="font-bold">Sequence Length:</span> Sets the limit (15, 20, 25) for the current mode.</li>
-                    <li><span class="font-bold">Multi-Sequence Options:</span> (Simon Says, 2+ machines) Sets chunk size and delay.</li>
-                    <li><span class="font-bold">Global Resize:</span> (Top-left of Setup) Changes the entire app's size.</li>
-                </ul>
-                <h4 class="text-primary-app">App Preferences (⚙️)</h4>
-                <ul>
-                    <li><span class="font-bold">Playback Speed:</span> A global speed control (50% - 150%).</li>
-                    <li><span class="font-bold">Autoplay:</span> Plays the demo automatically after an input.</li>
-                    <li><span class="font-bold">Auto Clear/Advance:</span> (Unique Rounds mode only) Automatically clears and advances.</li>
-                    <li><span class="font-bold">Sequence Size:</span> Adjusts the visual size of the number boxes.</li>
-                    <li><span class="font-bold">Toggles:</span> Dark Mode, Speed Deleting, Audio, Voice Input, Haptics.</li>
                 </ul>
             `;
         }
@@ -1284,13 +1482,10 @@
             const container = document.getElementById('help-tab-prompts');
             if (!container) return;
             
-            // Get current state
-            const state = getCurrentState();
-            const mode = settings.currentMode;
-            const machineCount = (mode === MODES.SIMON) ? state.machineCount : 1;
-            const sequenceLength = settings.sequenceLength;
-            const autoClear = settings.isUniqueRoundsAutoClearEnabled;
-            const isAutoplay = settings.isAutoplayEnabled;
+            const profileSettings = getCurrentProfileSettings();
+            if (!profileSettings) return;
+            
+            const { currentMode, machineCount, sequenceLength, isUniqueRoundsAutoClearEnabled, isAutoplayEnabled } = profileSettings;
 
             let simonPrompt = "";
             let roundsPrompt = "";
@@ -1299,14 +1494,14 @@
             if (machineCount === 1) {
                 simonPrompt = `Let's play 'Simon Says' (1 Machine).
 1. I will give you values one at a time.
-2. ${isAutoplay ? "The game is **automatic**. After I give you a value, you will **immediately** read the **entire** sequence back to me." : "After I give you values, I will say 'read back'. You will then read the entire sequence back to me."}
+2. ${isAutoplayEnabled ? "The game is **automatic**. After I give you a value, you will **immediately** read the **entire** sequence back to me." : "After I give you values, I will say 'read back'. You will then read the entire sequence back to me."}
 3. 'Clear': Delete the last value I gave you.
 4. 'Clear all': Delete the entire sequence.
 Let's start.`;
             } else {
                 simonPrompt = `Let's play 'Simon Says' (${machineCount} Machines).
 1. I will give you one value at a time. Assign each value to a machine in a cycle (Machine 1, Machine 2,${machineCount > 2 ? ' Machine 3,' : ''}${machineCount > 3 ? ' Machine 4,' : ''} then back to Machine 1).
-2. ${isAutoplay ? `The game is **automatic**. After I give you the value for the *last* machine (Machine ${machineCount}), you will **immediately** read all sequences back to me, in order.` : "After I give you the value for the *last* machine, I will say 'read back'. You will then read all sequences back to me, in order."}
+2. ${isAutoplayEnabled ? `The game is **automatic**. After I give you the value for the *last* machine (Machine ${machineCount}), you will **immediately** read all sequences back to me, in order.` : "After I give you the value for the *last* machine, I will say 'read back'. You will then read all sequences back to me, in order."}
 3. After you finish reading, I will give you the next value for Machine 1.
 4. 'Clear': Delete the last value I gave you.
 5. 'Clear all': Delete all sequences.
@@ -1318,8 +1513,8 @@ Let's start with Machine 1.`;
 1. We will play from Round 1 up to Round ${sequenceLength}.
 2. The sequence length matches the round number (e.g., Round 3 has 3 values).
 3. I will give you the values for the current round, one at a time.
-4. ${isAutoplay ? `The game is **automatic**. As soon as I give you the **last value for the current round**, you will **immediately** read the full sequence for that round back to me.` : "After I give you the last value for the current round, I will say 'read back'. You will then read the full sequence for that round back to me."}
-5. ${isAutoplay && autoClear ? "After you finish reading, you will **automatically** clear the sequence, advance to the next round, and say 'Next Round'." : (isAutoplay && !autoClear ? "After you finish reading, wait for me to say 'next' to clear and advance." : "After you finish reading, wait for me to say 'next' to clear and advance.")}
+4. ${isAutoplayEnabled ? `The game is **automatic**. As soon as I give you the **last value for the current round**, you will **immediately** read the full sequence for that round back to me.` : "After I give you the last value for the current round, I will say 'read back'. You will then read the full sequence for that round back to me."}
+5. ${isAutoplayEnabled && isUniqueRoundsAutoClearEnabled ? "After you finish reading, you will **automatically** clear the sequence, advance to the next round, and say 'Next Round'." : (isAutoplayEnabled && !isUniqueRoundsAutoClearEnabled ? "After you finish reading, wait for me to say 'next' to clear and advance." : "After you finish reading, wait for me to say 'next' to clear and advance.")}
 6. 'Repeat': Read the current round's sequence again.
 7. 'Reset': Go back to Round 1.
 Let's start with Round 1.`;
@@ -1331,14 +1526,12 @@ Let's start with Round 1.`;
             if (simonTextarea) simonTextarea.value = simonPrompt.trim();
             if (roundsTextarea) roundsTextarea.value = roundsPrompt.trim();
             
-            // Show/hide based on current mode
             const simonGroup = document.getElementById('prompt-simon-group');
             const roundsGroup = document.getElementById('prompt-unique-rounds-group');
 
-            if (simonGroup) simonGroup.style.display = (mode === MODES.SIMON) ? 'block' : 'none';
-            if (roundsGroup) roundsGroup.style.display = (mode === MODES.UNIQUE_ROUNDS) ? 'block' : 'none';
+            if (simonGroup) simonGroup.style.display = (currentMode === MODES.SIMON) ? 'block' : 'none';
+            if (roundsGroup) roundsGroup.style.display = (currentMode === MODES.UNIQUE_ROUNDS) ? 'block' : 'none';
             
-            // Move the prompt section into the container
             const promptSection = document.getElementById('virtual-assistant-prompts');
             if (promptSection) {
                 promptSection.classList.remove('hidden');
@@ -1371,7 +1564,7 @@ Let's start with Round 1.`;
     
         // --- UI Update Helpers ---
         function updateTheme(isDark) {
-            settings.isDarkMode = isDark;
+            appSettings.isDarkMode = isDark;
             document.body.classList.toggle('dark', isDark);
             document.body.classList.toggle('light', !isDark);
             renderSequences();
@@ -1384,7 +1577,7 @@ Let's start with Round 1.`;
         function applyGlobalUiScale(scalePercent) {
             if (scalePercent < 50) scalePercent = 50;
             if (scalePercent > 150) scalePercent = 150;
-            settings.globalUiScale = scalePercent;
+            appSettings.globalUiScale = scalePercent;
             document.documentElement.style.fontSize = `${scalePercent}%`;
         }
 
@@ -1408,30 +1601,33 @@ Let's start with Round 1.`;
         function updateDelayDisplay(val, el) {
             if(el) el.textContent = (val / 1000).toFixed(1) + 's';
         }
-
+        
         /**
-         * Switches the active input pad and updates the UI.
+         * NEW: Updates all UI based on the new active profile
          */
-        function updateInput(newInput) {
-            settings.currentInput = newInput; 
+        function updateAllChrome() {
+            const profileSettings = getCurrentProfileSettings();
+            if (!profileSettings) return;
             
+            // 1. Update Input Pad
+            const newInput = profileSettings.currentInput;
             padKey9.style.display = (newInput === INPUTS.KEY9) ? 'block' : 'none';
             padKey12.style.display = (newInput === INPUTS.KEY12) ? 'block' : 'none';
             padPiano.style.display = (newInput === INPUTS.PIANO) ? 'block' : 'none';
             
-            // Update settings UI based on new input's state
-            if (gameSetupModal && !gameSetupModal.classList.contains('pointer-events-none')) {
-                machinesSlider.value = getCurrentState().machineCount;
-                updateMachinesDisplay(getCurrentState().machineCount, machinesDisplay);
-                updateGameSetupVisibility();
-            }
-
+            // 2. Update Main UI (Reset buttons)
+            updateMainUIControlsVisibility();
+            
+            // 3. Update Voice Input Visibility
+            updateVoiceInputVisibility();
+            
+            // 4. Re-render sequences
             renderSequences();
-            saveState(); 
         }
 
         function updateVoiceInputVisibility() {
-            const isEnabled = settings.isVoiceInputEnabled;
+            const profileSettings = getCurrentProfileSettings();
+            const isEnabled = profileSettings.isVoiceInputEnabled;
             if (allVoiceInputs) {
                 allVoiceInputs.forEach(input => input.classList.toggle('hidden', !isEnabled));
             }
@@ -1460,7 +1656,7 @@ Let's start with Round 1.`;
             modalCancel.style.display = cancelText ? 'inline-block' : 'none';
             
             modalConfirm.className = 'px-4 py-2 text-white rounded-lg transition-colors font-semibold bg-primary-app hover:bg-secondary-app';
-            if (confirmText === 'Restore' || confirmText === 'Reset') {
+            if (confirmText === 'Restore' || confirmText === 'Reset' || confirmText === 'Delete') {
                  modalConfirm.className = 'px-4 py-2 text-white rounded-lg transition-colors font-semibold bg-btn-control-red hover:bg-btn-control-red-active';
             }
             
@@ -1479,7 +1675,8 @@ Let's start with Round 1.`;
         // --- 4. CORE ---
 
         function vibrate(duration = 10) {
-            if (settings.isHapticsEnabled && 'vibrate' in navigator) {
+            const profileSettings = getCurrentProfileSettings();
+            if (profileSettings.isHapticsEnabled && 'vibrate' in navigator) {
                 try {
                     navigator.vibrate(duration);
                 } catch (e) {
@@ -1495,15 +1692,16 @@ Let's start with Round 1.`;
             vibrate();
             
             const state = getCurrentState();
-            const mode = settings.currentMode;
+            const profileSettings = getCurrentProfileSettings();
+            const mode = profileSettings.currentMode;
             let targetIndex;
 
             if (mode === MODES.UNIQUE_ROUNDS) {
                 if (state.sequences[0].length >= state.currentRound) return; 
                 targetIndex = 0;
             } else { // Simon mode
-                targetIndex = state.nextSequenceIndex % state.machineCount;
-                if (state.sequences[targetIndex] && state.sequences[targetIndex].length >= settings.sequenceLength) return;
+                targetIndex = state.nextSequenceIndex % profileSettings.machineCount;
+                if (state.sequences[targetIndex] && state.sequences[targetIndex].length >= profileSettings.sequenceLength) return;
             }
 
             state.sequences[targetIndex].push(value);
@@ -1512,18 +1710,18 @@ Let's start with Round 1.`;
             renderSequences();
             
             // --- Handle Autoplay Logic ---
-            if (settings.isAutoplayEnabled) {
+            if (profileSettings.isAutoplayEnabled) {
                 if (mode === MODES.UNIQUE_ROUNDS) {
                     const sequence = state.sequences[0];
                     if (sequence.length === state.currentRound) {
-                        const allKeys = document.querySelectorAll(`#pad-${settings.currentInput} button[data-value]`);
+                        const allKeys = document.querySelectorAll(`#pad-${profileSettings.currentInput} button[data-value]`);
                         allKeys.forEach(key => key.disabled = true);
                         setTimeout(handleUniqueRoundsDemo, 100); 
                     }
                 }
                 else if (mode === MODES.SIMON) {
-                    const justFilledIndex = (state.nextSequenceIndex - 1) % state.machineCount;
-                     if (justFilledIndex === state.machineCount - 1) { // Only play after last machine
+                    const justFilledIndex = (state.nextSequenceIndex - 1) % profileSettings.machineCount;
+                     if (justFilledIndex === profileSettings.machineCount - 1) { // Only play after last machine
                          setTimeout(handleSimonDemo, 100);
                     }
                 }
@@ -1539,10 +1737,11 @@ Let's start with Round 1.`;
             vibrate(20);
             
             const state = getCurrentState();
-            const mode = settings.currentMode;
+            const profileSettings = getCurrentProfileSettings();
+            const mode = profileSettings.currentMode;
 
             // Prevent backspace during demo
-            const demoButton = document.querySelector(`#pad-${settings.currentInput} button[data-action="play-demo"]`);
+            const demoButton = document.querySelector(`#pad-${profileSettings.currentInput} button[data-action="play-demo"]`);
             if (demoButton && demoButton.disabled) return;
 
             if (state.nextSequenceIndex === 0) return; 
@@ -1551,7 +1750,7 @@ Let's start with Round 1.`;
             if (mode === MODES.UNIQUE_ROUNDS) {
                 lastClickTargetIndex = 0;
             } else {
-                lastClickTargetIndex = (state.nextSequenceIndex - 1) % state.machineCount;
+                lastClickTargetIndex = (state.nextSequenceIndex - 1) % profileSettings.machineCount;
             }
             
             const targetSet = state.sequences[lastClickTargetIndex];
@@ -1561,7 +1760,7 @@ Let's start with Round 1.`;
                 state.nextSequenceIndex--; 
 
                 if (mode === MODES.UNIQUE_ROUNDS) {
-                     const allKeys = document.querySelectorAll(`#pad-${settings.currentInput} button[data-value]`);
+                     const allKeys = document.querySelectorAll(`#pad-${profileSettings.currentInput} button[data-value]`);
                      allKeys.forEach(key => key.disabled = false);
                 }
 
@@ -1584,12 +1783,13 @@ Let's start with Round 1.`;
             stopSpeedDeleting(); 
             isHoldingBackspace = false; // Not holding *yet*
 
-            const demoButton = document.querySelector(`#pad-${settings.currentInput} button[data-action="play-demo"]`);
+            const profileSettings = getCurrentProfileSettings();
+            const demoButton = document.querySelector(`#pad-${profileSettings.currentInput} button[data-action="play-demo"]`);
             if (demoButton && demoButton.disabled) return;
 
             initialDelayTimer = setTimeout(() => {
                 isHoldingBackspace = true; // Now we are officially holding
-                if (settings.isSpeedDeletingEnabled && settings.currentMode !== MODES.UNIQUE_ROUNDS) {
+                if (profileSettings.isSpeedDeletingEnabled && profileSettings.currentMode !== MODES.UNIQUE_ROUNDS) {
                     handleBackspace();
                     speedDeleteInterval = setInterval(handleBackspace, SPEED_DELETE_INTERVAL_MS);
                 }
@@ -1599,6 +1799,7 @@ Let's start with Round 1.`;
 
         function handleBackspaceEnd() {
             const wasHolding = isHoldingBackspace; // Check if we were holding
+            const profileSettings = getCurrentProfileSettings();
             
             if (initialDelayTimer !== null) {
                 // This means it was a short tap
@@ -1609,21 +1810,22 @@ Let's start with Round 1.`;
             
             stopSpeedDeleting(); // Clears intervals and sets isHoldingBackspace = false
 
-            if (wasHolding && settings.currentMode === MODES.UNIQUE_ROUNDS) {
+            if (wasHolding && profileSettings.currentMode === MODES.UNIQUE_ROUNDS) {
                 // If we *were* holding and are in Unique Rounds mode, reset.
                 showModal('Reset Rounds?', 'Are you sure you want to reset to Round 1?', resetUniqueRoundsMode, 'Reset', 'Cancel');
             }
         }
 
         /**
-         * Resets the 'Unique Rounds' mode game to Round 1 for the current input.
+         * Resets the 'Unique Rounds' mode game to Round 1 for the current profile.
          */
         function resetUniqueRoundsMode() {
             const state = getCurrentState();
+            const profileSettings = getCurrentProfileSettings();
             state.currentRound = 1;
             state.sequences = Array.from({ length: MAX_MACHINES }, () => []); // Clear all sequences
             state.nextSequenceIndex = 0;
-            const allKeys = document.querySelectorAll(`#pad-${settings.currentInput} button[data-value]`);
+            const allKeys = document.querySelectorAll(`#pad-${profileSettings.currentInput} button[data-value]`);
             if (allKeys) allKeys.forEach(key => key.disabled = false);
             renderSequences();
             saveState();
@@ -1635,7 +1837,8 @@ Let's start with Round 1.`;
             const cleanTranscript = transcript.toLowerCase().replace(/[\.,]/g, '').trim();
             const words = cleanTranscript.split(' ');
             let valuesAdded = 0;
-            const currentInput = settings.currentInput;
+            const profileSettings = getCurrentProfileSettings();
+            const currentInput = profileSettings.currentInput;
 
             for (const word of words) {
                 let value = VOICE_VALUE_MAP[word];
@@ -1662,18 +1865,19 @@ Let's start with Round 1.`;
         }
 
         function handleRestoreDefaults() {
-            settings = { ...DEFAULT_SETTINGS };
-            appState = {
-                [INPUTS.KEY9]: getInitialState(),
-                [INPUTS.KEY12]: getInitialState(),
-                [INPUTS.PIANO]: getInitialState(),
-            };
+            appSettings = { ...DEFAULT_APP_SETTINGS };
+            appSettings.profiles = { ...PREMADE_PROFILES }; // Deep copy
+            
+            appState = {};
+            Object.keys(appSettings.profiles).forEach(profileId => {
+                appState[profileId] = getInitialState();
+            });
             
             saveState();
             
-            applyGlobalUiScale(settings.globalUiScale); // Apply default scale
-            updateTheme(settings.isDarkMode);
-            updateVoiceInputVisibility();
+            applyGlobalUiScale(appSettings.globalUiScale);
+            updateTheme(appSettings.isDarkMode);
+            updateAllChrome();
             
             // Re-open setup modal to show new defaults
             closeSettingsModal(); 
@@ -1683,7 +1887,8 @@ Let's start with Round 1.`;
         // --- 5. DEMO ---
 
         function speak(text) {
-            if (!settings.isAudioPlaybackEnabled || !('speechSynthesis'in window)) return;
+            const profileSettings = getCurrentProfileSettings();
+            if (!profileSettings.isAudioEnabled || !('speechSynthesis'in window)) return;
             try {
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
@@ -1696,14 +1901,15 @@ Let's start with Round 1.`;
             }
         }
 
-        const getSpeedMultiplier = () => settings.playbackSpeed;
+        const getSpeedMultiplier = () => appSettings.playbackSpeed;
 
         /**
          * Demo logic for Simon Says mode (handles 1-4 machines).
          */
         function handleSimonDemo() {
             const state = getCurrentState();
-            const input = settings.currentInput;
+            const profileSettings = getCurrentProfileSettings();
+            const input = profileSettings.currentInput;
             const padSelector = `#pad-${input}`;
             const flashClass = input === 'piano' ? 'flash' : (input === 'key9' ? 'key9-flash' : 'key12-flash');
 
@@ -1711,20 +1917,20 @@ Let's start with Round 1.`;
             const inputKeys = document.querySelectorAll(`${padSelector} button[data-value]`);
             const speedMultiplier = getSpeedMultiplier();
             const currentDelayMs = DEMO_DELAY_BASE_MS / speedMultiplier;
-            const numMachines = state.machineCount;
+            const numMachines = profileSettings.machineCount;
             const activeSequences = state.sequences.slice(0, numMachines);
             const maxLength = Math.max(...activeSequences.map(s => s.length));
             
             if (maxLength === 0 || (demoButton && demoButton.disabled)) {
                  if (demoButton && demoButton.disabled) return;
-                if (!settings.isAutoplayEnabled) {
+                if (!profileSettings.isAutoplayEnabled) {
                     showModal('No Sequence', 'The sequences are empty. Enter some values first!', () => closeModal(), 'OK', '');
                 }
                 return;
             }
             
             const playlist = [];
-            const chunkSize = (numMachines > 1) ? settings.simonChunkSize : maxLength;
+            const chunkSize = (numMachines > 1) ? profileSettings.simonChunkSize : maxLength;
             const numChunks = Math.ceil(maxLength / chunkSize);
 
             for (let chunkNum = 0; chunkNum < numChunks; chunkNum++) {
@@ -1776,7 +1982,7 @@ Let's start with Round 1.`;
                     let timeBetweenItems = pauseDuration - flashDuration;
                     
                     if (numMachines > 1 && nextSeqIndex !== -1 && seqIndex !== nextSeqIndex) {
-                        timeBetweenItems += settings.simonInterSequenceDelay;
+                        timeBetweenItems += profileSettings.simonInterSequenceDelay;
                     }
                     
                     setTimeout(() => {
@@ -1805,19 +2011,21 @@ Let's start with Round 1.`;
 
         function advanceToUniqueRound() {
             const state = getCurrentState();
+            const profileSettings = getCurrentProfileSettings();
             state.currentRound++;
-            if (state.currentRound > settings.sequenceLength) {
+            if (state.currentRound > profileSettings.sequenceLength) {
                 state.currentRound = 1;
-                showModal('Complete!', `You finished all ${settings.sequenceLength} rounds. Resetting to Round 1.`, () => closeModal(), 'OK', '');
+                showModal('Complete!', `You finished all ${profileSettings.sequenceLength} rounds. Resetting to Round 1.`, () => closeModal(), 'OK', '');
             }
             renderSequences();
             saveState();
-            const allKeys = document.querySelectorAll(`#pad-${settings.currentInput} button[data-value]`);
+            const allKeys = document.querySelectorAll(`#pad-${profileSettings.currentInput} button[data-value]`);
             if (allKeys) allKeys.forEach(key => key.disabled = false);
         }
 
         function clearUniqueRoundsSequence() {
             const state = getCurrentState();
+            const profileSettings = getCurrentProfileSettings();
             const sequence = state.sequences[0];
             
             if (sequence.length === 0) {
@@ -1850,7 +2058,8 @@ Let's start with Round 1.`;
          */
         function handleUniqueRoundsDemo() {
             const state = getCurrentState();
-            const input = settings.currentInput;
+            const profileSettings = getCurrentProfileSettings();
+            const input = profileSettings.currentInput;
             const padSelector = `#pad-${input}`;
             const flashClass = input === 'piano' ? 'flash' : (input === 'key9' ? 'key9-flash' : 'key12-flash');
 
@@ -1862,8 +2071,8 @@ Let's start with Round 1.`;
 
             if (!demoButton) return;
 
-            if (sequenceToPlay.length === 0 || (demoButton.disabled && !settings.isUniqueRoundsAutoClearEnabled) ) {
-                if (demoButton.disabled && !settings.isUniqueRoundsAutoClearEnabled) return;
+            if (sequenceToPlay.length === 0 || (demoButton.disabled && !profileSettings.isUniqueRoundsAutoClearEnabled) ) {
+                if (demoButton.disabled && !profileSettings.isUniqueRoundsAutoClearEnabled) return;
                 showModal('No Sequence', 'The sequence is empty. Enter some values first!', () => closeModal(), 'OK', '');
                 if (allKeys) allKeys.forEach(key => key.disabled = false);
                 return;
@@ -1908,7 +2117,7 @@ Let's start with Round 1.`;
                     demoButton.disabled = false;
                     demoButton.innerHTML = '▶'; 
                     
-                    if (settings.currentMode === MODES.UNIQUE_ROUNDS && settings.isUniqueRoundsAutoClearEnabled) {
+                    if (profileSettings.currentMode === MODES.UNIQUE_ROUNDS && profileSettings.isUniqueRoundsAutoClearEnabled) {
                         setTimeout(clearUniqueRoundsSequence, 300); 
                     } else {
                         if (allKeys) allKeys.forEach(key => key.disabled = false);
@@ -1922,7 +2131,8 @@ Let's start with Round 1.`;
          * Routes to the correct demo based on current mode.
          */
         function handleCurrentDemo() {
-            if (settings.currentMode === MODES.SIMON) {
+            const profileSettings = getCurrentProfileSettings();
+            if (profileSettings.currentMode === MODES.SIMON) {
                 handleSimonDemo();
             } else {
                 handleUniqueRoundsDemo();
@@ -1947,41 +2157,48 @@ Let's start with Round 1.`;
             copyLinkButton = document.getElementById('copy-link-button'); 
             nativeShareButton = document.getElementById('native-share-button'); 
             
+            // --- MODAL: Game Setup (v5) ---
             gameSetupModal = document.getElementById('game-setup-modal');
             closeGameSetupModalBtn = document.getElementById('close-game-setup-modal');
             dontShowWelcomeToggle = document.getElementById('dont-show-welcome-toggle');
             globalResizeUpBtn = document.getElementById('global-resize-up');
             globalResizeDownBtn = document.getElementById('global-resize-down');
+            configSelect = document.getElementById('config-select');
+            configAddBtn = document.getElementById('config-add');
+            configRenameBtn = document.getElementById('config-rename');
+            configDeleteBtn = document.getElementById('config-delete');
+            quickAutoplayToggle = document.getElementById('quick-autoplay-toggle');
+            quickAudioToggle = document.getElementById('quick-audio-toggle');
+            quickOpenHelpBtn = document.getElementById('quick-open-help');
+            quickOpenSettingsBtn = document.getElementById('quick-open-settings');
 
+            // --- MODAL: Settings (v5) ---
             settingsModal = document.getElementById('settings-modal');
             openGameSetupFromSettings = document.getElementById('open-game-setup-from-settings');
             openShareButton = document.getElementById('open-share-button');
             openHelpButton = document.getElementById('open-help-button');
             closeSettings = document.getElementById('close-settings');
             
+            // --- MODAL: Help (v5) ---
             helpModal = document.getElementById('help-modal');
             helpContentContainer = document.getElementById('help-content-container');
             helpTabNav = document.getElementById('help-tab-nav');
             closeHelp = document.getElementById('close-help');
 
-            // --- CONTROLS: Game Setup (in game-setup-modal) ---
+            // --- CONTROLS: Game Setup (MOVED to settings-modal) ---
             inputSelect = document.getElementById('input-select');
             modeToggle = document.getElementById('mode-toggle');
             modeToggleLabel = document.getElementById('mode-toggle-label');
-            
             machinesSlider = document.getElementById('machines-slider');
             machinesDisplay = document.getElementById('machines-display');
-            
             sequenceLengthSlider = document.getElementById('sequence-length-slider');
             sequenceLengthDisplay = document.getElementById('sequence-length-display');
             sequenceLengthLabel = document.getElementById('sequence-length-label');
-            
             chunkSlider = document.getElementById('chunk-slider');
             chunkDisplay = document.getElementById('chunk-display');
             delaySlider = document.getElementById('delay-slider');
             delayDisplay = document.getElementById('delay-display');
             settingMultiSequenceGroup = document.getElementById('setting-multi-sequence-group');
-            
             autoclearToggle = document.getElementById('autoclear-toggle');
             settingAutoclear = document.getElementById('setting-autoclear');
 
@@ -1992,7 +2209,7 @@ Let's start with Round 1.`;
             showWelcomeToggle = document.getElementById('show-welcome-toggle');
             darkModeToggle = document.getElementById('dark-mode-toggle');
             speedDeleteToggle = document.getElementById('speed-delete-toggle');
-            audioPlaybackToggle = document.getElementById('audio-playback-toggle');
+            audioToggle = document.getElementById('audio-toggle');
             voiceInputToggle = document.getElementById('voice-input-toggle');
             hapticsToggle = document.getElementById('haptics-toggle');
             uiScaleSlider = document.getElementById('ui-scale-slider');
@@ -2003,7 +2220,6 @@ Let's start with Round 1.`;
             padKey12 = document.getElementById('pad-key12');
             padPiano = document.getElementById('pad-piano');
             allResetButtons = document.querySelectorAll('.reset-button');
-            
             allVoiceInputs = document.querySelectorAll('.voice-text-input');
         }
 
@@ -2019,7 +2235,6 @@ Let's start with Round 1.`;
                     const targetElement = document.getElementById(copyTarget);
                     if (targetElement) {
                         targetElement.select();
-                        // Use clipboard API for modern browsers
                         if (navigator.clipboard && navigator.clipboard.writeText) {
                             navigator.clipboard.writeText(targetElement.value).then(() => {
                                 const originalText = button.innerHTML;
@@ -2031,7 +2246,6 @@ Let's start with Round 1.`;
                                 }, 2000);
                             }).catch(err => console.error('Clipboard API failed: ', err));
                         } else {
-                            // Fallback for older browsers
                             try {
                                 document.execCommand('copy');
                                 const originalText = button.innerHTML;
@@ -2089,13 +2303,15 @@ Let's start with Round 1.`;
                     showModal('Reset Rounds?', 'Are you sure you want to reset to Round 1?', resetUniqueRoundsMode, 'Reset', 'Cancel');
                     return;
                 }
-                if (action === 'play-demo' && input === settings.currentInput) {
+                
+                const currentInput = getCurrentProfileSettings().currentInput;
+                if (action === 'play-demo' && input === currentInput) {
                     handleCurrentDemo();
                     return;
                 }
                 
                 // Handle Value Clicks
-                if (value && input === settings.currentInput) {
+                if (value && input === currentInput) {
                     if (input === INPUTS.KEY9 && /^[1-9]$/.test(value)) {
                         addValue(value);
                     }
@@ -2113,7 +2329,7 @@ Let's start with Round 1.`;
                 input.addEventListener('input', (event) => {
                     const transcript = event.target.value;
                     if (transcript && transcript.length > 0) {
-                        if (event.target.dataset.input === settings.currentInput) {
+                        if (event.target.dataset.input === getCurrentProfileSettings().currentInput) {
                             processVoiceTranscript(transcript);
                         }
                         event.target.value = ''; // Clear after processing
@@ -2130,92 +2346,104 @@ Let's start with Round 1.`;
                 btn.addEventListener('touchend', handleBackspaceEnd);
             });
             
-            // --- Modal: Game Setup Listeners ---
+            // --- Modal: Game Setup Listeners (v5) ---
             if (closeGameSetupModalBtn) closeGameSetupModalBtn.addEventListener('click', closeGameSetupModal);
             if (dontShowWelcomeToggle) dontShowWelcomeToggle.addEventListener('change', (e) => {
-                settings.showWelcomeScreen = !e.target.checked;
-                if(showWelcomeToggle) showWelcomeToggle.checked = settings.showWelcomeScreen;
+                appSettings.showWelcomeScreen = !e.target.checked;
+                if(showWelcomeToggle) showWelcomeToggle.checked = appSettings.showWelcomeScreen;
                 saveState();
             });
+            if (configSelect) configSelect.addEventListener('change', (e) => switchActiveProfile(e.target.value));
+            if (configAddBtn) configAddBtn.addEventListener('click', handleConfigAdd);
+            if (configRenameBtn) configRenameBtn.addEventListener('click', handleConfigRename);
+            if (configDeleteBtn) configDeleteBtn.addEventListener('click', handleConfigDelete);
+            if (quickOpenHelpBtn) quickOpenHelpBtn.addEventListener('click', () => {
+                closeGameSetupModal();
+                openHelpModal();
+            });
+            if (quickOpenSettingsBtn) quickOpenSettingsBtn.addEventListener('click', () => {
+                closeGameSetupModal();
+                openSettingsModal();
+            });
+            // Quick toggles save on modal close
 
             // Global Resize Listeners
             if (globalResizeUpBtn) globalResizeUpBtn.addEventListener('click', () => {
-                applyGlobalUiScale(settings.globalUiScale + 10);
+                applyGlobalUiScale(appSettings.globalUiScale + 10);
                 saveState();
             });
             if (globalResizeDownBtn) globalResizeDownBtn.addEventListener('click', () => {
-                applyGlobalUiScale(settings.globalUiScale - 10);
+                applyGlobalUiScale(appSettings.globalUiScale - 10);
                 saveState();
             });
 
-            // Listeners for controls *inside* the setup modal
-            if (inputSelect) inputSelect.addEventListener('change', updateGameSetupVisibility);
-            if (modeToggle) modeToggle.addEventListener('change', updateGameSetupVisibility);
-            if (machinesSlider) {
-                machinesSlider.addEventListener('input', (e) => {
-                    updateMachinesDisplay(parseInt(e.target.value), machinesDisplay);
-                    updateGameSetupVisibility();
-                });
-            }
-            if (sequenceLengthSlider) sequenceLengthSlider.addEventListener('input', (e) => updateSequenceLengthDisplay(parseInt(e.target.value), sequenceLengthDisplay));
-            if (chunkSlider) chunkSlider.addEventListener('input', (e) => updateChunkDisplay(parseInt(e.target.value), chunkDisplay));
-            if (delaySlider) delaySlider.addEventListener('input', (e) => updateDelayDisplay(parseInt(e.target.value), delayDisplay));
-
-
-            // --- Modal: App Preferences Listeners ---
+            // --- Modal: App Preferences Listeners (v5) ---
             if (closeSettings) closeSettings.addEventListener('click', closeSettingsModal);
             if (openGameSetupFromSettings) openGameSetupFromSettings.addEventListener('click', () => {
                 closeSettingsModal();
                 openGameSetupModal();
             });
+            
+            // --- Listeners for controls *inside* the settings modal ---
+            // These now update the *active profile*
+            const addProfileSettingListener = (element, eventType, settingKey, valueType = 'value') => {
+                if (element) {
+                    element.addEventListener(eventType, (e) => {
+                        const profileSettings = getCurrentProfileSettings();
+                        if (!profileSettings) return;
+                        let value = e.target[valueType];
+                        if (valueType === 'checked') value = e.target.checked;
+                        if (element.type === 'range') value = parseInt(value);
+                        
+                        profileSettings[settingKey] = value;
+                        
+                        // Update linked displays
+                        if (element === machinesSlider) updateMachinesDisplay(value, machinesDisplay);
+                        if (element === sequenceLengthSlider) updateSequenceLengthDisplay(value, sequenceLengthDisplay);
+                        if (element === chunkSlider) updateChunkDisplay(value, chunkDisplay);
+                        if (element === delaySlider) updateDelayDisplay(value, delayDisplay);
+                        if (element === modeToggle) profileSettings.currentMode = value ? MODES.UNIQUE_ROUNDS : MODES.SIMON;
+                        if (element === uiScaleSlider) {
+                            value = value / 100.0;
+                            profileSettings[settingKey] = value;
+                            updateScaleDisplay(value, uiScaleDisplay);
+                            renderSequences();
+                        }
+                        
+                        // Update visibility if needed
+                        updateSettingsModalVisibility();
+                        
+                        // Note: State is saved on modal close
+                    });
+                }
+            };
+            
+            // Profile Settings
+            addProfileSettingListener(inputSelect, 'change', 'currentInput');
+            addProfileSettingListener(modeToggle, 'change', 'currentMode', 'checked');
+            addProfileSettingListener(machinesSlider, 'input', 'machineCount');
+            addProfileSettingListener(sequenceLengthSlider, 'input', 'sequenceLength');
+            addProfileSettingListener(chunkSlider, 'input', 'simonChunkSize');
+            addProfileSettingListener(delaySlider, 'input', 'simonInterSequenceDelay');
+            addProfileSettingListener(autoclearToggle, 'change', 'isUniqueRoundsAutoClearEnabled', 'checked');
+            addProfileSettingListener(uiScaleSlider, 'input', 'uiScaleMultiplier');
+            addProfileSettingListener(autoplayToggle, 'change', 'isAutoplayEnabled', 'checked');
+            addProfileSettingListener(speedDeleteToggle, 'change', 'isSpeedDeletingEnabled', 'checked');
+            addProfileSettingListener(audioToggle, 'change', 'isAudioEnabled', 'checked');
+            addProfileSettingListener(voiceInputToggle, 'change', 'isVoiceInputEnabled', 'checked');
+            addProfileSettingListener(hapticsToggle, 'change', 'isHapticsEnabled', 'checked');
 
+            // Global Settings
             if (playbackSpeedSlider) playbackSpeedSlider.addEventListener('input', (e) => {
                 const val = parseInt(e.target.value);
-                settings.playbackSpeed = val / 100.0;
+                appSettings.playbackSpeed = val / 100.0;
                 updatePlaybackSpeedDisplay(val, playbackSpeedDisplay);
-                saveState();
             });
-
-            if (autoplayToggle) autoplayToggle.addEventListener('change', (e) => {
-                settings.isAutoplayEnabled = e.target.checked;
-                saveState();
-            });
-
             if (showWelcomeToggle) showWelcomeToggle.addEventListener('change', (e) => {
-                settings.showWelcomeScreen = e.target.checked;
-                if(dontShowWelcomeToggle) dontShowWelcomeToggle.checked = !settings.showWelcomeScreen;
-                saveState();
+                appSettings.showWelcomeScreen = e.target.checked;
+                if(dontShowWelcomeToggle) dontShowWelcomeToggle.checked = !appSettings.showWelcomeScreen;
             });
             if (darkModeToggle) darkModeToggle.addEventListener('change', (e) => updateTheme(e.target.checked));
-            if (speedDeleteToggle) speedDeleteToggle.addEventListener('change', (e) => {
-                settings.isSpeedDeletingEnabled = e.target.checked;
-                saveState();
-            });
-            if (audioPlaybackToggle) audioPlaybackToggle.addEventListener('change', (e) => {
-                settings.isAudioPlaybackEnabled = e.target.checked;
-                if (settings.isAudioPlaybackEnabled) speak("Audio");
-                saveState();
-            });
-            if (voiceInputToggle) voiceInputToggle.addEventListener('change', (e) => {
-                settings.isVoiceInputEnabled = e.target.checked;
-                updateVoiceInputVisibility();
-                saveState();
-            });
-            if (hapticsToggle) hapticsToggle.addEventListener('change', (e) => {
-                settings.isHapticsEnabled = e.target.checked;
-                if (settings.isHapticsEnabled) vibrate(50);
-                saveState();
-            });
-
-            if (uiScaleSlider) {
-                uiScaleSlider.addEventListener('input', (event) => {
-                    const multiplier = parseInt(event.target.value) / 100;
-                    settings.uiScaleMultiplier = multiplier;
-                    updateScaleDisplay(multiplier, uiScaleDisplay);
-                    renderSequences();
-                    saveState();
-                });
-            }
             
             // --- Other Modals ---
             if (closeHelp) closeHelp.addEventListener('click', closeHelpModal);
@@ -2228,24 +2456,21 @@ Let's start with Round 1.`;
             assignDomElements();
         
             // Update UI based on loaded state
-            applyGlobalUiScale(settings.globalUiScale); // Apply global scale
-            updateTheme(settings.isDarkMode);
-            updateScaleDisplay(settings.uiScaleMultiplier, uiScaleDisplay);
-            updateVoiceInputVisibility();
+            applyGlobalUiScale(appSettings.globalUiScale);
+            updateTheme(appSettings.isDarkMode);
             
             initializeListeners();
             
-            // Load the last used input
-            updateInput(settings.currentInput);
-            updateMainUIControlsVisibility(); // Call this on load as well
+            // Load the last active profile
+            updateAllChrome();
             
             // Show Game Setup Modal if enabled
-            if (settings.showWelcomeScreen) {
+            if (appSettings.showWelcomeScreen) {
                 setTimeout(openGameSetupModal, 500); 
             }
             
             // Pre-load audio
-            if (settings.isAudioPlaybackEnabled) speak(" "); 
+            if (getCurrentProfileSettings().isAudioEnabled) speak(" "); 
         };
 
     })(); // IIFE wrapper

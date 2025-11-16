@@ -9,8 +9,8 @@
     <link rel="apple-touch-icon" href="https://placehold.co/180x180/4f46e5/ffffff?text=F&font=inter">
     
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <script>
-        // --- Tailwind Configuration ---
         tailwind.config = {
             darkMode: 'class', // Enable class-based dark mode
             theme: {
@@ -19,12 +19,9 @@
                         sans: ['Inter', 'sans-serif'],
                     },
                     colors: {
-                        // Base Colors
                         'primary-app': '#4f46e5', // Indigo
                         'secondary-app': '#6366f1',
                         'accent-app': '#a5b4fc',
-                        
-                        // Control Button Colors
                         'btn-control-red': '#dc2626', 
                         'btn-control-red-active': '#b91c1c',
                         'btn-control-blue': '#2563eb', 
@@ -36,371 +33,8 @@
         }
     </script>
     
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-
-        /* ---------------------------------- */
-        /* --- THEME COLORS (CSS Variables) --- */
-        /* ---------------------------------- */
-        :root {
-            --bg-main: #1f2937;           
-            --bg-footer: #1f2937;         
-            --text-color: #ffffff;
-            --card-bg: #374151;           
-            --card-text: #ffffff;
-            --btn-control-gray: #6b7280;  
-            --btn-control-gray-active: #4b5563; 
-        }
-        .light {
-            --bg-main: #ffffff;           
-            --bg-footer: #ffffff;         
-            --text-color: #1f2937;
-            --card-bg: #e5e7eb;           
-            --card-text: #1f2937;
-            --btn-control-gray: #9ca3af; 
-            --btn-control-gray-active: #6b7280;
-        }
-
-        /* Apply theme variables */
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s;
-        }
-        #input-footer {
-            background-color: var(--bg-footer);
-        }
-        .btn-input {
-            color: var(--card-text);
-        }
-        .number-box {
-            height: 40px; 
-            line-height: 40px; 
-            font-size: 1.1rem; 
-            font-weight: 700; 
-            transition: height 0.2s, line-height 0.2s, font-size 0.2s; 
-        }
-        .btn-input {
-            transition: all 0.15s ease-in-out;
-            position: relative; 
-            font-weight: 700;
-            border-radius: 9999px; /* Fully rounded/circular look */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.1); 
-            height: 64px; 
-        }
-        .btn-pad-number {
-            background-color: var(--card-bg);
-            font-size: 1.5rem; /* text-2xl */
-        }
-        .btn-pad-number:active {
-            transform: scale(0.95);
-            background-color: var(--btn-control-gray-active);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        /* FLASH for Demo Effects */
-        .btn-pad-number.key9-flash {
-            background-color: #3b82f6; /* blue-500 */
-            box-shadow: 0 0 15px 5px rgba(59, 130, 246, 0.7); 
-            transform: scale(1.05); 
-        }
-        .btn-pad-number.key12-flash {
-            background-color: #10b981; /* green-500 */
-            box-shadow: 0 0 15px 5px rgba(16, 185, 129, 0.7); 
-            transform: scale(1.05); 
-        }
-        .btn-control {
-            font-size: 1.8rem; 
-            height: 64px; 
-            border-radius: 9999px; 
-            color: var(--card-text); 
-        }
-        .btn-control[data-action="backspace"] {
-            background-color: var(--btn-control-gray);
-            color: white; 
-        }
-        .btn-control[data-action="backspace"]:active {
-            background-color: var(--btn-control-gray-active);
-            transform: scale(0.95);
-        }
-
-        /* -------------------------- */
-        /* --- PIANO KEY STYLES --- */
-        /* -------------------------- */
-        #piano-keys {
-            position: relative; 
-            display: flex; 
-            width: 100%;
-            height: 200px;
-            background-color: #333; 
-        }
-        .key-container {
-            width: calc(100% / 7);
-            position: relative;
-            height: 100%;
-        }
-        .piano-key-white {
-            width: 100%;
-            height: 100%;
-            border: 1px solid #333;
-            border-top: none; 
-            border-bottom: 2px solid #555; 
-            background-color: #ffffff; 
-            background-image: linear-gradient(to bottom, #ffffff, #f0f0f0);
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.05); 
-            color: #1f2937; 
-            font-weight: 700; 
-            font-size: 1.6rem; 
-            padding-bottom: 15px; 
-            border-radius: 0 0 5px 5px;
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            z-index: 1; 
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            transition: all 0.15s ease-in-out; 
-        }
-        .piano-key-white:active, .piano-key-white.flash {
-            transform: translateY(2px); 
-            box-shadow: 0 0 20px 7px rgba(255, 238, 0, 0.9), inset 0 0 10px rgba(0,0,0,0.1); 
-            background-image: linear-gradient(to bottom, #ffea00, #ffe066); 
-            border-bottom: 2px solid #f0ad4e; 
-        }
-        .piano-key-black {
-            height: 65%; 
-            width: 13%; 
-            background-color: #000000; 
-            background-image: linear-gradient(to top, #111111, #222222);
-            box-shadow: 0 6px 10px rgba(0,0,0,0.6); 
-            border: 1px solid #333;
-            border-top: none;
-            border-bottom: 2px solid #000;
-            border-radius: 0 0 5px 5px;
-            position: absolute; 
-            top: 0;
-            z-index: 2; 
-            color: white; 
-            font-weight: 600; 
-            font-size: 1rem; 
-            display: flex;
-            align-items: flex-end; 
-            justify-content: center;
-            padding-bottom: 5px;
-            cursor: pointer;
-            transition: all 0.05s ease-in-out;
-        }
-        .piano-key-black:active, .piano-key-black.flash {
-            transform: translateY(3px); 
-            height: calc(65% - 3px); 
-            box-shadow: 0 0 15px 5px rgba(255, 69, 0, 0.9), 0 2px 3px rgba(0,0,0,0.4); 
-            background-image: linear-gradient(to top, #664400, #4c3300); 
-            border-bottom: 2px solid #f0adad;
-        }
-        .black-1 { left: calc((100% / 7) * 1 - (13% / 2)); }
-        .black-2 { left: calc((100% / 7) * 2 - (13% / 2)); }
-        .black-3 { left: calc((100% / 7) * 4 - (13% / 2)); }
-        .black-4 { left: calc((100% / 7) * 5 - (13% / 2)); }
-        .black-5 { left: calc((100% / 7) * 6 - (13% / 2)); }
-
-        /* Help/Settings content styling */
-        .content-container h4 {
-            font-size: 1.25rem; /* text-xl */
-            font-weight: 700; /* font-bold */
-            margin-top: 1rem;
-            margin-bottom: 0.5rem;
-            padding-bottom: 0.25rem;
-            border-bottom: 1px solid #e5e7eb; /* gray-200 */
-        }
-        .dark .content-container h4 {
-            border-bottom: 1px solid #4b5563; /* gray-600 */
-        }
-        .content-container p, .content-container ul {
-            margin-bottom: 1rem;
-            line-height: 1.5;
-        }
-        .content-container ul {
-            list-style: disc;
-            margin-left: 1.5rem;
-        }
-        
-        /* Styles for Prompt Box */
-        .prompt-box {
-            width: 100%;
-            height: 150px;
-            padding: 0.75rem;
-            margin-bottom: 0.5rem;
-            border-radius: 0.5rem;
-            border: 1px solid #9ca3af;
-            background-color: #f3f4f6;
-            color: #1f2937;
-            font-family: monospace;
-            font-size: 0.875rem;
-            line-height: 1.25rem;
-            resize: none;
-        }
-        .dark .prompt-box {
-            background-color: #4b5563;
-            color: #ffffff;
-            border-color: #6b7280;
-        }
-        .copy-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100px;
-            padding: 0.5rem 1rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: white;
-            background-color: #2563eb; /* btn-control-blue */
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            margin-bottom: 1rem;
-        }
-        .copy-button:hover {
-            background-color: #1e40af; /* btn-control-blue-active */
-        }
-        .copy-button.copied {
-            background-color: #10b981; /* green-500 */
-        }
-        
-        /* Tab Styles (for Help & Settings) */
-        .tab-button {
-            padding: 0.5rem 0.75rem;
-            font-weight: 600;
-            color: #6b7280;
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s;
-        }
-        .dark .tab-button {
-            color: #9ca3af;
-        }
-        .tab-button:hover {
-            color: #374151;
-        }
-        .dark .tab-button:hover {
-            color: #e5e7eb;
-        }
-        .tab-button.active-tab {
-            color: #4f46e5; /* primary-app */
-            border-bottom-color: #4f46e5; /* primary-app */
-        }
-
-        /* Generic select dropdown */
-        .select-input {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-            background-position: right 0.5rem center;
-            background-repeat: no-repeat;
-            background-size: 1.5em 1.5em;
-            padding-right: 2.5rem;
-            
-            /* --- COLOR FIX --- */
-            background-color: #ffffff;
-            color: #1f2937;
-            border: 1px solid #d1d5db; /* gray-300 */
-            border-radius: 0.5rem; /* rounded-lg */
-        }
-        .dark .select-input {
-             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-             
-             /* --- COLOR FIX --- */
-             background-color: #374151; /* gray-700 */
-             color: #ffffff;
-             border-color: #4b5563; /* gray-600 */
-        }
-        .select-input:disabled {
-            background-color: #e5e7eb; /* gray-200 */
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-        .dark .select-input:disabled {
-             background-color: #4b5563; /* gray-600 */
-        }
-        
-        /* Custom range slider */
-        input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 100%;
-            height: 0.5rem; /* 8px */
-            background: #e5e7eb; /* gray-200 */
-            border-radius: 9999px; /* rounded-full */
-            outline: none;
-            opacity: 0.9;
-            transition: opacity 0.2s;
-        }
-        .dark input[type="range"] {
-            background: #4b5563; /* gray-600 */
-        }
-        input[type="range"]:hover {
-            opacity: 1;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 1.25rem; /* 20px */
-            height: 1.25rem; /* 20px */
-            background: #4f46e5; /* primary-app */
-            border-radius: 9999px;
-            cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        input[type="range"]::-moz-range-thumb {
-            width: 1.25rem;
-            height: 1.25rem;
-            background: #4f46e5;
-            border-radius: 9999px;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        input[type="range"]:disabled {
-             background: #e5e7eb; /* gray-200 */
-        }
-        .dark input[type="range"]:disabled {
-             background: #4b5563; /* gray-600 */
-        }
-        input[type="range"]:disabled::-webkit-slider-thumb {
-            background: #9ca3af; /* gray-400 */
-            cursor: not-allowed;
-        }
-        input[type="range"]:disabled::-moz-range-thumb {
-            background: #9ca3af;
-            cursor: not-allowed;
-        }
-        
-        /* Shortcut Builder Row */
-        .shortcut-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr auto;
-            gap: 0.75rem; /* 12px */
-            align-items: center;
-            margin-bottom: 0.75rem;
-        }
-        .shortcut-row .select-input {
-            height: 3rem; /* 48px */
-            font-size: 0.875rem; /* 14px */
-            padding-left: 0.75rem;
-        }
-        .shortcut-delete-btn {
-            height: 3rem;
-            width: 3rem;
-            border-radius: 0.5rem;
-            background-color: var(--btn-control-gray);
-            color: white;
-            font-weight: 700;
-            font-size: 1.25rem;
-            transition: background-color 0.2s;
-        }
-        .shortcut-delete-btn:hover {
-            background-color: #dc2626; /* btn-control-red */
-        }
-
-    </style>
+    <link rel="stylesheet" href="styles.css">
+    
 </head>
 <body class="dark min-h-screen flex flex-col font-sans p-4">
 
@@ -668,6 +302,13 @@
                     <div class="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                         <h4 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Profile Toggles</h4>
                         <div class="flex items-center justify-between mb-6">
+                            <label for="autoplay-toggle" class="text-gray-700 dark:text-gray-300 text-lg font-semibold">Autoplay</label>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="autoplay-toggle" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between mb-6">
                             <label for="speed-delete-toggle" class="text-gray-700 dark:text-gray-300 text-lg font-semibold">Speed Deleting</label>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="speed-delete-toggle" class="sr-only peer">
@@ -784,7 +425,7 @@
                     <ul>
                         <li>**Shake:** (Experimental) Uses your phone's accelerometer. You can adjust the sensitivity in the Shortcuts tab.</li>
                         <li>**Long Press Backspace:** Replaces the old hard-coded behavior.</li>
-                        <li>...and many more to come (swipes, tilts, etc.).</li>
+                        <li>...and many more (swipes, tilts, etc.).</li>
                     </ul>
                     
                     <h4>Available Actions</h4>
@@ -899,6 +540,162 @@
         <span id="toast-message"></span>
     </div>
 
+    <script src="app.js"></script>
+
+</body>
+</html>
+flow-hidden">
+            <div class="p-6 pb-0">
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white pb-3">Application Instructions & Help 📚</h3>
+            </div>
+            <div class="px-6 border-b border-gray-200 dark:border-gray-700">
+                <nav id="help-tab-nav" class="flex space-x-2">
+                    <button data-tab="general" class="tab-button active-tab">General</button>
+                    <button data-tab="modes" class="tab-button">Modes</button>
+                    <button data-tab="prompts" class="tab-button">Prompts</button>
+                    <button data-tab="shortcuts" class="tab-button">Shortcuts</button>
+                </nav>
+            </div>
+            <div class="p-6 pt-4 overflow-y-auto flex-grow content-container" id="help-content-container">
+                <div id="help-tab-general" class="help-tab-content"></div>
+                <div id="help-tab-modes" class="help-tab-content hidden"></div>
+                
+                <div id="help-tab-prompts" class="help-tab-content hidden">
+                    <div id="virtual-assistant-prompts" class="hidden">
+                        <h4 class="text-primary-app">Virtual Assistant Prompts</h4>
+                        <p>Use these prompts with a voice assistant. They are generated based on your active configuration. **Closing this window while on this tab will automatically copy the active prompt.**</p>
+                        
+                        <div id="prompt-simon-group">
+                            <label for="prompt-simon" class="font-bold text-gray-900 dark:text-white">Simon Says Prompt</label>
+                            <textarea id="prompt-simon" class="prompt-box" readonly></textarea>
+                            <button class="copy-button" data-copy-target="prompt-simon">📋 <span class="ml-2">Copy</span></button>
+                        </div>
+                        
+                        <div id="prompt-unique-rounds-group">
+                            <label for="prompt-unique-rounds" class="font-bold text-gray-900 dark:text-white">Unique Rounds Mode Prompt</label>
+                            <textarea id="prompt-unique-rounds" class="prompt-box" readonly></textarea>
+                            <button class="copy-button" data-copy-target="prompt-unique-rounds">📋 <span class="ml-2">Copy</span></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="help-tab-shortcuts" class="help-tab-content hidden">
+                    <h4 class="text-primary-app">Shortcut Command Center</h4>
+                    <p>The "Shortcuts" tab in the main **Settings (⚙️)** menu allows you to map **Triggers** (like "Shake") to **Actions** (like "Reset Rounds").</p>
+                    <p>These shortcuts are saved **per-profile**, so you can have different shortcuts for different setups.</p>
+                    
+                    <h4>Available Triggers</h4>
+                    <ul>
+                        <li>**Shake:** (Experimental) Uses your phone's accelerometer. You can adjust the sensitivity in the Shortcuts tab.</li>
+                        <li>**Long Press Backspace:** Replaces the old hard-coded behavior.</li>
+                    </ul>
+                    
+                    <h4>Available Actions</h4>
+                    <ul>
+                        <li>Play Demo</li>
+                        <li>Reset Rounds</li>
+                        <li>Clear All</li>
+                        <li>Toggle Autoplay</li>
+                        <li>Toggle Audio</li>
+                    </ul>
+                </div>
+
+            </div>
+            <div class="p-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex justify-end">
+                    <button id="close-help" class="px-6 py-2 text-white bg-primary-app rounded-lg hover:bg-secondary-app transition-colors font-semibold">Got it!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app" class="max-w-7xl w-full mx-auto flex flex-col flex-grow">
+        
+        <main id="sequence-container" class="flex-grow mb-6 transition-all duration-300 pt-1">
+            </main>
+
+        <footer id="input-footer" class="sticky bottom-0 left-0 right-0 p-4 rounded-xl shadow-2xl border-t-4 border-primary-app">
+                               
+            <div id="pad-key9" class="max-w-xs mx-auto">
+                <div class="grid grid-cols-3 gap-3 mb-3">
+                    <button data-value="1" data-input="key9" class="btn-input btn-pad-number">1</button>
+                    <button data-value="2" data-input="key9" class="btn-input btn-pad-number">2</button>
+                    <button data-value="3" data-input="key9" class="btn-input btn-pad-number">3</button>
+                    <button data-value="4" data-input="key9" class="btn-input btn-pad-number">4</button>
+                    <button data-value="5" data-input="key9" class="btn-input btn-pad-number">5</button>
+                    <button data-value="6" data-input="key9" class="btn-input btn-pad-number">6</button>
+                    <button data-value="7" data-input="key9" class="btn-input btn-pad-number">7</button>
+                    <button data-value="8" data-input="key9" class="btn-input btn-pad-number">8</button>
+                    <button data-value="9" data-input="key9" class="btn-input btn-pad-number">9</button>
+                </div>
+                <div class="grid grid-cols-5 gap-3">
+                    <button data-action="play-demo" data-input="key9" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">▶</button> 
+                    <button data-action="reset-unique-rounds" data-input="key9" class="reset-button btn-input btn-control !bg-btn-control-red hover:!bg-btn-control-red-active text-white font-bold rounded-xl text-xl" style="display: none;">
+                        RESET
+                    </button> 
+                    <input type="text" data-input="key9" class="voice-text-input btn-input !bg-primary-app !text-white !text-center !text-2xl !px-0 hidden" placeholder="🎤" title="Keyboard Voice Input">
+                    <button data-action="backspace" data-input="key9" class="btn-input btn-control text-2xl">&larr;</button>
+                    <button data-action="open-settings" data-input="key9" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">⚙️</button>
+                </div>
+            </div>
+
+            <div id="pad-key12" class="max-w-md mx-auto" style="display: none;">
+                <div class="grid grid-cols-4 gap-3 mb-3">
+                    <button data-value="1" data-input="key12" class="btn-input btn-pad-number">1</button>
+                    <button data-value="2" data-input="key12" class="btn-input btn-pad-number">2</button>
+                    <button data-value="3" data-input="key12" class="btn-input btn-pad-number">3</button>
+                    <button data-value="4" data-input="key12" class="btn-input btn-pad-number">4</button>
+                    <button data-value="5" data-input="key12" class="btn-input btn-pad-number">5</button>
+                    <button data-value="6" data-input="key12" class="btn-input btn-pad-number">6</button>
+                    <button data-value="7" data-input="key12" class="btn-input btn-pad-number">7</button>
+                    <button data-value="8" data-input="key12" class="btn-input btn-pad-number">8</button>
+                    <button data-value="9" data-input="key12" class="btn-input btn-pad-number">9</button>
+                    <button data-value="10" data-input="key12" class="btn-input btn-pad-number">10</button>
+                    <button data-value="11" data-input="key12" class="btn-input btn-pad-number">11</button>
+                    <button data-value="12" data-input="key12" class="btn-input btn-pad-number">12</button>
+                </div>
+                <div class="grid grid-cols-5 gap-3">
+                    <button data-action="play-demo" data-input="key12" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-white font-bold rounded-xl text-2xl">▶</button>
+                    <button data-action="reset-unique-rounds" data-input="key12" class="reset-button btn-input btn-control !bg-btn-control-red hover:!bg-btn-control-red-active text-white font-bold rounded-xl text-xl" style="display: none;">
+                        RESET
+                    </button> 
+                    <input type="text" data-input="key12" class="voice-text-input btn-input !bg-primary-app !text-white !text-center !text-2xl !px-0 hidden" placeholder="🎤" title="Keyboard Voice Input">
+                    <button data-action="backspace" data-input="key12" class="btn-input btn-control text-2xl">&larr;</button>
+                    <button data-action="open-settings" data-input="key12" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">⚙️</button>
+                </div>
+            </div>
+
+            <div id="pad-piano" class="max-w-xl mx-auto pt-0 pb-4" style="display: none;">
+                <div id="piano-keys" class="relative h-48 w-full bg-gray-200 rounded-md shadow-inner overflow-hidden mb-4">
+                    <div class="flex h-full w-full">
+                        <div class="key-container"><button data-value="C" data-input="piano" class="piano-key-white btn-input">C</button></div>
+                        <div class="key-container"><button data-value="D" data-input="piano" class="piano-key-white btn-input">D</button></div>
+                        <div class="key-container"><button data-value="E" data-input="piano" class="piano-key-white btn-input">E</button></div>
+                        <div class="key-container"><button data-value="F" data-input="piano" class="piano-key-white btn-input">F</button></div>
+                        <div class="key-container"><button data-value="G" data-input="piano" class="piano-key-white btn-input">G</button></div>
+                        <div class="key-container"><button data-value="A" data-input="piano" class="piano-key-white btn-input">A</button></div>
+                        <div class="key-container"><button data-value="B" data-input="piano" class="piano-key-white btn-input">B</button></div>
+                    </div>
+                    <button data-value="1" data-input="piano" class="piano-key-black btn-input black-1">1</button>
+                    <button data-value="2" data-input="piano" class="piano-key-black btn-input black-2">2</button>
+                    <button data-value="3" data-input="piano" class="piano-key-black btn-input black-3">3</button>
+                    <button data-value="4" data-input="piano" class="piano-key-black btn-input black-4">4</button>
+                    <button data-value="5" data-input="piano" class="piano-key-black btn-input black-5">5</button>
+                </div>
+                <div class="grid grid-cols-5 gap-3 max-w-sm mx-auto">
+                    <button data-action="play-demo" data-input="piano" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">▶</button>
+                    <button data-action="reset-unique-rounds" data-input="piano" class="reset-button btn-input btn-control !bg-btn-control-red hover:!bg-btn-control-red-active text-white font-bold rounded-xl text-xl" style="display: none;">
+                        RESET
+                    </button> 
+                    <input type="text" data-input="piano" class="voice-text-input btn-input !bg-primary-app !text-white !text-center !text-2xl !px-0 hidden" placeholder="🎤" title="Keyboard Voice Input">
+                    <button data-action="backspace" data-input="piano" class="btn-input btn-control text-2xl">&larr;</button>
+                    <button data-action="open-settings" data-input="piano" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">⚙️</button>
+                </div>
+            </div>
+            
+        </footer>
+    </div>
+
     <script>
     (function() {
         'use strict';
@@ -908,43 +705,37 @@
         const DEMO_DELAY_BASE_MS = 798;
         const SPEED_DELETE_INITIAL_DELAY = 250;
         const SPEED_DELETE_INTERVAL_MS = 10;    
-        const SHAKE_BASE_THRESHOLD = 25; 
-        const SHAKE_TIMEOUT_MS = 500; 
+        const SHAKE_BASE_THRESHOLD = 25; // Base force needed to trigger shake
+        const SHAKE_TIMEOUT_MS = 500; // Cooldown for shake event
 
-        const SETTINGS_KEY = 'followMeAppSettings_v7'; // Incremented version
-        const STATE_KEY = 'followMeAppState_v7';
+        const SETTINGS_KEY = 'followMeAppSettings_v6';
+        const STATE_KEY = 'followMeAppState_v6';
 
-        const INPUTS = { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' };
-        const MODES = { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' };
+        // Input and Mode Definitions
+        const INPUTS = {
+            KEY9: 'key9',
+            KEY12: 'key12',
+            PIANO: 'piano'
+        };
+        const MODES = {
+            SIMON: 'simon',
+            UNIQUE_ROUNDS: 'unique_rounds'
+        };
 
-        // --- EXPANDED: Shortcut Definitions ---
+        // --- NEW: Shortcut Definitions ---
         const SHORTCUT_TRIGGERS = {
             'none': 'Select Trigger...',
-            'shake': 'Shake Device (Experimental)',
-            'longpress_backspace': 'Long Press Backspace',
-            'longpress_play': 'Long Press Play',
-            'longpress_settings': 'Long Press Settings',
-            'tilt_left': 'Tilt Left (Experimental)',
-            'tilt_right': 'Tilt Right (Experimental)',
-            'swipe_up': 'Swipe Up (Screen)',
-            'swipe_down': 'Swipe Down (Screen)',
-            'swipe_left': 'Swipe Left (Screen)',
-            'swipe_right': 'Swipe Right (Screen)'
+            'shake': 'Shake Device',
+            'longpress_backspace': 'Long Press Backspace'
+            // 'doubletap_play': 'Double Tap Play' // Example for later
         };
         const SHORTCUT_ACTIONS = {
             'none': 'Select Action...',
             'play_demo': 'Play Demo',
-            'reset_rounds': 'Reset Rounds (Confirm)',
-            'clear_all': 'Clear All (Confirm)',
-            'clear_last': 'Clear Last (Backspace)',
+            'reset_rounds': 'Reset Rounds',
+            'clear_all': 'Clear All',
             'toggle_autoplay': 'Toggle Autoplay',
-            'toggle_audio': 'Toggle Audio',
-            'toggle_haptics': 'Toggle Haptics',
-            'toggle_dark_mode': 'Toggle Dark Mode',
-            'open_settings': 'Open/Close Settings',
-            'open_help': 'Open/Close Help',
-            'next_profile': 'Switch to Next Profile',
-            'prev_profile': 'Switch to Previous Profile'
+            'toggle_audio': 'Toggle Audio'
         };
 
         const PIANO_SPEAK_MAP = {
@@ -959,6 +750,7 @@
             'c': 'C', 'd': 'D', 'f': 'F', 'g': 'G', 'a': 'A', 'b': 'B'
         };
 
+        // --- Profile-based Settings ---
         const DEFAULT_PROFILE_SETTINGS = {
             currentInput: INPUTS.KEY9,
             currentMode: MODES.SIMON,
@@ -973,10 +765,11 @@
             isSpeedDeletingEnabled: true, 
             uiScaleMultiplier: 1.0, 
             machineCount: 1,
-            shortcuts: [], 
-            shakeSensitivity: 10 
+            shortcuts: [], // NEW: Shortcut array
+            shakeSensitivity: 10 // NEW: Sensitivity slider
         };
         
+        // Global app settings
         const DEFAULT_APP_SETTINGS = {
             globalUiScale: 100,
             isDarkMode: true,
@@ -1012,30 +805,29 @@
         // --- 2. STATE ---
         let appSettings = { ...DEFAULT_APP_SETTINGS };
         let appState = {}; 
+
         let initialDelayTimer = null; 
         let speedDeleteInterval = null; 
         let isHoldingBackspace = false;
-        let lastShakeTime = 0; 
-        let toastTimer = null; // NEW: Toast timer
+        let lastShakeTime = 0; // Cooldown for shake event
 
         // Global DOM Element Variables
         var sequenceContainer = null;
         var customModal = null, modalTitle = null, modalMessage = null, modalConfirm = null, modalCancel = null;
         var shareModal = null, closeShare = null, copyLinkButton = null, nativeShareButton = null;
-        var toastNotification = null, toastMessage = null; // NEW: Toast
         
-        // --- MODAL: Game Setup
+        // --- MODAL: Game Setup (v5)
         var gameSetupModal = null, closeGameSetupModalBtn = null, dontShowWelcomeToggle = null;
         var configSelect = null, configAddBtn = null, configRenameBtn = null, configDeleteBtn = null;
         var quickAutoplayToggle = null, quickAudioToggle = null;
         var quickOpenHelpBtn = null, quickOpenSettingsBtn = null;
         var globalResizeUpBtn = null, globalResizeDownBtn = null;
         
-        // --- MODAL: Settings
+        // --- MODAL: Settings (v6)
         var settingsModal = null, settingsTabNav = null, openHelpButton = null, openShareButton = null, closeSettings = null, openGameSetupFromSettings = null;
         var activeProfileNameSpan = null;
         
-        // --- MODAL: Help
+        // --- MODAL: Help (v5)
         var helpModal = null, helpContentContainer = null, helpTabNav = null, closeHelp = null;
         
         // --- CONTROLS: Settings Tab "Profile"
@@ -1046,7 +838,9 @@
         var delaySlider = null, delayDisplay = null;
         var settingMultiSequenceGroup = null;
         var autoclearToggle = null, settingAutoclear = null;
-        
+        var autoplayToggle = null, speedDeleteToggle = null;
+        var audioToggle = null, voiceInputToggle = null, hapticsToggle = null;
+
         // --- CONTROLS: Settings Tab "Global"
         var playbackSpeedSlider = null, playbackSpeedDisplay = null;
         var showWelcomeToggle = null, darkModeToggle = null;
@@ -1055,10 +849,6 @@
         // --- CONTROLS: Settings Tab "Shortcuts"
         var shortcutListContainer = null, addShortcutBtn = null;
         var shakeSensitivitySlider = null, shakeSensitivityDisplay = null;
-
-        // --- CONTROLS: Settings Tab "Stealth"
-        var autoplayToggle = null, speedDeleteToggle = null;
-        var audioToggle = null, voiceInputToggle = null, hapticsToggle = null;
 
         // Pads
         var padKey9 = null, padKey12 = null, padPiano = null;
@@ -1105,6 +895,7 @@
                             ...(appSettings.profiles[profileId].settings || {})
                         };
                         
+                        // --- MIGRATION ---
                         if (appSettings.profiles[profileId].settings.isAudioPlaybackEnabled !== undefined) {
                             appSettings.profiles[profileId].settings.isAudioEnabled = appSettings.profiles[profileId].settings.isAudioPlaybackEnabled;
                             delete appSettings.profiles[profileId].settings.isAudioPlaybackEnabled;
@@ -1112,13 +903,7 @@
                     });
                     
                 } else {
-                    appSettings.profiles = {};
-                    Object.keys(PREMADE_PROFILES).forEach(id => { // Deep copy premade
-                        appSettings.profiles[id] = { 
-                            name: PREMADE_PROFILES[id].name, 
-                            settings: { ...PREMADE_PROFILES[id].settings, shortcuts: [] }
-                        };
-                    });
+                    appSettings.profiles = { ...PREMADE_PROFILES };
                 }
 
                 if (storedState) {
@@ -1141,13 +926,7 @@
                 localStorage.removeItem(STATE_KEY);
                 
                 appSettings = { ...DEFAULT_APP_SETTINGS };
-                appSettings.profiles = {};
-                Object.keys(PREMADE_PROFILES).forEach(id => {
-                    appSettings.profiles[id] = { 
-                        name: PREMADE_PROFILES[id].name, 
-                        settings: { ...PREMADE_PROFILES[id].settings, shortcuts: [] }
-                    };
-                });
+                appSettings.profiles = { ...PREMADE_PROFILES };
                 
                 appState = {};
                 Object.keys(appSettings.profiles).forEach(profileId => {
@@ -1276,7 +1055,7 @@
             const newId = `profile_${Date.now()}`;
             appSettings.profiles[newId] = {
                 name: newName,
-                settings: { ...DEFAULT_PROFILE_SETTINGS, shortcuts: [] } 
+                settings: { ...DEFAULT_PROFILE_SETTINGS, shortcuts: [] } // Start with defaults
             };
             appState[newId] = getInitialState();
             
@@ -1325,7 +1104,7 @@
             );
         }
 
-        // --- Game Setup Modal ---
+        // --- Game Setup Modal (v5) ---
         function openGameSetupModal() {
             if (!gameSetupModal) return;
             populateConfigDropdown();
@@ -1388,7 +1167,8 @@
             });
         }
 
-        // --- App Preferences Modal ---
+
+        // --- App Preferences Modal (v6) ---
         function openSettingsModal() {
             const profileSettings = getCurrentProfileSettings();
             if (activeProfileNameSpan) activeProfileNameSpan.textContent = appSettings.profiles[appSettings.activeProfileId].name;
@@ -1405,13 +1185,18 @@
             delaySlider.value = profileSettings.simonInterSequenceDelay;
             updateDelayDisplay(profileSettings.simonInterSequenceDelay, delayDisplay);
             autoclearToggle.checked = profileSettings.isUniqueRoundsAutoClearEnabled;
+            speedDeleteToggle.checked = profileSettings.isSpeedDeletingEnabled; 
+            autoplayToggle.checked = profileSettings.isAutoplayEnabled;
+            audioToggle.checked = profileSettings.isAudioEnabled; 
+            voiceInputToggle.checked = profileSettings.isVoiceInputEnabled;
+            hapticsToggle.checked = profileSettings.isHapticsEnabled;
             
             // --- Tab 2: Global ---
             playbackSpeedSlider.value = appSettings.playbackSpeed * 100;
             updatePlaybackSpeedDisplay(appSettings.playbackSpeed * 100, playbackSpeedDisplay);
             showWelcomeToggle.checked = appSettings.showWelcomeScreen;
             darkModeToggle.checked = appSettings.isDarkMode;
-            uiScaleSlider.value = profileSettings.uiScaleMultiplier * 100; 
+            uiScaleSlider.value = profileSettings.uiScaleMultiplier * 100; // This is per-profile, but grouped with global UI
             updateScaleDisplay(profileSettings.uiScaleMultiplier, uiScaleDisplay);
             
             // --- Tab 3: Shortcuts ---
@@ -1420,23 +1205,24 @@
             renderShortcutList();
 
             // --- Tab 4: Stealth ---
-            speedDeleteToggle.checked = profileSettings.isSpeedDeletingEnabled; 
-            autoplayToggle.checked = profileSettings.isAutoplayEnabled;
-            audioToggle.checked = profileSettings.isAudioEnabled; 
-            voiceInputToggle.checked = profileSettings.isVoiceInputEnabled;
-            hapticsToggle.checked = profileSettings.isHapticsEnabled;
+            // (No data to load yet)
             
             updateSettingsModalVisibility();
-            switchSettingsTab('profile');
+            switchSettingsTab('profile'); // Default to profile tab
             
             settingsModal.classList.remove('opacity-0', 'pointer-events-none');
             settingsModal.querySelector('div').classList.remove('scale-90');
         }
         
         function saveSettingsModal() {
+            // All controls save directly via their event listeners.
+            // We just need to save the state.
             saveState();
+            
+            // Update quick toggles to match
             if (quickAutoplayToggle) quickAutoplayToggle.checked = getCurrentProfileSettings().isAutoplayEnabled;
             if (quickAudioToggle) quickAudioToggle.checked = getCurrentProfileSettings().isAudioEnabled;
+            
             updateAllChrome();
         }
 
@@ -1524,11 +1310,13 @@
 
         function generateGeneralHelp() {
             const container = document.getElementById('help-tab-general');
-            if (container) container.innerHTML = `
+            if (!container) return;
+            container.innerHTML = `
                 <h4 class="text-primary-app">App Overview</h4>
                 <p>This is a multi-mode sequence tracker with customizable profiles.</p>
                 <p>Use the **Quick Start** modal (on launch) to select your saved **Configuration Profile**. You can add, rename, or delete profiles from there.</p>
                 <p>All detailed settings are in the **Settings (⚙️)** menu, organized into tabs: "Profile", "Global", "Shortcuts", and "Stealth".</p>
+                
                 <h4 class="text-primary-app">Basic Controls</h4>
                 <ul>
                     <li><span class="font-bold">Keypad:</span> Tap the numbers or keys to add to the sequence.</li>
@@ -1536,11 +1324,13 @@
                     <li><span class="font-bold">Backspace (←):</span> Removes the last value.</li>
                     <li><span class="font-bold">Settings (⚙️):</span> Opens app preferences.</li>
                     <li><span class="font-bold">RESET:</span> (Unique Rounds Mode Only) Resets the game to Round 1.</li>
-                </ul>`;
+                </ul>
+            `;
         }
         function generateModesHelp() {
             const container = document.getElementById('help-tab-modes');
-            if (container) container.innerHTML = `
+            if (!container) return;
+            container.innerHTML = `
                 <h4 class="text-primary-app">Inputs (The Keypads)</h4>
                 <p>Set in Settings ➔ Profile Tab</p>
                 <ul>
@@ -1548,12 +1338,14 @@
                     <li><span class="font-bold">12-Key:</span> A 4x3 grid (1-12).</li>
                     <li><span class="font-bold">Piano:</span> A 7-key piano with 5 sharps.</li>
                 </ul>
+                
                 <h4 class="text-primary-app">Modes (The Logic)</h4>
                 <p>Set in Settings ➔ Profile Tab</p>
                 <ul>
                     <li><span class="font-bold">Simon Says (Default):</span> Standard mode. Enter values up to the Sequence Length. Supports 1-4 machines.</li>
                     <li><span class="font-bold">Unique Rounds:</span> A round-based game. The sequence length increases by one each round, up to the Sequence Length (15, 20, or 25). This mode is always single-machine.</li>
-                </ul>`;
+                </ul>
+            `;
         }
         function generatePromptsHelp() {
             const container = document.getElementById('help-tab-prompts');
@@ -1684,19 +1476,6 @@ Let's start with Round 1.`;
                 allVoiceInputs.forEach(input => input.classList.toggle('hidden', !isEnabled));
             }
         }
-        
-        // --- NEW: Toast Notification ---
-        function showToast(message) {
-            if (toastTimer) clearTimeout(toastTimer);
-            if (!toastMessage || !toastNotification) return;
-            toastMessage.textContent = message;
-            toastNotification.classList.remove('opacity-0', '-translate-y-10');
-            
-            toastTimer = setTimeout(() => {
-                toastNotification.classList.add('opacity-0', '-translate-y-10');
-                toastTimer = null;
-            }, 2000);
-        }
 
         // --- Generic Modal/Message Box ---
         function showModal(title, message, onConfirm, confirmText = 'OK', cancelText = 'Cancel') {
@@ -1715,7 +1494,7 @@ Let's start with Round 1.`;
             modalCancel.addEventListener('click', closeModal); 
             modalCancel.style.display = cancelText ? 'inline-block' : 'none';
             modalConfirm.className = 'px-4 py-2 text-white rounded-lg transition-colors font-semibold bg-primary-app hover:bg-secondary-app';
-            if (confirmText === 'Restore' || confirmText === 'Reset' || confirmText === 'Delete' || confirmText === 'Clear All') {
+            if (confirmText === 'Restore' || confirmText === 'Reset' || confirmText === 'Delete') {
                  modalConfirm.className = 'px-4 py-2 text-white rounded-lg transition-colors font-semibold bg-btn-control-red hover:bg-btn-control-red-active';
             }
             customModal.classList.remove('opacity-0', 'pointer-events-none');
@@ -1832,11 +1611,14 @@ Let's start with Round 1.`;
             initialDelayTimer = setTimeout(() => {
                 isHoldingBackspace = true;
                 
+                // Check if a shortcut is mapped
                 if (executeShortcut('longpress_backspace')) {
+                    // Shortcut was found and executed
                     stopSpeedDeleting();
                     return;
                 }
                 
+                // Fallback to default behavior if no shortcut
                 if (profileSettings.isSpeedDeletingEnabled && profileSettings.currentMode !== MODES.UNIQUE_ROUNDS) {
                     handleBackspace();
                     speedDeleteInterval = setInterval(handleBackspace, SPEED_DELETE_INTERVAL_MS);
@@ -1850,6 +1632,7 @@ Let's start with Round 1.`;
             const profileSettings = getCurrentProfileSettings();
             
             if (initialDelayTimer !== null) {
+                // Short tap
                 stopSpeedDeleting();
                 handleBackspace(); 
                 return;
@@ -1857,7 +1640,7 @@ Let's start with Round 1.`;
             
             stopSpeedDeleting();
 
-            if (wasHolding && profileSettings.currentMode === MODES.UNIQUE_ROUNDS && !executeShortcut('longpress_backspace')) {
+            if (wasHolding && profileSettings.currentMode === MODES.UNIQUE_ROUNDS) {
                 showModal('Reset Rounds?', 'Are you sure you want to reset to Round 1?', resetUniqueRoundsMode, 'Reset', 'Cancel');
             }
         }
@@ -1901,17 +1684,19 @@ Let's start with Round 1.`;
 
         function handleRestoreDefaults() {
             appSettings = { ...DEFAULT_APP_SETTINGS };
-            appSettings.profiles = {}; 
-            Object.keys(PREMADE_PROFILES).forEach(id => {
+            appSettings.profiles = {}; // Clear profiles
+            Object.keys(PREMADE_PROFILES).forEach(id => { // Deep copy premade
                 appSettings.profiles[id] = { 
                     name: PREMADE_PROFILES[id].name, 
                     settings: { ...PREMADE_PROFILES[id].settings, shortcuts: [] }
                 };
             });
+            
             appState = {};
             Object.keys(appSettings.profiles).forEach(profileId => {
                 appState[profileId] = getInitialState();
             });
+            
             saveState();
             applyGlobalUiScale(appSettings.globalUiScale);
             updateTheme(appSettings.isDarkMode);
@@ -2130,7 +1915,7 @@ Let's start with Round 1.`;
         function renderShortcutList() {
             if (!shortcutListContainer) return;
             const profileSettings = getCurrentProfileSettings();
-            shortcutListContainer.innerHTML = ''; 
+            shortcutListContainer.innerHTML = ''; // Clear list
             
             profileSettings.shortcuts.forEach(shortcut => {
                 const row = document.createElement('div');
@@ -2138,14 +1923,14 @@ Let's start with Round 1.`;
                 row.dataset.id = shortcut.id;
                 
                 const triggerSelect = document.createElement('select');
-                triggerSelect.className = 'select-input shortcut-trigger'; // CSS fix will style this
+                triggerSelect.className = 'select-input shortcut-trigger';
                 for (const key in SHORTCUT_TRIGGERS) {
                     triggerSelect.options.add(new Option(SHORTCUT_TRIGGERS[key], key));
                 }
                 triggerSelect.value = shortcut.trigger;
                 
                 const actionSelect = document.createElement('select');
-                actionSelect.className = 'select-input shortcut-action'; // CSS fix will style this
+                actionSelect.className = 'select-input shortcut-action';
                 for (const key in SHORTCUT_ACTIONS) {
                     actionSelect.options.add(new Option(SHORTCUT_ACTIONS[key], key));
                 }
@@ -2171,7 +1956,7 @@ Let's start with Round 1.`;
                 action: 'none'
             };
             profileSettings.shortcuts.push(newShortcut);
-            renderShortcutList();
+            renderShortcutList(); // Re-render
         }
         
         function handleShortcutListClick(event) {
@@ -2198,35 +1983,22 @@ Let's start with Round 1.`;
             }
         }
         
-        function cycleProfile(direction) {
-            const profileIds = Object.keys(appSettings.profiles);
-            let currentIndex = profileIds.indexOf(appSettings.activeProfileId);
-            currentIndex += direction;
-            if (currentIndex < 0) {
-                currentIndex = profileIds.length - 1;
-            } else if (currentIndex >= profileIds.length) {
-                currentIndex = 0;
-            }
-            const newProfileId = profileIds[currentIndex];
-            switchActiveProfile(newProfileId);
-            showToast(`Profile: ${appSettings.profiles[newProfileId].name}`);
-        }
-        
         /**
          * Finds and executes a shortcut for a given trigger.
+         * @param {string} triggerKey - The key of the trigger (e.g., 'shake', 'longpress_backspace')
+         * @returns {boolean} - True if a shortcut was found and executed, false otherwise.
          */
         function executeShortcut(triggerKey) {
             const profileSettings = getCurrentProfileSettings();
-            if (!profileSettings || !profileSettings.shortcuts) return false;
-            
             const shortcut = profileSettings.shortcuts.find(sc => sc.trigger === triggerKey);
             
             if (!shortcut || shortcut.action === 'none') {
                 return false; // No shortcut found
             }
 
-            vibrate(50); 
+            vibrate(50); // Haptic feedback for shortcut
             
+            // Execute the action
             switch (shortcut.action) {
                 case 'play_demo':
                     handleCurrentDemo();
@@ -2245,74 +2017,60 @@ Let's start with Round 1.`;
                          renderSequences();
                      }, 'Clear All', 'Cancel');
                     break;
-                case 'clear_last':
-                    handleBackspace();
-                    break;
                 case 'toggle_autoplay':
                     profileSettings.isAutoplayEnabled = !profileSettings.isAutoplayEnabled;
                     if (autoplayToggle) autoplayToggle.checked = profileSettings.isAutoplayEnabled;
                     if (quickAutoplayToggle) quickAutoplayToggle.checked = profileSettings.isAutoplayEnabled;
-                    showToast(`Autoplay: ${profileSettings.isAutoplayEnabled ? 'On' : 'Off'}`);
                     break;
                 case 'toggle_audio':
                     profileSettings.isAudioEnabled = !profileSettings.isAudioEnabled;
                     if (audioToggle) audioToggle.checked = profileSettings.isAudioEnabled;
                     if (quickAudioToggle) quickAudioToggle.checked = profileSettings.isAudioEnabled;
-                    showToast(`Audio: ${profileSettings.isAudioEnabled ? 'On' : 'Off'}`);
-                    break;
-                case 'toggle_haptics':
-                    profileSettings.isHapticsEnabled = !profileSettings.isHapticsEnabled;
-                    if (hapticsToggle) hapticsToggle.checked = profileSettings.isHapticsEnabled;
-                    showToast(`Haptics: ${profileSettings.isHapticsEnabled ? 'On' : 'Off'}`);
-                    break;
-                case 'toggle_dark_mode':
-                    updateTheme(!appSettings.isDarkMode);
-                    if (darkModeToggle) darkModeToggle.checked = appSettings.isDarkMode;
-                    showToast(`Dark Mode: ${appSettings.isDarkMode ? 'On' : 'Off'}`);
-                    break;
-                case 'open_settings':
-                    if (settingsModal.classList.contains('opacity-0')) { openSettingsModal(); } else { closeSettingsModal(); }
-                    break;
-                case 'open_help':
-                    if (helpModal.classList.contains('opacity-0')) { openHelpModal(); } else { closeHelpModal(); }
-                    break;
-                case 'next_profile':
-                    cycleProfile(1);
-                    break;
-                case 'prev_profile':
-                    cycleProfile(-1);
                     break;
                 default:
                     console.warn(`Unknown shortcut action: ${shortcut.action}`);
                     return false;
             }
             
-            return true;
+            return true; // Shortcut executed
         }
 
         // --- 7. SENSOR LISTENERS (Shake) ---
         
         function handleShake(event) {
             const now = Date.now();
-            if (now - lastShakeTime < SHAKE_TIMEOUT_MS) return; 
+            if (now - lastShakeTime < SHAKE_TIMEOUT_MS) return; // Cooldown
             
             const profileSettings = getCurrentProfileSettings();
             const sensitivity = profileSettings.shakeSensitivity;
+            // Calculate threshold: Higher sensitivity = lower threshold
             const threshold = SHAKE_BASE_THRESHOLD - (sensitivity * 1.2); 
+            
             const accel = event.accelerationIncludingGravity;
             
             if (accel && (Math.abs(accel.x) > threshold || Math.abs(accel.y) > threshold)) {
                 lastShakeTime = now;
-                executeShortcut('shake');
+                
+                // Check if a shortcut is mapped to 'shake'
+                if (executeShortcut('shake')) {
+                    // Shortcut was executed
+                }
             }
         }
         
-        function initSensorListeners() {
-            // --- Shake Listener ---
+        function initShakeListener() {
             if ('DeviceMotionEvent' in window) {
+                // Check for permission (required on iOS 13+)
                 if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                    // This is the iOS 13+ way. We ask for it on first (meaningful) user touch.
-                    // We'll ask when the "Get Started" button is clicked.
+                    // This should be triggered by a user action, e.g., a button
+                    // For now, we'll just try to add it.
+                    DeviceMotionEvent.requestPermission()
+                        .then(permissionState => {
+                            if (permissionState === 'granted') {
+                                window.addEventListener('devicemotion', handleShake);
+                            }
+                        })
+                        .catch(console.error);
                 } else {
                     // No permission needed
                     window.addEventListener('devicemotion', handleShake);
@@ -2320,44 +2078,28 @@ Let's start with Round 1.`;
             } else {
                 console.warn('Device Motion not supported.');
             }
-            
-            // --- Tilt Listener (TODO) ---
-            if ('DeviceOrientationEvent' in window) {
-                // Similar permission logic as above
-                // window.addEventListener('deviceorientation', handleTilt);
-            }
-        }
-        
-        function requestSensorPermissions() {
-             if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                DeviceMotionEvent.requestPermission()
-                    .then(permissionState => {
-                        if (permissionState === 'granted') {
-                            window.addEventListener('devicemotion', handleShake);
-                        }
-                    })
-                    .catch(console.error);
-            }
-            // Add DeviceOrientationEvent permission request here too
         }
 
 
         // --- 8. MAIN ---
 
         function assignDomElements() {
+            // Main UI
             sequenceContainer = document.getElementById('sequence-container');
+            
+            // Modals
             customModal = document.getElementById('custom-modal');
             modalTitle = document.getElementById('modal-title');
             modalMessage = document.getElementById('modal-message');
             modalConfirm = document.getElementById('modal-confirm');
             modalCancel = document.getElementById('modal-cancel');
+            
             shareModal = document.getElementById('share-modal');
             closeShare = document.getElementById('close-share');
             copyLinkButton = document.getElementById('copy-link-button'); 
             nativeShareButton = document.getElementById('native-share-button'); 
-            toastNotification = document.getElementById('toast-notification');
-            toastMessage = document.getElementById('toast-message');
             
+            // --- MODAL: Game Setup (v5) ---
             gameSetupModal = document.getElementById('game-setup-modal');
             closeGameSetupModalBtn = document.getElementById('close-game-setup-modal');
             dontShowWelcomeToggle = document.getElementById('dont-show-welcome-toggle');
@@ -2372,6 +2114,7 @@ Let's start with Round 1.`;
             quickOpenHelpBtn = document.getElementById('quick-open-help');
             quickOpenSettingsBtn = document.getElementById('quick-open-settings');
 
+            // --- MODAL: Settings (v6) ---
             settingsModal = document.getElementById('settings-modal');
             settingsTabNav = document.getElementById('settings-tab-nav');
             openGameSetupFromSettings = document.getElementById('open-game-setup-from-settings');
@@ -2380,13 +2123,13 @@ Let's start with Round 1.`;
             closeSettings = document.getElementById('close-settings');
             activeProfileNameSpan = document.getElementById('active-profile-name');
             
+            // --- MODAL: Help (v5) ---
             helpModal = document.getElementById('help-modal');
             helpContentContainer = document.getElementById('help-content-container');
             helpTabNav = document.getElementById('help-tab-nav');
             closeHelp = document.getElementById('close-help');
 
-            // --- CONTROLS: Settings ---
-            // Tab 1: Profile
+            // --- CONTROLS: Settings Tab "Profile" ---
             inputSelect = document.getElementById('input-select');
             modeToggle = document.getElementById('mode-toggle');
             modeToggleLabel = document.getElementById('mode-toggle-label');
@@ -2402,8 +2145,13 @@ Let's start with Round 1.`;
             settingMultiSequenceGroup = document.getElementById('setting-multi-sequence-group');
             autoclearToggle = document.getElementById('autoclear-toggle');
             settingAutoclear = document.getElementById('setting-autoclear');
-            
-            // Tab 2: Global
+            autoplayToggle = document.getElementById('autoplay-toggle');
+            speedDeleteToggle = document.getElementById('speed-delete-toggle');
+            audioToggle = document.getElementById('audio-toggle');
+            voiceInputToggle = document.getElementById('voice-input-toggle');
+            hapticsToggle = document.getElementById('haptics-toggle');
+
+            // --- CONTROLS: Settings Tab "Global" ---
             playbackSpeedSlider = document.getElementById('playback-speed-slider');
             playbackSpeedDisplay = document.getElementById('playback-speed-display');
             showWelcomeToggle = document.getElementById('show-welcome-toggle');
@@ -2411,18 +2159,11 @@ Let's start with Round 1.`;
             uiScaleSlider = document.getElementById('ui-scale-slider');
             uiScaleDisplay = document.getElementById('ui-scale-display');
             
-            // Tab 3: Shortcuts
+            // --- CONTROLS: Settings Tab "Shortcuts" ---
             shortcutListContainer = document.getElementById('shortcut-list-container');
             addShortcutBtn = document.getElementById('add-shortcut-btn');
             shakeSensitivitySlider = document.getElementById('shake-sensitivity-slider');
             shakeSensitivityDisplay = document.getElementById('shake-sensitivity-display');
-            
-            // Tab 4: Stealth (Toggles moved here)
-            autoplayToggle = document.getElementById('autoplay-toggle');
-            speedDeleteToggle = document.getElementById('speed-delete-toggle');
-            audioToggle = document.getElementById('audio-toggle');
-            voiceInputToggle = document.getElementById('voice-input-toggle');
-            hapticsToggle = document.getElementById('haptics-toggle');
 
             // Pads
             padKey9 = document.getElementById('pad-key9');
@@ -2497,6 +2238,7 @@ Let's start with Round 1.`;
                 }
             });
             
+            // Voice (Text) Input Listeners
             allVoiceInputs.forEach(input => {
                 input.addEventListener('input', (event) => {
                     const transcript = event.target.value;
@@ -2509,6 +2251,7 @@ Let's start with Round 1.`;
                 });
             });
             
+            // Backspace Listeners
             document.querySelectorAll('button[data-action="backspace"]').forEach(btn => {
                 btn.addEventListener('mousedown', handleBackspaceStart);
                 btn.addEventListener('mouseup', handleBackspaceEnd);
@@ -2517,14 +2260,8 @@ Let's start with Round 1.`;
                 btn.addEventListener('touchend', handleBackspaceEnd);
             });
             
-            // --- Modal: Game Setup Listeners ---
-            if (closeGameSetupModalBtn) {
-                closeGameSetupModalBtn.addEventListener('click', () => {
-                    closeGameSetupModal();
-                    // This is a good time to ask for permissions
-                    requestSensorPermissions();
-                });
-            }
+            // --- Modal: Game Setup Listeners (v5) ---
+            if (closeGameSetupModalBtn) closeGameSetupModalBtn.addEventListener('click', closeGameSetupModal);
             if (dontShowWelcomeToggle) dontShowWelcomeToggle.addEventListener('change', (e) => {
                 appSettings.showWelcomeScreen = !e.target.checked;
                 if(showWelcomeToggle) showWelcomeToggle.checked = appSettings.showWelcomeScreen;
@@ -2551,7 +2288,7 @@ Let's start with Round 1.`;
                 saveState();
             });
 
-            // --- Modal: App Preferences Listeners ---
+            // --- Modal: App Preferences Listeners (v6) ---
             if (closeSettings) closeSettings.addEventListener('click', closeSettingsModal);
             if (settingsTabNav) settingsTabNav.addEventListener('click', handleSettingsTabClick);
             if (openGameSetupFromSettings) openGameSetupFromSettings.addEventListener('click', () => {
@@ -2559,6 +2296,7 @@ Let's start with Round 1.`;
                 openGameSetupModal();
             });
             
+            // Helper for adding profile setting listeners
             const addProfileSettingListener = (element, eventType, settingKey, valueType = 'value') => {
                 if (element) {
                     element.addEventListener(eventType, (e) => {
@@ -2575,7 +2313,7 @@ Let's start with Round 1.`;
                         if (element === chunkSlider) updateChunkDisplay(value, chunkDisplay);
                         if (element === delaySlider) updateDelayDisplay(value, delayDisplay);
                         if (element === modeToggle) profileSettings.currentMode = value ? MODES.UNIQUE_ROUNDS : MODES.SIMON;
-                        if (element === uiScaleSlider) {
+                        if (element === uiScaleSlider) { // This is in Global tab but saves to profile
                             value = value / 100.0;
                             profileSettings[settingKey] = value;
                             updateScaleDisplay(value, uiScaleDisplay);
@@ -2596,7 +2334,12 @@ Let's start with Round 1.`;
             addProfileSettingListener(chunkSlider, 'input', 'simonChunkSize');
             addProfileSettingListener(delaySlider, 'input', 'simonInterSequenceDelay');
             addProfileSettingListener(autoclearToggle, 'change', 'isUniqueRoundsAutoClearEnabled', 'checked');
-            
+            addProfileSettingListener(autoplayToggle, 'change', 'isAutoplayEnabled', 'checked');
+            addProfileSettingListener(speedDeleteToggle, 'change', 'isSpeedDeletingEnabled', 'checked');
+            addProfileSettingListener(audioToggle, 'change', 'isAudioEnabled', 'checked');
+            addProfileSettingListener(voiceInputToggle, 'change', 'isVoiceInputEnabled', 'checked');
+            addProfileSettingListener(hapticsToggle, 'change', 'isHapticsEnabled', 'checked');
+
             // Tab 2: Global Settings
             if (playbackSpeedSlider) playbackSpeedSlider.addEventListener('input', (e) => {
                 const val = parseInt(e.target.value);
@@ -2608,30 +2351,18 @@ Let's start with Round 1.`;
                 if(dontShowWelcomeToggle) dontShowWelcomeToggle.checked = !appSettings.showWelcomeScreen;
             });
             if (darkModeToggle) darkModeToggle.addEventListener('change', (e) => updateTheme(e.target.checked));
-            addProfileSettingListener(uiScaleSlider, 'input', 'uiScaleMultiplier'); 
+            addProfileSettingListener(uiScaleSlider, 'input', 'uiScaleMultiplier'); // Belongs here, saves to profile
             
             // Tab 3: Shortcuts
             if (addShortcutBtn) addShortcutBtn.addEventListener('click', handleAddShortcut);
             if (shortcutListContainer) shortcutListContainer.addEventListener('change', handleShortcutListClick);
-            if (shortcutListContainer) shortcutListContainer.addEventListener('click', handleShortcutListClick);
+            if (shortcutListContainer) shortcutListContainer.addEventListener('click', handleShortcutListClick); // For delete button
             addProfileSettingListener(shakeSensitivitySlider, 'input', 'shakeSensitivity');
-            
-            // Tab 4: Stealth
-            addProfileSettingListener(autoplayToggle, 'change', 'isAutoplayEnabled', 'checked');
-            addProfileSettingListener(speedDeleteToggle, 'change', 'isSpeedDeletingEnabled', 'checked');
-            addProfileSettingListener(audioToggle, 'change', 'isAudioEnabled', 'checked');
-            addProfileSettingListener(voiceInputToggle, 'change', 'isVoiceInputEnabled', 'checked');
-            addProfileSettingListener(hapticsToggle, 'change', 'isHapticsEnabled', 'checked');
+
 
             // --- Other Modals ---
             if (closeHelp) closeHelp.addEventListener('click', closeHelpModal);
             if (closeShare) closeShare.addEventListener('click', closeShareModal); 
-            
-            // --- Sensor Listeners ---
-            initSensorListeners(); // Non-permission listeners
-            if (!appSettings.showWelcomeScreen) {
-                 document.body.addEventListener('click', requestSensorPermissions, { once: true });
-            }
         }
 
         // --- Initialization ---
@@ -2644,6 +2375,10 @@ Let's start with Round 1.`;
             updateAllChrome();
             if (appSettings.showWelcomeScreen) {
                 setTimeout(openGameSetupModal, 500); 
+            } else {
+                // Attempt to init shake listener on first interaction
+                // This is needed for iOS permission
+                document.body.addEventListener('click', initShakeListener, { once: true });
             }
             if (getCurrentProfileSettings().isAudioEnabled) speak(" "); 
         };

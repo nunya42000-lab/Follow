@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Load Core Data ---
     App.loadGlobalSettings(); 
     App.loadProfiles(); 
-    App.loadSequences(); // [NEW] Load sequence data
+    App.loadSequences(); 
     App.loadShortcutMap(); 
     
     // --- Initialize Systems ---
@@ -43,12 +43,16 @@ document.addEventListener('DOMContentLoaded', () => {
     stealthOpacityInput.addEventListener('input', (e) => { 
         App.currentSettings.stealthMode.opacity = parseFloat(e.target.value);
         App.saveGlobalSettings();
+        // [NEW] Apply live opacity change
+        document.getElementById('app-container').style.opacity = App.currentSettings.stealthMode.opacity;
     });
 
     const stealthHideButtonsInput = document.getElementById('setting-stealth-hidebuttons');
     stealthHideButtonsInput.addEventListener('change', (e) => {
         App.currentSettings.stealthMode.hideButtons = e.target.checked;
         App.saveGlobalSettings();
+        // [NEW] Apply live keypad visibility change
+        UI.applyStealthSettings();
     });
 
     // --- Shortcut Tab Event Listener ---
@@ -69,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- [NEW] Main Tab Mode Button Listeners ---
+    // --- Main Tab Mode Button Listeners ---
     document.getElementById('mode-standard').addEventListener('click', () => {
         App.actionLibrary.changeMode('standard');
     });
@@ -89,12 +93,13 @@ const App = {
     currentSettings: {}, 
     settingsProfiles: [], 
     shortcutMap: {}, 
-    sequences: { // [NEW] Holds all sequence data
+    sequences: { 
         standard: [],
         stealth: [],
         rapid: []
     }, 
-    
+    rapidDeleteInterval: null, // [NEW] Timer for rapid delete
+
     actionLibrary: {
         // --- Profile Actions ---
         loadProfile: (profileIndex) => {
@@ -123,18 +128,18 @@ const App = {
         toggleAutoplay: () => {
             App.currentSettings.autoplayEnabled = !App.currentSettings.autoplayEnabled;
             App.saveGlobalSettings(); 
-            UI.updatePlayButtonState(); // [NEW] Update UI
+            UI.updatePlayButtonState(); 
             console.log(`Autoplay set to: ${App.currentSettings.autoplayEnabled}`);
         },
         changeMode: (modeName) => {
             App.currentSettings.currentMode = modeName;
             App.saveGlobalSettings(); 
-            UI.updateModeDisplay(); // [NEW] Update UI
-            UI.updateSequenceDisplay(); // [NEW] Show new sequence
+            UI.updateModeDisplay(); 
+            UI.updateSequenceDisplay(); 
             console.log(`Mode changed to: ${modeName}`);
         },
         
-        // --- [NEW] Number/Sequence Actions (Fully Implemented) ---
+        // --- Number/Sequence Actions ---
         addNumber: (number) => {
             const mode = App.currentSettings.currentMode;
             App.sequences[mode].push(number);
@@ -149,6 +154,23 @@ const App = {
                 UI.updateSequenceDisplay();
             }
         },
+        // [NEW] Rapid Delete functions
+        startRapidDelete: () => {
+            if (App.rapidDeleteInterval) return; // Already running
+            
+            // Delete one immediately on press
+            App.actionLibrary.deleteLastNumber(); 
+            
+            // Start the interval
+            App.rapidDeleteInterval = setInterval(() => {
+                App.actionLibrary.deleteLastNumber();
+            }, App.currentSettings.deleteSpeed); // Uses speed from profile
+        },
+        stopRapidDelete: () => {
+            clearInterval(App.rapidDeleteInterval);
+            App.rapidDeleteInterval = null;
+        },
+
         clearCurrentSequence: () => {
             const mode = App.currentSettings.currentMode;
             App.sequences[mode] = [];
@@ -190,12 +212,10 @@ const App = {
         localStorage.setItem('userProfiles', JSON.stringify(App.settingsProfiles));
     },
 
-    // --- [NEW] Sequence Data Management ---
     loadSequences: () => {
         const savedSequences = localStorage.getItem('sequenceData');
         if (savedSequences) {
             App.sequences = JSON.parse(savedSequences);
-            // Ensure all modes exist in case they were added later
             if (!App.sequences.standard) App.sequences.standard = [];
             if (!App.sequences.stealth) App.sequences.stealth = [];
             if (!App.sequences.rapid) App.sequences.rapid = [];
@@ -210,8 +230,10 @@ const App = {
         if (savedMap) {
             App.shortcutMap = JSON.parse(savedMap);
         } else {
+            // [NEW] Set a useful default for rapid delete
             App.shortcutMap = {
-                'playButton_longPress': 'toggleAutoplay' 
+                'playButton_longPress': 'toggleAutoplay',
+                'deleteButton_longPress': 'startRapidDelete' 
             };
             App.saveShortcutMap();
         }
@@ -220,7 +242,6 @@ const App = {
         localStorage.setItem('shortcutMap', JSON.stringify(App.shortcutMap));
     },
 
-    // --- [Phase 2: The "Engine"] ---
     initializeShortcuts: () => {
         ShortcutEngine.init(App.shortcutMap);
     }
@@ -228,7 +249,7 @@ const App = {
 
 // ==========================================================
 // ShortcutEngine (The "Listeners")
-// (This is the advanced gesture engine - no changes)
+// [UPGRADE] Now handles rapid delete release
 // ==========================================================
 const ShortcutEngine = {
     config: {
@@ -281,6 +302,13 @@ const ShortcutEngine = {
     handleRelease: (e, elementId) => {
         e.preventDefault();
         const state = ShortcutEngine.elements[elementId];
+
+        // [NEW] Check for rapid delete stop
+        // If the long press action was 'startRapidDelete', we must call 'stopRapidDelete' on release.
+        const longPressAction = ShortcutEngine.activeMap[`${elementId}_longPress`];
+        if (longPressAction === 'startRapidDelete') {
+            App.actionLibrary.stopRapidDelete();
+        }
 
         clearTimeout(state.longPressTimer);
         state.longPressTimer = null;
@@ -355,7 +383,7 @@ const triggerManifest = {
 };
 
 // --- Master list of all possible actions ---
-// [NEW] Added mode change actions
+// [NEW] Added Rapid Delete
 const actionManifest = [
     { name: '--- Profiles ---', id: 'none', disabled: true },
     { name: 'Load Profile 1', id: 'loadProfile(0)' },
@@ -377,9 +405,10 @@ const actionManifest = [
     { name: 'Add Number 6', id: 'addNumber(6)' },
     { name: 'Add Number 7', id: 'addNumber(7)' },
     { name: 'Add Number 8', id: 'addNumber(8)' },
-    { name: 'Add Number 9', id: 'addNumber(9)' },
+    { name: 'Add Number 9', id:s: 'addNumber(9)' },
     { name: 'Add Number 10', id: 'addNumber(10)' },
     { name: 'Delete Last Number', id: 'deleteLastNumber' },
+    { name: 'Start Rapid Delete', id: 'startRapidDelete' },
     { name: 'Clear Current Sequence', id: 'clearCurrentSequence' },
     { name: 'Clear ALL Data', id: 'clearAllData' },
 ];
@@ -388,11 +417,11 @@ const actionManifest = [
 const UI = {
     updateAll: () => {
         UI.populateProfileDropdown();
-        UI.loadSettingsToUI();
+        UI.loadSettingsToUI(); // This now applies visual changes
         UI.buildShortcutList(); 
-        UI.updateModeDisplay(); // [NEW]
-        UI.updateSequenceDisplay(); // [NEW]
-        UI.updatePlayButtonState(); // [NEW]
+        UI.updateModeDisplay(); 
+        UI.updateSequenceDisplay(); 
+        UI.updatePlayButtonState(); 
         console.log("UI Updated");
     },
 
@@ -409,9 +438,28 @@ const UI = {
     },
 
     loadSettingsToUI: () => {
+        // Load values into form fields
         document.getElementById('setting-delete-speed').value = App.currentSettings.deleteSpeed;
         document.getElementById('setting-stealth-opacity').value = App.currentSettings.stealthMode.opacity;
         document.getElementById('setting-stealth-hidebuttons').checked = App.currentSettings.stealthMode.hideButtons;
+        
+        // [NEW] Apply visual settings immediately
+        UI.applyStealthSettings();
+    },
+
+    // [NEW] Function to apply stealth visuals
+    applyStealthSettings: () => {
+        const appContainer = document.getElementById('app-container');
+        const keypad = document.getElementById('keypad-area');
+        const settings = App.currentSettings.stealthMode;
+
+        appContainer.style.opacity = settings.opacity;
+        
+        if (settings.hideButtons) {
+            keypad.style.display = 'none';
+        } else {
+            keypad.style.display = 'grid'; // Or original display value
+        }
     },
 
     buildShortcutList: () => {
@@ -467,7 +515,6 @@ const UI = {
         }
     },
 
-    // --- [NEW] UI Update Functions ---
     updateSequenceDisplay: () => {
         const display = document.getElementById('main-sequence-display');
         const mode = App.currentSettings.currentMode;
@@ -484,9 +531,9 @@ const UI = {
             const button = document.getElementById(`mode-${mode}`);
             if (button) {
                 if (mode === currentMode) {
-                    button.classList.add('active'); // Add 'active' class
+                    button.classList.add('active'); 
                 } else {
-                    button.classList.remove('active'); // Remove 'active' class
+                    button.classList.remove('active'); 
                 }
             }
         });
@@ -497,9 +544,9 @@ const UI = {
         if (!playButton) return;
         
         if (App.currentSettings.autoplayEnabled) {
-            playButton.classList.add('active'); // e.g., turn it green
+            playButton.classList.add('active'); 
         } else {
-            playButton.classList.remove('active'); // turn it normal
+            playButton.classList.remove('active'); 
         }
     }
 };
@@ -509,16 +556,15 @@ const UI = {
 // DEFAULT SETTINGS AND PROFILES
 // ==========================================================
 const masterSettingsTemplate = {
-    currentMode: 'standard', // Now controls which sequence is active
-    deleteSpeed: 100, // This is ready for a rapid-delete function
+    currentMode: 'standard', 
+    deleteSpeed: 100, // Now used by Rapid Delete
     stealthMode: {
-        opacity: 1.0,
-        hideButtons: false
+        opacity: 1.0, // Now visually applied
+        hideButtons: false // Now visually applied
     },
     autoplayEnabled: false
 };
 
-// (Profiles are unchanged)
 const defaultSettingsProfiles = [
     { name: "Profile 1: Standard", isDefault: true, settings: { ...masterSettingsTemplate } },
     { name: "Profile 2: Stealth", isDefault: true, settings: { ...masterSettingsTemplate, currentMode: 'stealth', stealthMode: { opacity: 0.5, hideButtons: true } } },

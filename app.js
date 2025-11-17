@@ -3,17 +3,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Load Core Data ---
     App.loadGlobalSettings(); 
     App.loadProfiles(); 
+    App.loadSequences(); // [NEW] Load sequence data
     App.loadShortcutMap(); 
     
     // --- Initialize Systems ---
-    App.initializeShortcuts(); // This is now much smarter
-    UI.updateAll(); 
+    App.initializeShortcuts(); 
+    UI.updateAll(); // This now populates everything
     
     console.log("Number Tracker App Initialized.");
 
     // --- Settings Tab Event Listeners ---
-    
-    // Profile Management
     const loadProfileButton = document.getElementById('load-profile-button');
     const profileSelect = document.getElementById('profile-select-dropdown');
     loadProfileButton.addEventListener('click', () => {
@@ -66,10 +65,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             App.saveShortcutMap(); 
-            App.initializeShortcuts(); // Re-apply all listeners with new map
-            
-            console.log(`Shortcut updated: ${eventMapKey} -> ${newAction}`);
+            App.initializeShortcuts(); // Re-apply all listeners
         }
+    });
+
+    // --- [NEW] Main Tab Mode Button Listeners ---
+    document.getElementById('mode-standard').addEventListener('click', () => {
+        App.actionLibrary.changeMode('standard');
+    });
+    document.getElementById('mode-stealth').addEventListener('click', () => {
+        App.actionLibrary.changeMode('stealth');
+    });
+    document.getElementById('mode-rapid').addEventListener('click', () => {
+        App.actionLibrary.changeMode('rapid');
     });
 });
 
@@ -81,6 +89,11 @@ const App = {
     currentSettings: {}, 
     settingsProfiles: [], 
     shortcutMap: {}, 
+    sequences: { // [NEW] Holds all sequence data
+        standard: [],
+        stealth: [],
+        rapid: []
+    }, 
     
     actionLibrary: {
         // --- Profile Actions ---
@@ -88,7 +101,7 @@ const App = {
             if (App.settingsProfiles[profileIndex]) {
                 App.currentSettings = JSON.parse(JSON.stringify(App.settingsProfiles[profileIndex].settings));
                 App.saveGlobalSettings(); 
-                UI.loadSettingsToUI(); 
+                UI.updateAll(); // Full refresh to apply profile settings
                 console.log(`Loaded profile: ${App.settingsProfiles[profileIndex].name}`);
             } else {
                 console.error(`Profile index ${profileIndex} not found.`);
@@ -110,27 +123,43 @@ const App = {
         toggleAutoplay: () => {
             App.currentSettings.autoplayEnabled = !App.currentSettings.autoplayEnabled;
             App.saveGlobalSettings(); 
+            UI.updatePlayButtonState(); // [NEW] Update UI
             console.log(`Autoplay set to: ${App.currentSettings.autoplayEnabled}`);
         },
         changeMode: (modeName) => {
             App.currentSettings.currentMode = modeName;
             App.saveGlobalSettings(); 
+            UI.updateModeDisplay(); // [NEW] Update UI
+            UI.updateSequenceDisplay(); // [NEW] Show new sequence
             console.log(`Mode changed to: ${modeName}`);
         },
         
-        // --- Number/Sequence Actions ---
+        // --- [NEW] Number/Sequence Actions (Fully Implemented) ---
         addNumber: (number) => {
-            console.log(`Adding number: ${number}`);
-            // (Old logic will be merged here)
+            const mode = App.currentSettings.currentMode;
+            App.sequences[mode].push(number);
+            App.saveSequences();
+            UI.updateSequenceDisplay();
         },
         deleteLastNumber: () => {
-            console.log('Deleting last number');
+            const mode = App.currentSettings.currentMode;
+            if (App.sequences[mode].length > 0) {
+                App.sequences[mode].pop();
+                App.saveSequences();
+                UI.updateSequenceDisplay();
+            }
         },
         clearCurrentSequence: () => {
-            console.log('Clearing current sequence');
+            const mode = App.currentSettings.currentMode;
+            App.sequences[mode] = [];
+            App.saveSequences();
+            UI.updateSequenceDisplay();
         },
         clearAllData: () => {
-            console.log('Clearing ALL data');
+            App.sequences = { standard: [], stealth: [], rapid: [] };
+            App.saveSequences();
+            UI.updateSequenceDisplay();
+            console.log('Cleared all sequence data.');
         }
     },
 
@@ -145,7 +174,6 @@ const App = {
             App.currentSettings = JSON.parse(JSON.stringify(defaultSettingsProfiles[0].settings));
         }
     },
-    
     saveGlobalSettings: () => {
         localStorage.setItem('globalSettings', JSON.stringify(App.currentSettings));
     },
@@ -158,9 +186,23 @@ const App = {
             App.settingsProfiles = JSON.parse(JSON.stringify(defaultSettingsProfiles));
         }
     },
-
     saveProfiles: () => {
         localStorage.setItem('userProfiles', JSON.stringify(App.settingsProfiles));
+    },
+
+    // --- [NEW] Sequence Data Management ---
+    loadSequences: () => {
+        const savedSequences = localStorage.getItem('sequenceData');
+        if (savedSequences) {
+            App.sequences = JSON.parse(savedSequences);
+            // Ensure all modes exist in case they were added later
+            if (!App.sequences.standard) App.sequences.standard = [];
+            if (!App.sequences.stealth) App.sequences.stealth = [];
+            if (!App.sequences.rapid) App.sequences.rapid = [];
+        }
+    },
+    saveSequences: () => {
+        localStorage.setItem('sequenceData', JSON.stringify(App.sequences));
     },
 
     loadShortcutMap: () => {
@@ -174,56 +216,44 @@ const App = {
             App.saveShortcutMap();
         }
     },
-
     saveShortcutMap: () => {
         localStorage.setItem('shortcutMap', JSON.stringify(App.shortcutMap));
     },
 
     // --- [Phase 2: The "Engine"] ---
-    
     initializeShortcuts: () => {
-        // [NEW] This is now much simpler.
-        // We just tell the ShortcutEngine to re-initialize itself.
-        // It will read the triggerManifest and attach all necessary listeners.
         ShortcutEngine.init(App.shortcutMap);
     }
 };
 
 // ==========================================================
 // ShortcutEngine (The "Listeners")
-// [MASSIVE UPGRADE] This is the new, robust gesture engine.
+// (This is the advanced gesture engine - no changes)
 // ==========================================================
 const ShortcutEngine = {
-    // Configurable delays
     config: {
-        doubleTapDelay: 250, // Max time (ms) between taps for a double tap
-        longPressDelay: 800   // Min time (ms) for a long press
+        doubleTapDelay: 250, 
+        longPressDelay: 800  
     },
-    
-    activeMap: {}, // The shortcut map (e.g., 'playButton_longPress': 'toggleAutoplay')
-    elements: {},  // Stores state for elements (e.g., 'playButton': { tapTimer, ... })
+    activeMap: {}, 
+    elements: {},  
 
-    // This is called once by App.initializeShortcuts()
     init: (shortcutMap) => {
         ShortcutEngine.activeMap = shortcutMap;
 
-        // First, clear all old listeners by cloning nodes
-        // This is a robust way to remove all listeners we've added
         for (const elementId of Object.keys(triggerManifest)) {
             const el = document.getElementById(elementId);
             if (el) {
                 const oldEl = ShortcutEngine.elements[elementId] ? ShortcutEngine.elements[elementId].element : el;
-                const newEl = oldEl.cloneNode(true); // Clone
-                oldEl.parentNode.replaceChild(newEl, oldEl); // Replace
-                ShortcutEngine.elements[elementId] = { element: newEl }; // Store the new element
+                const newEl = oldEl.cloneNode(true); 
+                oldEl.parentNode.replaceChild(newEl, oldEl); 
+                ShortcutEngine.elements[elementId] = { element: newEl }; 
             }
         }
         
-        // Now, attach new, smart listeners to the new elements
         for (const elementId of Object.keys(triggerManifest)) {
             const el = ShortcutEngine.elements[elementId].element;
             if (el) {
-                // Attach the raw down/up listeners
                 el.addEventListener('mousedown', (e) => ShortcutEngine.handlePress(e, elementId), false);
                 el.addEventListener('mouseup', (e) => ShortcutEngine.handleRelease(e, elementId), false);
                 el.addEventListener('touchstart', (e) => ShortcutEngine.handlePress(e, elementId), { passive: false });
@@ -232,86 +262,70 @@ const ShortcutEngine = {
         }
     },
 
-    // Called on mousedown or touchstart
     handlePress: (e, elementId) => {
         e.preventDefault();
         const state = ShortcutEngine.elements[elementId];
         
-        // Clear any pending click/double-tap from a previous tap
         if (state.tapTimer) {
             clearTimeout(state.tapTimer);
             state.tapTimer = null;
         }
 
-        // Set a timer for long press
         state.longPressTimer = setTimeout(() => {
             console.log(`Gesture: ${elementId} -> longPress`);
             ShortcutEngine.executeAction(`${elementId}_longPress`);
-            state.longPressFired = true; // Mark that long press has fired
+            state.longPressFired = true; 
         }, ShortcutEngine.config.longPressDelay);
     },
 
-    // Called on mouseup or touchend
     handleRelease: (e, elementId) => {
         e.preventDefault();
         const state = ShortcutEngine.elements[elementId];
 
-        // 1. Clear the long press timer
         clearTimeout(state.longPressTimer);
         state.longPressTimer = null;
 
-        // 2. Check if a long press already fired
         if (state.longPressFired) {
-            state.longPressFired = false; // Reset for next press
-            return; // Don't do anything else (no click/double-tap)
+            state.longPressFired = false; 
+            return; 
         }
 
-        // 3. This is a "tap". Now we check if it's single or double.
         state.tapCount = (state.tapCount || 0) + 1;
 
-        // Start a timer to wait for another tap
         state.tapTimer = setTimeout(() => {
             if (state.tapCount === 1) {
-                // Timer expired, it was a single click
                 console.log(`Gesture: ${elementId} -> click`);
                 ShortcutEngine.executeAction(`${elementId}_click`);
             } else if (state.tapCount === 2) {
-                // Timer expired, it was a double tap
                 console.log(`Gesture: ${elementId} -> doubleTap`);
                 ShortcutEngine.executeAction(`${elementId}_doubleTap`);
             }
-            // Reset state
             state.tapCount = 0;
             state.tapTimer = null;
         }, ShortcutEngine.config.doubleTapDelay);
     },
     
-    // Finds and runs the action from the Action Library
     executeAction: (eventMapKey) => {
         const actionString = ShortcutEngine.activeMap[eventMapKey];
         if (!actionString) {
-            // No action assigned to this gesture
             return;
         }
 
-        // Check for parameters, e.g., "loadProfile(2)"
         const match = actionString.match(/(\w+)\((.*?)\)/);
         
         if (match) {
-            // Action WITH parameters
-            const actionName = match[1]; // "loadProfile"
-            const args = match[2].split(',').map(arg => arg.trim()); // ["2"]
+            const actionName = match[1]; 
+            const args = match[2].split(',').map(arg => arg.trim()); 
             
             if (App.actionLibrary[actionName]) {
-                App.actionLibrary[actionName](...args); // Run the function
+                App.actionLibrary[actionName](...args); 
             } else {
                 console.error(`Action not found: ${actionName}`);
             }
         } else {
-            // Action with NO parameters
-            const actionName = actionString; // "toggleAutoplay"
+            const actionName = actionString; 
             if (App.actionLibrary[actionName]) {
-                App.actionLibrary[actionName](); // Run the function
+                App.actionLibrary[actionName](); 
             } else {
                 console.error(`Action not found: ${actionName}`);
             }
@@ -341,6 +355,7 @@ const triggerManifest = {
 };
 
 // --- Master list of all possible actions ---
+// [NEW] Added mode change actions
 const actionManifest = [
     { name: '--- Profiles ---', id: 'none', disabled: true },
     { name: 'Load Profile 1', id: 'loadProfile(0)' },
@@ -350,6 +365,9 @@ const actionManifest = [
     { name: 'Load Profile 5', id: 'loadProfile(4)' },
     { name: '--- Core ---', id: 'none', disabled: true },
     { name: 'Toggle Autoplay', id: 'toggleAutoplay' },
+    { name: 'Change to Standard Mode', id: 'changeMode("standard")' },
+    { name: 'Change to Stealth Mode', id: 'changeMode("stealth")' },
+    { name: 'Change to Rapid Mode', id: 'changeMode("rapid")' },
     { name: '--- Data ---', id: 'none', disabled: true },
     { name: 'Add Number 1', id: 'addNumber(1)' },
     { name: 'Add Number 2', id: 'addNumber(2)' },
@@ -372,6 +390,9 @@ const UI = {
         UI.populateProfileDropdown();
         UI.loadSettingsToUI();
         UI.buildShortcutList(); 
+        UI.updateModeDisplay(); // [NEW]
+        UI.updateSequenceDisplay(); // [NEW]
+        UI.updatePlayButtonState(); // [NEW]
         console.log("UI Updated");
     },
 
@@ -395,7 +416,7 @@ const UI = {
 
     buildShortcutList: () => {
         const container = document.getElementById('shortcut-list-container');
-        container.innerHTML = ''; // Clear old list
+        container.innerHTML = ''; 
 
         const formatName = (str) => {
             return str.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase());
@@ -444,6 +465,42 @@ const UI = {
                 container.appendChild(item);
             }
         }
+    },
+
+    // --- [NEW] UI Update Functions ---
+    updateSequenceDisplay: () => {
+        const display = document.getElementById('main-sequence-display');
+        const mode = App.currentSettings.currentMode;
+        if (display && App.sequences[mode]) {
+            display.textContent = App.sequences[mode].join(' ');
+        }
+    },
+
+    updateModeDisplay: () => {
+        const modes = ['standard', 'stealth', 'rapid'];
+        const currentMode = App.currentSettings.currentMode;
+        
+        modes.forEach(mode => {
+            const button = document.getElementById(`mode-${mode}`);
+            if (button) {
+                if (mode === currentMode) {
+                    button.classList.add('active'); // Add 'active' class
+                } else {
+                    button.classList.remove('active'); // Remove 'active' class
+                }
+            }
+        });
+    },
+
+    updatePlayButtonState: () => {
+        const playButton = document.getElementById('playButton');
+        if (!playButton) return;
+        
+        if (App.currentSettings.autoplayEnabled) {
+            playButton.classList.add('active'); // e.g., turn it green
+        } else {
+            playButton.classList.remove('active'); // turn it normal
+        }
     }
 };
 
@@ -452,8 +509,8 @@ const UI = {
 // DEFAULT SETTINGS AND PROFILES
 // ==========================================================
 const masterSettingsTemplate = {
-    currentMode: 'standard',
-    deleteSpeed: 100,
+    currentMode: 'standard', // Now controls which sequence is active
+    deleteSpeed: 100, // This is ready for a rapid-delete function
     stealthMode: {
         opacity: 1.0,
         hideButtons: false
@@ -461,10 +518,11 @@ const masterSettingsTemplate = {
     autoplayEnabled: false
 };
 
+// (Profiles are unchanged)
 const defaultSettingsProfiles = [
     { name: "Profile 1: Standard", isDefault: true, settings: { ...masterSettingsTemplate } },
     { name: "Profile 2: Stealth", isDefault: true, settings: { ...masterSettingsTemplate, currentMode: 'stealth', stealthMode: { opacity: 0.5, hideButtons: true } } },
     { name: "Profile 3: Rapid Input", isDefault: true, settings: { ...masterSettingsTemplate, currentMode: 'rapid', deleteSpeed: 50 } },
-    { name:G: "Profile 4: Autoplay", isDefault: true, settings: { ...masterSettingsTemplate, autoplayEnabled: true } },
+    { name: "Profile 4: Autoplay", isDefault: true, settings: { ...masterSettingsTemplate, autoplayEnabled: true } },
     { name: "Profile 5: Custom", isDefault: true, settings: { ...masterSettingsTemplate } }
 ];

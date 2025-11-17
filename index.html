@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Number Tracker Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="app-container">
+        
+        <div id="display-area">
+            <div id="main-sequence-display" class="sequence-box"></div>
+            </div>
+
+        <div id="keypad-area">
+            <button class="keypad-btn num-btn" id="numButton1">1</button>
+            <button class="keypad-btn num-btn" id="numButton2">2</button>
+            <button class="keypad-btn num-btn" id="numButton3">3</button>
+            <button class="keypad-btn num-btn" id="numButton4">4</button>
+            <button class="keypad-btn num-btn" id="numButton5">5</button>
+            <button class="keypad-btn num-btn" id="numButton6">6</button>
+            <button class="keypad-btn num-btn" id="numButton7">7</button>
+            <button class="keypad-btn num-btn" id="numButton8">8</button>
+            <button class="keypad-btn num-btn" id="numButton9">9</button>
+            <button class="keypad-btn num-btn" id="numButton10">10</button>
+            <button class="keypad-btn" id="playButton">▶</button>
+            <button class="keypad-btn" id="deleteButton">DEL</button>
+        </div>
+
+        <div id="tab-nav">
+            <button class="tab-link active" onclick="openTab(event, 'main-controls')">Main</button>
+            <button class="tab-link" onclick="openTab(event, 'settings')">Settings</button>
+            <button class="tab-link" onclick="openTab(event, 'shortcuts')">Shortcuts</button>
+        </div>
+
+        <div id="tab-content-area">
+
+            <div id="main-controls" class="tab-content" style="display: block;">
+                <h3>Main Controls</h3>
+                <button id="mode-standard">Standard Mode</button>
+                <button id="mode-stealth">Stealth Mode</button>
+                <button id="mode-rapid">Rapid Mode</button>
+            </div>
+
+            <div id="settings" class="tab-content">
+                <h2>Settings</h2>
+                
+                <hr>
+                <h3>Quick Start Profiles</h3>
+                <div class="setting-item">
+                    <label for="profile-select-dropdown">Load Profile:</label>
+                    <select id="profile-select-dropdown">
+                        </select>
+                    <button id="load-profile-button">Load</button>
+                </div>
+                <div class="setting-item">
+                    <label for="save-profile-name-input">Save Current as New:</label>
+                    <input type="text" id="save-profile-name-input" placeholder="New profile name...">
+                    <button id="save-profile-button">Save</button>
+                </div>
+                
+                <hr>
+                <h3>Global App Settings</h3>
+                <p>(These are saved to the currently active profile)</p>
+                
+                <div class="setting-item">
+                    <label for="setting-delete-speed">Delete Speed (ms):</label>
+                    <input type="number" id="setting-delete-speed" min="0" step="50">
+                </div>
+                <div class="setting-item">
+                    <label for="setting-stealth-opacity">Stealth Opacity (0-1):</label>
+                    <input type="range" id="setting-stealth-opacity" min="0" max="1" step="0.1">
+                </div>
+                <div class="setting-item">
+                    <label for="setting-stealth-hidebuttons">Hide Keypad in Stealth:</label>
+                    <input type="checkbox" id="setting-stealth-hidebuttons">
+                </div>
+                
+                </div>
+
+            <div id="shortcuts" class="tab-content">
+                <h2>Shortcuts</h2>
+                <p>Assign actions to button events. Changes are saved automatically.</p>
+                
+                <div id="shortcut-list-container">
+                    </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            if (evt) {
+                evt.currentTarget.className += " active";
+            }
+        }
+        // Show the first tab by default
+        document.addEventListener('DOMContentLoaded', () => {
+            openTab(null, 'main-controls');
+        });
+    </script>
+    
+    <script defer src="app.js"></script>
+
+</body>
+</html>

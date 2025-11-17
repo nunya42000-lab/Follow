@@ -1,0 +1,225 @@
+/* --- Global Styles & Dark Theme --- */
+:root {
+    --bg-color: #111;
+    --nav-bg: #222;
+    --tab-bg: #1a1a1a;
+    --button-bg: #333;
+    --button-hover: #444;
+    --button-num-bg: #4a4a4a;
+    --button-num-hover: #5a5a5a;
+    --accent-color: #007bff;
+    --text-color: #eee;
+    --border-color: #555;
+    --display-bg: #000;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Prevents bouncing */
+    -webkit-user-select: none; /* Prevents text selection on tap */
+    user-select: none;
+}
+
+#app-container {
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
+    max-width: 450px; /* Constrain width for mobile layout */
+    margin: 0 auto;
+    border: 1px solid var(--border-color);
+    box-sizing: border-box;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+}
+
+/* --- Display Area --- */
+#display-area {
+    flex: 1; /* Takes up available space */
+    background: var(--display-bg);
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#main-sequence-display {
+    width: 100%;
+    min-height: 100px;
+    background-color: var(--display-bg);
+    color: var(--text-color);
+    font-size: 2rem;
+    padding: 10px;
+    box-sizing: border-box;
+    word-wrap: break-word; /* Wraps long sequences */
+}
+
+/* --- Keypad Area --- */
+#keypad-area {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3-column grid */
+    gap: 5px;
+    padding: 10px;
+    background-color: var(--nav-bg);
+}
+
+.keypad-btn {
+    padding: 20px 10px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--button-bg);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+}
+
+.keypad-btn:active {
+    background-color: var(--accent-color); /* Feedback on tap */
+}
+
+/* Different color for number buttons */
+.num-btn {
+    background-color: var(--button-num-bg);
+}
+.num-btn:active {
+    background-color: var(--button-num-hover);
+}
+
+/* Span buttons across grid */
+#numButton10 { grid-column: span 1; }
+#playButton { grid-column: span 1; }
+#deleteButton { grid-column: span 1; }
+
+/* --- Tab Navigation --- */
+#tab-nav {
+    display: flex;
+    background-color: var(--nav-bg);
+    border-top: 1px solid var(--border-color);
+}
+
+.tab-link {
+    flex: 1; /* Each tab takes equal space */
+    padding: 15px 10px;
+    background-color: var(--nav-bg);
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--text-color);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.tab-link:hover {
+    background-color: var(--button-bg);
+}
+
+.tab-link.active {
+    border-bottom: 3px solid var(--accent-color);
+    color: var(--accent-color);
+}
+
+/* --- Tab Content Area --- */
+#tab-content-area {
+    flex: 2; /* Gives tabs more space than the display */
+    padding: 15px;
+    background-color: var(--tab-bg);
+    overflow-y: auto; /* Allow scrolling within tabs */
+}
+
+.tab-content {
+    display: none; /* Hidden by default */
+}
+
+.tab-content h2, .tab-content h3 {
+    margin-top: 0;
+    color: var(--accent-color);
+}
+
+.tab-content h3 {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+    margin-top: 20px;
+}
+
+/* --- Settings & Shortcuts UI --- */
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+}
+
+.setting-item label {
+    flex-basis: 50%;
+}
+
+/* Form elements */
+input[type="text"],
+input[type="number"],
+select {
+    width: 100%; /* Make inputs/selects use available space */
+    padding: 8px;
+    background-color: var(--button-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    border-radius: 4px;
+    box-sizing: border-box; /* Fixes padding issues */
+}
+
+/* Style the setting-item's children */
+.setting-item > *:not(label) {
+    flex-basis: 45%;
+}
+
+/* Checkbox needs special alignment */
+input[type="checkbox"] {
+    width: 24px;
+    height: 24px;
+    flex-basis: auto; /* Don't force width */
+}
+
+/* Buttons inside settings */
+#settings button, #main-controls button {
+    padding: 10px 15px;
+    background-color: var(--accent-color);
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+#settings button:hover, #main-controls button:hover {
+    opacity: 0.8;
+}
+
+/* Shortcut Tab Layout */
+#shortcut-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.shortcut-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--nav-bg);
+    padding: 10px;
+    border-radius: 5px;
+}
+.shortcut-item label {
+    flex-basis: 40%;
+    font-size: 0.9rem;
+}
+.shortcut-item select {
+    flex-basis: 55%;
+}
+

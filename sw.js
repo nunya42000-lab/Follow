@@ -1,6 +1,6 @@
 // --- CACHE VERSION ---
 // Change this every time you update any file!
-const CACHE_NAME = 'follow-me-v18'; // <-- Changed to v16
+const CACHE_NAME = 'follow-me-v19'; // <-- Changed to v16
 // --- ---------------- ---
 
 const FILES_TO_CACHE = [

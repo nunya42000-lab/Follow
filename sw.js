@@ -1,6 +1,6 @@
 // --- CACHE VERSION ---
 // Change this every time you update any file!
-const CACHE_NAME = 'follow-me-v11'; // <-- MUST BE v11
+const CACHE_NAME = 'follow-me-v13'; // <-- Changed to v13
 // --- ---------------- ---
 
 const FILES_TO_CACHE = [
@@ -10,8 +10,8 @@ const FILES_TO_CACHE = [
     './app.js',
     'https://cdn.tailwindcss.com',
     'https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap',
-    'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js', // Added Firebase SDK
-    'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js' // Added Firebase SDK
+    'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js', 
+    'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js' 
 ];
 
 // 1. Install Event: Cache all core files
@@ -84,6 +84,10 @@ self.addEventListener('fetch', event => {
                         console.warn('Service Worker: Fetch failed, user is likely offline.', err);
                         // You could return a specific "offline.html" page here
                     });
+            })
+    );
+});
+         });
             })
     );
 });

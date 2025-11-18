@@ -1,41 +1,5 @@
-export const DOM = {
-    sequenceContainer: null,
-    customModal: null, modalTitle: null, modalMessage: null, modalConfirm: null, modalCancel: null,
-    shareModal: null, closeShare: null, copyLinkButton: null, nativeShareButton: null,
-    toastNotification: null, toastMessage: null,
-    gameSetupModal: null, closeGameSetupModalBtn: null, dontShowWelcomeToggle: null,
-    configSelect: null, configAddBtn: null, configRenameBtn: null, configDeleteBtn: null,
-    quickAutoplayToggle: null, quickAudioToggle: null,
-    quickOpenHelpBtn: null, quickOpenSettingsBtn: null,
-    globalResizeUpBtn: null, globalResizeDownBtn: null,
-    settingsModal: null, settingsTabNav: null, openHelpButton: null, openShareButton: null, closeSettings: null, openGameSetupFromSettings: null,
-    activeProfileNameSpan: null, openCommentModalBtn: null,
-    helpModal: null, helpContentContainer: null, helpTabNav: null, closeHelp: null,
-    commentModal: null, closeCommentModalBtn: null, submitCommentBtn: null,
-    commentUsername: null, commentMessage: null, commentsListContainer: null,
-    cameraModal: null, closeCameraModalBtn: null, openCameraModalBtn: null,
-    cameraFeed: null, cameraFeedContainer: null, grid9Key: null, grid12Key: null,
-    detectionCanvas: null, startCameraBtn: null, startDetectionBtn: null, stopDetectionBtn: null,
-    flashSensitivitySlider: null, flashSensitivityDisplay: null,
-    
-    inputSelect: null, modeToggle: null, modeToggleLabel: null,
-    machinesSlider: null, machinesDisplay: null,
-    sequenceLengthSlider: null, sequenceLengthDisplay: null, sequenceLengthLabel: null,
-    chunkSlider: null, chunkDisplay: null,
-    delaySlider: null, delayDisplay: null,
-    settingMultiSequenceGroup: null, autoclearToggle: null, settingAutoclear: null,
-    playbackSpeedSlider: null, playbackSpeedDisplay: null,
-    showWelcomeToggle: null, darkModeToggle: null,
-    uiScaleSlider: null, uiScaleDisplay: null,
-    shortcutListContainer: null, addShortcutBtn: null,
-    shakeSensitivitySlider: null, shakeSensitivityDisplay: null,
-    autoplayToggle: null, speedDeleteToggle: null,
-    audioToggle: null, voiceInputToggle: null, hapticsToggle: null, autoInputSlider: null,
-
-    padKey9: null, padKey12: null, padPiano: null,
-    allVoiceInputs: null, allResetButtons: null,
-    allCameraMasterBtns: null, allMicMasterBtns: null
-};
+// dom.js
+export let DOM = {}; // Changed from const to let, initialized to empty object
 
 export function assignDomElements() {
     DOM.sequenceContainer = document.getElementById('sequence-container');

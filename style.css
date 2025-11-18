@@ -222,4 +222,19 @@ input[type="checkbox"] {
 .shortcut-item select {
     flex-basis: 55%;
 }
+/* --- [NEW] Camera Listener Styles --- */
+
+#cam-status-light {
+    width: 20px;
+    height: 20px;
+    background-color: var(--button-bg); /* Off by default */
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    margin-right: 15px;
+}
+
+#cam-status-light.listening {
+    background-color: #007bff; /* Blue "armed" light */
+    box-shadow: 0 0 10px #007bff;
+}
 

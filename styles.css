@@ -1,0 +1,451 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+/* ---------------------------------- */
+/* --- THEME COLORS (CSS Variables) --- */
+/* ---------------------------------- */
+:root {
+    --bg-main: #1f2937;           
+    --bg-footer: #1f2937;         
+    --text-color: #ffffff;
+    --card-bg: #374151;           
+    --card-text: #ffffff;
+    --btn-control-gray: #6b7280;  
+    --btn-control-gray-active: #4b5563; 
+}
+.light {
+    --bg-main: #ffffff;           
+    --bg-footer: #ffffff;         
+    --text-color: #1f2937;
+    --card-bg: #e5e7eb;           
+    --card-text: #1f2937;
+    --btn-control-gray: #9ca3af; 
+    --btn-control-gray-active: #6b7280;
+}
+
+/* Apply theme variables */
+body {
+    background-color: var(--bg-main);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+}
+#input-footer {
+    background-color: var(--bg-footer);
+}
+.btn-input {
+    color: var(--card-text);
+}
+.number-box {
+    height: 40px; 
+    line-height: 40px; 
+    font-size: 1.1rem; 
+    font-weight: 700; 
+    transition: height 0.2s, line-height 0.2s, font-size 0.2s; 
+}
+.btn-input {
+    transition: all 0.15s ease-in-out;
+    position: relative; 
+    font-weight: 700;
+    border-radius: 9999px; /* Fully rounded/circular look */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.1); 
+    height: 64px; 
+}
+.btn-pad-number {
+    background-color: var(--card-bg);
+    font-size: 1.5rem; /* text-2xl */
+}
+.btn-pad-number:active {
+    transform: scale(0.95);
+    background-color: var(--btn-control-gray-active);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+/* FLASH for Demo Effects */
+.btn-pad-number.key9-flash {
+    background-color: #3b82f6; /* blue-500 */
+    box-shadow: 0 0 15px 5px rgba(59, 130, 246, 0.7); 
+    transform: scale(1.05); 
+}
+.btn-pad-number.key12-flash {
+    background-color: #10b981; /* green-500 */
+    box-shadow: 0 0 15px 5px rgba(16, 185, 129, 0.7); 
+    transform: scale(1.05); 
+}
+.btn-control {
+    font-size: 1.8rem; 
+    height: 64px; 
+    border-radius: 9999px; 
+    color: var(--card-text); 
+}
+.btn-control[data-action="backspace"] {
+    background-color: var(--btn-control-gray);
+    color: white; 
+}
+.btn-control[data-action="backspace"]:active {
+    background-color: var(--btn-control-gray-active);
+    transform: scale(0.95);
+}
+
+/* -------------------------- */
+/* --- PIANO KEY STYLES --- */
+/* -------------------------- */
+#piano-keys {
+    position: relative; 
+    display: flex; 
+    width: 100%;
+    height: 200px;
+    background-color: #333; 
+}
+.key-container {
+    width: calc(100% / 7);
+    position: relative;
+    height: 100%;
+}
+.piano-key-white {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #333;
+    border-top: none; 
+    border-bottom: 2px solid #555; 
+    background-color: #ffffff; 
+    background-image: linear-gradient(to bottom, #ffffff, #f0f0f0);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.05); 
+    color: #1f2937; 
+    font-weight: 700; 
+    font-size: 1.6rem; 
+    padding-bottom: 15px; 
+    border-radius: 0 0 5px 5px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    z-index: 1; 
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    transition: all 0.15s ease-in-out; 
+}
+.piano-key-white:active, .piano-key-white.flash {
+    transform: translateY(2px); 
+    box-shadow: 0 0 20px 7px rgba(255, 238, 0, 0.9), inset 0 0 10px rgba(0,0,0,0.1); 
+    background-image: linear-gradient(to bottom, #ffea00, #ffe066); 
+    border-bottom: 2px solid #f0ad4e; 
+}
+.piano-key-black {
+    height: 65%; 
+    width: 13%; 
+    background-color: #000000; 
+    background-image: linear-gradient(to top, #111111, #222222);
+    box-shadow: 0 6px 10px rgba(0,0,0,0.6); 
+    border: 1px solid #333;
+    border-top: none;
+    border-bottom: 2px solid #000;
+    border-radius: 0 0 5px 5px;
+    position: absolute; 
+    top: 0;
+    z-index: 2; 
+    color: white; 
+    font-weight: 600; 
+    font-size: 1rem; 
+    display: flex;
+    align-items: flex-end; 
+    justify-content: center;
+    padding-bottom: 5px;
+    cursor: pointer;
+    transition: all 0.05s ease-in-out;
+}
+.piano-key-black:active, .piano-key-black.flash {
+    transform: translateY(3px); 
+    height: calc(65% - 3px); 
+    box-shadow: 0 0 15px 5px rgba(255, 69, 0, 0.9), 0 2px 3px rgba(0,0,0,0.4); 
+    background-image: linear-gradient(to top, #664400, #4c3300); 
+    border-bottom: 2px solid #f0adad;
+}
+.black-1 { left: calc((100% / 7) * 1 - (13% / 2)); }
+.black-2 { left: calc((100% / 7) * 2 - (13% / 2)); }
+.black-3 { left: calc((100% / 7) * 4 - (13% / 2)); }
+.black-4 { left: calc((100% / 7) * 5 - (13% / 2)); }
+.black-5 { left: calc((100% / 7) * 6 - (13% / 2)); }
+
+/* Help/Settings content styling */
+.content-container h4 {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 700; /* font-bold */
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid #e5e7eb; /* gray-200 */
+}
+.dark .content-container h4 {
+    border-bottom: 1px solid #4b5563; /* gray-600 */
+}
+.content-container p, .content-container ul {
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+.content-container ul {
+    list-style: disc;
+    margin-left: 1.5rem;
+}
+
+/* Styles for Prompt Box */
+.prompt-box {
+    width: 100%;
+    height: 150px;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid #9ca3af;
+    background-color: #f3f4f6;
+    color: #1f2937;
+    font-family: monospace;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    resize: none;
+}
+.dark .prompt-box {
+    background-color: #4b5563;
+    color: #ffffff;
+    border-color: #6b7280;
+}
+.copy-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: white;
+    background-color: #2563eb; /* btn-control-blue */
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-bottom: 1rem;
+}
+.copy-button:hover {
+    background-color: #1e40af; /* btn-control-blue-active */
+}
+.copy-button.copied {
+    background-color: #10b981; /* green-500 */
+}
+
+/* Tab Styles (for Help & Settings) */
+.tab-button {
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+}
+.dark .tab-button {
+    color: #9ca3af;
+}
+.tab-button:hover {
+    color: #374151;
+}
+.dark .tab-button:hover {
+    color: #e5e7eb;
+}
+.tab-button.active-tab {
+    color: #4f46e5; /* primary-app */
+    border-bottom-color: #4f46e5; /* primary-app */
+}
+
+/* Generic select dropdown */
+.select-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+    
+    /* --- COLOR FIX --- */
+    background-color: #ffffff;
+    color: #1f2937;
+    border: 1px solid #d1d5db; /* gray-300 */
+    border-radius: 0.5rem; /* rounded-lg */
+}
+.dark .select-input {
+     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+     
+     /* --- COLOR FIX --- */
+     background-color: #374151; /* gray-700 */
+     color: #ffffff;
+     border-color: #4b5563; /* gray-600 */
+}
+.select-input:disabled {
+    background-color: #e5e7eb; /* gray-200 */
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+.dark .select-input:disabled {
+     background-color: #4b5563; /* gray-600 */
+}
+
+/* Custom range slider */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 0.5rem; /* 8px */
+    background: #e5e7eb; /* gray-200 */
+    border-radius: 9999px; /* rounded-full */
+    outline: none;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+}
+.dark input[type="range"] {
+    background: #4b5563; /* gray-600 */
+}
+input[type="range"]:hover {
+    opacity: 1;
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1.25rem; /* 20px */
+    height: 1.25rem; /* 20px */
+    background: #4f46e5; /* primary-app */
+    border-radius: 9999px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+input[type="range"]::-moz-range-thumb {
+    width: 1.25rem;
+    height: 1.25rem;
+    background: #4f46e5;
+    border-radius: 9999px;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+input[type="range"]:disabled {
+     background: #e5e7eb; /* gray-200 */
+}
+.dark input[type="range"]:disabled {
+     background: #4b5563; /* gray-600 */
+}
+input[type="range"]:disabled::-webkit-slider-thumb {
+    background: #9ca3af; /* gray-400 */
+    cursor: not-allowed;
+}
+input[type="range"]:disabled::-moz-range-thumb {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+/* Shortcut Builder Row */
+.shortcut-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.75rem; /* 12px */
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+.shortcut-row .select-input {
+    height: 3rem; /* 48px */
+    font-size: 0.875rem; /* 14px */
+    padding-left: 0.75rem;
+}
+.shortcut-delete-btn {
+    height: 3rem;
+    width: 3rem;
+    border-radius: 0.5rem;
+    background-color: var(--btn-control-gray);
+    color: white;
+    font-weight: 700;
+    font-size: 1.25rem;
+    transition: background-color 0.2s;
+}
+.shortcut-delete-btn:hover {
+    background-color: #dc2626; /* btn-control-red */
+}
+
+/* ---------------------------------- */
+/* --- CAMERA CALIBRATION --- */
+/* ---------------------------------- */
+#camera-feed-container {
+    position: relative;
+    width: 100%;
+    margin: 0 auto;
+    background-color: #000;
+    aspect-ratio: 4 / 3; /* Give it a default shape */
+}
+
+#camera-feed {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain; /* Fit video within the container */
+}
+
+.calibration-grid-container {
+    position: absolute;
+    /* top, left, width, height will be set by JS */
+    border: 2px dashed #ff0000;
+    cursor: move;
+    display: grid;
+    background-color: rgba(255, 0, 0, 0.05);
+    resize: both; /* Allows user to resize the container */
+    overflow: hidden; /* Important for resize */
+    z-index: 10;
+    box-shadow: 0 0 15px 5px rgba(255, 0, 0, 0.5);
+    /* display: none; */ /* <-- REMOVED THIS LINE */
+}
+
+/* Specific grid layouts */
+#grid-9key {
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+}
+#grid-12key {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+}
+
+
+.calibration-box {
+    border: 1px solid rgba(255, 0, 0, 0.5);
+    background-color: rgba(255, 255, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem; /* Smaller font for 12-key */
+    font-weight: bold;
+    color: rgba(255, 0, 0, 0.7);
+    user-select: none;
+    text-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+
+/* Add a visual indicator for an active detection box */
+.calibration-box.flash-detected {
+    background-color: rgba(0, 255, 0, 0.8) !important;
+    color: #000;
+    transition: background-color 0.05s;
+}
+
+
+#camera-modal-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* ---------------------------------- */
+/* --- AUTO-INPUT MASTER BUTTONS --- */
+/* ---------------------------------- */
+.auto-input-btn {
+    background-color: var(--btn-control-gray);
+    color: white;
+    font-size: 1.8rem; /* 2xl */
+}
+.auto-input-btn:active {
+    background-color: var(--btn-control-gray-active);
+    transform: scale(0.95);
+}
+.auto-input-btn.master-active {
+    background-color: #10b981 !important; /* btn-control-green */
+    box-shadow: 0 0 15px 5px rgba(16, 185, 129, 0.7);
+    transform: scale(1.05);
+}

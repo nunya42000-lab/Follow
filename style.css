@@ -19,8 +19,8 @@ body {
     color: var(--text-color);
     margin: 0;
     padding: 0;
-    overflow: hidden; /* Prevents bouncing */
-    -webkit-user-select: none; /* Prevents text selection on tap */
+    overflow: hidden; 
+    -webkit-user-select: none; 
     user-select: none;
 }
 
@@ -29,7 +29,7 @@ body {
     flex-direction: column;
     width: 100vw;
     height: 100vh;
-    max-width: 450px; /* Constrain width for mobile layout */
+    max-width: 450px; 
     margin: 0 auto;
     border: 1px solid var(--border-color);
     box-sizing: border-box;
@@ -42,7 +42,7 @@ hr {
 
 /* --- Display Area --- */
 #display-area {
-    flex: 1; /* Takes up available space */
+    flex: 1; 
     background: var(--display-bg);
     padding: 10px;
     border-bottom: 1px solid var(--border-color);
@@ -56,13 +56,13 @@ hr {
     font-size: 2rem;
     padding: 10px;
     box-sizing: border-box;
-    word-wrap: break-word; /* Wraps long sequences */
+    word-wrap: break-word; 
 }
 
 /* --- Keypad Area --- */
 #keypad-area {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3-column grid */
+    grid-template-columns: repeat(3, 1fr); 
     gap: 5px;
     padding: 10px;
     background-color: var(--nav-bg);
@@ -81,10 +81,9 @@ hr {
 }
 
 .keypad-btn:active {
-    background-color: var(--accent-color); /* Feedback on tap */
+    background-color: var(--accent-color); 
 }
 
-/* Different color for number buttons */
 .num-btn {
     background-color: var(--button-num-bg);
 }
@@ -92,7 +91,6 @@ hr {
     background-color: var(--button-num-hover);
 }
 
-/* Span buttons across grid */
 #numButton10 { grid-column: span 1; }
 #playButton { grid-column: span 1; }
 #deleteButton { grid-column: span 1; }
@@ -105,7 +103,7 @@ hr {
 }
 
 .tab-link {
-    flex: 1; /* Each tab takes equal space */
+    flex: 1; 
     padding: 15px 10px;
     background-color: var(--nav-bg);
     border: none;
@@ -127,14 +125,14 @@ hr {
 
 /* --- Tab Content Area --- */
 #tab-content-area {
-    flex: 2; /* Gives tabs more space than the display */
+    flex: 2; 
     padding: 15px;
     background-color: var(--tab-bg);
-    overflow-y: auto; /* Allow scrolling within tabs */
+    overflow-y: auto; 
 }
 
 .tab-content {
-    display: none; /* Hidden by default */
+    display: none; 
 }
 
 .tab-content h2, .tab-content h3 {
@@ -161,32 +159,28 @@ hr {
     flex-basis: 50%;
 }
 
-/* Form elements */
 input[type="text"],
 input[type="number"],
 select {
-    width: 100%; /* Make inputs/selects use available space */
+    width: 100%; 
     padding: 8px;
     background-color: var(--button-bg);
     border: 1px solid var(--border-color);
     color: var(--text-color);
     border-radius: 4px;
-    box-sizing: border-box; /* Fixes padding issues */
+    box-sizing: border-box; 
 }
 
-/* Style the setting-item's children */
 .setting-item > *:not(label) {
     flex-basis: 45%;
 }
 
-/* Checkbox needs special alignment */
 input[type="checkbox"] {
     width: 24px;
     height: 24px;
-    flex-basis: auto; /* Don't force width */
+    flex-basis: auto; 
 }
 
-/* Buttons inside settings */
 #settings button, #main-controls button {
     padding: 10px 15px;
     background-color: var(--accent-color);
@@ -195,6 +189,7 @@ input[type="checkbox"] {
     color: white;
     font-weight: bold;
     cursor: pointer;
+    margin-right: 5px; /* Added this from your previous update */
 }
 #settings button:hover, #main-controls button:hover {
     opacity: 0.8;
@@ -222,19 +217,46 @@ input[type="checkbox"] {
 .shortcut-item select {
     flex-basis: 55%;
 }
-/* --- [NEW] Camera Listener Styles --- */
 
-#cam-status-light {
+/* --- Audio Listener Styles --- */
+#mic-status-light {
     width: 20px;
     height: 20px;
-    background-color: var(--button-bg); /* Off by default */
+    background-color: var(--button-bg); 
     border-radius: 50%;
     border: 2px solid var(--border-color);
     margin-right: 15px;
 }
+#mic-status-light.listening {
+    background-color: #ff4136; 
+    box-shadow: 0 0 10px #ff4136;
+}
 
+/* --- Camera Listener Styles --- */
+#cam-status-light {
+    width: 20px;
+    height: 20px;
+    background-color: var(--button-bg); 
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    margin-right: 15px;
+}
 #cam-status-light.listening {
-    background-color: #007bff; /* Blue "armed" light */
+    background-color: #007bff; 
     box-shadow: 0 0 10px #007bff;
 }
 
+/* --- [NEW] Active State Styles --- */
+
+/* Style for active mode buttons */
+#main-controls button.active {
+    background-color: #28a745; /* Green */
+    box-shadow: 0 0 8px #28a745;
+}
+
+/* Style for active Play (Autoplay) button */
+.keypad-btn#playButton.active {
+    background-color: #28a745; /* Green */
+    color: white;
+    box-shadow: 0 0 8px #28a745;
+}

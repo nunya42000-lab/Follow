@@ -4,8 +4,7 @@ import {
     MAX_MACHINES 
 } from './config.js';
 
-// REMOVED import from utils.js to break Circular Dependency
-// import { deepClone, deepMerge } from './utils.js'; 
+// FIX: Removed import from utils.js to break circular dependency
 
 export let appSettings = deepClone(DEFAULT_APP_SETTINGS);
 export let appState = {}; 
@@ -94,7 +93,7 @@ export function loadState() {
     }
 }
 
-// --- MOVED HELPERS (Internal use only now) ---
+// --- INTERNAL HELPERS (Moved here to prevent Circular Dependency) ---
 function deepClone(obj) {
     if (obj === null || typeof obj !== 'object') return obj;
     if (Array.isArray(obj)) return obj.map(deepClone);

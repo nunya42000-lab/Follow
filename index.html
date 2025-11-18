@@ -12,7 +12,7 @@
         
         <div id="display-area">
             <div id="main-sequence-display" class="sequence-box"></div>
-            </div>
+        </div>
 
         <div id="keypad-area">
             <button class="keypad-btn num-btn" id="numButton1">1</button>
@@ -39,9 +39,24 @@
 
             <div id="main-controls" class="tab-content" style="display: block;">
                 <h3>Main Controls</h3>
-                <button id="mode-standard">Standard Mode</button>
-                <button id="mode-stealth">Stealth Mode</button>
-                <button id="mode-rapid">Rapid Mode</button>
+                <div class="setting-item">
+                    <button id="mode-standard">Standard Mode</button>
+                    <button id="mode-stealth">Stealth Mode</button>
+                    <button id="mode-rapid">Rapid Mode</button>
+                </div>
+
+                <hr>
+                <h3>Auto Input</h3>
+                <div class="setting-item">
+                    <label>Microphone Listener:</label>
+                    <div id="mic-status-light"></div>
+                    <button id="toggle-listener-button">Arm</button>
+                </div>
+                <div class="setting-item">
+                    <label>Camera Listener:</label>
+                    <div id="cam-status-light"></div>
+                    <button id="toggle-cam-button">Arm</button>
+                </div>
             </div>
 
             <div id="settings" class="tab-content">
@@ -78,7 +93,7 @@
                     <input type="checkbox" id="setting-stealth-hidebuttons">
                 </div>
                 
-                </div>
+            </div>
 
             <div id="shortcuts" class="tab-content">
                 <h2>Shortcuts</h2>
@@ -107,7 +122,6 @@
                 evt.currentTarget.className += " active";
             }
         }
-        // Show the first tab by default
         document.addEventListener('DOMContentLoaded', () => {
             openTab(null, 'main-controls');
         });

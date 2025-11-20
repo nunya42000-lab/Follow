@@ -1,6 +1,6 @@
 // --- CACHE VERSION ---
 // Change this every time you update any file!
-const CACHE_NAME = 'follow-me-v14'; // <-- Changed to v13
+const CACHE_NAME = 'follow-me-v15'; // <-- Incremented
 // --- ---------------- ---
 
 const FILES_TO_CACHE = [
@@ -82,12 +82,7 @@ self.addEventListener('fetch', event => {
                     .catch(err => {
                         // 3. Network failed (user is offline)
                         console.warn('Service Worker: Fetch failed, user is likely offline.', err);
-                        // You could return a specific "offline.html" page here
                     });
-            })
-    );
-});
-         });
             })
     );
 });

@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Follow Me (Fusion)</title>
+    <meta name="theme-color" content="#4f46e5">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- CSS STYLES --- */
+        :root {
+            --bg-main: #1f2937;           
+            --bg-footer: #1f2937;         
+            --text-color: #ffffff;
+            --card-bg: #374151;           
+            --card-text: #ffffff;
+            --btn-control-gray: #6b7280;  
+            --btn-control-gray-active: #4b5563; 
+        }
+        .light {
+            --bg-main: #ffffff;           
+            --bg-footer: #ffffff;         
+            --text-color: #1f2937;
+            --card-bg: #e5e7eb;           
+            --card-text: #1f2937;
+            --btn-control-gray: #9ca3af; 
+            --btn-control-gray-active: #6b7280;
+        }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+        body.camera-active { background-color: transparent !important; }
+        body.camera-active #input-footer { background-color: rgba(31, 41, 55, 0.85); backdrop-filter: blur(10px); }
+        .shadow-text { text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        #input-footer { background-color: var(--bg-footer); }
+        .btn-input { color: var(--card-text); transition: all 0.15s ease-in-out; position: relative; font-weight: 700; border-radius: 9999px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); height: 64px; }
+        .btn-pad-number { background-color: var(--card-bg); font-size: 1.5rem; }
+        .btn-pad-number:active { transform: scale(0.95); background-color: var(--btn-control-gray-active); }
+        .btn-control { font-size: 1.8rem; height: 64px; border-radius: 9999px; color: var(--card-text); }
+        .master-active { background-color: #10b981 !important; box-shadow: 0 0 15px rgba(16, 185, 129, 0.5); border: 2px solid #ffffff; }
+        .key9-flash { background-color: #3b82f6; box-shadow: 0 0 15px 5px rgba(59, 130, 246, 0.7); transform: scale(1.05); }
+        
+        /* Piano */
+        #piano-keys { position: relative; display: flex; width: 100%; height: 200px; background-color: #333; }
+        .key-container { width: calc(100% / 7); position: relative; height: 100%; }
+        .piano-key-white { width: 100%; height: 100%; border: 1px solid #333; border-bottom: 2px solid #555; background-color: #fff; background-image: linear-gradient(to bottom, #ffffff, #f0f0f0); color: #1f2937; font-size: 1.6rem; padding-bottom: 15px; border-radius: 0 0 5px 5px; position: absolute; bottom: 0; left: 0; display: flex; align-items: flex-end; justify-content: center; }
+        .piano-key-white:active, .piano-key-white.flash { transform: translateY(2px); background-image: linear-gradient(to bottom, #ffea00, #ffe066); border-bottom: 2px solid #f0ad4e; }
+        .piano-key-black { height: 65%; width: 13%; background-color: #000; background-image: linear-gradient(to top, #111, #222); position: absolute; top: 0; z-index: 2; color: white; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; border-radius: 0 0 5px 5px; }
+        .black-1 { left: calc((100% / 7) * 1 - (13% / 2)); }
+        .black-2 { left: calc((100% / 7) * 2 - (13% / 2)); }
+        .black-3 { left: calc((100% / 7) * 4 - (13% / 2)); }
+        .black-4 { left: calc((100% / 7) * 5 - (13% / 2)); }
+        .black-5 { left: calc((100% / 7) * 6 - (13% / 2)); }
+
+        /* UI Elements */
+        .select-input { appearance: none; background-color: #fff; color: #1f2937; border: 1px solid #d1d5db; border-radius: 0.5rem; }
+        .dark .select-input { background-color: #374151; color: #fff; border-color: #4b5563; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 0.5rem; background: #e5e7eb; border-radius: 9999px; outline: none; }
+        .dark input[type="range"] { background: #4b5563; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 1.25rem; height: 1.25rem; background: #4f46e5; border-radius: 9999px; cursor: pointer; }
+        .tab-button { padding: 0.5rem 0.75rem; font-weight: 600; color: #6b7280; border-bottom: 3px solid transparent; }
+        .tab-button.active-tab { color: #4f46e5; border-bottom-color: #4f46e5; }
+        .dark .tab-button { color: #9ca3af; }
+        .dark .tab-button.active-tab { color: #4f46e5; }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-app': '#4f46e5', 'secondary-app': '#6366f1', 'accent-app': '#a5b4fc',
+                        'btn-control-red': '#dc2626', 'btn-control-blue': '#2563eb', 'btn-control-green': '#10b981', 
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="dark min-h-screen flex flex-col font-sans p-4 relative overflow-x-hidden">
+
+    <div id="sensor-layer" class="fixed inset-0 z-0 hidden pointer-events-none">
+        <video id="cam-feed" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover opacity-80"></video>
+        <canvas id="proc-canvas" class="hidden"></canvas>
+    </div>
+
+    <div id="game-setup-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 text-gray-900 dark:text-white max-h-[90vh] flex flex-col relative">
+            <h3 class="text-2xl font-bold mb-4 text-center border-b dark:border-gray-700 pb-3">👋 Quick Start</h3>
+            <div class="absolute top-6 left-6 z-10">
+                <label class="block text-center text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Resize</label>
+                <div class="flex space-x-2">
+                    <button id="global-resize-down" class="px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded-md text-lg font-bold hover:bg-gray-300 dark:hover:bg-gray-500">-</button>
+                    <button id="global-resize-up" class="px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded-md text-lg font-bold hover:bg-gray-300 dark:hover:bg-gray-500">+</button>
+                </div>
+            </div>
+            <div class="overflow-y-auto py-4 px-1 mt-8">
+                <div class="mb-6">
+                    <label class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Select Profile</label>
+                    <select id="quick-config-select" class="select-input w-full h-12 px-4 py-2 text-lg font-semibold"></select>
+                </div>
+                <div class="mb-8 grid grid-cols-2 gap-6">
+                    <div class="flex items-center justify-between">
+                        <label class="text-gray-700 dark:text-gray-300 text-lg font-semibold">Autoplay</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="quick-autoplay-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:bg-primary-app peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label class="text-gray-700 dark:text-gray-300 text-lg font-semibold">Audio</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="quick-audio-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:bg-primary-app peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                        </label>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                     <button data-action="open-help" class="w-full px-6 py-3 text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors font-semibold text-lg flex items-center justify-center">Help</button>
+                     <button data-action="open-settings" class="w-full px-6 py-3 text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors font-semibold text-lg flex items-center justify-center">Settings</button>
+                </div>
+            </div>
+            <div class="flex justify-between items-center pt-4 border-t dark:border-gray-700">
+                <label class="flex items-center text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+                    <input type="checkbox" id="dont-show-welcome-toggle" class="mr-2 h-4 w-4"> Don't show again
+                </label>
+                <button id="close-game-setup-modal" class="px-6 py-2 text-white bg-primary-app rounded-lg hover:bg-secondary-app font-semibold">Get Started!</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full m-4 transform scale-90 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-hidden">
+            <div class="p-6 pb-0 relative">
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white pb-3">Preferences ⚙️</h3>
+                <div class="border-b border-gray-200 dark:border-gray-700">
+                    <nav id="settings-tab-nav" class="flex space-x-2">
+                        <button data-tab="profile" class="tab-button active-tab">Profile</button>
+                        <button data-tab="sensors" class="tab-button">Sensors</button>
+                        <button data-tab="system" class="tab-button">System</button>
+                    </nav>
+                </div>
+            </div>
+            <div class="overflow-y-auto flex-grow content-container">
+                <div id="settings-tab-profile" class="settings-tab-content p-6">
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg mb-6">
+                        <h5 class="text-sm font-bold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider">Manage Profiles</h5>
+                        <div class="mb-3">
+                            <select id="settings-config-select" class="select-input w-full h-10 px-3 text-sm font-semibold"></select>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="config-add" class="flex-1 py-2 text-sm text-white bg-btn-control-blue rounded hover:bg-btn-control-blue-active font-semibold">New</button>
+                            <button id="config-rename" class="flex-1 py-2 text-sm text-gray-700 dark:text-gray-200 bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400 dark:hover:bg-gray-500 font-semibold">Rename</button>
+                            <button id="config-delete" class="flex-1 py-2 text-sm text-white bg-btn-control-red rounded hover:bg-btn-control-red-active font-semibold">Delete</button>
+                        </div>
+                        <p class="text-center text-xs text-gray-500 mt-2">Status: <span class="font-bold text-primary-app" id="active-profile-name">Default</span></p>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Input Type</label>
+                        <select id="input-select" class="select-input w-full h-12 px-4 py-2 text-lg font-semibold">
+                            <option value="key9">9-Key</option>
+                            <option value="key12">12-Key</option>
+                            <option value="piano">Piano</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center justify-between mb-6">
+                        <label for="mode-toggle" class="text-gray-700 dark:text-gray-300 text-lg font-semibold">Game Mode (Unique)</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="mode-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:bg-primary-app peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                        </label>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Machines</label>
+                        <input type="range" id="machines-slider" min="1" max="4" value="1" class="w-full">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Sequence Length</label>
+                        <input type="range" id="sequence-length-slider" min="15" max="25" value="20" step="5" class="w-full">
+                    </div>
+                </div>
+                <div id="settings-tab-sensors" class="settings-tab-content p-6 hidden">
+                    <div class="mb-6 pt-2 border-b border-gray-200 dark:border-gray-700 pb-6">
+                        <label class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Auto Input Mode</label>
+                        <div class="flex items-center space-x-2">
+                             <input type="range" id="auto-input-slider" min="0" max="3" value="0" step="1" class="w-full">
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 px-1 mt-1 font-mono">
+                            <span>OFF</span>
+                            <span>TONE</span>
+                            <span>PATT</span>
+                            <span>FUSION</span>
+                        </div>
+                        <p id="auto-input-desc" class="text-sm text-gray-500 dark:text-gray-400 mt-2 text-center italic">Disabled</p>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Mic Gain</label>
+                        <div class="flex items-center space-x-2">
+                             <span class="text-xs text-gray-500">Low</span>
+                             <input type="range" id="mic-sens-slider" min="-100" max="-40" value="-85" class="w-full">
+                             <span class="text-xs text-gray-500">High</span>
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Camera Motion</label>
+                         <div class="flex items-center space-x-2">
+                             <span class="text-xs text-gray-500">Loose</span>
+                             <input type="range" id="cam-sens-slider" min="10" max="80" value="30" class="w-full">
+                             <span class="text-xs text-gray-500">Strict</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="settings-tab-system" class="settings-tab-content p-6 hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <label class="text-gray-700 dark:text-gray-300 text-lg font-semibold">Autoplay</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="settings-autoplay-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:bg-primary-app peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between mb-6">
+                        <label class="text-gray-700 dark:text-gray-300 text-lg font-semibold">Audio Feedback</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="settings-audio-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:bg-primary-app peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between mb-6">
+                        <label class="text-gray-700 dark:text-gray-300 text-lg font-semibold">Dark Mode</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="dark-mode-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:bg-primary-app peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-between">
+                <button data-action="restore-defaults" class="text-red-500 font-bold">Reset App</button>
+                <button id="close-settings" class="bg-gray-500 text-white px-4 py-2 rounded-lg">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="help-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full m-4 transform scale-90 transition-transform duration-300 flex flex-col max-h-[90vh]">
+            <div class="p-6"><h3 class="text-2xl font-bold text-gray-900 dark:text-white pb-3">Instructions</h3><p class="text-gray-700 dark:text-gray-300">Enable input modes via the slider in Settings > Sensors.</p></div>
+            <div class="p-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end"><button id="close-help" class="bg-primary-app text-white px-6 py-2 rounded-lg">Got it!</button></div>
+        </div>
+    </div>
+
+    <div id="app" class="max-w-7xl w-full mx-auto flex flex-col flex-grow z-10 relative">
+        <main id="sequence-container" class="flex-grow mb-6 transition-all duration-300 pt-1"></main>
+
+        <footer id="input-footer" class="sticky bottom-0 left-0 right-0 p-4 rounded-xl shadow-2xl border-t-4 border-primary-app backdrop-blur-md bg-opacity-90">
+            <div id="pad-key9" class="max-w-xs mx-auto">
+                <div class="grid grid-cols-3 gap-3 mb-3">
+                    <button data-value="1" class="btn-input btn-pad-number">1</button>
+                    <button data-value="2" class="btn-input btn-pad-number">2</button>
+                    <button data-value="3" class="btn-input btn-pad-number">3</button>
+                    <button data-value="4" class="btn-input btn-pad-number">4</button>
+                    <button data-value="5" class="btn-input btn-pad-number">5</button>
+                    <button data-value="6" class="btn-input btn-pad-number">6</button>
+                    <button data-value="7" class="btn-input btn-pad-number">7</button>
+                    <button data-value="8" class="btn-input btn-pad-number">8</button>
+                    <button data-value="9" class="btn-input btn-pad-number">9</button>
+                </div>
+                <div class="grid grid-cols-5 gap-3">
+                    <button data-action="play-demo" class="btn-input btn-control !bg-primary-app text-2xl">▶</button> 
+                    <button data-action="toggle-camera" class="btn-input btn-control auto-input-btn camera-btn hidden">📷</button>
+                    <button data-action="toggle-mic" class="btn-input btn-control auto-input-btn mic-btn hidden">🎤</button>
+                    <button data-action="backspace" class="btn-input btn-control text-2xl">&larr;</button>
+                    <button data-action="open-settings" class="btn-input btn-control !bg-primary-app text-2xl">⚙️</button>
+                </div>
+            </div>
+
+            <div id="pad-key12" class="max-w-md mx-auto hidden">
+                <div class="grid grid-cols-4 gap-3 mb-3">
+                     <button data-value="1" class="btn-input btn-pad-number">1</button>
+                     <button data-value="2" class="btn-input btn-pad-number">2</button>
+                     <button data-value="3" class="btn-input btn-pad-number">3</button>
+                     <button data-value="4" class="btn-input btn-pad-number">4</button>
+                     <button data-value="5" class="btn-input btn-pad-number">5</button>
+                     <button data-value="6" class="btn-input btn-pad-number">6</button>
+                     <button data-value="7" class="btn-input btn-pad-number">7</button>
+                     <button data-value="8" class="btn-input btn-pad-number">8</button>
+                     <button data-value="9" class="btn-input btn-pad-number">9</button>
+                     <button data-value="10" class="btn-input btn-pad-number">10</button>
+                     <button data-value="11" class="btn-input btn-pad-number">11</button>
+                     <button data-value="12" class="btn-input btn-pad-number">12</button>
+                </div>
+                <div class="grid grid-cols-5 gap-3">
+                    <button data-action="play-demo" class="btn-input btn-control !bg-primary-app text-2xl">▶</button> 
+                    <button data-action="toggle-camera" class="btn-input btn-control auto-input-btn camera-btn hidden">📷</button>
+                    <button data-action="toggle-mic" class="btn-input btn-control auto-input-btn mic-btn hidden">🎤</button>
+                    <button data-action="backspace" class="btn-input btn-control text-2xl">&larr;</button>
+                    <button data-action="open-settings" class="btn-input btn-control !bg-primary-app text-2xl">⚙️</button>
+                </div>
+            </div>
+
+             <div id="pad-piano" class="max-w-xl mx-auto hidden pt-0 pb-4">
+                <div id="piano-keys" class="relative h-48 w-full bg-gray-200 rounded-md shadow-inner overflow-hidden mb-4">
+                    <div class="flex h-full w-full">
+                        <div class="key-container"><button data-value="C" class="piano-key-white btn-input">C</button></div>
+                        <div class="key-container"><button data-value="D" class="piano-key-white btn-input">D</button></div>
+                        <div class="key-container"><button data-value="E" class="piano-key-white btn-input">E</button></div>
+                        <div class="key-container"><button data-value="F" class="piano-key-white btn-input">F</button></div>
+                        <div class="key-container"><button data-value="G" class="piano-key-white btn-input">G</button></div>
+                        <div class="key-container"><button data-value="A" class="piano-key-white btn-input">A</button></div>
+                        <div class="key-container"><button data-value="B" class="piano-key-white btn-input">B</button></div>
+                    </div>
+                    <button data-value="1" class="piano-key-black btn-input black-1">1</button>
+                    <button data-value="2" class="piano-key-black btn-input black-2">2</button>
+                    <button data-value="3" class="piano-key-black btn-input black-3">3</button>
+                    <button data-value="4" class="piano-key-black btn-input black-4">4</button>
+                    <button data-value="5" class="piano-key-black btn-input black-5">5</button>
+                </div>
+                <div class="grid grid-cols-5 gap-3 max-w-sm mx-auto">
+                    <button data-action="play-demo" class="btn-input btn-control !bg-primary-app text-2xl">▶</button> 
+                    <button data-action="toggle-camera" class="btn-input btn-control auto-input-btn camera-btn hidden">📷</button>
+                    <button data-action="toggle-mic" class="btn-input btn-control auto-input-btn mic-btn hidden">🎤</button>
+                    <button data-action="backspace" class="btn-input btn-control text-2xl">&larr;</button>
+                    <button data-action="open-settings" class="btn-input btn-control !bg-primary-app text-2xl">⚙️</button>
+                </div>
+            </div>
+        </footer>
+    </div>
+    <div id="toast-notification" class="fixed top-20 left-1/2 -translate-x-1/2 bg-primary-app text-white px-6 py-3 rounded-xl shadow-lg z-[99] transition-all duration-300 opacity-0 transform -translate-y-10">
+        <span id="toast-message"></span>
+    </div>
+
+    <script>
+        // --- SENSOR ENGINE (Inlined) ---
+        class SensorEngine {
+            constructor(onTrigger, onStatusUpdate) {
+                this.onTrigger = onTrigger;       
+                this.onStatusUpdate = onStatusUpdate; 
+                this.COLORS = [
+                    { n: 3, hue: 0,   range: 12, satMin: 0.5 }, { n: 9, hue: 30,  range: 15, satMin: 0.5 },
+                    { n: 4, hue: 60,  range: 20, satMin: 0.4 }, { n: 5, hue: 120, range: 30, satMin: 0.3 },
+                    { n: 6, hue: 180, range: 25, satMin: 0.3 }, { n: 2, hue: 240, range: 25, satMin: 0.4 },
+                    { n: 1, hue: 275, range: 20, satMin: 0.3 }, { n: 8, hue: 315, range: 25, satMin: 0.3 },
+                ];
+                this.TONES = [
+                    { n: 1, f: 261 }, { n: 2, f: 293 }, { n: 3, f: 329 },
+                    { n: 4, f: 349 }, { n: 5, f: 392 }, { n: 6, f: 440 },
+                    { n: 7, f: 493 }, { n: 8, f: 523 }, { n: 9, f: 587 }
+                ];
+                this.isActive = false;
+                this.mode = { audio: false, camera: false };
+                this.lastTriggerTime = 0;
+                this.COOLDOWN = 600;
+                this.loopId = null;
+                this.audioCtx = null;
+                this.analyser = null;
+                this.micSrc = null;
+                this.audioThresh = -85;
+                this.videoEl = null;
+                this.canvasEl = null;
+                this.ctx = null;
+                this.prevFrame = null;
+                this.motionThresh = 30;
+                this.isFlashing = false;
+                this.flashFrames = 0;
+                this.peakBrightness = 0;
+                this.peakColorData = null;
+            }
+            setupDOM(videoElement, canvasElement) {
+                this.videoEl = videoElement;
+                this.canvasEl = canvasElement;
+                if (this.canvasEl) {
+                    this.ctx = this.canvasEl.getContext('2d', { willReadFrequently: true });
+                }
+            }
+            async toggleAudio(enable) {
+                this.mode.audio = enable;
+                if (enable && !this.audioCtx) {
+                    try {
+                        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        this.analyser = this.audioCtx.createAnalyser();
+                        this.analyser.fftSize = 8192;
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        this.micSrc = this.audioCtx.createMediaStreamSource(stream);
+                        this.micSrc.connect(this.analyser);
+                        this.onStatusUpdate("Audio Active");
+                    } catch (e) {
+                        console.error("Audio Init Failed", e);
+                        this.mode.audio = false;
+                    }
+                } else if (!enable && this.audioCtx && this.audioCtx.state === 'running') {
+                    this.audioCtx.suspend();
+                } else if (enable && this.audioCtx && this.audioCtx.state === 'suspended') {
+                    this.audioCtx.resume();
+                }
+                this.checkLoop();
+            }
+            async toggleCamera(enable) {
+                this.mode.camera = enable;
+                if (enable && !this.videoEl.srcObject) {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                        this.videoEl.srcObject = stream;
+                        this.videoEl.onloadedmetadata = () => { if (this.canvasEl) { this.canvasEl.width = 64; this.canvasEl.height = 64; } };
+                        this.onStatusUpdate("Camera Active");
+                    } catch (e) {
+                        console.error("Camera Init Failed", e);
+                        this.mode.camera = false;
+                    }
+                } else if (!enable && this.videoEl.srcObject) {
+                    const tracks = this.videoEl.srcObject.getTracks();
+                    tracks.forEach(t => t.stop());
+                    this.videoEl.srcObject = null;
+                }
+                this.checkLoop();
+            }
+            checkLoop() {
+                const shouldRun = this.mode.audio || this.mode.camera;
+                if (shouldRun && !this.isActive) { this.isActive = true; this.loop(); } 
+                else if (!shouldRun) { this.isActive = false; if (this.loopId) cancelAnimationFrame(this.loopId); }
+            }
+            loop() {
+                if (!this.isActive) return;
+                if (this.mode.audio) this.processAudio();
+                if (this.mode.camera) this.processCamera();
+                this.loopId = requestAnimationFrame(() => this.loop());
+            }
+            processAudio() {
+                if (!this.analyser) return;
+                const buffer = new Float32Array(this.analyser.frequencyBinCount);
+                this.analyser.getFloatFrequencyData(buffer);
+                let maxVal = -Infinity, maxIdx = -1;
+                const hzPerBin = this.audioCtx.sampleRate / 2 / buffer.length;
+                const startBin = Math.floor(200 / hzPerBin);
+                const endBin = Math.floor(700 / hzPerBin);
+                for (let i = startBin; i < endBin; i++) { if (buffer[i] > maxVal) { maxVal = buffer[i]; maxIdx = i; } }
+                if (maxVal > this.audioThresh) {
+                    const freq = maxIdx * hzPerBin;
+                    const match = this.TONES.find(t => Math.abs(t.f - freq) < (t.f * 0.04));
+                    if (match) this.trigger(match.n, 'audio');
+                }
+            }
+            processCamera() {
+                if (!this.videoEl || !this.videoEl.videoWidth || !this.ctx) return;
+                this.ctx.drawImage(this.videoEl, 0, 0, this.canvasEl.width, this.canvasEl.height);
+                const frame = this.ctx.getImageData(0, 0, this.canvasEl.width, this.canvasEl.height);
+                const data = frame.data;
+                if (!this.prevFrame) { this.prevFrame = new Uint8ClampedArray(data); return; }
+                let diffScore = 0, rSum = 0, gSum = 0, bSum = 0, pxCount = 0;
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i], g = data[i+1], b = data[i+2];
+                    const diff = Math.abs(r - this.prevFrame[i]) + Math.abs(g - this.prevFrame[i+1]) + Math.abs(b - this.prevFrame[i+2]);
+                    if (diff > this.motionThresh * 3) { diffScore++; rSum += r; gSum += g; bSum += b; pxCount++; }
+                }
+                this.prevFrame.set(data);
+                if (diffScore > 20) {
+                    this.isFlashing = true; this.flashFrames++;
+                    const avgR = rSum/pxCount, avgG = gSum/pxCount, avgB = bSum/pxCount;
+                    const brightness = (avgR+avgG+avgB)/3;
+                    const [h, s, l] = this.rgbToHsl(avgR, avgG, avgB);
+                    const quality = brightness * (s + 0.5);
+                    if (quality > this.peakBrightness) { this.peakBrightness = quality; this.peakColorData = { h: Math.round(h * 360), s, l }; }
+                } else {
+                    if (this.isFlashing) {
+                        if (this.flashFrames > 2 && this.peakColorData) this.identifyColor(this.peakColorData);
+                        this.isFlashing = false; this.flashFrames = 0; this.peakBrightness = 0; this.peakColorData = null;
+                    }
+                }
+            }
+            identifyColor(data) {
+                const { h, s } = data;
+                if (s < 0.25) { this.trigger(7, 'camera-white'); return; } 
+                if (h > 350 || h < 10) { this.trigger(3, 'camera'); return; } 
+                const match = this.COLORS.find(c => (h >= c.hue - c.range && h <= c.hue + c.range));
+                if (match) this.trigger(match.n, 'camera');
+            }
+            trigger(num, source) {
+                const now = Date.now();
+                if (now - this.lastTriggerTime < this.COOLDOWN) return;
+                this.lastTriggerTime = now;
+                this.onTrigger(num, source);
+            }
+            rgbToHsl(r, g, b) {
+                r /= 255, g /= 255, b /= 255;
+                const max = Math.max(r, g, b), min = Math.min(r, g, b);
+                let h, s, l = (max + min) / 2;
+                if (max == min) { h = s = 0; } else {
+                    const d = max - min;
+                    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                    switch (max) {
+                        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                        case g: h = (b - r) / d + 2; break;
+                        case b: h = (r - g) / d + 4; break;
+                    }
+                    h /= 6;
+                }
+                return [h, s, l];
+            }
+        }
+
+        // --- APP LOGIC ---
+        const SETTINGS_KEY = 'followMeSettings_Monolith';
+        const STATE_KEY = 'followMeState_Monolith';
+        const MODES = { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' };
+        const INPUTS = { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' };
+        const AUTO_INPUT = { OFF: '0', TONE: '1', PATTERN: '2', FUSION: '3' };
+        const MAX_MACHINES = 4;
+
+        let appSettings = {
+            globalUiScale: 100, isDarkMode: true, showWelcomeScreen: true, activeProfileId: 'profile_1',
+            profiles: { 'profile_1': { name: "Default", settings: {
+                currentInput: 'key9', currentMode: 'simon', sequenceLength: 20, machineCount: 1,
+                isAutoplayEnabled: true, isAudioEnabled: true, isHapticsEnabled: true,
+                autoInputMode: '0'
+            }}}
+        };
+        let appState = { 'profile_1': { sequences: [[]], nextSequenceIndex: 0, currentRound: 1 } };
+        let els = {}, sensorEngine = null, isCameraOn = false, isMicOn = false;
+
+        function assignDomElements() {
+            els = {
+                seqContainer: document.getElementById('sequence-container'),
+                toast: document.getElementById('toast-notification'),
+                toastMsg: document.getElementById('toast-message'),
+                settingsModal: document.getElementById('settings-modal'),
+                setupModal: document.getElementById('game-setup-modal'),
+                helpModal: document.getElementById('help-modal'),
+                pads: { key9: document.getElementById('pad-key9'), key12: document.getElementById('pad-key12'), piano: document.getElementById('pad-piano') },
+                camBtns: document.querySelectorAll('.camera-btn'),
+                micBtns: document.querySelectorAll('.mic-btn'),
+                activeProfileName: document.getElementById('active-profile-name')
+            };
+        }
+
+        function loadState() {
+            try {
+                const s = localStorage.getItem(SETTINGS_KEY);
+                const st = localStorage.getItem(STATE_KEY);
+                if (s) appSettings = JSON.parse(s);
+                if (st) appState = JSON.parse(st);
+            } catch(e) {}
+        }
+
+        function saveState() {
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings));
+            localStorage.setItem(STATE_KEY, JSON.stringify(appState));
+        }
+
+        function getSettings() { return appSettings.profiles[appSettings.activeProfileId].settings; }
+        function getState() { 
+            if (!appState[appSettings.activeProfileId]) appState[appSettings.activeProfileId] = { sequences: [[]], nextSequenceIndex: 0, currentRound: 1 };
+            return appState[appSettings.activeProfileId];
+        }
+
+        function addValue(value, source = 'manual') {
+            if (source === 'manual' && navigator.vibrate && getSettings().isHapticsEnabled) navigator.vibrate(10);
+            const state = getState();
+            const settings = getSettings();
+            
+            let targetIndex = 0;
+            if (settings.currentMode === MODES.UNIQUE_ROUNDS) {
+                if (state.sequences[0].length >= state.currentRound) return;
+            } else {
+                targetIndex = state.nextSequenceIndex % settings.machineCount;
+                if (!state.sequences[targetIndex]) state.sequences[targetIndex] = [];
+                if (state.sequences[targetIndex].length >= settings.sequenceLength) return;
+            }
+
+            state.sequences[targetIndex].push(String(value));
+            state.nextSequenceIndex++;
+            renderSequences();
+            saveState();
+
+            if (source !== 'manual') {
+                showToast(`Detected: ${value}`);
+                const btn = document.querySelector(`button[data-value="${value}"]`);
+                if (btn) { btn.classList.add('key9-flash'); setTimeout(() => btn.classList.remove('key9-flash'), 200); }
+            }
+
+            if (settings.isAutoplayEnabled) {
+                if (settings.currentMode === MODES.UNIQUE_ROUNDS && state.sequences[0].length === state.currentRound) setTimeout(playDemo, 200);
+                else if (settings.currentMode === MODES.SIMON && (state.nextSequenceIndex - 1) % settings.machineCount === settings.machineCount - 1) setTimeout(playDemo, 200);
+            }
+        }
+
+        function handleBackspace() {
+            if (navigator.vibrate) navigator.vibrate(15);
+            const state = getState();
+            if (state.nextSequenceIndex === 0) return;
+            const settings = getSettings();
+            let targetIndex = (settings.currentMode === MODES.UNIQUE_ROUNDS) ? 0 : (state.nextSequenceIndex - 1) % settings.machineCount;
+            if (state.sequences[targetIndex] && state.sequences[targetIndex].length > 0) {
+                state.sequences[targetIndex].pop();
+                state.nextSequenceIndex--;
+                renderSequences();
+                saveState();
+            }
+        }
+
+        function renderSequences() {
+            const state = getState();
+            const settings = getSettings();
+            if (!els.seqContainer) return;
+            els.seqContainer.innerHTML = '';
+            const activeSeqs = (settings.currentMode === MODES.UNIQUE_ROUNDS) ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);
+            
+            if (settings.currentMode === MODES.UNIQUE_ROUNDS) {
+                const h = document.createElement('div');
+                h.className = "text-center text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100 col-span-full shadow-text";
+                h.innerText = `Round: ${state.currentRound}`;
+                els.seqContainer.appendChild(h);
+            }
+
+            activeSeqs.forEach((seq, idx) => {
+                const d = document.createElement('div');
+                d.className = "p-4 rounded-xl shadow-md bg-white/90 dark:bg-gray-700/90 min-h-[100px]";
+                d.innerHTML = `<div class="flex flex-wrap gap-2">${(seq || []).map(val => `<span class="bg-secondary-app text-white rounded-xl w-10 h-10 flex items-center justify-center font-bold">${val}</span>`).join('')}</div>`;
+                els.seqContainer.appendChild(d);
+            });
+        }
+
+        function updateAllChrome() {
+            const settings = getSettings();
+            Object.values(els.pads).forEach(p => p.style.display = 'none');
+            if (settings.currentInput === 'key9') els.pads.key9.style.display = 'block';
+            if (settings.currentInput === 'key12') els.pads.key12.style.display = 'block';
+            if (settings.currentInput === 'piano') els.pads.piano.style.display = 'block';
+
+            document.body.className = appSettings.isDarkMode ? 'dark min-h-screen flex flex-col font-sans p-4 relative overflow-x-hidden' : 'light min-h-screen flex flex-col font-sans p-4 relative overflow-x-hidden';
+            if (isCameraOn) document.body.classList.add('camera-active');
+
+            // Update Toggles (Safe Checks)
+            const setCheck = (id, val) => { const e = document.getElementById(id); if(e) e.checked = val; };
+            const setVal = (id, val) => { const e = document.getElementById(id); if(e) e.value = val; };
+            
+            setCheck('quick-autoplay-toggle', settings.isAutoplayEnabled);
+            setCheck('settings-autoplay-toggle', settings.isAutoplayEnabled);
+            setCheck('quick-audio-toggle', settings.isAudioEnabled);
+            setCheck('settings-audio-toggle', settings.isAudioEnabled);
+            setCheck('mode-toggle', settings.currentMode === MODES.UNIQUE_ROUNDS);
+            setCheck('dark-mode-toggle', appSettings.isDarkMode);
+            
+            setVal('auto-input-slider', settings.autoInputMode);
+            setVal('input-select', settings.currentInput);
+            setVal('machines-slider', settings.machineCount);
+            setVal('sequence-length-slider', settings.sequenceLength);
+
+            renderSequences();
+            updateSensors();
+        }
+
+        function initSensors() {
+            sensorEngine = new SensorEngine((n, s) => addValue(n, s), (msg) => console.log(msg));
+            sensorEngine.setupDOM(document.getElementById('cam-feed'), document.getElementById('proc-canvas'));
+        }
+
+        function updateSensors() {
+            const mode = getSettings().autoInputMode;
+            const canCam = (mode === '2' || mode === '3');
+            const canMic = (mode === '1' || mode === '3');
+            els.camBtns.forEach(b => b.classList.toggle('hidden', !canCam));
+            els.micBtns.forEach(b => b.classList.toggle('hidden', !canMic));
+            if (!canCam && isCameraOn) toggleCamera();
+            if (!canMic && isMicOn) toggleMic();
+        }
+
+        function toggleCamera() {
+            isCameraOn = !isCameraOn;
+            sensorEngine.toggleCamera(isCameraOn);
+            els.camBtns.forEach(b => b.classList.toggle('master-active', isCameraOn));
+            document.body.classList.toggle('camera-active', isCameraOn);
+            const lay = document.getElementById('sensor-layer');
+            if(lay) isCameraOn ? lay.classList.remove('hidden') : lay.classList.add('hidden');
+        }
+
+        function toggleMic() {
+            isMicOn = !isMicOn;
+            sensorEngine.toggleAudio(isMicOn);
+            els.micBtns.forEach(b => b.classList.toggle('master-active', isMicOn));
+            if (isMicOn) showToast("Mic Active");
+        }
+
+        function speak(text) {
+            if (!getSettings().isAudioEnabled) return;
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.rate = 1.2;
+            window.speechSynthesis.speak(u);
+        }
+
+        function playDemo() {
+            const seq = getState().sequences[0];
+            if (!seq || seq.length === 0) return;
+            let i = 0;
+            const delay = 800;
+            function next() {
+                if (i >= seq.length) {
+                    if (getSettings().currentMode === MODES.UNIQUE_ROUNDS) {
+                        setTimeout(() => {
+                            getState().currentRound++;
+                            getState().sequences[0] = [];
+                            getState().nextSequenceIndex = 0;
+                            saveState(); renderSequences(); speak("Next Round");
+                        }, 500);
+                    }
+                    return;
+                }
+                const val = seq[i];
+                speak(val);
+                const btn = document.querySelector(`button[data-value="${val}"]`);
+                if (btn) { btn.classList.add('key9-flash'); setTimeout(() => btn.classList.remove('key9-flash'), 200); }
+                i++;
+                setTimeout(next, delay);
+            }
+            next();
+        }
+
+        function showToast(msg) {
+            els.toastMsg.innerText = msg;
+            els.toast.classList.remove('opacity-0', '-translate-y-10');
+            setTimeout(() => els.toast.classList.add('opacity-0', '-translate-y-10'), 2000);
+        }
+
+        function toggleModal(modal, show) {
+            if (!modal) return;
+            const c = modal.querySelector('div');
+            if (show) { modal.classList.remove('opacity-0', 'pointer-events-none'); if(c) c.classList.remove('scale-90'); }
+            else { if(c) c.classList.add('scale-90'); modal.classList.add('opacity-0'); setTimeout(() => modal.classList.add('pointer-events-none'), 300); }
+        }
+
+        function startApp() {
+            assignDomElements();
+            loadState();
+            updateAllChrome();
+            initSensors();
+
+            // Click Listeners
+            document.addEventListener('click', e => {
+                const btn = e.target.closest('button');
+                if (!btn) return;
+                const { action, value, tab } = btn.dataset;
+                
+                if (value) addValue(value);
+                if (action === 'backspace') handleBackspace();
+                if (action === 'toggle-camera') toggleCamera();
+                if (action === 'toggle-mic') toggleMic();
+                if (action === 'play-demo') playDemo();
+                if (action === 'open-settings') { updateAllChrome(); toggleModal(els.settingsModal, true); }
+                if (action === 'open-help') toggleModal(els.helpModal, true);
+                if (action === 'restore-defaults') { localStorage.clear(); location.reload(); }
+                
+                if (tab) {
+                    document.querySelectorAll('.settings-tab-content').forEach(t => t.classList.add('hidden'));
+                    document.getElementById(`settings-tab-${tab}`).classList.remove('hidden');
+                    document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active-tab'));
+                    btn.classList.add('active-tab');
+                }
+            });
+
+            // Setting Changes
+            const bindCheck = (id, key) => {
+                const el = document.getElementById(id);
+                if(el) el.onchange = (e) => { getSettings()[key] = e.target.checked; saveState(); updateAllChrome(); };
+            };
+            const bindVal = (id, key) => {
+                const el = document.getElementById(id);
+                if(el) el.oninput = (e) => { getSettings()[key] = e.target.value; saveState(); updateAllChrome(); }; // Use oninput for sliders
+                if(el && el.tagName === 'SELECT') el.onchange = (e) => { getSettings()[key] = e.target.value; saveState(); updateAllChrome(); };
+            };
+
+            bindCheck('quick-autoplay-toggle', 'isAutoplayEnabled');
+            bindCheck('settings-autoplay-toggle', 'isAutoplayEnabled');
+            bindCheck('quick-audio-toggle', 'isAudioEnabled');
+            bindCheck('settings-audio-toggle', 'isAudioEnabled');
+            
+            bindVal('auto-input-slider', 'autoInputMode');
+            bindVal('machines-slider', 'machineCount');
+            bindVal('sequence-length-slider', 'sequenceLength');
+            bindVal('input-select', 'currentInput');
+
+            // Special Cases
+            const modeT = document.getElementById('mode-toggle');
+            if(modeT) modeT.onchange = (e) => { getSettings().currentMode = e.target.checked ? MODES.UNIQUE_ROUNDS : MODES.SIMON; saveState(); updateAllChrome(); };
+
+            const darkT = document.getElementById('dark-mode-toggle');
+            if(darkT) darkT.onchange = (e) => { appSettings.isDarkMode = e.target.checked; saveState(); updateAllChrome(); };
+
+            // Modal Closers
+            ['close-settings', 'close-help', 'close-game-setup-modal'].forEach(id => {
+                const b = document.getElementById(id);
+                if(b) b.onclick = () => { 
+                    toggleModal(els.settingsModal, false); 
+                    toggleModal(els.helpModal, false); 
+                    toggleModal(els.setupModal, false);
+                };
+            });
+
+            if (appSettings.showWelcomeScreen) toggleModal(els.setupModal, true);
+        }
+
+        document.addEventListener('DOMContentLoaded', startApp);
+    </script>
+</body>
+</html>

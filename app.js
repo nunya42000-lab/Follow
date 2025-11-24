@@ -23,8 +23,8 @@ const CONFIG = {
     DEMO_DELAY_BASE_MS: 798,
     SPEED_DELETE_DELAY: 250,
     SPEED_DELETE_INTERVAL: 100,
-    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v14', 
-    STORAGE_KEY_STATE: 'followMeAppState_v14',
+    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v15', 
+    STORAGE_KEY_STATE: 'followMeAppState_v15',
     INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' },
     MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' }
 };
@@ -174,7 +174,6 @@ function initGestures() {
             
             if (appSettings.gestureResizeMode === 'sequence') {
                 let newScale = gestureState.startScale * ratio;
-                // Up to 300%
                 newScale = Math.min(Math.max(newScale, 0.5), 3.0); 
                 appSettings.uiScaleMultiplier = newScale;
                 renderUI(); 
@@ -379,16 +378,14 @@ function renderUI() {
     
     container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
     
-    // Detect Orientation for Grid Logic
+    // Detect Orientation
     const isLandscape = window.matchMedia("(orientation: landscape)").matches;
 
     activeSeqs.forEach((seq, idx) => {
         const card = document.createElement('div');
         card.className = "p-4 rounded-xl shadow-md bg-white dark:bg-gray-700 transition-all duration-200 min-h-[100px]";
         
-        // Internal Grid Logic
         const numGrid = document.createElement('div');
-        // Use Flex Wrap for landscape to fill space, Fixed Grid for portrait
         if(isLandscape) {
             numGrid.className = "flex flex-wrap gap-2 justify-center";
         } else {
@@ -398,8 +395,6 @@ function renderUI() {
         (seq || []).forEach(num => {
             const span = document.createElement('span');
             span.className = "number-box bg-secondary-app text-white rounded-lg shadow-sm flex items-center justify-center font-bold";
-            
-            // Apply Sequence Scale
             const scale = appSettings.uiScaleMultiplier || 1.0;
             span.style.width = (40 * scale) + 'px';
             span.style.height = (40 * scale) + 'px';
@@ -412,7 +407,7 @@ function renderUI() {
         container.appendChild(card);
     });
 
-    // 3. Update Auto Input Buttons
+    // 3. Update Buttons
     document.querySelectorAll('#mic-master-btn').forEach(btn => {
         btn.classList.toggle('hidden', !appSettings.showMicBtn);
         btn.classList.toggle('master-active', modules.sensor.mode.audio);
@@ -429,13 +424,22 @@ function renderUI() {
 }
 
 function updateAllChrome() {
+    // Apply Dark Mode Class
     document.body.classList.toggle('dark', appSettings.isDarkMode);
+    
+    // Background Logic
+    if(!appSettings.isDarkMode) {
+        document.body.classList.remove('bg-gray-900', 'text-white');
+        document.body.classList.add('bg-white', 'text-gray-900');
+    } else {
+        document.body.classList.add('bg-gray-900', 'text-white');
+        document.body.classList.remove('bg-white', 'text-gray-900');
+    }
+
     document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
     
-    // Handle resizing on orientation change
     window.removeEventListener('resize', renderUI);
     window.addEventListener('resize', renderUI);
-    
     renderUI();
 }
 
@@ -468,11 +472,12 @@ window.onload = function() {
                 updateAllChrome();
                 saveState();
             },
-            onProfileAdd: (name) => {
-                const id = 'p_' + Date.now();
-                appSettings.profiles[id] = { name, settings: { ...DEFAULT_PROFILE_SETTINGS } };
-                appState[id] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
-                appSettings.activeProfileId = id;
+            onProfileAdd: (name, settings = null, id = null) => {
+                const newId = id || 'p_' + Date.now();
+                const newSettings = settings || JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS));
+                appSettings.profiles[newId] = { name, settings: newSettings };
+                appState[newId] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
+                appSettings.activeProfileId = newId;
                 updateAllChrome();
                 saveState();
             },
@@ -486,11 +491,6 @@ window.onload = function() {
                 appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
                 updateAllChrome();
                 saveState();
-            },
-            onCustomSettingsChange: () => {
-                // Optional: Logic to rename profile to "Custom" if desired, 
-                // but user asked for it to say Custom. For now, we keep the name 
-                // but could append " (Custom)" in the dropdown display logic.
             },
             onRequestPermissions: () => {
                 if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
@@ -515,7 +515,7 @@ window.onload = function() {
                 timers.longPress = setTimeout(() => {
                     appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled;
                     showToast(`Autoplay: ${appSettings.isAutoplayEnabled ? 'ON' : 'OFF'}`);
-                    // Sync UI checkbox in SettingsManager if open
+                    // Sync UI
                     if(modules.settings && modules.settings.dom.autoplay) {
                         modules.settings.dom.autoplay.checked = appSettings.isAutoplayEnabled;
                         modules.settings.dom.quickAutoplay.checked = appSettings.isAutoplayEnabled;
@@ -538,12 +538,11 @@ window.onload = function() {
             if(confirm("Reset to Round 1?")) resetRounds();
         }));
         
-        // Speed Delete Fix
         document.querySelectorAll('button[data-action="backspace"]').forEach(b => {
-            b.addEventListener('click', handleBackspace); // Click handler
+            b.addEventListener('click', handleBackspace); 
             
             const startDelete = (e) => {
-                if(e.type === 'touchstart') e.preventDefault(); // Prevent ghost clicks
+                if(e.type === 'touchstart') e.preventDefault(); 
                 timers.initialDelay = setTimeout(() => {
                     timers.speedDelete = setInterval(handleBackspace, CONFIG.SPEED_DELETE_INTERVAL);
                 }, CONFIG.SPEED_DELETE_DELAY);
@@ -561,13 +560,11 @@ window.onload = function() {
             b.addEventListener('touchend', stopDelete);
         });
         
-        // Share & Settings
         document.querySelectorAll('button[data-action="open-share"]').forEach(b => {
             b.addEventListener('click', () => modules.settings.openShare());
         });
         document.querySelectorAll('button[data-action="open-settings"]').forEach(b => b.onclick = () => modules.settings.openSettings());
 
-        // Master Switch Logic
         document.addEventListener('click', (e) => {
             if(e.target.closest('#camera-master-btn')) {
                 const on = !modules.sensor.mode.camera;
@@ -587,7 +584,6 @@ window.onload = function() {
             }
         });
 
-        // Start Welcome Logic
         if(appSettings.showWelcomeScreen && modules.settings) {
              setTimeout(() => modules.settings.openSetup(), 500);
         }

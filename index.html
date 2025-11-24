@@ -6,9 +6,15 @@
     <title>Follow Me</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4f46e5">
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap">
+    
     <link rel="stylesheet" href="styles.css">
-    <style> body { touch-action: none; overscroll-behavior: none; } </style>
+    
+    <style> 
+        body { touch-action: none; overscroll-behavior: none; } 
+    </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans transition-colors duration-200">
     
@@ -58,9 +64,12 @@
     <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[70] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 text-center flex flex-col items-center border border-custom">
             <h3 class="text-xl font-bold mb-4">Share App</h3>
-            <div class="bg-white p-2 rounded-lg mb-4 shadow-inner">
-                <img src="qr.jpg" alt="QR Code" class="w-48 h-48 object-contain" onerror="this.style.display='none'">
+            
+            <div class="bg-white p-2 rounded-lg mb-4 shadow-inner flex items-center justify-center min-h-[12rem] w-full">
+                <img src="qr.jpg" alt="Scan to Share" class="w-48 h-48 object-contain" 
+                     onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\'text-black font-bold text-sm\'>QR Code not found.<br>Upload qr.jpg to root.</span>'">
             </div>
+
             <button id="native-share-button" class="w-full mb-3 px-6 py-3 bg-primary-app hover:bg-secondary-app text-white rounded-lg font-bold hidden shadow-md">Share...</button>
             <button id="copy-link-button" class="w-full mb-3 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md">Copy Link</button>
             <button id="close-share" class="w-full px-6 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition">Close</button>
@@ -275,6 +284,14 @@
                                 <option value="both">Both</option>
                             </select>
                         </div>
+                        
+                        <div class="mt-6 pt-4 border-t border-custom">
+                            <h4 class="font-bold text-sm mb-2 text-primary-app">Virtual Assistant Prompt</h4>
+                            <p class="text-xs mb-2 opacity-70">Turn any AI into a standalone version of this game.</p>
+                            <textarea id="prompt-display" readonly class="prompt-box settings-input mb-2 h-32"></textarea>
+                            <button id="copy-prompt-btn" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-sm">Copy Prompt</button>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -287,22 +304,93 @@
     </div>
     
     <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
-        <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom">
-            <div class="p-6 border-b border-custom"><h3 class="text-2xl font-bold">Help 📚</h3></div>
-            <div class="p-6 overflow-y-auto leading-relaxed">
-                
-                <h4 class="font-bold text-lg mb-2 text-primary-app">Getting Started</h4>
-                <p class="mb-4 text-sm opacity-90">Welcome! Follow Me is a sequence tracking tool.</p>
-                
-                <h4 class="font-bold text-lg mb-2 text-primary-app">Blackout Mode (Stealth)</h4>
-                <p class="mb-4 text-sm opacity-90">Enable in settings. Shake device to toggle. Screen goes black but touch inputs remain active on an invisible grid.</p>
-
-                <h4 class="font-bold text-lg mt-6 mb-2 text-primary-app">Virtual Assistant Prompt</h4>
-                <p class="text-xs mb-2 opacity-70">Turn any AI into a standalone version of this game.</p>
-                <textarea id="prompt-display" readonly class="prompt-box settings-input mb-2 h-32"></textarea>
-                <button id="copy-prompt-btn" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-sm">Copy Prompt</button>
+        <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
+            <div class="p-6 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center">
+                <h3 class="text-2xl font-bold">User Manual 📘</h3>
+                <button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button>
             </div>
-            <div class="p-4 border-t border-custom flex justify-end"><button id="close-help" class="px-6 py-2 bg-primary-app text-white rounded-lg font-bold hover:bg-secondary-app">Got it</button></div>
+
+            <div class="p-6 overflow-y-auto leading-relaxed space-y-6 text-sm">
+                
+                <section>
+                    <h4 class="font-bold text-lg text-primary-app mb-2 border-b border-gray-600 pb-1">🎮 Game Modes</h4>
+                    <ul class="space-y-3">
+                        <li>
+                            <strong class="text-white">Simon Says:</strong>
+                            <p class="opacity-80">Classic memory game. The pattern accumulates. Round 1 is "Red". Round 2 is "Red, Blue". You must enter the full sequence every time.</p>
+                        </li>
+                        <li>
+                            <strong class="text-white">Unique Rounds:</strong>
+                            <p class="opacity-80">For standard tracking. Every round generates a <em>new</em>, random sequence. Previous numbers are discarded.</p>
+                        </li>
+                        <li>
+                            <strong class="text-white">Auto-Clear (Unique Mode):</strong>
+                            <p class="opacity-80">If ON, the sequence clears automatically when you finish reading it, ready for the next round instantly.</p>
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h4 class="font-bold text-lg text-primary-app mb-2 border-b border-gray-600 pb-1">⏯️ Playback Settings</h4>
+                    <ul class="space-y-3">
+                        <li>
+                            <strong class="text-white">Autoplay:</strong>
+                            <p class="opacity-80">Automatically reads the sequence back to you immediately after you enter a number.</p>
+                        </li>
+                        <li>
+                            <strong class="text-white">Chunk Size & Delay:</strong>
+                            <p class="opacity-80">Breaks long sequences into groups (e.g., read 3 numbers, pause, read next 3). "Delay" sets how long the pause is between chunks.</p>
+                        </li>
+                        <li>
+                            <strong class="text-white">Haptic Morse:</strong>
+                            <p class="opacity-80">Vibrates the number instead of speaking it. Short buzz = Dot, Long buzz = Dash. (e.g., 3 is •••, 6 is — •••).</p>
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h4 class="font-bold text-lg text-primary-app mb-2 border-b border-gray-600 pb-1">🎤 Camera & Audio Sensors</h4>
+                    <p class="opacity-70 mb-2 italic">Enable these in "Settings > General > Auto Input Buttons".</p>
+                    <ul class="space-y-3">
+                        <li>
+                            <strong class="text-white">Audio Mode (Mic):</strong>
+                            <p class="opacity-80">Listens for specific tones (whistles/beeps) between 200Hz-600Hz. Tones map to keys 1-9.</p>
+                        </li>
+                        <li>
+                            <strong class="text-white">Camera Mode:</strong>
+                            <p class="opacity-80">Detects screen flashes or colored lights. Point camera at a game screen. Red/Blue/Green/etc. flashes will automatically press the corresponding colored buttons.</p>
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h4 class="font-bold text-lg text-primary-app mb-2 border-b border-gray-600 pb-1">🛠️ Power Tools</h4>
+                    <ul class="space-y-3">
+                        <li>
+                            <strong class="text-white">Blackout (Stealth) Mode:</strong>
+                            <p class="opacity-80">Shake your device firmly to toggle. Screen turns black, but the keypad remains active (invisible). Use for discrete input without looking.</p>
+                        </li>
+                        <li>
+                            <strong class="text-white">Speed Delete:</strong>
+                            <p class="opacity-80">Hold the Backspace button to rapidly delete the sequence history.</p>
+                        </li>
+                        <li>
+                            <strong class="text-white">Gestures (Pinch):</strong>
+                            <p class="opacity-80">Pinch the screen with two fingers to resize the UI. Change "Gesture Mode" in settings to choose between resizing the whole app or just the number cards.</p>
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h4 class="font-bold text-lg text-primary-app mb-2 border-b border-gray-600 pb-1">💾 Profiles</h4>
+                    <p class="opacity-80">Create separate save files for different games. Each profile saves its own button layout, game mode, and sensor settings.</p>
+                </section>
+
+            </div>
+            
+            <div class="p-4 border-t border-custom flex justify-end bg-black bg-opacity-20">
+                <button id="open-help-button-bottom" class="px-6 py-2 bg-primary-app text-white rounded-lg font-bold hover:bg-secondary-app transition shadow-lg" onclick="document.getElementById('help-modal').classList.add('opacity-0', 'pointer-events-none')">Close Manual</button>
+            </div>
         </div>
     </div>
     

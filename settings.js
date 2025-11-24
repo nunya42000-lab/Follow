@@ -63,6 +63,10 @@ export class SettingsManager {
             quickSettings: document.getElementById('quick-open-settings'),
             dontShowWelcome: document.getElementById('dont-show-welcome-toggle'),
             
+            // RESIZE BUTTONS (Re-added)
+            quickResizeUp: document.getElementById('quick-resize-up'),
+            quickResizeDown: document.getElementById('quick-resize-down'),
+            
             // Share Extras
             openShareInside: document.getElementById('open-share-button'),
             closeShareBtn: document.getElementById('close-share'),
@@ -222,7 +226,6 @@ export class SettingsManager {
         // SPECIFIC LISTENER FOR BLACKOUT PERMISSION
         if(this.dom.blackoutToggle) {
             this.dom.blackoutToggle.addEventListener('change', (e) => {
-                // Check if we need permission (iOS 13+)
                 if (e.target.checked && typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                     DeviceMotionEvent.requestPermission()
                         .then(response => {
@@ -236,6 +239,20 @@ export class SettingsManager {
                         .catch(console.error);
                 }
             });
+        }
+        
+        // Quick Resize Logic
+        if(this.dom.quickResizeUp) {
+            this.dom.quickResizeUp.onclick = () => {
+                this.appSettings.globalUiScale = Math.min(150, this.appSettings.globalUiScale + 10);
+                this.callbacks.onUpdate();
+            };
+        }
+        if(this.dom.quickResizeDown) {
+            this.dom.quickResizeDown.onclick = () => {
+                this.appSettings.globalUiScale = Math.max(50, this.appSettings.globalUiScale - 10);
+                this.callbacks.onUpdate();
+            };
         }
         
         bind(this.dom.theme, 'activeTheme', true);

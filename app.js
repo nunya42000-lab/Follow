@@ -23,8 +23,8 @@ const CONFIG = {
     DEMO_DELAY_BASE_MS: 798,
     SPEED_DELETE_DELAY: 400, 
     SPEED_DELETE_INTERVAL: 100,
-    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v21', 
-    STORAGE_KEY_STATE: 'followMeAppState_v21',
+    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v22', 
+    STORAGE_KEY_STATE: 'followMeAppState_v22',
     INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' },
     MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' }
 };
@@ -44,7 +44,8 @@ const PREMADE_PROFILES = {
     'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 200 }},
     'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }},
     'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }},
-    'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15 }}
+    // UPDATED: 15 Rounds now uses KEY12 input
+    'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }}
 };
 
 const DEFAULT_APP = {
@@ -83,7 +84,7 @@ let appState = {};
 let modules = { sensor: null, settings: null };
 let timers = { speedDelete: null, initialDelay: null, longPress: null };
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
-let blackoutState = { isActive: false, lastShake: 0 }; // Changed from lastTap to lastShake
+let blackoutState = { isActive: false, lastShake: 0 }; 
 let isDeleting = false; 
 
 // --- CORE FUNCTIONS ---
@@ -104,6 +105,7 @@ function loadState() {
         if(s) {
             const loaded = JSON.parse(s);
             appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) } };
+            // Ensure runtimeSettings exists (migration)
             if(!appSettings.runtimeSettings) {
                 appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS));
             }
@@ -176,24 +178,17 @@ function toggleBlackout() {
     }
 }
 
-// Detect Shake (Accelerometer)
 function handleShake(e) {
     if(!appSettings.isBlackoutFeatureEnabled) return;
-
-    // Use acceleration without gravity if available, otherwise fallback is complex so we rely on 'acceleration'
     const acc = e.acceleration;
     if(!acc) return;
-
-    // Calculate magnitude
     const magnitude = Math.hypot(acc.x, acc.y, acc.z);
     
-    // Threshold ~15 m/s^2 (moderate violent shake)
     if(magnitude > 15) {
         const now = Date.now();
-        // 1 second debounce to prevent flip-flopping
         if(now - blackoutState.lastShake > 1000) {
             toggleBlackout();
-            vibrate(); // Confirm toggle
+            vibrate();
             blackoutState.lastShake = now;
         }
     }
@@ -202,7 +197,6 @@ function handleShake(e) {
 function handleBlackoutTouch(e) {
     if(!blackoutState.isActive) return;
     
-    // 2. Handle Input
     e.preventDefault(); e.stopPropagation();
     
     const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
@@ -235,12 +229,10 @@ function handleBlackoutTouch(e) {
 function initMotionAndGestures() {
     const target = document.body;
     
-    // SHAKE LISTENER
     if (window.DeviceMotionEvent) {
         window.addEventListener('devicemotion', handleShake, false);
     }
 
-    // Pinch (Scale UI)
     target.addEventListener('touchstart', (e) => {
         if (e.touches.length === 2) {
             gestureState.isPinching = true;
@@ -475,7 +467,7 @@ window.onload = function() {
     try {
         loadState();
         initComments(db);
-        initMotionAndGestures(); // INITIALIZE SHAKE
+        initMotionAndGestures(); 
         
         modules.sensor = new SensorEngine((val, src) => addValue(val), (msg) => showToast(msg));
         modules.sensor.setSensitivity('audio', -85); modules.sensor.setSensitivity('camera', 50);

@@ -25,11 +25,12 @@
     </script>
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* Prevent default browser zooming so custom gestures work */
+        /* Prevent default browser zooming */
         body { touch-action: none; overscroll-behavior: none; }
     </style>
 </head>
-<body class="dark min-h-screen flex flex-col font-sans bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-200">
+<!-- Changed bg-gray-100 to bg-white for light mode seamlessness -->
+<body class="dark min-h-screen flex flex-col font-sans bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-200">
 
     <!-- GAME SETUP MODAL (QUICK START) -->
     <div id="game-setup-modal" class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
@@ -37,7 +38,7 @@
             
             <!-- Header with Resize Buttons on Left -->
             <div class="flex items-center justify-between border-b dark:border-gray-700 pb-3 mb-4 relative">
-                <div class="flex items-center space-x-2 absolute left-0">
+                <div class="flex items-center space-x-2 absolute left-0 top-0 bottom-0 my-auto">
                     <button id="quick-resize-down" class="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full font-bold text-lg hover:bg-gray-300 transition">-</button>
                     <button id="quick-resize-up" class="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full font-bold text-lg hover:bg-gray-300 transition">+</button>
                 </div>
@@ -45,7 +46,6 @@
             </div>
 
             <div class="overflow-y-auto py-2 px-1">
-                <!-- Profile Selection -->
                 <div class="mb-6">
                     <label class="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">Select Profile</label>
                     <select id="quick-config-select" class="select-input w-full h-12 px-4 py-2 text-lg font-semibold shadow-sm bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"></select>
@@ -79,13 +79,10 @@
     <div id="share-modal" class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-[70] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 text-center flex flex-col items-center border border-gray-200 dark:border-gray-700">
             <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Share App</h3>
-            
-            <!-- QR Code -->
             <div class="bg-white p-2 rounded-lg mb-4 shadow-inner border border-gray-200">
                 <img src="qr.jpg" alt="QR Code" class="w-48 h-48 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                 <div class="hidden text-black p-4">QR Code missing (qr.jpg)</div>
             </div>
-
             <button id="native-share-button" class="w-full mb-3 px-6 py-3 bg-primary-app hover:bg-secondary-app text-white rounded-lg font-bold hidden shadow-md">Share...</button>
             <button id="copy-link-button" class="w-full mb-3 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md">Copy Link</button>
             <button id="close-share" class="w-full px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition">Close</button>
@@ -96,7 +93,6 @@
     <div id="settings-modal" class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full m-4 transform scale-90 transition-transform duration-300 flex flex-col max-h-[85vh] overflow-hidden border border-gray-200 dark:border-gray-700">
             
-            <!-- Header -->
             <div class="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800">
                 <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Settings</h3>
                 <div class="flex space-x-6 text-gray-600 dark:text-gray-300"> 
@@ -106,7 +102,6 @@
                 </div>
             </div>
 
-            <!-- Single Scrolling Content Area -->
             <div class="overflow-y-auto flex-grow p-6 space-y-6 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
                 
                 <!-- SECTION 1: PROFILE -->
@@ -147,17 +142,17 @@
 
                     <div class="mb-4">
                         <div class="flex justify-between mb-1"><label id="sequence-length-label" class="font-bold text-sm">Sequence Length</label><span id="sequence-length-display" class="text-xs text-gray-500 dark:text-gray-400"></span></div>
-                        <input type="range" id="sequence-length-slider" min="5" max="50" step="1" class="w-full accent-primary-app">
+                        <input type="range" id="sequence-length-slider" min="15" max="40" step="5" class="w-full accent-primary-app">
                     </div>
 
-                    <div id="setting-multi-sequence-group" class="hidden pl-3 border-l-2 border-primary-app mb-4">
+                    <div id="setting-multi-sequence-group" class="pl-3 border-l-2 border-primary-app mb-4">
                         <div class="mb-3">
                             <div class="flex justify-between mb-1"><label class="font-bold text-sm">Chunk Size</label><span id="chunk-display" class="text-xs text-gray-500 dark:text-gray-400"></span></div>
-                            <input type="range" id="chunk-slider" min="1" max="10" class="w-full accent-primary-app">
+                            <input type="range" id="chunk-slider" min="2" max="5" step="1" class="w-full accent-primary-app">
                         </div>
                         <div>
-                            <div class="flex justify-between mb-1"><label class="font-bold text-sm">Delay (ms)</label><span id="delay-display" class="text-xs text-gray-500 dark:text-gray-400"></span></div>
-                            <input type="range" id="delay-slider" min="0" max="2000" step="100" class="w-full accent-primary-app">
+                            <div class="flex justify-between mb-1"><label class="font-bold text-sm">Delay (sec)</label><span id="delay-display" class="text-xs text-gray-500 dark:text-gray-400"></span></div>
+                            <input type="range" id="delay-slider" min="0" max="1000" step="100" class="w-full accent-primary-app">
                         </div>
                     </div>
                     
@@ -235,6 +230,13 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- PROMPT GENERATOR (Restored) -->
+                <div>
+                    <h4 class="text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-3 tracking-wider border-b border-gray-200 dark:border-gray-700 pb-1">AI Prompt</h4>
+                    <textarea id="prompt-display" readonly class="prompt-box text-xs w-full p-2 rounded bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 h-24"></textarea>
+                    <button id="copy-prompt-btn" class="mt-2 px-4 py-1 bg-blue-600 text-white text-xs font-bold rounded shadow hover:bg-blue-700">Copy Prompt</button>
+                </div>
 
                 <!-- SECTION 6: RESET -->
                 <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -248,15 +250,34 @@
         </div>
     </div>
     
-    <!-- HELP MODAL -->
+    <!-- HELP MODAL (Detailed) -->
     <div id="help-modal" class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-gray-200 dark:border-gray-700">
             <div class="p-6 border-b border-gray-200 dark:border-gray-700"><h3 class="text-2xl font-bold text-gray-900 dark:text-white">Help 📚</h3></div>
-            <div class="p-6 overflow-y-auto text-gray-900 dark:text-white">
-                <p class="mb-3"><strong>Modes:</strong> Simon Says (Pattern Repeat) or Unique Rounds (Memory).</p>
-                <p class="mb-3"><strong>Gestures:</strong> Pinch anywhere to resize the Global UI (default) or switch to Sequence resizing in Global Settings.</p>
-                <p class="mb-3"><strong>Shortcuts:</strong> Long press "▶" (Play) to toggle Autoplay.</p>
-                <p class="mb-3"><strong>Auto Inputs:</strong> Enable Mic/Camera buttons in settings to access sensor features.</p>
+            <div class="p-6 overflow-y-auto text-gray-900 dark:text-white leading-relaxed">
+                
+                <h4 class="font-bold text-lg mb-2 text-primary-app">Getting Started</h4>
+                <p class="mb-4">Welcome! Follow Me is a dual-mode memory training tool. Use the <strong>Quick Start</strong> menu to select a pre-made profile or jump right in.</p>
+                
+                <h4 class="font-bold text-lg mb-2 text-primary-app">Game Modes</h4>
+                <ul class="list-disc pl-5 mb-4 space-y-1">
+                    <li><strong>Simon Says (Standard):</strong> The app generates a sequence. You repeat it. The sequence grows by one step each turn.</li>
+                    <li><strong>Unique Rounds:</strong> A memory test. Each round is a <em>completely new</em> random sequence of a specific length. You must memorize it entirely.</li>
+                </ul>
+
+                <h4 class="font-bold text-lg mb-2 text-primary-app">Controls & Gestures</h4>
+                <ul class="list-disc pl-5 mb-4 space-y-1">
+                    <li><strong>Pinch/Expand:</strong> Use two fingers anywhere on the screen to resize the entire UI (Global Scale). You can change this to resize only the number cards in Settings.</li>
+                    <li><strong>Long Press Play (▶):</strong> Toggles <strong>Autoplay</strong> mode on/off instantly.</li>
+                    <li><strong>Backspace (←):</strong> Removes the last entry. Hold down to speed delete.</li>
+                </ul>
+
+                <h4 class="font-bold text-lg mb-2 text-primary-app">Advanced Settings</h4>
+                <ul class="list-disc pl-5 mb-4 space-y-1">
+                    <li><strong>Machines:</strong> In Simon mode, splits the sequence across up to 4 different "machines" (groups), making it harder to track.</li>
+                    <li><strong>Chunking:</strong> Breaks long sequences into smaller bites (e.g., 3 numbers, pause, 3 numbers) to help with memorization.</li>
+                    <li><strong>Auto Inputs:</strong> Enables the Camera and Microphone buttons. Use these to trigger inputs via sound frequency (whistling) or camera flash detection.</li>
+                </ul>
             </div>
             <div class="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end"><button id="close-help" class="px-6 py-2 bg-primary-app text-white rounded-lg font-bold hover:bg-secondary-app">Got it</button></div>
         </div>

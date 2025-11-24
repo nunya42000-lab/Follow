@@ -23,8 +23,8 @@ const CONFIG = {
     DEMO_DELAY_BASE_MS: 798,
     SPEED_DELETE_DELAY: 250,
     SPEED_DELETE_INTERVAL: 100,
-    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v10', // Bump version
-    STORAGE_KEY_STATE: 'followMeAppState_v10',
+    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v11', // Bump version
+    STORAGE_KEY_STATE: 'followMeAppState_v11',
     INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' },
     MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' }
 };
@@ -38,13 +38,10 @@ const DEFAULT_PROFILE = {
     isAutoplayEnabled: true, 
     isUniqueRoundsAutoClearEnabled: true,
     isAudioEnabled: true,
-    isVoiceInputEnabled: true,
     isHapticsEnabled: true,
     isSpeedDeletingEnabled: true, 
     uiScaleMultiplier: 1.0, 
     machineCount: 1,
-    shortcuts: [], 
-    shakeSensitivity: 10,
     autoInputMode: '0', // 0:Off, 1:Tone, 2:Camera
 };
 
@@ -60,6 +57,7 @@ const DEFAULT_APP = {
     globalUiScale: 100,
     isDarkMode: true,
     showWelcomeScreen: true,
+    gestureResizeMode: 'global', // 'global' or 'sequence'
     activeProfileId: 'profile_1',
     profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)),
     playbackSpeed: 1.0,
@@ -70,6 +68,7 @@ let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
 let modules = { sensor: null, settings: null };
 let timers = { speedDelete: null, initialDelay: null };
+let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 
 // --- CORE FUNCTIONS ---
 
@@ -89,7 +88,6 @@ function loadState() {
         
         if(s) {
             const loaded = JSON.parse(s);
-            // Safe merge to ensure profiles object exists
             appSettings = { 
                 ...DEFAULT_APP, 
                 ...loaded, 
@@ -99,12 +97,10 @@ function loadState() {
         
         if(st) appState = JSON.parse(st);
         
-        // Ensure state exists for active profile
         if(!appSettings.profiles[appSettings.activeProfileId]) {
             appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
         }
         
-        // Initialize missing state for all profiles
         Object.keys(appSettings.profiles).forEach(id => {
             if(!appState[id]) {
                 appState[id] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
@@ -137,6 +133,61 @@ function showToast(msg) {
     m.textContent = msg;
     t.classList.remove('opacity-0', '-translate-y-10');
     setTimeout(() => t.classList.add('opacity-0', '-translate-y-10'), 2000);
+}
+
+// --- GESTURE LOGIC ---
+function initGestures() {
+    const target = document.body;
+    
+    target.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+            gestureState.isPinching = true;
+            gestureState.startDist = Math.hypot(
+                e.touches[0].pageX - e.touches[1].pageX,
+                e.touches[0].pageY - e.touches[1].pageY
+            );
+            
+            // Capture starting value based on mode
+            if(appSettings.gestureResizeMode === 'sequence') {
+                gestureState.startScale = getSettings().uiScaleMultiplier || 1.0;
+            } else {
+                gestureState.startScale = appSettings.globalUiScale || 100;
+            }
+        }
+    }, { passive: false });
+
+    target.addEventListener('touchmove', (e) => {
+        if (gestureState.isPinching && e.touches.length === 2) {
+            e.preventDefault(); // Prevent native zoom
+            const dist = Math.hypot(
+                e.touches[0].pageX - e.touches[1].pageX,
+                e.touches[0].pageY - e.touches[1].pageY
+            );
+            
+            const ratio = dist / gestureState.startDist;
+            
+            if (appSettings.gestureResizeMode === 'sequence') {
+                let newScale = gestureState.startScale * ratio;
+                // Clamp 0.5 to 1.5
+                newScale = Math.min(Math.max(newScale, 0.5), 1.5);
+                getSettings().uiScaleMultiplier = newScale;
+                renderUI(); // Immediate re-render
+            } else {
+                let newScale = gestureState.startScale * ratio;
+                // Clamp 50 to 150
+                newScale = Math.min(Math.max(newScale, 50), 150);
+                appSettings.globalUiScale = newScale;
+                updateAllChrome();
+            }
+        }
+    }, { passive: false });
+
+    target.addEventListener('touchend', () => {
+        if(gestureState.isPinching) {
+            gestureState.isPinching = false;
+            saveState(); // Save only on end
+        }
+    });
 }
 
 // --- GAME LOGIC ---
@@ -369,6 +420,7 @@ window.onload = function() {
         
         // Initialize Modules
         initComments(db);
+        initGestures(); // Start Gesture Listener
         
         modules.sensor = new SensorEngine(
             (val, src) => addValue(val), 

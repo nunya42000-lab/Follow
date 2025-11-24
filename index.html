@@ -24,6 +24,10 @@
         }
     </script>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Prevent default browser zooming so custom gestures work */
+        body { touch-action: none; }
+    </style>
 </head>
 <body class="dark min-h-screen flex flex-col font-sans p-4">
 
@@ -32,23 +36,7 @@
         <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 text-gray-900 dark:text-white max-h-[90vh] flex flex-col relative">
             <h3 class="text-2xl font-bold mb-4 text-center border-b dark:border-gray-700 pb-3">👋 Quick Start</h3>
             <div class="overflow-y-auto py-4 px-1">
-                <div class="mb-6">
-                    <label class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Configuration</label>
-                    <select id="config-select" class="select-input w-full h-12 px-4 py-2 text-lg font-semibold"></select>
-                </div>
-                <div class="flex justify-center space-x-3 mb-8">
-                    <button id="config-add" class="px-4 py-2 text-sm text-white bg-btn-control-blue rounded-lg">New</button>
-                    <button id="config-rename" class="px-4 py-2 text-sm text-gray-700 bg-gray-200 rounded-lg">Rename</button>
-                    <button id="config-delete" class="px-4 py-2 text-sm text-white bg-btn-control-red rounded-lg">Delete</button>
-                </div>
                 
-                <!-- RESIZE BUTTONS -->
-                <div class="flex justify-center space-x-3 mb-6">
-                    <button id="global-resize-down" class="px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded font-bold text-xl">-</button>
-                    <span class="text-sm self-center">UI Size</span>
-                    <button id="global-resize-up" class="px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded font-bold text-xl">+</button>
-                </div>
-
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div class="flex items-center justify-between">
                         <label class="font-semibold">Autoplay</label>
@@ -59,6 +47,14 @@
                         <input type="checkbox" id="quick-audio-toggle" class="h-5 w-5">
                     </div>
                 </div>
+                
+                <!-- RESIZE BUTTONS -->
+                <div class="flex justify-center space-x-3 mb-6">
+                    <button id="global-resize-down" class="px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded font-bold text-xl">-</button>
+                    <span class="text-sm self-center">UI Size</span>
+                    <button id="global-resize-up" class="px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded font-bold text-xl">+</button>
+                </div>
+
                 <div class="grid grid-cols-2 gap-4 mb-6">
                      <button id="quick-open-help" class="w-full px-6 py-3 bg-gray-500 rounded-lg text-white font-bold">Help</button>
                      <button id="quick-open-settings" class="w-full px-6 py-3 bg-gray-500 rounded-lg text-white font-bold">Settings</button>
@@ -93,7 +89,6 @@
                     <nav id="settings-tab-nav" class="flex space-x-2">
                         <button data-tab="profile" class="tab-button active-tab">Profile</button>
                         <button data-tab="global" class="tab-button">Global</button>
-                        <button data-tab="shortcuts" class="tab-button">Shortcuts</button>
                         <button data-tab="stealth" class="tab-button">Stealth</button>
                     </nav>
                 </div>
@@ -101,9 +96,20 @@
             <div class="overflow-y-auto flex-grow content-container p-6">
                 <!-- PROFILE TAB -->
                 <div id="settings-tab-profile" class="settings-tab-content">
-                    <button id="open-game-setup-from-settings" class="w-full px-6 py-2 bg-primary-app text-white rounded mb-4">Switch Profile</button>
-                    <p class="mb-4">Active: <span id="active-profile-name" class="font-bold"></span></p>
                     
+                    <!-- Profile Management Moved Here -->
+                    <div class="mb-6 border-b pb-4 dark:border-gray-700">
+                        <label class="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">Active Profile</label>
+                        <div class="flex gap-2 mb-2">
+                             <select id="config-select" class="select-input flex-grow h-10 px-3 text-sm font-semibold"></select>
+                        </div>
+                        <div class="flex justify-between space-x-2">
+                            <button id="config-add" class="flex-1 px-2 py-2 text-xs text-white bg-btn-control-blue rounded">New</button>
+                            <button id="config-rename" class="flex-1 px-2 py-2 text-xs text-gray-700 bg-gray-200 rounded">Rename</button>
+                            <button id="config-delete" class="flex-1 px-2 py-2 text-xs text-white bg-btn-control-red rounded">Delete</button>
+                        </div>
+                    </div>
+
                     <div class="mb-4"><label class="block font-bold">Input</label>
                     <select id="input-select" class="select-input w-full p-2"><option value="key9">9-Key</option><option value="key12">12-Key</option><option value="piano">Piano</option></select></div>
 
@@ -126,24 +132,27 @@
                 <!-- GLOBAL TAB -->
                 <div id="settings-tab-global" class="settings-tab-content hidden">
                     <div class="mb-4"><label class="block font-bold">UI Scale <span id="ui-scale-display" class="text-xs font-normal"></span></label><input type="range" id="ui-scale-slider" min="50" max="150" class="w-full"></div>
+                    
+                    <!-- Gesture Toggle -->
+                    <div class="flex justify-between mb-4 border-t pt-2 dark:border-gray-700">
+                        <label class="font-bold">Gesture Resize Target</label>
+                        <div class="flex items-center text-xs">
+                            <span class="mr-2">Global UI</span>
+                            <input type="checkbox" id="gesture-mode-toggle" class="h-5 w-5">
+                            <span class="ml-2">Sequence</span>
+                        </div>
+                    </div>
+                    
                     <div class="mb-4"><label class="block font-bold">Speed <span id="playback-speed-display" class="text-xs font-normal"></span></label><input type="range" id="playback-speed-slider" min="50" max="200" class="w-full"></div>
                     <div class="flex justify-between mb-4"><label class="font-bold">Show Welcome</label><input type="checkbox" id="show-welcome-toggle" class="h-6 w-6"></div>
                     <div class="flex justify-between mb-4"><label class="font-bold">Dark Mode</label><input type="checkbox" id="dark-mode-toggle" class="h-6 w-6"></div>
                     <button data-action="restore-defaults" class="w-full py-2 bg-red-600 text-white rounded mt-4">Factory Reset</button>
                 </div>
                 
-                <!-- SHORTCUTS TAB -->
-                <div id="settings-tab-shortcuts" class="settings-tab-content hidden">
-                    <div class="mb-4"><label class="block font-bold">Shake Sens. <span id="shake-sensitivity-display" class="text-xs font-normal"></span></label><input type="range" id="shake-sensitivity-slider" min="1" max="20" class="w-full"></div>
-                    <div id="shortcut-list-container" class="space-y-2 mb-4"></div>
-                    <button id="add-shortcut-btn" class="w-full py-2 bg-blue-600 text-white rounded">Add Shortcut</button>
-                </div>
-
                 <!-- STEALTH TAB -->
                 <div id="settings-tab-stealth" class="settings-tab-content hidden">
                     <div class="flex justify-between mb-4"><label class="font-bold">Autoplay</label><input type="checkbox" id="autoplay-toggle" class="h-6 w-6"></div>
                     <div class="flex justify-between mb-4"><label class="font-bold">Audio</label><input type="checkbox" id="audio-toggle" class="h-6 w-6"></div>
-                    <div class="flex justify-between mb-4"><label class="font-bold">Voice Input</label><input type="checkbox" id="voice-input-toggle" class="h-6 w-6"></div>
                     <div class="flex justify-between mb-4"><label class="font-bold">Haptics</label><input type="checkbox" id="haptics-toggle" class="h-6 w-6"></div>
                     <div class="flex justify-between mb-4"><label class="font-bold">Speed Delete</label><input type="checkbox" id="speed-delete-toggle" class="h-6 w-6"></div>
                     
@@ -168,7 +177,7 @@
             <div class="p-6 overflow-y-auto" id="help-content-container">
                 <div id="help-tab-general" class="help-tab-content">
                     <p class="mb-2"><strong>Modes:</strong> Simon Says (Pattern Repeat) or Unique Rounds (Memory).</p>
-                    <p class="mb-2"><strong>Inputs:</strong> Use Keypads, Piano, or external sensors (Camera/Mic) via Stealth settings.</p>
+                    <p class="mb-2"><strong>Gestures:</strong> Pinch in/out on the screen to resize the UI.</p>
                 </div>
             </div>
             <div class="p-4 border-t flex justify-end"><button id="close-help" class="px-6 py-2 bg-primary-app text-white rounded">Got it</button></div>
@@ -226,7 +235,7 @@
                 </div>
             </div>
 
-            <!-- PIANO (FIXED) -->
+            <!-- PIANO -->
             <div id="pad-piano" class="max-w-xl mx-auto pt-0 pb-4" style="display:none;">
                 <div id="piano-keys" class="relative h-48 w-full bg-gray-200 rounded-md shadow-inner overflow-hidden mb-4">
                     <div class="flex h-full w-full">

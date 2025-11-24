@@ -39,6 +39,7 @@ export class SettingsManager {
             haptics: document.getElementById('haptics-toggle'),
             speedDelete: document.getElementById('speed-delete-toggle'),
             showWelcome: document.getElementById('show-welcome-toggle'),
+            autoClear: document.getElementById('autoclear-toggle'),
             blackoutToggle: document.getElementById('blackout-toggle'),
             
             theme: document.getElementById('theme-select'),
@@ -97,7 +98,8 @@ export class SettingsManager {
 
     openSettings() {
         this.populateConfigDropdown();
-        const ps = this.appSettings.profiles[this.appSettings.activeProfileId].settings;
+        // CHANGED: Load from RUNTIME settings, not the saved profile
+        const ps = this.appSettings.runtimeSettings;
         const gs = this.appSettings;
 
         // Populate Fields
@@ -116,6 +118,7 @@ export class SettingsManager {
         if(this.dom.haptics) this.dom.haptics.checked = gs.isHapticsEnabled;
         if(this.dom.speedDelete) this.dom.speedDelete.checked = gs.isSpeedDeletingEnabled;
         if(this.dom.showWelcome) this.dom.showWelcome.checked = gs.showWelcomeScreen;
+        if(this.dom.autoClear) this.dom.autoClear.checked = gs.isUniqueRoundsAutoClearEnabled;
         if(this.dom.blackoutToggle) this.dom.blackoutToggle.checked = gs.isBlackoutFeatureEnabled;
         if(this.dom.theme) this.dom.theme.value = gs.activeTheme;
         if(this.dom.uiScale) this.dom.uiScale.value = Math.round(gs.uiScaleMultiplier * 100);
@@ -191,10 +194,8 @@ export class SettingsManager {
                     this.appSettings[prop] = val;
                     if(prop === 'activeTheme' || prop === 'isBlackoutFeatureEnabled') this.callbacks.onUpdate();
                 } else {
-                    const profile = this.appSettings.profiles[this.appSettings.activeProfileId];
-                    // If premade profile, clone to custom handled in app.js via onProfileAdd usually, 
-                    // but for simplicity we modify directly or rely on user to create NEW profile first.
-                    profile.settings[prop] = val;
+                    // CHANGED: Update RUNTIME, not the PROFILE
+                    this.appSettings.runtimeSettings[prop] = val;
                 }
                 this.callbacks.onSave();
                 this.generatePrompt();
@@ -214,11 +215,13 @@ export class SettingsManager {
         bind(this.dom.haptics, 'isHapticsEnabled', true);
         bind(this.dom.speedDelete, 'isSpeedDeletingEnabled', true);
         bind(this.dom.showWelcome, 'showWelcomeScreen', true);
+        bind(this.dom.autoClear, 'isUniqueRoundsAutoClearEnabled', true);
         bind(this.dom.blackoutToggle, 'isBlackoutFeatureEnabled', true);
         bind(this.dom.theme, 'activeTheme', true);
 
         if(this.dom.mode) this.dom.mode.onchange = (e) => {
-             this.appSettings.profiles[this.appSettings.activeProfileId].settings.currentMode = (e.target.value === 'unique') ? 'unique_rounds' : 'simon';
+             // CHANGED: Update RUNTIME
+             this.appSettings.runtimeSettings.currentMode = (e.target.value === 'unique') ? 'unique_rounds' : 'simon';
              this.callbacks.onSave(); this.callbacks.onUpdate(); this.generatePrompt();
         };
 
@@ -267,7 +270,8 @@ export class SettingsManager {
     
     generatePrompt() {
         if(!this.dom.promptDisplay) return;
-        const ps = this.appSettings.profiles[this.appSettings.activeProfileId].settings;
+        // CHANGED: Generate prompt based on RUNTIME settings
+        const ps = this.appSettings.runtimeSettings;
         let logic = (ps.currentMode === 'unique_rounds') ? `Game: Unique Rounds. Sequence length ${ps.sequenceLength}. New random sequence every round.` : `Game: Simon Says. Accumulate pattern. Max ${ps.sequenceLength}.`;
         let reading = (ps.machineCount > 1 || ps.simonChunkSize > 0) ? `Read in chunks of ${ps.simonChunkSize}. Pause ${(ps.simonInterSequenceDelay/1000)}s between. Machines: ${ps.machineCount}.` : "";
         this.dom.promptDisplay.value = `You are the Game Engine.\n${logic}\n${reading}\nStart Round 1.`;

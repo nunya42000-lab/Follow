@@ -27,10 +27,22 @@ body {
     background-color: var(--bg-main);
     color: var(--text-color);
     transition: background-color 0.3s, color 0.3s;
+    /* Ensure full height and safe areas */
+    min-height: 100vh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
 }
+
+#app {
+    /* Add top padding to clear browser bars if they exist */
+    padding-top: 2rem; 
+}
+
 #input-footer {
     background-color: var(--bg-footer);
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }
+
 .btn-input {
     color: var(--card-text);
 }
@@ -259,7 +271,6 @@ body {
     background-size: 1.5em 1.5em;
     padding-right: 2.5rem;
     
-    /* --- COLOR FIX --- */
     background-color: #ffffff;
     color: #1f2937;
     border: 1px solid #d1d5db; /* gray-300 */
@@ -268,7 +279,6 @@ body {
 .dark .select-input {
      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
      
-     /* --- COLOR FIX --- */
      background-color: #374151; /* gray-700 */
      color: #ffffff;
      border-color: #4b5563; /* gray-600 */
@@ -359,77 +369,6 @@ input[type="range"]:disabled::-moz-range-thumb {
 }
 .shortcut-delete-btn:hover {
     background-color: #dc2626; /* btn-control-red */
-}
-
-/* ---------------------------------- */
-/* --- CAMERA CALIBRATION --- */
-/* ---------------------------------- */
-#camera-feed-container {
-    position: relative;
-    width: 100%;
-    margin: 0 auto;
-    background-color: #000;
-    aspect-ratio: 4 / 3; /* Give it a default shape */
-}
-
-#camera-feed {
-    width: 100%;
-    height: 100%;
-    display: block;
-    object-fit: contain; /* Fit video within the container */
-}
-
-.calibration-grid-container {
-    position: absolute;
-    /* top, left, width, height will be set by JS */
-    border: 2px dashed #ff0000;
-    cursor: move;
-    display: grid;
-    background-color: rgba(255, 0, 0, 0.05);
-    resize: both; /* Allows user to resize the container */
-    overflow: hidden; /* Important for resize */
-    z-index: 10;
-    box-shadow: 0 0 15px 5px rgba(255, 0, 0, 0.5);
-    /* display: none; */ /* <-- REMOVED THIS LINE */
-}
-
-/* Specific grid layouts */
-#grid-9key {
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 1fr 1fr 1fr;
-}
-#grid-12key {
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    grid-template-rows: 1fr 1fr 1fr;
-}
-
-
-.calibration-box {
-    border: 1px solid rgba(255, 0, 0, 0.5);
-    background-color: rgba(255, 255, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem; /* Smaller font for 12-key */
-    font-weight: bold;
-    color: rgba(255, 0, 0, 0.7);
-    user-select: none;
-    text-shadow: 0 0 5px rgba(0,0,0,0.5);
-}
-
-/* Add a visual indicator for an active detection box */
-.calibration-box.flash-detected {
-    background-color: rgba(0, 255, 0, 0.8) !important;
-    color: #000;
-    transition: background-color 0.05s;
-}
-
-
-#camera-modal-controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-top: 1rem;
 }
 
 /* ---------------------------------- */

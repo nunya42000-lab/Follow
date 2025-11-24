@@ -25,7 +25,7 @@ export class SettingsManager {
             mode: document.getElementById('mode-select'),
             machines: document.getElementById('machines-select'),
             seqLength: document.getElementById('seq-length-select'),
-            autoClear: document.getElementById('autoclear-toggle'), // MOVED HERE LOGICALLY
+            autoClear: document.getElementById('autoclear-toggle'), 
 
             // TAB 2: PLAYBACK
             autoplay: document.getElementById('autoplay-toggle'),
@@ -218,6 +218,26 @@ export class SettingsManager {
         bind(this.dom.showWelcome, 'showWelcomeScreen', true);
         bind(this.dom.autoClear, 'isUniqueRoundsAutoClearEnabled', true);
         bind(this.dom.blackoutToggle, 'isBlackoutFeatureEnabled', true);
+        
+        // SPECIFIC LISTENER FOR BLACKOUT PERMISSION
+        if(this.dom.blackoutToggle) {
+            this.dom.blackoutToggle.addEventListener('change', (e) => {
+                // Check if we need permission (iOS 13+)
+                if (e.target.checked && typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                    DeviceMotionEvent.requestPermission()
+                        .then(response => {
+                            if (response !== 'granted') {
+                                alert("Motion permission required for Shake gesture.");
+                                e.target.checked = false; 
+                                this.appSettings.isBlackoutFeatureEnabled = false;
+                                this.callbacks.onSave();
+                            }
+                        })
+                        .catch(console.error);
+                }
+            });
+        }
+        
         bind(this.dom.theme, 'activeTheme', true);
 
         if(this.dom.mode) this.dom.mode.onchange = (e) => {

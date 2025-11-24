@@ -3,7 +3,7 @@
 export class SettingsManager {
     constructor(appSettings, callbacks) {
         this.appSettings = appSettings;
-        this.callbacks = callbacks || {}; // { onUpdate, onSave, onReset, onRequestPermissions, onProfileSwitch }
+        this.callbacks = callbacks || {}; 
         
         this.INPUTS = { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' };
         this.MODES = { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' };
@@ -13,8 +13,11 @@ export class SettingsManager {
             // Setup Modal (Quick Start)
             setupModal: document.getElementById('game-setup-modal'),
             closeSetupBtn: document.getElementById('close-game-setup-modal'),
-            // Config Dropdown logic moved to Settings Modal, but IDs kept consistent
+            
+            // Profile Selectors
             configSelect: document.getElementById('config-select'),
+            quickConfigSelect: document.getElementById('quick-config-select'),
+            
             configAdd: document.getElementById('config-add'),
             configRename: document.getElementById('config-rename'),
             configDelete: document.getElementById('config-delete'),
@@ -24,16 +27,14 @@ export class SettingsManager {
             quickAudio: document.getElementById('quick-audio-toggle'),
             quickHelp: document.getElementById('quick-open-help'),
             quickSettings: document.getElementById('quick-open-settings'),
-            // Resize Buttons in Setup
-            resizeUp: document.getElementById('global-resize-up'),
-            resizeDown: document.getElementById('global-resize-down'),
+            
+            // Resize Buttons (Quick Start)
+            quickResizeUp: document.getElementById('quick-resize-up'),
+            quickResizeDown: document.getElementById('quick-resize-down'),
             
             // Settings Modal
             settingsModal: document.getElementById('settings-modal'),
             closeSettingsBtn: document.getElementById('close-settings'),
-            tabNav: document.getElementById('settings-tab-nav'),
-            tabs: document.querySelectorAll('.settings-tab-content'),
-            openGameSetupInside: document.getElementById('open-game-setup-from-settings'),
             openShareInside: document.getElementById('open-share-button'),
             
             // Share Modal
@@ -45,13 +46,10 @@ export class SettingsManager {
             // Help Modal
             helpModal: document.getElementById('help-modal'),
             closeHelpBtn: document.getElementById('close-help'),
-            helpTabNav: document.getElementById('help-tab-nav'),
-            helpTabs: document.querySelectorAll('.help-tab-content'),
             
             // Form Inputs (Settings)
             input: document.getElementById('input-select'),
             mode: document.getElementById('mode-toggle'),
-            modeLabel: document.getElementById('mode-toggle-label'),
             machines: document.getElementById('machines-slider'),
             machinesDisplay: document.getElementById('machines-display'),
             seqLength: document.getElementById('sequence-length-slider'),
@@ -65,20 +63,25 @@ export class SettingsManager {
             multiSeqGroup: document.getElementById('setting-multi-sequence-group'),
             autoClearGroup: document.getElementById('setting-autoclear'),
             
-            // Global/Stealth
+            // Audio/Feedback
+            autoplay: document.getElementById('autoplay-toggle'),
+            speedDelete: document.getElementById('speed-delete-toggle'),
+            audio: document.getElementById('audio-toggle'),
+            haptics: document.getElementById('haptics-toggle'),
+            
+            // Tools (Stealth)
+            showMic: document.getElementById('show-mic-toggle'),
+            showCam: document.getElementById('show-cam-toggle'),
+            
+            // Global
             playbackSpeed: document.getElementById('playback-speed-slider'),
             playbackDisplay: document.getElementById('playback-speed-display'),
             showWelcome: document.getElementById('show-welcome-toggle'),
             darkMode: document.getElementById('dark-mode-toggle'),
             uiScale: document.getElementById('ui-scale-slider'),
             uiScaleDisplay: document.getElementById('ui-scale-display'),
-            autoplay: document.getElementById('autoplay-toggle'),
-            speedDelete: document.getElementById('speed-delete-toggle'),
-            audio: document.getElementById('audio-toggle'),
-            haptics: document.getElementById('haptics-toggle'),
-            autoInput: document.getElementById('auto-input-slider'),
             
-            // New Gesture Mode Toggle
+            // NEW Gesture Toggle
             gestureMode: document.getElementById('gesture-mode-toggle'),
             
             // Other
@@ -106,7 +109,7 @@ export class SettingsManager {
 
     // --- SETUP MODAL ---
     openSetup() {
-        // Only quick start toggles now
+        this.populateConfigDropdown();
         const ps = this.getCurrentProfileSettings();
         if(this.dom.quickAutoplay) this.dom.quickAutoplay.checked = ps.isAutoplayEnabled;
         if(this.dom.quickAudio) this.dom.quickAudio.checked = ps.isAudioEnabled;
@@ -128,15 +131,26 @@ export class SettingsManager {
     }
 
     populateConfigDropdown() {
-        if (!this.dom.configSelect) return;
-        this.dom.configSelect.innerHTML = '';
-        Object.keys(this.appSettings.profiles).forEach(id => {
-            const option = document.createElement('option');
-            option.value = id;
-            option.textContent = this.appSettings.profiles[id].name;
-            this.dom.configSelect.appendChild(option);
-        });
-        this.dom.configSelect.value = this.appSettings.activeProfileId;
+        const createOptions = () => {
+             return Object.keys(this.appSettings.profiles).map(id => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = this.appSettings.profiles[id].name;
+                return option;
+             });
+        };
+
+        if (this.dom.configSelect) {
+            this.dom.configSelect.innerHTML = '';
+            createOptions().forEach(opt => this.dom.configSelect.appendChild(opt));
+            this.dom.configSelect.value = this.appSettings.activeProfileId;
+        }
+        
+        if (this.dom.quickConfigSelect) {
+            this.dom.quickConfigSelect.innerHTML = '';
+             createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt));
+            this.dom.quickConfigSelect.value = this.appSettings.activeProfileId;
+        }
     }
 
     // --- SETTINGS MODAL ---
@@ -153,25 +167,29 @@ export class SettingsManager {
         this.dom.delay.value = ps.simonInterSequenceDelay;
         this.dom.autoClear.checked = ps.isUniqueRoundsAutoClearEnabled;
         
-        this.dom.playbackSpeed.value = this.appSettings.playbackSpeed * 100;
-        this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
-        this.dom.darkMode.checked = this.appSettings.isDarkMode;
-        this.dom.uiScale.value = ps.uiScaleMultiplier * 100;
-        
-        // Gesture Mode
-        if(this.dom.gestureMode) this.dom.gestureMode.checked = (this.appSettings.gestureResizeMode === 'sequence');
-        
         this.dom.autoplay.checked = ps.isAutoplayEnabled;
         this.dom.speedDelete.checked = ps.isSpeedDeletingEnabled;
         this.dom.audio.checked = ps.isAudioEnabled;
         this.dom.haptics.checked = ps.isHapticsEnabled;
-        this.dom.autoInput.value = ps.autoInputMode;
+        
+        // Tools
+        this.dom.showMic.checked = ps.showMicBtn || false;
+        this.dom.showCam.checked = ps.showCamBtn || false;
+        
+        // Global
+        this.dom.playbackSpeed.value = this.appSettings.playbackSpeed * 100;
+        this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
+        this.dom.darkMode.checked = this.appSettings.isDarkMode;
+        this.dom.uiScale.value = this.appSettings.globalUiScale;
+        
+        // Gesture
+        if (this.dom.gestureMode) {
+            this.dom.gestureMode.checked = (this.appSettings.gestureResizeMode === 'sequence');
+        }
         
         this.updateDisplays();
         this.updateVisibility();
         
-        // Default to profile tab
-        this.switchTab('settings', 'profile');
         this.toggleModal(this.dom.settingsModal, true);
     }
     
@@ -194,22 +212,6 @@ export class SettingsManager {
         this.toggleModal(this.dom.shareModal, true);
     }
 
-    // --- UTILS ---
-    switchTab(modalType, tabId) {
-        const nav = modalType === 'settings' ? this.dom.tabNav : this.dom.helpTabNav;
-        const contents = modalType === 'settings' ? this.dom.tabs : this.dom.helpTabs;
-        const prefix = modalType === 'settings' ? 'settings-tab-' : 'help-tab-';
-        
-        if(contents) contents.forEach(t => t.classList.add('hidden'));
-        if(nav) nav.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active-tab'));
-        
-        const target = document.getElementById(prefix + tabId);
-        if(target) target.classList.remove('hidden');
-        
-        const btn = nav.querySelector(`button[data-tab="${tabId}"]`);
-        if(btn) btn.classList.add('active-tab');
-    }
-
     updateDisplays() {
         const ps = this.getCurrentProfileSettings();
         if(this.dom.machinesDisplay) this.dom.machinesDisplay.textContent = ps.machineCount + (ps.machineCount > 1 ? ' Machines' : ' Machine');
@@ -217,7 +219,7 @@ export class SettingsManager {
         if(this.dom.chunkDisplay) this.dom.chunkDisplay.textContent = ps.simonChunkSize;
         if(this.dom.delayDisplay) this.dom.delayDisplay.textContent = (ps.simonInterSequenceDelay / 1000).toFixed(1) + 's';
         if(this.dom.playbackDisplay) this.dom.playbackDisplay.textContent = parseInt(this.appSettings.playbackSpeed * 100) + '%';
-        if(this.dom.uiScaleDisplay) this.dom.uiScaleDisplay.textContent = parseInt(ps.uiScaleMultiplier * 100) + '%';
+        if(this.dom.uiScaleDisplay) this.dom.uiScaleDisplay.textContent = parseInt(this.appSettings.globalUiScale) + '%';
     }
 
     updateVisibility() {
@@ -225,8 +227,6 @@ export class SettingsManager {
         const isSimon = (ps.currentMode === this.MODES.SIMON);
         
         if (this.dom.seqLabel) this.dom.seqLabel.textContent = isSimon ? '4. Sequence Length' : '4. Unique Rounds';
-        if (this.dom.modeLabel) this.dom.modeLabel.textContent = isSimon ? 'Off: Simon Says' : 'On: Unique Rounds';
-        
         if (this.dom.machines) this.dom.machines.disabled = !isSimon;
         if (!isSimon && this.dom.machines) this.dom.machines.value = 1;
 
@@ -243,7 +243,6 @@ export class SettingsManager {
         // Setup Modal Extras
         if(this.dom.quickHelp) this.dom.quickHelp.onclick = () => { this.closeSetup(); this.openHelp(); };
         if(this.dom.quickSettings) this.dom.quickSettings.onclick = () => { this.closeSetup(); this.openSettings(); };
-        if(this.dom.openGameSetupInside) this.dom.openGameSetupInside.onclick = () => { this.closeSettings(); this.openSetup(); };
         
         // Share Modal Extras
         if(this.dom.openShareInside) this.dom.openShareInside.onclick = () => this.openShare();
@@ -256,12 +255,15 @@ export class SettingsManager {
              this.dom.copyLinkBtn.innerText = "Copied!";
         };
         
-        // Profile Management
-        if(this.dom.configSelect) this.dom.configSelect.onchange = (e) => {
-            if(this.callbacks.onProfileSwitch) this.callbacks.onProfileSwitch(e.target.value);
+        // Profile Management Helper
+        const handleProfileSwitch = (val) => {
+            if(this.callbacks.onProfileSwitch) this.callbacks.onProfileSwitch(val);
             this.populateConfigDropdown(); 
-            this.openSettings(); // Refresh UI for new profile
         };
+
+        if(this.dom.configSelect) this.dom.configSelect.onchange = (e) => { handleProfileSwitch(e.target.value); this.openSettings(); };
+        if(this.dom.quickConfigSelect) this.dom.quickConfigSelect.onchange = (e) => { handleProfileSwitch(e.target.value); };
+
         if(this.dom.configAdd) this.dom.configAdd.onclick = () => {
              const name = prompt("New Profile Name:", "New Setup");
              if(name && this.callbacks.onProfileAdd) this.callbacks.onProfileAdd(name);
@@ -279,22 +281,14 @@ export class SettingsManager {
              this.openSettings();
         };
         
-        // Resize Buttons (Quick Start)
-        if(this.dom.resizeUp) this.dom.resizeUp.onclick = () => {
+        // Quick Resize Buttons
+        if(this.dom.quickResizeUp) this.dom.quickResizeUp.onclick = () => {
             this.appSettings.globalUiScale = Math.min(150, this.appSettings.globalUiScale + 10);
             this.callbacks.onUpdate();
         };
-        if(this.dom.resizeDown) this.dom.resizeDown.onclick = () => {
+        if(this.dom.quickResizeDown) this.dom.quickResizeDown.onclick = () => {
             this.appSettings.globalUiScale = Math.max(50, this.appSettings.globalUiScale - 10);
             this.callbacks.onUpdate();
-        };
-
-        // Tabs
-        if(this.dom.tabNav) this.dom.tabNav.onclick = (e) => {
-            if(e.target.dataset.tab) this.switchTab('settings', e.target.dataset.tab);
-        };
-        if(this.dom.helpTabNav) this.dom.helpTabNav.onclick = (e) => {
-            if(e.target.dataset.tab) this.switchTab('help', e.target.dataset.tab);
         };
 
         // Generic Input Handler
@@ -330,24 +324,26 @@ export class SettingsManager {
         handleInput(this.dom.delay, 'simonInterSequenceDelay');
         handleInput(this.dom.autoClear, 'isUniqueRoundsAutoClearEnabled', false, true);
         
-        handleInput(this.dom.uiScale, 'uiScaleMultiplier', false, false, true);
+        handleInput(this.dom.uiScale, 'globalUiScale', true, false, false); // Global UI Scale
         handleInput(this.dom.playbackSpeed, 'playbackSpeed', true, false, true);
         handleInput(this.dom.showWelcome, 'showWelcomeScreen', true, true);
         handleInput(this.dom.darkMode, 'isDarkMode', true, true);
-        
-        // Gesture Mode: Checked = 'sequence', Unchecked = 'global'
-        if(this.dom.gestureMode) {
-            this.dom.gestureMode.onchange = (e) => {
-                this.appSettings.gestureResizeMode = e.target.checked ? 'sequence' : 'global';
-                this.callbacks.onSave();
-            };
-        }
         
         handleInput(this.dom.autoplay, 'isAutoplayEnabled', false, true);
         handleInput(this.dom.speedDelete, 'isSpeedDeletingEnabled', false, true);
         handleInput(this.dom.audio, 'isAudioEnabled', false, true);
         handleInput(this.dom.haptics, 'isHapticsEnabled', false, true);
-        handleInput(this.dom.autoInput, 'autoInputMode', false, false); 
+        
+        handleInput(this.dom.showMic, 'showMicBtn', false, true);
+        handleInput(this.dom.showCam, 'showCamBtn', false, true);
+        
+        // Gesture Toggle Handler
+        if (this.dom.gestureMode) {
+            this.dom.gestureMode.onchange = (e) => {
+                this.appSettings.gestureResizeMode = e.target.checked ? 'sequence' : 'global';
+                this.callbacks.onSave();
+            };
+        }
         
         if(this.dom.restoreBtn) this.dom.restoreBtn.onclick = () => {
             if(confirm("Factory Reset: Are you sure?")) this.callbacks.onReset();

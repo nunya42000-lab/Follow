@@ -41,6 +41,14 @@
                     <button id="config-rename" class="px-4 py-2 text-sm text-gray-700 bg-gray-200 rounded-lg">Rename</button>
                     <button id="config-delete" class="px-4 py-2 text-sm text-white bg-btn-control-red rounded-lg">Delete</button>
                 </div>
+                
+                <!-- RESIZE BUTTONS (RESTORED) -->
+                <div class="flex justify-center space-x-3 mb-6">
+                    <button id="global-resize-down" class="px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded font-bold text-xl">-</button>
+                    <span class="text-sm self-center">UI Size</span>
+                    <button id="global-resize-up" class="px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded font-bold text-xl">+</button>
+                </div>
+
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div class="flex items-center justify-between">
                         <label class="font-semibold">Autoplay</label>
@@ -62,13 +70,24 @@
             </div>
         </div>
     </div>
+    
+    <!-- SHARE MODAL (RESTORED) -->
+    <div id="share-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 text-center">
+            <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Share App</h3>
+            <button id="native-share-button" class="w-full mb-3 px-6 py-3 bg-primary-app text-white rounded font-bold hidden">Share...</button>
+            <button id="copy-link-button" class="w-full mb-3 px-6 py-3 bg-blue-600 text-white rounded font-bold">Copy Link</button>
+            <button id="close-share" class="w-full px-6 py-2 bg-gray-500 text-white rounded">Close</button>
+        </div>
+    </div>
 
     <!-- SETTINGS MODAL -->
     <div id="settings-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full m-4 transform scale-90 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-hidden">
             <div class="p-6 pb-0 relative">
                 <h3 class="text-2xl font-bold text-gray-900 dark:text-white pb-3">Preferences ⚙️</h3>
-                <button id="open-comment-modal" class="absolute top-4 right-16 text-2xl">💬</button>
+                <button id="open-comment-modal" class="absolute top-4 right-20 text-2xl">💬</button>
+                <button id="open-share-button" class="absolute top-4 right-12 text-2xl">📤</button>
                 <button id="open-help-button" class="absolute top-4 right-4 text-2xl">❓</button>
                 <div class="border-b border-gray-200 dark:border-gray-700">
                     <nav id="settings-tab-nav" class="flex space-x-2">
@@ -207,10 +226,7 @@
                 </div>
             </div>
 
-            <!-- PIANO (FIXED HTML) -->
-            <div id="pad-pad-piano" class="max-w-xl mx-auto pt-0 pb-4" style="display:none"> <!-- ID fix in JS needed: it looks for pad-piano -->
-            </div>
-            
+            <!-- PIANO (CORRECTED STRUCTURE) -->
             <div id="pad-piano" class="max-w-xl mx-auto pt-0 pb-4" style="display:none;">
                 <div id="piano-keys" class="relative h-48 w-full bg-gray-200 rounded-md shadow-inner overflow-hidden mb-4">
                     <div class="flex h-full w-full">
@@ -251,4 +267,5 @@
 
 </body>
 </html>
+
 

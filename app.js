@@ -21,10 +21,10 @@ const db = getFirestore(app);
 const CONFIG = {
     MAX_MACHINES: 4,
     DEMO_DELAY_BASE_MS: 798,
-    SPEED_DELETE_DELAY: 400, // Increased slightly to differentiate tap vs hold
+    SPEED_DELETE_DELAY: 400, 
     SPEED_DELETE_INTERVAL: 100,
-    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v20', 
-    STORAGE_KEY_STATE: 'followMeAppState_v20',
+    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v21', 
+    STORAGE_KEY_STATE: 'followMeAppState_v21',
     INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' },
     MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' }
 };
@@ -83,12 +83,11 @@ let appState = {};
 let modules = { sensor: null, settings: null };
 let timers = { speedDelete: null, initialDelay: null, longPress: null };
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
-let blackoutState = { isActive: false, lastTap: 0 };
-let isDeleting = false; // Flag to prevent click if held
+let blackoutState = { isActive: false, lastShake: 0 }; // Changed from lastTap to lastShake
+let isDeleting = false; 
 
 // --- CORE FUNCTIONS ---
 
-// CHANGED: Now returns the runtime settings, not the saved profile
 const getProfileSettings = () => appSettings.runtimeSettings;
 const getState = () => appState['current_session'] || (appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 });
 
@@ -104,15 +103,11 @@ function loadState() {
         
         if(s) {
             const loaded = JSON.parse(s);
-            // Deep merge profiles to ensure defaults exist if corrupted
             appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) } };
-            
-            // Ensure runtimeSettings exists (migration)
             if(!appSettings.runtimeSettings) {
                 appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS));
             }
         } else {
-            // First boot: Load default profile into runtime
             appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles['profile_1'].settings));
         }
 
@@ -130,13 +125,12 @@ function vibrate() {
     if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10);
 }
 
-// --- HAPTIC MORSE LOGIC (SCALED) ---
+// --- HAPTIC MORSE LOGIC ---
 function vibrateMorse(num) {
     if(!navigator.vibrate || !appSettings.isHapticMorseEnabled) return;
     
-    // SCALE: Durations get shorter as speed increases
     const speed = appSettings.playbackSpeed || 1.0;
-    const factor = 1.0 / speed; // If speed 2.0, duration is 0.5x
+    const factor = 1.0 / speed; 
     
     const DOT = 100 * factor;
     const DASH = 300 * factor;
@@ -145,13 +139,9 @@ function vibrateMorse(num) {
     let pattern = [];
     const n = parseInt(num);
     
-    // 1-3: Dots
     if (n >= 1 && n <= 3) { for(let i=0; i<n; i++) { pattern.push(DOT); pattern.push(GAP); } } 
-    // 4-6: Dash + Dots
     else if (n >= 4 && n <= 6) { pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(n-3); i++) { pattern.push(DOT); pattern.push(GAP); } } 
-    // 7-9: Dash + Dash + Dots
     else if (n >= 7 && n <= 9) { pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(n-6); i++) { pattern.push(DOT); pattern.push(GAP); } }
-    // 10+: Long
     else if (n >= 10) { pattern.push(DASH); pattern.push(DOT); }
     
     if(pattern.length > 0) navigator.vibrate(pattern);
@@ -174,33 +164,42 @@ function showToast(msg) {
     setTimeout(() => t.classList.add('opacity-0', '-translate-y-10'), 2000);
 }
 
-// --- BLACKOUT LOGIC (FIXED) ---
+// --- BLACKOUT LOGIC (SHAKE) ---
 function toggleBlackout() {
     blackoutState.isActive = !blackoutState.isActive;
     document.body.classList.toggle('blackout-active', blackoutState.isActive);
     if(blackoutState.isActive) {
         if(appSettings.isAudioEnabled) speak("Stealth Active");
         document.getElementById('blackout-layer').addEventListener('touchstart', handleBlackoutTouch, {passive: false});
-        // Remove desktop click listener to prevent conflict on hybrid devices
     } else {
         document.getElementById('blackout-layer').removeEventListener('touchstart', handleBlackoutTouch);
     }
 }
 
-function handleBlackoutTouch(e) {
-    // 1. CHECK GESTURE FIRST (Exit Strategy)
-    if(e.touches && e.touches.length === 3) {
-        const now = Date.now();
-        if(now - blackoutState.lastTap < 400) {
-            toggleBlackout();
-            e.preventDefault(); e.stopPropagation();
-            return;
-        }
-        blackoutState.lastTap = now;
-        e.preventDefault(); e.stopPropagation();
-        return;
-    }
+// Detect Shake (Accelerometer)
+function handleShake(e) {
+    if(!appSettings.isBlackoutFeatureEnabled) return;
 
+    // Use acceleration without gravity if available, otherwise fallback is complex so we rely on 'acceleration'
+    const acc = e.acceleration;
+    if(!acc) return;
+
+    // Calculate magnitude
+    const magnitude = Math.hypot(acc.x, acc.y, acc.z);
+    
+    // Threshold ~15 m/s^2 (moderate violent shake)
+    if(magnitude > 15) {
+        const now = Date.now();
+        // 1 second debounce to prevent flip-flopping
+        if(now - blackoutState.lastShake > 1000) {
+            toggleBlackout();
+            vibrate(); // Confirm toggle
+            blackoutState.lastShake = now;
+        }
+    }
+}
+
+function handleBlackoutTouch(e) {
     if(!blackoutState.isActive) return;
     
     // 2. Handle Input
@@ -232,19 +231,14 @@ function handleBlackoutTouch(e) {
     }
 }
 
-// --- GESTURES ---
-function initGestures() {
+// --- GESTURES & MOTION ---
+function initMotionAndGestures() {
     const target = document.body;
     
-    // Blackout Toggle (3 fingers) - ON BODY (Entry Strategy)
-    target.addEventListener('touchstart', (e) => {
-        if(!appSettings.isBlackoutFeatureEnabled) return;
-        if(e.touches.length === 3) {
-            const now = Date.now();
-            if(now - blackoutState.lastTap < 400) toggleBlackout();
-            blackoutState.lastTap = now;
-        }
-    });
+    // SHAKE LISTENER
+    if (window.DeviceMotionEvent) {
+        window.addEventListener('devicemotion', handleShake, false);
+    }
 
     // Pinch (Scale UI)
     target.addEventListener('touchstart', (e) => {
@@ -308,7 +302,6 @@ function addValue(value) {
 }
 
 function handleBackspace(e) {
-    // If triggered by event, prevent ghost clicks from long press
     if(e && isDeleting) return; 
     
     vibrate();
@@ -482,7 +475,7 @@ window.onload = function() {
     try {
         loadState();
         initComments(db);
-        initGestures(); 
+        initMotionAndGestures(); // INITIALIZE SHAKE
         
         modules.sensor = new SensorEngine((val, src) => addValue(val), (msg) => showToast(msg));
         modules.sensor.setSensitivity('audio', -85); modules.sensor.setSensitivity('camera', 50);
@@ -495,19 +488,14 @@ window.onload = function() {
             // PROFILE SWITCH: Now clones the profile into runtimeSettings
             onProfileSwitch: (id) => {
                 appSettings.activeProfileId = id;
-                // THIS IS THE KEY FIX: Reload runtime from saved preset
                 appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings));
-                
-                // New Session for new profile
                 appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
-                
                 updateAllChrome(); saveState();
             },
             
-            // SAVE PROFILE: Saves CURRENT runtime into the preset library
+            // SAVE PROFILE
             onProfileAdd: (name, settings = null, id = null) => {
                 const newId = id || 'p_' + Date.now();
-                // If explicit settings passed (rare), use them, else use current runtime
                 const source = settings || appSettings.runtimeSettings;
                 appSettings.profiles[newId] = { name, settings: JSON.parse(JSON.stringify(source)) };
                 appSettings.activeProfileId = newId;
@@ -519,7 +507,6 @@ window.onload = function() {
                 if(Object.keys(appSettings.profiles).length <= 1) return alert("Keep at least one profile.");
                 delete appSettings.profiles[appSettings.activeProfileId];
                 appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
-                // Fallback to first profile
                 appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings));
                 updateAllChrome(); saveState();
             }
@@ -539,30 +526,15 @@ window.onload = function() {
 
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => b.addEventListener('click', () => { if(confirm("Reset to Round 1?")) resetRounds(); }));
         
-        // FIXED BACKSPACE LISTENERS
         document.querySelectorAll('button[data-action="backspace"]').forEach(b => {
             b.addEventListener('click', handleBackspace); 
-            
             const startDelete = (e) => { 
-                // Don't prevent default here to allow click to fire on quick taps
                 isDeleting = false; 
-                timers.initialDelay = setTimeout(() => { 
-                    isDeleting = true; 
-                    timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL); 
-                }, CONFIG.SPEED_DELETE_DELAY); 
+                timers.initialDelay = setTimeout(() => { isDeleting = true; timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL); }, CONFIG.SPEED_DELETE_DELAY); 
             };
-            const stopDelete = () => { 
-                clearTimeout(timers.initialDelay); 
-                clearInterval(timers.speedDelete); 
-                // isDeleting remains true for a split second to block the 'click' event if it was a hold
-                setTimeout(() => isDeleting = false, 50); 
-            };
-            
-            b.addEventListener('mousedown', startDelete); 
-            b.addEventListener('touchstart', startDelete, { passive: true }); // Passive true helps scrolling but here we just want non-blocking
-            b.addEventListener('mouseup', stopDelete); 
-            b.addEventListener('mouseleave', stopDelete); 
-            b.addEventListener('touchend', stopDelete);
+            const stopDelete = () => { clearTimeout(timers.initialDelay); clearInterval(timers.speedDelete); setTimeout(() => isDeleting = false, 50); };
+            b.addEventListener('mousedown', startDelete); b.addEventListener('touchstart', startDelete, { passive: true });
+            b.addEventListener('mouseup', stopDelete); b.addEventListener('mouseleave', stopDelete); b.addEventListener('touchend', stopDelete);
         });
         
         document.querySelectorAll('button[data-action="open-share"]').forEach(b => b.addEventListener('click', () => modules.settings.openShare()));

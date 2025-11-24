@@ -44,7 +44,7 @@ export class SettingsManager {
             // Help Modal
             helpModal: document.getElementById('help-modal'),
             closeHelpBtn: document.getElementById('close-help'),
-            openHelpBtn: document.getElementById('open-help-button'), // Added
+            openHelpBtn: document.getElementById('open-help-button'),
             
             // Profile Specific Settings
             input: document.getElementById('input-select'),
@@ -59,7 +59,7 @@ export class SettingsManager {
             delayDisplay: document.getElementById('delay-display'),
             
             // Global Settings
-            autoClear: document.getElementById('autoclear-toggle'), // Now Global
+            autoClear: document.getElementById('autoclear-toggle'),
             autoplay: document.getElementById('autoplay-toggle'),
             speedDelete: document.getElementById('speed-delete-toggle'),
             audio: document.getElementById('audio-toggle'),
@@ -71,9 +71,13 @@ export class SettingsManager {
             playbackDisplay: document.getElementById('playback-speed-display'),
             showWelcome: document.getElementById('show-welcome-toggle'),
             darkMode: document.getElementById('dark-mode-toggle'),
-            uiScale: document.getElementById('ui-scale-slider'), // Sequence Size
+            uiScale: document.getElementById('ui-scale-slider'),
             uiScaleDisplay: document.getElementById('ui-scale-display'),
             gestureMode: document.getElementById('gesture-mode-toggle'),
+            
+            // Prompts
+            promptDisplay: document.getElementById('prompt-display'),
+            copyPromptBtn: document.getElementById('copy-prompt-btn'),
             
             restoreBtn: document.querySelector('button[data-action="restore-defaults"]')
         };
@@ -169,7 +173,7 @@ export class SettingsManager {
         this.dom.playbackSpeed.value = gs.playbackSpeed * 100;
         this.dom.showWelcome.checked = gs.showWelcomeScreen;
         this.dom.darkMode.checked = gs.isDarkMode;
-        this.dom.uiScale.value = gs.uiScaleMultiplier * 100; // Displaying Sequence Size
+        this.dom.uiScale.value = gs.uiScaleMultiplier * 100; 
         
         if (this.dom.gestureMode) {
             this.dom.gestureMode.checked = (gs.gestureResizeMode === 'sequence');
@@ -177,6 +181,7 @@ export class SettingsManager {
         
         this.updateDisplays();
         this.updateVisibility();
+        this.generatePrompt(); // Update prompt on open
         
         this.toggleModal(this.dom.settingsModal, true);
     }
@@ -207,7 +212,7 @@ export class SettingsManager {
         if(this.dom.chunkDisplay) this.dom.chunkDisplay.textContent = ps.simonChunkSize;
         if(this.dom.delayDisplay) this.dom.delayDisplay.textContent = (ps.simonInterSequenceDelay / 1000).toFixed(1) + 's';
         if(this.dom.playbackDisplay) this.dom.playbackDisplay.textContent = parseInt(this.appSettings.playbackSpeed * 100) + '%';
-        if(this.dom.uiScaleDisplay) this.dom.uiScaleDisplay.textContent = parseInt(this.appSettings.uiScaleMultiplier * 100) + '%'; // Sequence Scale
+        if(this.dom.uiScaleDisplay) this.dom.uiScaleDisplay.textContent = parseInt(this.appSettings.uiScaleMultiplier * 100) + '%'; 
     }
 
     updateVisibility() {
@@ -215,13 +220,31 @@ export class SettingsManager {
         const isSimon = (ps.currentMode === this.MODES.SIMON);
         
         // Update Labels based on mode
-        if (this.dom.seqLabel) this.dom.seqLabel.textContent = isSimon ? '4. Sequence Length' : '4. Unique Rounds';
+        if (this.dom.seqLabel) this.dom.seqLabel.textContent = isSimon ? 'Sequence Length' : 'Unique Rounds';
         
         if (this.dom.machines) this.dom.machines.disabled = !isSimon;
-        // Don't force value change here visually, logic handles it
         
         if (this.dom.autoClearGroup) this.dom.autoClearGroup.style.display = isSimon ? 'none' : 'flex';
-        if (this.dom.multiSeqGroup) this.dom.multiSeqGroup.style.display = (isSimon && ps.machineCount > 1) ? 'block' : 'none';
+        
+        // Multi-sequence settings (chunk/delay) now always visible in Settings modal or based on Machines > 1? 
+        // User said "Chunk size delay between chunks sliders are missing". I will ensure they are shown.
+        // The previous logic hid them if machines == 1. Let's just show them for Simon mode generally if user wants chunks.
+        if (this.dom.multiSeqGroup) {
+             this.dom.multiSeqGroup.style.display = isSimon ? 'block' : 'none';
+        }
+    }
+    
+    generatePrompt() {
+        if(!this.dom.promptDisplay) return;
+        const ps = this.getCurrentProfileSettings();
+        const mode = ps.currentMode === 'unique_rounds' ? 'Unique Rounds (Memory)' : 'Simon Says (Pattern)';
+        const input = ps.currentInput;
+        const machines = ps.machineCount;
+        const seqLen = ps.sequenceLength;
+        const chunk = ps.simonChunkSize;
+        const delay = ps.simonInterSequenceDelay / 1000;
+        
+        this.dom.promptDisplay.value = `Follow Me Config:\nMode: ${mode}\nInput: ${input}\nLength: ${seqLen}\nMachines: ${machines}\nChunk Size: ${chunk}\nDelay: ${delay}s`;
     }
 
     initListeners() {
@@ -243,6 +266,14 @@ export class SettingsManager {
         if(this.dom.copyLinkBtn) this.dom.copyLinkBtn.onclick = () => {
              navigator.clipboard.writeText(window.location.href);
              this.dom.copyLinkBtn.innerText = "Copied!";
+        };
+        
+        if(this.dom.copyPromptBtn) this.dom.copyPromptBtn.onclick = () => {
+             if(this.dom.promptDisplay) {
+                 navigator.clipboard.writeText(this.dom.promptDisplay.value);
+                 this.dom.copyPromptBtn.innerText = "Copied!";
+                 setTimeout(() => this.dom.copyPromptBtn.innerText = "Copy Prompt", 2000);
+             }
         };
         
         // Profile Management
@@ -291,24 +322,45 @@ export class SettingsManager {
 
                 if(isGlobal) {
                     this.appSettings[prop] = val;
-                    if(prop === 'isDarkMode') document.body.classList.toggle('dark', val);
+                    if(prop === 'isDarkMode') {
+                        document.body.classList.toggle('dark', val);
+                        // Background Logic
+                        if(!val) {
+                            document.body.classList.remove('bg-gray-900', 'text-white');
+                            document.body.classList.add('bg-white', 'text-gray-900');
+                        } else {
+                            document.body.classList.add('bg-gray-900', 'text-white');
+                            document.body.classList.remove('bg-white', 'text-gray-900');
+                        }
+                    }
                     if(prop === 'globalUiScale') document.documentElement.style.fontSize = `${val}%`; 
                 } else {
                     // Profile Setting Changed
-                    const profile = this.appSettings.profiles[this.appSettings.activeProfileId];
-                    profile.settings[prop] = val;
+                    const currentId = this.appSettings.activeProfileId;
+                    const profile = this.appSettings.profiles[currentId];
                     
-                    if(prop === 'currentMode') profile.settings.currentMode = val ? this.MODES.UNIQUE_ROUNDS : this.MODES.SIMON;
-                    
-                    // Change Profile Name to "Custom" if not already
+                    // If we are modifying a saved/premade profile, create a new "Custom" profile
                     if(profile.name !== 'Custom' && !profile.name.includes('(Custom)')) {
-                        profile.name = "Custom";
-                        this.populateConfigDropdown();
+                        if (this.callbacks.onProfileAdd) {
+                            // Create Custom Profile clone
+                            const newId = 'custom_' + Date.now();
+                            const newSettings = JSON.parse(JSON.stringify(profile.settings));
+                            newSettings[prop] = val; // Apply change
+                            if(prop === 'currentMode') newSettings.currentMode = val ? this.MODES.UNIQUE_ROUNDS : this.MODES.SIMON;
+                            
+                            this.callbacks.onProfileAdd("Custom", newSettings, newId); // Pass custom ID/settings
+                            return; // Exit, onProfileAdd handles switch
+                        }
+                    } else {
+                        // Already on custom profile, just update
+                        profile.settings[prop] = val;
+                        if(prop === 'currentMode') profile.settings.currentMode = val ? this.MODES.UNIQUE_ROUNDS : this.MODES.SIMON;
                     }
                 }
                 
                 this.updateDisplays();
                 this.updateVisibility();
+                this.generatePrompt();
                 this.callbacks.onUpdate(); 
             };
         };
@@ -333,10 +385,7 @@ export class SettingsManager {
         handleInput(this.dom.playbackSpeed, 'playbackSpeed', true, false, true);
         handleInput(this.dom.showWelcome, 'showWelcomeScreen', true, true);
         handleInput(this.dom.darkMode, 'isDarkMode', true, true);
-        handleInput(this.dom.uiScale, 'uiScaleMultiplier', true, false, true); // Sequence Scale is global now? Or profile? 
-        // User requested sequence size up to 300%. Usually Sequence Size is a view preference (Global), 
-        // but if it was meant to be profile specific, move it up. 
-        // Based on "Changing a setting should not modify a pre-existing profile... The only settings that should be saved In profiles is the input type sequence length and unique rounds...", sequence size implies Global.
+        handleInput(this.dom.uiScale, 'uiScaleMultiplier', true, false, true); 
         
         if (this.dom.gestureMode) {
             this.dom.gestureMode.onchange = (e) => {

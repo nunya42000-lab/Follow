@@ -23,8 +23,8 @@ const CONFIG = {
     DEMO_DELAY_BASE_MS: 798,
     SPEED_DELETE_DELAY: 250,
     SPEED_DELETE_INTERVAL: 100,
-    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v8',
-    STORAGE_KEY_STATE: 'followMeAppState_v8',
+    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v9', // Bump version to force refresh
+    STORAGE_KEY_STATE: 'followMeAppState_v9',
     INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' },
     MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' }
 };
@@ -48,24 +48,48 @@ const DEFAULT_PROFILE = {
     autoInputMode: '0', // 0:Off, 1:Tone, 2:Camera
 };
 
+// --- RESTORED PREMADE PROFILES ---
+const PREMADE_PROFILES = {
+    'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE } },
+    'profile_2': { name: "2 Machines", settings: { 
+        ...DEFAULT_PROFILE,
+        machineCount: 2,
+        simonChunkSize: 4,
+        simonInterSequenceDelay: 200
+    }},
+    'profile_3': { name: "Bananas", settings: {
+        ...DEFAULT_PROFILE,
+        sequenceLength: 25
+    }},
+    'profile_4': { name: "Piano", settings: {
+        ...DEFAULT_PROFILE,
+        currentInput: CONFIG.INPUTS.PIANO
+    }},
+    'profile_5': { name: "15 Rounds", settings: {
+        ...DEFAULT_PROFILE,
+        currentMode: CONFIG.MODES.UNIQUE_ROUNDS,
+        sequenceLength: 15
+    }}
+};
+
 const DEFAULT_APP = {
     globalUiScale: 100,
     isDarkMode: true,
     showWelcomeScreen: true,
     activeProfileId: 'profile_1',
-    profiles: { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE } } },
+    profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)),
     playbackSpeed: 1.0,
 };
 
 // --- STATE ---
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
-let appState = { 'profile_1': { sequences: [[]], nextSequenceIndex: 0, currentRound: 1 } };
+let appState = {};
 let modules = { sensor: null, settings: null };
 let timers = { speedDelete: null, initialDelay: null };
 
 // --- CORE FUNCTIONS ---
 
-const getProfile = () => appSettings.profiles[appSettings.activeProfileId];
+const getProfile = () => appSettings.profiles[appSettings.activeProfileId] || appSettings.profiles['profile_1'];
 const getSettings = () => getProfile().settings;
 const getState = () => appState[appSettings.activeProfileId];
 
@@ -78,13 +102,26 @@ function loadState() {
     try {
         const s = localStorage.getItem(CONFIG.STORAGE_KEY_SETTINGS);
         const st = localStorage.getItem(CONFIG.STORAGE_KEY_STATE);
-        if(s) appSettings = { ...DEFAULT_APP, ...JSON.parse(s) };
+        
+        if(s) {
+            const loaded = JSON.parse(s);
+            // Merge loaded profiles with default app structure to ensure new profiles exist
+            appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...loaded.profiles } };
+        }
+        
         if(st) appState = JSON.parse(st);
         
-        // Validation
+        // Ensure state exists for all profiles
+        Object.keys(appSettings.profiles).forEach(id => {
+            if(!appState[id]) appState[id] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
+        });
+
         if(!appSettings.profiles[appSettings.activeProfileId]) appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
-        if(!appState[appSettings.activeProfileId]) appState[appSettings.activeProfileId] = { sequences: [[]], nextSequenceIndex: 0, currentRound: 1 };
-    } catch(e) { console.error("Load failed", e); }
+
+    } catch(e) { 
+        console.error("Load failed, resetting", e); 
+        appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
+    }
 }
 
 function vibrate() {
@@ -194,7 +231,6 @@ function playDemo() {
     // Build Playlist
     let playlist = [];
     if(settings.currentMode === CONFIG.MODES.SIMON) {
-        // Interleave logic
         const activeSeqs = state.sequences.slice(0, settings.machineCount);
         const maxLen = Math.max(...activeSeqs.map(s => s.length));
         if(maxLen === 0) return;
@@ -211,7 +247,6 @@ function playDemo() {
             }
         }
     } else {
-        // Unique Rounds (Linear)
         const seq = state.sequences[0];
         if(!seq || seq.length === 0) return;
         playlist = seq.map(v => ({ val: v, machine: 0 }));
@@ -231,14 +266,12 @@ function playDemo() {
             if(demoBtn) demoBtn.innerHTML = '▶'; 
             if(demoBtn) demoBtn.disabled = false;
             
-            // Auto Advance Round
             if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && settings.isUniqueRoundsAutoClearEnabled) {
-                // Clear and Advance
                 state.sequences[0] = [];
                 state.nextSequenceIndex = 0;
                 state.currentRound++;
                 if(state.currentRound > settings.sequenceLength) {
-                    resetRounds(); // Loop or end?
+                    resetRounds();
                 }
                 renderUI();
                 saveState();
@@ -259,7 +292,6 @@ function playDemo() {
             setTimeout(() => key.classList.remove(visualClass), 250 / speed);
         }
         
-        // Highlight Machine Box
         const seqBoxes = document.getElementById('sequence-container').children;
         if(seqBoxes[item.machine]) {
             seqBoxes[item.machine].classList.add('bg-accent-app', 'scale-105');
@@ -279,7 +311,7 @@ function renderUI() {
     const state = getState();
     const container = document.getElementById('sequence-container');
     
-    // 1. Show correct Pad
+    // 1. Show correct Pad (FIX: Ensure we hide others)
     ['key9', 'key12', 'piano'].forEach(k => {
         const el = document.getElementById(`pad-${k}`);
         if(el) el.style.display = (settings.currentInput === k) ? 'block' : 'none';
@@ -289,30 +321,31 @@ function renderUI() {
     container.innerHTML = '';
     const activeSeqs = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);
     
-    // Round Header
     if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
         const h = document.createElement('h2');
-        h.className = "text-center text-2xl font-bold mb-4 w-full";
+        h.className = "text-center text-2xl font-bold mb-4 w-full text-white";
         h.textContent = `Round ${state.currentRound} / ${settings.sequenceLength}`;
         container.appendChild(h);
     }
     
-    // Grid Setup
+    // Layout Container
     let gridCols = settings.machineCount === 4 ? 4 : (settings.machineCount === 3 ? 3 : (settings.machineCount === 2 ? 2 : 1));
     if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) gridCols = 1;
+    
+    // Apply layout classes
     container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
     
     activeSeqs.forEach((seq, idx) => {
         const card = document.createElement('div');
         card.className = "p-4 rounded-xl shadow-md bg-white dark:bg-gray-700 transition-all duration-200 min-h-[100px]";
         
-        // Internal Grid for numbers
+        // Internal Grid for numbers - RESTORED 5 COLS
         const numGrid = document.createElement('div');
-        numGrid.className = "flex flex-wrap gap-2 justify-center";
+        numGrid.className = "grid grid-cols-5 gap-2 justify-center"; 
         
         (seq || []).forEach(num => {
             const span = document.createElement('span');
-            span.className = "number-box bg-secondary-app text-white rounded-lg shadow-sm flex items-center justify-center";
+            span.className = "number-box bg-secondary-app text-white rounded-lg shadow-sm flex items-center justify-center font-bold";
             span.style.width = (40 * settings.uiScaleMultiplier) + 'px';
             span.style.height = (40 * settings.uiScaleMultiplier) + 'px';
             span.style.fontSize = (1.2 * settings.uiScaleMultiplier) + 'rem';
@@ -328,7 +361,6 @@ function renderUI() {
     document.querySelectorAll('.auto-input-btn').forEach(btn => {
         const type = btn.id.includes('camera') ? '2' : '1';
         btn.classList.toggle('hidden', settings.autoInputMode !== type);
-        // Active state
         const isActive = (type === '2' && modules.sensor.mode.camera) || (type === '1' && modules.sensor.mode.audio);
         btn.classList.toggle('master-active', isActive);
         if(isActive) btn.classList.add('!bg-green-500'); else btn.classList.remove('!bg-green-500');
@@ -359,9 +391,8 @@ window.onload = function() {
         (msg) => showToast(msg)
     );
     // Hook up sensor sensitivities based on profile
-    const ps = getSettings();
     modules.sensor.setSensitivity('audio', -85); 
-    modules.sensor.setSensitivity('camera', 50); // Should link to profile settings later
+    modules.sensor.setSensitivity('camera', 50);
 
     modules.settings = new SettingsManager(appSettings, {
         onUpdate: () => { updateAllChrome(); saveState(); },
@@ -372,14 +403,14 @@ window.onload = function() {
         },
         onProfileSwitch: (id) => {
             appSettings.activeProfileId = id;
-            if(!appState[id]) appState[id] = { sequences: [[]], nextSequenceIndex: 0, currentRound: 1 };
+            if(!appState[id]) appState[id] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
             updateAllChrome();
             saveState();
         },
         onProfileAdd: (name) => {
             const id = 'p_' + Date.now();
             appSettings.profiles[id] = { name, settings: JSON.parse(JSON.stringify(DEFAULT_PROFILE)) };
-            appState[id] = { sequences: [[]], nextSequenceIndex: 0, currentRound: 1 };
+            appState[id] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
             appSettings.activeProfileId = id;
             updateAllChrome();
             saveState();
@@ -396,10 +427,12 @@ window.onload = function() {
             saveState();
         },
         onRequestPermissions: () => {
-            // iOS Permission Request trigger
             if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                  DeviceMotionEvent.requestPermission().then(r => console.log(r)).catch(console.error);
             }
+        },
+        onShare: () => {
+             // Logic moved to SettingsManager mostly, but we trigger modal here if needed
         }
     });
 
@@ -420,7 +453,6 @@ window.onload = function() {
     }));
     document.querySelectorAll('button[data-action="backspace"]').forEach(b => {
         b.addEventListener('click', handleBackspace);
-        // Speed delete logic
         b.addEventListener('mousedown', () => {
             timers.initialDelay = setTimeout(() => {
                 timers.speedDelete = setInterval(handleBackspace, CONFIG.SPEED_DELETE_INTERVAL);
@@ -431,15 +463,19 @@ window.onload = function() {
         b.addEventListener('mouseleave', stop);
         b.addEventListener('touchend', stop);
     });
-
-    // Open Modals
+    
+    // Share Button
+    document.querySelectorAll('button[data-action="open-share"]').forEach(b => {
+        b.addEventListener('click', () => modules.settings.openShare());
+    });
+    
+    // Open Settings
     document.querySelectorAll('button[data-action="open-settings"]').forEach(b => b.onclick = () => modules.settings.openSettings());
 
     // Master Switch Logic
     document.addEventListener('click', (e) => {
         if(e.target.closest('#camera-master-btn')) {
             const on = !modules.sensor.mode.camera;
-            // Create hidden video el if needed
             if(!document.getElementById('hidden-video')) {
                 const v = document.createElement('video'); v.id = 'hidden-video'; v.autoplay = true; v.muted = true; v.playsInline = true; v.style.display='none';
                 const c = document.createElement('canvas'); c.id = 'hidden-canvas'; c.style.display='none';

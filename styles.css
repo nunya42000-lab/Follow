@@ -34,8 +34,14 @@ body {
 }
 
 #app {
-    /* Add top padding to clear browser bars if they exist */
-    padding-top: 2rem; 
+    /* Add SIGNIFICANT top padding to ensure first row visibility below browser address bars */
+    padding-top: 4rem; 
+}
+
+/* Force sequence container to start from top, not center */
+#sequence-container {
+    justify-content: flex-start !important;
+    padding-top: 2rem;
 }
 
 #input-footer {

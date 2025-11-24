@@ -1,5 +1,5 @@
 // --- CACHE VERSION ---
-const CACHE_NAME = 'follow-me-v21-shake'; 
+const CACHE_NAME = 'follow-me-v23-resize'; 
 // --- ---------------- ---
 
 const FILES_TO_CACHE = [

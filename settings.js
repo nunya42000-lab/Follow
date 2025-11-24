@@ -25,11 +25,12 @@ export class SettingsManager {
             mode: document.getElementById('mode-select'),
             machines: document.getElementById('machines-select'),
             seqLength: document.getElementById('seq-length-select'),
+            autoClear: document.getElementById('autoclear-toggle'), // MOVED HERE LOGICALLY
 
             // TAB 2: PLAYBACK
             autoplay: document.getElementById('autoplay-toggle'),
             audio: document.getElementById('audio-toggle'),
-            hapticMorse: document.getElementById('haptic-morse-toggle'), // NEW
+            hapticMorse: document.getElementById('haptic-morse-toggle'),
             
             playbackSpeed: document.getElementById('playback-speed-select'),
             chunk: document.getElementById('chunk-select'),
@@ -39,7 +40,6 @@ export class SettingsManager {
             haptics: document.getElementById('haptics-toggle'),
             speedDelete: document.getElementById('speed-delete-toggle'),
             showWelcome: document.getElementById('show-welcome-toggle'),
-            autoClear: document.getElementById('autoclear-toggle'),
             blackoutToggle: document.getElementById('blackout-toggle'),
             
             theme: document.getElementById('theme-select'),
@@ -47,7 +47,7 @@ export class SettingsManager {
             gestureMode: document.getElementById('gesture-mode-select'),
             autoInput: document.getElementById('auto-input-select'),
 
-            // Prompt (Moved to Help)
+            // Prompt
             promptDisplay: document.getElementById('prompt-display'),
             copyPromptBtn: document.getElementById('copy-prompt-btn'),
             
@@ -98,7 +98,7 @@ export class SettingsManager {
 
     openSettings() {
         this.populateConfigDropdown();
-        // CHANGED: Load from RUNTIME settings, not the saved profile
+        // Use RUNTIME settings
         const ps = this.appSettings.runtimeSettings;
         const gs = this.appSettings;
 
@@ -107,6 +107,7 @@ export class SettingsManager {
         if(this.dom.mode) this.dom.mode.value = (ps.currentMode === 'unique_rounds') ? 'unique' : 'simon';
         if(this.dom.machines) this.dom.machines.value = ps.machineCount;
         if(this.dom.seqLength) this.dom.seqLength.value = ps.sequenceLength;
+        if(this.dom.autoClear) this.dom.autoClear.checked = gs.isUniqueRoundsAutoClearEnabled;
 
         if(this.dom.autoplay) this.dom.autoplay.checked = gs.isAutoplayEnabled;
         if(this.dom.audio) this.dom.audio.checked = gs.isAudioEnabled;
@@ -118,7 +119,7 @@ export class SettingsManager {
         if(this.dom.haptics) this.dom.haptics.checked = gs.isHapticsEnabled;
         if(this.dom.speedDelete) this.dom.speedDelete.checked = gs.isSpeedDeletingEnabled;
         if(this.dom.showWelcome) this.dom.showWelcome.checked = gs.showWelcomeScreen;
-        if(this.dom.autoClear) this.dom.autoClear.checked = gs.isUniqueRoundsAutoClearEnabled;
+        
         if(this.dom.blackoutToggle) this.dom.blackoutToggle.checked = gs.isBlackoutFeatureEnabled;
         if(this.dom.theme) this.dom.theme.value = gs.activeTheme;
         if(this.dom.uiScale) this.dom.uiScale.value = Math.round(gs.uiScaleMultiplier * 100);
@@ -194,7 +195,7 @@ export class SettingsManager {
                     this.appSettings[prop] = val;
                     if(prop === 'activeTheme' || prop === 'isBlackoutFeatureEnabled') this.callbacks.onUpdate();
                 } else {
-                    // CHANGED: Update RUNTIME, not the PROFILE
+                    // Update RUNTIME ONLY
                     this.appSettings.runtimeSettings[prop] = val;
                 }
                 this.callbacks.onSave();
@@ -220,7 +221,6 @@ export class SettingsManager {
         bind(this.dom.theme, 'activeTheme', true);
 
         if(this.dom.mode) this.dom.mode.onchange = (e) => {
-             // CHANGED: Update RUNTIME
              this.appSettings.runtimeSettings.currentMode = (e.target.value === 'unique') ? 'unique_rounds' : 'simon';
              this.callbacks.onSave(); this.callbacks.onUpdate(); this.generatePrompt();
         };
@@ -270,7 +270,6 @@ export class SettingsManager {
     
     generatePrompt() {
         if(!this.dom.promptDisplay) return;
-        // CHANGED: Generate prompt based on RUNTIME settings
         const ps = this.appSettings.runtimeSettings;
         let logic = (ps.currentMode === 'unique_rounds') ? `Game: Unique Rounds. Sequence length ${ps.sequenceLength}. New random sequence every round.` : `Game: Simon Says. Accumulate pattern. Max ${ps.sequenceLength}.`;
         let reading = (ps.machineCount > 1 || ps.simonChunkSize > 0) ? `Read in chunks of ${ps.simonChunkSize}. Pause ${(ps.simonInterSequenceDelay/1000)}s between. Machines: ${ps.machineCount}.` : "";

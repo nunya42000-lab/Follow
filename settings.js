@@ -236,33 +236,61 @@ export class SettingsManager {
         
         const ps = this.getCurrentProfileSettings();
         
-        // Helper text mapping
-        const inputMap = { 'key9': 'a 9-key number pad', 'key12': 'a 12-key number pad', 'piano': 'piano keys' };
-        const inputName = inputMap[ps.currentInput] || 'a number pad';
-        
-        let command = "";
-        
-        if (ps.currentMode === this.MODES.UNIQUE_ROUNDS) {
-            // Unique Rounds Prompt
-            command = `Let's play a memory game called Unique Rounds. Use ${inputName}. `;
-            command += `Each round will be a random sequence of ${ps.sequenceLength} numbers. `;
-            command += `I have to memorize them all. `;
+        // 1. Define Inputs
+        let validInputs = "";
+        if(ps.currentInput === 'piano') {
+            validInputs = "Musical Notes: White Keys (C, D, E, F, G, A, B) and Black Keys (1, 2, 3, 4, 5).";
+        } else if (ps.currentInput === 'key12') {
+            validInputs = "Numbers 1 through 12.";
         } else {
-            // Simon Says Prompt
-            command = `Let's play Simon Says using ${inputName}. `;
-            command += `The sequence is ${ps.sequenceLength} steps long. `;
-            
-            if (ps.machineCount > 1) {
-                command += `Split the sequence across ${ps.machineCount} different machines to make it harder. `;
-                command += `Read them in chunks of ${ps.simonChunkSize}, waiting ${(ps.simonInterSequenceDelay / 1000).toFixed(1)} seconds between chunks. `;
-            } else {
-                command += `Read the numbers to me one by one. `;
-            }
+            validInputs = "Numbers 1 through 9.";
         }
+
+        // 2. Define Game Logic
+        let logic = "";
+        if (ps.currentMode === this.MODES.UNIQUE_ROUNDS) {
+            logic = `GAME: UNIQUE ROUNDS.
+            - Start at Round 1 (Length 1).
+            - Each round, generate a COMPLETELY NEW random sequence of the current length.
+            - Read the sequence to me.
+            - Wait for me to repeat it back. Expect exactly {Round_Number} inputs from me.
+            - If I am correct, say "Correct", increment Round number (Length + 1), and generate a new sequence.
+            - Stop when Round ${ps.sequenceLength} is completed.`;
+        } else {
+            logic = `GAME: SIMON SAYS (Pattern Accumulation).
+            - Start with a random sequence of length 1.
+            - Read the sequence to me.
+            - Wait for me to repeat the ENTIRE sequence from the start. Expect {Current_Length} inputs from me.
+            - If I am correct, say "Correct", ADD one random item to the end of the EXISTING sequence, and read the whole thing again.
+            - Continue until the sequence length reaches ${ps.sequenceLength}.`;
+        }
+
+        // 3. Reading Style (Chunks/Delay)
+        let readingStyle = "";
+        if (ps.machineCount > 1 || ps.simonChunkSize > 0) {
+            const delaySec = (ps.simonInterSequenceDelay / 1000).toFixed(1);
+            readingStyle = `READING STYLE:
+            - Read items in groups (chunks) of ${ps.simonChunkSize}.
+            - Pause for ${delaySec} seconds between chunks.
+            - Speak clearly and fast.`;
+        } else {
+            readingStyle = `READING STYLE: Speak clearly.`;
+        }
+
+        // 4. Assembly
+        const command = `Act as the Game Engine for "Follow Me".
         
-        command += "Ready when you are.";
+        CONFIG:
+        - Inputs: ${validInputs}
+        - Max Goal: ${ps.sequenceLength} steps.
         
-        this.dom.promptDisplay.value = command;
+        ${logic}
+        
+        ${readingStyle}
+        
+        Start the game now by reading Round 1.`;
+        
+        this.dom.promptDisplay.value = command.replace(/^        /gm, ''); // Simple dedent
     }
 
     initListeners() {
@@ -336,7 +364,7 @@ export class SettingsManager {
             el.onchange = el.oninput = (e) => {
                 let val = isBool ? el.checked : el.value;
                 if(!isBool && !isFloat) val = parseInt(val);
-                if(isFloat) val = parseFloat(val) / 100.0;
+                if(isFloat) val = parseFloat(val) / 100.0; // Keep floats for delays/scale
 
                 if(isGlobal) {
                     this.appSettings[prop] = val;

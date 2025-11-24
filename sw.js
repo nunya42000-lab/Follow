@@ -1,7 +1,5 @@
-// sw.js
 // --- CACHE VERSION ---
-// I bumped this to v19 to force your browser to load the new Blackout/Morse features
-const CACHE_NAME = 'follow-me-v19-stealth'; 
+const CACHE_NAME = 'follow-me-v20-fixed'; 
 // --- ---------------- ---
 
 const FILES_TO_CACHE = [

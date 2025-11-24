@@ -23,8 +23,8 @@ const CONFIG = {
     DEMO_DELAY_BASE_MS: 798,
     SPEED_DELETE_DELAY: 250,
     SPEED_DELETE_INTERVAL: 100,
-    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v11', // Bump version
-    STORAGE_KEY_STATE: 'followMeAppState_v11',
+    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v13', // Bump version
+    STORAGE_KEY_STATE: 'followMeAppState_v13',
     INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' },
     MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' }
 };
@@ -40,9 +40,10 @@ const DEFAULT_PROFILE = {
     isAudioEnabled: true,
     isHapticsEnabled: true,
     isSpeedDeletingEnabled: true, 
-    uiScaleMultiplier: 1.0, 
+    uiScaleMultiplier: 1.0, // Sequence Scale
     machineCount: 1,
-    autoInputMode: '0', // 0:Off, 1:Tone, 2:Camera
+    showMicBtn: false,
+    showCamBtn: false
 };
 
 const PREMADE_PROFILES = {
@@ -57,7 +58,7 @@ const DEFAULT_APP = {
     globalUiScale: 100,
     isDarkMode: true,
     showWelcomeScreen: true,
-    gestureResizeMode: 'global', // 'global' or 'sequence'
+    gestureResizeMode: 'global', // Default to Global UI resize
     activeProfileId: 'profile_1',
     profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)),
     playbackSpeed: 1.0,
@@ -67,7 +68,7 @@ const DEFAULT_APP = {
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
 let modules = { sensor: null, settings: null };
-let timers = { speedDelete: null, initialDelay: null };
+let timers = { speedDelete: null, initialDelay: null, longPress: null };
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 
 // --- CORE FUNCTIONS ---
@@ -147,8 +148,8 @@ function initGestures() {
                 e.touches[0].pageY - e.touches[1].pageY
             );
             
-            // Capture starting value based on mode
-            if(appSettings.gestureResizeMode === 'sequence') {
+            // Choose starting scale based on mode
+            if (appSettings.gestureResizeMode === 'sequence') {
                 gestureState.startScale = getSettings().uiScaleMultiplier || 1.0;
             } else {
                 gestureState.startScale = appSettings.globalUiScale || 100;
@@ -168,16 +169,21 @@ function initGestures() {
             
             if (appSettings.gestureResizeMode === 'sequence') {
                 let newScale = gestureState.startScale * ratio;
-                // Clamp 0.5 to 1.5
-                newScale = Math.min(Math.max(newScale, 0.5), 1.5);
+                newScale = Math.min(Math.max(newScale, 0.5), 2.0); // Clamp 0.5 - 2.0
                 getSettings().uiScaleMultiplier = newScale;
-                renderUI(); // Immediate re-render
+                renderUI(); 
             } else {
+                // Global UI Resize
                 let newScale = gestureState.startScale * ratio;
-                // Clamp 50 to 150
-                newScale = Math.min(Math.max(newScale, 50), 150);
+                newScale = Math.min(Math.max(newScale, 50), 150); // Clamp 50 - 150
                 appSettings.globalUiScale = newScale;
                 updateAllChrome();
+                
+                // Update slider if visible
+                const slider = document.getElementById('ui-scale-slider');
+                if(slider) slider.value = newScale;
+                const quickUp = document.getElementById('quick-resize-up'); // Just to check existence
+                if(quickUp) { /* could update visual indicator in quick start if it had one */ }
             }
         }
     }, { passive: false });
@@ -185,7 +191,7 @@ function initGestures() {
     target.addEventListener('touchend', () => {
         if(gestureState.isPinching) {
             gestureState.isPinching = false;
-            saveState(); // Save only on end
+            saveState(); 
         }
     });
 }
@@ -382,6 +388,7 @@ function renderUI() {
         (seq || []).forEach(num => {
             const span = document.createElement('span');
             span.className = "number-box bg-secondary-app text-white rounded-lg shadow-sm flex items-center justify-center font-bold";
+            // Use local UI Scale for cards
             span.style.width = (40 * settings.uiScaleMultiplier) + 'px';
             span.style.height = (40 * settings.uiScaleMultiplier) + 'px';
             span.style.fontSize = (1.2 * settings.uiScaleMultiplier) + 'rem';
@@ -393,12 +400,15 @@ function renderUI() {
         container.appendChild(card);
     });
 
-    document.querySelectorAll('.auto-input-btn').forEach(btn => {
-        const type = btn.id.includes('camera') ? '2' : '1';
-        btn.classList.toggle('hidden', settings.autoInputMode !== type);
-        const isActive = (type === '2' && modules.sensor.mode.camera) || (type === '1' && modules.sensor.mode.audio);
-        btn.classList.toggle('master-active', isActive);
-        if(isActive) btn.classList.add('!bg-green-500'); else btn.classList.remove('!bg-green-500');
+    // 3. Update Auto Input Buttons
+    document.querySelectorAll('#mic-master-btn').forEach(btn => {
+        btn.classList.toggle('hidden', !settings.showMicBtn);
+        btn.classList.toggle('master-active', modules.sensor.mode.audio);
+    });
+    
+    document.querySelectorAll('#camera-master-btn').forEach(btn => {
+        btn.classList.toggle('hidden', !settings.showCamBtn);
+        btn.classList.toggle('master-active', modules.sensor.mode.camera);
     });
 
     document.querySelectorAll('.reset-button').forEach(b => {
@@ -410,6 +420,13 @@ function updateAllChrome() {
     document.body.classList.toggle('dark', appSettings.isDarkMode);
     document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
     renderUI();
+    
+    // Sync toggle state if Settings Manager is active
+    if(modules.settings) {
+        // We can trigger a display update on settings to ensure checkbox sync
+        if(modules.settings.dom.autoplay) modules.settings.dom.autoplay.checked = getSettings().isAutoplayEnabled;
+        if(modules.settings.dom.quickAutoplay) modules.settings.dom.quickAutoplay.checked = getSettings().isAutoplayEnabled;
+    }
 }
 
 // --- INIT ---
@@ -418,9 +435,8 @@ window.onload = function() {
     try {
         loadState();
         
-        // Initialize Modules
         initComments(db);
-        initGestures(); // Start Gesture Listener
+        initGestures(); 
         
         modules.sensor = new SensorEngine(
             (val, src) => addValue(val), 
@@ -476,7 +492,38 @@ window.onload = function() {
             btn.addEventListener('click', (e) => addValue(e.target.dataset.value));
         });
 
-        document.querySelectorAll('button[data-action="play-demo"]').forEach(b => b.addEventListener('click', playDemo));
+        // Play Demo + Long Press Logic
+        document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
+            b.addEventListener('click', playDemo);
+            
+            // Long Press for Autoplay Toggle
+            b.addEventListener('touchstart', (e) => {
+                timers.longPress = setTimeout(() => {
+                    const s = getSettings();
+                    s.isAutoplayEnabled = !s.isAutoplayEnabled;
+                    showToast(`Autoplay: ${s.isAutoplayEnabled ? 'ON' : 'OFF'}`);
+                    updateAllChrome(); // Syncs checkboxes
+                    saveState();
+                    vibrate(); // Feedback
+                }, 500);
+            });
+            
+            const cancelLong = () => clearTimeout(timers.longPress);
+            b.addEventListener('touchend', cancelLong);
+            b.addEventListener('touchmove', cancelLong);
+            b.addEventListener('mousedown', (e) => {
+                 timers.longPress = setTimeout(() => {
+                    const s = getSettings();
+                    s.isAutoplayEnabled = !s.isAutoplayEnabled;
+                    showToast(`Autoplay: ${s.isAutoplayEnabled ? 'ON' : 'OFF'}`);
+                    updateAllChrome(); 
+                    saveState();
+                }, 500);
+            });
+            b.addEventListener('mouseup', cancelLong);
+            b.addEventListener('mouseleave', cancelLong);
+        });
+
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => b.addEventListener('click', () => {
             if(confirm("Reset to Round 1?")) resetRounds();
         }));

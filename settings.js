@@ -226,9 +226,6 @@ export class SettingsManager {
         
         if (this.dom.autoClearGroup) this.dom.autoClearGroup.style.display = isSimon ? 'none' : 'flex';
         
-        // Multi-sequence settings (chunk/delay) now always visible in Settings modal or based on Machines > 1? 
-        // User said "Chunk size delay between chunks sliders are missing". I will ensure they are shown.
-        // The previous logic hid them if machines == 1. Let's just show them for Simon mode generally if user wants chunks.
         if (this.dom.multiSeqGroup) {
              this.dom.multiSeqGroup.style.display = isSimon ? 'block' : 'none';
         }
@@ -236,15 +233,36 @@ export class SettingsManager {
     
     generatePrompt() {
         if(!this.dom.promptDisplay) return;
-        const ps = this.getCurrentProfileSettings();
-        const mode = ps.currentMode === 'unique_rounds' ? 'Unique Rounds (Memory)' : 'Simon Says (Pattern)';
-        const input = ps.currentInput;
-        const machines = ps.machineCount;
-        const seqLen = ps.sequenceLength;
-        const chunk = ps.simonChunkSize;
-        const delay = ps.simonInterSequenceDelay / 1000;
         
-        this.dom.promptDisplay.value = `Follow Me Config:\nMode: ${mode}\nInput: ${input}\nLength: ${seqLen}\nMachines: ${machines}\nChunk Size: ${chunk}\nDelay: ${delay}s`;
+        const ps = this.getCurrentProfileSettings();
+        
+        // Helper text mapping
+        const inputMap = { 'key9': 'a 9-key number pad', 'key12': 'a 12-key number pad', 'piano': 'piano keys' };
+        const inputName = inputMap[ps.currentInput] || 'a number pad';
+        
+        let command = "";
+        
+        if (ps.currentMode === this.MODES.UNIQUE_ROUNDS) {
+            // Unique Rounds Prompt
+            command = `Let's play a memory game called Unique Rounds. Use ${inputName}. `;
+            command += `Each round will be a random sequence of ${ps.sequenceLength} numbers. `;
+            command += `I have to memorize them all. `;
+        } else {
+            // Simon Says Prompt
+            command = `Let's play Simon Says using ${inputName}. `;
+            command += `The sequence is ${ps.sequenceLength} steps long. `;
+            
+            if (ps.machineCount > 1) {
+                command += `Split the sequence across ${ps.machineCount} different machines to make it harder. `;
+                command += `Read them in chunks of ${ps.simonChunkSize}, waiting ${(ps.simonInterSequenceDelay / 1000).toFixed(1)} seconds between chunks. `;
+            } else {
+                command += `Read the numbers to me one by one. `;
+            }
+        }
+        
+        command += "Ready when you are.";
+        
+        this.dom.promptDisplay.value = command;
     }
 
     initListeners() {

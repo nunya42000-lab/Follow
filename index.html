@@ -29,35 +29,34 @@
         body { touch-action: none; overscroll-behavior: none; }
     </style>
 </head>
-<body class="dark min-h-screen flex flex-col font-sans bg-gray-900 text-white">
+<body class="dark min-h-screen flex flex-col font-sans bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-200">
 
     <!-- GAME SETUP MODAL (QUICK START) -->
     <div id="game-setup-modal" class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 text-gray-900 dark:text-white max-h-[90vh] flex flex-col relative">
             
             <!-- Header with Resize Buttons on Left -->
-            <div class="flex items-center justify-between border-b dark:border-gray-700 pb-3 mb-4">
-                <div class="flex items-center space-x-2">
+            <div class="flex items-center justify-between border-b dark:border-gray-700 pb-3 mb-4 relative">
+                <div class="flex items-center space-x-2 absolute left-0">
                     <button id="quick-resize-down" class="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full font-bold text-lg hover:bg-gray-300 transition">-</button>
-                    <span class="text-xs font-bold uppercase text-gray-500">UI Size</span>
                     <button id="quick-resize-up" class="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full font-bold text-lg hover:bg-gray-300 transition">+</button>
                 </div>
-                <h3 class="text-2xl font-bold absolute left-1/2 transform -translate-x-1/2">👋 Quick Start</h3>
+                <h3 class="text-2xl font-bold w-full text-center">👋 Quick Start</h3>
             </div>
 
             <div class="overflow-y-auto py-2 px-1">
-                <!-- Profile Selection (Restored) -->
+                <!-- Profile Selection -->
                 <div class="mb-6">
                     <label class="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">Select Profile</label>
-                    <select id="quick-config-select" class="select-input w-full h-12 px-4 py-2 text-lg font-semibold shadow-sm"></select>
+                    <select id="quick-config-select" class="select-input w-full h-12 px-4 py-2 text-lg font-semibold shadow-sm bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"></select>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                    <div class="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
                         <label class="font-semibold">Autoplay</label>
                         <input type="checkbox" id="quick-autoplay-toggle" class="h-6 w-6 rounded accent-primary-app">
                     </div>
-                    <div class="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                    <div class="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
                         <label class="font-semibold">Audio</label>
                         <input type="checkbox" id="quick-audio-toggle" class="h-6 w-6 rounded accent-primary-app">
                     </div>
@@ -70,19 +69,19 @@
             </div>
             
             <div class="flex justify-between items-center pt-4 border-t dark:border-gray-700 mt-2">
-                <label class="flex items-center text-sm text-gray-500"><input type="checkbox" id="dont-show-welcome-toggle" class="mr-2 rounded"> Don't show again</label>
+                <label class="flex items-center text-sm text-gray-500 dark:text-gray-400"><input type="checkbox" id="dont-show-welcome-toggle" class="mr-2 rounded"> Don't show again</label>
                 <button id="close-game-setup-modal" class="px-8 py-3 text-white bg-primary-app hover:bg-secondary-app rounded-lg font-bold shadow-lg transition transform active:scale-95">PLAY</button>
             </div>
         </div>
     </div>
     
     <!-- SHARE MODAL -->
-    <div id="share-modal" class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 text-center flex flex-col items-center">
+    <div id="share-modal" class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-[70] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 text-center flex flex-col items-center border border-gray-200 dark:border-gray-700">
             <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Share App</h3>
             
             <!-- QR Code -->
-            <div class="bg-white p-2 rounded-lg mb-4 shadow-inner">
+            <div class="bg-white p-2 rounded-lg mb-4 shadow-inner border border-gray-200">
                 <img src="qr.jpg" alt="QR Code" class="w-48 h-48 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                 <div class="hidden text-black p-4">QR Code missing (qr.jpg)</div>
             </div>
@@ -93,31 +92,31 @@
         </div>
     </div>
 
-    <!-- SETTINGS MODAL (Single Tab) -->
+    <!-- SETTINGS MODAL -->
     <div id="settings-modal" class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full m-4 transform scale-90 transition-transform duration-300 flex flex-col max-h-[85vh] overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full m-4 transform scale-90 transition-transform duration-300 flex flex-col max-h-[85vh] overflow-hidden border border-gray-200 dark:border-gray-700">
             
             <!-- Header -->
             <div class="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800">
                 <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Settings</h3>
-                <div class="flex space-x-4"> 
-                    <button id="open-comment-modal" class="text-2xl hover:scale-110 transition">💬</button>
-                    <button id="open-share-button" class="text-2xl hover:scale-110 transition">📤</button>
-                    <button id="open-help-button" class="text-2xl hover:scale-110 transition">❓</button>
+                <div class="flex space-x-6 text-gray-600 dark:text-gray-300"> 
+                    <button id="open-comment-modal" class="text-2xl hover:text-primary-app transition" title="Feedback">💬</button>
+                    <button id="open-share-button" class="text-2xl hover:text-primary-app transition" title="Share">📤</button>
+                    <button id="open-help-button" class="text-2xl hover:text-primary-app transition" title="Help">❓</button>
                 </div>
             </div>
 
             <!-- Single Scrolling Content Area -->
-            <div class="overflow-y-auto flex-grow p-6 space-y-6">
+            <div class="overflow-y-auto flex-grow p-6 space-y-6 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
                 
                 <!-- SECTION 1: PROFILE -->
                 <div>
-                    <h4 class="text-sm font-bold uppercase text-gray-500 mb-3 tracking-wider">Profile Management</h4>
-                    <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-                        <select id="config-select" class="select-input w-full h-10 px-3 text-sm font-semibold mb-3 rounded shadow-sm"></select>
+                    <h4 class="text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-3 tracking-wider border-b border-gray-200 dark:border-gray-700 pb-1">Profile Management</h4>
+                    <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <select id="config-select" class="select-input w-full h-10 px-3 text-sm font-semibold mb-3 rounded shadow-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-900 dark:text-white"></select>
                         <div class="flex space-x-2">
                             <button id="config-add" class="flex-1 py-2 text-xs text-white bg-blue-600 hover:bg-blue-700 rounded font-bold shadow-sm">NEW</button>
-                            <button id="config-rename" class="flex-1 py-2 text-xs text-gray-800 bg-gray-300 hover:bg-gray-400 rounded font-bold shadow-sm">RENAME</button>
+                            <button id="config-rename" class="flex-1 py-2 text-xs text-gray-800 bg-gray-200 hover:bg-gray-300 rounded font-bold shadow-sm">RENAME</button>
                             <button id="config-delete" class="flex-1 py-2 text-xs text-white bg-red-600 hover:bg-red-700 rounded font-bold shadow-sm">DELETE</button>
                         </div>
                     </div>
@@ -125,44 +124,44 @@
 
                 <!-- SECTION 2: GAME CONFIG -->
                 <div>
-                    <h4 class="text-sm font-bold uppercase text-gray-500 mb-3 tracking-wider">Game Rules</h4>
+                    <h4 class="text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-3 tracking-wider border-b border-gray-200 dark:border-gray-700 pb-1">Game Rules</h4>
                     
                     <div class="mb-4">
                         <label class="block font-bold text-sm mb-1">Input Method</label>
-                        <select id="input-select" class="select-input w-full p-2 rounded bg-gray-100 dark:bg-gray-700 border-none shadow-sm text-sm">
+                        <select id="input-select" class="select-input w-full p-2 rounded bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 shadow-sm text-sm text-gray-900 dark:text-white">
                             <option value="key9">9-Key Pad</option>
                             <option value="key12">12-Key Pad</option>
                             <option value="piano">Piano Keys</option>
                         </select>
                     </div>
 
-                    <div class="flex justify-between items-center mb-4 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                    <div class="flex justify-between items-center mb-4 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
                         <span class="font-bold text-sm">Unique Rounds Mode</span>
                         <input type="checkbox" id="mode-toggle" class="h-5 w-5 rounded accent-primary-app">
                     </div>
 
                     <div class="mb-4">
-                        <div class="flex justify-between mb-1"><label class="font-bold text-sm">Machines</label><span id="machines-display" class="text-xs text-gray-400"></span></div>
+                        <div class="flex justify-between mb-1"><label class="font-bold text-sm">Machines</label><span id="machines-display" class="text-xs text-gray-500 dark:text-gray-400"></span></div>
                         <input type="range" id="machines-slider" min="1" max="4" class="w-full accent-primary-app">
                     </div>
 
                     <div class="mb-4">
-                        <div class="flex justify-between mb-1"><label id="sequence-length-label" class="font-bold text-sm">Sequence Length</label><span id="sequence-length-display" class="text-xs text-gray-400"></span></div>
-                        <input type="range" id="sequence-length-slider" min="5" max="50" class="w-full accent-primary-app">
+                        <div class="flex justify-between mb-1"><label id="sequence-length-label" class="font-bold text-sm">Sequence Length</label><span id="sequence-length-display" class="text-xs text-gray-500 dark:text-gray-400"></span></div>
+                        <input type="range" id="sequence-length-slider" min="5" max="50" step="1" class="w-full accent-primary-app">
                     </div>
 
-                    <div id="setting-multi-sequence-group" class="hidden pl-2 border-l-2 border-primary-app mb-4">
-                        <div class="mb-2">
-                            <div class="flex justify-between mb-1"><label class="font-bold text-sm">Chunk Size</label><span id="chunk-display" class="text-xs text-gray-400"></span></div>
+                    <div id="setting-multi-sequence-group" class="hidden pl-3 border-l-2 border-primary-app mb-4">
+                        <div class="mb-3">
+                            <div class="flex justify-between mb-1"><label class="font-bold text-sm">Chunk Size</label><span id="chunk-display" class="text-xs text-gray-500 dark:text-gray-400"></span></div>
                             <input type="range" id="chunk-slider" min="1" max="10" class="w-full accent-primary-app">
                         </div>
                         <div>
-                            <div class="flex justify-between mb-1"><label class="font-bold text-sm">Delay (ms)</label><span id="delay-display" class="text-xs text-gray-400"></span></div>
+                            <div class="flex justify-between mb-1"><label class="font-bold text-sm">Delay (ms)</label><span id="delay-display" class="text-xs text-gray-500 dark:text-gray-400"></span></div>
                             <input type="range" id="delay-slider" min="0" max="2000" step="100" class="w-full accent-primary-app">
                         </div>
                     </div>
                     
-                    <div id="setting-autoclear" class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg hidden">
+                    <div id="setting-autoclear" class="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600 hidden">
                         <span class="font-bold text-sm">Auto-Clear Round</span>
                         <input type="checkbox" id="autoclear-toggle" class="h-5 w-5 rounded accent-primary-app">
                     </div>
@@ -170,7 +169,7 @@
 
                 <!-- SECTION 3: AUDIO & FEEDBACK -->
                 <div>
-                    <h4 class="text-sm font-bold uppercase text-gray-500 mb-3 tracking-wider">Audio & Feedback</h4>
+                    <h4 class="text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-3 tracking-wider border-b border-gray-200 dark:border-gray-700 pb-1">Audio & Feedback</h4>
                     <div class="space-y-3">
                         <div class="flex justify-between items-center">
                             <label class="font-bold text-sm">Audio/Speech</label>
@@ -181,7 +180,7 @@
                             <input type="checkbox" id="haptics-toggle" class="h-5 w-5 rounded accent-primary-app">
                         </div>
                         <div class="flex justify-between items-center">
-                            <label class="font-bold text-sm">Autoplay Next</label>
+                            <label class="font-bold text-sm">Autoplay</label>
                             <input type="checkbox" id="autoplay-toggle" class="h-5 w-5 rounded accent-primary-app">
                         </div>
                         <div class="flex justify-between items-center">
@@ -191,10 +190,10 @@
                     </div>
                 </div>
 
-                <!-- SECTION 4: TOOLS / STEALTH -->
+                <!-- SECTION 4: AUTO INPUTS -->
                 <div>
-                    <h4 class="text-sm font-bold uppercase text-gray-500 mb-3 tracking-wider">Tools (Stealth)</h4>
-                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg space-y-3">
+                    <h4 class="text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-3 tracking-wider border-b border-gray-200 dark:border-gray-700 pb-1">Auto Inputs</h4>
+                    <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg space-y-3 border border-gray-200 dark:border-gray-600">
                         <div class="flex justify-between items-center">
                             <label class="font-bold text-sm">Show Microphone Button 🎤</label>
                             <input type="checkbox" id="show-mic-toggle" class="h-5 w-5 rounded accent-green-500">
@@ -208,20 +207,19 @@
 
                 <!-- SECTION 5: GLOBAL -->
                 <div>
-                    <h4 class="text-sm font-bold uppercase text-gray-500 mb-3 tracking-wider">Global App Settings</h4>
+                    <h4 class="text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-3 tracking-wider border-b border-gray-200 dark:border-gray-700 pb-1">Global App Settings</h4>
                     
                     <div class="mb-4">
-                        <div class="flex justify-between mb-1"><label class="font-bold text-sm">Global Speed</label><span id="playback-speed-display" class="text-xs text-gray-400"></span></div>
+                        <div class="flex justify-between mb-1"><label class="font-bold text-sm">Global Speed</label><span id="playback-speed-display" class="text-xs text-gray-500 dark:text-gray-400"></span></div>
                         <input type="range" id="playback-speed-slider" min="50" max="200" class="w-full accent-primary-app">
                     </div>
 
                     <div class="mb-4">
-                        <div class="flex justify-between mb-1"><label class="font-bold text-sm">Global UI Scale</label><span id="ui-scale-display" class="text-xs text-gray-400"></span></div>
-                        <input type="range" id="ui-scale-slider" min="50" max="150" class="w-full accent-primary-app">
+                        <div class="flex justify-between mb-1"><label class="font-bold text-sm">Sequence Size</label><span id="ui-scale-display" class="text-xs text-gray-500 dark:text-gray-400"></span></div>
+                        <input type="range" id="ui-scale-slider" min="50" max="300" class="w-full accent-primary-app">
                     </div>
 
-                    <!-- NEW: Gesture Toggle -->
-                    <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg mb-3">
+                    <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600 mb-3">
                         <label class="font-bold text-sm">Gesture Resize Sequence</label>
                         <input type="checkbox" id="gesture-mode-toggle" class="h-5 w-5 rounded accent-primary-app">
                     </div>
@@ -251,25 +249,25 @@
     </div>
     
     <!-- HELP MODAL -->
-    <div id="help-modal" class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh]">
-            <div class="p-6 border-b dark:border-gray-700"><h3 class="text-2xl font-bold text-gray-900 dark:text-white">Help 📚</h3></div>
-            <div class="p-6 overflow-y-auto">
-                <p class="mb-2"><strong>Modes:</strong> Simon Says (Pattern Repeat) or Unique Rounds (Memory).</p>
-                <p class="mb-2"><strong>Gestures:</strong> Pinch anywhere to resize the global UI (Default) or switch to Sequence resizing in settings.</p>
-                <p class="mb-2"><strong>Shortcuts:</strong> Long press "▶" (Play) to toggle Autoplay.</p>
-                <p class="mb-2"><strong>Stealth Tools:</strong> Enable Mic/Camera buttons in settings to access sensor features.</p>
+    <div id="help-modal" class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-gray-200 dark:border-gray-700">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700"><h3 class="text-2xl font-bold text-gray-900 dark:text-white">Help 📚</h3></div>
+            <div class="p-6 overflow-y-auto text-gray-900 dark:text-white">
+                <p class="mb-3"><strong>Modes:</strong> Simon Says (Pattern Repeat) or Unique Rounds (Memory).</p>
+                <p class="mb-3"><strong>Gestures:</strong> Pinch anywhere to resize the Global UI (default) or switch to Sequence resizing in Global Settings.</p>
+                <p class="mb-3"><strong>Shortcuts:</strong> Long press "▶" (Play) to toggle Autoplay.</p>
+                <p class="mb-3"><strong>Auto Inputs:</strong> Enable Mic/Camera buttons in settings to access sensor features.</p>
             </div>
-            <div class="p-4 border-t dark:border-gray-700 flex justify-end"><button id="close-help" class="px-6 py-2 bg-primary-app text-white rounded-lg font-bold hover:bg-secondary-app">Got it</button></div>
+            <div class="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end"><button id="close-help" class="px-6 py-2 bg-primary-app text-white rounded-lg font-bold hover:bg-secondary-app">Got it</button></div>
         </div>
     </div>
     
     <!-- COMMENTS MODAL -->
-    <div id="comment-modal" class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full m-4 p-6">
-            <h3 class="text-2xl font-bold mb-4 text-white">Feedback</h3>
-            <input id="comment-username" type="text" placeholder="Name" class="w-full p-3 mb-2 rounded bg-gray-100 dark:bg-gray-700 border-none">
-            <textarea id="comment-message" placeholder="Message" class="w-full p-3 mb-4 rounded bg-gray-100 dark:bg-gray-700 border-none h-32"></textarea>
+    <div id="comment-modal" class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-[90] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full m-4 p-6 border border-gray-200 dark:border-gray-700">
+            <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Feedback</h3>
+            <input id="comment-username" type="text" placeholder="Name" class="w-full p-3 mb-2 rounded bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white">
+            <textarea id="comment-message" placeholder="Message" class="w-full p-3 mb-4 rounded bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 h-32 text-gray-900 dark:text-white"></textarea>
             <button id="submit-comment-btn" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md">Send</button>
             <div id="comments-list-container" class="mt-4 max-h-40 overflow-y-auto"></div>
             <button id="close-comment-modal" class="mt-4 w-full py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg">Close</button>
@@ -282,7 +280,7 @@
     </div>
 
     <!-- STATIONARY FOOTER (Fixed) -->
-    <footer id="input-footer" class="fixed bottom-0 left-0 right-0 p-2 md:p-4 shadow-2xl border-t-4 border-primary-app bg-gray-900 z-40 safe-area-bottom">
+    <footer id="input-footer" class="fixed bottom-0 left-0 right-0 p-2 md:p-4 shadow-2xl border-t-4 border-primary-app bg-white dark:bg-gray-900 z-40 safe-area-bottom transition-colors duration-200">
         
         <!-- 9 KEY -->
         <div id="pad-key9" class="max-w-md mx-auto">
@@ -293,11 +291,11 @@
             </div>
             <div class="grid grid-cols-6 gap-2">
                 <button data-action="reset-unique-rounds" class="reset-button btn-input btn-control !bg-red-600 text-sm font-bold" style="display:none">RESET</button>
-                <button data-action="play-demo" class="btn-input btn-control !bg-primary-app col-span-2">▶</button>
+                <button data-action="play-demo" class="btn-input btn-control !bg-primary-app col-span-2 text-white">▶</button>
                 <button id="mic-master-btn" class="btn-input btn-control auto-input-btn hidden">🎤</button>
                 <button id="camera-master-btn" class="btn-input btn-control auto-input-btn hidden">📷</button>
                 <button data-action="backspace" class="btn-input btn-control">←</button>
-                <button data-action="open-settings" class="btn-input btn-control !bg-primary-app">⚙️</button>
+                <button data-action="open-settings" class="btn-input btn-control !bg-primary-app text-white">⚙️</button>
             </div>
         </div>
 
@@ -310,17 +308,17 @@
             </div>
             <div class="grid grid-cols-6 gap-2">
                 <button data-action="reset-unique-rounds" class="reset-button btn-input btn-control !bg-red-600 text-sm font-bold" style="display:none">RESET</button>
-                <button data-action="play-demo" class="btn-input btn-control !bg-primary-app col-span-2">▶</button>
+                <button data-action="play-demo" class="btn-input btn-control !bg-primary-app col-span-2 text-white">▶</button>
                 <button id="mic-master-btn" class="btn-input btn-control auto-input-btn hidden">🎤</button>
                 <button id="camera-master-btn" class="btn-input btn-control auto-input-btn hidden">📷</button>
                 <button data-action="backspace" class="btn-input btn-control">←</button>
-                <button data-action="open-settings" class="btn-input btn-control !bg-primary-app">⚙️</button>
+                <button data-action="open-settings" class="btn-input btn-control !bg-primary-app text-white">⚙️</button>
             </div>
         </div>
 
         <!-- PIANO -->
         <div id="pad-piano" class="max-w-2xl mx-auto pt-0 pb-1" style="display:none;">
-            <div id="piano-keys" class="relative h-40 w-full bg-gray-200 rounded-md shadow-inner overflow-hidden mb-2">
+            <div id="piano-keys" class="relative h-40 w-full bg-gray-200 rounded-md shadow-inner overflow-hidden mb-2 border border-gray-300">
                 <div class="flex h-full w-full">
                     <div class="key-container"><button data-value="C" class="piano-key-white btn-input">C</button></div>
                     <div class="key-container"><button data-value="D" class="piano-key-white btn-input">D</button></div>
@@ -338,11 +336,11 @@
             </div>
             <div class="grid grid-cols-6 gap-2 max-w-lg mx-auto">
                 <button data-action="reset-unique-rounds" class="reset-button btn-input btn-control !bg-red-600 text-sm font-bold" style="display:none">RESET</button>
-                <button data-action="play-demo" class="btn-input btn-control !bg-primary-app col-span-2">▶</button>
+                <button data-action="play-demo" class="btn-input btn-control !bg-primary-app col-span-2 text-white">▶</button>
                 <button id="mic-master-btn" class="btn-input btn-control auto-input-btn hidden">🎤</button>
                 <button id="camera-master-btn" class="btn-input btn-control auto-input-btn hidden">📷</button>
                 <button data-action="backspace" class="btn-input btn-control">←</button>
-                <button data-action="open-settings" class="btn-input btn-control !bg-primary-app">⚙️</button>
+                <button data-action="open-settings" class="btn-input btn-control !bg-primary-app text-white">⚙️</button>
             </div>
         </div>
 

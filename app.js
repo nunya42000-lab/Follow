@@ -23,45 +23,50 @@ const CONFIG = {
     DEMO_DELAY_BASE_MS: 798,
     SPEED_DELETE_DELAY: 250,
     SPEED_DELETE_INTERVAL: 100,
-    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v13', // Bump version
-    STORAGE_KEY_STATE: 'followMeAppState_v13',
+    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v14', 
+    STORAGE_KEY_STATE: 'followMeAppState_v14',
     INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' },
     MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' }
 };
 
-const DEFAULT_PROFILE = {
+// Core Profile Data (What is saved per profile)
+const DEFAULT_PROFILE_SETTINGS = {
     currentInput: CONFIG.INPUTS.KEY9,
     currentMode: CONFIG.MODES.SIMON,
     sequenceLength: 20,
+    machineCount: 1,
     simonChunkSize: 3,
     simonInterSequenceDelay: 500,
+};
+
+const PREMADE_PROFILES = {
+    'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS } },
+    'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 200 }},
+    'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }},
+    'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }},
+    'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15 }}
+};
+
+const DEFAULT_APP = {
+    // Globals
+    globalUiScale: 100,
+    uiScaleMultiplier: 1.0, // Sequence Scale
+    isDarkMode: true,
+    showWelcomeScreen: true,
+    gestureResizeMode: 'global',
+    playbackSpeed: 1.0,
+    
+    // Global Toggles
     isAutoplayEnabled: true, 
     isUniqueRoundsAutoClearEnabled: true,
     isAudioEnabled: true,
     isHapticsEnabled: true,
-    isSpeedDeletingEnabled: true, 
-    uiScaleMultiplier: 1.0, // Sequence Scale
-    machineCount: 1,
+    isSpeedDeletingEnabled: true,
     showMicBtn: false,
-    showCamBtn: false
-};
+    showCamBtn: false,
 
-const PREMADE_PROFILES = {
-    'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE } },
-    'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 200 }},
-    'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE, sequenceLength: 25 }},
-    'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE, currentInput: CONFIG.INPUTS.PIANO }},
-    'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15 }}
-};
-
-const DEFAULT_APP = {
-    globalUiScale: 100,
-    isDarkMode: true,
-    showWelcomeScreen: true,
-    gestureResizeMode: 'global', // Default to Global UI resize
     activeProfileId: 'profile_1',
     profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)),
-    playbackSpeed: 1.0,
 };
 
 // --- STATE ---
@@ -74,7 +79,7 @@ let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 // --- CORE FUNCTIONS ---
 
 const getProfile = () => appSettings.profiles[appSettings.activeProfileId] || appSettings.profiles['profile_1'];
-const getSettings = () => getProfile().settings;
+const getProfileSettings = () => getProfile().settings;
 const getState = () => appState[appSettings.activeProfileId];
 
 function saveState() {
@@ -89,6 +94,7 @@ function loadState() {
         
         if(s) {
             const loaded = JSON.parse(s);
+            // Safe merge
             appSettings = { 
                 ...DEFAULT_APP, 
                 ...loaded, 
@@ -116,11 +122,11 @@ function loadState() {
 }
 
 function vibrate() {
-    if(getSettings().isHapticsEnabled && navigator.vibrate) navigator.vibrate(10);
+    if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10);
 }
 
 function speak(text) {
-    if(!getSettings().isAudioEnabled || !window.speechSynthesis) return;
+    if(!appSettings.isAudioEnabled || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 1.2;
@@ -148,9 +154,8 @@ function initGestures() {
                 e.touches[0].pageY - e.touches[1].pageY
             );
             
-            // Choose starting scale based on mode
             if (appSettings.gestureResizeMode === 'sequence') {
-                gestureState.startScale = getSettings().uiScaleMultiplier || 1.0;
+                gestureState.startScale = appSettings.uiScaleMultiplier || 1.0;
             } else {
                 gestureState.startScale = appSettings.globalUiScale || 100;
             }
@@ -159,7 +164,7 @@ function initGestures() {
 
     target.addEventListener('touchmove', (e) => {
         if (gestureState.isPinching && e.touches.length === 2) {
-            e.preventDefault(); // Prevent native zoom
+            e.preventDefault();
             const dist = Math.hypot(
                 e.touches[0].pageX - e.touches[1].pageX,
                 e.touches[0].pageY - e.touches[1].pageY
@@ -169,21 +174,18 @@ function initGestures() {
             
             if (appSettings.gestureResizeMode === 'sequence') {
                 let newScale = gestureState.startScale * ratio;
-                newScale = Math.min(Math.max(newScale, 0.5), 2.0); // Clamp 0.5 - 2.0
-                getSettings().uiScaleMultiplier = newScale;
+                // Up to 300%
+                newScale = Math.min(Math.max(newScale, 0.5), 3.0); 
+                appSettings.uiScaleMultiplier = newScale;
                 renderUI(); 
             } else {
-                // Global UI Resize
                 let newScale = gestureState.startScale * ratio;
-                newScale = Math.min(Math.max(newScale, 50), 150); // Clamp 50 - 150
+                newScale = Math.min(Math.max(newScale, 50), 150); 
                 appSettings.globalUiScale = newScale;
                 updateAllChrome();
                 
-                // Update slider if visible
                 const slider = document.getElementById('ui-scale-slider');
                 if(slider) slider.value = newScale;
-                const quickUp = document.getElementById('quick-resize-up'); // Just to check existence
-                if(quickUp) { /* could update visual indicator in quick start if it had one */ }
             }
         }
     }, { passive: false });
@@ -201,7 +203,7 @@ function initGestures() {
 function addValue(value) {
     vibrate();
     const state = getState();
-    const settings = getSettings();
+    const settings = getProfileSettings();
     
     let targetIndex = 0;
     if (settings.currentMode === CONFIG.MODES.SIMON) {
@@ -220,7 +222,7 @@ function addValue(value) {
     renderUI();
     saveState();
     
-    if(settings.isAutoplayEnabled) {
+    if(appSettings.isAutoplayEnabled) {
         if (settings.currentMode === CONFIG.MODES.SIMON) {
              const justFilled = (state.nextSequenceIndex - 1) % settings.machineCount;
              if(justFilled === settings.machineCount - 1) setTimeout(playDemo, 250);
@@ -236,7 +238,7 @@ function addValue(value) {
 function handleBackspace() {
     vibrate();
     const state = getState();
-    const settings = getSettings();
+    const settings = getProfileSettings();
     if(state.nextSequenceIndex === 0) return;
     
     let targetIndex = 0;
@@ -265,12 +267,12 @@ function resetRounds() {
 }
 
 function disableInput(disabled) {
-    const pad = document.getElementById(`pad-${getSettings().currentInput}`);
+    const pad = document.getElementById(`pad-${getProfileSettings().currentInput}`);
     if(pad) pad.querySelectorAll('button').forEach(b => b.disabled = disabled);
 }
 
 function playDemo() {
-    const settings = getSettings();
+    const settings = getProfileSettings();
     const state = getState();
     const demoBtn = document.querySelector(`#pad-${settings.currentInput} button[data-action="play-demo"]`);
     if(demoBtn && demoBtn.disabled) return;
@@ -311,7 +313,7 @@ function playDemo() {
             if(demoBtn) demoBtn.innerHTML = '▶'; 
             if(demoBtn) demoBtn.disabled = false;
             
-            if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && settings.isUniqueRoundsAutoClearEnabled) {
+            if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.isUniqueRoundsAutoClearEnabled) {
                 state.sequences[0] = [];
                 state.nextSequenceIndex = 0;
                 state.currentRound++;
@@ -351,7 +353,7 @@ function playDemo() {
 // --- UI RENDERING ---
 
 function renderUI() {
-    const settings = getSettings();
+    const settings = getProfileSettings();
     const state = getState();
     const container = document.getElementById('sequence-container');
     
@@ -367,7 +369,7 @@ function renderUI() {
     
     if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
         const h = document.createElement('h2');
-        h.className = "text-center text-2xl font-bold mb-4 w-full text-white";
+        h.className = "text-center text-2xl font-bold mb-4 w-full text-gray-900 dark:text-white";
         h.textContent = `Round ${state.currentRound} / ${settings.sequenceLength}`;
         container.appendChild(h);
     }
@@ -377,21 +379,31 @@ function renderUI() {
     
     container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
     
+    // Detect Orientation for Grid Logic
+    const isLandscape = window.matchMedia("(orientation: landscape)").matches;
+
     activeSeqs.forEach((seq, idx) => {
         const card = document.createElement('div');
         card.className = "p-4 rounded-xl shadow-md bg-white dark:bg-gray-700 transition-all duration-200 min-h-[100px]";
         
-        // Internal Grid for numbers (Forced 5 columns)
+        // Internal Grid Logic
         const numGrid = document.createElement('div');
-        numGrid.className = "grid grid-cols-5 gap-2 justify-center"; 
+        // Use Flex Wrap for landscape to fill space, Fixed Grid for portrait
+        if(isLandscape) {
+            numGrid.className = "flex flex-wrap gap-2 justify-center";
+        } else {
+            numGrid.className = "grid grid-cols-5 gap-2 justify-center"; 
+        }
         
         (seq || []).forEach(num => {
             const span = document.createElement('span');
             span.className = "number-box bg-secondary-app text-white rounded-lg shadow-sm flex items-center justify-center font-bold";
-            // Use local UI Scale for cards
-            span.style.width = (40 * settings.uiScaleMultiplier) + 'px';
-            span.style.height = (40 * settings.uiScaleMultiplier) + 'px';
-            span.style.fontSize = (1.2 * settings.uiScaleMultiplier) + 'rem';
+            
+            // Apply Sequence Scale
+            const scale = appSettings.uiScaleMultiplier || 1.0;
+            span.style.width = (40 * scale) + 'px';
+            span.style.height = (40 * scale) + 'px';
+            span.style.fontSize = (1.2 * scale) + 'rem';
             span.textContent = num;
             numGrid.appendChild(span);
         });
@@ -402,12 +414,12 @@ function renderUI() {
 
     // 3. Update Auto Input Buttons
     document.querySelectorAll('#mic-master-btn').forEach(btn => {
-        btn.classList.toggle('hidden', !settings.showMicBtn);
+        btn.classList.toggle('hidden', !appSettings.showMicBtn);
         btn.classList.toggle('master-active', modules.sensor.mode.audio);
     });
     
     document.querySelectorAll('#camera-master-btn').forEach(btn => {
-        btn.classList.toggle('hidden', !settings.showCamBtn);
+        btn.classList.toggle('hidden', !appSettings.showCamBtn);
         btn.classList.toggle('master-active', modules.sensor.mode.camera);
     });
 
@@ -419,14 +431,12 @@ function renderUI() {
 function updateAllChrome() {
     document.body.classList.toggle('dark', appSettings.isDarkMode);
     document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
-    renderUI();
     
-    // Sync toggle state if Settings Manager is active
-    if(modules.settings) {
-        // We can trigger a display update on settings to ensure checkbox sync
-        if(modules.settings.dom.autoplay) modules.settings.dom.autoplay.checked = getSettings().isAutoplayEnabled;
-        if(modules.settings.dom.quickAutoplay) modules.settings.dom.quickAutoplay.checked = getSettings().isAutoplayEnabled;
-    }
+    // Handle resizing on orientation change
+    window.removeEventListener('resize', renderUI);
+    window.addEventListener('resize', renderUI);
+    
+    renderUI();
 }
 
 // --- INIT ---
@@ -460,7 +470,7 @@ window.onload = function() {
             },
             onProfileAdd: (name) => {
                 const id = 'p_' + Date.now();
-                appSettings.profiles[id] = { name, settings: JSON.parse(JSON.stringify(DEFAULT_PROFILE)) };
+                appSettings.profiles[id] = { name, settings: { ...DEFAULT_PROFILE_SETTINGS } };
                 appState[id] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
                 appSettings.activeProfileId = id;
                 updateAllChrome();
@@ -477,6 +487,11 @@ window.onload = function() {
                 updateAllChrome();
                 saveState();
             },
+            onCustomSettingsChange: () => {
+                // Optional: Logic to rename profile to "Custom" if desired, 
+                // but user asked for it to say Custom. For now, we keep the name 
+                // but could append " (Custom)" in the dropdown display logic.
+            },
             onRequestPermissions: () => {
                 if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                      DeviceMotionEvent.requestPermission().then(r => console.log(r)).catch(console.error);
@@ -492,54 +507,58 @@ window.onload = function() {
             btn.addEventListener('click', (e) => addValue(e.target.dataset.value));
         });
 
-        // Play Demo + Long Press Logic
+        // Play Demo + Long Press
         document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
             b.addEventListener('click', playDemo);
             
-            // Long Press for Autoplay Toggle
-            b.addEventListener('touchstart', (e) => {
+            const startLongPress = (e) => {
                 timers.longPress = setTimeout(() => {
-                    const s = getSettings();
-                    s.isAutoplayEnabled = !s.isAutoplayEnabled;
-                    showToast(`Autoplay: ${s.isAutoplayEnabled ? 'ON' : 'OFF'}`);
-                    updateAllChrome(); // Syncs checkboxes
+                    appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled;
+                    showToast(`Autoplay: ${appSettings.isAutoplayEnabled ? 'ON' : 'OFF'}`);
+                    // Sync UI checkbox in SettingsManager if open
+                    if(modules.settings && modules.settings.dom.autoplay) {
+                        modules.settings.dom.autoplay.checked = appSettings.isAutoplayEnabled;
+                        modules.settings.dom.quickAutoplay.checked = appSettings.isAutoplayEnabled;
+                    }
                     saveState();
-                    vibrate(); // Feedback
+                    vibrate();
                 }, 500);
-            });
+            };
             
             const cancelLong = () => clearTimeout(timers.longPress);
-            b.addEventListener('touchend', cancelLong);
-            b.addEventListener('touchmove', cancelLong);
-            b.addEventListener('mousedown', (e) => {
-                 timers.longPress = setTimeout(() => {
-                    const s = getSettings();
-                    s.isAutoplayEnabled = !s.isAutoplayEnabled;
-                    showToast(`Autoplay: ${s.isAutoplayEnabled ? 'ON' : 'OFF'}`);
-                    updateAllChrome(); 
-                    saveState();
-                }, 500);
-            });
+            
+            b.addEventListener('mousedown', startLongPress);
+            b.addEventListener('touchstart', startLongPress, { passive: true });
             b.addEventListener('mouseup', cancelLong);
             b.addEventListener('mouseleave', cancelLong);
+            b.addEventListener('touchend', cancelLong);
         });
 
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => b.addEventListener('click', () => {
             if(confirm("Reset to Round 1?")) resetRounds();
         }));
         
-        // Speed delete
+        // Speed Delete Fix
         document.querySelectorAll('button[data-action="backspace"]').forEach(b => {
-            b.addEventListener('click', handleBackspace);
-            b.addEventListener('mousedown', () => {
+            b.addEventListener('click', handleBackspace); // Click handler
+            
+            const startDelete = (e) => {
+                if(e.type === 'touchstart') e.preventDefault(); // Prevent ghost clicks
                 timers.initialDelay = setTimeout(() => {
                     timers.speedDelete = setInterval(handleBackspace, CONFIG.SPEED_DELETE_INTERVAL);
                 }, CONFIG.SPEED_DELETE_DELAY);
-            });
-            const stop = () => { clearTimeout(timers.initialDelay); clearInterval(timers.speedDelete); };
-            b.addEventListener('mouseup', stop);
-            b.addEventListener('mouseleave', stop);
-            b.addEventListener('touchend', stop);
+            };
+            
+            const stopDelete = () => { 
+                clearTimeout(timers.initialDelay); 
+                clearInterval(timers.speedDelete); 
+            };
+
+            b.addEventListener('mousedown', startDelete);
+            b.addEventListener('touchstart', startDelete);
+            b.addEventListener('mouseup', stopDelete);
+            b.addEventListener('mouseleave', stopDelete);
+            b.addEventListener('touchend', stopDelete);
         });
         
         // Share & Settings

@@ -23,8 +23,8 @@ const CONFIG = {
     DEMO_DELAY_BASE_MS: 798,
     SPEED_DELETE_DELAY: 250,
     SPEED_DELETE_INTERVAL: 100,
-    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v9', // Bump version to force refresh
-    STORAGE_KEY_STATE: 'followMeAppState_v9',
+    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v10', // Bump version
+    STORAGE_KEY_STATE: 'followMeAppState_v10',
     INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' },
     MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' }
 };
@@ -48,28 +48,12 @@ const DEFAULT_PROFILE = {
     autoInputMode: '0', // 0:Off, 1:Tone, 2:Camera
 };
 
-// --- RESTORED PREMADE PROFILES ---
 const PREMADE_PROFILES = {
     'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE } },
-    'profile_2': { name: "2 Machines", settings: { 
-        ...DEFAULT_PROFILE,
-        machineCount: 2,
-        simonChunkSize: 4,
-        simonInterSequenceDelay: 200
-    }},
-    'profile_3': { name: "Bananas", settings: {
-        ...DEFAULT_PROFILE,
-        sequenceLength: 25
-    }},
-    'profile_4': { name: "Piano", settings: {
-        ...DEFAULT_PROFILE,
-        currentInput: CONFIG.INPUTS.PIANO
-    }},
-    'profile_5': { name: "15 Rounds", settings: {
-        ...DEFAULT_PROFILE,
-        currentMode: CONFIG.MODES.UNIQUE_ROUNDS,
-        sequenceLength: 15
-    }}
+    'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 200 }},
+    'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE, sequenceLength: 25 }},
+    'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE, currentInput: CONFIG.INPUTS.PIANO }},
+    'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15 }}
 };
 
 const DEFAULT_APP = {
@@ -105,22 +89,32 @@ function loadState() {
         
         if(s) {
             const loaded = JSON.parse(s);
-            // Merge loaded profiles with default app structure to ensure new profiles exist
-            appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...loaded.profiles } };
+            // Safe merge to ensure profiles object exists
+            appSettings = { 
+                ...DEFAULT_APP, 
+                ...loaded, 
+                profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) } 
+            };
         }
         
         if(st) appState = JSON.parse(st);
         
-        // Ensure state exists for all profiles
+        // Ensure state exists for active profile
+        if(!appSettings.profiles[appSettings.activeProfileId]) {
+            appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
+        }
+        
+        // Initialize missing state for all profiles
         Object.keys(appSettings.profiles).forEach(id => {
-            if(!appState[id]) appState[id] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
+            if(!appState[id]) {
+                appState[id] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
+            }
         });
-
-        if(!appSettings.profiles[appSettings.activeProfileId]) appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
 
     } catch(e) { 
         console.error("Load failed, resetting", e); 
         appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
+        saveState();
     }
 }
 
@@ -152,19 +146,16 @@ function addValue(value) {
     const state = getState();
     const settings = getSettings();
     
-    // Determine target array
     let targetIndex = 0;
     if (settings.currentMode === CONFIG.MODES.SIMON) {
         targetIndex = state.nextSequenceIndex % settings.machineCount;
     }
     
-    // Check Limits
     const currentSeq = state.sequences[targetIndex] || [];
     const limit = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? state.currentRound : settings.sequenceLength;
     
     if(currentSeq.length >= limit) return;
     
-    // Add
     if(!state.sequences[targetIndex]) state.sequences[targetIndex] = [];
     state.sequences[targetIndex].push(value);
     state.nextSequenceIndex++;
@@ -172,7 +163,6 @@ function addValue(value) {
     renderUI();
     saveState();
     
-    // Autoplay Triggers
     if(settings.isAutoplayEnabled) {
         if (settings.currentMode === CONFIG.MODES.SIMON) {
              const justFilled = (state.nextSequenceIndex - 1) % settings.machineCount;
@@ -228,7 +218,6 @@ function playDemo() {
     const demoBtn = document.querySelector(`#pad-${settings.currentInput} button[data-action="play-demo"]`);
     if(demoBtn && demoBtn.disabled) return;
     
-    // Build Playlist
     let playlist = [];
     if(settings.currentMode === CONFIG.MODES.SIMON) {
         const activeSeqs = state.sequences.slice(0, settings.machineCount);
@@ -252,7 +241,6 @@ function playDemo() {
         playlist = seq.map(v => ({ val: v, machine: 0 }));
     }
     
-    // Play Logic
     disableInput(true);
     if(demoBtn) demoBtn.disabled = true;
     
@@ -282,7 +270,6 @@ function playDemo() {
         const item = playlist[i];
         if(demoBtn) demoBtn.innerHTML = i + 1;
         
-        // Visuals
         const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${item.val}"]`);
         const visualClass = settings.currentInput === 'piano' ? 'flash' : (settings.currentInput === 'key9' ? 'key9-flash' : 'key12-flash');
         
@@ -311,7 +298,7 @@ function renderUI() {
     const state = getState();
     const container = document.getElementById('sequence-container');
     
-    // 1. Show correct Pad (FIX: Ensure we hide others)
+    // 1. Show correct Pad
     ['key9', 'key12', 'piano'].forEach(k => {
         const el = document.getElementById(`pad-${k}`);
         if(el) el.style.display = (settings.currentInput === k) ? 'block' : 'none';
@@ -328,18 +315,16 @@ function renderUI() {
         container.appendChild(h);
     }
     
-    // Layout Container
     let gridCols = settings.machineCount === 4 ? 4 : (settings.machineCount === 3 ? 3 : (settings.machineCount === 2 ? 2 : 1));
     if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) gridCols = 1;
     
-    // Apply layout classes
     container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
     
     activeSeqs.forEach((seq, idx) => {
         const card = document.createElement('div');
         card.className = "p-4 rounded-xl shadow-md bg-white dark:bg-gray-700 transition-all duration-200 min-h-[100px]";
         
-        // Internal Grid for numbers - RESTORED 5 COLS
+        // Internal Grid for numbers (Forced 5 columns)
         const numGrid = document.createElement('div');
         numGrid.className = "grid grid-cols-5 gap-2 justify-center"; 
         
@@ -357,7 +342,6 @@ function renderUI() {
         container.appendChild(card);
     });
 
-    // 3. Update Master Buttons
     document.querySelectorAll('.auto-input-btn').forEach(btn => {
         const type = btn.id.includes('camera') ? '2' : '1';
         btn.classList.toggle('hidden', settings.autoInputMode !== type);
@@ -366,7 +350,6 @@ function renderUI() {
         if(isActive) btn.classList.add('!bg-green-500'); else btn.classList.remove('!bg-green-500');
     });
 
-    // 4. Update Reset Buttons
     document.querySelectorAll('.reset-button').forEach(b => {
         b.style.display = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 'block' : 'none';
     });
@@ -381,117 +364,118 @@ function updateAllChrome() {
 // --- INIT ---
 
 window.onload = function() {
-    loadState();
-    
-    // Initialize Modules
-    initComments(db);
-    
-    modules.sensor = new SensorEngine(
-        (val, src) => addValue(val), 
-        (msg) => showToast(msg)
-    );
-    // Hook up sensor sensitivities based on profile
-    modules.sensor.setSensitivity('audio', -85); 
-    modules.sensor.setSensitivity('camera', 50);
+    try {
+        loadState();
+        
+        // Initialize Modules
+        initComments(db);
+        
+        modules.sensor = new SensorEngine(
+            (val, src) => addValue(val), 
+            (msg) => showToast(msg)
+        );
+        modules.sensor.setSensitivity('audio', -85); 
+        modules.sensor.setSensitivity('camera', 50);
 
-    modules.settings = new SettingsManager(appSettings, {
-        onUpdate: () => { updateAllChrome(); saveState(); },
-        onSave: () => saveState(),
-        onReset: () => { 
-            localStorage.clear(); 
-            location.reload(); 
-        },
-        onProfileSwitch: (id) => {
-            appSettings.activeProfileId = id;
-            if(!appState[id]) appState[id] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
-            updateAllChrome();
-            saveState();
-        },
-        onProfileAdd: (name) => {
-            const id = 'p_' + Date.now();
-            appSettings.profiles[id] = { name, settings: JSON.parse(JSON.stringify(DEFAULT_PROFILE)) };
-            appState[id] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
-            appSettings.activeProfileId = id;
-            updateAllChrome();
-            saveState();
-        },
-        onProfileRename: (name) => {
-            appSettings.profiles[appSettings.activeProfileId].name = name;
-            saveState();
-        },
-        onProfileDelete: () => {
-            if(Object.keys(appSettings.profiles).length <= 1) return alert("Keep at least one profile.");
-            delete appSettings.profiles[appSettings.activeProfileId];
-            appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
-            updateAllChrome();
-            saveState();
-        },
-        onRequestPermissions: () => {
-            if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                 DeviceMotionEvent.requestPermission().then(r => console.log(r)).catch(console.error);
+        modules.settings = new SettingsManager(appSettings, {
+            onUpdate: () => { updateAllChrome(); saveState(); },
+            onSave: () => saveState(),
+            onReset: () => { 
+                localStorage.clear(); 
+                location.reload(); 
+            },
+            onProfileSwitch: (id) => {
+                appSettings.activeProfileId = id;
+                if(!appState[id]) appState[id] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
+                updateAllChrome();
+                saveState();
+            },
+            onProfileAdd: (name) => {
+                const id = 'p_' + Date.now();
+                appSettings.profiles[id] = { name, settings: JSON.parse(JSON.stringify(DEFAULT_PROFILE)) };
+                appState[id] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
+                appSettings.activeProfileId = id;
+                updateAllChrome();
+                saveState();
+            },
+            onProfileRename: (name) => {
+                appSettings.profiles[appSettings.activeProfileId].name = name;
+                saveState();
+            },
+            onProfileDelete: () => {
+                if(Object.keys(appSettings.profiles).length <= 1) return alert("Keep at least one profile.");
+                delete appSettings.profiles[appSettings.activeProfileId];
+                appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
+                updateAllChrome();
+                saveState();
+            },
+            onRequestPermissions: () => {
+                if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                     DeviceMotionEvent.requestPermission().then(r => console.log(r)).catch(console.error);
+                }
             }
-        },
-        onShare: () => {
-             // Logic moved to SettingsManager mostly, but we trigger modal here if needed
-        }
-    });
-
-    // Initial Render
-    updateAllChrome();
-
-    // --- GLOBAL EVENT LISTENERS ---
-    
-    // Keypad Clicks
-    document.querySelectorAll('.btn-pad-number, .piano-key-white, .piano-key-black').forEach(btn => {
-        btn.addEventListener('click', (e) => addValue(e.target.dataset.value));
-    });
-
-    // Control Buttons
-    document.querySelectorAll('button[data-action="play-demo"]').forEach(b => b.addEventListener('click', playDemo));
-    document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => b.addEventListener('click', () => {
-        if(confirm("Reset to Round 1?")) resetRounds();
-    }));
-    document.querySelectorAll('button[data-action="backspace"]').forEach(b => {
-        b.addEventListener('click', handleBackspace);
-        b.addEventListener('mousedown', () => {
-            timers.initialDelay = setTimeout(() => {
-                timers.speedDelete = setInterval(handleBackspace, CONFIG.SPEED_DELETE_INTERVAL);
-            }, CONFIG.SPEED_DELETE_DELAY);
         });
-        const stop = () => { clearTimeout(timers.initialDelay); clearInterval(timers.speedDelete); };
-        b.addEventListener('mouseup', stop);
-        b.addEventListener('mouseleave', stop);
-        b.addEventListener('touchend', stop);
-    });
-    
-    // Share Button
-    document.querySelectorAll('button[data-action="open-share"]').forEach(b => {
-        b.addEventListener('click', () => modules.settings.openShare());
-    });
-    
-    // Open Settings
-    document.querySelectorAll('button[data-action="open-settings"]').forEach(b => b.onclick = () => modules.settings.openSettings());
 
-    // Master Switch Logic
-    document.addEventListener('click', (e) => {
-        if(e.target.closest('#camera-master-btn')) {
-            const on = !modules.sensor.mode.camera;
-            if(!document.getElementById('hidden-video')) {
-                const v = document.createElement('video'); v.id = 'hidden-video'; v.autoplay = true; v.muted = true; v.playsInline = true; v.style.display='none';
-                const c = document.createElement('canvas'); c.id = 'hidden-canvas'; c.style.display='none';
-                document.body.append(v, c);
-                modules.sensor.setupDOM(v, c);
+        // Initial Render
+        updateAllChrome();
+
+        // --- GLOBAL EVENT LISTENERS ---
+        document.querySelectorAll('.btn-pad-number, .piano-key-white, .piano-key-black').forEach(btn => {
+            btn.addEventListener('click', (e) => addValue(e.target.dataset.value));
+        });
+
+        document.querySelectorAll('button[data-action="play-demo"]').forEach(b => b.addEventListener('click', playDemo));
+        document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => b.addEventListener('click', () => {
+            if(confirm("Reset to Round 1?")) resetRounds();
+        }));
+        
+        // Speed delete
+        document.querySelectorAll('button[data-action="backspace"]').forEach(b => {
+            b.addEventListener('click', handleBackspace);
+            b.addEventListener('mousedown', () => {
+                timers.initialDelay = setTimeout(() => {
+                    timers.speedDelete = setInterval(handleBackspace, CONFIG.SPEED_DELETE_INTERVAL);
+                }, CONFIG.SPEED_DELETE_DELAY);
+            });
+            const stop = () => { clearTimeout(timers.initialDelay); clearInterval(timers.speedDelete); };
+            b.addEventListener('mouseup', stop);
+            b.addEventListener('mouseleave', stop);
+            b.addEventListener('touchend', stop);
+        });
+        
+        // Share & Settings
+        document.querySelectorAll('button[data-action="open-share"]').forEach(b => {
+            b.addEventListener('click', () => modules.settings.openShare());
+        });
+        document.querySelectorAll('button[data-action="open-settings"]').forEach(b => b.onclick = () => modules.settings.openSettings());
+
+        // Master Switch Logic
+        document.addEventListener('click', (e) => {
+            if(e.target.closest('#camera-master-btn')) {
+                const on = !modules.sensor.mode.camera;
+                if(!document.getElementById('hidden-video')) {
+                    const v = document.createElement('video'); v.id = 'hidden-video'; v.autoplay = true; v.muted = true; v.playsInline = true; v.style.display='none';
+                    const c = document.createElement('canvas'); c.id = 'hidden-canvas'; c.style.display='none';
+                    document.body.append(v, c);
+                    modules.sensor.setupDOM(v, c);
+                }
+                modules.sensor.toggleCamera(on);
+                renderUI();
             }
-            modules.sensor.toggleCamera(on);
-            renderUI();
-        }
-        if(e.target.closest('#mic-master-btn')) {
-            const on = !modules.sensor.mode.audio;
-            modules.sensor.toggleAudio(on);
-            renderUI();
-        }
-    });
+            if(e.target.closest('#mic-master-btn')) {
+                const on = !modules.sensor.mode.audio;
+                modules.sensor.toggleAudio(on);
+                renderUI();
+            }
+        });
 
-    // Start with Welcome?
-    if(appSettings.showWelcomeScreen) setTimeout(() => modules.settings.openSetup(), 500);
+        // Start Welcome Logic
+        if(appSettings.showWelcomeScreen && modules.settings) {
+             setTimeout(() => modules.settings.openSetup(), 500);
+        }
+
+    } catch (error) {
+        console.error("CRITICAL ERROR:", error);
+        alert("App crashed: " + error.message);
+    }
 };

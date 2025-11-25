@@ -6,7 +6,6 @@
     <title>Follow Me</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4f46e5">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap">
     <link rel="stylesheet" href="styles.css">
@@ -41,7 +40,7 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4 mb-2">
-                     <button id="quick-open-help" class="w-full px-4 py-3 bg-gray-600 hover:bg-gray-500 rounded-lg text-white font-bold transition">Voice Play 🗣️</button>
+                     <button id="quick-open-help" class="w-full px-4 py-3 bg-gray-600 hover:bg-gray-500 rounded-lg text-white font-bold transition">Help 📚</button>
                      <button id="quick-open-settings" class="w-full px-4 py-3 bg-gray-600 hover:bg-gray-500 rounded-lg text-white font-bold transition">Settings</button>
                 </div>
             </div>
@@ -53,61 +52,49 @@
     </div>
 
     <div id="theme-editor-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[100] transition-opacity duration-300 opacity-0 pointer-events-none">
-        <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 flex flex-col border border-custom">
+        <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-md w-full transform scale-90 transition-transform duration-300 flex flex-col border border-custom max-h-[95vh] overflow-hidden">
             <h3 class="text-xl font-bold mb-4">🎨 Theme Editor</h3>
             
-            <div class="mb-4">
-                <label class="block text-xs font-bold mb-1 text-muted-custom">Theme Name</label>
-                <input type="text" id="theme-name-input" class="settings-input w-full p-2 rounded border border-custom" placeholder="My Theme" disabled>
-                <p class="text-[10px] opacity-60 mt-1">Rename using the 'Rename' button in Settings.</p>
-            </div>
+            <div class="overflow-y-auto px-1">
+                <div class="mb-4">
+                    <label class="block text-xs font-bold mb-1 text-muted-custom">Theme Name</label>
+                    <input type="text" id="theme-name-input" class="settings-input w-full p-2 rounded border border-custom" placeholder="My Theme">
+                </div>
 
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-xs font-bold mb-1 text-muted-custom">1. Background</label>
-                    <div class="flex items-center space-x-2">
-                        <input type="color" id="color-bg-main" class="h-10 w-full rounded cursor-pointer border-0 p-0">
+                <div class="mb-4">
+                    <label class="block text-xs font-bold mb-2 text-muted-custom">Select Element to Color:</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button class="target-btn active p-2 text-xs font-bold rounded border border-custom bg-primary-app" data-target="bgMain">Background</button>
+                        <button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="bgCard">Cards</button>
+                        <button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="bubble">Bubbles</button>
+                        <button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="btn">Keypad</button>
+                        <button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="text">Text</button>
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold mb-1 text-muted-custom">2. Card/Modal</label>
-                    <div class="flex items-center space-x-2">
-                        <input type="color" id="color-bg-card" class="h-10 w-full rounded cursor-pointer border-0 p-0">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold mb-1 text-muted-custom">3. Seq Bubble</label>
-                    <div class="flex items-center space-x-2">
-                        <input type="color" id="color-bubble" class="h-10 w-full rounded cursor-pointer border-0 p-0">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold mb-1 text-muted-custom">4. Keypad Btn</label>
-                    <div class="flex items-center space-x-2">
-                        <input type="color" id="color-btn" class="h-10 w-full rounded cursor-pointer border-0 p-0">
-                    </div>
-                </div>
-                <div class="col-span-2">
-                    <label class="block text-xs font-bold mb-1 text-muted-custom">5. Text & Number Color</label>
-                    <div class="flex items-center space-x-2">
-                        <input type="color" id="color-text" class="h-10 w-full rounded cursor-pointer border-0 p-0">
-                    </div>
-                </div>
-            </div>
 
-            <div class="mb-6 p-4 rounded border border-custom transition-colors" id="theme-preview-box">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="font-bold">Preview</span>
-                    <button class="px-3 py-1 rounded text-sm font-bold transition-colors" id="preview-btn">Bubble</button>
+                <div class="mb-4">
+                    <label class="block text-xs font-bold mb-2 text-muted-custom">Quick Palette</label>
+                    <div id="color-grid" class="grid grid-cols-8 gap-1 mb-2"></div>
+                    <div class="flex items-center space-x-2 mt-2">
+                        <label for="fine-tune-picker" class="text-xs font-bold flex-grow">Fine Tune Slider:</label>
+                        <input type="color" id="fine-tune-picker" class="h-8 w-full rounded cursor-pointer">
+                    </div>
                 </div>
-                <div class="p-4 rounded font-bold text-center text-sm transition-colors" id="preview-card">
-                    I am a Card / Key
+
+                <div class="mb-4 p-4 rounded border border-custom transition-colors" id="theme-preview-box">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold">Preview</span>
+                        <button class="px-3 py-1 rounded text-sm font-bold transition-colors" id="preview-btn">Bubble</button>
+                    </div>
+                    <div class="p-4 rounded font-bold text-center text-sm transition-colors" id="preview-card">
+                        Card / Keypad Area
+                    </div>
                 </div>
             </div>
 
-            <div class="flex space-x-3">
+            <div class="flex space-x-3 mt-2 pt-3 border-t border-custom">
                 <button id="cancel-theme-btn" class="flex-1 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded font-bold">Cancel</button>
-                <button id="save-theme-btn" class="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold">Save Changes</button>
+                <button id="save-theme-btn" class="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold">Save</button>
             </div>
         </div>
     </div>
@@ -115,8 +102,7 @@
     <div id="calibration-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[110] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 flex flex-col border border-custom">
             <h3 class="text-xl font-bold mb-4 text-center">🎛️ Sensor Calibration</h3>
-            
-            <div class="mb-6 p-4 rounded bg-black bg-opacity-30 border border-gray-700">
+            <div class="mb-4 p-4 rounded bg-black bg-opacity-30 border border-gray-700">
                 <div class="flex justify-between mb-2">
                     <span class="font-bold text-sm">🎤 Mic Sensitivity</span>
                     <span id="audio-val-display" class="text-xs font-mono opacity-70">-85dB</span>
@@ -126,10 +112,8 @@
                     <div id="calib-audio-marker" class="absolute top-0 bottom-0 w-1 bg-white shadow-sm" style="left: 50%"></div>
                 </div>
                 <input type="range" id="calib-audio-slider" min="-100" max="-30" step="1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
-                <p class="text-[10px] opacity-60 mt-1">Adjust so bar crosses line only on tone.</p>
             </div>
-
-            <div class="mb-6 p-4 rounded bg-black bg-opacity-30 border border-gray-700">
+            <div class="mb-4 p-4 rounded bg-black bg-opacity-30 border border-gray-700">
                 <div class="flex justify-between mb-2">
                     <span class="font-bold text-sm">📷 Camera Threshold</span>
                     <span id="cam-val-display" class="text-xs font-mono opacity-70">30</span>
@@ -139,16 +123,13 @@
                     <div id="calib-cam-marker" class="absolute top-0 bottom-0 w-1 bg-white shadow-sm" style="left: 30%"></div>
                 </div>
                 <input type="range" id="calib-cam-slider" min="10" max="150" step="5" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
-                <p class="text-[10px] opacity-60 mt-1">Adjust so bar crosses line only on flashes.</p>
             </div>
-
             <button id="close-calibration-btn" class="w-full py-3 bg-primary-app hover:bg-secondary-app text-white rounded-lg font-bold shadow-md">Done</button>
         </div>
     </div>
 
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-hidden border border-custom m-4">
-            
             <div class="p-4 border-b border-custom flex justify-between items-center">
                 <h3 class="text-xl font-bold">Settings</h3>
                 <div class="flex space-x-5">
@@ -157,18 +138,15 @@
                     <button id="open-help-button" class="text-xl opacity-70 hover:opacity-100">❓</button>
                 </div>
             </div>
-    
             <div class="flex border-b border-custom bg-black bg-opacity-10">
                 <div class="tab-btn active" data-tab="mode">Mode</div>
                 <div class="tab-btn" data-tab="playback">Playback</div>
                 <div class="tab-btn" data-tab="general">General</div>
             </div>
-    
             <div class="overflow-y-auto flex-grow p-5 space-y-4">
-                
                 <div id="tab-mode" class="tab-content active">
                     <div class="mb-5 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
-                        <label class="text-xs font-bold uppercase text-muted-custom mb-2 block">Quick Profiles</label>
+                        <label class="text-xs font-bold uppercase text-muted-custom mb-2 block">Profiles</label>
                         <select id="config-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
                         <div class="flex space-x-2">
                             <button id="config-add" class="flex-1 py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button>
@@ -176,139 +154,37 @@
                             <button id="config-delete" class="flex-1 py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
                         </div>
                     </div>
-    
                     <div class="grid grid-cols-2 gap-3 mb-4">
-                        <div>
-                            <label class="block text-xs font-bold mb-1 text-muted-custom">Input Method</label>
-                            <select id="input-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                <option value="key9">9-Key Pad</option>
-                                <option value="key12">12-Key Pad</option>
-                                <option value="piano">Piano Keys</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold mb-1 text-muted-custom">Game Mode</label>
-                            <select id="mode-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                <option value="simon">Simon Says</option>
-                                <option value="unique">Unique Rounds</option>
-                            </select>
-                        </div>
+                        <div><label class="block text-xs font-bold mb-1 text-muted-custom">Input</label><select id="input-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="key9">9-Key</option><option value="key12">12-Key</option><option value="piano">Piano</option></select></div>
+                        <div><label class="block text-xs font-bold mb-1 text-muted-custom">Mode</label><select id="mode-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="simon">Simon Says</option><option value="unique">Unique</option></select></div>
                     </div>
-    
                     <div class="grid grid-cols-2 gap-3 mb-4">
-                        <div>
-                            <label class="block text-xs font-bold mb-1 text-muted-custom">Machines</label>
-                            <select id="machines-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                <option value="1">1 Machine</option>
-                                <option value="2">2 Machines</option>
-                                <option value="3">3 Machines</option>
-                                <option value="4">4 Machines</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold mb-1 text-muted-custom">Max Length</label>
-                            <select id="seq-length-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                <option value="15">15 Steps</option>
-                                <option value="20">20 Steps</option>
-                                <option value="25">25 Steps</option>
-                                <option value="30">30 Steps</option>
-                                <option value="35">35 Steps</option>
-                                <option value="40">40 Steps</option>
-                                <option value="50">50 Steps</option>
-                            </select>
-                        </div>
+                        <div><label class="block text-xs font-bold mb-1 text-muted-custom">Machines</label><select id="machines-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></div>
+                        <div><label class="block text-xs font-bold mb-1 text-muted-custom">Length</label><select id="seq-length-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="15">15</option><option value="20">20</option><option value="30">30</option><option value="50">50</option></select></div>
                     </div>
-
                     <div class="flex justify-between items-center p-3 rounded-lg settings-input border border-custom mt-2">
-                        <span class="font-bold text-sm">Auto-Advance (Unique Mode)</span>
-                        <input type="checkbox" id="autoclear-toggle" class="h-5 w-5 accent-indigo-500">
+                        <span class="font-bold text-sm">Auto-Advance (Unique)</span><input type="checkbox" id="autoclear-toggle" class="h-5 w-5 accent-indigo-500">
                     </div>
                 </div>
-    
                 <div id="tab-playback" class="tab-content">
                     <div class="space-y-3">
-                        <div class="flex justify-between items-center p-3 rounded-lg settings-input">
-                            <span class="font-bold text-sm">Autoplay</span>
-                            <input type="checkbox" id="autoplay-toggle" class="h-5 w-5 accent-indigo-500">
-                        </div>
-                        <div class="flex justify-between items-center p-3 rounded-lg settings-input">
-                            <span class="font-bold text-sm">Audio Speech</span>
-                            <input type="checkbox" id="audio-toggle" class="h-5 w-5 accent-indigo-500">
-                        </div>
-                        <div class="flex justify-between items-center p-3 rounded-lg settings-input border border-yellow-500 border-opacity-30">
-                            <div>
-                                <span class="font-bold text-sm block">Haptic Morse Code</span>
-                                <span class="text-xs text-muted-custom">Vibrate sequence silently</span>
-                            </div>
-                            <input type="checkbox" id="haptic-morse-toggle" class="h-5 w-5 accent-indigo-500">
-                        </div>
-    
-                        <div class="mt-4">
-                            <label class="block text-xs font-bold mb-1 text-muted-custom">Playback Speed</label>
-                            <select id="playback-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                <option value="0.5">50% (Slowest)</option>
-                                <option value="0.6">60%</option>
-                                <option value="0.7">70%</option>
-                                <option value="0.8">80%</option>
-                                <option value="0.9">90%</option>
-                                <option value="1.0">100% (Normal)</option>
-                                <option value="1.1">110%</option>
-                                <option value="1.2">120%</option>
-                                <option value="1.3">130%</option>
-                                <option value="1.4">140%</option>
-                                <option value="1.5">150%</option>
-                                <option value="1.6">160%</option>
-                                <option value="1.7">170%</option>
-                                <option value="1.8">180%</option>
-                                <option value="1.9">190%</option>
-                                <option value="2.0">200% (Fastest)</option>
-                            </select>
-                        </div>
-    
+                        <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm">Autoplay</span><input type="checkbox" id="autoplay-toggle" class="h-5 w-5 accent-indigo-500"></div>
+                        <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm">Audio Speech</span><input type="checkbox" id="audio-toggle" class="h-5 w-5 accent-indigo-500"></div>
+                        <div class="flex justify-between items-center p-3 rounded-lg settings-input border border-yellow-500 border-opacity-30"><div><span class="font-bold text-sm block">Haptic Morse</span></div><input type="checkbox" id="haptic-morse-toggle" class="h-5 w-5 accent-indigo-500"></div>
+                        <div class="mt-4"><label class="block text-xs font-bold mb-1 text-muted-custom">Speed</label><select id="playback-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="0.5">0.5x</option><option value="1.0">1.0x</option><option value="1.5">1.5x</option><option value="2.0">2.0x</option></select></div>
                         <div class="grid grid-cols-2 gap-3 mt-4">
-                            <div>
-                                <label class="block text-xs font-bold mb-1 text-muted-custom">Chunk Size</label>
-                                <select id="chunk-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                    <option value="2">2 items</option>
-                                    <option value="3">3 items</option>
-                                    <option value="4">4 items</option>
-                                    <option value="5">5 items</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1 text-muted-custom">Delay</label>
-                                <select id="delay-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                    <option value="0">None</option>
-                                    <option value="200">0.2s</option>
-                                    <option value="500">0.5s</option>
-                                    <option value="800">0.8s</option>
-                                    <option value="1000">1.0s</option>
-                                    <option value="1500">1.5s</option>
-                                </select>
-                            </div>
+                            <div><label class="block text-xs font-bold mb-1 text-muted-custom">Chunk</label><select id="chunk-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></div>
+                            <div><label class="block text-xs font-bold mb-1 text-muted-custom">Delay</label><select id="delay-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="200">0.2s</option><option value="500">0.5s</option><option value="1000">1.0s</option></select></div>
                         </div>
                     </div>
                 </div>
-    
                 <div id="tab-general" class="tab-content">
                     <div class="space-y-3">
-                        <div class="flex justify-between items-center p-3 rounded-lg settings-input">
-                            <span class="font-bold text-sm">System Haptics</span>
-                            <input type="checkbox" id="haptics-toggle" class="h-5 w-5 accent-indigo-500">
-                        </div>
-                        <div class="flex justify-between items-center p-3 rounded-lg settings-input">
-                            <span class="font-bold text-sm">Speed Delete (Hold Back)</span>
-                            <input type="checkbox" id="speed-delete-toggle" class="h-5 w-5 accent-indigo-500">
-                        </div>
-                        <div class="flex justify-between items-center p-3 rounded-lg settings-input">
-                            <span class="font-bold text-sm">Show Quick Start Screen</span>
-                            <input type="checkbox" id="show-welcome-toggle" class="h-5 w-5 accent-indigo-500">
-                        </div>
-                        <div class="flex justify-between items-center p-3 rounded-lg settings-input border border-red-500 border-opacity-30">
-                            <div><span class="font-bold text-sm block">Blackout Mode</span></div>
-                            <input type="checkbox" id="blackout-toggle" class="h-5 w-5 accent-indigo-500">
-                        </div>
-    
+                        <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm">Haptics</span><input type="checkbox" id="haptics-toggle" class="h-5 w-5 accent-indigo-500"></div>
+                        <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm">Speed Delete</span><input type="checkbox" id="speed-delete-toggle" class="h-5 w-5 accent-indigo-500"></div>
+                        <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm">Show Quick Start</span><input type="checkbox" id="show-welcome-toggle" class="h-5 w-5 accent-indigo-500"></div>
+                        <div class="flex justify-between items-center p-3 rounded-lg settings-input border border-red-500 border-opacity-30"><div><span class="font-bold text-sm block">Blackout Mode</span></div><input type="checkbox" id="blackout-toggle" class="h-5 w-5 accent-indigo-500"></div>
+                        
                         <div class="mt-4 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
                             <label class="text-xs font-bold uppercase text-muted-custom mb-2 block">App Theme</label>
                             <div class="flex items-center space-x-2 mb-3">
@@ -316,45 +192,23 @@
                                 <button id="open-theme-editor" class="w-10 h-10 flex items-center justify-center bg-gray-600 hover:bg-gray-500 rounded text-white font-bold transition shadow" title="Edit Colors">🎨</button>
                             </div>
                             <div class="flex space-x-2">
-                                <button id="theme-add" class="flex-1 py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold transition">NEW</button>
-                                <button id="theme-rename" class="flex-1 py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold transition disabled:opacity-50">RENAME</button>
-                                <button id="theme-delete" class="flex-1 py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold transition disabled:opacity-50">DELETE</button>
+                                <button id="theme-add" class="flex-1 py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button>
+                                <button id="theme-rename" class="flex-1 py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button>
+                                <button id="theme-delete" class="flex-1 py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
                             </div>
                         </div>
 
-                        <div class="mt-4">
-                            <label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size (UI Scale)</label>
-                            <select id="ui-scale-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                <option value="50">50%</option><option value="60">60%</option><option value="70">70%</option>
-                                <option value="80">80%</option><option value="90">90%</option><option value="100">100%</option>
-                                <option value="110">110%</option><option value="120">120%</option><option value="130">130%</option>
-                                <option value="140">140%</option><option value="150">150%</option><option value="160">160%</option>
-                                <option value="200">200%</option>
-                            </select>
-                        </div>
-
-                        <div class="mt-4">
-                            <label class="block text-xs font-bold mb-1 text-muted-custom">Pinch Gesture Target</label>
-                            <select id="gesture-mode-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                <option value="global">Global UI Zoom</option>
-                                <option value="sequence">Sequence Cards Only</option>
-                            </select>
-                        </div>
-    
+                        <div class="mt-4"><label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label><select id="ui-scale-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="50">50%</option><option value="80">80%</option><option value="100">100%</option><option value="120">120%</option><option value="150">150%</option></select></div>
+                        <div class="mt-4"><label class="block text-xs font-bold mb-1 text-muted-custom">Gesture</label><select id="gesture-mode-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="global">Global UI</option><option value="sequence">Cards Only</option></select></div>
+                        
                         <div class="mt-4">
                             <label class="block text-xs font-bold mb-1 text-muted-custom">Auto Input</label>
-                            <select id="auto-input-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm mb-2">
-                                <option value="none">None</option>
-                                <option value="mic">Microphone Only</option>
-                                <option value="cam">Camera Only</option>
-                                <option value="both">Both</option>
-                            </select>
+                            <select id="auto-input-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm mb-2"><option value="none">None</option><option value="mic">Mic Only</option><option value="cam">Cam Only</option><option value="both">Both</option></select>
                             <button id="open-calibration-btn" class="w-full py-2 bg-gray-600 hover:bg-gray-500 text-white rounded text-xs font-bold">Calibrate Sensors 🎛️</button>
                         </div>
                     </div>
                 </div>
             </div>
-    
             <div class="p-4 border-t border-custom flex justify-between items-center bg-opacity-20 bg-black">
                 <button data-action="restore-defaults" class="px-5 py-2 bg-red-800 hover:bg-red-700 text-white rounded text-sm font-bold transition shadow">Reset</button>
                 <button id="close-settings" class="px-8 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded font-bold transition shadow">Exit</button>
@@ -368,105 +222,46 @@
                 <h3 class="text-2xl font-bold">User Manual 📘</h3>
                 <button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button>
             </div>
-
             <div class="p-6 overflow-y-auto leading-relaxed space-y-6 text-sm">
-                
                 <section class="bg-primary-app bg-opacity-10 p-4 rounded-lg border border-primary-app">
-                    <h4 class="font-bold text-lg text-primary-app mb-2 flex items-center">
-                        🗣️ Play by Voice Only
-                    </h4>
-                    <p class="mb-3 opacity-90 text-xs">
-                        Use this prompt with ChatGPT or Gemini to play the game verbally without looking at the screen.
-                    </p>
-                    <textarea id="prompt-display" readonly class="prompt-box settings-input mb-2 h-40 text-xs"></textarea>
-                    <button id="copy-prompt-btn" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-sm shadow">Copy Voice Prompt</button>
+                    <h4 class="font-bold text-lg text-primary-app mb-2 flex items-center">🗣️ Play by Voice Only</h4>
+                    <p class="mb-3 opacity-90 text-xs">Use this prompt with AI to play verbally.</p>
+                    <textarea id="prompt-display" readonly class="prompt-box settings-input mb-2 h-32 text-xs"></textarea>
+                    <button id="copy-prompt-btn" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-sm shadow">Copy Prompt</button>
                 </section>
-
                 <section>
                     <h4 class="font-bold text-lg text-primary-app mb-2 border-b border-gray-600 pb-1">🎮 Game Modes</h4>
-                    <ul class="space-y-3">
-                        <li>
-                            <strong class="text-white">Simon Says:</strong>
-                            <p class="opacity-80">Classic memory game. The pattern accumulates. Round 1 is "Red". Round 2 is "Red, Blue". You must enter the full sequence every time.</p>
-                        </li>
-                        <li>
-                            <strong class="text-white">Unique Rounds:</strong>
-                            <p class="opacity-80">For standard tracking. Every round generates a <em>new</em>, random sequence. Previous numbers are discarded.</p>
-                        </li>
-                        <li>
-                            <strong class="text-white">Auto-Clear (Unique Mode):</strong>
-                            <p class="opacity-80">If ON, the sequence clears automatically when you finish reading it, ready for the next round instantly.</p>
-                        </li>
+                    <ul class="space-y-2 opacity-80">
+                        <li><strong>Simon Says:</strong> Pattern accumulates.</li>
+                        <li><strong>Unique Rounds:</strong> New random sequence every round.</li>
                     </ul>
                 </section>
-
                 <section>
-                    <h4 class="font-bold text-lg text-primary-app mb-2 border-b border-gray-600 pb-1">⏯️ Playback Settings</h4>
-                    <ul class="space-y-3">
-                        <li>
-                            <strong class="text-white">Autoplay:</strong>
-                            <p class="opacity-80">Automatically reads the sequence back to you immediately after you enter a number.</p>
-                        </li>
-                        <li>
-                            <strong class="text-white">Chunk Size & Delay:</strong>
-                            <p class="opacity-80">Breaks long sequences into groups (e.g., read 3 numbers, pause, read next 3). "Delay" sets how long the pause is between chunks.</p>
-                        </li>
-                        <li>
-                            <strong class="text-white">Haptic Morse:</strong>
-                            <p class="opacity-80">Vibrates the number instead of speaking it. Short buzz = Dot, Long buzz = Dash. (e.g., 3 is •••, 6 is — •••).</p>
-                        </li>
+                    <h4 class="font-bold text-lg text-primary-app mb-2 border-b border-gray-600 pb-1">🎤 Sensors</h4>
+                    <p class="opacity-80 mb-2">Enable in Settings > General.</p>
+                    <ul class="space-y-2 opacity-80">
+                        <li><strong>Mic:</strong> Detects high-pitch tones.</li>
+                        <li><strong>Camera:</strong> Detects screen flashes. Use Calibration to tune.</li>
                     </ul>
                 </section>
-
                 <section>
-                    <h4 class="font-bold text-lg text-primary-app mb-2 border-b border-gray-600 pb-1">🎤 Camera & Audio Sensors</h4>
-                    <p class="opacity-70 mb-2 italic">Enable these in "Settings > General > Auto Input Buttons".</p>
-                    <ul class="space-y-3">
-                        <li>
-                            <strong class="text-white">Audio Mode (Mic):</strong>
-                            <p class="opacity-80">Listens for specific tones (whistles/beeps) between 200Hz-600Hz. Tones map to keys 1-9.</p>
-                        </li>
-                        <li>
-                            <strong class="text-white">Camera Mode:</strong>
-                            <p class="opacity-80">Detects screen flashes or colored lights. Point camera at a game screen. Red/Blue/Green/etc. flashes will automatically press the corresponding colored buttons.</p>
-                        </li>
+                    <h4 class="font-bold text-lg text-primary-app mb-2 border-b border-gray-600 pb-1">🛠️ Tools</h4>
+                    <ul class="space-y-2 opacity-80">
+                        <li><strong>Blackout:</strong> Shake device to turn screen black.</li>
+                        <li><strong>Speed Delete:</strong> Hold backspace.</li>
                     </ul>
                 </section>
-
-                <section>
-                    <h4 class="font-bold text-lg text-primary-app mb-2 border-b border-gray-600 pb-1">🛠️ Power Tools</h4>
-                    <ul class="space-y-3">
-                        <li>
-                            <strong class="text-white">Blackout (Stealth) Mode:</strong>
-                            <p class="opacity-80">Shake your device firmly to toggle. Screen turns black, but the keypad remains active (invisible). Use for discrete input without looking.</p>
-                        </li>
-                        <li>
-                            <strong class="text-white">Speed Delete:</strong>
-                            <p class="opacity-80">Hold the Backspace button to rapidly delete the sequence history.</p>
-                        </li>
-                        <li>
-                            <strong class="text-white">Gestures (Pinch):</strong>
-                            <p class="opacity-80">Pinch the screen with two fingers to resize the UI. Change "Gesture Mode" in settings to choose between resizing the whole app or just the number cards.</p>
-                        </li>
-                    </ul>
-                </section>
-
-                <section>
-                    <h4 class="font-bold text-lg text-primary-app mb-2 border-b border-gray-600 pb-1">💾 Profiles</h4>
-                    <p class="opacity-80">Create separate save files for different games. Each profile saves its own button layout, game mode, and sensor settings.</p>
-                </section>
-
             </div>
-            
             <div class="p-4 border-t border-custom flex justify-end bg-black bg-opacity-20">
-                <button id="open-help-button-bottom" class="px-6 py-2 bg-primary-app text-white rounded-lg font-bold hover:bg-secondary-app transition shadow-lg" onclick="document.getElementById('help-modal').classList.add('opacity-0', 'pointer-events-none')">Close Manual</button>
+                <button id="open-help-button-bottom" class="px-6 py-2 bg-primary-app text-white rounded-lg font-bold hover:bg-secondary-app transition shadow-lg" onclick="document.getElementById('help-modal').classList.add('opacity-0', 'pointer-events-none')">Close</button>
             </div>
         </div>
     </div>
     
     <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[70] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 text-center flex flex-col items-center border border-custom">
-            <h3 class="text-xl font-bold mb-4">Share App</h3>
+            <h3 class="text-xl font-bold mb-2">Share App</h3>
+            <p class="text-xs opacity-70 mb-4">Scan to play on another device, or copy link.</p>
             <div class="bg-white p-2 rounded-lg mb-4 shadow-inner flex items-center justify-center min-h-[12rem] w-full">
                 <img src="qr.jpg" alt="Scan to Share" class="w-48 h-48 object-contain" 
                      onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\'text-black font-bold text-sm\'>QR Code not found.<br>Upload qr.jpg to root.</span>'">
@@ -477,16 +272,7 @@
         </div>
     </div>
 
-    <div id="comment-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[90] transition-opacity duration-300 opacity-0 pointer-events-none">
-        <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 p-6 border border-custom">
-            <h3 class="text-2xl font-bold mb-4">Feedback</h3>
-            <input id="comment-username" type="text" placeholder="Name" class="settings-input w-full p-3 mb-2 rounded border border-custom">
-            <textarea id="comment-message" placeholder="Message" class="settings-input w-full p-3 mb-4 rounded border border-custom h-32"></textarea>
-            <button id="submit-comment-btn" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md">Send</button>
-            <div id="comments-list-container" class="mt-4 max-h-40 overflow-y-auto"></div>
-            <button id="close-comment-modal" class="mt-4 w-full py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg">Close</button>
-        </div>
-    </div>
+    <div id="comment-modal" class="hidden"><div class="settings-modal-bg"><button id="close-comment-modal">x</button></div></div> 
 
     <div id="app" class="max-w-7xl w-full mx-auto flex flex-col flex-grow pb-32">
         <main id="sequence-container" class="flex-grow mb-6 transition-all duration-300 pt-4 flex flex-col items-center justify-center"></main>
@@ -508,7 +294,6 @@
                 <button data-action="open-settings" class="btn-input btn-control !bg-primary-app text-white">⚙️</button>
             </div>
         </div>
-
         <div id="pad-key12" class="max-w-lg mx-auto" style="display: none;">
             <div class="grid grid-cols-4 gap-2 mb-2">
                 <button data-value="1" class="btn-input btn-pad-number">1</button><button data-value="2" class="btn-input btn-pad-number">2</button><button data-value="3" class="btn-input btn-pad-number">3</button><button data-value="4" class="btn-input btn-pad-number">4</button>
@@ -524,7 +309,6 @@
                 <button data-action="open-settings" class="btn-input btn-control !bg-primary-app text-white">⚙️</button>
             </div>
         </div>
-
         <div id="pad-piano" class="max-w-2xl mx-auto pt-0 pb-1" style="display:none;">
             <div id="piano-keys" class="relative h-40 w-full mb-2 border border-custom">
                 <div class="flex h-full w-full">
@@ -553,10 +337,7 @@
         </div>
     </footer>
     
-    <div id="toast-notification" class="fixed top-20 left-1/2 -translate-x-1/2 bg-primary-app text-white px-6 py-3 rounded-xl shadow-lg z-[99] transition-all duration-300 opacity-0 transform -translate-y-10">
-        <span id="toast-message"></span>
-    </div>
-
+    <div id="toast-notification" class="fixed top-20 left-1/2 -translate-x-1/2 bg-primary-app text-white px-6 py-3 rounded-xl shadow-lg z-[99] transition-all duration-300 opacity-0 transform -translate-y-10"><span id="toast-message"></span></div>
     <script type="module" src="app.js"></script>
 </body>
 </html>

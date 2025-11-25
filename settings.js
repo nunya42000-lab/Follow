@@ -39,13 +39,11 @@ export class SettingsManager {
             edCancel: document.getElementById('cancel-theme-btn'),
             openEditorBtn: document.getElementById('open-theme-editor'),
             
-            // ... (All other standard inputs from previous versions) ...
+            // Settings UI
             themeSelect: document.getElementById('theme-select'),
             themeAdd: document.getElementById('theme-add'),
             themeRename: document.getElementById('theme-rename'),
             themeDelete: document.getElementById('theme-delete'),
-            // ... (Rest of standard inputs: configSelect, playback inputs, etc.)
-            // To save space in this response, assume standard inputs are bound same as before
             input: document.getElementById('input-select'),
             mode: document.getElementById('mode-select'),
             machines: document.getElementById('machines-select'),
@@ -183,7 +181,6 @@ export class SettingsManager {
         this.dom.edPreviewBtn.style.color = text;
     }
 
-    // ... (Standard initListeners from previous steps) ...
     initListeners() {
         // Theme UI
         if(this.dom.themeSelect) this.dom.themeSelect.onchange = (e) => { this.appSettings.activeTheme = e.target.value; this.callbacks.onUpdate(); this.populateThemeDropdown(); };
@@ -240,8 +237,6 @@ export class SettingsManager {
             if(this.dom[k]) this.dom[k].addEventListener('input', () => this.updatePreview()); 
         });
 
-        // ... (Rest of bindings: Tabs, Inputs, Calibration, Profiles - KEEP THESE FROM PREVIOUS)
-        // ...
         // Standard Tab switching
         this.dom.tabs.forEach(btn => btn.onclick = () => {
             this.dom.tabs.forEach(b => b.classList.remove('active'));

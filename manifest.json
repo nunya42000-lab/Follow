@@ -3,8 +3,8 @@
   "short_name": "Follow Me",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#1f2937",
-  "theme_color": "#4f46e5",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "description": "A multi-mode sequence tracking assistant.",
   "icons": [
     {

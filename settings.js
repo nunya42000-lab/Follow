@@ -1,4 +1,4 @@
-// --- PREMADE THEMES (5-Color System) ---
+// PREMADE THEMES
 export const PREMADE_THEMES = {
     'default': { name: "Default Dark", bgMain: "#000000", bgCard: "#121212", bubble: "#4f46e5", btn: "#1a1a1a", text: "#e5e5e5" },
     'light':   { name: "Light Mode",   bgMain: "#f3f4f6", bgCard: "#ffffff", bubble: "#4f46e5", btn: "#e5e7eb", text: "#111827" },
@@ -10,7 +10,7 @@ export const PREMADE_THEMES = {
     'sunset':  { name: "Sunset",       bgMain: "#1a021c", bgCard: "#701a75", bubble: "#fb923c", btn: "#86198f", text: "#fff7ed" }
 };
 
-// --- 150 CRAYOLA COLORS ---
+// 150 CRAYOLA COLORS
 const CRAYONS = [
     "#000000", "#1F75FE", "#1CA9C9", "#0D98BA", "#FFFFFF", "#C5D0E6", "#B0B7C6", "#AF4035",
     "#F5F5F5", "#FEFEFA", "#FFFAFA", "#F0F8FF", "#F8F8FF", "#F5F5DC", "#FFFACD", "#FAFAD2",
@@ -30,18 +30,9 @@ const CRAYONS = [
     "#999999", "#808080", "#666666", "#333333", "#222222", "#111111", "#0A0A0A", "#000000"
 ];
 
-// --- LANGUAGE DICTIONARY ---
 const LANG = {
-    en: {
-        quick_title: "👋 Quick Start", select_profile: "Select Profile", autoplay: "Autoplay",
-        audio: "Audio", help_btn: "Help 📚", settings_btn: "Settings", dont_show: "Don't show again",
-        play_btn: "PLAY", theme_editor: "🎨 Theme Editor"
-    },
-    es: {
-        quick_title: "👋 Inicio Rápido", select_profile: "Perfil", autoplay: "Reproducción",
-        audio: "Audio", help_btn: "Ayuda 📚", settings_btn: "Ajustes", dont_show: "No mostrar más",
-        play_btn: "JUGAR", theme_editor: "🎨 Editor de Temas"
-    }
+    en: { quick_title: "👋 Quick Start", select_profile: "Select Profile", autoplay: "Autoplay", audio: "Audio", help_btn: "Help 📚", settings_btn: "Settings", dont_show: "Don't show again", play_btn: "PLAY", theme_editor: "🎨 Theme Editor" },
+    es: { quick_title: "👋 Inicio Rápido", select_profile: "Perfil", autoplay: "Reproducción", audio: "Audio", help_btn: "Ayuda 📚", settings_btn: "Ajustes", dont_show: "No mostrar más", play_btn: "JUGAR", theme_editor: "🎨 Editor de Temas" }
 };
 
 export class SettingsManager {
@@ -52,15 +43,12 @@ export class SettingsManager {
         this.currentTargetKey = 'bubble';
         
         this.dom = {
-            // --- THEME EDITOR ---
             editorModal: document.getElementById('theme-editor-modal'),
             editorGrid: document.getElementById('color-grid'),
             ftContainer: document.getElementById('fine-tune-container'),
             ftToggle: document.getElementById('toggle-fine-tune'),
             ftPreview: document.getElementById('fine-tune-preview'),
-            ftHue: document.getElementById('ft-hue'),
-            ftSat: document.getElementById('ft-sat'),
-            ftLit: document.getElementById('ft-lit'),
+            ftHue: document.getElementById('ft-hue'), ftSat: document.getElementById('ft-sat'), ftLit: document.getElementById('ft-lit'),
             targetBtns: document.querySelectorAll('.target-btn'),
             edName: document.getElementById('theme-name-input'),
             edPreview: document.getElementById('theme-preview-box'),
@@ -70,13 +58,13 @@ export class SettingsManager {
             edCancel: document.getElementById('cancel-theme-btn'),
             openEditorBtn: document.getElementById('open-theme-editor'),
 
-            // --- VOICE CONTROLS ---
-            voiceGender: document.getElementById('voice-gender-toggle'), // Checkbox
-            voiceAge: document.getElementById('voice-age'), // Select
-            voiceAccent: document.getElementById('voice-accent'), // Select
+            // VOICE CONTROLS (New)
+            voiceGender: document.getElementById('voice-gender-toggle'), 
+            voicePitch: document.getElementById('voice-pitch'),
+            voiceRate: document.getElementById('voice-rate'),
+            voiceVolume: document.getElementById('voice-volume'),
             voiceTestBtn: document.getElementById('test-voice-btn'),
 
-            // --- SETTINGS ---
             settingsModal: document.getElementById('settings-modal'),
             themeSelect: document.getElementById('theme-select'),
             themeAdd: document.getElementById('theme-add'),
@@ -88,7 +76,6 @@ export class SettingsManager {
             configRename: document.getElementById('config-rename'),
             configDelete: document.getElementById('config-delete'),
             
-            // Inputs
             input: document.getElementById('input-select'),
             mode: document.getElementById('mode-select'),
             practiceMode: document.getElementById('practice-mode-toggle'),
@@ -110,11 +97,9 @@ export class SettingsManager {
             gestureMode: document.getElementById('gesture-mode-select'),
             autoInput: document.getElementById('auto-input-select'),
             
-            // Language
             quickLang: document.getElementById('quick-lang-select'),
             generalLang: document.getElementById('general-lang-select'),
 
-            // Buttons & Modals
             closeSettingsBtn: document.getElementById('close-settings'),
             tabs: document.querySelectorAll('.tab-btn'),
             contents: document.querySelectorAll('.tab-content'),
@@ -138,7 +123,6 @@ export class SettingsManager {
             copyPromptBtn: document.getElementById('copy-prompt-btn'),
             restoreBtn: document.querySelector('button[data-action="restore-defaults"]'),
             
-            // Calibration
             calibModal: document.getElementById('calibration-modal'),
             openCalibBtn: document.getElementById('open-calibration-btn'),
             closeCalibBtn: document.getElementById('close-calibration-btn'),
@@ -159,7 +143,6 @@ export class SettingsManager {
         this.buildColorGrid();
     }
 
-    // --- 1. THEME EDITOR LOGIC ---
     buildColorGrid() {
         if(!this.dom.editorGrid) return;
         this.dom.editorGrid.innerHTML = '';
@@ -175,14 +158,9 @@ export class SettingsManager {
     applyColorToTarget(hex) {
         if(!this.tempTheme) return;
         this.tempTheme[this.currentTargetKey] = hex;
-        // Snap sliders to this color
         const [h, s, l] = this.hexToHsl(hex);
-        this.dom.ftHue.value = h;
-        this.dom.ftSat.value = s;
-        this.dom.ftLit.value = l;
+        this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l;
         this.dom.ftPreview.style.backgroundColor = hex;
-        
-        // Show Fine Tune if hidden
         if(this.dom.ftContainer.classList.contains('hidden')) {
             this.dom.ftContainer.classList.remove('hidden');
             this.dom.ftToggle.style.display = 'none';
@@ -196,10 +174,7 @@ export class SettingsManager {
         const l = parseInt(this.dom.ftLit.value);
         const hex = this.hslToHex(h, s, l);
         this.dom.ftPreview.style.backgroundColor = hex;
-        if(this.tempTheme) {
-            this.tempTheme[this.currentTargetKey] = hex;
-            this.updatePreview();
-        }
+        if(this.tempTheme) { this.tempTheme[this.currentTargetKey] = hex; this.updatePreview(); }
     }
 
     openThemeEditor() {
@@ -208,17 +183,12 @@ export class SettingsManager {
         const source = this.appSettings.customThemes[activeId] || PREMADE_THEMES[activeId] || PREMADE_THEMES['default'];
         this.tempTheme = { ...source }; 
         this.dom.edName.value = this.tempTheme.name;
-        
-        // Reset target
         this.dom.targetBtns.forEach(b => b.classList.remove('active', 'bg-primary-app'));
-        this.dom.targetBtns[2].classList.add('active', 'bg-primary-app'); // Bubble default
+        this.dom.targetBtns[2].classList.add('active', 'bg-primary-app');
         this.currentTargetKey = 'bubble';
-        
-        // Init Fine Tune Slider
         const [h, s, l] = this.hexToHsl(this.tempTheme.bubble);
         this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l;
         this.dom.ftPreview.style.backgroundColor = this.tempTheme.bubble;
-        
         this.updatePreview();
         this.dom.editorModal.classList.remove('opacity-0', 'pointer-events-none');
         this.dom.editorModal.querySelector('div').classList.remove('scale-90');
@@ -236,29 +206,23 @@ export class SettingsManager {
         this.dom.edPreviewBtn.style.color = t.text;
     }
 
-    // --- 2. VOICE TEST ---
+    // --- VOICE TEST (Using App Settings logic) ---
     testVoice() {
         if(window.speechSynthesis) {
             window.speechSynthesis.cancel();
             const u = new SpeechSynthesisUtterance("Testing 1 2 3.");
-            // Apply temporary logic just for test (App.js has the full engine)
-            const isFemale = this.dom.voiceGender.checked; 
-            const age = this.dom.voiceAge.value;
-            const accent = this.dom.voiceAccent.value;
+            // Use DOM values for immediate feedback
+            const isFemale = this.dom.voiceGender.checked;
+            let p = parseFloat(this.dom.voicePitch.value);
+            let r = parseFloat(this.dom.voiceRate.value);
+            let v = parseFloat(this.dom.voiceVolume.value);
             
-            let p = 1.0, r = 1.0;
-            if(isFemale) p = 1.2; else p = 0.9;
-            if(age==='baby'){p+=0.8;r=1.1;} else if(age==='toddler'){p+=0.6;r=1.0;} else if(age==='teen'){p+=0.2;r=1.1;} else if(age==='middle'){p-=0.1;r=0.9;} else if(age==='elderly'){p-=0.3;r=0.8;}
-            
-            u.pitch = p; u.rate = r;
-            if(accent !== 'default') {
-                if(accent==='gb')u.lang='en-GB'; if(accent==='it')u.lang='it-IT'; if(accent==='es')u.lang='es-ES'; if(accent==='cn')u.lang='zh-CN'; if(accent==='fr')u.lang='fr-FR';
-            }
+            if(isFemale) p += 0.2; // Slight boost for female toggle
+            u.pitch = p; u.rate = r; u.volume = v;
             window.speechSynthesis.speak(u);
         }
     }
 
-    // --- 3. LANGUAGE LOGIC ---
     setLanguage(lang) {
         const t = LANG[lang]; if(!t) return;
         document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -269,9 +233,7 @@ export class SettingsManager {
         if(this.dom.generalLang) this.dom.generalLang.value = lang;
     }
 
-    // --- 4. LISTENERS ---
     initListeners() {
-        // Editor Targets
         this.dom.targetBtns.forEach(btn => {
             btn.onclick = () => {
                 this.dom.targetBtns.forEach(b => { b.classList.remove('active', 'bg-primary-app'); b.classList.add('opacity-60'); });
@@ -300,17 +262,19 @@ export class SettingsManager {
         if(this.dom.openEditorBtn) this.dom.openEditorBtn.onclick = () => this.openThemeEditor();
         if(this.dom.edCancel) this.dom.edCancel.onclick = () => { this.dom.editorModal.classList.add('opacity-0', 'pointer-events-none'); };
 
-        // Voice
+        // Voice Listeners
         if(this.dom.voiceTestBtn) this.dom.voiceTestBtn.onclick = () => this.testVoice();
         const saveVoice = () => {
             this.appSettings.voiceGender = this.dom.voiceGender.checked ? 'female' : 'male';
-            this.appSettings.voiceAge = this.dom.voiceAge.value;
-            this.appSettings.voiceAccent = this.dom.voiceAccent.value;
+            this.appSettings.voicePitch = parseFloat(this.dom.voicePitch.value);
+            this.appSettings.voiceRate = parseFloat(this.dom.voiceRate.value);
+            this.appSettings.voiceVolume = parseFloat(this.dom.voiceVolume.value);
             this.callbacks.onSave();
         };
         if(this.dom.voiceGender) this.dom.voiceGender.onchange = saveVoice;
-        if(this.dom.voiceAge) this.dom.voiceAge.onchange = saveVoice;
-        if(this.dom.voiceAccent) this.dom.voiceAccent.onchange = saveVoice;
+        if(this.dom.voicePitch) this.dom.voicePitch.oninput = saveVoice;
+        if(this.dom.voiceRate) this.dom.voiceRate.oninput = saveVoice;
+        if(this.dom.voiceVolume) this.dom.voiceVolume.oninput = saveVoice;
 
         if(this.dom.quickLang) this.dom.quickLang.onchange = (e) => this.setLanguage(e.target.value);
         if(this.dom.generalLang) this.dom.generalLang.onchange = (e) => this.setLanguage(e.target.value);
@@ -374,10 +338,16 @@ export class SettingsManager {
 
         this.dom.tabs.forEach(btn => btn.onclick = () => { this.dom.tabs.forEach(b => b.classList.remove('active')); this.dom.contents.forEach(c => c.classList.remove('active')); btn.classList.add('active'); document.getElementById(`tab-${btn.dataset.tab.replace('help-','help-')}`).classList.add('active'); });
         
-        // Share Modal Fix
+        // Share Modal Logic (Fixed)
         const toggleShare = (show) => {
-            if(show) { this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.shareModal.querySelector('.share-sheet').style.transform = 'translateY(0)'; }
-            else { this.dom.shareModal.querySelector('.share-sheet').style.transform = 'translateY(100%)'; setTimeout(() => this.dom.shareModal.classList.add('opacity-0', 'pointer-events-none'), 300); }
+            if(show) { 
+                this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); // Hide Settings
+                this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); 
+                this.dom.shareModal.querySelector('.share-sheet').style.transform = 'translateY(0)'; 
+            } else { 
+                this.dom.shareModal.querySelector('.share-sheet').style.transform = 'translateY(100%)'; 
+                setTimeout(() => this.dom.shareModal.classList.add('opacity-0', 'pointer-events-none'), 300); 
+            }
         };
         if(this.dom.openShareInside) this.dom.openShareInside.onclick = () => toggleShare(true);
         if(this.dom.closeShareBtn) this.dom.closeShareBtn.onclick = () => toggleShare(false);
@@ -396,7 +366,6 @@ export class SettingsManager {
         const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1);
         const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2);
         s.value = this.appSettings.activeTheme;
-        if(this.dom.openEditorBtn) { this.dom.openEditorBtn.disabled = false; this.dom.openEditorBtn.style.opacity = '1'; }
     }
     openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); }
     openSetup() { this.populateConfigDropdown(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); }
@@ -417,8 +386,9 @@ export class SettingsManager {
         if(this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
         if(this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000);
         if(this.dom.voiceGender) this.dom.voiceGender.checked = (gs.voiceGender === 'female');
-        if(this.dom.voiceAge) this.dom.voiceAge.value = gs.voiceAge || 'adult';
-        if(this.dom.voiceAccent) this.dom.voiceAccent.value = gs.voiceAccent || 'default';
+        if(this.dom.voicePitch) this.dom.voicePitch.value = gs.voicePitch || 1.0;
+        if(this.dom.voiceRate) this.dom.voiceRate.value = gs.voiceRate || 1.0;
+        if(this.dom.voiceVolume) this.dom.voiceVolume.value = gs.voiceVolume || 1.0;
         if(this.dom.practiceMode) this.dom.practiceMode.checked = gs.isPracticeModeEnabled;
     }
 

@@ -1,3 +1,4 @@
+// comments.js - Handles Feedback
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
 export function initComments(db) {
@@ -13,13 +14,15 @@ export function initComments(db) {
         if (!modal) return;
         if(show) {
             modal.classList.remove('hidden');
-            // Small delay to allow display:block to apply before animation
+            // Small delay to allow CSS transitions if any
             setTimeout(() => {
                 modal.classList.remove('opacity-0', 'pointer-events-none');
-                modal.querySelector('div').classList.remove('scale-90');
+                const inner = modal.querySelector('div');
+                if(inner) inner.classList.remove('scale-90');
             }, 10);
         } else {
-            modal.querySelector('div').classList.add('scale-90');
+            const inner = modal.querySelector('div');
+            if(inner) inner.classList.add('scale-90');
             modal.classList.add('opacity-0');
             setTimeout(() => {
                 modal.classList.add('pointer-events-none');
@@ -64,6 +67,7 @@ export function initComments(db) {
         };
     }
 
+    // Live Listener
     const q = query(collection(db, "comments"), orderBy("timestamp", "desc"), limit(50));
     onSnapshot(q, (snapshot) => {
         if (!listContainer) return;
@@ -75,6 +79,7 @@ export function initComments(db) {
         snapshot.forEach(doc => {
             const data = doc.data();
             const el = document.createElement('div');
+            // Styling matches new dark theme
             el.className = "p-3 mb-2 rounded-lg bg-black bg-opacity-20 border border-gray-700";
             el.innerHTML = `<p class="font-bold text-primary-app text-xs">${escapeHtml(data.username)}</p><p class="text-gray-300 text-sm">${escapeHtml(data.message)}</p>`;
             listContainer.appendChild(el);

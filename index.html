@@ -17,6 +17,7 @@
 
     <div id="game-setup-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
+            
             <div class="flex items-center justify-between border-b border-custom pb-3 mb-4 relative">
                 <div class="flex items-center space-x-2">
                     <button id="quick-resize-down" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">-</button>
@@ -190,7 +191,7 @@
                         </div>
                         <div class="mt-2"><label class="block text-xs font-bold mb-1 text-muted-custom">Chunk Size</label>
                             <select id="chunk-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                <option value="2">2 items</option><option value="3">3 items</option><option value="4">4 items</option><option value="5">5 items</option>
+                                <option value="2">2 items</option><option value="3" selected>3 items</option><option value="4">4 items</option><option value="5">5 items</option>
                             </select>
                         </div>
 
@@ -236,7 +237,7 @@
                                 <button id="theme-delete" class="flex-1 py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
                             </div>
                         </div>
-
+                        
                         <div class="grid grid-cols-2 gap-3 mt-4">
                             <div><label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label><select id="seq-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="50">50%</option><option value="75">75%</option><option value="100" selected>100%</option><option value="125">125%</option><option value="150">150%</option><option value="200">200%</option><option value="225">225%</option><option value="250">250%</option></select></div>
                             <div><label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label><select id="ui-scale-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="50">50%</option><option value="80">80%</option><option value="100" selected>100%</option><option value="120">120%</option><option value="150">150%</option></select></div>
@@ -274,18 +275,18 @@
                     <h4 class="font-bold text-lg text-primary-app mb-2">Game Modes</h4>
                     <p class="mb-2 opacity-80">Select your preferred mode in <strong>Settings > Game</strong>.</p>
                     <ul class="space-y-3 opacity-80 list-disc list-inside">
-                        <li><strong>Simon Says:</strong> The pattern grows every round. First "1", then "1, 5", then "1, 5, 9". You must enter the full history.</li>
-                        <li><strong>Unique Rounds:</strong> Every round is a completely new sequence. The previous numbers are cleared. Ideal for tracking random machine outputs.</li>
+                        <li><strong>Simon Says:</strong> The pattern grows every round. First "1", then "1, 5", then "1, 5, 9". You must enter the full history correctly to proceed.</li>
+                        <li><strong>Unique Rounds:</strong> Every round is a completely new sequence. The previous numbers are cleared. Use this for tracking random machine outputs where history doesn't matter.</li>
                     </ul>
                     <h4 class="font-bold text-lg text-primary-app mt-4 mb-2">Inputs</h4>
-                    <p class="opacity-80">Choose between <strong>9-Key</strong>, <strong>12-Key</strong>, or <strong>Piano</strong> layouts to match your machine.</p>
+                    <p class="opacity-80">Choose between <strong>9-Key</strong>, <strong>12-Key</strong>, or <strong>Piano</strong> layouts to match your machine's interface.</p>
                 </div>
                 <div id="tab-help-practice" class="tab-content">
                     <h4 class="font-bold text-lg text-primary-app mb-2">Practice Mode 🎓</h4>
                     <p class="opacity-80 mb-4">Train your memory without a machine. Turn this ON in <strong>Settings > Game</strong>.</p>
                     <h5 class="font-bold mb-1">How to Play:</h5>
                     <ol class="list-decimal list-inside space-y-2 opacity-80">
-                        <li>The game will generate a random sequence and play it for you.</li>
+                        <li>The game will generate a random sequence and play it for you (flashing keys + audio).</li>
                         <li>Wait for the playback to finish.</li>
                         <li>Repeat the sequence using the keypad.</li>
                         <li>If correct, the game speaks "Correct" and starts the next round (longer sequence).</li>
@@ -296,9 +297,9 @@
                     <h4 class="font-bold text-lg text-primary-app mb-2">Tools & Sensors</h4>
                     <ul class="space-y-3 opacity-80">
                         <li><strong>Blackout Mode:</strong> Shake your device firmly. The screen will turn completely black to save battery and stealth your usage. Touch inputs still work! Shake again to wake up.</li>
-                        <li><strong>Speed Delete:</strong> Tap Backspace to delete one. <strong>Hold Backspace</strong> to rapidly clear the entire sequence.</li>
-                        <li><strong>Microphone Input:</strong> Listens for high-pitch beeps or whistles. Go to <strong>Settings > General > Calibrate</strong> to tune the sensitivity.</li>
-                        <li><strong>Camera Input:</strong> Detects screen flashes (Red/Blue/Green/Yellow). Point your camera at the game screen.</li>
+                        <li><strong>Speed Delete:</strong> Tap Backspace to delete one number. <strong>Hold Backspace</strong> to rapidly clear the entire sequence.</li>
+                        <li><strong>Microphone Input:</strong> Listens for high-pitch beeps or whistles. Go to <strong>Settings > General > Calibrate</strong> to tune the sensitivity so background noise doesn't trigger it.</li>
+                        <li><strong>Camera Input:</strong> Detects screen flashes (Red/Blue/Green/Yellow). Point your camera at the game screen. Ensure good lighting contrast.</li>
                     </ul>
                 </div>
                 <div id="tab-help-prompt" class="tab-content">
@@ -321,6 +322,7 @@
             <div class="w-12 h-1 bg-gray-600 rounded-full mb-4"></div> <div class="bg-white p-2 rounded-lg mb-6 shadow-inner">
                 <img src="qr.jpg" alt="QR Code" class="w-32 h-32 object-contain">
             </div>
+
             <div class="flex items-center w-full mb-6">
                 <div class="share-app-icon mr-4">🌎</div>
                 <div class="text-left flex-grow">
@@ -329,6 +331,7 @@
                 </div>
                 <button id="copy-link-button" class="p-2 bg-gray-700 rounded hover:bg-gray-600 text-white">📋</button>
             </div>
+            
             <div class="grid grid-cols-4 gap-4 w-full">
                 <button id="native-share-button" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-xl">📤</div><span class="text-xs">Share</span></button>
                 <button class="flex flex-col items-center gap-1 opacity-50 cursor-not-allowed"><div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-xl">💬</div><span class="text-xs">Chat</span></button>

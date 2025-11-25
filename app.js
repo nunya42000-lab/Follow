@@ -7,9 +7,8 @@ import { initComments } from './comments.js';
 const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 400, SPEED_DELETE_INTERVAL: 100, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v37', STORAGE_KEY_STATE: 'followMeAppState_v37', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' } };
+const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 400, SPEED_DELETE_INTERVAL: 100, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v38', STORAGE_KEY_STATE: 'followMeAppState_v38', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' } };
 
-// --- PROFILES ---
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 
     'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS } }, 
@@ -19,7 +18,7 @@ const PREMADE_PROFILES = {
     'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }}
 };
 
-const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voiceGender: 'female', voiceAge: 'adult', voiceAccent: 'default' };
+const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voiceGender: 'female', voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0 };
 
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
@@ -28,7 +27,7 @@ let timers = { speedDelete: null, initialDelay: null, longPress: null };
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 let blackoutState = { isActive: false, lastShake: 0 }; 
 let isDeleting = false; 
-// PRACTICE MODE STATE
+// PRACTICE STATE
 let practiceSequence = [];
 let practiceInputIndex = 0;
 
@@ -41,39 +40,27 @@ function loadState() { try { const s = localStorage.getItem(CONFIG.STORAGE_KEY_S
 function vibrate() { if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10); }
 function vibrateMorse(num) { if(!navigator.vibrate || !appSettings.isHapticMorseEnabled) return; const speed = appSettings.playbackSpeed || 1.0; const factor = 1.0 / speed; const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor; let pattern = []; const n = parseInt(num); if (n >= 1 && n <= 3) { for(let i=0; i<n; i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 4 && n <= 6) { pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(n-3); i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 7 && n <= 9) { pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(n-6); i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 10) { pattern.push(DASH); pattern.push(DOT); } if(pattern.length > 0) navigator.vibrate(pattern); }
 
-// --- VOICE ENGINE ---
+// --- NEW VOICE ENGINE ---
 function speak(text) { 
     if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; 
     window.speechSynthesis.cancel(); 
     const u = new SpeechSynthesisUtterance(text); 
     
-    const gender = appSettings.voiceGender;
-    const age = appSettings.voiceAge;
-    const accent = appSettings.voiceAccent;
+    // Apply Sliders
+    let p = appSettings.voicePitch || 1.0;
+    let r = appSettings.voiceRate || 1.0;
     
-    let p = 1.0, r = 1.0;
-    
-    // Gender Base
-    if(gender === 'female') p = 1.2; else p = 0.9;
-    
-    // Age Modifiers
-    if(age === 'baby') { p += 0.8; r = 1.1; }
-    else if(age === 'toddler') { p += 0.6; r = 1.0; }
-    else if(age === 'teen') { p += 0.2; r = 1.1; }
-    else if(age === 'middle') { p -= 0.1; r = 0.9; }
-    else if(age === 'elderly') { p -= 0.3; r = 0.8; }
-    
-    // Apply
-    u.pitch = p; u.rate = r;
-    
-    // Accent (Language Force)
-    if(accent !== 'default') {
-        if(accent === 'gb') u.lang = 'en-GB';
-        else if(accent === 'it') u.lang = 'it-IT';
-        else if(accent === 'es') u.lang = 'es-ES';
-        else if(accent === 'cn') u.lang = 'zh-CN';
-        else if(accent === 'fr') u.lang = 'fr-FR';
+    // Apply Gender Toggle (Female boosts pitch slightly if not overridden)
+    if(appSettings.voiceGender === 'female') {
+        p = p * 1.2; // Slight feminine shift base
+    } else {
+        p = p * 0.9; // Slight masculine shift base
     }
+    
+    // Clamp values to browser limits
+    u.pitch = Math.min(2, Math.max(0.1, p));
+    u.rate = Math.min(10, Math.max(0.1, r));
+    u.volume = appSettings.voiceVolume || 1.0;
     
     window.speechSynthesis.speak(u); 
 }
@@ -100,10 +87,10 @@ function applyTheme(themeKey) {
 
 function updateAllChrome() { applyTheme(appSettings.activeTheme); document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`; renderUI(); }
 
-// --- PRACTICE MODE LOGIC ---
+// --- PRACTICE MODE START ---
 function startPracticeRound() {
     const state = getState();
-    const len = state.currentRound + 2; // Start easy
+    const len = state.currentRound + 2; 
     practiceSequence = [];
     const settings = getProfileSettings();
     const max = (settings.currentInput === 'key12') ? 12 : 9;
@@ -147,7 +134,7 @@ function addValue(value) {
     const state = getState();
     const settings = getProfileSettings();
     
-    // --- PRACTICE MODE INTERCEPT ---
+    // PRACTICE INTERCEPT
     if(appSettings.isPracticeModeEnabled) {
         if(value == practiceSequence[practiceInputIndex]) {
             practiceInputIndex++;
@@ -164,7 +151,6 @@ function addValue(value) {
         return;
     }
 
-    // Normal Logging
     let targetIndex = 0;
     if (settings.currentMode === CONFIG.MODES.SIMON) targetIndex = state.nextSequenceIndex % settings.machineCount;
     const limit = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? state.currentRound : settings.sequenceLength;

@@ -1,4 +1,7 @@
-const CACHE_NAME = 'follow-me-v33-all-fixes'; 
+// --- CACHE VERSION ---
+const CACHE_NAME = 'follow-me-v35-final-final'; 
+// --- ---------------- ---
+
 const FILES_TO_CACHE = [
     './', 
     './index.html',
@@ -21,7 +24,7 @@ self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
-                console.log('Service Worker: Caching all v33...');
+                console.log('Service Worker: Caching v35...');
                 return cache.addAll(FILES_TO_CACHE);
             })
             .catch(err => console.warn('Service Worker: Cache error', err))

@@ -71,10 +71,10 @@
                     <label class="block text-xs font-bold mb-2 text-muted-custom">Select Element:</label>
                     <div class="grid grid-cols-3 gap-2">
                         <button class="target-btn active p-2 text-xs font-bold rounded border border-custom bg-primary-app" data-target="bgMain">Background</button>
-                        <button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="bgCard">Cards</button>
-                        <button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="bubble">Bubbles</button>
-                        <button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="btn">Keypad</button>
-                        <button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="text">Text</button>
+                        <button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="bgCard">Cards/Modals</button>
+                        <button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="bubble">Seq Bubble</button>
+                        <button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="btn">Keypad Btn</button>
+                        <button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="text">Text/Num</button>
                     </div>
                 </div>
                 <div class="mb-4">
@@ -110,6 +110,7 @@
 
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh] overflow-hidden border border-custom m-4">
+            
             <div class="p-4 border-b border-custom flex justify-between items-center">
                 <select id="general-lang-select" class="bg-black bg-opacity-30 text-white text-xs rounded p-1 border border-gray-600 mr-2">
                     <option value="en">🇺🇸</option><option value="es">🇲🇽</option>
@@ -120,12 +121,15 @@
                     <button id="open-help-button" class="text-xl opacity-70 hover:opacity-100">❓</button>
                 </div>
             </div>
+    
             <div class="flex border-b border-custom bg-black bg-opacity-20">
                 <div class="tab-btn active" data-tab="mode">Game</div>
                 <div class="tab-btn" data-tab="playback">Playback</div>
                 <div class="tab-btn" data-tab="general">General</div>
             </div>
+    
             <div class="overflow-y-auto flex-grow p-5 space-y-4">
+                
                 <div id="tab-mode" class="tab-content active">
                     <div class="mb-5 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
                         <label class="text-xs font-bold uppercase text-muted-custom mb-2 block">Profiles</label>
@@ -136,19 +140,26 @@
                             <button id="config-delete" class="flex-1 py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
                         </div>
                     </div>
+                    
                     <div class="flex justify-between items-center p-3 rounded-lg settings-input border border-blue-500 border-opacity-50 mb-4">
-                        <div><span class="font-bold text-sm block">Practice Mode 🎓</span><span class="text-xs text-muted-custom">Repeat after me</span></div>
+                        <div>
+                            <span class="font-bold text-sm block">Practice Mode 🎓</span>
+                            <span class="text-xs text-muted-custom">Game gives sequence, you repeat</span>
+                        </div>
                         <input type="checkbox" id="practice-mode-toggle" class="h-5 w-5 accent-blue-500">
                     </div>
+    
                     <div class="grid grid-cols-2 gap-3 mb-4">
                         <div><label class="block text-xs font-bold mb-1 text-muted-custom">Input</label><select id="input-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="key9">9-Key</option><option value="key12">12-Key</option><option value="piano">Piano</option></select></div>
                         <div><label class="block text-xs font-bold mb-1 text-muted-custom">Mode</label><select id="mode-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="simon">Simon Says</option><option value="unique">Unique</option></select></div>
                     </div>
+    
                     <div class="grid grid-cols-2 gap-3 mb-4">
                         <div><label class="block text-xs font-bold mb-1 text-muted-custom">Machines</label><select id="machines-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></div>
                         <div><label class="block text-xs font-bold mb-1 text-muted-custom">Length</label>
                             <select id="seq-length-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                <option value="15">15</option><option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option>
+                                <option value="15">15</option><option value="20">20</option><option value="25">25</option>
+                                <option value="30">30</option><option value="35">35</option><option value="40">40</option>
                             </select>
                         </div>
                     </div>
@@ -156,17 +167,23 @@
                         <span class="font-bold text-sm">Auto-Advance (Unique)</span><input type="checkbox" id="autoclear-toggle" class="h-5 w-5 accent-indigo-500">
                     </div>
                 </div>
+    
                 <div id="tab-playback" class="tab-content">
                     <div class="space-y-3">
                         <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm">Autoplay</span><input type="checkbox" id="autoplay-toggle" class="h-5 w-5 accent-indigo-500"></div>
                         <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm">Audio Speech</span><input type="checkbox" id="audio-toggle" class="h-5 w-5 accent-indigo-500"></div>
                         <div class="flex justify-between items-center p-3 rounded-lg settings-input border border-yellow-500 border-opacity-30"><div><span class="font-bold text-sm block">Haptic Morse</span></div><input type="checkbox" id="haptic-morse-toggle" class="h-5 w-5 accent-indigo-500"></div>
                         
+                        <div class="mt-4"><label class="block text-xs font-bold mb-1 text-muted-custom">Speed</label>
+                            <select id="playback-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                <option value="0.5">50%</option><option value="0.75">75%</option><option value="1.0">100%</option>
+                                <option value="1.25">125%</option><option value="1.5">150%</option><option value="1.75">175%</option><option value="2.0">200%</option>
+                            </select>
+                        </div>
                         <div class="grid grid-cols-2 gap-3 mt-4">
-                            <div><label class="block text-xs font-bold mb-1 text-muted-custom">Speed</label>
-                                <select id="playback-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                    <option value="0.5">50%</option><option value="0.75">75%</option><option value="1.0">100%</option>
-                                    <option value="1.25">125%</option><option value="1.5">150%</option><option value="1.75">175%</option><option value="2.0">200%</option>
+                            <div><label class="block text-xs font-bold mb-1 text-muted-custom">Chunk</label>
+                                <select id="chunk-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="2">2 items</option><option value="3">3 items</option><option value="4">4 items</option><option value="5">5 items</option>
                                 </select>
                             </div>
                             <div><label class="block text-xs font-bold mb-1 text-muted-custom">Delay</label>
@@ -175,11 +192,6 @@
                                     <option value="0.6">0.6s</option><option value="0.8">0.8s</option><option value="1.0">1.0s</option>
                                 </select>
                             </div>
-                        </div>
-                        <div class="mt-2"><label class="block text-xs font-bold mb-1 text-muted-custom">Chunk Size</label>
-                            <select id="chunk-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                <option value="2">2 items</option><option value="3">3 items</option><option value="4">4 items</option><option value="5">5 items</option>
-                            </select>
                         </div>
 
                         <div class="mt-6 pt-4 border-t border-custom">
@@ -196,14 +208,15 @@
                                 </div>
                             </div>
                             <div class="space-y-3">
-                                <div><label class="block text-xs font-bold mb-1">Pitch</label><input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
-                                <div><label class="block text-xs font-bold mb-1">Speed (Rate)</label><input type="range" id="voice-rate" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
+                                <div><label class="block text-xs font-bold mb-1">Pitch / Tone</label><input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
+                                <div><label class="block text-xs font-bold mb-1">Speed</label><input type="range" id="voice-rate" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
                                 <div><label class="block text-xs font-bold mb-1">Volume</label><input type="range" id="voice-volume" min="0" max="1" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
                             </div>
                             <button id="test-voice-btn" class="w-full py-2 bg-gray-700 text-white rounded font-bold text-xs mt-3">Test Voice 🔊</button>
                         </div>
                     </div>
                 </div>
+    
                 <div id="tab-general" class="tab-content">
                     <div class="space-y-3">
                         <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm">Haptics</span><input type="checkbox" id="haptics-toggle" class="h-5 w-5 accent-indigo-500"></div>
@@ -306,7 +319,6 @@
             <div class="w-12 h-1 bg-gray-600 rounded-full mb-4"></div> <div class="bg-white p-2 rounded-lg mb-6 shadow-inner">
                 <img src="qr.jpg" alt="QR Code" class="w-32 h-32 object-contain">
             </div>
-
             <div class="flex items-center w-full mb-6">
                 <div class="share-app-icon mr-4">🌎</div>
                 <div class="text-left flex-grow">
@@ -315,7 +327,6 @@
                 </div>
                 <button id="copy-link-button" class="p-2 bg-gray-700 rounded hover:bg-gray-600 text-white">📋</button>
             </div>
-            
             <div class="grid grid-cols-4 gap-4 w-full">
                 <button id="native-share-button" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-xl">📤</div><span class="text-xs">Share</span></button>
                 <button class="flex flex-col items-center gap-1 opacity-50 cursor-not-allowed"><div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-xl">💬</div><span class="text-xs">Chat</span></button>

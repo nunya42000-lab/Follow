@@ -78,7 +78,7 @@
                     </div>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-xs font-bold mb-2 text-muted-custom">Palette</label>
+                    <label class="block text-xs font-bold mb-2 text-muted-custom">Palette (Crayola 150)</label>
                     <div id="color-grid" class="grid grid-cols-10 gap-1 mb-3 h-40 overflow-y-auto border border-gray-700 p-1 rounded"></div>
                     <div id="fine-tune-container" class="hidden bg-black bg-opacity-20 p-3 rounded border border-gray-700">
                         <label class="block text-xs font-bold mb-2">Fine Tune</label>
@@ -236,8 +236,8 @@
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-3 mt-4">
-                            <div><label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label><select id="seq-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="50">50%</option><option value="75">75%</option><option value="100">100%</option><option value="125">125%</option><option value="150">150%</option><option value="200">200%</option><option value="225">225%</option><option value="250">250%</option></select></div>
-                            <div><label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label><select id="ui-scale-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="50">50%</option><option value="80">80%</option><option value="100">100%</option><option value="120">120%</option><option value="150">150%</option></select></div>
+                            <div><label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label><select id="seq-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="50">50%</option><option value="75">75%</option><option value="100" selected>100%</option><option value="125">125%</option><option value="150">150%</option><option value="200">200%</option><option value="225">225%</option><option value="250">250%</option></select></div>
+                            <div><label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label><select id="ui-scale-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="50">50%</option><option value="80">80%</option><option value="100" selected>100%</option><option value="120">120%</option><option value="150">150%</option></select></div>
                         </div>
                         <div class="mt-4"><label class="block text-xs font-bold mb-1 text-muted-custom">Resize Gesture</label><select id="gesture-mode-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="global">Global UI</option><option value="sequence">Cards Only</option></select></div>
                         <div class="mt-4">
@@ -319,7 +319,6 @@
             <div class="w-12 h-1 bg-gray-600 rounded-full mb-4"></div> <div class="bg-white p-2 rounded-lg mb-6 shadow-inner">
                 <img src="qr.jpg" alt="QR Code" class="w-32 h-32 object-contain">
             </div>
-
             <div class="flex items-center w-full mb-6">
                 <div class="share-app-icon mr-4">🌎</div>
                 <div class="text-left flex-grow">
@@ -328,7 +327,6 @@
                 </div>
                 <button id="copy-link-button" class="p-2 bg-gray-700 rounded hover:bg-gray-600 text-white">📋</button>
             </div>
-            
             <div class="grid grid-cols-4 gap-4 w-full">
                 <button id="native-share-button" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-xl">📤</div><span class="text-xs">Share</span></button>
                 <button class="flex flex-col items-center gap-1 opacity-50 cursor-not-allowed"><div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-xl">💬</div><span class="text-xs">Chat</span></button>

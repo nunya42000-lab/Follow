@@ -1,12 +1,9 @@
-// ... (Imports same as before)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { SensorEngine } from './sensors.js';
-// !!! IMPORT PREMADE_THEMES FROM SETTINGS NOW !!!
 import { SettingsManager, PREMADE_THEMES } from './settings.js';
 import { initComments } from './comments.js';
 
-// ... (Firebase Config & Constants same as before) ...
 const firebaseConfig = {
   apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4",
   authDomain: "follow-me-app-de3e9.firebaseapp.com",
@@ -23,13 +20,12 @@ const CONFIG = {
     DEMO_DELAY_BASE_MS: 798,
     SPEED_DELETE_DELAY: 400, 
     SPEED_DELETE_INTERVAL: 100,
-    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v30', // Bumped
+    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v30', 
     STORAGE_KEY_STATE: 'followMeAppState_v30',
     INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' },
     MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' }
 };
 
-// ... (Profiles same as before) ...
 const DEFAULT_PROFILE_SETTINGS = {
     currentInput: CONFIG.INPUTS.KEY9,
     currentMode: CONFIG.MODES.SIMON,
@@ -70,7 +66,6 @@ const DEFAULT_APP = {
     runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS))
 };
 
-// ... (State & Load Logic same as before) ...
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
 let modules = { sensor: null, settings: null };
@@ -137,31 +132,23 @@ function vibrateMorse(num) {
     if(pattern.length > 0) navigator.vibrate(pattern);
 }
 
-// --- UPDATED THEME LOGIC (5 Colors) ---
 function applyTheme(themeKey) {
     const body = document.body;
     body.className = body.className.replace(/theme-\w+/g, '');
-
-    // Get Theme Object
     let t = appSettings.customThemes[themeKey];
     if (!t && PREMADE_THEMES[themeKey]) t = PREMADE_THEMES[themeKey];
     if (!t) t = PREMADE_THEMES['default'];
-
-    // Apply Variables
+    body.style.setProperty('--primary', t.bubble); // Fallback
     body.style.setProperty('--bg-main', t.bgMain);
+    body.style.setProperty('--bg-modal', t.bgCard);
     body.style.setProperty('--card-bg', t.bgCard);
-    body.style.setProperty('--bg-modal', t.bgCard); // Modal shares Card color usually
     body.style.setProperty('--seq-bubble', t.bubble);
     body.style.setProperty('--btn-bg', t.btn);
+    body.style.setProperty('--bg-input', t.bgMain); 
     body.style.setProperty('--text-main', t.text);
-    
-    // Apply calculated border for contrast
     const isDark = parseInt(t.bgCard.replace('#',''), 16) < 0xffffff / 2;
     body.style.setProperty('--border', isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)');
-    
-    // Helper for defaults
-    body.style.setProperty('--primary', t.bubble); // For older shared comps
-    body.style.setProperty('--btn-control-bg', t.bgCard); 
+    body.style.setProperty('--btn-control-bg', t.bgCard);
 }
 
 function updateAllChrome() {
@@ -196,7 +183,6 @@ function addValue(value) {
     }
 }
 
-// ... (Remaining Backspace/Reset/Demo Logic same as before) ...
 function handleBackspace(e) {
     if(e && isDeleting) return; 
     vibrate();
@@ -258,6 +244,7 @@ function playDemo() {
     let i = 0;
     const speed = appSettings.playbackSpeed || 1;
     const interval = CONFIG.DEMO_DELAY_BASE_MS / speed;
+    
     function next() {
         if(i >= playlist.length) {
             disableInput(false);
@@ -267,17 +254,18 @@ function playDemo() {
                 state.nextSequenceIndex = 0;
                 state.currentRound++;
                 if(state.currentRound > settings.sequenceLength) resetRounds();
-                renderUI(); saveState();
+                renderUI();
+                saveState();
             }
             return;
         }
         const item = playlist[i];
         if(demoBtn) demoBtn.innerHTML = i + 1;
         const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${item.val}"]`);
-        // Flash using class that uses vars
         if(key) { key.classList.add('flash-active'); setTimeout(() => key.classList.remove('flash-active'), 250 / speed); }
         
-        speak(item.val); vibrateMorse(item.val);
+        speak(item.val);
+        vibrateMorse(item.val);
         
         const seqBoxes = document.getElementById('sequence-container').children;
         if(seqBoxes[item.machine]) {
@@ -289,7 +277,6 @@ function playDemo() {
     next();
 }
 
-// ... (RenderUI, Blackout, Window.onload same as previous turn) ...
 function renderUI() {
     const container = document.getElementById('sequence-container');
     container.innerHTML = '';

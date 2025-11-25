@@ -58,7 +58,7 @@ export class SettingsManager {
             edCancel: document.getElementById('cancel-theme-btn'),
             openEditorBtn: document.getElementById('open-theme-editor'),
 
-            // VOICE CONTROLS (New)
+            // VOICE CONTROLS
             voiceGender: document.getElementById('voice-gender-toggle'), 
             voicePitch: document.getElementById('voice-pitch'),
             voiceRate: document.getElementById('voice-rate'),
@@ -159,7 +159,9 @@ export class SettingsManager {
         if(!this.tempTheme) return;
         this.tempTheme[this.currentTargetKey] = hex;
         const [h, s, l] = this.hexToHsl(hex);
-        this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l;
+        this.dom.ftHue.value = h;
+        this.dom.ftSat.value = s;
+        this.dom.ftLit.value = l;
         this.dom.ftPreview.style.backgroundColor = hex;
         if(this.dom.ftContainer.classList.contains('hidden')) {
             this.dom.ftContainer.classList.remove('hidden');
@@ -206,18 +208,16 @@ export class SettingsManager {
         this.dom.edPreviewBtn.style.color = t.text;
     }
 
-    // --- VOICE TEST (Using App Settings logic) ---
+    // --- VOICE TEST ---
     testVoice() {
         if(window.speechSynthesis) {
             window.speechSynthesis.cancel();
             const u = new SpeechSynthesisUtterance("Testing 1 2 3.");
-            // Use DOM values for immediate feedback
             const isFemale = this.dom.voiceGender.checked;
             let p = parseFloat(this.dom.voicePitch.value);
             let r = parseFloat(this.dom.voiceRate.value);
             let v = parseFloat(this.dom.voiceVolume.value);
-            
-            if(isFemale) p += 0.2; // Slight boost for female toggle
+            if(isFemale) p += 0.2; 
             u.pitch = p; u.rate = r; u.volume = v;
             window.speechSynthesis.speak(u);
         }
@@ -341,7 +341,7 @@ export class SettingsManager {
         // Share Modal Logic (Fixed)
         const toggleShare = (show) => {
             if(show) { 
-                this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); // Hide Settings
+                this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); 
                 this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); 
                 this.dom.shareModal.querySelector('.share-sheet').style.transform = 'translateY(0)'; 
             } else { 

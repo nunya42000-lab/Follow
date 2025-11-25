@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { SensorEngine } from './sensors.js';
-// Correct import: Get Theme Constants from settings.js
 import { SettingsManager, PREMADE_THEMES } from './settings.js';
 import { initComments } from './comments.js';
 
@@ -21,8 +20,8 @@ const CONFIG = {
     DEMO_DELAY_BASE_MS: 798,
     SPEED_DELETE_DELAY: 400, 
     SPEED_DELETE_INTERVAL: 100,
-    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v27', // Bumped
-    STORAGE_KEY_STATE: 'followMeAppState_v27',
+    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v29',
+    STORAGE_KEY_STATE: 'followMeAppState_v29',
     INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' },
     MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' }
 };
@@ -48,24 +47,20 @@ const DEFAULT_APP = {
     showWelcomeScreen: true,
     gestureResizeMode: 'global',
     playbackSpeed: 1.0,
-    
     isAutoplayEnabled: true, 
     isUniqueRoundsAutoClearEnabled: true,
     isAudioEnabled: true,
     isHapticsEnabled: true,
     isSpeedDeletingEnabled: true,
-    
     activeTheme: 'default',
     customThemes: {}, 
     sensorAudioThresh: -85,
     sensorCamThresh: 30,
-
     isBlackoutFeatureEnabled: false,
     isHapticMorseEnabled: false,
     showMicBtn: false,
     showCamBtn: false,
     autoInputMode: 'none',
-
     activeProfileId: 'profile_1',
     profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)),
     runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS))
@@ -123,7 +118,6 @@ function showToast(msg) {
     t.classList.remove('opacity-0', '-translate-y-10');
     setTimeout(() => t.classList.add('opacity-0', '-translate-y-10'), 2000);
 }
-// Vibrate Morse Code
 function vibrateMorse(num) {
     if(!navigator.vibrate || !appSettings.isHapticMorseEnabled) return;
     const speed = appSettings.playbackSpeed || 1.0;
@@ -141,11 +135,9 @@ function vibrateMorse(num) {
 function applyTheme(themeKey) {
     const body = document.body;
     body.className = body.className.replace(/theme-\w+/g, '');
-
     let t = appSettings.customThemes[themeKey];
     if (!t && PREMADE_THEMES[themeKey]) t = PREMADE_THEMES[themeKey];
     if (!t) t = PREMADE_THEMES['default'];
-
     body.style.setProperty('--primary', t.p1);
     body.style.setProperty('--primary-hover', t.p2);
     body.style.setProperty('--bg-main', t.s1);
@@ -153,8 +145,6 @@ function applyTheme(themeKey) {
     body.style.setProperty('--card-bg', t.s2);
     body.style.setProperty('--bg-input', t.s2); 
     body.style.setProperty('--border', t.s2); 
-    
-    // Contrast Check
     const getContrastYIQ = (hex) => {
         hex = hex.replace("#", "");
         var r = parseInt(hex.substr(0,2),16), g = parseInt(hex.substr(2,2),16), b = parseInt(hex.substr(4,2),16);
@@ -234,7 +224,6 @@ function playDemo() {
     const state = getState();
     const demoBtn = document.querySelector(`#pad-${settings.currentInput} button[data-action="play-demo"]`);
     if(demoBtn && demoBtn.disabled) return;
-    
     let playlist = [];
     if(settings.currentMode === CONFIG.MODES.SIMON) {
         const activeSeqs = state.sequences.slice(0, settings.machineCount);
@@ -292,13 +281,12 @@ function playDemo() {
             seqBoxes[item.machine].classList.add('bg-accent-app', 'scale-105');
             setTimeout(() => seqBoxes[item.machine].classList.remove('bg-accent-app', 'scale-105'), 250 / speed);
         }
-
-        i++;
-        setTimeout(next, interval);
+        i++; setTimeout(next, interval);
     }
     next();
 }
 
+// --- FIXED RENDER UI ---
 function renderUI() {
     const container = document.getElementById('sequence-container');
     container.innerHTML = '';
@@ -325,8 +313,11 @@ function renderUI() {
     activeSeqs.forEach((seq) => {
         const card = document.createElement('div');
         card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)]";
+        
         const numGrid = document.createElement('div');
-        numGrid.className = "flex flex-wrap gap-2 justify-center";
+        // FIX: Force 5 columns grid layout
+        numGrid.className = "grid grid-cols-5 gap-2 justify-items-center"; 
+        
         (seq || []).forEach(num => {
             const span = document.createElement('span');
             span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold";
@@ -352,7 +343,6 @@ function renderUI() {
     });
 }
 
-// BLACKOUT LOGIC
 function toggleBlackout() {
     blackoutState.isActive = !blackoutState.isActive;
     document.body.classList.toggle('blackout-active', blackoutState.isActive);
@@ -370,11 +360,7 @@ function handleShake(e) {
     const magnitude = Math.hypot(acc.x, acc.y, acc.z);
     if(magnitude > 15) {
         const now = Date.now();
-        if(now - blackoutState.lastShake > 1000) {
-            toggleBlackout();
-            vibrate();
-            blackoutState.lastShake = now;
-        }
+        if(now - blackoutState.lastShake > 1000) { toggleBlackout(); vibrate(); blackoutState.lastShake = now; }
     }
 }
 function handleBlackoutTouch(e) {
@@ -385,16 +371,13 @@ function handleBlackoutTouch(e) {
     const w = window.innerWidth, h = window.innerHeight;
     const settings = getProfileSettings();
     let val = null;
-
     if(settings.currentInput === 'piano') {
         const keys = ['C','D','E','F','G','A','B','1','2','3','4','5'];
         const idx = Math.floor(x / (w / keys.length));
         if(keys[idx]) val = keys[idx];
     } else {
-        const cols = 3;
-        const rows = (settings.currentInput === 'key12') ? 4 : 3;
-        const c = Math.floor(x / (w / cols));
-        const r = Math.floor(y / (h / rows));
+        const cols = 3; const rows = (settings.currentInput === 'key12') ? 4 : 3;
+        const c = Math.floor(x / (w / cols)); const r = Math.floor(y / (h / rows));
         let num = (r * 3) + c + 1;
         if(num > 0 && num <= (settings.currentInput === 'key12' ? 12 : 9)) val = num.toString();
     }
@@ -405,8 +388,6 @@ window.onload = function() {
     try {
         loadState();
         initComments(db);
-        
-        // Init Motion
         if (window.DeviceMotionEvent) window.addEventListener('devicemotion', handleShake, false);
         const target = document.body;
         target.addEventListener('touchstart', (e) => {
@@ -482,18 +463,13 @@ window.onload = function() {
                 timers.initialDelay = setTimeout(() => { isDeleting = true; timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL); }, CONFIG.SPEED_DELETE_DELAY); 
             };
             const stopDelete = () => { clearTimeout(timers.initialDelay); clearInterval(timers.speedDelete); setTimeout(() => isDeleting = false, 50); };
-            
             b.addEventListener('mousedown', startDelete); 
             b.addEventListener('touchstart', startDelete, { passive: true });
-            b.addEventListener('mouseup', stopDelete); 
-            b.addEventListener('mouseleave', stopDelete); 
-            b.addEventListener('touchend', stopDelete);
-            b.addEventListener('touchcancel', stopDelete); 
+            b.addEventListener('mouseup', stopDelete); b.addEventListener('mouseleave', stopDelete); b.addEventListener('touchend', stopDelete); b.addEventListener('touchcancel', stopDelete); 
         });
 
-        document.querySelectorAll('button[data-action="open-share"]').forEach(b => b.addEventListener('click', () => modules.settings.openShare())); // Use openShare logic if moved
+        document.querySelectorAll('button[data-action="open-share"]').forEach(b => b.addEventListener('click', () => modules.settings.openShare())); 
         document.querySelectorAll('button[data-action="open-settings"]').forEach(b => b.onclick = () => modules.settings.openSettings());
-
         if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
 
     } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }

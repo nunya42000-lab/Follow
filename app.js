@@ -1,9 +1,12 @@
+// ... (Imports same as before)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { SensorEngine } from './sensors.js';
+// !!! IMPORT PREMADE_THEMES FROM SETTINGS NOW !!!
 import { SettingsManager, PREMADE_THEMES } from './settings.js';
 import { initComments } from './comments.js';
 
+// ... (Firebase Config & Constants same as before) ...
 const firebaseConfig = {
   apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4",
   authDomain: "follow-me-app-de3e9.firebaseapp.com",
@@ -20,12 +23,13 @@ const CONFIG = {
     DEMO_DELAY_BASE_MS: 798,
     SPEED_DELETE_DELAY: 400, 
     SPEED_DELETE_INTERVAL: 100,
-    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v29',
-    STORAGE_KEY_STATE: 'followMeAppState_v29',
+    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v30', // Bumped
+    STORAGE_KEY_STATE: 'followMeAppState_v30',
     INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' },
     MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' }
 };
 
+// ... (Profiles same as before) ...
 const DEFAULT_PROFILE_SETTINGS = {
     currentInput: CONFIG.INPUTS.KEY9,
     currentMode: CONFIG.MODES.SIMON,
@@ -66,6 +70,7 @@ const DEFAULT_APP = {
     runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS))
 };
 
+// ... (State & Load Logic same as before) ...
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
 let modules = { sensor: null, settings: null };
@@ -132,28 +137,31 @@ function vibrateMorse(num) {
     if(pattern.length > 0) navigator.vibrate(pattern);
 }
 
+// --- UPDATED THEME LOGIC (5 Colors) ---
 function applyTheme(themeKey) {
     const body = document.body;
     body.className = body.className.replace(/theme-\w+/g, '');
+
+    // Get Theme Object
     let t = appSettings.customThemes[themeKey];
     if (!t && PREMADE_THEMES[themeKey]) t = PREMADE_THEMES[themeKey];
     if (!t) t = PREMADE_THEMES['default'];
-    body.style.setProperty('--primary', t.p1);
-    body.style.setProperty('--primary-hover', t.p2);
-    body.style.setProperty('--bg-main', t.s1);
-    body.style.setProperty('--bg-modal', t.s2);
-    body.style.setProperty('--card-bg', t.s2);
-    body.style.setProperty('--bg-input', t.s2); 
-    body.style.setProperty('--border', t.s2); 
-    const getContrastYIQ = (hex) => {
-        hex = hex.replace("#", "");
-        var r = parseInt(hex.substr(0,2),16), g = parseInt(hex.substr(2,2),16), b = parseInt(hex.substr(4,2),16);
-        return (((r*299)+(g*587)+(b*114))/1000 >= 128) ? '#111827' : '#ffffff';
-    }
-    const textColor = getContrastYIQ(t.s1);
-    body.style.setProperty('--text-main', textColor);
-    body.style.setProperty('--text-muted', (textColor === '#ffffff') ? '#9ca3af' : '#4b5563');
-    body.style.setProperty('--btn-control-bg', t.s2);
+
+    // Apply Variables
+    body.style.setProperty('--bg-main', t.bgMain);
+    body.style.setProperty('--card-bg', t.bgCard);
+    body.style.setProperty('--bg-modal', t.bgCard); // Modal shares Card color usually
+    body.style.setProperty('--seq-bubble', t.bubble);
+    body.style.setProperty('--btn-bg', t.btn);
+    body.style.setProperty('--text-main', t.text);
+    
+    // Apply calculated border for contrast
+    const isDark = parseInt(t.bgCard.replace('#',''), 16) < 0xffffff / 2;
+    body.style.setProperty('--border', isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)');
+    
+    // Helper for defaults
+    body.style.setProperty('--primary', t.bubble); // For older shared comps
+    body.style.setProperty('--btn-control-bg', t.bgCard); 
 }
 
 function updateAllChrome() {
@@ -188,6 +196,7 @@ function addValue(value) {
     }
 }
 
+// ... (Remaining Backspace/Reset/Demo Logic same as before) ...
 function handleBackspace(e) {
     if(e && isDeleting) return; 
     vibrate();
@@ -244,14 +253,11 @@ function playDemo() {
         if(!seq || seq.length === 0) return;
         playlist = seq.map(v => ({ val: v, machine: 0 }));
     }
-    
     disableInput(true);
     if(demoBtn) demoBtn.disabled = true;
-    
     let i = 0;
     const speed = appSettings.playbackSpeed || 1;
     const interval = CONFIG.DEMO_DELAY_BASE_MS / speed;
-    
     function next() {
         if(i >= playlist.length) {
             disableInput(false);
@@ -261,63 +267,52 @@ function playDemo() {
                 state.nextSequenceIndex = 0;
                 state.currentRound++;
                 if(state.currentRound > settings.sequenceLength) resetRounds();
-                renderUI();
-                saveState();
+                renderUI(); saveState();
             }
             return;
         }
-        
         const item = playlist[i];
         if(demoBtn) demoBtn.innerHTML = i + 1;
         const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${item.val}"]`);
-        const visualClass = settings.currentInput === 'piano' ? 'flash' : (settings.currentInput === 'key9' ? 'key9-flash' : 'key12-flash');
+        // Flash using class that uses vars
+        if(key) { key.classList.add('flash-active'); setTimeout(() => key.classList.remove('flash-active'), 250 / speed); }
         
-        speak(item.val);
-        vibrateMorse(item.val);
+        speak(item.val); vibrateMorse(item.val);
         
-        if(key) { key.classList.add(visualClass); setTimeout(() => key.classList.remove(visualClass), 250 / speed); }
         const seqBoxes = document.getElementById('sequence-container').children;
         if(seqBoxes[item.machine]) {
-            seqBoxes[item.machine].classList.add('bg-accent-app', 'scale-105');
-            setTimeout(() => seqBoxes[item.machine].classList.remove('bg-accent-app', 'scale-105'), 250 / speed);
+            seqBoxes[item.machine].style.transform = 'scale(1.05)';
+            setTimeout(() => seqBoxes[item.machine].style.transform = 'scale(1)', 250 / speed);
         }
         i++; setTimeout(next, interval);
     }
     next();
 }
 
-// --- FIXED RENDER UI ---
+// ... (RenderUI, Blackout, Window.onload same as previous turn) ...
 function renderUI() {
     const container = document.getElementById('sequence-container');
     container.innerHTML = '';
     const settings = getProfileSettings();
-    
     ['key9', 'key12', 'piano'].forEach(k => {
         const el = document.getElementById(`pad-${k}`);
         if(el) el.style.display = (settings.currentInput === k) ? 'block' : 'none';
     });
-    
     const state = getState();
     const activeSeqs = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);
-    
     if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
         const h = document.createElement('h2');
         h.className = "text-center text-2xl font-bold mb-4 w-full";
         h.textContent = `Round ${state.currentRound} / ${settings.sequenceLength}`;
         container.appendChild(h);
     }
-    
     let gridCols = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 1 : Math.min(settings.machineCount, 4);
     container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
-
     activeSeqs.forEach((seq) => {
         const card = document.createElement('div');
         card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)]";
-        
         const numGrid = document.createElement('div');
-        // FIX: Force 5 columns grid layout
         numGrid.className = "grid grid-cols-5 gap-2 justify-items-center"; 
-        
         (seq || []).forEach(num => {
             const span = document.createElement('span');
             span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold";
@@ -329,7 +324,6 @@ function renderUI() {
         card.appendChild(numGrid);
         container.appendChild(card);
     });
-
     document.querySelectorAll('#mic-master-btn').forEach(btn => {
         btn.classList.toggle('hidden', !appSettings.showMicBtn);
         btn.classList.toggle('master-active', modules.sensor && modules.sensor.mode.audio);
@@ -355,10 +349,8 @@ function toggleBlackout() {
 }
 function handleShake(e) {
     if(!appSettings.isBlackoutFeatureEnabled) return;
-    const acc = e.acceleration;
-    if(!acc) return;
-    const magnitude = Math.hypot(acc.x, acc.y, acc.z);
-    if(magnitude > 15) {
+    const acc = e.acceleration; if(!acc) return;
+    if(Math.hypot(acc.x, acc.y, acc.z) > 15) {
         const now = Date.now();
         if(now - blackoutState.lastShake > 1000) { toggleBlackout(); vibrate(); blackoutState.lastShake = now; }
     }
@@ -373,13 +365,10 @@ function handleBlackoutTouch(e) {
     let val = null;
     if(settings.currentInput === 'piano') {
         const keys = ['C','D','E','F','G','A','B','1','2','3','4','5'];
-        const idx = Math.floor(x / (w / keys.length));
-        if(keys[idx]) val = keys[idx];
+        const idx = Math.floor(x / (w / keys.length)); if(keys[idx]) val = keys[idx];
     } else {
-        const cols = 3; const rows = (settings.currentInput === 'key12') ? 4 : 3;
-        const c = Math.floor(x / (w / cols)); const r = Math.floor(y / (h / rows));
-        let num = (r * 3) + c + 1;
-        if(num > 0 && num <= (settings.currentInput === 'key12' ? 12 : 9)) val = num.toString();
+        const c = Math.floor(x / (w/3)); const r = Math.floor(y / (h/ (settings.currentInput==='key12'?4:3)));
+        let num = (r * 3) + c + 1; if(num > 0 && num <= (settings.currentInput==='key12'?12:9)) val = num.toString();
     }
     if(val) { addValue(val); speak(val); vibrateMorse(val); }
 }
@@ -445,7 +434,6 @@ window.onload = function() {
         updateAllChrome();
         
         document.querySelectorAll('.btn-pad-number, .piano-key-white, .piano-key-black').forEach(btn => btn.addEventListener('click', (e) => addValue(e.target.dataset.value)));
-        
         document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
             b.addEventListener('click', playDemo);
             const startLongPress = () => { timers.longPress = setTimeout(() => { appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled; showToast(`Autoplay: ${appSettings.isAutoplayEnabled?'ON':'OFF'}`); saveState(); vibrate(); }, 500); };
@@ -453,9 +441,7 @@ window.onload = function() {
             b.addEventListener('mousedown', startLongPress); b.addEventListener('touchstart', startLongPress, { passive: true });
             b.addEventListener('mouseup', cancelLong); b.addEventListener('mouseleave', cancelLong); b.addEventListener('touchend', cancelLong);
         });
-
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => b.addEventListener('click', () => { if(confirm("Reset to Round 1?")) resetRounds(); }));
-
         document.querySelectorAll('button[data-action="backspace"]').forEach(b => {
             b.addEventListener('click', handleBackspace); 
             const startDelete = (e) => { 
@@ -463,14 +449,11 @@ window.onload = function() {
                 timers.initialDelay = setTimeout(() => { isDeleting = true; timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL); }, CONFIG.SPEED_DELETE_DELAY); 
             };
             const stopDelete = () => { clearTimeout(timers.initialDelay); clearInterval(timers.speedDelete); setTimeout(() => isDeleting = false, 50); };
-            b.addEventListener('mousedown', startDelete); 
-            b.addEventListener('touchstart', startDelete, { passive: true });
+            b.addEventListener('mousedown', startDelete); b.addEventListener('touchstart', startDelete, { passive: true });
             b.addEventListener('mouseup', stopDelete); b.addEventListener('mouseleave', stopDelete); b.addEventListener('touchend', stopDelete); b.addEventListener('touchcancel', stopDelete); 
         });
-
         document.querySelectorAll('button[data-action="open-share"]').forEach(b => b.addEventListener('click', () => modules.settings.openShare())); 
         document.querySelectorAll('button[data-action="open-settings"]').forEach(b => b.onclick = () => modules.settings.openSettings());
         if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
-
     } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }
 };

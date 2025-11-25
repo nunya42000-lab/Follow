@@ -1,3 +1,4 @@
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { SensorEngine } from './sensors.js';
@@ -7,7 +8,7 @@ import { initComments } from './comments.js';
 const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 400, SPEED_DELETE_INTERVAL: 100, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v44', STORAGE_KEY_STATE: 'followMeAppState_v44', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' } };
+const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 400, SPEED_DELETE_INTERVAL: 100, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v40', STORAGE_KEY_STATE: 'followMeAppState_v40', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' } };
 
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 
@@ -113,6 +114,7 @@ function addValue(value) {
     const state = getState();
     const settings = getProfileSettings();
     if(appSettings.isPracticeModeEnabled) {
+        if(practiceSequence.length === 0) return; // Prevent crashing if sequence not ready
         if(value == practiceSequence[practiceInputIndex]) {
             practiceInputIndex++;
             if(practiceInputIndex >= practiceSequence.length) {
@@ -166,7 +168,10 @@ function playDemo() {
 function renderUI() {
     const container = document.getElementById('sequence-container'); container.innerHTML = ''; const settings = getProfileSettings();
     ['key9', 'key12', 'piano'].forEach(k => { const el = document.getElementById(`pad-${k}`); if(el) el.style.display = (settings.currentInput === k) ? 'block' : 'none'; });
+    
+    // Fix: If in practice mode but no sequence exists (e.g., just toggled on), start it.
     if(appSettings.isPracticeModeEnabled) {
+        if(practiceSequence.length === 0) setTimeout(startPracticeRound, 100);
         container.innerHTML = '<h2 class="text-2xl font-bold text-center w-full mt-10" style="color:var(--text-main)">Practice Mode Active<br><span class="text-sm opacity-70">Listen and Repeat</span></h2>';
         return; 
     }
@@ -188,7 +193,10 @@ window.onload = function() {
         loadState(); initComments(db);
         if (window.DeviceMotionEvent) window.addEventListener('devicemotion', handleShake, false);
         const target = document.body;
-        target.addEventListener('touchstart', (e) => { if (e.touches.length === 2) { gestureState.isPinching = true; gestureState.startDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); gestureState.startScale = (appSettings.gestureResizeMode === 'sequence') ? (appSettings.uiScaleMultiplier || 1.0) : (appSettings.globalUiScale || 100); } }, { passive: false });
+        target.addEventListener('touchstart', (e) => { 
+            if(modules.sensor && modules.sensor.audioCtx && modules.sensor.audioCtx.state === 'suspended') modules.sensor.audioCtx.resume();
+            if (e.touches.length === 2) { gestureState.isPinching = true; gestureState.startDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); gestureState.startScale = (appSettings.gestureResizeMode === 'sequence') ? (appSettings.uiScaleMultiplier || 1.0) : (appSettings.globalUiScale || 100); } 
+        }, { passive: false });
         target.addEventListener('touchmove', (e) => { if (gestureState.isPinching && e.touches.length === 2) { e.preventDefault(); const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); const ratio = dist / gestureState.startDist; if (appSettings.gestureResizeMode === 'sequence') { appSettings.uiScaleMultiplier = Math.min(Math.max(gestureState.startScale * ratio, 0.5), 2.5); renderUI(); } else { appSettings.globalUiScale = Math.min(Math.max(gestureState.startScale * ratio, 50), 150); updateAllChrome(); } } }, { passive: false });
         target.addEventListener('touchend', () => { if(gestureState.isPinching) { gestureState.isPinching = false; saveState(); } });
 
@@ -197,13 +205,18 @@ window.onload = function() {
         if (appSettings.sensorCamThresh) modules.sensor.setSensitivity('camera', appSettings.sensorCamThresh);
 
         modules.settings = new SettingsManager(appSettings, {
-            onUpdate: () => { updateAllChrome(); saveState(); },
+            onUpdate: () => { 
+                updateAllChrome(); saveState(); 
+                // Fix: Reset practice sequence if mode was just toggled
+                if(appSettings.isPracticeModeEnabled && practiceSequence.length === 0) startPracticeRound();
+            },
             onSave: () => saveState(),
             onReset: () => { localStorage.clear(); location.reload(); },
             onProfileSwitch: (id) => {
                 appSettings.activeProfileId = id;
                 appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings));
                 appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
+                practiceSequence = []; // Reset practice
                 updateAllChrome(); saveState();
             },
             onProfileAdd: (name) => { const id = 'p_' + Date.now(); appSettings.profiles[id] = { name, settings: JSON.parse(JSON.stringify(appSettings.runtimeSettings)) }; appSettings.activeProfileId = id; updateAllChrome(); saveState(); },
@@ -212,7 +225,9 @@ window.onload = function() {
         }, modules.sensor);
 
         updateAllChrome();
-        if(appSettings.isPracticeModeEnabled) startPracticeRound();
+        // If practice mode was saved as true, start it up.
+        if(appSettings.isPracticeModeEnabled) setTimeout(startPracticeRound, 500);
+
         document.querySelectorAll('.btn-pad-number, .piano-key-white, .piano-key-black').forEach(btn => btn.addEventListener('click', (e) => addValue(e.target.dataset.value)));
         document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
             b.addEventListener('click', playDemo);
@@ -227,6 +242,7 @@ window.onload = function() {
             const stopDelete = () => { clearTimeout(timers.initialDelay); clearInterval(timers.speedDelete); setTimeout(() => isDeleting = false, 50); };
             b.addEventListener('mousedown', startDelete); b.addEventListener('touchstart', startDelete, { passive: true }); b.addEventListener('mouseup', stopDelete); b.addEventListener('mouseleave', stopDelete); b.addEventListener('touchend', stopDelete); b.addEventListener('touchcancel', stopDelete); 
         });
+        // Fix: Use the new exposed method in SettingsManager
         document.querySelectorAll('button[data-action="open-share"]').forEach(b => b.addEventListener('click', () => modules.settings.openShare())); 
         document.querySelectorAll('button[data-action="open-settings"]').forEach(b => b.onclick = () => modules.settings.openSettings());
         if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);

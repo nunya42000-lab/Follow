@@ -1,11 +1,10 @@
-// sensors.js - Audio & Camera Logic Port
+// sensors.js - Logic Port
 export class SensorEngine {
     constructor(onTrigger, onStatusUpdate) {
-        this.onTrigger = onTrigger;       // Game callback
+        this.onTrigger = onTrigger;
         this.onStatusUpdate = onStatusUpdate;
-        this.calibrationCallback = null;  // Settings visualizer callback
+        this.calibrationCallback = null;
 
-        // Color Config (Hue 0-360)
         this.COLORS = [
             { n: 3, hue: 0,   range: 12, satMin: 0.5 }, // Red
             { n: 9, hue: 30,  range: 15, satMin: 0.5 }, // Orange
@@ -17,39 +16,34 @@ export class SensorEngine {
             { n: 8, hue: 315, range: 25, satMin: 0.3 }, // Magenta
         ];
 
-        // Audio Tones (Hz)
         this.TONES = [
             { n: 1, f: 261 }, { n: 2, f: 293 }, { n: 3, f: 329 },
             { n: 4, f: 349 }, { n: 5, f: 392 }, { n: 6, f: 440 },
             { n: 7, f: 493 }, { n: 8, f: 523 }, { n: 9, f: 587 }
         ];
 
-        // State
         this.isActive = false;
         this.mode = { audio: false, camera: false };
         this.lastTriggerTime = 0;
         this.COOLDOWN = 600;
         this.loopId = null;
 
-        // Audio Vars
         this.audioCtx = null;
         this.analyser = null;
         this.micSrc = null;
-        this.audioThresh = -85; // Default (overwritten by settings)
+        this.audioThresh = -85;
 
-        // Camera Vars
         this.videoEl = null;
         this.canvasEl = null;
         this.ctx = null;
         this.prevFrame = null;
-        this.motionThresh = 30; // Default (overwritten by settings)
+        this.motionThresh = 30;
         this.isFlashing = false;
         this.flashFrames = 0;
         this.peakBrightness = 0;
         this.peakColorData = null;
     }
 
-    // Called by SettingsManager to visualize data
     setCalibrationCallback(cb) {
         this.calibrationCallback = cb;
     }
@@ -139,7 +133,6 @@ export class SensorEngine {
         if (this.mode.audio) audioLevel = this.processAudio();
         if (this.mode.camera) cameraLevel = this.processCamera();
 
-        // Send raw data to settings visualizer if open
         if (this.calibrationCallback) {
             this.calibrationCallback({ audio: audioLevel, camera: cameraLevel });
         }
@@ -154,8 +147,6 @@ export class SensorEngine {
         
         let maxVal = -Infinity, maxIdx = -1;
         const hzPerBin = this.audioCtx.sampleRate / 2 / buffer.length;
-        
-        // Scan Target Range (200-700Hz)
         const startBin = Math.floor(200 / hzPerBin);
         const endBin = Math.floor(700 / hzPerBin);
 
@@ -163,47 +154,33 @@ export class SensorEngine {
             if (buffer[i] > maxVal) { maxVal = buffer[i]; maxIdx = i; }
         }
 
-        // Game Trigger
         if (maxVal > this.audioThresh) {
             const freq = maxIdx * hzPerBin;
-            const match = this.TONES.find(t => Math.abs(t.f - freq) < (t.f * 0.04)); // 4% tolerance
+            const match = this.TONES.find(t => Math.abs(t.f - freq) < (t.f * 0.04));
             if (match) {
                 this.trigger(match.n, 'audio');
             }
         }
-        
-        return maxVal; // Return dB for calibration
+        return maxVal;
     }
 
     processCamera() {
         if (!this.videoEl || !this.videoEl.videoWidth || !this.ctx) return 0;
-        
         this.ctx.drawImage(this.videoEl, 0, 0, this.canvasEl.width, this.canvasEl.height);
         const frame = this.ctx.getImageData(0, 0, this.canvasEl.width, this.canvasEl.height);
         const data = frame.data;
 
-        if (!this.prevFrame) { 
-            this.prevFrame = new Uint8ClampedArray(data); 
-            return 0; 
-        }
+        if (!this.prevFrame) { this.prevFrame = new Uint8ClampedArray(data); return 0; }
 
         let diffScore = 0, rSum = 0, gSum = 0, bSum = 0, pxCount = 0;
 
-        // Sample pixels
         for (let i = 0; i < data.length; i += 4) {
             const r = data[i], g = data[i+1], b = data[i+2];
-            const diff = Math.abs(r - this.prevFrame[i]) + 
-                         Math.abs(g - this.prevFrame[i+1]) + 
-                         Math.abs(b - this.prevFrame[i+2]);
-            
-            if (diff > 50) { // Basic noise filter
-                diffScore++; 
-                rSum += r; gSum += g; bSum += b; pxCount++;
-            }
+            const diff = Math.abs(r - this.prevFrame[i]) + Math.abs(g - this.prevFrame[i+1]) + Math.abs(b - this.prevFrame[i+2]);
+            if (diff > 50) { diffScore++; rSum += r; gSum += g; bSum += b; pxCount++; }
         }
         this.prevFrame.set(data);
 
-        // Game Trigger
         if (diffScore > this.motionThresh) {
             this.isFlashing = true;
             this.flashFrames++;
@@ -228,7 +205,7 @@ export class SensorEngine {
                 this.peakColorData = null;
             }
         }
-        return diffScore; // Return motion score for calibration
+        return diffScore;
     }
 
     identifyColor(data) {

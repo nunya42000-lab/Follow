@@ -1,4 +1,4 @@
-// --- PREMADE THEMES (5-Color System) ---
+// PREMADE THEMES
 export const PREMADE_THEMES = {
     'default': { name: "Default Dark", bgMain: "#000000", bgCard: "#121212", bubble: "#4f46e5", btn: "#1a1a1a", text: "#e5e5e5" },
     'light':   { name: "Light Mode",   bgMain: "#f3f4f6", bgCard: "#ffffff", bubble: "#4f46e5", btn: "#e5e7eb", text: "#111827" },
@@ -10,42 +10,7 @@ export const PREMADE_THEMES = {
     'sunset':  { name: "Sunset",       bgMain: "#1a021c", bgCard: "#701a75", bubble: "#fb923c", btn: "#86198f", text: "#fff7ed" }
 };
 
-// --- VOICE PRESETS ---
-const VOICE_PRESETS = {
-    'normal':   { pitch: 1.0, rate: 1.0 },
-    'batman':   { pitch: 0.5, rate: 0.9 },
-    'chipmunk': { pitch: 1.8, rate: 1.5 },
-    'robot':    { pitch: 0.6, rate: 1.2 }, // Monotone simulation via low pitch + speed
-    'baby':     { pitch: 1.6, rate: 0.8 }
-};
-
-// --- TRANSLATIONS ---
-const LANG = {
-    en: {
-        quick_title: "👋 Quick Start",
-        select_profile: "Select Profile",
-        autoplay: "Autoplay",
-        audio: "Audio",
-        help_btn: "Help 📚",
-        settings_btn: "Settings",
-        dont_show: "Don't show again",
-        play_btn: "PLAY",
-        theme_editor: "🎨 Theme Editor"
-    },
-    es: {
-        quick_title: "👋 Inicio Rápido",
-        select_profile: "Perfil",
-        autoplay: "Reproducción",
-        audio: "Audio",
-        help_btn: "Ayuda 📚",
-        settings_btn: "Ajustes",
-        dont_show: "No mostrar más",
-        play_btn: "JUGAR",
-        theme_editor: "🎨 Editor de Temas"
-    }
-};
-
-// --- 150 COLOR CRAYOLA PALETTE ---
+// 150 COLORS
 const CRAYONS = [
     "#000000", "#1F75FE", "#1CA9C9", "#0D98BA", "#FFFFFF", "#C5D0E6", "#B0B7C6", "#AF4035",
     "#F5F5F5", "#FEFEFA", "#FFFAFA", "#F0F8FF", "#F8F8FF", "#F5F5DC", "#FFFACD", "#FAFAD2",
@@ -65,24 +30,26 @@ const CRAYONS = [
     "#999999", "#808080", "#666666", "#333333", "#222222", "#111111", "#0A0A0A", "#000000"
 ];
 
+// LANG
+const LANG = {
+    en: { quick_title: "👋 Quick Start", select_profile: "Select Profile", autoplay: "Autoplay", audio: "Audio", help_btn: "Help 📚", settings_btn: "Settings", dont_show: "Don't show again", play_btn: "PLAY", theme_editor: "🎨 Theme Editor" },
+    es: { quick_title: "👋 Inicio Rápido", select_profile: "Perfil", autoplay: "Reproducción", audio: "Audio", help_btn: "Ayuda 📚", settings_btn: "Ajustes", dont_show: "No mostrar más", play_btn: "JUGAR", theme_editor: "🎨 Editor de Temas" }
+};
+
 export class SettingsManager {
     constructor(appSettings, callbacks, sensorEngine) {
         this.appSettings = appSettings;
         this.callbacks = callbacks;
         this.sensorEngine = sensorEngine;
         this.currentTargetKey = 'bubble';
-        this.currentLang = 'en';
         
         this.dom = {
-            // --- THEME EDITOR ---
             editorModal: document.getElementById('theme-editor-modal'),
             editorGrid: document.getElementById('color-grid'),
             ftContainer: document.getElementById('fine-tune-container'),
             ftToggle: document.getElementById('toggle-fine-tune'),
             ftPreview: document.getElementById('fine-tune-preview'),
-            ftHue: document.getElementById('ft-hue'),
-            ftSat: document.getElementById('ft-sat'),
-            ftLit: document.getElementById('ft-lit'),
+            ftHue: document.getElementById('ft-hue'), ftSat: document.getElementById('ft-sat'), ftLit: document.getElementById('ft-lit'),
             targetBtns: document.querySelectorAll('.target-btn'),
             edName: document.getElementById('theme-name-input'),
             edPreview: document.getElementById('theme-preview-box'),
@@ -92,27 +59,27 @@ export class SettingsManager {
             edCancel: document.getElementById('cancel-theme-btn'),
             openEditorBtn: document.getElementById('open-theme-editor'),
 
-            // --- VOICE CONTROLS ---
-            voicePitch: document.getElementById('voice-pitch'),
-            voiceRate: document.getElementById('voice-rate'),
+            // Voice Inputs
+            voiceGender: document.getElementById('voice-gender'),
+            voiceAge: document.getElementById('voice-age'),
+            voiceAccent: document.getElementById('voice-accent'),
             voiceTestBtn: document.getElementById('test-voice-btn'),
-            voicePresetBtns: document.querySelectorAll('.voice-preset-btn'),
 
-            // --- SETTINGS UI ---
             settingsModal: document.getElementById('settings-modal'),
             themeSelect: document.getElementById('theme-select'),
             themeAdd: document.getElementById('theme-add'),
             themeRename: document.getElementById('theme-rename'),
             themeDelete: document.getElementById('theme-delete'),
+            
             configSelect: document.getElementById('config-select'),
             quickConfigSelect: document.getElementById('quick-config-select'),
             configAdd: document.getElementById('config-add'),
             configRename: document.getElementById('config-rename'),
             configDelete: document.getElementById('config-delete'),
             
-            // Inputs
             input: document.getElementById('input-select'),
             mode: document.getElementById('mode-select'),
+            practiceMode: document.getElementById('practice-mode-toggle'),
             machines: document.getElementById('machines-select'),
             seqLength: document.getElementById('seq-length-select'),
             autoClear: document.getElementById('autoclear-toggle'),
@@ -131,11 +98,9 @@ export class SettingsManager {
             gestureMode: document.getElementById('gesture-mode-select'),
             autoInput: document.getElementById('auto-input-select'),
             
-            // Language
             quickLang: document.getElementById('quick-lang-select'),
             generalLang: document.getElementById('general-lang-select'),
 
-            // Modals & Buttons
             closeSettingsBtn: document.getElementById('close-settings'),
             tabs: document.querySelectorAll('.tab-btn'),
             contents: document.querySelectorAll('.tab-content'),
@@ -159,7 +124,6 @@ export class SettingsManager {
             copyPromptBtn: document.getElementById('copy-prompt-btn'),
             restoreBtn: document.querySelector('button[data-action="restore-defaults"]'),
             
-            // Calibration
             calibModal: document.getElementById('calibration-modal'),
             openCalibBtn: document.getElementById('open-calibration-btn'),
             closeCalibBtn: document.getElementById('close-calibration-btn'),
@@ -167,12 +131,7 @@ export class SettingsManager {
             calibCamSlider: document.getElementById('calib-cam-slider'),
             calibAudioBar: document.getElementById('calib-audio-bar'),
             calibCamBar: document.getElementById('calib-cam-bar'),
-            calibAudioMarker: document.getElementById('calib-audio-marker'),
-            calibCamMarker: document.getElementById('calib-cam-marker'),
-            calibAudioVal: document.getElementById('audio-val-display'),
-            calibCamVal: document.getElementById('cam-val-display'),
         };
-        
         this.tempTheme = null;
         this.initListeners();
         this.populateConfigDropdown();
@@ -180,7 +139,6 @@ export class SettingsManager {
         this.buildColorGrid();
     }
 
-    // --- 1. THEME EDITOR LOGIC ---
     buildColorGrid() {
         if(!this.dom.editorGrid) return;
         this.dom.editorGrid.innerHTML = '';
@@ -196,20 +154,13 @@ export class SettingsManager {
     applyColorToTarget(hex) {
         if(!this.tempTheme) return;
         this.tempTheme[this.currentTargetKey] = hex;
-        
-        // Convert Hex to HSL for Fine Tune Sliders
         const [h, s, l] = this.hexToHsl(hex);
-        this.dom.ftHue.value = h;
-        this.dom.ftSat.value = s;
-        this.dom.ftLit.value = l;
+        this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l;
         this.dom.ftPreview.style.backgroundColor = hex;
-        
-        // Show Fine Tune Panel if hidden
         if(this.dom.ftContainer.classList.contains('hidden')) {
             this.dom.ftContainer.classList.remove('hidden');
             this.dom.ftToggle.style.display = 'none';
         }
-        
         this.updatePreview();
     }
 
@@ -218,31 +169,22 @@ export class SettingsManager {
         const s = parseInt(this.dom.ftSat.value);
         const l = parseInt(this.dom.ftLit.value);
         const hex = this.hslToHex(h, s, l);
-        
         this.dom.ftPreview.style.backgroundColor = hex;
-        if(this.tempTheme) {
-            this.tempTheme[this.currentTargetKey] = hex;
-            this.updatePreview();
-        }
+        if(this.tempTheme) { this.tempTheme[this.currentTargetKey] = hex; this.updatePreview(); }
     }
 
     openThemeEditor() {
         if(!this.dom.editorModal) return;
         const activeId = this.appSettings.activeTheme;
         const source = this.appSettings.customThemes[activeId] || PREMADE_THEMES[activeId] || PREMADE_THEMES['default'];
-        this.tempTheme = { ...source }; // Clone for editing
+        this.tempTheme = { ...source };
         this.dom.edName.value = this.tempTheme.name;
-        
-        // Reset to Bubble target
         this.dom.targetBtns.forEach(b => b.classList.remove('active', 'bg-primary-app'));
-        this.dom.targetBtns[2].classList.add('active', 'bg-primary-app'); // Index 2 is Bubble
+        this.dom.targetBtns[2].classList.add('active', 'bg-primary-app');
         this.currentTargetKey = 'bubble';
-        
-        // Init Sliders for current target
         const [h, s, l] = this.hexToHsl(this.tempTheme.bubble);
         this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l;
         this.dom.ftPreview.style.backgroundColor = this.tempTheme.bubble;
-        
         this.updatePreview();
         this.dom.editorModal.classList.remove('opacity-0', 'pointer-events-none');
         this.dom.editorModal.querySelector('div').classList.remove('scale-90');
@@ -255,59 +197,26 @@ export class SettingsManager {
         this.dom.edPreview.style.color = t.text;
         this.dom.edPreviewCard.style.backgroundColor = t.bgCard;
         this.dom.edPreviewCard.style.color = t.text;
-        this.dom.edPreviewCard.style.border = '1px solid rgba(255,255,255,0.1)';
         this.dom.edPreviewBtn.style.backgroundColor = t.bubble;
         this.dom.edPreviewBtn.style.color = t.text;
     }
 
-    // --- 2. VOICE LOGIC ---
-    applyVoicePreset(presetName) {
-        const p = VOICE_PRESETS[presetName];
-        if(p) {
-            this.dom.voicePitch.value = p.pitch;
-            this.dom.voiceRate.value = p.rate;
-            this.appSettings.voicePitch = p.pitch;
-            this.appSettings.voiceRate = p.rate;
-            this.callbacks.onSave();
-        }
-    }
-
-    testVoice() {
-        if(window.speechSynthesis) {
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance("Testing voice settings.");
-            u.pitch = parseFloat(this.dom.voicePitch.value);
-            u.rate = parseFloat(this.dom.voiceRate.value);
-            window.speechSynthesis.speak(u);
-        }
-    }
-
-    // --- 3. LANGUAGE LOGIC ---
     setLanguage(lang) {
-        this.currentLang = lang;
-        const t = LANG[lang];
-        if(!t) return;
-        
-        // Update text content
+        const t = LANG[lang]; if(!t) return;
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
             if(t[key]) el.textContent = t[key];
         });
-        
-        // Update both dropdowns
         if(this.dom.quickLang) this.dom.quickLang.value = lang;
         if(this.dom.generalLang) this.dom.generalLang.value = lang;
     }
 
-    // --- 4. LISTENERS & BINDINGS ---
     initListeners() {
-        // Theme Editor Targets
         this.dom.targetBtns.forEach(btn => {
             btn.onclick = () => {
                 this.dom.targetBtns.forEach(b => { b.classList.remove('active', 'bg-primary-app'); b.classList.add('opacity-60'); });
                 btn.classList.add('active', 'bg-primary-app'); btn.classList.remove('opacity-60');
                 this.currentTargetKey = btn.dataset.target;
-                // Update sliders to match new target color
                 if(this.tempTheme) {
                     const [h, s, l] = this.hexToHsl(this.tempTheme[this.currentTargetKey]);
                     this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l;
@@ -315,28 +224,12 @@ export class SettingsManager {
                 }
             };
         });
-
-        // Fine Tune Sliders
-        [this.dom.ftHue, this.dom.ftSat, this.dom.ftLit].forEach(sl => {
-            sl.oninput = () => this.updateColorFromSliders();
-        });
-        this.dom.ftToggle.onclick = () => {
-            this.dom.ftContainer.classList.remove('hidden');
-            this.dom.ftToggle.style.display = 'none';
-        };
-
-        // Editor Save
+        [this.dom.ftHue, this.dom.ftSat, this.dom.ftLit].forEach(sl => { sl.oninput = () => this.updateColorFromSliders(); });
+        this.dom.ftToggle.onclick = () => { this.dom.ftContainer.classList.remove('hidden'); this.dom.ftToggle.style.display = 'none'; };
         if(this.dom.edSave) this.dom.edSave.onclick = () => {
             if(this.tempTheme) {
                 const activeId = this.appSettings.activeTheme;
-                // If editing premade, force new ID
-                if(PREMADE_THEMES[activeId]) {
-                    const newId = 'custom_' + Date.now();
-                    this.appSettings.customThemes[newId] = this.tempTheme;
-                    this.appSettings.activeTheme = newId;
-                } else {
-                    this.appSettings.customThemes[activeId] = this.tempTheme;
-                }
+                if(PREMADE_THEMES[activeId]) { const newId = 'custom_' + Date.now(); this.appSettings.customThemes[newId] = this.tempTheme; this.appSettings.activeTheme = newId; } else { this.appSettings.customThemes[activeId] = this.tempTheme; }
                 this.callbacks.onSave(); this.callbacks.onUpdate();
                 this.dom.editorModal.classList.add('opacity-0', 'pointer-events-none');
                 this.dom.editorModal.querySelector('div').classList.add('scale-90');
@@ -346,27 +239,43 @@ export class SettingsManager {
         if(this.dom.openEditorBtn) this.dom.openEditorBtn.onclick = () => this.openThemeEditor();
         if(this.dom.edCancel) this.dom.edCancel.onclick = () => { this.dom.editorModal.classList.add('opacity-0', 'pointer-events-none'); };
 
-        // Voice
-        this.dom.voicePresetBtns.forEach(btn => {
-            btn.onclick = () => this.applyVoicePreset(btn.dataset.preset);
-        });
-        this.dom.voiceTestBtn.onclick = () => this.testVoice();
-        this.dom.voicePitch.oninput = (e) => { this.appSettings.voicePitch = parseFloat(e.target.value); this.callbacks.onSave(); };
-        this.dom.voiceRate.oninput = (e) => { this.appSettings.voiceRate = parseFloat(e.target.value); this.callbacks.onSave(); };
+        if(this.dom.voiceTestBtn) this.dom.voiceTestBtn.onclick = () => {
+            if(window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                // This uses a quick placeholder to test current settings from DOM
+                // app.js uses the actual saved settings
+                const u = new SpeechSynthesisUtterance("Testing voice settings 1 2 3.");
+                const gender = this.dom.voiceGender.value;
+                const age = this.dom.voiceAge.value;
+                let p = 1.0, r = 1.0;
+                if(gender === 'female') p += 0.4; else p -= 0.2;
+                if(age === 'baby') { p += 0.8; r = 1.1; }
+                if(age === 'toddler') { p += 0.6; r = 1.0; }
+                if(age === 'teen') { p += 0.2; r = 1.1; }
+                if(age === 'middle') { p -= 0.1; r = 0.9; }
+                if(age === 'elderly') { p -= 0.3; r = 0.8; }
+                u.pitch = p; u.rate = r;
+                window.speechSynthesis.speak(u);
+            }
+        };
+        
+        const saveVoice = () => {
+            this.appSettings.voiceGender = this.dom.voiceGender.value;
+            this.appSettings.voiceAge = this.dom.voiceAge.value;
+            this.appSettings.voiceAccent = this.dom.voiceAccent.value;
+            this.callbacks.onSave();
+        };
+        if(this.dom.voiceGender) this.dom.voiceGender.onchange = saveVoice;
+        if(this.dom.voiceAge) this.dom.voiceAge.onchange = saveVoice;
+        if(this.dom.voiceAccent) this.dom.voiceAccent.onchange = saveVoice;
 
-        // Language
         if(this.dom.quickLang) this.dom.quickLang.onchange = (e) => this.setLanguage(e.target.value);
         if(this.dom.generalLang) this.dom.generalLang.onchange = (e) => this.setLanguage(e.target.value);
 
-        // Profile Switch Refresh Logic
-        const handleProfileSwitch = (val) => {
-            this.callbacks.onProfileSwitch(val);
-            this.updateUIFromSettings(); // Force refresh of input values
-        };
+        const handleProfileSwitch = (val) => { this.callbacks.onProfileSwitch(val); this.openSettings(); };
         if(this.dom.configSelect) this.dom.configSelect.onchange = (e) => handleProfileSwitch(e.target.value);
         if(this.dom.quickConfigSelect) this.dom.quickConfigSelect.onchange = (e) => handleProfileSwitch(e.target.value);
 
-        // Standard Bindings
         const bind = (el, prop, isGlobal, isInt=false, isFloat=false) => {
             if(!el) return;
             el.onchange = () => {
@@ -386,30 +295,26 @@ export class SettingsManager {
         bind(this.dom.hapticMorse, 'isHapticMorseEnabled', true);
         bind(this.dom.playbackSpeed, 'playbackSpeed', true, false, true);
         bind(this.dom.chunk, 'simonChunkSize', false, true);
-        // Delay needs float
         if(this.dom.delay) this.dom.delay.onchange = (e) => { this.appSettings.runtimeSettings.simonInterSequenceDelay = parseFloat(e.target.value) * 1000; this.callbacks.onSave(); };
         bind(this.dom.haptics, 'isHapticsEnabled', true);
         bind(this.dom.speedDelete, 'isSpeedDeletingEnabled', true);
         bind(this.dom.showWelcome, 'showWelcomeScreen', true);
         bind(this.dom.blackoutToggle, 'isBlackoutFeatureEnabled', true);
-        
-        // New Scales
+        bind(this.dom.practiceMode, 'isPracticeModeEnabled', true);
+
         if(this.dom.uiScale) this.dom.uiScale.onchange = (e) => { this.appSettings.globalUiScale = parseInt(e.target.value); this.callbacks.onUpdate(); };
         if(this.dom.seqSize) this.dom.seqSize.onchange = (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onUpdate(); };
         if(this.dom.gestureMode) this.dom.gestureMode.onchange = (e) => { this.appSettings.gestureResizeMode = e.target.value; this.callbacks.onSave(); };
         if(this.dom.autoInput) this.dom.autoInput.onchange = (e) => { const val = e.target.value; this.appSettings.autoInputMode = val; this.appSettings.showMicBtn = (val === 'mic' || val === 'both'); this.appSettings.showCamBtn = (val === 'cam' || val === 'both'); this.callbacks.onSave(); this.callbacks.onUpdate(); };
 
-        // Buttons
         if(this.dom.themeAdd) this.dom.themeAdd.onclick = () => { const n = prompt("Name:"); if(n) { const id='c_'+Date.now(); this.appSettings.customThemes[id]={...PREMADE_THEMES['default'], name:n}; this.appSettings.activeTheme=id; this.callbacks.onSave(); this.callbacks.onUpdate(); this.populateThemeDropdown(); this.openThemeEditor(); } };
         if(this.dom.themeRename) this.dom.themeRename.onclick = () => { const id=this.appSettings.activeTheme; if(PREMADE_THEMES[id]) return alert("Cannot rename built-in."); const n=prompt("Rename:", this.appSettings.customThemes[id].name); if(n){this.appSettings.customThemes[id].name=n; this.callbacks.onSave(); this.populateThemeDropdown();} };
         if(this.dom.themeDelete) this.dom.themeDelete.onclick = () => { if(PREMADE_THEMES[this.appSettings.activeTheme]) return alert("Cannot delete built-in."); if(confirm("Delete?")){delete this.appSettings.customThemes[this.appSettings.activeTheme]; this.appSettings.activeTheme='default'; this.callbacks.onSave(); this.callbacks.onUpdate(); this.populateThemeDropdown();} };
         if(this.dom.themeSelect) this.dom.themeSelect.onchange = (e) => { this.appSettings.activeTheme=e.target.value; this.callbacks.onUpdate(); this.populateThemeDropdown(); };
-
-        if(this.dom.configAdd) this.dom.configAdd.onclick = () => { const n=prompt("Profile Name:"); if(n) this.callbacks.onProfileAdd(n); this.updateUIFromSettings(); };
+        if(this.dom.configAdd) this.dom.configAdd.onclick = () => { const n=prompt("Profile Name:"); if(n) this.callbacks.onProfileAdd(n); this.openSettings(); };
         if(this.dom.configRename) this.dom.configRename.onclick = () => { const n=prompt("Rename:"); if(n) this.callbacks.onProfileRename(n); this.populateConfigDropdown(); };
-        if(this.dom.configDelete) this.dom.configDelete.onclick = () => { this.callbacks.onProfileDelete(); this.updateUIFromSettings(); };
+        if(this.dom.configDelete) this.dom.configDelete.onclick = () => { this.callbacks.onProfileDelete(); this.openSettings(); };
 
-        // Modals
         if(this.dom.closeSetupBtn) this.dom.closeSetupBtn.onclick = () => this.closeSetup();
         if(this.dom.quickSettings) this.dom.quickSettings.onclick = () => { this.closeSetup(); this.openSettings(); };
         if(this.dom.quickHelp) this.dom.quickHelp.onclick = () => { this.closeSetup(); this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); };
@@ -418,24 +323,44 @@ export class SettingsManager {
         if(this.dom.openHelpBtn) this.dom.openHelpBtn.onclick = () => this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none');
         if(this.dom.closeSettingsBtn) this.dom.closeSettingsBtn.onclick = () => { this.callbacks.onSave(); this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.add('scale-90'); };
         
-        // Tabs
-        this.dom.tabs.forEach(btn => btn.onclick = () => {
-            this.dom.tabs.forEach(b => b.classList.remove('active'));
-            this.dom.contents.forEach(c => c.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
-        });
-
-        // Calibration
         if(this.dom.openCalibBtn) this.dom.openCalibBtn.onclick = () => this.openCalibration();
         if(this.dom.closeCalibBtn) this.dom.closeCalibBtn.onclick = () => this.closeCalibration();
+        if(this.dom.calibAudioSlider) this.dom.calibAudioSlider.oninput = () => { const pct = ((this.dom.calibAudioSlider.value - (-100)) / ((-30) - (-100))) * 100; this.dom.calibAudioMarker.style.left = `${pct}%`; this.dom.calibAudioVal.innerText = this.dom.calibAudioSlider.value + 'dB'; };
+        if(this.dom.calibCamSlider) this.dom.calibCamSlider.oninput = () => { const pct = Math.min(100, this.dom.calibCamSlider.value); this.dom.calibCamMarker.style.left = `${pct}%`; this.dom.calibCamVal.innerText = this.dom.calibCamSlider.value; };
+
+        this.dom.tabs.forEach(btn => btn.onclick = () => { this.dom.tabs.forEach(b => b.classList.remove('active')); this.dom.contents.forEach(c => c.classList.remove('active')); btn.classList.add('active'); document.getElementById(`tab-${btn.dataset.tab.replace('help-','help-')}`).classList.add('active'); });
+        
+        // Share Modal Fix
+        const toggleShare = (show) => {
+            if(show) { this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.shareModal.querySelector('.share-sheet').style.transform = 'translateY(0)'; }
+            else { this.dom.shareModal.querySelector('.share-sheet').style.transform = 'translateY(100%)'; setTimeout(() => this.dom.shareModal.classList.add('opacity-0', 'pointer-events-none'), 300); }
+        };
+        if(this.dom.openShareInside) this.dom.openShareInside.onclick = () => toggleShare(true);
+        if(this.dom.closeShareBtn) this.dom.closeShareBtn.onclick = () => toggleShare(false);
+        if(this.dom.restoreBtn) this.dom.restoreBtn.onclick = () => { if(confirm("Factory Reset?")) this.callbacks.onReset(); };
+        if(this.dom.quickResizeUp) this.dom.quickResizeUp.onclick = () => { this.appSettings.globalUiScale = Math.min(200, this.appSettings.globalUiScale + 10); this.callbacks.onUpdate(); };
+        if(this.dom.quickResizeDown) this.dom.quickResizeDown.onclick = () => { this.appSettings.globalUiScale = Math.max(50, this.appSettings.globalUiScale - 10); this.callbacks.onUpdate(); };
     }
 
-    // --- HELPERS ---
+    // ... (UI Helpers)
+    populateConfigDropdown() {
+        const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; });
+        if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; }
+        if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; }
+    }
+    populateThemeDropdown() {
+        const s = this.dom.themeSelect; if (!s) return; s.innerHTML = '';
+        const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1);
+        const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2);
+        s.value = this.appSettings.activeTheme;
+    }
+    openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); }
+    openSetup() { this.populateConfigDropdown(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); }
+    closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); }
+    generatePrompt() { if(!this.dom.promptDisplay) return; const ps = this.appSettings.runtimeSettings; const txt = `Act as Game Engine. Digits: 1-${ps.currentInput==='key12'?12:9}. Mode: ${ps.currentMode}. Speak clearly.`; this.dom.promptDisplay.value = txt; }
+    
     updateUIFromSettings() {
-        const ps = this.appSettings.runtimeSettings;
-        const gs = this.appSettings;
-        this.populateConfigDropdown();
+        const ps = this.appSettings.runtimeSettings; const gs = this.appSettings;
         if(this.dom.input) this.dom.input.value = ps.currentInput;
         if(this.dom.mode) this.dom.mode.value = (ps.currentMode === 'unique_rounds') ? 'unique' : 'simon';
         if(this.dom.machines) this.dom.machines.value = ps.machineCount;
@@ -447,113 +372,12 @@ export class SettingsManager {
         if(this.dom.playbackSpeed) this.dom.playbackSpeed.value = gs.playbackSpeed.toFixed(1) || "1.0";
         if(this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
         if(this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000);
-        if(this.dom.voicePitch) this.dom.voicePitch.value = gs.voicePitch || 1.0;
-        if(this.dom.voiceRate) this.dom.voiceRate.value = gs.voiceRate || 1.0;
+        if(this.dom.voiceGender) this.dom.voiceGender.value = gs.voiceGender || 'female';
+        if(this.dom.voiceAge) this.dom.voiceAge.value = gs.voiceAge || 'adult';
+        if(this.dom.voiceAccent) this.dom.voiceAccent.value = gs.voiceAccent || 'default';
+        if(this.dom.practiceMode) this.dom.practiceMode.checked = gs.isPracticeModeEnabled;
     }
 
-    populateConfigDropdown() {
-        const createOptions = () => Object.keys(this.appSettings.profiles).map(id => {
-            const option = document.createElement('option');
-            option.value = id; option.textContent = this.appSettings.profiles[id].name;
-            return option;
-        });
-        if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; }
-        if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; }
-    }
-
-    populateThemeDropdown() {
-        const s = this.dom.themeSelect; if (!s) return; s.innerHTML = '';
-        const grp1 = document.createElement('optgroup'); grp1.label = "Built-in";
-        Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); });
-        s.appendChild(grp1);
-        const grp2 = document.createElement('optgroup'); grp2.label = "My Themes";
-        Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); });
-        s.appendChild(grp2);
-        s.value = this.appSettings.activeTheme;
-        
-        const isCustom = !!this.appSettings.customThemes[this.appSettings.activeTheme];
-        if(this.dom.themeRename) this.dom.themeRename.disabled = !isCustom;
-        if(this.dom.themeDelete) this.dom.themeDelete.disabled = !isCustom;
-        if(this.dom.openEditorBtn) { this.dom.openEditorBtn.disabled = false; this.dom.openEditorBtn.style.opacity = '1'; }
-    }
-
-    // Standard Open/Close
-    openSettings() { this.updateUIFromSettings(); this.populateThemeDropdown(); this.generatePrompt(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); }
-    openSetup() { this.populateConfigDropdown(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); }
-    closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); }
-    
-    // Calibration
-    openCalibration() {
-        if(!this.dom.calibModal || !this.sensorEngine) return;
-        this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none');
-        // Force sensors ON
-        this.wasAudioOn = this.sensorEngine.mode.audio; this.wasCamOn = this.sensorEngine.mode.camera;
-        if(!document.getElementById('hidden-video')) {
-            const v = document.createElement('video'); v.id = 'hidden-video'; v.autoplay = true; v.muted = true; v.playsInline = true; v.style.display='none';
-            const c = document.createElement('canvas'); c.id = 'hidden-canvas'; c.style.display='none';
-            document.body.append(v, c);
-            this.sensorEngine.setupDOM(v, c);
-        }
-        this.sensorEngine.toggleAudio(true); this.sensorEngine.toggleCamera(true);
-        this.sensorEngine.setCalibrationCallback((data) => {
-            const aPct = Math.max(0, Math.min(100, ((data.audio - (-100)) / ((-30) - (-100))) * 100));
-            if(this.dom.calibAudioBar) this.dom.calibAudioBar.style.width = `${aPct}%`;
-            const cPct = Math.max(0, Math.min(100, data.camera)); 
-            if(this.dom.calibCamBar) this.dom.calibCamBar.style.width = `${cPct}%`;
-        });
-        this.dom.calibAudioSlider.value = this.appSettings.sensorAudioThresh || -85;
-        this.dom.calibCamSlider.value = this.appSettings.sensorCamThresh || 30;
-        this.dom.calibModal.classList.remove('opacity-0', 'pointer-events-none');
-        this.dom.calibModal.querySelector('div').classList.remove('scale-90');
-    }
-    closeCalibration() {
-        if(!this.dom.calibModal) return;
-        this.appSettings.sensorAudioThresh = parseInt(this.dom.calibAudioSlider.value);
-        this.appSettings.sensorCamThresh = parseInt(this.dom.calibCamSlider.value);
-        this.callbacks.onSave();
-        this.sensorEngine.setSensitivity('audio', this.appSettings.sensorAudioThresh);
-        this.sensorEngine.setSensitivity('camera', this.appSettings.sensorCamThresh);
-        this.sensorEngine.setCalibrationCallback(null);
-        this.sensorEngine.toggleAudio(this.wasAudioOn);
-        this.sensorEngine.toggleCamera(this.wasCamOn);
-        this.dom.calibModal.classList.add('opacity-0', 'pointer-events-none');
-        this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none');
-    }
-
-    generatePrompt() {
-        if(!this.dom.promptDisplay) return;
-        const ps = this.appSettings.runtimeSettings;
-        const modeText = ps.currentMode === 'unique_rounds' ? 'Unique Rounds' : 'Simon Says (Accumulating)';
-        const isKey12 = ps.currentInput === 'key12';
-        const chunkSize = ps.simonChunkSize || 3;
-        const txt = `Act as the "Follow Me" Game Engine. Play verbally. Rules: 1. Digits: 1 to ${isKey12 ? 12 : 9}. 2. Mode: ${modeText}. 3. Read digits with 1s pause between chunks of ${chunkSize}. 4. Wait for my voice response. 5. If I match, say "Correct" and move to Round 1. If I fail, say "Game Over" and read correct sequence. Start Round 1.`;
-        this.dom.promptDisplay.value = txt;
-    }
-
-    // --- UTILS ---
-    hexToHsl(hex) {
-        let r=0,g=0,b=0;
-        if(hex.length===4){r="0x"+hex[1]+hex[1];g="0x"+hex[2]+hex[2];b="0x"+hex[3]+hex[3];}
-        else if(hex.length===7){r="0x"+hex[1]+hex[2];g="0x"+hex[3]+hex[4];b="0x"+hex[5]+hex[6];}
-        r/=255;g/=255;b/=255;
-        let cmin=Math.min(r,g,b),cmax=Math.max(r,g,b),delta=cmax-cmin,h=0,s=0,l=0;
-        if(delta===0)h=0;
-        else if(cmax===r)h=((g-b)/delta)%6;
-        else if(cmax===g)h=(b-r)/delta+2;
-        else h=(r-g)/delta+4;
-        h=Math.round(h*60);if(h<0)h+=360;
-        l=(cmax+cmin)/2;
-        s=delta===0?0:delta/(1-Math.abs(2*l-1));
-        s=+(s*100).toFixed(1);l=+(l*100).toFixed(1);
-        return [h,s,l];
-    }
-    hslToHex(h,s,l){
-        s/=100;l/=100;
-        let c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2,r=0,g=0,b=0;
-        if(0<=h&&h<60){r=c;g=x;b=0;}else if(60<=h&&h<120){r=x;g=c;b=0;}else if(120<=h&&h<180){r=0;g=c;b=x;}
-        else if(180<=h&&h<240){r=0;g=x;b=c;}else if(240<=h&&h<300){r=x;g=0;b=c;}else{r=c;g=0;b=x;}
-        r=Math.round((r+m)*255).toString(16);g=Math.round((g+m)*255).toString(16);b=Math.round((b+m)*255).toString(16);
-        if(r.length===1)r="0"+r;if(g.length===1)g="0"+g;if(b.length===1)b="0"+b;
-        return "#"+r+g+b;
-    }
+    hexToHsl(hex){ let r=0,g=0,b=0; if(hex.length===4){r="0x"+hex[1]+hex[1];g="0x"+hex[2]+hex[2];b="0x"+hex[3]+hex[3];} else if(hex.length===7){r="0x"+hex[1]+hex[2];g="0x"+hex[3]+hex[4];b="0x"+hex[5]+hex[6];} r/=255;g/=255;b/=255; let cmin=Math.min(r,g,b),cmax=Math.max(r,g,b),delta=cmax-cmin,h=0,s=0,l=0; if(delta===0)h=0; else if(cmax===r)h=((g-b)/delta)%6; else if(cmax===g)h=(b-r)/delta+2; else h=(r-g)/delta+4; h=Math.round(h*60);if(h<0)h+=360; l=(cmax+cmin)/2; s=delta===0?0:delta/(1-Math.abs(2*l-1)); s=+(s*100).toFixed(1);l=+(l*100).toFixed(1); return [h,s,l]; }
+    hslToHex(h,s,l){ s/=100;l/=100; let c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2,r=0,g=0,b=0; if(0<=h&&h<60){r=c;g=x;b=0;}else if(60<=h&&h<120){r=x;g=c;b=0;}else if(120<=h&&h<180){r=0;g=c;b=x;} else if(180<=h&&h<240){r=0;g=x;b=c;}else if(240<=h&&h<300){r=x;g=0;b=c;}else{r=c;g=0;b=x;} r=Math.round((r+m)*255).toString(16);g=Math.round((g+m)*255).toString(16);b=Math.round((b+m)*255).toString(16); if(r.length===1)r="0"+r;if(g.length===1)g="0"+g;if(b.length===1)b="0"+b; return "#"+r+g+b; }
 }

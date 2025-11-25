@@ -7,7 +7,7 @@ import { initComments } from './comments.js';
 const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 400, SPEED_DELETE_INTERVAL: 100, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v38', STORAGE_KEY_STATE: 'followMeAppState_v38', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' } };
+const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 400, SPEED_DELETE_INTERVAL: 100, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v39', STORAGE_KEY_STATE: 'followMeAppState_v39', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' } };
 
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 
@@ -27,7 +27,6 @@ let timers = { speedDelete: null, initialDelay: null, longPress: null };
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 let blackoutState = { isActive: false, lastShake: 0 }; 
 let isDeleting = false; 
-// PRACTICE STATE
 let practiceSequence = [];
 let practiceInputIndex = 0;
 
@@ -40,28 +39,16 @@ function loadState() { try { const s = localStorage.getItem(CONFIG.STORAGE_KEY_S
 function vibrate() { if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10); }
 function vibrateMorse(num) { if(!navigator.vibrate || !appSettings.isHapticMorseEnabled) return; const speed = appSettings.playbackSpeed || 1.0; const factor = 1.0 / speed; const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor; let pattern = []; const n = parseInt(num); if (n >= 1 && n <= 3) { for(let i=0; i<n; i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 4 && n <= 6) { pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(n-3); i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 7 && n <= 9) { pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(n-6); i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 10) { pattern.push(DASH); pattern.push(DOT); } if(pattern.length > 0) navigator.vibrate(pattern); }
 
-// --- NEW VOICE ENGINE ---
 function speak(text) { 
     if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; 
     window.speechSynthesis.cancel(); 
     const u = new SpeechSynthesisUtterance(text); 
-    
-    // Apply Sliders
     let p = appSettings.voicePitch || 1.0;
     let r = appSettings.voiceRate || 1.0;
-    
-    // Apply Gender Toggle (Female boosts pitch slightly if not overridden)
-    if(appSettings.voiceGender === 'female') {
-        p = p * 1.2; // Slight feminine shift base
-    } else {
-        p = p * 0.9; // Slight masculine shift base
-    }
-    
-    // Clamp values to browser limits
+    if(appSettings.voiceGender === 'female') p = p * 1.2; else p = p * 0.9;
     u.pitch = Math.min(2, Math.max(0.1, p));
     u.rate = Math.min(10, Math.max(0.1, r));
     u.volume = appSettings.voiceVolume || 1.0;
-    
     window.speechSynthesis.speak(u); 
 }
 
@@ -87,14 +74,12 @@ function applyTheme(themeKey) {
 
 function updateAllChrome() { applyTheme(appSettings.activeTheme); document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`; renderUI(); }
 
-// --- PRACTICE MODE START ---
 function startPracticeRound() {
     const state = getState();
     const len = state.currentRound + 2; 
     practiceSequence = [];
     const settings = getProfileSettings();
     const max = (settings.currentInput === 'key12') ? 12 : 9;
-    
     for(let i=0; i<len; i++) {
         if(settings.currentInput === 'piano') {
             const keys = ['C','D','E','F','G','A','B','1','2','3','4','5'];
@@ -112,19 +97,13 @@ function playPracticeSequence() {
     disableInput(true);
     let i = 0;
     const speed = appSettings.playbackSpeed || 1.0;
-    
     function next() {
-        if(i >= practiceSequence.length) {
-            disableInput(false);
-            return;
-        }
+        if(i >= practiceSequence.length) { disableInput(false); return; }
         const val = practiceSequence[i];
         const settings = getProfileSettings();
         const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${val}"]`);
         if(key) { key.classList.add('flash-active'); setTimeout(() => key.classList.remove('flash-active'), 250 / speed); }
-        speak(val);
-        i++;
-        setTimeout(next, 800 / speed);
+        speak(val); i++; setTimeout(next, 800 / speed);
     }
     next();
 }
@@ -134,7 +113,6 @@ function addValue(value) {
     const state = getState();
     const settings = getProfileSettings();
     
-    // PRACTICE INTERCEPT
     if(appSettings.isPracticeModeEnabled) {
         if(value == practiceSequence[practiceInputIndex]) {
             practiceInputIndex++;
@@ -239,10 +217,7 @@ window.onload = function() {
         }, modules.sensor);
 
         updateAllChrome();
-        
-        // INIT PRACTICE IF ENABLED
         if(appSettings.isPracticeModeEnabled) startPracticeRound();
-
         document.querySelectorAll('.btn-pad-number, .piano-key-white, .piano-key-black').forEach(btn => btn.addEventListener('click', (e) => addValue(e.target.dataset.value)));
         document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
             b.addEventListener('click', playDemo);

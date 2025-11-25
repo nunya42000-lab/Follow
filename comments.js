@@ -1,4 +1,3 @@
-// comments.js - Handles Firebase Comments/Feedback
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
 export function initComments(db) {
@@ -10,23 +9,28 @@ export function initComments(db) {
     const nameInput = document.getElementById('comment-username');
     const msgInput = document.getElementById('comment-message');
 
-    // --- TOGGLES ---
     const toggle = (show) => {
         if (!modal) return;
         if(show) {
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            modal.querySelector('div').classList.remove('scale-90');
+            modal.classList.remove('hidden');
+            // Small delay to allow display:block to apply before animation
+            setTimeout(() => {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.querySelector('div').classList.remove('scale-90');
+            }, 10);
         } else {
             modal.querySelector('div').classList.add('scale-90');
             modal.classList.add('opacity-0');
-            setTimeout(() => modal.classList.add('pointer-events-none'), 300);
+            setTimeout(() => {
+                modal.classList.add('pointer-events-none');
+                modal.classList.add('hidden');
+            }, 300);
         }
     };
 
     if (openBtn) openBtn.onclick = () => toggle(true);
     if (closeBtn) closeBtn.onclick = () => toggle(false);
 
-    // --- SUBMIT ---
     if (submitBtn) {
         submitBtn.onclick = async () => {
             const username = nameInput.value.trim();
@@ -50,7 +54,7 @@ export function initComments(db) {
                 submitBtn.innerText = "Sent!";
                 setTimeout(() => { 
                     submitBtn.disabled = false; 
-                    submitBtn.innerText = "Submit Feedback"; 
+                    submitBtn.innerText = "Send"; 
                 }, 2000);
             } catch (e) {
                 console.error("Error sending comment", e);
@@ -60,20 +64,19 @@ export function initComments(db) {
         };
     }
 
-    // --- LISTEN ---
     const q = query(collection(db, "comments"), orderBy("timestamp", "desc"), limit(50));
     onSnapshot(q, (snapshot) => {
         if (!listContainer) return;
         if (snapshot.empty) {
-            listContainer.innerHTML = '<p class="text-center text-gray-500">No comments yet.</p>';
+            listContainer.innerHTML = '<p class="text-center text-gray-500 text-xs">No comments yet.</p>';
             return;
         }
         listContainer.innerHTML = "";
         snapshot.forEach(doc => {
             const data = doc.data();
             const el = document.createElement('div');
-            el.className = "p-3 mb-2 rounded-lg bg-white dark:bg-gray-700 shadow-sm border border-gray-100 dark:border-gray-600";
-            el.innerHTML = `<p class="font-bold text-primary-app text-sm">${escapeHtml(data.username)}</p><p class="text-gray-800 dark:text-gray-200">${escapeHtml(data.message)}</p>`;
+            el.className = "p-3 mb-2 rounded-lg bg-black bg-opacity-20 border border-gray-700";
+            el.innerHTML = `<p class="font-bold text-primary-app text-xs">${escapeHtml(data.username)}</p><p class="text-gray-300 text-sm">${escapeHtml(data.message)}</p>`;
             listContainer.appendChild(el);
         });
     });

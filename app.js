@@ -7,8 +7,9 @@ import { initComments } from './comments.js';
 const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 400, SPEED_DELETE_INTERVAL: 100, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v36', STORAGE_KEY_STATE: 'followMeAppState_v36', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' } };
+const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 400, SPEED_DELETE_INTERVAL: 100, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v37', STORAGE_KEY_STATE: 'followMeAppState_v37', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' } };
 
+// --- PROFILES ---
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 
     'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS } }, 
@@ -148,9 +149,7 @@ function addValue(value) {
     
     // --- PRACTICE MODE INTERCEPT ---
     if(appSettings.isPracticeModeEnabled) {
-        // Check input against practiceSequence
         if(value == practiceSequence[practiceInputIndex]) {
-            // Correct
             practiceInputIndex++;
             if(practiceInputIndex >= practiceSequence.length) {
                 speak("Correct");
@@ -158,13 +157,11 @@ function addValue(value) {
                 setTimeout(startPracticeRound, 1500);
             }
         } else {
-            // Wrong
             speak("Wrong");
             navigator.vibrate(500);
-            // Restart round or same level?
             setTimeout(() => playPracticeSequence(), 1500); 
         }
-        return; // Stop normal logging
+        return;
     }
 
     // Normal Logging
@@ -210,8 +207,8 @@ function renderUI() {
     ['key9', 'key12', 'piano'].forEach(k => { const el = document.getElementById(`pad-${k}`); if(el) el.style.display = (settings.currentInput === k) ? 'block' : 'none'; });
     
     if(appSettings.isPracticeModeEnabled) {
-        container.innerHTML = '<h2 class="text-2xl font-bold text-center w-full mt-10">Practice Mode Active<br><span class="text-sm opacity-70">Listen and Repeat</span></h2>';
-        return; // Don't render logs in practice mode
+        container.innerHTML = '<h2 class="text-2xl font-bold text-center w-full mt-10" style="color:var(--text-main)">Practice Mode Active<br><span class="text-sm opacity-70">Listen and Repeat</span></h2>';
+        return; 
     }
 
     const state = getState(); const activeSeqs = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);

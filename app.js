@@ -1,11 +1,9 @@
-// --- IMPORTS ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { SensorEngine } from './sensors.js';
 import { SettingsManager } from './settings.js';
 import { initComments } from './comments.js';
 
-// --- FIREBASE INIT ---
 const firebaseConfig = {
   apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4",
   authDomain: "follow-me-app-de3e9.firebaseapp.com",
@@ -17,19 +15,29 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- CONFIG & CONSTANTS ---
 const CONFIG = {
     MAX_MACHINES: 4,
     DEMO_DELAY_BASE_MS: 798,
     SPEED_DELETE_DELAY: 400, 
     SPEED_DELETE_INTERVAL: 100,
-    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v22', 
-    STORAGE_KEY_STATE: 'followMeAppState_v22',
+    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v26',
+    STORAGE_KEY_STATE: 'followMeAppState_v26',
     INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' },
     MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' }
 };
 
-// Core Profile Data
+// --- PREMADE THEMES ---
+export const PREMADE_THEMES = {
+    'default': { name: "Default Dark", p1: "#4f46e5", p2: "#4338ca", s1: "#1f2937", s2: "#374151" },
+    'light':   { name: "Light Mode",   p1: "#4f46e5", p2: "#4338ca", s1: "#f3f4f6", s2: "#ffffff" },
+    'ocean':   { name: "Ocean Blue",   p1: "#0ea5e9", p2: "#0284c7", s1: "#0f172a", s2: "#1e293b" },
+    'matrix':  { name: "The Matrix",   p1: "#003b00", p2: "#005500", s1: "#000000", s2: "#0a0a0a" },
+    'cyber':   { name: "Cyberpunk",    p1: "#d946ef", p2: "#c026d3", s1: "#0f0b1e", s2: "#1a1625" },
+    'volcano': { name: "Volcano",      p1: "#b91c1c", p2: "#991b1b", s1: "#2b0a0a", s2: "#450a0a" },
+    'forest':  { name: "Deep Forest",  p1: "#166534", p2: "#14532d", s1: "#052e16", s2: "#064e3b" },
+    // Add up to 20 themes here following this structure
+};
+
 const DEFAULT_PROFILE_SETTINGS = {
     currentInput: CONFIG.INPUTS.KEY9,
     currentMode: CONFIG.MODES.SIMON,
@@ -42,29 +50,27 @@ const DEFAULT_PROFILE_SETTINGS = {
 const PREMADE_PROFILES = {
     'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS } },
     'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 200 }},
-    'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }},
-    'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }},
-    // UPDATED: 15 Rounds now uses KEY12 input
-    'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }}
+    'profile_3': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }},
 };
 
 const DEFAULT_APP = {
-    // Globals
     globalUiScale: 100, 
     uiScaleMultiplier: 1.0, 
     showWelcomeScreen: true,
     gestureResizeMode: 'global',
     playbackSpeed: 1.0,
     
-    // Toggles
     isAutoplayEnabled: true, 
     isUniqueRoundsAutoClearEnabled: true,
     isAudioEnabled: true,
     isHapticsEnabled: true,
     isSpeedDeletingEnabled: true,
     
-    // Feature Toggles
     activeTheme: 'default',
+    customThemes: {}, 
+    sensorAudioThresh: -85,
+    sensorCamThresh: 30,
+
     isBlackoutFeatureEnabled: false,
     isHapticMorseEnabled: false,
     showMicBtn: false,
@@ -73,12 +79,9 @@ const DEFAULT_APP = {
 
     activeProfileId: 'profile_1',
     profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)),
-    
-    // RUNTIME: This separates "Saved Profiles" from "Current State"
     runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS))
 };
 
-// --- STATE ---
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
 let modules = { sensor: null, settings: null };
@@ -86,8 +89,6 @@ let timers = { speedDelete: null, initialDelay: null, longPress: null };
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 let blackoutState = { isActive: false, lastShake: 0 }; 
 let isDeleting = false; 
-
-// --- CORE FUNCTIONS ---
 
 const getProfileSettings = () => appSettings.runtimeSettings;
 const getState = () => appState['current_session'] || (appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 });
@@ -101,21 +102,15 @@ function loadState() {
     try {
         const s = localStorage.getItem(CONFIG.STORAGE_KEY_SETTINGS);
         const st = localStorage.getItem(CONFIG.STORAGE_KEY_STATE);
-        
         if(s) {
             const loaded = JSON.parse(s);
-            appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) } };
-            // Ensure runtimeSettings exists (migration)
-            if(!appSettings.runtimeSettings) {
-                appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS));
-            }
+            appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } };
+            if(!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS));
         } else {
             appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles['profile_1'].settings));
         }
-
         if(st) appState = JSON.parse(st);
         if(!appState['current_session']) appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
-        
     } catch(e) { 
         console.error("Load failed, resetting", e); 
         appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
@@ -123,40 +118,7 @@ function loadState() {
     }
 }
 
-function vibrate() {
-    if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10);
-}
-
-// --- HAPTIC MORSE LOGIC ---
-function vibrateMorse(num) {
-    if(!navigator.vibrate || !appSettings.isHapticMorseEnabled) return;
-    
-    const speed = appSettings.playbackSpeed || 1.0;
-    const factor = 1.0 / speed; 
-    
-    const DOT = 100 * factor;
-    const DASH = 300 * factor;
-    const GAP = 100 * factor;
-    
-    let pattern = [];
-    const n = parseInt(num);
-    
-    if (n >= 1 && n <= 3) { for(let i=0; i<n; i++) { pattern.push(DOT); pattern.push(GAP); } } 
-    else if (n >= 4 && n <= 6) { pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(n-3); i++) { pattern.push(DOT); pattern.push(GAP); } } 
-    else if (n >= 7 && n <= 9) { pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(n-6); i++) { pattern.push(DOT); pattern.push(GAP); } }
-    else if (n >= 10) { pattern.push(DASH); pattern.push(DOT); }
-    
-    if(pattern.length > 0) navigator.vibrate(pattern);
-}
-
-function speak(text) {
-    if(!appSettings.isAudioEnabled || !window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = 1.2;
-    window.speechSynthesis.speak(u);
-}
-
+function vibrate() { if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10); }
 function showToast(msg) {
     const t = document.getElementById('toast-notification');
     const m = document.getElementById('toast-message');
@@ -166,249 +128,80 @@ function showToast(msg) {
     setTimeout(() => t.classList.add('opacity-0', '-translate-y-10'), 2000);
 }
 
-// --- BLACKOUT LOGIC (SHAKE) ---
-function toggleBlackout() {
-    blackoutState.isActive = !blackoutState.isActive;
-    document.body.classList.toggle('blackout-active', blackoutState.isActive);
-    if(blackoutState.isActive) {
-        if(appSettings.isAudioEnabled) speak("Stealth Active");
-        document.getElementById('blackout-layer').addEventListener('touchstart', handleBlackoutTouch, {passive: false});
-    } else {
-        document.getElementById('blackout-layer').removeEventListener('touchstart', handleBlackoutTouch);
+function applyTheme(themeKey) {
+    const body = document.body;
+    body.className = body.className.replace(/theme-\w+/g, '');
+
+    let t = appSettings.customThemes[themeKey];
+    if (!t && PREMADE_THEMES[themeKey]) t = PREMADE_THEMES[themeKey];
+    if (!t) t = PREMADE_THEMES['default'];
+
+    body.style.setProperty('--primary', t.p1);
+    body.style.setProperty('--primary-hover', t.p2);
+    body.style.setProperty('--bg-main', t.s1);
+    body.style.setProperty('--bg-modal', t.s2);
+    body.style.setProperty('--card-bg', t.s2);
+    body.style.setProperty('--bg-input', t.s2); 
+    body.style.setProperty('--border', t.s2); 
+    
+    // Contrast Check
+    const getContrastYIQ = (hex) => {
+        hex = hex.replace("#", "");
+        var r = parseInt(hex.substr(0,2),16), g = parseInt(hex.substr(2,2),16), b = parseInt(hex.substr(4,2),16);
+        return (((r*299)+(g*587)+(b*114))/1000 >= 128) ? '#111827' : '#ffffff';
     }
+    const textColor = getContrastYIQ(t.s1);
+    body.style.setProperty('--text-main', textColor);
+    body.style.setProperty('--text-muted', (textColor === '#ffffff') ? '#9ca3af' : '#4b5563');
+    body.style.setProperty('--btn-control-bg', t.s2);
 }
 
-function handleShake(e) {
-    if(!appSettings.isBlackoutFeatureEnabled) return;
-    const acc = e.acceleration;
-    if(!acc) return;
-    const magnitude = Math.hypot(acc.x, acc.y, acc.z);
-    
-    if(magnitude > 15) {
-        const now = Date.now();
-        if(now - blackoutState.lastShake > 1000) {
-            toggleBlackout();
-            vibrate();
-            blackoutState.lastShake = now;
-        }
-    }
+function updateAllChrome() {
+    applyTheme(appSettings.activeTheme);
+    document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
+    renderUI();
 }
 
-function handleBlackoutTouch(e) {
-    if(!blackoutState.isActive) return;
-    
-    e.preventDefault(); e.stopPropagation();
-    
-    const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-    const y = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-    const w = window.innerWidth, h = window.innerHeight;
-    const settings = getProfileSettings();
-    let val = null;
-
-    if(settings.currentInput === 'piano') {
-        const keys = ['C','D','E','F','G','A','B','1','2','3','4','5'];
-        const idx = Math.floor(x / (w / keys.length));
-        if(keys[idx]) val = keys[idx];
-    } else {
-        const cols = 3;
-        const rows = (settings.currentInput === 'key12') ? 4 : 3;
-        const c = Math.floor(x / (w / cols));
-        const r = Math.floor(y / (h / rows));
-        let num = (r * 3) + c + 1;
-        if(num > 0 && num <= (settings.currentInput === 'key12' ? 12 : 9)) val = num.toString();
-    }
-
-    if(val) {
-        addValue(val);
-        speak(val);
-        vibrateMorse(val);
-    }
-}
-
-// --- GESTURES & MOTION ---
-function initMotionAndGestures() {
-    const target = document.body;
-    
-    if (window.DeviceMotionEvent) {
-        window.addEventListener('devicemotion', handleShake, false);
-    }
-
-    target.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 2) {
-            gestureState.isPinching = true;
-            gestureState.startDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-            gestureState.startScale = (appSettings.gestureResizeMode === 'sequence') ? (appSettings.uiScaleMultiplier || 1.0) : (appSettings.globalUiScale || 100);
-        }
-    }, { passive: false });
-
-    target.addEventListener('touchmove', (e) => {
-        if (gestureState.isPinching && e.touches.length === 2) {
-            e.preventDefault();
-            const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-            const ratio = dist / gestureState.startDist;
-            
-            if (appSettings.gestureResizeMode === 'sequence') {
-                appSettings.uiScaleMultiplier = Math.min(Math.max(gestureState.startScale * ratio, 0.5), 2.5); 
-                renderUI(); 
-            } else {
-                appSettings.globalUiScale = Math.min(Math.max(gestureState.startScale * ratio, 50), 150); 
-                updateAllChrome();
-            }
-        }
-    }, { passive: false });
-
-    target.addEventListener('touchend', () => {
-        if(gestureState.isPinching) { gestureState.isPinching = false; saveState(); }
-    });
-}
-
-// --- GAME LOGIC ---
 function addValue(value) {
     vibrate();
     const state = getState();
     const settings = getProfileSettings();
     let targetIndex = 0;
     if (settings.currentMode === CONFIG.MODES.SIMON) targetIndex = state.nextSequenceIndex % settings.machineCount;
-    
     const limit = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? state.currentRound : settings.sequenceLength;
     if(state.sequences[targetIndex] && state.sequences[targetIndex].length >= limit) return;
-    
     if(!state.sequences[targetIndex]) state.sequences[targetIndex] = [];
     state.sequences[targetIndex].push(value);
     state.nextSequenceIndex++;
-    
-    renderUI();
-    saveState();
-    
-    if(appSettings.isAutoplayEnabled) {
-        if (settings.currentMode === CONFIG.MODES.SIMON) {
-             const justFilled = (state.nextSequenceIndex - 1) % settings.machineCount;
-             if(justFilled === settings.machineCount - 1) setTimeout(playDemo, 250);
-        } else {
-             if(state.sequences[0].length === state.currentRound) {
-                 disableInput(true);
-                 setTimeout(playDemo, 250);
-             }
-        }
-    }
+    renderUI(); saveState();
 }
 
 function handleBackspace(e) {
     if(e && isDeleting) return; 
-    
     vibrate();
     const state = getState();
     const settings = getProfileSettings();
     if(state.nextSequenceIndex === 0) return;
     let targetIndex = 0;
     if(settings.currentMode === CONFIG.MODES.SIMON) targetIndex = (state.nextSequenceIndex - 1) % settings.machineCount;
-    
     if(state.sequences[targetIndex] && state.sequences[targetIndex].length > 0) {
         state.sequences[targetIndex].pop();
         state.nextSequenceIndex--;
-        if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) disableInput(false);
-        renderUI();
-        saveState();
+        renderUI(); saveState();
     }
-}
-
-function resetRounds() {
-    const state = getState();
-    state.currentRound = 1;
-    state.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []);
-    state.nextSequenceIndex = 0;
-    disableInput(false);
-    renderUI();
-    saveState();
-    showToast("Reset to Round 1");
-}
-
-function disableInput(disabled) {
-    const pad = document.getElementById(`pad-${getProfileSettings().currentInput}`);
-    if(pad) pad.querySelectorAll('button').forEach(b => b.disabled = disabled);
-}
-
-function playDemo() {
-    const settings = getProfileSettings();
-    const state = getState();
-    const demoBtn = document.querySelector(`#pad-${settings.currentInput} button[data-action="play-demo"]`);
-    if(demoBtn && demoBtn.disabled) return;
-    
-    let playlist = [];
-    if(settings.currentMode === CONFIG.MODES.SIMON) {
-        const activeSeqs = state.sequences.slice(0, settings.machineCount);
-        const maxLen = Math.max(...activeSeqs.map(s => s.length));
-        if(maxLen === 0) return;
-        const chunkSize = (settings.machineCount > 1) ? settings.simonChunkSize : maxLen;
-        const numChunks = Math.ceil(maxLen / chunkSize);
-        for(let c=0; c<numChunks; c++) {
-            for(let m=0; m<settings.machineCount; m++) {
-                for(let k=0; k<chunkSize; k++) {
-                    const idx = (c*chunkSize) + k;
-                    if(activeSeqs[m][idx]) playlist.push({ val: activeSeqs[m][idx], machine: m });
-                }
-            }
-        }
-    } else {
-        const seq = state.sequences[0];
-        if(!seq || seq.length === 0) return;
-        playlist = seq.map(v => ({ val: v, machine: 0 }));
-    }
-    
-    disableInput(true);
-    if(demoBtn) demoBtn.disabled = true;
-    
-    let i = 0;
-    const speed = appSettings.playbackSpeed || 1;
-    const interval = CONFIG.DEMO_DELAY_BASE_MS / speed;
-    
-    function next() {
-        if(i >= playlist.length) {
-            disableInput(false);
-            if(demoBtn) { demoBtn.innerHTML = '▶'; demoBtn.disabled = false; }
-            if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.isUniqueRoundsAutoClearEnabled) {
-                state.sequences[0] = [];
-                state.nextSequenceIndex = 0;
-                state.currentRound++;
-                if(state.currentRound > settings.sequenceLength) resetRounds();
-                renderUI();
-                saveState();
-            }
-            return;
-        }
-        
-        const item = playlist[i];
-        if(demoBtn) demoBtn.innerHTML = i + 1;
-        const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${item.val}"]`);
-        const visualClass = settings.currentInput === 'piano' ? 'flash' : (settings.currentInput === 'key9' ? 'key9-flash' : 'key12-flash');
-        
-        speak(item.val);
-        vibrateMorse(item.val);
-        
-        if(key) { key.classList.add(visualClass); setTimeout(() => key.classList.remove(visualClass), 250 / speed); }
-        const seqBoxes = document.getElementById('sequence-container').children;
-        if(seqBoxes[item.machine]) {
-            seqBoxes[item.machine].classList.add('bg-accent-app', 'scale-105');
-            setTimeout(() => seqBoxes[item.machine].classList.remove('bg-accent-app', 'scale-105'), 250 / speed);
-        }
-
-        i++;
-        setTimeout(next, interval);
-    }
-    next();
 }
 
 function renderUI() {
-    const settings = getProfileSettings();
-    const state = getState();
     const container = document.getElementById('sequence-container');
+    container.innerHTML = '';
+    const settings = getProfileSettings();
     
     ['key9', 'key12', 'piano'].forEach(k => {
         const el = document.getElementById(`pad-${k}`);
         if(el) el.style.display = (settings.currentInput === k) ? 'block' : 'none';
     });
     
-    container.innerHTML = '';
+    const state = getState();
     const activeSeqs = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);
     
     if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
@@ -420,21 +213,17 @@ function renderUI() {
     
     let gridCols = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 1 : Math.min(settings.machineCount, 4);
     container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
-    const isLandscape = window.matchMedia("(orientation: landscape)").matches;
 
-    activeSeqs.forEach((seq, idx) => {
+    activeSeqs.forEach((seq) => {
         const card = document.createElement('div');
         card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)]";
         const numGrid = document.createElement('div');
-        numGrid.className = isLandscape ? "flex flex-wrap gap-2 justify-center" : "grid grid-cols-5 gap-2 justify-center";
-        
+        numGrid.className = "flex flex-wrap gap-2 justify-center";
         (seq || []).forEach(num => {
             const span = document.createElement('span');
             span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold";
             const scale = appSettings.uiScaleMultiplier || 1.0;
-            span.style.width = (40 * scale) + 'px';
-            span.style.height = (40 * scale) + 'px';
-            span.style.fontSize = (1.2 * scale) + 'rem';
+            span.style.width = (40 * scale) + 'px'; span.style.height = (40 * scale) + 'px'; span.style.fontSize = (1.2 * scale) + 'rem';
             span.textContent = num;
             numGrid.appendChild(span);
         });
@@ -442,7 +231,6 @@ function renderUI() {
         container.appendChild(card);
     });
 
-    // Auto Inputs
     document.querySelectorAll('#mic-master-btn').forEach(btn => {
         btn.classList.toggle('hidden', !appSettings.showMicBtn);
         btn.classList.toggle('master-active', modules.sensor && modules.sensor.mode.audio);
@@ -456,97 +244,46 @@ function renderUI() {
     });
 }
 
-function updateAllChrome() {
-    document.body.className = document.body.className.replace(/theme-\w+/g, '');
-    if(appSettings.activeTheme !== 'default') document.body.classList.add(appSettings.activeTheme);
-    document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
-    renderUI();
-}
-
 window.onload = function() {
-    try {
-        loadState();
-        initComments(db);
-        initMotionAndGestures(); 
+    loadState();
+    initComments(db);
+    
+    modules.sensor = new SensorEngine((val) => addValue(val), (msg) => showToast(msg));
+    if (appSettings.sensorAudioThresh) modules.sensor.setSensitivity('audio', appSettings.sensorAudioThresh);
+    if (appSettings.sensorCamThresh) modules.sensor.setSensitivity('camera', appSettings.sensorCamThresh);
+
+    modules.settings = new SettingsManager(appSettings, {
+        onUpdate: () => { updateAllChrome(); saveState(); },
+        onSave: () => saveState(),
+        onReset: () => { localStorage.clear(); location.reload(); },
+        onProfileSwitch: (id) => {
+            appSettings.activeProfileId = id;
+            appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings));
+            appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
+            updateAllChrome(); saveState();
+        },
+    }, modules.sensor); // Pass Sensor Engine here
+
+    updateAllChrome();
+    
+    document.querySelectorAll('.btn-pad-number, .piano-key-white, .piano-key-black').forEach(btn => btn.addEventListener('click', (e) => addValue(e.target.dataset.value)));
+    
+    document.querySelectorAll('button[data-action="backspace"]').forEach(b => {
+        b.addEventListener('click', handleBackspace); 
+        const startDelete = (e) => { 
+            isDeleting = false; 
+            timers.initialDelay = setTimeout(() => { isDeleting = true; timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL); }, CONFIG.SPEED_DELETE_DELAY); 
+        };
+        const stopDelete = () => { clearTimeout(timers.initialDelay); clearInterval(timers.speedDelete); setTimeout(() => isDeleting = false, 50); };
         
-        modules.sensor = new SensorEngine((val, src) => addValue(val), (msg) => showToast(msg));
-        modules.sensor.setSensitivity('audio', -85); modules.sensor.setSensitivity('camera', 50);
+        b.addEventListener('mousedown', startDelete); 
+        b.addEventListener('touchstart', startDelete, { passive: true });
+        // Interruptions
+        b.addEventListener('mouseup', stopDelete); 
+        b.addEventListener('mouseleave', stopDelete); 
+        b.addEventListener('touchend', stopDelete);
+        b.addEventListener('touchcancel', stopDelete); // Crucial fix for stuck button
+    });
 
-        modules.settings = new SettingsManager(appSettings, {
-            onUpdate: () => { updateAllChrome(); saveState(); },
-            onSave: () => saveState(),
-            onReset: () => { localStorage.clear(); location.reload(); },
-            
-            // PROFILE SWITCH: Now clones the profile into runtimeSettings
-            onProfileSwitch: (id) => {
-                appSettings.activeProfileId = id;
-                appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings));
-                appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
-                updateAllChrome(); saveState();
-            },
-            
-            // SAVE PROFILE
-            onProfileAdd: (name, settings = null, id = null) => {
-                const newId = id || 'p_' + Date.now();
-                const source = settings || appSettings.runtimeSettings;
-                appSettings.profiles[newId] = { name, settings: JSON.parse(JSON.stringify(source)) };
-                appSettings.activeProfileId = newId;
-                updateAllChrome(); saveState();
-            },
-            
-            onProfileRename: (name) => { appSettings.profiles[appSettings.activeProfileId].name = name; saveState(); },
-            onProfileDelete: () => {
-                if(Object.keys(appSettings.profiles).length <= 1) return alert("Keep at least one profile.");
-                delete appSettings.profiles[appSettings.activeProfileId];
-                appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
-                appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings));
-                updateAllChrome(); saveState();
-            }
-        });
-
-        updateAllChrome();
-
-        document.querySelectorAll('.btn-pad-number, .piano-key-white, .piano-key-black').forEach(btn => btn.addEventListener('click', (e) => addValue(e.target.dataset.value)));
-        
-        document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
-            b.addEventListener('click', playDemo);
-            const startLongPress = () => { timers.longPress = setTimeout(() => { appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled; showToast(`Autoplay: ${appSettings.isAutoplayEnabled?'ON':'OFF'}`); saveState(); vibrate(); }, 500); };
-            const cancelLong = () => clearTimeout(timers.longPress);
-            b.addEventListener('mousedown', startLongPress); b.addEventListener('touchstart', startLongPress, { passive: true });
-            b.addEventListener('mouseup', cancelLong); b.addEventListener('mouseleave', cancelLong); b.addEventListener('touchend', cancelLong);
-        });
-
-        document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => b.addEventListener('click', () => { if(confirm("Reset to Round 1?")) resetRounds(); }));
-        
-        document.querySelectorAll('button[data-action="backspace"]').forEach(b => {
-            b.addEventListener('click', handleBackspace); 
-            const startDelete = (e) => { 
-                isDeleting = false; 
-                timers.initialDelay = setTimeout(() => { isDeleting = true; timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL); }, CONFIG.SPEED_DELETE_DELAY); 
-            };
-            const stopDelete = () => { clearTimeout(timers.initialDelay); clearInterval(timers.speedDelete); setTimeout(() => isDeleting = false, 50); };
-            b.addEventListener('mousedown', startDelete); b.addEventListener('touchstart', startDelete, { passive: true });
-            b.addEventListener('mouseup', stopDelete); b.addEventListener('mouseleave', stopDelete); b.addEventListener('touchend', stopDelete);
-        });
-        
-        document.querySelectorAll('button[data-action="open-share"]').forEach(b => b.addEventListener('click', () => modules.settings.openShare()));
-        document.querySelectorAll('button[data-action="open-settings"]').forEach(b => b.onclick = () => modules.settings.openSettings());
-
-        document.addEventListener('click', (e) => {
-            if(e.target.closest('#camera-master-btn')) {
-                const on = !modules.sensor.mode.camera;
-                if(!document.getElementById('hidden-video')) {
-                    const v = document.createElement('video'); v.id = 'hidden-video'; v.autoplay = true; v.muted = true; v.playsInline = true; v.style.display='none';
-                    const c = document.createElement('canvas'); c.id = 'hidden-canvas'; c.style.display='none';
-                    document.body.append(v, c);
-                    modules.sensor.setupDOM(v, c);
-                }
-                modules.sensor.toggleCamera(on); renderUI();
-            }
-            if(e.target.closest('#mic-master-btn')) { const on = !modules.sensor.mode.audio; modules.sensor.toggleAudio(on); renderUI(); }
-        });
-
-        if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
-
-    } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }
+    document.querySelectorAll('button[data-action="open-settings"]').forEach(b => b.onclick = () => modules.settings.openSettings());
 };

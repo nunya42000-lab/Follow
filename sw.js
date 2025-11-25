@@ -1,7 +1,5 @@
-// --- CACHE VERSION ---
-const CACHE_NAME = 'follow-me-v27-fix-crash'; 
-// --- ---------------- ---
-
+const CACHE_NAME = 'follow-me-v30-full-restore'; 
+// ... (Rest of file same as before) ...
 const FILES_TO_CACHE = [
     './', 
     './index.html',
@@ -24,12 +22,10 @@ self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
-                console.log('Service Worker: Caching new update (v25)...');
+                console.log('Service Worker: Caching full set v30...');
                 return cache.addAll(FILES_TO_CACHE);
             })
-            .catch(err => {
-                console.warn('Service Worker: Cache error', err);
-            })
+            .catch(err => console.warn('Service Worker: Cache error', err))
     );
 });
 
@@ -46,30 +42,22 @@ self.addEventListener('activate', event => {
             );
         })
     );
-    // Ensure the new service worker takes control immediately
     return self.clients.claim();
 });
 
 self.addEventListener('fetch', event => {
     if (event.request.method !== 'GET') return;
-    
     event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                if (response) return response;
-                return fetch(event.request)
-                    .then(networkResponse => {
-                        // Don't cache Firestore API calls
-                        if (event.request.url.includes('firestore.googleapis.com')) return networkResponse;
-                        
-                        // Cache other successful GET requests dynamically
-                        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-                            const responseToCache = networkResponse.clone();
-                            caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
-                        }
-                        return networkResponse;
-                    })
-                    .catch(() => console.log("Offline and file not cached."));
-            })
+        caches.match(event.request).then(response => {
+            if (response) return response;
+            return fetch(event.request).then(networkResponse => {
+                if (event.request.url.includes('firestore.googleapis.com')) return networkResponse;
+                if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+                    const responseToCache = networkResponse.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
+                }
+                return networkResponse;
+            }).catch(() => console.log("Offline."));
+        })
     );
 });

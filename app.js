@@ -7,7 +7,7 @@ import { initComments } from './comments.js';
 const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 400, SPEED_DELETE_INTERVAL: 100, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v41', STORAGE_KEY_STATE: 'followMeAppState_v41', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' } };
+const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 400, SPEED_DELETE_INTERVAL: 100, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v44', STORAGE_KEY_STATE: 'followMeAppState_v44', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' } };
 
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 
@@ -43,21 +43,12 @@ function speak(text) {
     if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; 
     window.speechSynthesis.cancel(); 
     const u = new SpeechSynthesisUtterance(text); 
-    
     let p = appSettings.voicePitch || 1.0;
     let r = appSettings.voiceRate || 1.0;
-    
-    // Apply Gender Toggle 
-    if(appSettings.voiceGender === 'female') {
-        p = p * 1.2; 
-    } else {
-        p = p * 0.9; 
-    }
-    
+    if(appSettings.voiceGender === 'female') p = p * 1.2; else p = p * 0.9;
     u.pitch = Math.min(2, Math.max(0.1, p));
     u.rate = Math.min(10, Math.max(0.1, r));
     u.volume = appSettings.voiceVolume || 1.0;
-    
     window.speechSynthesis.speak(u); 
 }
 

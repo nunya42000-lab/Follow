@@ -1,5 +1,5 @@
 // --- CACHE VERSION ---
-const CACHE_NAME = 'follow-me-v26-fix-crash'; 
+const CACHE_NAME = 'follow-me-v27-fix-crash'; 
 // --- ---------------- ---
 
 const FILES_TO_CACHE = [

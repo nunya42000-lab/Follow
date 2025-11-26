@@ -9,13 +9,13 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 400, SPEED_DELETE_INTERVAL: 100, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v40', STORAGE_KEY_STATE: 'followMeAppState_v40', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' } };
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
-const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS } }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 200 }}, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }}, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }}, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }}};
-const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voiceGender: 'female', voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0 };
+const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 200 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
+const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null };
 
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
 let modules = { sensor: null, settings: null };
-let timers = { speedDelete: null, initialDelay: null, longPress: null, stealth: null };
+let timers = { speedDelete: null, initialDelay: null, longPress: null, stealth: null, stealthAction: null };
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 let blackoutState = { isActive: false, lastShake: 0 }; 
 let isDeleting = false; 
@@ -29,7 +29,7 @@ function saveState() { localStorage.setItem(CONFIG.STORAGE_KEY_SETTINGS, JSON.st
 function loadState() { try { const s = localStorage.getItem(CONFIG.STORAGE_KEY_SETTINGS); const st = localStorage.getItem(CONFIG.STORAGE_KEY_STATE); if(s) { const loaded = JSON.parse(s); appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } }; if(!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS)); } else { appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles['profile_1'].settings)); } if(st) appState = JSON.parse(st); if(!appState['current_session']) appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 }; } catch(e) { console.error("Load failed", e); appSettings = JSON.parse(JSON.stringify(DEFAULT_APP)); saveState(); } }
 function vibrate() { if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10); }
 function vibrateMorse(num) { if(!navigator.vibrate || !appSettings.isHapticMorseEnabled) return; const speed = appSettings.playbackSpeed || 1.0; const factor = 1.0 / speed; const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor; let pattern = []; const n = parseInt(num); if (n >= 1 && n <= 3) { for(let i=0; i<n; i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 4 && n <= 6) { pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(n-3); i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 7 && n <= 9) { pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(n-6); i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 10) { pattern.push(DASH); pattern.push(DOT); } if(pattern.length > 0) navigator.vibrate(pattern); }
-function speak(text) { if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); let p = appSettings.voicePitch || 1.0; let r = appSettings.voiceRate || 1.0; if(appSettings.voiceGender === 'female') p = p * 1.2; else p = p * 0.9; u.pitch = Math.min(2, Math.max(0.1, p)); u.rate = Math.min(10, Math.max(0.1, r)); u.volume = appSettings.voiceVolume || 1.0; window.speechSynthesis.speak(u); }
+function speak(text) { if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); if(appSettings.selectedVoice){const v=window.speechSynthesis.getVoices().find(voice=>voice.name===appSettings.selectedVoice);if(v)u.voice=v;} let p = appSettings.voicePitch || 1.0; let r = appSettings.voiceRate || 1.0; u.pitch = Math.min(2, Math.max(0.1, p)); u.rate = Math.min(10, Math.max(0.1, r)); u.volume = appSettings.voiceVolume || 1.0; window.speechSynthesis.speak(u); }
 function showToast(msg) { const t = document.getElementById('toast-notification'); const m = document.getElementById('toast-message'); if(!t || !m) return; m.textContent = msg; t.classList.remove('opacity-0', '-translate-y-10'); setTimeout(() => t.classList.add('opacity-0', '-translate-y-10'), 2000); }
 function applyTheme(themeKey) { const body = document.body; body.className = body.className.replace(/theme-\w+/g, ''); let t = appSettings.customThemes[themeKey]; if (!t && PREMADE_THEMES[themeKey]) t = PREMADE_THEMES[themeKey]; if (!t) t = PREMADE_THEMES['default']; body.style.setProperty('--primary', t.bubble); body.style.setProperty('--bg-main', t.bgMain); body.style.setProperty('--bg-modal', t.bgCard); body.style.setProperty('--card-bg', t.bgCard); body.style.setProperty('--seq-bubble', t.bubble); body.style.setProperty('--btn-bg', t.btn); body.style.setProperty('--bg-input', t.bgMain); body.style.setProperty('--text-main', t.text); const isDark = parseInt(t.bgCard.replace('#',''), 16) < 0xffffff / 2; body.style.setProperty('--border', isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'); }
 function updateAllChrome() { applyTheme(appSettings.activeTheme); document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`; renderUI(); }
@@ -104,7 +104,7 @@ function toggleBlackout() { blackoutState.isActive = !blackoutState.isActive; do
 function handleShake(e) { if(!appSettings.isBlackoutFeatureEnabled) return; const acc = e.acceleration; if(!acc) return; if(Math.hypot(acc.x, acc.y, acc.z) > 15) { const now = Date.now(); if(now - blackoutState.lastShake > 1000) { toggleBlackout(); vibrate(); blackoutState.lastShake = now; } } }
 function handleBlackoutTouch(e) { if(!blackoutState.isActive) return; e.preventDefault(); e.stopPropagation(); const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX; const y = e.changedTouches ? e.changedTouches[0].clientY : e.clientY; const w = window.innerWidth, h = window.innerHeight; const settings = getProfileSettings(); let val = null; if(settings.currentInput === 'piano') { const keys = ['C','D','E','F','G','A','B','1','2','3','4','5']; const idx = Math.floor(x / (w / keys.length)); if(keys[idx]) val = keys[idx]; } else { const c = Math.floor(x / (w/3)); const r = Math.floor(y / (h/ (settings.currentInput==='key12'?4:3))); let num = (r * 3) + c + 1; if(num > 0 && num <= (settings.currentInput==='key12'?12:9)) val = num.toString(); } if(val) { addValue(val); speak(val); vibrateMorse(val); } }
 
-// New Logic for "1" Key Stealth Toggle
+// Stealth Logic: Toggle Controls
 function handle1KeyStart() {
     if(!appSettings.isStealth1KeyEnabled) return;
     ignoreNextClick = false;
@@ -114,37 +114,90 @@ function handle1KeyStart() {
         vibrate();
     }, 1000); 
 }
-function handle1KeyEnd() {
-    if(timers.stealth) clearTimeout(timers.stealth);
+function handle1KeyEnd() { if(timers.stealth) clearTimeout(timers.stealth); }
+
+// Stealth Logic: Action Buttons (7, 8, 9)
+function handleStealthActionStart(action) {
+    if(!document.body.classList.contains('hide-controls')) return;
+    ignoreNextClick = false;
+    timers.stealthAction = setTimeout(() => {
+        ignoreNextClick = true;
+        vibrate();
+        if(action === 'play') playDemo();
+        if(action === 'backspace') handleBackspace();
+        if(action === 'delete') {
+             const settings = getProfileSettings();
+             // Speed Delete simulation: rapidly remove all
+             const targetIndex = settings.currentMode === CONFIG.MODES.SIMON ? (getState().nextSequenceIndex - 1) % settings.machineCount : 0;
+             getState().sequences[targetIndex] = [];
+             getState().nextSequenceIndex = 0;
+             renderUI(); saveState();
+        }
+    }, 800); 
 }
+function handleStealthActionEnd() { if(timers.stealthAction) clearTimeout(timers.stealthAction); }
 
 window.onload = function() {
     try {
         loadState(); initComments(db); if (window.DeviceMotionEvent) window.addEventListener('devicemotion', handleShake, false); const target = document.body;
-        target.addEventListener('touchstart', (e) => { if(modules.sensor && modules.sensor.audioCtx && modules.sensor.audioCtx.state === 'suspended') modules.sensor.audioCtx.resume(); if (e.touches.length === 2) { gestureState.isPinching = true; gestureState.startDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); gestureState.startScale = (appSettings.gestureResizeMode === 'sequence') ? (appSettings.uiScaleMultiplier || 1.0) : (appSettings.globalUiScale || 100); } }, { passive: false });
-        target.addEventListener('touchmove', (e) => { if (gestureState.isPinching && e.touches.length === 2) { e.preventDefault(); const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); const ratio = dist / gestureState.startDist; if (appSettings.gestureResizeMode === 'sequence') { appSettings.uiScaleMultiplier = Math.min(Math.max(gestureState.startScale * ratio, 0.5), 2.5); renderUI(); } else { appSettings.globalUiScale = Math.min(Math.max(gestureState.startScale * ratio, 50), 150); updateAllChrome(); } } }, { passive: false });
+        target.addEventListener('touchstart', (e) => { if(modules.sensor && modules.sensor.audioCtx && modules.sensor.audioCtx.state === 'suspended') modules.sensor.audioCtx.resume(); 
+            if (e.touches.length === 2) { gestureState.isPinching = true; gestureState.startDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); gestureState.startScale = (appSettings.gestureResizeMode === 'sequence') ? (appSettings.uiScaleMultiplier || 1.0) : (appSettings.globalUiScale || 100); } }, { passive: false });
+        target.addEventListener('touchmove', (e) => { 
+            if (gestureState.isPinching && e.touches.length === 2) { 
+                e.preventDefault(); const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); const ratio = dist / gestureState.startDist; 
+                let newScale = gestureState.startScale * ratio;
+                // Snap to 10% increments (0.1 for multiplier, 10 for percentage)
+                if (appSettings.gestureResizeMode === 'sequence') { 
+                    newScale = Math.round(newScale * 10) / 10; 
+                    appSettings.uiScaleMultiplier = Math.min(Math.max(newScale, 0.5), 2.0); renderUI(); 
+                } else { 
+                    newScale = Math.round(newScale / 10) * 10;
+                    appSettings.globalUiScale = Math.min(Math.max(newScale, 50), 200); updateAllChrome(); 
+                } 
+            } 
+        }, { passive: false });
         target.addEventListener('touchend', () => { if(gestureState.isPinching) { gestureState.isPinching = false; saveState(); } });
 
         modules.sensor = new SensorEngine((val) => addValue(val), (msg) => showToast(msg)); if (appSettings.sensorAudioThresh) modules.sensor.setSensitivity('audio', appSettings.sensorAudioThresh); if (appSettings.sensorCamThresh) modules.sensor.setSensitivity('camera', appSettings.sensorCamThresh);
         modules.settings = new SettingsManager(appSettings, {
             onUpdate: () => { updateAllChrome(); saveState(); if(appSettings.isPracticeModeEnabled && practiceSequence.length === 0) { appState['current_session'].currentRound = 1; practiceSequence = []; startPracticeRound(); } },
             onSave: () => saveState(), onReset: () => { localStorage.clear(); location.reload(); },
-            onProfileSwitch: (id) => { appSettings.activeProfileId = id; appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings)); appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 }; practiceSequence = []; updateAllChrome(); saveState(); },
-            onProfileAdd: (name) => { const id = 'p_' + Date.now(); appSettings.profiles[id] = { name, settings: JSON.parse(JSON.stringify(appSettings.runtimeSettings)) }; appSettings.activeProfileId = id; updateAllChrome(); saveState(); },
+            onProfileSwitch: (id) => { appSettings.activeProfileId = id; appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings)); if(appSettings.profiles[id].theme) appSettings.activeTheme = appSettings.profiles[id].theme; appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 }; practiceSequence = []; updateAllChrome(); saveState(); },
+            onProfileAdd: (name) => { const id = 'p_' + Date.now(); appSettings.profiles[id] = { name, settings: JSON.parse(JSON.stringify(appSettings.runtimeSettings)), theme: appSettings.activeTheme }; appSettings.activeProfileId = id; updateAllChrome(); saveState(); },
             onProfileRename: (name) => { appSettings.profiles[appSettings.activeProfileId].name = name; saveState(); },
-            onProfileDelete: () => { delete appSettings.profiles[appSettings.activeProfileId]; appSettings.activeProfileId = Object.keys(appSettings.profiles)[0]; appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings)); updateAllChrome(); saveState(); },
-            onProfileSave: () => { appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings)); saveState(); showToast("Profile Saved 💾"); }
+            onProfileDelete: () => { delete appSettings.profiles[appSettings.activeProfileId]; appSettings.activeProfileId = Object.keys(appSettings.profiles)[0]; appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings)); if(appSettings.profiles[appSettings.activeProfileId].theme) appSettings.activeTheme = appSettings.profiles[appSettings.activeProfileId].theme; updateAllChrome(); saveState(); },
+            onProfileSave: () => { 
+                appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings)); 
+                appSettings.profiles[appSettings.activeProfileId].theme = appSettings.activeTheme;
+                saveState(); 
+                showToast("Profile & Theme Saved 💾"); 
+            }
         }, modules.sensor);
         updateAllChrome(); if(appSettings.isPracticeModeEnabled) setTimeout(startPracticeRound, 500);
 
         document.querySelectorAll('.btn-pad-number, .piano-key-white, .piano-key-black').forEach(btn => {
-            // Add special handler for "1" key long press
+            // "1" Key Handler (Stealth Toggle)
             if(btn.dataset.value === '1') {
                 btn.addEventListener('mousedown', handle1KeyStart); btn.addEventListener('touchstart', handle1KeyStart, {passive: true});
                 btn.addEventListener('mouseup', handle1KeyEnd); btn.addEventListener('touchend', handle1KeyEnd); btn.addEventListener('mouseleave', handle1KeyEnd);
             }
+            // Stealth Action Handlers (7, 8, 9 / C, D, E) - ONLY when hidden
+            const val = btn.dataset.value;
+            if(val === '7' || val === 'C') {
+                btn.addEventListener('mousedown', () => handleStealthActionStart('play')); btn.addEventListener('touchstart', () => handleStealthActionStart('play'), {passive: true});
+                btn.addEventListener('mouseup', handleStealthActionEnd); btn.addEventListener('touchend', handleStealthActionEnd); btn.addEventListener('mouseleave', handleStealthActionEnd);
+            }
+            if(val === '8' || val === 'D') {
+                btn.addEventListener('mousedown', () => handleStealthActionStart('backspace')); btn.addEventListener('touchstart', () => handleStealthActionStart('backspace'), {passive: true});
+                btn.addEventListener('mouseup', handleStealthActionEnd); btn.addEventListener('touchend', handleStealthActionEnd); btn.addEventListener('mouseleave', handleStealthActionEnd);
+            }
+            if(val === '9' || val === 'E') {
+                btn.addEventListener('mousedown', () => handleStealthActionStart('delete')); btn.addEventListener('touchstart', () => handleStealthActionStart('delete'), {passive: true});
+                btn.addEventListener('mouseup', handleStealthActionEnd); btn.addEventListener('touchend', handleStealthActionEnd); btn.addEventListener('mouseleave', handleStealthActionEnd);
+            }
+
             btn.addEventListener('click', (e) => {
-                if(btn.dataset.value === '1' && ignoreNextClick) { ignoreNextClick = false; return; }
+                if((val === '1' || val === '7' || val === '8' || val === '9' || val === 'C' || val === 'D' || val === 'E') && ignoreNextClick) { ignoreNextClick = false; return; }
                 addValue(e.target.dataset.value);
             });
         });

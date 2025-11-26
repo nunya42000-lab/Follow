@@ -10,17 +10,18 @@ const db = getFirestore(app);
 const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 400, SPEED_DELETE_INTERVAL: 100, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v40', STORAGE_KEY_STATE: 'followMeAppState_v40', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' } };
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS } }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 200 }}, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }}, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }}, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }}};
-const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voiceGender: 'female', voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0 };
+const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voiceGender: 'female', voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0 };
 
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
 let modules = { sensor: null, settings: null };
-let timers = { speedDelete: null, initialDelay: null, longPress: null };
+let timers = { speedDelete: null, initialDelay: null, longPress: null, stealth: null };
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 let blackoutState = { isActive: false, lastShake: 0 }; 
 let isDeleting = false; 
 let practiceSequence = [];
 let practiceInputIndex = 0;
+let ignoreNextClick = false;
 
 const getProfileSettings = () => appSettings.runtimeSettings;
 const getState = () => appState['current_session'] || (appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 });
@@ -91,14 +92,7 @@ function renderUI() {
     activeSeqs.forEach((seq) => { 
         const card = document.createElement('div'); card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)]"; 
         const numGrid = document.createElement('div'); 
-        
-        // Layout Logic: 2+ Machines = Grid 4. 1 Machine = Flex Wrap (Landscape friendly).
-        if (settings.machineCount > 1) {
-            numGrid.className = "grid grid-cols-4 gap-2 justify-items-center";
-        } else {
-            numGrid.className = "flex flex-wrap gap-2 justify-center";
-        }
-
+        if (settings.machineCount > 1) { numGrid.className = "grid grid-cols-4 gap-2 justify-items-center"; } else { numGrid.className = "flex flex-wrap gap-2 justify-center"; }
         (seq || []).forEach(num => { const span = document.createElement('span'); span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold"; const scale = appSettings.uiScaleMultiplier || 1.0; span.style.width = (40 * scale) + 'px'; span.style.height = (40 * scale) + 'px'; span.style.fontSize = (1.2 * scale) + 'rem'; span.textContent = num; numGrid.appendChild(span); }); 
         card.appendChild(numGrid); container.appendChild(card); 
     });
@@ -109,6 +103,20 @@ function renderUI() {
 function toggleBlackout() { blackoutState.isActive = !blackoutState.isActive; document.body.classList.toggle('blackout-active', blackoutState.isActive); if(blackoutState.isActive) { if(appSettings.isAudioEnabled) speak("Stealth Active"); document.getElementById('blackout-layer').addEventListener('touchstart', handleBlackoutTouch, {passive: false}); } else { document.getElementById('blackout-layer').removeEventListener('touchstart', handleBlackoutTouch); } }
 function handleShake(e) { if(!appSettings.isBlackoutFeatureEnabled) return; const acc = e.acceleration; if(!acc) return; if(Math.hypot(acc.x, acc.y, acc.z) > 15) { const now = Date.now(); if(now - blackoutState.lastShake > 1000) { toggleBlackout(); vibrate(); blackoutState.lastShake = now; } } }
 function handleBlackoutTouch(e) { if(!blackoutState.isActive) return; e.preventDefault(); e.stopPropagation(); const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX; const y = e.changedTouches ? e.changedTouches[0].clientY : e.clientY; const w = window.innerWidth, h = window.innerHeight; const settings = getProfileSettings(); let val = null; if(settings.currentInput === 'piano') { const keys = ['C','D','E','F','G','A','B','1','2','3','4','5']; const idx = Math.floor(x / (w / keys.length)); if(keys[idx]) val = keys[idx]; } else { const c = Math.floor(x / (w/3)); const r = Math.floor(y / (h/ (settings.currentInput==='key12'?4:3))); let num = (r * 3) + c + 1; if(num > 0 && num <= (settings.currentInput==='key12'?12:9)) val = num.toString(); } if(val) { addValue(val); speak(val); vibrateMorse(val); } }
+
+// New Logic for "1" Key Stealth Toggle
+function handle1KeyStart() {
+    if(!appSettings.isStealth1KeyEnabled) return;
+    ignoreNextClick = false;
+    timers.stealth = setTimeout(() => {
+        ignoreNextClick = true;
+        document.body.classList.toggle('hide-controls');
+        vibrate();
+    }, 1000); 
+}
+function handle1KeyEnd() {
+    if(timers.stealth) clearTimeout(timers.stealth);
+}
 
 window.onload = function() {
     try {
@@ -125,15 +133,21 @@ window.onload = function() {
             onProfileAdd: (name) => { const id = 'p_' + Date.now(); appSettings.profiles[id] = { name, settings: JSON.parse(JSON.stringify(appSettings.runtimeSettings)) }; appSettings.activeProfileId = id; updateAllChrome(); saveState(); },
             onProfileRename: (name) => { appSettings.profiles[appSettings.activeProfileId].name = name; saveState(); },
             onProfileDelete: () => { delete appSettings.profiles[appSettings.activeProfileId]; appSettings.activeProfileId = Object.keys(appSettings.profiles)[0]; appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings)); updateAllChrome(); saveState(); },
-            onProfileSave: () => { 
-                appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings)); 
-                saveState(); 
-                showToast("Profile Saved 💾"); 
-            }
+            onProfileSave: () => { appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings)); saveState(); showToast("Profile Saved 💾"); }
         }, modules.sensor);
         updateAllChrome(); if(appSettings.isPracticeModeEnabled) setTimeout(startPracticeRound, 500);
 
-        document.querySelectorAll('.btn-pad-number, .piano-key-white, .piano-key-black').forEach(btn => btn.addEventListener('click', (e) => addValue(e.target.dataset.value)));
+        document.querySelectorAll('.btn-pad-number, .piano-key-white, .piano-key-black').forEach(btn => {
+            // Add special handler for "1" key long press
+            if(btn.dataset.value === '1') {
+                btn.addEventListener('mousedown', handle1KeyStart); btn.addEventListener('touchstart', handle1KeyStart, {passive: true});
+                btn.addEventListener('mouseup', handle1KeyEnd); btn.addEventListener('touchend', handle1KeyEnd); btn.addEventListener('mouseleave', handle1KeyEnd);
+            }
+            btn.addEventListener('click', (e) => {
+                if(btn.dataset.value === '1' && ignoreNextClick) { ignoreNextClick = false; return; }
+                addValue(e.target.dataset.value);
+            });
+        });
         document.querySelectorAll('button[data-action="play-demo"]').forEach(b => { b.addEventListener('click', playDemo); const startLongPress = () => { timers.longPress = setTimeout(() => { appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled; showToast(`Autoplay: ${appSettings.isAutoplayEnabled?'ON':'OFF'}`); saveState(); vibrate(); }, 500); }; const cancelLong = () => clearTimeout(timers.longPress); b.addEventListener('mousedown', startLongPress); b.addEventListener('touchstart', startLongPress, { passive: true }); b.addEventListener('mouseup', cancelLong); b.addEventListener('mouseleave', cancelLong); b.addEventListener('touchend', cancelLong); });
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => b.addEventListener('click', () => { if(confirm("Reset to Round 1?")) resetRounds(); }));
         document.querySelectorAll('button[data-action="backspace"]').forEach(b => { b.addEventListener('click', handleBackspace); const startDelete = (e) => { isDeleting = false; timers.initialDelay = setTimeout(() => { isDeleting = true; timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL); }, CONFIG.SPEED_DELETE_DELAY); }; const stopDelete = () => { clearTimeout(timers.initialDelay); clearInterval(timers.speedDelete); setTimeout(() => isDeleting = false, 50); }; b.addEventListener('mousedown', startDelete); b.addEventListener('touchstart', startDelete, { passive: true }); b.addEventListener('mouseup', stopDelete); b.addEventListener('mouseleave', stopDelete); b.addEventListener('touchend', stopDelete); b.addEventListener('touchcancel', stopDelete); });

@@ -1,0 +1,212 @@
+// app.js
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+import { SensorEngine } from './sensors.js';
+import { SettingsManager, PREMADE_THEMES } from './settings.js';
+import { initComments } from './comments.js';
+
+const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 400, SPEED_DELETE_INTERVAL: 100, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v40', STORAGE_KEY_STATE: 'followMeAppState_v40', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique_rounds' } };
+const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
+const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 200 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
+const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null };
+
+let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
+let appState = {};
+let modules = { sensor: null, settings: null };
+let timers = { speedDelete: null, initialDelay: null, longPress: null, stealth: null, stealthAction: null };
+let gestureState = { startDist: 0, startScale: 1, isPinching: false };
+let blackoutState = { isActive: false, lastShake: 0 }; 
+let isDeleting = false; 
+let practiceSequence = [];
+let practiceInputIndex = 0;
+let ignoreNextClick = false;
+
+const getProfileSettings = () => appSettings.runtimeSettings;
+const getState = () => appState['current_session'] || (appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 });
+function saveState() { localStorage.setItem(CONFIG.STORAGE_KEY_SETTINGS, JSON.stringify(appSettings)); localStorage.setItem(CONFIG.STORAGE_KEY_STATE, JSON.stringify(appState)); }
+function loadState() { try { const s = localStorage.getItem(CONFIG.STORAGE_KEY_SETTINGS); const st = localStorage.getItem(CONFIG.STORAGE_KEY_STATE); if(s) { const loaded = JSON.parse(s); appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } }; if(!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS)); } else { appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles['profile_1'].settings)); } if(st) appState = JSON.parse(st); if(!appState['current_session']) appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 }; } catch(e) { console.error("Load failed", e); appSettings = JSON.parse(JSON.stringify(DEFAULT_APP)); saveState(); } }
+function vibrate() { if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10); }
+function vibrateMorse(num) { if(!navigator.vibrate || !appSettings.isHapticMorseEnabled) return; const speed = appSettings.playbackSpeed || 1.0; const factor = 1.0 / speed; const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor; let pattern = []; const n = parseInt(num); if (n >= 1 && n <= 3) { for(let i=0; i<n; i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 4 && n <= 6) { pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(n-3); i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 7 && n <= 9) { pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(n-6); i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 10) { pattern.push(DASH); pattern.push(DOT); } if(pattern.length > 0) navigator.vibrate(pattern); }
+function speak(text) { if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); if(appSettings.selectedVoice){const v=window.speechSynthesis.getVoices().find(voice=>voice.name===appSettings.selectedVoice);if(v)u.voice=v;} let p = appSettings.voicePitch || 1.0; let r = appSettings.voiceRate || 1.0; u.pitch = Math.min(2, Math.max(0.1, p)); u.rate = Math.min(10, Math.max(0.1, r)); u.volume = appSettings.voiceVolume || 1.0; window.speechSynthesis.speak(u); }
+function showToast(msg) { const t = document.getElementById('toast-notification'); const m = document.getElementById('toast-message'); if(!t || !m) return; m.textContent = msg; t.classList.remove('opacity-0', '-translate-y-10'); setTimeout(() => t.classList.add('opacity-0', '-translate-y-10'), 2000); }
+function applyTheme(themeKey) { const body = document.body; body.className = body.className.replace(/theme-\w+/g, ''); let t = appSettings.customThemes[themeKey]; if (!t && PREMADE_THEMES[themeKey]) t = PREMADE_THEMES[themeKey]; if (!t) t = PREMADE_THEMES['default']; body.style.setProperty('--primary', t.bubble); body.style.setProperty('--bg-main', t.bgMain); body.style.setProperty('--bg-modal', t.bgCard); body.style.setProperty('--card-bg', t.bgCard); body.style.setProperty('--seq-bubble', t.bubble); body.style.setProperty('--btn-bg', t.btn); body.style.setProperty('--bg-input', t.bgMain); body.style.setProperty('--text-main', t.text); const isDark = parseInt(t.bgCard.replace('#',''), 16) < 0xffffff / 2; body.style.setProperty('--border', isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'); }
+function updateAllChrome() { applyTheme(appSettings.activeTheme); document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`; renderUI(); }
+
+function startPracticeRound() {
+    const state = getState(); const settings = getProfileSettings(); const max = (settings.currentInput === 'key12') ? 12 : 9;
+    const getRand = () => { if(settings.currentInput === 'piano') { const keys = ['C','D','E','F','G','A','B','1','2','3','4','5']; return keys[Math.floor(Math.random()*keys.length)]; } return Math.floor(Math.random() * max) + 1; };
+    if(state.currentRound < 1) state.currentRound = 1;
+    if(settings.currentMode === CONFIG.MODES.SIMON) {
+        if(practiceSequence.length === 0) { practiceSequence.push(getRand()); } else { practiceSequence.push(getRand()); }
+        state.currentRound = practiceSequence.length;
+    } else {
+        practiceSequence = []; const len = state.currentRound + 2; for(let i=0; i<len; i++) practiceSequence.push(getRand());
+    }
+    practiceInputIndex = 0; showToast(`Practice Round ${state.currentRound}`); setTimeout(() => playPracticeSequence(), 1000);
+}
+function playPracticeSequence() {
+    disableInput(true); let i = 0; const speed = appSettings.playbackSpeed || 1.0;
+    function next() {
+        if(i >= practiceSequence.length) { disableInput(false); return; }
+        const val = practiceSequence[i]; const settings = getProfileSettings(); const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${val}"]`);
+        if(key) { key.classList.add('flash-active'); setTimeout(() => key.classList.remove('flash-active'), 250 / speed); }
+        speak(val); i++; setTimeout(next, 800 / speed);
+    } next();
+}
+function addValue(value) {
+    vibrate(); const state = getState(); const settings = getProfileSettings();
+    if(appSettings.isPracticeModeEnabled) {
+        if(practiceSequence.length === 0) return; if(value == practiceSequence[practiceInputIndex]) { practiceInputIndex++; if(practiceInputIndex >= practiceSequence.length) { speak("Correct"); state.currentRound++; setTimeout(startPracticeRound, 1500); } } else { speak("Wrong"); navigator.vibrate(500); setTimeout(() => playPracticeSequence(), 1500); } return;
+    }
+    let targetIndex = 0; if (settings.currentMode === CONFIG.MODES.SIMON) targetIndex = state.nextSequenceIndex % settings.machineCount;
+    const limit = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? state.currentRound : settings.sequenceLength;
+    if(state.sequences[targetIndex] && state.sequences[targetIndex].length >= limit) return;
+    if(!state.sequences[targetIndex]) state.sequences[targetIndex] = [];
+    state.sequences[targetIndex].push(value); state.nextSequenceIndex++; renderUI(); saveState();
+    if(appSettings.isAutoplayEnabled) {
+        if (settings.currentMode === CONFIG.MODES.SIMON) { const justFilled = (state.nextSequenceIndex - 1) % settings.machineCount; if(justFilled === settings.machineCount - 1) setTimeout(playDemo, 250); } else { if(state.sequences[0].length === state.currentRound) { disableInput(true); setTimeout(playDemo, 250); } }
+    }
+}
+function handleBackspace(e) { if(e && isDeleting) return; vibrate(); const state = getState(); const settings = getProfileSettings(); if(state.nextSequenceIndex === 0) return; let targetIndex = 0; if(settings.currentMode === CONFIG.MODES.SIMON) targetIndex = (state.nextSequenceIndex - 1) % settings.machineCount; if(state.sequences[targetIndex] && state.sequences[targetIndex].length > 0) { state.sequences[targetIndex].pop(); state.nextSequenceIndex--; if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) disableInput(false); renderUI(); saveState(); } }
+function resetRounds() { const state = getState(); state.currentRound = 1; state.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); state.nextSequenceIndex = 0; disableInput(false); renderUI(); saveState(); showToast("Reset to Round 1"); }
+function disableInput(disabled) { const pad = document.getElementById(`pad-${getProfileSettings().currentInput}`); if(pad) pad.querySelectorAll('button').forEach(b => b.disabled = disabled); }
+function playDemo() {
+    const settings = getProfileSettings(); const state = getState(); const demoBtn = document.querySelector(`#pad-${settings.currentInput} button[data-action="play-demo"]`);
+    if(demoBtn && demoBtn.disabled) return;
+    let playlist = [];
+    if(settings.currentMode === CONFIG.MODES.SIMON) { const activeSeqs = state.sequences.slice(0, settings.machineCount); const maxLen = Math.max(...activeSeqs.map(s => s.length)); if(maxLen === 0) return; const chunkSize = (settings.machineCount > 1) ? settings.simonChunkSize : maxLen; const numChunks = Math.ceil(maxLen / chunkSize); for(let c=0; c<numChunks; c++) { for(let m=0; m<settings.machineCount; m++) { for(let k=0; k<chunkSize; k++) { const idx = (c*chunkSize) + k; if(activeSeqs[m][idx]) playlist.push({ val: activeSeqs[m][idx], machine: m }); } } } } else { const seq = state.sequences[0]; if(!seq || seq.length === 0) return; playlist = seq.map(v => ({ val: v, machine: 0 })); }
+    disableInput(true); if(demoBtn) demoBtn.disabled = true; let i = 0; const speed = appSettings.playbackSpeed || 1; const interval = CONFIG.DEMO_DELAY_BASE_MS / speed;
+    function next() { if(i >= playlist.length) { disableInput(false); if(demoBtn) { demoBtn.innerHTML = '▶'; demoBtn.disabled = false; } if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.isUniqueRoundsAutoClearEnabled) { state.sequences[0] = []; state.nextSequenceIndex = 0; state.currentRound++; if(state.currentRound > settings.sequenceLength) resetRounds(); renderUI(); saveState(); } return; } const item = playlist[i]; if(demoBtn) demoBtn.innerHTML = i + 1; const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${item.val}"]`); if(key) { key.classList.add('flash-active'); setTimeout(() => key.classList.remove('flash-active'), 250 / speed); } speak(item.val); vibrateMorse(item.val); const seqBoxes = document.getElementById('sequence-container').children; if(seqBoxes[item.machine]) { seqBoxes[item.machine].style.transform = 'scale(1.05)'; setTimeout(() => seqBoxes[item.machine].style.transform = 'scale(1)', 250 / speed); } i++; setTimeout(next, interval); } next();
+}
+function renderUI() {
+    const container = document.getElementById('sequence-container'); container.innerHTML = ''; const settings = getProfileSettings();
+    ['key9', 'key12', 'piano'].forEach(k => { const el = document.getElementById(`pad-${k}`); if(el) el.style.display = (settings.currentInput === k) ? 'block' : 'none'; });
+    if(appSettings.isPracticeModeEnabled) {
+        if(practiceSequence.length === 0) setTimeout(startPracticeRound, 100); container.innerHTML = `<h2 class="text-2xl font-bold text-center w-full mt-10" style="color:var(--text-main)">Practice Mode (${settings.currentMode === CONFIG.MODES.SIMON ? 'Simon' : 'Unique'})<br><span class="text-sm opacity-70">Round ${getState().currentRound}</span></h2>`; return;
+    }
+    const state = getState(); const activeSeqs = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);
+    if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) { const h = document.createElement('h2'); h.className = "text-center text-2xl font-bold mb-4 w-full"; h.textContent = `Round ${state.currentRound} / ${settings.sequenceLength}`; container.appendChild(h); }
+    let gridCols = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 1 : Math.min(settings.machineCount, 4); container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
+    activeSeqs.forEach((seq) => { 
+        const card = document.createElement('div'); card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)]"; 
+        const numGrid = document.createElement('div'); 
+        if (settings.machineCount > 1) { numGrid.className = "grid grid-cols-4 gap-2 justify-items-center"; } else { numGrid.className = "flex flex-wrap gap-2 justify-center"; }
+        (seq || []).forEach(num => { const span = document.createElement('span'); span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold"; const scale = appSettings.uiScaleMultiplier || 1.0; span.style.width = (40 * scale) + 'px'; span.style.height = (40 * scale) + 'px'; span.style.fontSize = (1.2 * scale) + 'rem'; span.textContent = num; numGrid.appendChild(span); }); 
+        card.appendChild(numGrid); container.appendChild(card); 
+    });
+    document.querySelectorAll('#mic-master-btn').forEach(btn => { btn.classList.toggle('hidden', !appSettings.showMicBtn); btn.classList.toggle('master-active', modules.sensor && modules.sensor.mode.audio); });
+    document.querySelectorAll('#camera-master-btn').forEach(btn => { btn.classList.toggle('hidden', !appSettings.showCamBtn); btn.classList.toggle('master-active', modules.sensor && modules.sensor.mode.camera); });
+    document.querySelectorAll('.reset-button').forEach(b => { b.style.display = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 'block' : 'none'; });
+}
+function toggleBlackout() { blackoutState.isActive = !blackoutState.isActive; document.body.classList.toggle('blackout-active', blackoutState.isActive); if(blackoutState.isActive) { if(appSettings.isAudioEnabled) speak("Stealth Active"); document.getElementById('blackout-layer').addEventListener('touchstart', handleBlackoutTouch, {passive: false}); } else { document.getElementById('blackout-layer').removeEventListener('touchstart', handleBlackoutTouch); } }
+function handleShake(e) { if(!appSettings.isBlackoutFeatureEnabled) return; const acc = e.acceleration; if(!acc) return; if(Math.hypot(acc.x, acc.y, acc.z) > 15) { const now = Date.now(); if(now - blackoutState.lastShake > 1000) { toggleBlackout(); vibrate(); blackoutState.lastShake = now; } } }
+function handleBlackoutTouch(e) { if(!blackoutState.isActive) return; e.preventDefault(); e.stopPropagation(); const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX; const y = e.changedTouches ? e.changedTouches[0].clientY : e.clientY; const w = window.innerWidth, h = window.innerHeight; const settings = getProfileSettings(); let val = null; if(settings.currentInput === 'piano') { const keys = ['C','D','E','F','G','A','B','1','2','3','4','5']; const idx = Math.floor(x / (w / keys.length)); if(keys[idx]) val = keys[idx]; } else { const c = Math.floor(x / (w/3)); const r = Math.floor(y / (h/ (settings.currentInput==='key12'?4:3))); let num = (r * 3) + c + 1; if(num > 0 && num <= (settings.currentInput==='key12'?12:9)) val = num.toString(); } if(val) { addValue(val); speak(val); vibrateMorse(val); } }
+
+// Stealth Logic: Toggle Controls
+function handle1KeyStart() {
+    if(!appSettings.isStealth1KeyEnabled) return;
+    ignoreNextClick = false;
+    timers.stealth = setTimeout(() => {
+        ignoreNextClick = true;
+        document.body.classList.toggle('hide-controls');
+        vibrate();
+    }, 1000); 
+}
+function handle1KeyEnd() { if(timers.stealth) clearTimeout(timers.stealth); }
+
+// Stealth Logic: Action Buttons (7, 8, 9)
+function handleStealthActionStart(action) {
+    if(!document.body.classList.contains('hide-controls')) return;
+    ignoreNextClick = false;
+    timers.stealthAction = setTimeout(() => {
+        ignoreNextClick = true;
+        vibrate();
+        if(action === 'play') playDemo();
+        if(action === 'backspace') handleBackspace();
+        if(action === 'delete') {
+             const settings = getProfileSettings();
+             // Speed Delete simulation: rapidly remove all
+             const targetIndex = settings.currentMode === CONFIG.MODES.SIMON ? (getState().nextSequenceIndex - 1) % settings.machineCount : 0;
+             getState().sequences[targetIndex] = [];
+             getState().nextSequenceIndex = 0;
+             renderUI(); saveState();
+        }
+    }, 800); 
+}
+function handleStealthActionEnd() { if(timers.stealthAction) clearTimeout(timers.stealthAction); }
+
+window.onload = function() {
+    try {
+        loadState(); initComments(db); if (window.DeviceMotionEvent) window.addEventListener('devicemotion', handleShake, false); const target = document.body;
+        target.addEventListener('touchstart', (e) => { if(modules.sensor && modules.sensor.audioCtx && modules.sensor.audioCtx.state === 'suspended') modules.sensor.audioCtx.resume(); 
+            if (e.touches.length === 2) { gestureState.isPinching = true; gestureState.startDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); gestureState.startScale = (appSettings.gestureResizeMode === 'sequence') ? (appSettings.uiScaleMultiplier || 1.0) : (appSettings.globalUiScale || 100); } }, { passive: false });
+        target.addEventListener('touchmove', (e) => { 
+            if (gestureState.isPinching && e.touches.length === 2) { 
+                e.preventDefault(); const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); const ratio = dist / gestureState.startDist; 
+                let newScale = gestureState.startScale * ratio;
+                // Snap to 10% increments (0.1 for multiplier, 10 for percentage)
+                if (appSettings.gestureResizeMode === 'sequence') { 
+                    newScale = Math.round(newScale * 10) / 10; 
+                    appSettings.uiScaleMultiplier = Math.min(Math.max(newScale, 0.5), 2.0); renderUI(); 
+                } else { 
+                    newScale = Math.round(newScale / 10) * 10;
+                    appSettings.globalUiScale = Math.min(Math.max(newScale, 50), 200); updateAllChrome(); 
+                } 
+            } 
+        }, { passive: false });
+        target.addEventListener('touchend', () => { if(gestureState.isPinching) { gestureState.isPinching = false; saveState(); } });
+
+        modules.sensor = new SensorEngine((val) => addValue(val), (msg) => showToast(msg)); if (appSettings.sensorAudioThresh) modules.sensor.setSensitivity('audio', appSettings.sensorAudioThresh); if (appSettings.sensorCamThresh) modules.sensor.setSensitivity('camera', appSettings.sensorCamThresh);
+        modules.settings = new SettingsManager(appSettings, {
+            onUpdate: () => { updateAllChrome(); saveState(); if(appSettings.isPracticeModeEnabled && practiceSequence.length === 0) { appState['current_session'].currentRound = 1; practiceSequence = []; startPracticeRound(); } },
+            onSave: () => saveState(), onReset: () => { localStorage.clear(); location.reload(); },
+            onProfileSwitch: (id) => { appSettings.activeProfileId = id; appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings)); if(appSettings.profiles[id].theme) appSettings.activeTheme = appSettings.profiles[id].theme; appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 }; practiceSequence = []; updateAllChrome(); saveState(); },
+            onProfileAdd: (name) => { const id = 'p_' + Date.now(); appSettings.profiles[id] = { name, settings: JSON.parse(JSON.stringify(appSettings.runtimeSettings)), theme: appSettings.activeTheme }; appSettings.activeProfileId = id; updateAllChrome(); saveState(); },
+            onProfileRename: (name) => { appSettings.profiles[appSettings.activeProfileId].name = name; saveState(); },
+            onProfileDelete: () => { delete appSettings.profiles[appSettings.activeProfileId]; appSettings.activeProfileId = Object.keys(appSettings.profiles)[0]; appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings)); if(appSettings.profiles[appSettings.activeProfileId].theme) appSettings.activeTheme = appSettings.profiles[appSettings.activeProfileId].theme; updateAllChrome(); saveState(); },
+            onProfileSave: () => { 
+                appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings)); 
+                appSettings.profiles[appSettings.activeProfileId].theme = appSettings.activeTheme;
+                saveState(); 
+                showToast("Profile & Theme Saved 💾"); 
+            }
+        }, modules.sensor);
+        updateAllChrome(); if(appSettings.isPracticeModeEnabled) setTimeout(startPracticeRound, 500);
+
+        document.querySelectorAll('.btn-pad-number, .piano-key-white, .piano-key-black').forEach(btn => {
+            // "1" Key Handler (Stealth Toggle)
+            if(btn.dataset.value === '1') {
+                btn.addEventListener('mousedown', handle1KeyStart); btn.addEventListener('touchstart', handle1KeyStart, {passive: true});
+                btn.addEventListener('mouseup', handle1KeyEnd); btn.addEventListener('touchend', handle1KeyEnd); btn.addEventListener('mouseleave', handle1KeyEnd);
+            }
+            // Stealth Action Handlers (7, 8, 9 / C, D, E) - ONLY when hidden
+            const val = btn.dataset.value;
+            if(val === '7' || val === 'C') {
+                btn.addEventListener('mousedown', () => handleStealthActionStart('play')); btn.addEventListener('touchstart', () => handleStealthActionStart('play'), {passive: true});
+                btn.addEventListener('mouseup', handleStealthActionEnd); btn.addEventListener('touchend', handleStealthActionEnd); btn.addEventListener('mouseleave', handleStealthActionEnd);
+            }
+            if(val === '8' || val === 'D') {
+                btn.addEventListener('mousedown', () => handleStealthActionStart('backspace')); btn.addEventListener('touchstart', () => handleStealthActionStart('backspace'), {passive: true});
+                btn.addEventListener('mouseup', handleStealthActionEnd); btn.addEventListener('touchend', handleStealthActionEnd); btn.addEventListener('mouseleave', handleStealthActionEnd);
+            }
+            if(val === '9' || val === 'E') {
+                btn.addEventListener('mousedown', () => handleStealthActionStart('delete')); btn.addEventListener('touchstart', () => handleStealthActionStart('delete'), {passive: true});
+                btn.addEventListener('mouseup', handleStealthActionEnd); btn.addEventListener('touchend', handleStealthActionEnd); btn.addEventListener('mouseleave', handleStealthActionEnd);
+            }
+
+            btn.addEventListener('click', (e) => {
+                if((val === '1' || val === '7' || val === '8' || val === '9' || val === 'C' || val === 'D' || val === 'E') && ignoreNextClick) { ignoreNextClick = false; return; }
+                addValue(e.target.dataset.value);
+            });
+        });
+        document.querySelectorAll('button[data-action="play-demo"]').forEach(b => { b.addEventListener('click', playDemo); const startLongPress = () => { timers.longPress = setTimeout(() => { appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled; showToast(`Autoplay: ${appSettings.isAutoplayEnabled?'ON':'OFF'}`); saveState(); vibrate(); }, 500); }; const cancelLong = () => clearTimeout(timers.longPress); b.addEventListener('mousedown', startLongPress); b.addEventListener('touchstart', startLongPress, { passive: true }); b.addEventListener('mouseup', cancelLong); b.addEventListener('mouseleave', cancelLong); b.addEventListener('touchend', cancelLong); });
+        document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => b.addEventListener('click', () => { if(confirm("Reset to Round 1?")) resetRounds(); }));
+        document.querySelectorAll('button[data-action="backspace"]').forEach(b => { b.addEventListener('click', handleBackspace); const startDelete = (e) => { isDeleting = false; timers.initialDelay = setTimeout(() => { isDeleting = true; timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL); }, CONFIG.SPEED_DELETE_DELAY); }; const stopDelete = () => { clearTimeout(timers.initialDelay); clearInterval(timers.speedDelete); setTimeout(() => isDeleting = false, 50); }; b.addEventListener('mousedown', startDelete); b.addEventListener('touchstart', startDelete, { passive: true }); b.addEventListener('mouseup', stopDelete); b.addEventListener('mouseleave', stopDelete); b.addEventListener('touchend', stopDelete); b.addEventListener('touchcancel', stopDelete); });
+        document.querySelectorAll('button[data-action="open-share"]').forEach(b => b.addEventListener('click', () => modules.settings.openShare())); 
+        document.querySelectorAll('button[data-action="open-settings"]').forEach(b => b.onclick = () => modules.settings.openSettings());
+        if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
+    } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }
+};

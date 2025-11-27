@@ -64,12 +64,11 @@ export class SettingsManager{
         
         bind(this.dom.input,'currentInput',false);bind(this.dom.machines,'machineCount',false,true);bind(this.dom.seqLength,'sequenceLength',false,true);bind(this.dom.autoClear,'isUniqueRoundsAutoClearEnabled',true);
         
-        // --- FIXED: Handle Mode Switching & Reset ---
         if(this.dom.mode){
             this.dom.mode.onchange = () => {
                 this.appSettings.runtimeSettings.currentMode = this.dom.mode.value;
                 this.callbacks.onSave();
-                this.callbacks.onUpdate('mode_switch'); // Force game reset
+                this.callbacks.onUpdate('mode_switch');
                 this.generatePrompt();
             };
         }
@@ -174,7 +173,10 @@ export class SettingsManager{
         const ps=this.appSettings.runtimeSettings;
         const gs=this.appSettings;
         if(this.dom.input)this.dom.input.value=ps.currentInput;
-        if(this.dom.mode)this.dom.mode.value=(ps.currentMode==='unique_rounds')?'unique':'simon';
+        
+        // --- FIXED: Use simple value assignment ---
+        if(this.dom.mode)this.dom.mode.value=ps.currentMode;
+        
         if(this.dom.machines)this.dom.machines.value=ps.machineCount;
         if(this.dom.seqLength)this.dom.seqLength.value=ps.sequenceLength;
         if(this.dom.autoClear)this.dom.autoClear.checked=gs.isUniqueRoundsAutoClearEnabled;

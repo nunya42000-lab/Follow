@@ -60,7 +60,25 @@ function loadState() {
 
 function vibrate() { if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10); }
 function vibrateMorse(num) { if(!navigator.vibrate || !appSettings.isHapticMorseEnabled) return; const speed = appSettings.playbackSpeed || 1.0; const factor = 1.0 / speed; const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor; let pattern = []; const n = parseInt(num); if (n >= 1 && n <= 3) { for(let i=0; i<n; i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 4 && n <= 6) { pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(n-3); i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 7 && n <= 9) { pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(n-6); i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 10) { pattern.push(DASH); pattern.push(DOT); } if(pattern.length > 0) navigator.vibrate(pattern); }
-function speak(text) { if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); if(appSettings.selectedVoice){const v=window.speechSynthesis.getVoices().find(voice=>voice.name===appSettings.selectedVoice);if(v)u.voice=v;} let p = appSettings.voicePitch || 1.0; let r = appSettings.voiceRate || 1.0; u.pitch = Math.min(2, Math.max(0.1, p)); u.rate = Math.min(10, Math.max(0.1, r)); u.volume = appSettings.voiceVolume || 1.0; window.speechSynthesis.speak(u); }
+function speak(text) { 
+    if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; 
+    window.speechSynthesis.cancel(); 
+    const u = new SpeechSynthesisUtterance(text); 
+    
+    // Improved Voice Matching Logic
+    if(appSettings.selectedVoice){
+        const voices = window.speechSynthesis.getVoices();
+        const v = voices.find(voice => voice.name === appSettings.selectedVoice);
+        if(v) u.voice = v;
+    } 
+    
+    let p = appSettings.voicePitch || 1.0; 
+    let r = appSettings.voiceRate || 1.0; 
+    u.pitch = Math.min(2, Math.max(0.1, p)); 
+    u.rate = Math.min(10, Math.max(0.1, r)); 
+    u.volume = appSettings.voiceVolume || 1.0; 
+    window.speechSynthesis.speak(u); 
+}
 function showToast(msg) { const t = document.getElementById('toast-notification'); const m = document.getElementById('toast-message'); if(!t || !m) return; m.textContent = msg; t.classList.remove('opacity-0', '-translate-y-10'); setTimeout(() => t.classList.add('opacity-0', '-translate-y-10'), 2000); }
 function applyTheme(themeKey) { const body = document.body; body.className = body.className.replace(/theme-\w+/g, ''); let t = appSettings.customThemes[themeKey]; if (!t && PREMADE_THEMES[themeKey]) t = PREMADE_THEMES[themeKey]; if (!t) t = PREMADE_THEMES['default']; body.style.setProperty('--primary', t.bubble); body.style.setProperty('--bg-main', t.bgMain); body.style.setProperty('--bg-modal', t.bgCard); body.style.setProperty('--card-bg', t.bgCard); body.style.setProperty('--seq-bubble', t.bubble); body.style.setProperty('--btn-bg', t.btn); body.style.setProperty('--bg-input', t.bgMain); body.style.setProperty('--text-main', t.text); const isDark = parseInt(t.bgCard.replace('#',''), 16) < 0xffffff / 2; body.style.setProperty('--border', isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'); }
 function updateAllChrome() { applyTheme(appSettings.activeTheme); document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`; renderUI(); }
@@ -225,10 +243,12 @@ window.onload = function() {
                 // Snap to 10% increments (0.1 for multiplier, 10 for percentage)
                 if (appSettings.gestureResizeMode === 'sequence') { 
                     newScale = Math.round(newScale * 10) / 10; 
-                    appSettings.uiScaleMultiplier = Math.min(Math.max(newScale, 0.5), 2.0); renderUI(); 
+                    // Updated limit to 3.0 (300%)
+                    appSettings.uiScaleMultiplier = Math.min(Math.max(newScale, 0.5), 3.0); renderUI(); 
                 } else { 
                     newScale = Math.round(newScale / 10) * 10;
-                    appSettings.globalUiScale = Math.min(Math.max(newScale, 50), 200); updateAllChrome(); 
+                    // Updated limit to 300%
+                    appSettings.globalUiScale = Math.min(Math.max(newScale, 50), 300); updateAllChrome(); 
                 } 
             } 
         }, { passive: false });
@@ -287,7 +307,23 @@ window.onload = function() {
         });
         document.querySelectorAll('button[data-action="play-demo"]').forEach(b => { b.addEventListener('click', playDemo); const startLongPress = () => { timers.longPress = setTimeout(() => { appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled; showToast(`Autoplay: ${appSettings.isAutoplayEnabled?'ON':'OFF'}`); saveState(); vibrate(); }, 500); }; const cancelLong = () => clearTimeout(timers.longPress); b.addEventListener('mousedown', startLongPress); b.addEventListener('touchstart', startLongPress, { passive: true }); b.addEventListener('mouseup', cancelLong); b.addEventListener('mouseleave', cancelLong); b.addEventListener('touchend', cancelLong); });
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => b.addEventListener('click', () => { if(confirm("Reset to Round 1?")) resetRounds(); }));
-        document.querySelectorAll('button[data-action="backspace"]').forEach(b => { b.addEventListener('click', handleBackspace); const startDelete = (e) => { isDeleting = false; timers.initialDelay = setTimeout(() => { isDeleting = true; timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL); }, CONFIG.SPEED_DELETE_DELAY); }; const stopDelete = () => { clearTimeout(timers.initialDelay); clearInterval(timers.speedDelete); setTimeout(() => isDeleting = false, 50); }; b.addEventListener('mousedown', startDelete); b.addEventListener('touchstart', startDelete, { passive: true }); b.addEventListener('mouseup', stopDelete); b.addEventListener('mouseleave', stopDelete); b.addEventListener('touchend', stopDelete); b.addEventListener('touchcancel', stopDelete); });
+        document.querySelectorAll('button[data-action="backspace"]').forEach(b => { 
+            b.addEventListener('click', handleBackspace); 
+            const startDelete = (e) => { 
+                if(!appSettings.isSpeedDeletingEnabled) return; // FIX: Respect the setting
+                isDeleting = false; 
+                timers.initialDelay = setTimeout(() => { 
+                    isDeleting = true; 
+                    timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL); 
+                }, CONFIG.SPEED_DELETE_DELAY); 
+            }; 
+            const stopDelete = () => { 
+                clearTimeout(timers.initialDelay); 
+                clearInterval(timers.speedDelete); 
+                setTimeout(() => isDeleting = false, 50); 
+            }; 
+            b.addEventListener('mousedown', startDelete); b.addEventListener('touchstart', startDelete, { passive: true }); b.addEventListener('mouseup', stopDelete); b.addEventListener('mouseleave', stopDelete); b.addEventListener('touchend', stopDelete); b.addEventListener('touchcancel', stopDelete); 
+        });
         document.querySelectorAll('button[data-action="open-share"]').forEach(b => b.addEventListener('click', () => modules.settings.openShare())); 
         document.querySelectorAll('button[data-action="open-settings"]').forEach(b => b.onclick = () => modules.settings.openSettings());
         if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);

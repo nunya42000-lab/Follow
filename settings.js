@@ -28,7 +28,20 @@ export class SettingsManager{
         setTimeout(() => this.populateVoiceDropdown(), 500);
         if(window.speechSynthesis) window.speechSynthesis.onvoiceschanged = () => this.populateVoiceDropdown();
     }
-    populateVoiceDropdown(){if(!this.dom.voiceSelect)return;const voices=window.speechSynthesis.getVoices();this.dom.voiceSelect.innerHTML='';voices.forEach(v=>{const o=document.createElement('option');o.value=v.name;o.textContent=v.name;this.dom.voiceSelect.appendChild(o);});if(this.appSettings.selectedVoice)this.dom.voiceSelect.value=this.appSettings.selectedVoice;}
+    populateVoiceDropdown(){
+        if(!this.dom.voiceSelect)return;
+        if(this.dom.voiceSelect.options.length > 1) return; 
+        const voices=window.speechSynthesis.getVoices();
+        if(voices.length === 0) return;
+        this.dom.voiceSelect.innerHTML='';
+        voices.forEach(v=>{
+            const o=document.createElement('option');
+            o.value=v.name;
+            o.textContent=v.name;
+            this.dom.voiceSelect.appendChild(o);
+        });
+        if(this.appSettings.selectedVoice) this.dom.voiceSelect.value=this.appSettings.selectedVoice;
+    }
     buildColorGrid(){if(!this.dom.editorGrid)return;this.dom.editorGrid.innerHTML='';CRAYONS.forEach(color=>{const btn=document.createElement('div');btn.style.backgroundColor=color;btn.className="w-full h-6 rounded cursor-pointer border border-gray-700 hover:scale-125 transition-transform shadow-sm";btn.onclick=()=>this.applyColorToTarget(color);this.dom.editorGrid.appendChild(btn);});}
     applyColorToTarget(hex){if(!this.tempTheme)return;this.tempTheme[this.currentTargetKey]=hex;const[h,s,l]=this.hexToHsl(hex);this.dom.ftHue.value=h;this.dom.ftSat.value=s;this.dom.ftLit.value=l;this.dom.ftPreview.style.backgroundColor=hex;if(this.dom.ftContainer.classList.contains('hidden')){this.dom.ftContainer.classList.remove('hidden');this.dom.ftToggle.style.display='none';}this.updatePreview();}
     updateColorFromSliders(){const h=parseInt(this.dom.ftHue.value);const s=parseInt(this.dom.ftSat.value);const l=parseInt(this.dom.ftLit.value);const hex=this.hslToHex(h,s,l);this.dom.ftPreview.style.backgroundColor=hex;if(this.tempTheme){this.tempTheme[this.currentTargetKey]=hex;this.updatePreview();}}
@@ -150,14 +163,42 @@ export class SettingsManager{
                 alert("Theme Saved!");
             }
         };
-        if(this.dom.closeSetupBtn)this.dom.closeSetupBtn.onclick=()=>this.closeSetup();if(this.dom.quickSettings)this.dom.quickSettings.onclick=()=>{this.closeSetup();this.openSettings();};if(this.dom.quickHelp)this.dom.quickHelp.onclick=()=>{this.closeSetup();this.dom.helpModal.classList.remove('opacity-0','pointer-events-none');};if(this.dom.closeHelpBtn)this.dom.closeHelpBtn.onclick=()=>this.dom.helpModal.classList.add('opacity-0','pointer-events-none');if(this.dom.closeHelpBtnBottom)this.dom.closeHelpBtnBottom.onclick=()=>this.dom.helpModal.classList.add('opacity-0','pointer-events-none');if(this.dom.openHelpBtn)this.dom.openHelpBtn.onclick=()=>this.dom.helpModal.classList.remove('opacity-0','pointer-events-none');if(this.dom.closeSettingsBtn)this.dom.closeSettingsBtn.onclick=()=>{this.callbacks.onSave();this.dom.settingsModal.classList.add('opacity-0','pointer-events-none');this.dom.settingsModal.querySelector('div').classList.add('scale-90');};if(this.dom.openCalibBtn)this.dom.openCalibBtn.onclick=()=>this.openCalibration();if(this.dom.closeCalibBtn)this.dom.closeCalibBtn.onclick=()=>this.closeCalibration();if(this.dom.calibAudioSlider)this.dom.calibAudioSlider.oninput=()=>{const val=parseInt(this.dom.calibAudioSlider.value);this.appSettings.sensorAudioThresh=val;this.sensorEngine.setSensitivity('audio',val);const pct=((val-(-100))/((-30)-(-100)))*100;this.dom.calibAudioMarker.style.left=`${pct}%`;this.dom.calibAudioVal.innerText=val+'dB';this.callbacks.onSave();};if(this.dom.calibCamSlider)this.dom.calibCamSlider.oninput=()=>{const val=parseInt(this.dom.calibCamSlider.value);this.appSettings.sensorCamThresh=val;this.sensorEngine.setSensitivity('camera',val);const pct=Math.min(100,val);this.dom.calibCamMarker.style.left=`${pct}%`;this.dom.calibCamVal.innerText=val;this.callbacks.onSave();};this.dom.tabs.forEach(btn=>btn.onclick=()=>{this.dom.tabs.forEach(b=>b.classList.remove('active'));this.dom.contents.forEach(c=>c.classList.remove('active'));btn.classList.add('active');document.getElementById(`tab-${btn.dataset.tab.replace('help-','help-')}`).classList.add('active');});
+        if(this.dom.closeSetupBtn)this.dom.closeSetupBtn.onclick=()=>this.closeSetup();
+        if(this.dom.quickSettings)this.dom.quickSettings.onclick=()=>{this.closeSetup();this.openSettings();};
+        if(this.dom.quickHelp)this.dom.quickHelp.onclick=()=>{this.closeSetup();this.generatePrompt();this.dom.helpModal.classList.remove('opacity-0','pointer-events-none');};
+        if(this.dom.closeHelpBtn)this.dom.closeHelpBtn.onclick=()=>this.dom.helpModal.classList.add('opacity-0','pointer-events-none');
+        if(this.dom.closeHelpBtnBottom)this.dom.closeHelpBtnBottom.onclick=()=>this.dom.helpModal.classList.add('opacity-0','pointer-events-none');
+        if(this.dom.openHelpBtn)this.dom.openHelpBtn.onclick=()=>{this.generatePrompt();this.dom.helpModal.classList.remove('opacity-0','pointer-events-none');};
+        if(this.dom.closeSettingsBtn)this.dom.closeSettingsBtn.onclick=()=>{this.callbacks.onSave();this.dom.settingsModal.classList.add('opacity-0','pointer-events-none');this.dom.settingsModal.querySelector('div').classList.add('scale-90');};
+        if(this.dom.openCalibBtn)this.dom.openCalibBtn.onclick=()=>this.openCalibration();
+        if(this.dom.closeCalibBtn)this.dom.closeCalibBtn.onclick=()=>this.closeCalibration();
+        if(this.dom.calibAudioSlider)this.dom.calibAudioSlider.oninput=()=>{const val=parseInt(this.dom.calibAudioSlider.value);this.appSettings.sensorAudioThresh=val;this.sensorEngine.setSensitivity('audio',val);const pct=((val-(-100))/((-30)-(-100)))*100;this.dom.calibAudioMarker.style.left=`${pct}%`;this.dom.calibAudioVal.innerText=val+'dB';this.callbacks.onSave();};
+        if(this.dom.calibCamSlider)this.dom.calibCamSlider.oninput=()=>{const val=parseInt(this.dom.calibCamSlider.value);this.appSettings.sensorCamThresh=val;this.sensorEngine.setSensitivity('camera',val);const pct=Math.min(100,val);this.dom.calibCamMarker.style.left=`${pct}%`;this.dom.calibCamVal.innerText=val;this.callbacks.onSave();};
+        
+        this.dom.tabs.forEach(btn=>btn.onclick=()=>{
+            this.dom.tabs.forEach(b=>b.classList.remove('active'));
+            this.dom.contents.forEach(c=>c.classList.remove('active'));
+            btn.classList.add('active');
+            const target = btn.dataset.tab;
+            if(target === 'help-voice') this.generatePrompt();
+            document.getElementById(`tab-${target}`).classList.add('active');
+        });
+
         if(this.dom.openShareInside)this.dom.openShareInside.onclick=()=>this.openShare();
         if(this.dom.closeShareBtn)this.dom.closeShareBtn.onclick=()=>this.closeShare();
         if(this.dom.openRedeemBtn)this.dom.openRedeemBtn.onclick=()=>this.toggleRedeem(true);
         if(this.dom.closeRedeemBtn)this.dom.closeRedeemBtn.onclick=()=>this.toggleRedeem(false);
         if(this.dom.copyLinkBtn) this.dom.copyLinkBtn.onclick=()=>{ navigator.clipboard.writeText(window.location.href).then(()=>alert("Link Copied!")); };
+        if(this.dom.copyPromptBtn) this.dom.copyPromptBtn.onclick=()=>{ 
+            if(this.dom.promptDisplay) {
+                this.dom.promptDisplay.select();
+                navigator.clipboard.writeText(this.dom.promptDisplay.value).then(()=>alert("Prompt Copied!"));
+            }
+        };
         if(this.dom.nativeShareBtn) this.dom.nativeShareBtn.onclick=()=>{ if(navigator.share){ navigator.share({title:"Follow Me", url:window.location.href}); }else{ alert("Share not supported"); } };
-        if(this.dom.restoreBtn)this.dom.restoreBtn.onclick=()=>{if(confirm("Factory Reset?"))this.callbacks.onReset();};if(this.dom.quickResizeUp)this.dom.quickResizeUp.onclick=()=>{this.appSettings.globalUiScale=Math.min(200,this.appSettings.globalUiScale+10);this.callbacks.onUpdate();};if(this.dom.quickResizeDown)this.dom.quickResizeDown.onclick=()=>{this.appSettings.globalUiScale=Math.max(50,this.appSettings.globalUiScale-10);this.callbacks.onUpdate();};
+        if(this.dom.restoreBtn)this.dom.restoreBtn.onclick=()=>{if(confirm("Factory Reset?"))this.callbacks.onReset();};
+        if(this.dom.quickResizeUp)this.dom.quickResizeUp.onclick=()=>{this.appSettings.globalUiScale=Math.min(200,this.appSettings.globalUiScale+10);this.callbacks.onUpdate();};
+        if(this.dom.quickResizeDown)this.dom.quickResizeDown.onclick=()=>{this.appSettings.globalUiScale=Math.max(50,this.appSettings.globalUiScale-10);this.callbacks.onUpdate();};
     }
     populateConfigDropdown(){const createOptions=()=>Object.keys(this.appSettings.profiles).map(id=>{const o=document.createElement('option');o.value=id;o.textContent=this.appSettings.profiles[id].name;return o;});if(this.dom.configSelect){this.dom.configSelect.innerHTML='';createOptions().forEach(opt=>this.dom.configSelect.appendChild(opt));this.dom.configSelect.value=this.appSettings.activeProfileId;}if(this.dom.quickConfigSelect){this.dom.quickConfigSelect.innerHTML='';createOptions().forEach(opt=>this.dom.quickConfigSelect.appendChild(opt));this.dom.quickConfigSelect.value=this.appSettings.activeProfileId;}}
     populateThemeDropdown(){const s=this.dom.themeSelect;if(!s)return;s.innerHTML='';const grp1=document.createElement('optgroup');grp1.label="Built-in";Object.keys(PREMADE_THEMES).forEach(k=>{const el=document.createElement('option');el.value=k;el.textContent=PREMADE_THEMES[k].name;grp1.appendChild(el);});s.appendChild(grp1);const grp2=document.createElement('optgroup');grp2.label="My Themes";Object.keys(this.appSettings.customThemes).forEach(k=>{const el=document.createElement('option');el.value=k;el.textContent=this.appSettings.customThemes[k].name;grp2.appendChild(el);});s.appendChild(grp2);s.value=this.appSettings.activeTheme;}
@@ -168,13 +209,30 @@ export class SettingsManager{
         this.dom.setupModal.classList.remove('opacity-0','pointer-events-none');this.dom.setupModal.querySelector('div').classList.remove('scale-90');
     }
     closeSetup(){this.callbacks.onSave();this.dom.setupModal.classList.add('opacity-0');this.dom.setupModal.querySelector('div').classList.add('scale-90');setTimeout(()=>this.dom.setupModal.classList.add('pointer-events-none'),300);}
-    generatePrompt(){if(!this.dom.promptDisplay)return;const ps=this.appSettings.runtimeSettings;const txt=`Act as Game Engine. Digits: 1-${ps.currentInput==='key12'?12:9}. Mode: ${ps.currentMode}. Speak clearly.`;this.dom.promptDisplay.value=txt;}
+    
+    generatePrompt(){
+        if(!this.dom.promptDisplay) return;
+        const ps = this.appSettings.runtimeSettings;
+        const max = ps.currentInput === 'key12' ? 12 : 9;
+        const mode = ps.currentMode === 'simon' ? 'Repeating Sequence (Simon Says)' : 'Random Sequence (Unique)';
+        
+        let logic = "";
+        if(ps.currentMode === 'simon') {
+            logic = "MODE: Simon Says. \nTASK: I will speak a number. You must add it to the list and IMMEDIATELY recite the entire sequence back to me from the beginning. Speak fast. Do not explain. Just the numbers.";
+        } else {
+            logic = "MODE: Unique Random. \nTASK: I will speak a number. You just acknowledge it by repeating that single number. \nIMPORTANT: Keep a running list in memory. If I say 'Recall' or 'Review', recite the entire list back to me instantly.";
+        }
+
+        const txt = `Act as a fast sequence tracking assistant.\nValid Inputs: 1 to ${max}.\n${logic}\n\nExample Interaction:\nMe: "5"\nYou: "5"\nMe: "2"\nYou: "${ps.currentMode === 'simon' ? '5, 2' : '2'}"\n\nStart now. Waiting for input.`;
+        
+        this.dom.promptDisplay.value = txt;
+    }
+
     updateUIFromSettings(){
         const ps=this.appSettings.runtimeSettings;
         const gs=this.appSettings;
         if(this.dom.input)this.dom.input.value=ps.currentInput;
         
-        // --- FIXED: Use simple value assignment ---
         if(this.dom.mode)this.dom.mode.value=ps.currentMode;
         
         if(this.dom.machines)this.dom.machines.value=ps.machineCount;

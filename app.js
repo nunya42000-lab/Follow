@@ -25,7 +25,7 @@ let timers = { speedDelete: null, initialDelay: null, longPress: null, stealth: 
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 let blackoutState = { isActive: false, lastShake: 0 }; 
 let isDeleting = false; 
-let isDemoPlaying = false; // New flag to track playback state
+let isDemoPlaying = false; 
 let practiceSequence = [];
 let practiceInputIndex = 0;
 let ignoreNextClick = false;
@@ -144,7 +144,6 @@ function disableInput(disabled) { const pad = document.getElementById(`pad-${get
 function playDemo() {
     const settings = getProfileSettings(); const state = getState(); const demoBtn = document.querySelector(`#pad-${settings.currentInput} button[data-action="play-demo"]`);
     
-    // STOP LOGIC: If already playing, stop everything
     if(isDemoPlaying) {
         isDemoPlaying = false;
         if(timers.playback) clearTimeout(timers.playback);
@@ -160,17 +159,17 @@ function playDemo() {
     if(settings.currentMode === CONFIG.MODES.SIMON) { const activeSeqs = state.sequences.slice(0, settings.machineCount); const maxLen = Math.max(...activeSeqs.map(s => s.length)); if(maxLen === 0) return; const chunkSize = (settings.machineCount > 1) ? settings.simonChunkSize : maxLen; const numChunks = Math.ceil(maxLen / chunkSize); for(let c=0; c<numChunks; c++) { for(let m=0; m<settings.machineCount; m++) { for(let k=0; k<chunkSize; k++) { const idx = (c*chunkSize) + k; if(activeSeqs[m][idx]) playlist.push({ val: activeSeqs[m][idx], machine: m }); } } } } else { const seq = state.sequences[0]; if(!seq || seq.length === 0) { disableInput(false); return; } playlist = seq.map(v => ({ val: v, machine: 0 })); }
     
     disableInput(true); 
-    isDemoPlaying = true; // Set flag
+    isDemoPlaying = true; 
     
-    if(demoBtn) demoBtn.innerHTML = '■'; // Change to stop symbol
+    if(demoBtn) demoBtn.innerHTML = '■'; 
     
     let i = 0; const speed = appSettings.playbackSpeed || 1; const interval = CONFIG.DEMO_DELAY_BASE_MS / speed;
     
     function next() { 
-        if(!isDemoPlaying) return; // Stop check inside loop
+        if(!isDemoPlaying) return; 
         if(i >= playlist.length) { 
             disableInput(false); 
-            isDemoPlaying = false; // Reset flag
+            isDemoPlaying = false; 
             if(demoBtn) { demoBtn.innerHTML = '▶'; demoBtn.disabled = false; } 
             
             if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.isUniqueRoundsAutoClearEnabled) { 
@@ -184,7 +183,6 @@ function playDemo() {
             return; 
         } 
         const item = playlist[i]; 
-        // if(demoBtn) demoBtn.innerHTML = i + 1; // Removed to keep Stop button visible
         const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${item.val}"]`); 
         if(key) { key.classList.add('flash-active'); setTimeout(() => key.classList.remove('flash-active'), 250 / speed); } 
         speak(item.val); vibrateMorse(item.val); 
@@ -330,8 +328,7 @@ window.onload = function() {
             b.addEventListener('click', playDemo); 
             const startLongPress = () => { 
                 timers.longPress = setTimeout(() => { 
-                    // New check: Only toggle if setting is enabled
-                    if(appSettings.isLongPressAutoplayEnabled !== false) { // undefined treated as true
+                    if(appSettings.isLongPressAutoplayEnabled !== false) {
                         appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled; 
                         showToast(`Autoplay: ${appSettings.isAutoplayEnabled?'ON':'OFF'}`); 
                         saveState(); 

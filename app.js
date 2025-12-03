@@ -9,11 +9,13 @@ const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", auth
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- CONFIG: Ensure UNIQUE_ROUNDS is 'unique' to match HTML ---
-const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 400, SPEED_DELETE_INTERVAL: 100, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v40', STORAGE_KEY_STATE: 'followMeAppState_v40', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } };
+// --- CONFIG: Speed Delete Interval lowered to 30ms for faster deletion ---
+const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 300, SPEED_DELETE_INTERVAL: 30, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v40', STORAGE_KEY_STATE: 'followMeAppState_v40', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } };
 
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 200 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
+
+// --- DEFAULTS: Haptics and Speed Delete set to true ---
 const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null };
 
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
@@ -37,10 +39,11 @@ function loadState() {
         const st = localStorage.getItem(CONFIG.STORAGE_KEY_STATE); 
         if(s) { 
             const loaded = JSON.parse(s); 
+            // Merge loaded settings with defaults to ensure new defaults (like haptics=true) are respected if key is missing, 
+            // but preserve user preference if key exists.
             appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } }; 
             if(!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS)); 
             
-            // Fix old 'unique_rounds' data to new 'unique'
             if(appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
         } else { 
             appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles['profile_1'].settings)); 
@@ -48,7 +51,6 @@ function loadState() {
         if(st) appState = JSON.parse(st); 
         if(!appState['current_session']) appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
         
-        // --- SAFETY: Force numbers to be Numbers ---
         appState['current_session'].currentRound = parseInt(appState['current_session'].currentRound) || 1;
         
     } catch(e) { 
@@ -64,14 +66,11 @@ function speak(text) {
     if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; 
     window.speechSynthesis.cancel(); 
     const u = new SpeechSynthesisUtterance(text); 
-    
-    // Improved Voice Matching Logic
     if(appSettings.selectedVoice){
         const voices = window.speechSynthesis.getVoices();
         const v = voices.find(voice => voice.name === appSettings.selectedVoice);
         if(v) u.voice = v;
     } 
-    
     let p = appSettings.voicePitch || 1.0; 
     let r = appSettings.voiceRate || 1.0; 
     u.pitch = Math.min(2, Math.max(0.1, p)); 
@@ -111,7 +110,6 @@ function addValue(value) {
     }
     let targetIndex = 0; if (settings.currentMode === CONFIG.MODES.SIMON) targetIndex = state.nextSequenceIndex % settings.machineCount;
     
-    // --- SAFETY: Force integer for comparisons ---
     const roundNum = parseInt(state.currentRound) || 1;
     const limit = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? roundNum : settings.sequenceLength;
     
@@ -125,7 +123,6 @@ function addValue(value) {
             const justFilled = (state.nextSequenceIndex - 1) % settings.machineCount; 
             if(justFilled === settings.machineCount - 1) setTimeout(playDemo, 250); 
         } else { 
-            // --- SAFETY: Loose equality check (==) covers string vs number issues ---
             if(state.sequences[0].length == roundNum) { 
                 disableInput(true); 
                 setTimeout(playDemo, 250); 
@@ -138,7 +135,6 @@ function resetRounds() { const state = getState(); state.currentRound = 1; state
 function disableInput(disabled) { const pad = document.getElementById(`pad-${getProfileSettings().currentInput}`); if(pad) pad.querySelectorAll('button').forEach(b => b.disabled = disabled); }
 function playDemo() {
     const settings = getProfileSettings(); const state = getState(); const demoBtn = document.querySelector(`#pad-${settings.currentInput} button[data-action="play-demo"]`);
-    // Safety check: if button was stuck disabled from a crash, ignore the disabled flag
     if(demoBtn && demoBtn.disabled && !appSettings.isAutoplayEnabled) return; 
 
     let playlist = [];
@@ -153,7 +149,6 @@ function playDemo() {
             disableInput(false); 
             if(demoBtn) { demoBtn.innerHTML = '▶'; demoBtn.disabled = false; } 
             
-            // Unique Mode Auto Advance Logic
             if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.isUniqueRoundsAutoClearEnabled) { 
                 state.sequences[0] = []; 
                 state.nextSequenceIndex = 0; 
@@ -198,7 +193,6 @@ function toggleBlackout() { blackoutState.isActive = !blackoutState.isActive; do
 function handleShake(e) { if(!appSettings.isBlackoutFeatureEnabled) return; const acc = e.acceleration; if(!acc) return; if(Math.hypot(acc.x, acc.y, acc.z) > 15) { const now = Date.now(); if(now - blackoutState.lastShake > 1000) { toggleBlackout(); vibrate(); blackoutState.lastShake = now; } } }
 function handleBlackoutTouch(e) { if(!blackoutState.isActive) return; e.preventDefault(); e.stopPropagation(); const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX; const y = e.changedTouches ? e.changedTouches[0].clientY : e.clientY; const w = window.innerWidth, h = window.innerHeight; const settings = getProfileSettings(); let val = null; if(settings.currentInput === 'piano') { const keys = ['C','D','E','F','G','A','B','1','2','3','4','5']; const idx = Math.floor(x / (w / keys.length)); if(keys[idx]) val = keys[idx]; } else { const c = Math.floor(x / (w/3)); const r = Math.floor(y / (h/ (settings.currentInput==='key12'?4:3))); let num = (r * 3) + c + 1; if(num > 0 && num <= (settings.currentInput==='key12'?12:9)) val = num.toString(); } if(val) { addValue(val); speak(val); vibrateMorse(val); } }
 
-// Stealth Logic: Toggle Controls
 function handle1KeyStart() {
     if(!appSettings.isStealth1KeyEnabled) return;
     ignoreNextClick = false;
@@ -210,7 +204,6 @@ function handle1KeyStart() {
 }
 function handle1KeyEnd() { if(timers.stealth) clearTimeout(timers.stealth); }
 
-// Stealth Logic: Action Buttons (7, 8, 9)
 function handleStealthActionStart(action) {
     if(!document.body.classList.contains('hide-controls')) return;
     ignoreNextClick = false;
@@ -221,7 +214,6 @@ function handleStealthActionStart(action) {
         if(action === 'backspace') handleBackspace();
         if(action === 'delete') {
              const settings = getProfileSettings();
-             // Speed Delete simulation: rapidly remove all
              const targetIndex = settings.currentMode === CONFIG.MODES.SIMON ? (getState().nextSequenceIndex - 1) % settings.machineCount : 0;
              getState().sequences[targetIndex] = [];
              getState().nextSequenceIndex = 0;
@@ -240,14 +232,11 @@ window.onload = function() {
             if (gestureState.isPinching && e.touches.length === 2) { 
                 e.preventDefault(); const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); const ratio = dist / gestureState.startDist; 
                 let newScale = gestureState.startScale * ratio;
-                // Snap to 10% increments (0.1 for multiplier, 10 for percentage)
                 if (appSettings.gestureResizeMode === 'sequence') { 
                     newScale = Math.round(newScale * 10) / 10; 
-                    // Updated limit to 3.0 (300%)
                     appSettings.uiScaleMultiplier = Math.min(Math.max(newScale, 0.5), 3.0); renderUI(); 
                 } else { 
                     newScale = Math.round(newScale / 10) * 10;
-                    // Updated limit to 300%
                     appSettings.globalUiScale = Math.min(Math.max(newScale, 50), 300); updateAllChrome(); 
                 } 
             } 
@@ -269,7 +258,6 @@ window.onload = function() {
             onProfileSwitch: (id) => { 
                 appSettings.activeProfileId = id; 
                 appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings)); 
-                // Removed Theme update here so it persists
                 appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 }; 
                 practiceSequence = []; 
                 updateAllChrome(); 
@@ -280,7 +268,6 @@ window.onload = function() {
             onProfileDelete: () => { delete appSettings.profiles[appSettings.activeProfileId]; appSettings.activeProfileId = Object.keys(appSettings.profiles)[0]; appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings)); if(appSettings.profiles[appSettings.activeProfileId].theme) appSettings.activeTheme = appSettings.profiles[appSettings.activeProfileId].theme; updateAllChrome(); saveState(); },
             onProfileSave: () => { 
                 appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings)); 
-                // Theme saving is handled by the Theme editor now
                 saveState(); 
                 showToast("Profile Settings Saved 💾"); 
             }
@@ -288,12 +275,10 @@ window.onload = function() {
         updateAllChrome(); if(appSettings.isPracticeModeEnabled) setTimeout(startPracticeRound, 500);
 
         document.querySelectorAll('.btn-pad-number, .piano-key-white, .piano-key-black').forEach(btn => {
-            // "1" Key Handler (Stealth Toggle)
             if(btn.dataset.value === '1') {
                 btn.addEventListener('mousedown', handle1KeyStart); btn.addEventListener('touchstart', handle1KeyStart, {passive: true});
                 btn.addEventListener('mouseup', handle1KeyEnd); btn.addEventListener('touchend', handle1KeyEnd); btn.addEventListener('mouseleave', handle1KeyEnd);
             }
-            // Stealth Action Handlers (7, 8, 9 / C, D, E) - ONLY when hidden
             const val = btn.dataset.value;
             if(val === '7' || val === 'C') {
                 btn.addEventListener('mousedown', () => handleStealthActionStart('play')); btn.addEventListener('touchstart', () => handleStealthActionStart('play'), {passive: true});
@@ -318,7 +303,7 @@ window.onload = function() {
         document.querySelectorAll('button[data-action="backspace"]').forEach(b => { 
             b.addEventListener('click', handleBackspace); 
             const startDelete = (e) => { 
-                if(!appSettings.isSpeedDeletingEnabled) return; // FIX: Respect the setting
+                if(!appSettings.isSpeedDeletingEnabled) return; 
                 isDeleting = false; 
                 timers.initialDelay = setTimeout(() => { 
                     isDeleting = true; 

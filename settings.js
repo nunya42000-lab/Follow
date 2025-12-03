@@ -18,6 +18,8 @@ const LANG={en:{quick_title:"👋 Quick Start",select_profile:"Select Profile",a
 export class SettingsManager{
     constructor(appSettings,callbacks,sensorEngine){
         this.appSettings=appSettings;this.callbacks=callbacks;this.sensorEngine=sensorEngine;this.currentTargetKey='bubble';
+        this.injectLongPressToggle(); // Dynamically add toggle
+        this.injectHelpText(); // Dynamically add help text
         this.dom={
             editorModal:document.getElementById('theme-editor-modal'),editorGrid:document.getElementById('color-grid'),ftContainer:document.getElementById('fine-tune-container'),ftToggle:document.getElementById('toggle-fine-tune'),ftPreview:document.getElementById('fine-tune-preview'),ftHue:document.getElementById('ft-hue'),ftSat:document.getElementById('ft-sat'),ftLit:document.getElementById('ft-lit'),
             targetBtns:document.querySelectorAll('.target-btn'),edName:document.getElementById('theme-name-input'),edPreview:document.getElementById('theme-preview-box'),edPreviewBtn:document.getElementById('preview-btn'),edPreviewCard:document.getElementById('preview-card'),edSave:document.getElementById('save-theme-btn'),edCancel:document.getElementById('cancel-theme-btn'),
@@ -35,6 +37,7 @@ export class SettingsManager{
             input:document.getElementById('input-select'),mode:document.getElementById('mode-select'),practiceMode:document.getElementById('practice-mode-toggle'),machines:document.getElementById('machines-select'),seqLength:document.getElementById('seq-length-select'),
             autoClear:document.getElementById('autoclear-toggle'),autoplay:document.getElementById('autoplay-toggle'),audio:document.getElementById('audio-toggle'),hapticMorse:document.getElementById('haptic-morse-toggle'),playbackSpeed:document.getElementById('playback-speed-select'),chunk:document.getElementById('chunk-select'),delay:document.getElementById('delay-select'),
             haptics:document.getElementById('haptics-toggle'),speedDelete:document.getElementById('speed-delete-toggle'),showWelcome:document.getElementById('show-welcome-toggle'),blackoutToggle:document.getElementById('blackout-toggle'),stealth1KeyToggle:document.getElementById('stealth-1key-toggle'),
+            longPressToggle: document.getElementById('long-press-autoplay-toggle'), // New Toggle
             uiScale:document.getElementById('ui-scale-select'),seqSize:document.getElementById('seq-size-select'),gestureMode:document.getElementById('gesture-mode-select'),autoInput:document.getElementById('auto-input-select'),
             quickLang:document.getElementById('quick-lang-select'),generalLang:document.getElementById('general-lang-select'),closeSettingsBtn:document.getElementById('close-settings'),tabs:document.querySelectorAll('.tab-btn'),contents:document.querySelectorAll('.tab-content'),helpModal:document.getElementById('help-modal'),setupModal:document.getElementById('game-setup-modal'),shareModal:document.getElementById('share-modal'),closeSetupBtn:document.getElementById('close-game-setup-modal'),quickSettings:document.getElementById('quick-open-settings'),quickHelp:document.getElementById('quick-open-help'),
             quickAutoplay:document.getElementById('quick-autoplay-toggle'),quickAudio:document.getElementById('quick-audio-toggle'),dontShowWelcome:document.getElementById('dont-show-welcome-toggle'),
@@ -52,6 +55,46 @@ export class SettingsManager{
         this.tempTheme=null;this.initListeners();this.populateConfigDropdown();this.populateThemeDropdown();this.buildColorGrid();this.populateVoicePresetDropdown();
     }
     
+    // Inject HTML for new toggle so user doesn't have to edit index.html
+    injectLongPressToggle() {
+        const generalTab = document.getElementById('tab-general');
+        if(!generalTab || document.getElementById('long-press-autoplay-toggle')) return;
+        
+        const div = document.createElement('div');
+        div.className = "flex justify-between items-center p-3 rounded-lg settings-input mt-3";
+        div.innerHTML = `<span class="font-bold text-sm">Long Press 'Play' Toggle</span><input type="checkbox" id="long-press-autoplay-toggle" class="h-5 w-5 accent-indigo-500">`;
+        
+        // Insert before the last item (reset/exit row is outside tab, but let's put it before Blackout)
+        const blackoutDiv = document.getElementById('blackout-toggle')?.parentElement?.parentElement; // wrapper div
+        if(blackoutDiv) {
+             // General tab has direct children as setting rows
+             // Finding a good spot: after Speed Delete
+             const speedDeleteRow = document.getElementById('speed-delete-toggle')?.parentElement;
+             if(speedDeleteRow && speedDeleteRow.nextSibling) {
+                 generalTab.insertBefore(div, speedDeleteRow.nextSibling);
+             } else {
+                 generalTab.appendChild(div);
+             }
+        } else {
+            generalTab.appendChild(div);
+        }
+    }
+
+    // Inject Help text for new features
+    injectHelpText() {
+        const list = document.querySelector('#tab-help-features ul');
+        if(!list || document.getElementById('help-long-press')) return;
+        
+        const li1 = document.createElement('li');
+        li1.id = 'help-long-press';
+        li1.innerHTML = `<strong>Quick Autoplay:</strong> Hold the Play button to toggle Autoplay on/off. (Enable in General Settings)`;
+        list.appendChild(li1);
+
+        const li2 = document.createElement('li');
+        li2.innerHTML = `<strong>Stop Playback:</strong> Press Play again during a sequence to stop it immediately.`;
+        list.appendChild(li2);
+    }
+
     populateVoicePresetDropdown(){
         if(!this.dom.voicePresetSelect) return;
         this.dom.voicePresetSelect.innerHTML = '';
@@ -108,8 +151,38 @@ export class SettingsManager{
     closeShare(){if(this.dom.shareModal){this.dom.shareModal.querySelector('.share-sheet').classList.remove('active');setTimeout(()=>this.dom.shareModal.classList.add('opacity-0','pointer-events-none'),300);}}
     openCalibration(){if(this.dom.calibModal){this.dom.calibModal.classList.remove('opacity-0','pointer-events-none');this.dom.calibModal.style.pointerEvents='auto';this.sensorEngine.toggleAudio(true);this.sensorEngine.toggleCamera(true);this.sensorEngine.setCalibrationCallback((data)=>{if(this.dom.calibAudioBar){const pct=((data.audio-(-100))/((-30)-(-100)))*100;this.dom.calibAudioBar.style.width=`${Math.max(0,Math.min(100,pct))}%`;}if(this.dom.calibCamBar){const pct=Math.min(100,data.camera);this.dom.calibCamBar.style.width=`${pct}%`;}});}}
     closeCalibration(){if(this.dom.calibModal){this.dom.calibModal.classList.add('opacity-0','pointer-events-none');this.dom.calibModal.style.pointerEvents='none';this.sensorEngine.setCalibrationCallback(null);this.sensorEngine.toggleAudio(this.appSettings.isAudioEnabled);this.sensorEngine.toggleCamera(this.appSettings.autoInputMode==='cam'||this.appSettings.autoInputMode==='both');}}
-    toggleRedeem(show){if(show){if(this.dom.settingsModal)this.dom.settingsModal.classList.add('opacity-0','pointer-events-none');if(this.dom.redeemModal){this.dom.redeemModal.classList.remove('opacity-0','pointer-events-none');this.dom.redeemModal.style.pointerEvents='auto';}}else{if(this.dom.redeemModal){this.dom.redeemModal.classList.add('opacity-0','pointer-events-none');this.dom.redeemModal.style.pointerEvents='none';}}}
-    toggleDonate(show){if(show){if(this.dom.settingsModal)this.dom.settingsModal.classList.add('opacity-0','pointer-events-none');if(this.dom.donateModal){this.dom.donateModal.classList.remove('opacity-0','pointer-events-none');this.dom.donateModal.style.pointerEvents='auto';}}else{if(this.dom.donateModal){this.dom.donateModal.classList.add('opacity-0','pointer-events-none');this.dom.donateModal.style.pointerEvents='none';}}}
+    
+    // UPDATED: Does not close settings modal
+    toggleRedeem(show){
+        if(show){
+            // if(this.dom.settingsModal)this.dom.settingsModal.classList.add('opacity-0','pointer-events-none'); // Removed to keep settings open
+            if(this.dom.redeemModal){
+                this.dom.redeemModal.classList.remove('opacity-0','pointer-events-none');
+                this.dom.redeemModal.style.pointerEvents='auto';
+            }
+        }else{
+            if(this.dom.redeemModal){
+                this.dom.redeemModal.classList.add('opacity-0','pointer-events-none');
+                this.dom.redeemModal.style.pointerEvents='none';
+            }
+        }
+    }
+    
+    // UPDATED: Does not close settings modal
+    toggleDonate(show){
+        if(show){
+            // if(this.dom.settingsModal)this.dom.settingsModal.classList.add('opacity-0','pointer-events-none'); // Removed
+            if(this.dom.donateModal){
+                this.dom.donateModal.classList.remove('opacity-0','pointer-events-none');
+                this.dom.donateModal.style.pointerEvents='auto';
+            }
+        }else{
+            if(this.dom.donateModal){
+                this.dom.donateModal.classList.add('opacity-0','pointer-events-none');
+                this.dom.donateModal.style.pointerEvents='none';
+            }
+        }
+    }
     
     initListeners(){
         this.dom.targetBtns.forEach(btn=>{btn.onclick=()=>{this.dom.targetBtns.forEach(b=>{b.classList.remove('active','bg-primary-app');b.classList.add('opacity-60');});btn.classList.add('active','bg-primary-app');btn.classList.remove('opacity-60');this.currentTargetKey=btn.dataset.target;if(this.tempTheme){const[h,s,l]=this.hexToHsl(this.tempTheme[this.currentTargetKey]);this.dom.ftHue.value=h;this.dom.ftSat.value=s;this.dom.ftLit.value=l;this.dom.ftPreview.style.backgroundColor=this.tempTheme[this.currentTargetKey];}};});
@@ -214,7 +287,8 @@ export class SettingsManager{
         };
         
         bind(this.dom.input,'currentInput',false);bind(this.dom.machines,'machineCount',false,true);bind(this.dom.seqLength,'sequenceLength',false,true);bind(this.dom.autoClear,'isUniqueRoundsAutoClearEnabled',true);
-        
+        bind(this.dom.longPressToggle,'isLongPressAutoplayEnabled',true); // Bind new toggle
+
         // Mode switch special case
         if(this.dom.mode){
             this.dom.mode.onchange = () => {
@@ -230,6 +304,7 @@ export class SettingsManager{
         if(this.dom.machines) this.dom.machines.addEventListener('change', () => this.generatePrompt());
         if(this.dom.playbackSpeed) this.dom.playbackSpeed.addEventListener('change', () => this.generatePrompt());
         if(this.dom.delay) this.dom.delay.addEventListener('change', () => this.generatePrompt());
+        if(this.dom.chunk) this.dom.chunk.addEventListener('change', () => this.generatePrompt()); // Added listener for chunk
 
         if(this.dom.autoplay){
             this.dom.autoplay.onchange=(e)=>{
@@ -398,7 +473,14 @@ export class SettingsManager{
         
         const max = ps.currentInput === 'key12' ? 12 : 9;
         const speed = gs.playbackSpeed || 1.0;
-        const delay = (ps.simonInterSequenceDelay / 1000) || 0;
+        
+        // Logic for Delay/Chunk text: Only show if machines > 1
+        let multiMachineExtras = "";
+        if(ps.machineCount > 1) {
+            const delay = (ps.simonInterSequenceDelay / 1000) || 0;
+            const chunk = ps.simonChunkSize || 3;
+            multiMachineExtras = `- Delay between rounds: ${delay}s\n- Chunk Size: ${chunk}\n`;
+        }
         
         let logic = "";
         let modeName = "";
@@ -415,9 +497,9 @@ export class SettingsManager{
 SETTINGS:
 - Valid Inputs: 1 to ${max}
 - Game Mode: ${modeName}
+- Machines: ${ps.machineCount}
 - Playback Speed: ${speed}x
-- Delay between rounds: ${delay}s
-
+${multiMachineExtras}
 ${logic}
 
 Example Interaction:
@@ -463,11 +545,15 @@ Start now. Waiting for input.`;
 
         if(this.dom.practiceMode)this.dom.practiceMode.checked=gs.isPracticeModeEnabled;
         if(this.dom.stealth1KeyToggle)this.dom.stealth1KeyToggle.checked=gs.isStealth1KeyEnabled;
+        
+        // New Toggle UI Update
+        if(this.dom.longPressToggle) this.dom.longPressToggle.checked = (typeof gs.isLongPressAutoplayEnabled === 'undefined') ? true : gs.isLongPressAutoplayEnabled;
+
         if(this.dom.calibAudioSlider)this.dom.calibAudioSlider.value=gs.sensorAudioThresh||-85;
         if(this.dom.calibCamSlider)this.dom.calibCamSlider.value=gs.sensorCamThresh||30;
         
         // --- DEFAULTS UI FIX ---
-        // Treat undefined as true for these two settings
+        // Treat undefined as true for these settings
         if(this.dom.haptics) this.dom.haptics.checked = (typeof gs.isHapticsEnabled === 'undefined') ? true : gs.isHapticsEnabled;
         if(this.dom.speedDelete) this.dom.speedDelete.checked = (typeof gs.isSpeedDeletingEnabled === 'undefined') ? true : gs.isSpeedDeletingEnabled;
 

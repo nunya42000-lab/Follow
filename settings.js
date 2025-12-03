@@ -22,6 +22,7 @@ export class SettingsManager{
             openShareInside:document.getElementById('open-share-button'),closeShareBtn:document.getElementById('close-share'),closeHelpBtn:document.getElementById('close-help'),closeHelpBtnBottom:document.getElementById('close-help-btn-bottom'),openHelpBtn:document.getElementById('open-help-button'),promptDisplay:document.getElementById('prompt-display'),copyPromptBtn:document.getElementById('copy-prompt-btn'),restoreBtn:document.querySelector('button[data-action="restore-defaults"]'),
             calibModal:document.getElementById('calibration-modal'),openCalibBtn:document.getElementById('open-calibration-btn'),closeCalibBtn:document.getElementById('close-calibration-btn'),calibAudioSlider:document.getElementById('calib-audio-slider'),calibCamSlider:document.getElementById('calib-cam-slider'),calibAudioBar:document.getElementById('calib-audio-bar'),calibCamBar:document.getElementById('calib-cam-bar'),calibAudioMarker:document.getElementById('calib-audio-marker'),calibCamMarker:document.getElementById('calib-cam-marker'),calibAudioVal:document.getElementById('audio-val-display'),calibCamVal:document.getElementById('cam-val-display'),
             redeemModal:document.getElementById('redeem-modal'),openRedeemBtn:document.getElementById('open-redeem-btn'),closeRedeemBtn:document.getElementById('close-redeem-btn'),
+            openRedeemSettingsBtn:document.getElementById('open-redeem-btn-settings'),
             donateModal:document.getElementById('donate-modal'), openDonateBtn:document.getElementById('open-donate-btn'), closeDonateBtn:document.getElementById('close-donate-btn'),
             btnCashMain:document.getElementById('btn-cashapp-main'), btnPaypalMain:document.getElementById('btn-paypal-main'),
             copyLinkBtn:document.getElementById('copy-link-button'), nativeShareBtn:document.getElementById('native-share-button'),
@@ -188,6 +189,9 @@ export class SettingsManager{
         if(this.dom.closeShareBtn)this.dom.closeShareBtn.onclick=()=>this.closeShare();
         if(this.dom.openRedeemBtn)this.dom.openRedeemBtn.onclick=()=>this.toggleRedeem(true);
         if(this.dom.closeRedeemBtn)this.dom.closeRedeemBtn.onclick=()=>this.toggleRedeem(false);
+        // Corrected listener for the redeem button inside settings modal
+        if(this.dom.openRedeemSettingsBtn) this.dom.openRedeemSettingsBtn.onclick=()=>this.toggleRedeem(true);
+        
         if(this.dom.openDonateBtn)this.dom.openDonateBtn.onclick=()=>this.toggleDonate(true);
         if(this.dom.closeDonateBtn)this.dom.closeDonateBtn.onclick=()=>this.toggleDonate(false);
 
@@ -233,7 +237,6 @@ export class SettingsManager{
         if(!this.dom.promptDisplay) return;
         const ps = this.appSettings.runtimeSettings;
         const max = ps.currentInput === 'key12' ? 12 : 9;
-        const mode = ps.currentMode === 'simon' ? 'Repeating Sequence (Simon Says)' : 'Random Sequence (Unique)';
         
         let logic = "";
         if(ps.currentMode === 'simon') {
@@ -278,6 +281,11 @@ export class SettingsManager{
         if(this.dom.calibAudioSlider)this.dom.calibAudioSlider.value=gs.sensorAudioThresh||-85;
         if(this.dom.calibCamSlider)this.dom.calibCamSlider.value=gs.sensorCamThresh||30;
         
+        // --- DEFAULTS UI FIX ---
+        // Ensure UI toggles match the internal state (which should default to true via App.js)
+        if(this.dom.haptics) this.dom.haptics.checked = (gs.isHapticsEnabled !== false); 
+        if(this.dom.speedDelete) this.dom.speedDelete.checked = (gs.isSpeedDeletingEnabled !== false);
+
         if(this.dom.uiScale) this.dom.uiScale.value = gs.globalUiScale || 100; 
         if(this.dom.seqSize) this.dom.seqSize.value = Math.round(gs.uiScaleMultiplier*100) || 100;
         

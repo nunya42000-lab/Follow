@@ -10,7 +10,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // --- CONFIG ---
-const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 250, SPEED_DELETE_INTERVAL: 20, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v43', STORAGE_KEY_STATE: 'followMeAppState_v43', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } };
+const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 250, SPEED_DELETE_INTERVAL: 20, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v44', STORAGE_KEY_STATE: 'followMeAppState_v44', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } };
 
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 400 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
@@ -271,6 +271,7 @@ function playDemo() {
     const settings = getProfileSettings(); 
     const state = getState(); 
     const demoBtn = document.querySelector(`#pad-${settings.currentInput} button[data-action="play-demo"]`);
+    const settingsBtn = document.querySelector('button[data-action="open-settings"]');
     
     if(isDemoPlaying) {
         isDemoPlaying = false;
@@ -280,6 +281,10 @@ function playDemo() {
             demoBtn.innerHTML = '▶'; 
             demoBtn.disabled = false; 
         }
+        
+        // REVERT SETTINGS BUTTON
+        if(settingsBtn) settingsBtn.innerHTML = '⚙️';
+        
         showToast("Playback Stopped 🛑");
         return;
     }
@@ -310,8 +315,8 @@ function playDemo() {
     disableInput(true); 
     isDemoPlaying = true; 
     
-    // Removed the initial square stop icon setting here.
-    // Instead, next() loop handles the display.
+    // CHANGE SETTINGS BUTTON TO STOP ICON
+    if(settingsBtn) settingsBtn.innerHTML = '■';
     
     let i = 0; 
     const speed = appSettings.playbackSpeed || 1; 
@@ -323,7 +328,8 @@ function playDemo() {
         if(i >= playlist.length) { 
             disableInput(false); 
             isDemoPlaying = false; 
-            if(demoBtn) { demoBtn.innerHTML = '▶'; demoBtn.disabled = false; } 
+            if(demoBtn) { demoBtn.innerHTML = '▶'; demoBtn.disabled = false; }
+            if(settingsBtn) settingsBtn.innerHTML = '⚙️';
             
             if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.isUniqueRoundsAutoClearEnabled) { 
                 state.sequences[0] = []; 
@@ -556,6 +562,16 @@ window.onload = function() {
              b.addEventListener('mouseup', cancelSettingsLong);
              b.addEventListener('mouseleave', cancelSettingsLong);
              b.addEventListener('touchend', cancelSettingsLong);
+             
+             // --- NEW CLICK LOGIC FOR SETTINGS BUTTON (STOP FUNCTIONALITY) ---
+             b.onclick = () => {
+                 if(timers.settingsLongPress) clearTimeout(timers.settingsLongPress);
+                 if(isDemoPlaying) {
+                     playDemo(); // Calls the playDemo function which handles stopping logic
+                     return;
+                 }
+                 modules.settings.openSettings();
+             };
         });
 
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => b.addEventListener('click', () => { if(confirm("Reset to Round 1?")) resetRounds(); }));
@@ -584,10 +600,6 @@ window.onload = function() {
             }
         });
 
-        document.querySelectorAll('button[data-action="open-settings"]').forEach(b => b.onclick = () => { 
-            if(timers.settingsLongPress) clearTimeout(timers.settingsLongPress); 
-            modules.settings.openSettings(); 
-        });
         if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
     } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }
 };

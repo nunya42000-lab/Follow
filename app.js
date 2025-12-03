@@ -15,16 +15,17 @@ const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 2
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 200 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
 
-// --- DEFAULTS: Haptics and Speed Delete explicitly set to true ---
-const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard' };
+// --- DEFAULTS: Haptics, Speed Delete, and Long Press Autoplay explicitly set to true ---
+const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard' };
 
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
 let modules = { sensor: null, settings: null };
-let timers = { speedDelete: null, initialDelay: null, longPress: null, stealth: null, stealthAction: null };
+let timers = { speedDelete: null, initialDelay: null, longPress: null, stealth: null, stealthAction: null, playback: null };
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 let blackoutState = { isActive: false, lastShake: 0 }; 
 let isDeleting = false; 
+let isDemoPlaying = false; // New flag to track playback state
 let practiceSequence = [];
 let practiceInputIndex = 0;
 let ignoreNextClick = false;
@@ -44,6 +45,7 @@ function loadState() {
             // Fix: Ensure defaults are respected if keys are missing in loaded data
             if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
             if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
+            if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
             if (!appSettings.voicePresets) appSettings.voicePresets = {};
             if (!appSettings.activeVoicePresetId) appSettings.activeVoicePresetId = 'standard';
 
@@ -138,20 +140,37 @@ function addValue(value) {
 function handleBackspace(e) { if(e && isDeleting) return; vibrate(); const state = getState(); const settings = getProfileSettings(); if(state.nextSequenceIndex === 0) return; let targetIndex = 0; if(settings.currentMode === CONFIG.MODES.SIMON) targetIndex = (state.nextSequenceIndex - 1) % settings.machineCount; if(state.sequences[targetIndex] && state.sequences[targetIndex].length > 0) { state.sequences[targetIndex].pop(); state.nextSequenceIndex--; if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) disableInput(false); renderUI(); saveState(); } }
 function resetRounds() { const state = getState(); state.currentRound = 1; state.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); state.nextSequenceIndex = 0; disableInput(false); renderUI(); saveState(); showToast("Reset to Round 1"); }
 function disableInput(disabled) { const pad = document.getElementById(`pad-${getProfileSettings().currentInput}`); if(pad) pad.querySelectorAll('button').forEach(b => b.disabled = disabled); }
+
 function playDemo() {
     const settings = getProfileSettings(); const state = getState(); const demoBtn = document.querySelector(`#pad-${settings.currentInput} button[data-action="play-demo"]`);
+    
+    // STOP LOGIC: If already playing, stop everything
+    if(isDemoPlaying) {
+        isDemoPlaying = false;
+        if(timers.playback) clearTimeout(timers.playback);
+        disableInput(false);
+        if(demoBtn) { demoBtn.innerHTML = '▶'; demoBtn.disabled = false; }
+        showToast("Playback Stopped 🛑");
+        return;
+    }
+
     if(demoBtn && demoBtn.disabled && !appSettings.isAutoplayEnabled) return; 
 
     let playlist = [];
     if(settings.currentMode === CONFIG.MODES.SIMON) { const activeSeqs = state.sequences.slice(0, settings.machineCount); const maxLen = Math.max(...activeSeqs.map(s => s.length)); if(maxLen === 0) return; const chunkSize = (settings.machineCount > 1) ? settings.simonChunkSize : maxLen; const numChunks = Math.ceil(maxLen / chunkSize); for(let c=0; c<numChunks; c++) { for(let m=0; m<settings.machineCount; m++) { for(let k=0; k<chunkSize; k++) { const idx = (c*chunkSize) + k; if(activeSeqs[m][idx]) playlist.push({ val: activeSeqs[m][idx], machine: m }); } } } } else { const seq = state.sequences[0]; if(!seq || seq.length === 0) { disableInput(false); return; } playlist = seq.map(v => ({ val: v, machine: 0 })); }
     
     disableInput(true); 
-    if(demoBtn) demoBtn.disabled = true; 
+    isDemoPlaying = true; // Set flag
+    
+    if(demoBtn) demoBtn.innerHTML = '■'; // Change to stop symbol
+    
     let i = 0; const speed = appSettings.playbackSpeed || 1; const interval = CONFIG.DEMO_DELAY_BASE_MS / speed;
     
     function next() { 
+        if(!isDemoPlaying) return; // Stop check inside loop
         if(i >= playlist.length) { 
             disableInput(false); 
+            isDemoPlaying = false; // Reset flag
             if(demoBtn) { demoBtn.innerHTML = '▶'; demoBtn.disabled = false; } 
             
             if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.isUniqueRoundsAutoClearEnabled) { 
@@ -165,15 +184,17 @@ function playDemo() {
             return; 
         } 
         const item = playlist[i]; 
-        if(demoBtn) demoBtn.innerHTML = i + 1; 
+        // if(demoBtn) demoBtn.innerHTML = i + 1; // Removed to keep Stop button visible
         const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${item.val}"]`); 
         if(key) { key.classList.add('flash-active'); setTimeout(() => key.classList.remove('flash-active'), 250 / speed); } 
         speak(item.val); vibrateMorse(item.val); 
         const seqBoxes = document.getElementById('sequence-container').children; 
         if(seqBoxes[item.machine]) { seqBoxes[item.machine].style.transform = 'scale(1.05)'; setTimeout(() => seqBoxes[item.machine].style.transform = 'scale(1)', 250 / speed); } 
-        i++; setTimeout(next, interval); 
+        i++; 
+        timers.playback = setTimeout(next, interval); 
     } next();
 }
+
 function renderUI() {
     const container = document.getElementById('sequence-container'); container.innerHTML = ''; const settings = getProfileSettings();
     ['key9', 'key12', 'piano'].forEach(k => { const el = document.getElementById(`pad-${k}`); if(el) el.style.display = (settings.currentInput === k) ? 'block' : 'none'; });
@@ -303,7 +324,29 @@ window.onload = function() {
                 addValue(e.target.dataset.value);
             });
         });
-        document.querySelectorAll('button[data-action="play-demo"]').forEach(b => { b.addEventListener('click', playDemo); const startLongPress = () => { timers.longPress = setTimeout(() => { appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled; showToast(`Autoplay: ${appSettings.isAutoplayEnabled?'ON':'OFF'}`); saveState(); vibrate(); }, 500); }; const cancelLong = () => clearTimeout(timers.longPress); b.addEventListener('mousedown', startLongPress); b.addEventListener('touchstart', startLongPress, { passive: true }); b.addEventListener('mouseup', cancelLong); b.addEventListener('mouseleave', cancelLong); b.addEventListener('touchend', cancelLong); });
+        
+        // --- Play Button Long Press Logic ---
+        document.querySelectorAll('button[data-action="play-demo"]').forEach(b => { 
+            b.addEventListener('click', playDemo); 
+            const startLongPress = () => { 
+                timers.longPress = setTimeout(() => { 
+                    // New check: Only toggle if setting is enabled
+                    if(appSettings.isLongPressAutoplayEnabled !== false) { // undefined treated as true
+                        appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled; 
+                        showToast(`Autoplay: ${appSettings.isAutoplayEnabled?'ON':'OFF'}`); 
+                        saveState(); 
+                        vibrate(); 
+                    }
+                }, 500); 
+            }; 
+            const cancelLong = () => clearTimeout(timers.longPress); 
+            b.addEventListener('mousedown', startLongPress); 
+            b.addEventListener('touchstart', startLongPress, { passive: true }); 
+            b.addEventListener('mouseup', cancelLong); 
+            b.addEventListener('mouseleave', cancelLong); 
+            b.addEventListener('touchend', cancelLong); 
+        });
+
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => b.addEventListener('click', () => { if(confirm("Reset to Round 1?")) resetRounds(); }));
         document.querySelectorAll('button[data-action="backspace"]').forEach(b => { 
             b.addEventListener('click', handleBackspace); 

@@ -6,7 +6,7 @@ export const PREMADE_THEMES = {
     'dracula': { name: "Vampire", bgMain: "#282a36", bgCard: "#44475a", bubble: "#ff5555", btn: "#6272a4", text: "#f8f8f2" },
     'neon': { name: "Neon City", bgMain: "#0b0014", bgCard: "#180029", bubble: "#d900ff", btn: "#24003d", text: "#00eaff" },
     'retro': { name: "Retro PC", bgMain: "#fdf6e3", bgCard: "#eee8d5", bubble: "#cb4b16", btn: "#93a1a1", text: "#586e75" },
-    'steampunk': { name: "Steampunk", bgMain: "#100c08", bgCard: "#2b1d16", bubble: "#b87333", btn: "#422a18", text: "#d5c5a3" }, // New!
+    'steampunk': { name: "Steampunk", bgMain: "#100c08", bgCard: "#2b1d16", bubble: "#b87333", btn: "#422a18", text: "#d5c5a3" },
     'ocean': { name: "Ocean Blue", bgMain: "#0f172a", bgCard: "#1e293b", bubble: "#0ea5e9", btn: "#334155", text: "#e2e8f0" },
     'cyber': { name: "Cyberpunk", bgMain: "#050505", bgCard: "#1a1625", bubble: "#d946ef", btn: "#2d1b4e", text: "#f0abfc" },
     'volcano': { name: "Volcano", bgMain: "#1a0505", bgCard: "#450a0a", bubble: "#b91c1c", btn: "#7f1d1d", text: "#fecaca" },
@@ -386,7 +386,7 @@ export class SettingsManager {
         bind(this.dom.blackoutToggle, 'isBlackoutFeatureEnabled', true); bind(this.dom.practiceMode, 'isPracticeModeEnabled', true);
         if (this.dom.uiScale) this.dom.uiScale.onchange = (e) => { this.appSettings.globalUiScale = parseInt(e.target.value); this.callbacks.onUpdate(); };
         if (this.dom.seqSize) this.dom.seqSize.onchange = (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onUpdate(); };
-        if (this.dom.gestureMode) this.dom.gestureMode.value = gs.gestureResizeMode || 'global';
+        if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
         if (this.dom.gestureMode) this.dom.gestureMode.onchange = (e) => { this.appSettings.gestureResizeMode = e.target.value; this.callbacks.onSave(); };
         if (this.dom.autoInput) this.dom.autoInput.onchange = (e) => { const val = e.target.value; this.appSettings.autoInputMode = val; this.appSettings.showMicBtn = (val === 'mic' || val === 'both'); this.appSettings.showCamBtn = (val === 'cam' || val === 'both'); this.callbacks.onSave(); this.callbacks.onUpdate(); };
         if (this.dom.themeAdd) this.dom.themeAdd.onclick = () => { const n = prompt("Name:"); if (n) { const id = 'c_' + Date.now(); this.appSettings.customThemes[id] = { ...PREMADE_THEMES['default'], name: n }; this.appSettings.activeTheme = id; this.callbacks.onSave(); this.callbacks.onUpdate(); this.populateThemeDropdown(); this.openThemeEditor(); } };
@@ -505,9 +505,8 @@ export class SettingsManager {
         if (!this.dom.promptDisplay) return;
 
         const ps = this.appSettings.runtimeSettings;
-        const gs = this.appSettings;
         const max = ps.currentInput === 'key12' ? 12 : 9;
-        const speed = gs.playbackSpeed || 1.0;
+        const speed = this.appSettings.playbackSpeed || 1.0;
         const delay = (ps.simonInterSequenceDelay / 1000) || 0;
         const chunk = ps.simonChunkSize || 3;
         
@@ -555,51 +554,50 @@ START IMMEDIATELY upon my next input. Waiting for signal.`;
 
     updateUIFromSettings() {
         const ps = this.appSettings.runtimeSettings;
-        const gs = this.appSettings;
         if (this.dom.input) this.dom.input.value = ps.currentInput;
 
         if (this.dom.mode) this.dom.mode.value = ps.currentMode;
 
         if (this.dom.machines) this.dom.machines.value = ps.machineCount;
         if (this.dom.seqLength) this.dom.seqLength.value = ps.sequenceLength;
-        if (this.dom.autoClear) this.dom.autoClear.checked = gs.isUniqueRoundsAutoClearEnabled;
+        if (this.dom.autoClear) this.dom.autoClear.checked = this.appSettings.isUniqueRoundsAutoClearEnabled;
 
-        if (this.dom.autoplay) this.dom.autoplay.checked = gs.isAutoplayEnabled;
-        if (this.dom.audio) this.dom.audio.checked = gs.isAudioEnabled;
+        if (this.dom.autoplay) this.dom.autoplay.checked = this.appSettings.isAutoplayEnabled;
+        if (this.dom.audio) this.dom.audio.checked = this.appSettings.isAudioEnabled;
 
-        if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = gs.isAutoplayEnabled;
-        if (this.dom.quickAudio) this.dom.quickAudio.checked = gs.isAudioEnabled;
-        if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !gs.showWelcomeScreen;
-        if (this.dom.showWelcome) this.dom.showWelcome.checked = gs.showWelcomeScreen;
+        if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = this.appSettings.isAutoplayEnabled;
+        if (this.dom.quickAudio) this.dom.quickAudio.checked = this.appSettings.isAudioEnabled;
+        if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !this.appSettings.showWelcomeScreen;
+        if (this.dom.showWelcome) this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
 
-        if (this.dom.hapticMorse) this.dom.hapticMorse.checked = gs.isHapticMorseEnabled;
-        if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = gs.playbackSpeed.toFixed(1) || "1.0";
+        if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.isHapticMorseEnabled;
+        if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = this.appSettings.playbackSpeed.toFixed(1) || "1.0";
         if (this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
         if (this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000);
 
         // Voice Update
-        if (this.dom.voicePitch) this.dom.voicePitch.value = gs.voicePitch || 1.0;
-        if (this.dom.voiceRate) this.dom.voiceRate.value = gs.voiceRate || 1.0;
-        if (this.dom.voiceVolume) this.dom.voiceVolume.value = gs.voiceVolume || 1.0;
-        if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.value = gs.activeVoicePresetId || 'standard';
+        if (this.dom.voicePitch) this.dom.voicePitch.value = this.appSettings.voicePitch || 1.0;
+        if (this.dom.voiceRate) this.dom.voiceRate.value = this.appSettings.voiceRate || 1.0;
+        if (this.dom.voiceVolume) this.dom.voiceVolume.value = this.appSettings.voiceVolume || 1.0;
+        if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
 
-        if (this.dom.practiceMode) this.dom.practiceMode.checked = gs.isPracticeModeEnabled;
-        if (this.dom.stealth1KeyToggle) this.dom.stealth1KeyToggle.checked = gs.isStealth1KeyEnabled;
+        if (this.dom.practiceMode) this.dom.practiceMode.checked = this.appSettings.isPracticeModeEnabled;
+        if (this.dom.stealth1KeyToggle) this.dom.stealth1KeyToggle.checked = this.appSettings.isStealth1KeyEnabled;
 
-        if (this.dom.longPressToggle) this.dom.longPressToggle.checked = (typeof gs.isLongPressAutoplayEnabled === 'undefined') ? true : gs.isLongPressAutoplayEnabled;
+        if (this.dom.longPressToggle) this.dom.longPressToggle.checked = (typeof this.appSettings.isLongPressAutoplayEnabled === 'undefined') ? true : this.appSettings.isLongPressAutoplayEnabled;
 
-        if (this.dom.calibAudioSlider) this.dom.calibAudioSlider.value = gs.sensorAudioThresh || -85;
-        if (this.dom.calibCamSlider) this.dom.calibCamSlider.value = gs.sensorCamThresh || 30;
+        if (this.dom.calibAudioSlider) this.dom.calibAudioSlider.value = this.appSettings.sensorAudioThresh || -85;
+        if (this.dom.calibCamSlider) this.dom.calibCamSlider.value = this.appSettings.sensorCamThresh || 30;
 
-        if (this.dom.haptics) this.dom.haptics.checked = (typeof gs.isHapticsEnabled === 'undefined') ? true : gs.isHapticsEnabled;
-        if (this.dom.speedDelete) this.dom.speedDelete.checked = (typeof gs.isSpeedDeletingEnabled === 'undefined') ? true : gs.isSpeedDeletingEnabled;
+        if (this.dom.haptics) this.dom.haptics.checked = (typeof this.appSettings.isHapticsEnabled === 'undefined') ? true : this.appSettings.isHapticsEnabled;
+        if (this.dom.speedDelete) this.dom.speedDelete.checked = (typeof this.appSettings.isSpeedDeletingEnabled === 'undefined') ? true : this.appSettings.isSpeedDeletingEnabled;
 
-        if (this.dom.uiScale) this.dom.uiScale.value = gs.globalUiScale || 100;
-        if (this.dom.seqSize) this.dom.seqSize.value = Math.round(gs.uiScaleMultiplier * 100) || 100;
-        if (this.dom.gestureMode) this.dom.gestureMode.value = gs.gestureResizeMode || 'global';
+        if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
+        if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
+        if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
         
         // Language
-        const lang = gs.generalLanguage || 'en';
+        const lang = this.appSettings.generalLanguage || 'en';
         if (this.dom.quickLang) this.dom.quickLang.value = lang;
         if (this.dom.generalLang) this.dom.generalLang.value = lang;
         this.setLanguage(lang);

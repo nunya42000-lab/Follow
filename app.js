@@ -79,19 +79,15 @@ function speak(text) {
     if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; 
     window.speechSynthesis.cancel(); 
     
-    // Translation Logic
     const lang = appSettings.generalLanguage || 'en';
     const dict = DICTIONARY[lang] || DICTIONARY['en'];
     let msg = text;
     
-    // Map system words
     if(text === "Correct") msg = dict.correct;
     if(text === "Wrong") msg = dict.wrong;
     if(text === "Stealth Active") msg = dict.stealth;
 
     const u = new SpeechSynthesisUtterance(msg); 
-    
-    // Language tag for voice engine
     if(lang === 'es') u.lang = 'es-MX';
     else u.lang = 'en-US';
 
@@ -104,7 +100,6 @@ function speak(text) {
     let r = appSettings.voiceRate || 1.0; 
     u.volume = appSettings.voiceVolume || 1.0; 
     
-    // Safety check for voice pitch/rate limits
     u.pitch = Math.min(2, Math.max(0.1, p));
     u.rate = Math.min(10, Math.max(0.1, r));
 
@@ -130,7 +125,6 @@ function applyTheme(themeKey) { const body = document.body; body.className = bod
 function updateAllChrome() { applyTheme(appSettings.activeTheme); document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`; renderUI(); }
 
 function startPracticeRound() {
-    // Only run if not currently in Settings modal
     const settingsModal = document.getElementById('settings-modal');
     if(settingsModal && !settingsModal.classList.contains('pointer-events-none')) return;
 
@@ -146,30 +140,26 @@ function startPracticeRound() {
         return Math.floor(Math.random() * max) + 1; 
     };
 
-    // Ensure we start fresh if just enabled
     if(practiceSequence.length === 0) {
         state.currentRound = 1;
     }
 
     if(settings.currentMode === CONFIG.MODES.SIMON) {
-        // Simon: Add 1 number to the sequence
         practiceSequence.push(getRand());
         state.currentRound = practiceSequence.length;
     } else {
-        // Unique: New random sequence of length 'currentRound'
         practiceSequence = []; 
         const len = state.currentRound; 
         for(let i=0; i<len; i++) practiceSequence.push(getRand());
     }
     
     practiceInputIndex = 0; 
-    renderUI(); // Update UI to show "Round X"
+    renderUI(); 
     showToast(`Practice Round ${state.currentRound}`); 
     setTimeout(() => playPracticeSequence(), 1000);
 }
 
 function playPracticeSequence() {
-    // Double check we aren't in settings
     const settingsModal = document.getElementById('settings-modal');
     if(settingsModal && !settingsModal.classList.contains('pointer-events-none')) return;
 
@@ -200,7 +190,6 @@ function addValue(value) {
     const state = getState(); 
     const settings = getProfileSettings();
     
-    // --- PRACTICE MODE LOGIC ---
     if(appSettings.isPracticeModeEnabled) {
         if(practiceSequence.length === 0) return; 
         
@@ -219,7 +208,6 @@ function addValue(value) {
         return;
     }
     
-    // --- REGULAR GAME LOGIC ---
     let targetIndex = 0; 
     if (settings.currentMode === CONFIG.MODES.SIMON) targetIndex = state.nextSequenceIndex % settings.machineCount;
     
@@ -284,7 +272,6 @@ function playDemo() {
     const state = getState(); 
     const demoBtn = document.querySelector(`#pad-${settings.currentInput} button[data-action="play-demo"]`);
     
-    // --- STOP LOGIC FIXED ---
     if(isDemoPlaying) {
         isDemoPlaying = false;
         if(timers.playback) clearTimeout(timers.playback);
@@ -297,8 +284,6 @@ function playDemo() {
         return;
     }
 
-    // Don't start if disabled (unless autoplay triggered it internally)
-    // We check !isDemoPlaying to differentiate a user click from an internal call
     if(demoBtn && demoBtn.disabled && !isDemoPlaying) return; 
 
     let playlist = [];
@@ -325,7 +310,8 @@ function playDemo() {
     disableInput(true); 
     isDemoPlaying = true; 
     
-    if(demoBtn) demoBtn.innerHTML = '■'; 
+    // Removed the initial square stop icon setting here.
+    // Instead, next() loop handles the display.
     
     let i = 0; 
     const speed = appSettings.playbackSpeed || 1; 
@@ -357,6 +343,9 @@ function playDemo() {
         const seqBoxes = document.getElementById('sequence-container').children; 
         if(seqBoxes[item.machine]) { seqBoxes[item.machine].style.transform = 'scale(1.05)'; setTimeout(() => seqBoxes[item.machine].style.transform = 'scale(1)', 250 / speed); } 
         
+        // --- DISPLAY POSITION NUMBER IN BUTTON ---
+        if(demoBtn) demoBtn.innerText = (i + 1);
+
         let nextDelay = baseInterval;
         if (i + 1 < playlist.length) {
             const nextItem = playlist[i+1];
@@ -376,16 +365,13 @@ function renderUI() {
     const settings = getProfileSettings();
     const state = getState();
 
-    // Show correct Input Pad
     ['key9', 'key12', 'piano'].forEach(k => { 
         const el = document.getElementById(`pad-${k}`); 
         if(el) el.style.display = (settings.currentInput === k) ? 'block' : 'none'; 
     });
 
-    // --- PRACTICE MODE UI ---
     if(appSettings.isPracticeModeEnabled) {
         if(practiceSequence.length === 0) {
-            // First time entry logic
             practiceSequence = [];
             state.currentRound = 1;
             setTimeout(startPracticeRound, 100);
@@ -394,23 +380,9 @@ function renderUI() {
         return;
     }
 
-    // --- GAME MODE UI ---
+    // --- GAME MODE UI: Header removed as requested ---
     const activeSeqs = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);
     
-    // --- FIXED: DISPLAY ROUND COUNTER FOR BOTH MODES ---
-    // Previously only for Unique. Now Simon shows total sequence length as "Round" equivalent.
-    const h = document.createElement('h2'); 
-    h.className = "text-center text-2xl font-bold mb-4 w-full"; 
-    
-    if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
-        h.textContent = `Round ${state.currentRound} / ${settings.sequenceLength}`; 
-    } else {
-        // For Simon, "Round" is basically how many items are in the first machine's list + 1
-        const count = state.sequences[0] ? state.sequences[0].length : 0;
-        h.textContent = `Sequence Length: ${count}`;
-    }
-    container.appendChild(h);
-
     let gridCols = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 1 : Math.min(settings.machineCount, 4); 
     container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
     
@@ -489,7 +461,6 @@ window.onload = function() {
                     showToast("Game Mode Reset 🔄");
                 }
                 
-                // PRACTICE MODE RESET
                 if(appSettings.isPracticeModeEnabled) {
                     practiceSequence = [];
                     practiceInputIndex = 0;
@@ -519,7 +490,6 @@ window.onload = function() {
         }, modules.sensor);
         updateAllChrome(); 
         
-        // Safety check to start practice mode only if settings are closed
         if(appSettings.isPracticeModeEnabled) {
             const settingsModal = document.getElementById('settings-modal');
             if(!settingsModal || settingsModal.classList.contains('pointer-events-none')) {
@@ -552,7 +522,6 @@ window.onload = function() {
             });
         });
         
-        // --- Play Button Long Press Logic ---
         document.querySelectorAll('button[data-action="play-demo"]').forEach(b => { 
             b.addEventListener('click', playDemo); 
             const startLongPress = () => { 
@@ -573,7 +542,6 @@ window.onload = function() {
             b.addEventListener('touchend', cancelLong); 
         });
         
-        // --- Settings Button Long Press Logic (Redeem) ---
         document.querySelectorAll('button[data-action="open-settings"]').forEach(b => {
              const startSettingsLong = () => {
                  timers.settingsLongPress = setTimeout(() => {
@@ -610,16 +578,14 @@ window.onload = function() {
         });
         document.querySelectorAll('button[data-action="open-share"]').forEach(b => b.addEventListener('click', () => modules.settings.openShare())); 
         
-        // Modified: Close button now triggers check for Practice Mode start
         document.getElementById('close-settings').addEventListener('click', () => {
             if(appSettings.isPracticeModeEnabled) {
-                // Short delay to let modal animate out
                 setTimeout(startPracticeRound, 500);
             }
         });
 
         document.querySelectorAll('button[data-action="open-settings"]').forEach(b => b.onclick = () => { 
-            if(timers.settingsLongPress) clearTimeout(timers.settingsLongPress); // safety
+            if(timers.settingsLongPress) clearTimeout(timers.settingsLongPress); 
             modules.settings.openSettings(); 
         });
         if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);

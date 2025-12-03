@@ -1,15 +1,15 @@
 // settings.js
 export const PREMADE_THEMES={'default':{name:"Default Dark",bgMain:"#000000",bgCard:"#121212",bubble:"#4f46e5",btn:"#1a1a1a",text:"#e5e5e5"},'light':{name:"Light Mode",bgMain:"#f3f4f6",bgCard:"#ffffff",bubble:"#4f46e5",btn:"#e5e7eb",text:"#111827"},'ocean':{name:"Ocean Blue",bgMain:"#0f172a",bgCard:"#1e293b",bubble:"#0ea5e9",btn:"#334155",text:"#e2e8f0"},'matrix':{name:"The Matrix",bgMain:"#000000",bgCard:"#0a0a0a",bubble:"#00ff41",btn:"#002200",text:"#00ff41"},'cyber':{name:"Cyberpunk",bgMain:"#050505",bgCard:"#1a1625",bubble:"#d946ef",btn:"#2d1b4e",text:"#f0abfc"},'volcano':{name:"Volcano",bgMain:"#1a0505",bgCard:"#450a0a",bubble:"#b91c1c",btn:"#7f1d1d",text:"#fecaca"},'forest':{name:"Deep Forest",bgMain:"#021408",bgCard:"#064e3b",bubble:"#166534",btn:"#14532d",text:"#dcfce7"},'sunset':{name:"Sunset",bgMain:"#1a021c",bgCard:"#701a75",bubble:"#fb923c",btn:"#86198f",text:"#fff7ed"}};
 
-// Expanded Voice Presets
 export const PREMADE_VOICE_PRESETS = {
     'standard': { name: "Standard", pitch: 1.0, rate: 1.0, volume: 1.0 },
-    'speed': { name: "Speed Reader", pitch: 1.0, rate: 2.0, volume: 1.0 },
-    'slow': { name: "Slow Motion", pitch: 1.0, rate: 0.6, volume: 1.0 },
+    'speed': { name: "Speed Reader", pitch: 1.0, rate: 1.8, volume: 1.0 },
+    'slow': { name: "Slow Motion", pitch: 0.9, rate: 0.6, volume: 1.0 },
     'deep': { name: "Deep Voice", pitch: 0.6, rate: 0.9, volume: 1.0 },
-    'high': { name: "High Pitch", pitch: 1.6, rate: 1.1, volume: 1.0 },
-    'robot': { name: "Robot", pitch: 0.1, rate: 0.8, volume: 1.0 },
-    'chipmunk': { name: "Chipmunk", pitch: 2.0, rate: 1.3, volume: 1.0 }
+    'high': { name: "Chipmunk", pitch: 1.8, rate: 1.1, volume: 1.0 },
+    'robot': { name: "Robot", pitch: 0.5, rate: 0.8, volume: 1.0 },
+    'announcer': { name: "Announcer", pitch: 0.8, rate: 1.1, volume: 1.0 },
+    'whisper': { name: "Quiet", pitch: 1.2, rate: 0.8, volume: 0.4 }
 };
 
 const CRAYONS=["#000000","#1F75FE","#1CA9C9","#0D98BA","#FFFFFF","#C5D0E6","#B0B7C6","#AF4035","#F5F5F5","#FEFEFA","#FFFAFA","#F0F8FF","#F8F8FF","#F5F5DC","#FFFACD","#FAFAD2","#FFFFE0","#FFFFF0","#FFFF00","#FFEFD5","#FFE4B5","#FFDAB9","#EEE8AA","#F0E68C","#BDB76B","#E6E6FA","#D8BFD8","#DDA0DD","#EE82EE","#DA70D6","#FF00FF","#BA55D3","#9370DB","#8A2BE2","#9400D3","#9932CC","#8B008B","#800000","#4B0082","#483D8B","#6A5ACD","#7B68EE","#ADFF2F","#7FFF00","#7CFC00","#00FF00","#32CD32","#98FB98","#90EE90","#00FA9A","#00FF7F","#3CB371","#2E8B57","#228B22","#008000","#006400","#9ACD32","#6B8E23","#808000","#556B2F","#66CDAA","#8FBC8F","#20B2AA","#008B8B","#008080","#00FFFF","#00CED1","#40E0D0","#48D1CC","#AFEEEE","#7FFFD4","#B0E0E6","#5F9EA0","#4682B4","#6495ED","#00BFFF","#1E90FF","#ADD8E6","#87CEEB","#87CEFA","#191970","#000080","#0000FF","#0000CD","#4169E1","#8A2BE2","#4B0082","#FFE4C4","#FFEBCD","#F5DEB3","#DEB887","#D2B48C","#BC8F8F","#F4A460","#DAA520","#B8860B","#CD853F","#D2691E","#8B4513","#A0522D","#A52A2A","#800000","#FFA07A","#FA8072","#E9967A","#F08080","#CD5C5C","#DC143C","#B22222","#FF0000","#FF4500","#FF6347","#FF7F50","#FF8C00","#FFA500","#FFD700","#FFFF00","#808000","#556B2F","#6B8E23","#999999","#808080","#666666","#333333","#222222","#111111","#0A0A0A","#000000"];
@@ -50,7 +50,6 @@ export class SettingsManager{
             chatShareBtn:document.getElementById('chat-share-button'), emailShareBtn:document.getElementById('email-share-button')
         };
         this.tempTheme=null;this.initListeners();this.populateConfigDropdown();this.populateThemeDropdown();this.buildColorGrid();this.populateVoicePresetDropdown();
-        // Removed voice engine population since we removed the dropdown
     }
     
     populateVoicePresetDropdown(){
@@ -92,7 +91,6 @@ export class SettingsManager{
         this.appSettings.voicePitch = preset.pitch;
         this.appSettings.voiceRate = preset.rate;
         this.appSettings.voiceVolume = preset.volume;
-        // removed selectedVoice update since the dropdown is gone
 
         // Update UI
         this.updateUIFromSettings();
@@ -197,22 +195,41 @@ export class SettingsManager{
         if(this.dom.configSelect)this.dom.configSelect.onchange=(e)=>handleProfileSwitch(e.target.value);
         if(this.dom.quickConfigSelect)this.dom.quickConfigSelect.onchange=(e)=>handleProfileSwitch(e.target.value);
         
-        const bind=(el,prop,isGlobal,isInt=false,isFloat=false)=>{if(!el)return;el.onchange=()=>{let val=(el.type==='checkbox')?el.checked:el.value;if(isInt)val=parseInt(val);if(isFloat)val=parseFloat(val);if(isGlobal){this.appSettings[prop]=val;if(prop==='activeTheme')this.callbacks.onUpdate();if(prop==='isPracticeModeEnabled')this.callbacks.onUpdate();}else{this.appSettings.runtimeSettings[prop]=val;}this.callbacks.onSave();this.generatePrompt();};};
+        const bind=(el,prop,isGlobal,isInt=false,isFloat=false)=>{
+            if(!el)return;
+            el.onchange=()=>{
+                let val=(el.type==='checkbox')?el.checked:el.value;
+                if(isInt)val=parseInt(val);
+                if(isFloat)val=parseFloat(val);
+                if(isGlobal){
+                    this.appSettings[prop]=val;
+                    if(prop==='activeTheme')this.callbacks.onUpdate();
+                    if(prop==='isPracticeModeEnabled')this.callbacks.onUpdate();
+                }else{
+                    this.appSettings.runtimeSettings[prop]=val;
+                }
+                this.callbacks.onSave();
+                this.generatePrompt(); // UPDATE PROMPT ON EVERY CHANGE
+            };
+        };
         
         bind(this.dom.input,'currentInput',false);bind(this.dom.machines,'machineCount',false,true);bind(this.dom.seqLength,'sequenceLength',false,true);bind(this.dom.autoClear,'isUniqueRoundsAutoClearEnabled',true);
         
-        // Add explicit prompt generation to mode switch
+        // Mode switch special case
         if(this.dom.mode){
             this.dom.mode.onchange = () => {
                 this.appSettings.runtimeSettings.currentMode = this.dom.mode.value;
                 this.callbacks.onSave();
                 this.callbacks.onUpdate('mode_switch');
-                this.generatePrompt(); // Explicit call
+                this.generatePrompt();
             };
         }
         
         // Also ensure inputs trigger prompt regeneration
         if(this.dom.input) this.dom.input.addEventListener('change', () => this.generatePrompt());
+        if(this.dom.machines) this.dom.machines.addEventListener('change', () => this.generatePrompt());
+        if(this.dom.playbackSpeed) this.dom.playbackSpeed.addEventListener('change', () => this.generatePrompt());
+        if(this.dom.delay) this.dom.delay.addEventListener('change', () => this.generatePrompt());
 
         if(this.dom.autoplay){
             this.dom.autoplay.onchange=(e)=>{
@@ -258,9 +275,9 @@ export class SettingsManager{
         }
 
         bind(this.dom.hapticMorse,'isHapticMorseEnabled',true);
-        if(this.dom.playbackSpeed)this.dom.playbackSpeed.onchange=(e)=>{this.appSettings.playbackSpeed=parseFloat(e.target.value);this.callbacks.onSave();};
+        if(this.dom.playbackSpeed)this.dom.playbackSpeed.onchange=(e)=>{this.appSettings.playbackSpeed=parseFloat(e.target.value);this.callbacks.onSave(); this.generatePrompt();};
         bind(this.dom.chunk,'simonChunkSize',false,true);
-        if(this.dom.delay)this.dom.delay.onchange=(e)=>{this.appSettings.runtimeSettings.simonInterSequenceDelay=parseFloat(e.target.value)*1000;this.callbacks.onSave();};
+        if(this.dom.delay)this.dom.delay.onchange=(e)=>{this.appSettings.runtimeSettings.simonInterSequenceDelay=parseFloat(e.target.value)*1000;this.callbacks.onSave(); this.generatePrompt();};
         bind(this.dom.haptics,'isHapticsEnabled',true);bind(this.dom.speedDelete,'isSpeedDeletingEnabled',true);bind(this.dom.stealth1KeyToggle,'isStealth1KeyEnabled',true);
         bind(this.dom.blackoutToggle,'isBlackoutFeatureEnabled',true);bind(this.dom.practiceMode,'isPracticeModeEnabled',true);
         if(this.dom.uiScale)this.dom.uiScale.onchange=(e)=>{this.appSettings.globalUiScale=parseInt(e.target.value);this.callbacks.onUpdate();};
@@ -372,19 +389,44 @@ export class SettingsManager{
     
     generatePrompt(){
         if(!this.dom.promptDisplay) return;
-        // Use global appSettings to get the current runtime settings directly
-        // This ensures even if UI isn't fully synced, the data is correct.
+        
+        // --- REAL TIME SETTINGS FETCH ---
+        // We read directly from DOM to ensure we get the latest uncommitted changes if any
+        // But falling back to appSettings is safer for logic
         const ps = this.appSettings.runtimeSettings;
+        const gs = this.appSettings;
+        
         const max = ps.currentInput === 'key12' ? 12 : 9;
+        const speed = gs.playbackSpeed || 1.0;
+        const delay = (ps.simonInterSequenceDelay / 1000) || 0;
         
         let logic = "";
+        let modeName = "";
+        
         if(ps.currentMode === 'simon') {
-            logic = "MODE: Simon Says. \nTASK: I will speak a number. You must add it to the list and IMMEDIATELY recite the entire sequence back to me from the beginning. Speak fast. Do not explain. Just the numbers.";
+            modeName = "Simon Says (Repeating)";
+            logic = "MODE: Simon Says.\nTASK: I will speak a number. You must add it to the list and IMMEDIATELY recite the entire sequence back to me from the beginning.\nIMPORTANT: Speak fast. Do not explain. Just the numbers.";
         } else {
-            logic = "MODE: Unique Random. \nTASK: I will speak a number. You just acknowledge it by repeating that single number. \nIMPORTANT: Keep a running list in memory. If I say 'Recall' or 'Review', recite the entire list back to me instantly.";
+            modeName = "Unique Random (Non-Repeating)";
+            logic = "MODE: Unique Random.\nTASK: I will speak a number. You just acknowledge it by repeating that single number.\nIMPORTANT: Keep a running list in memory. If I say 'Recall' or 'Review', recite the entire list back to me instantly.";
         }
 
-        const txt = `Act as a fast sequence tracking assistant.\nValid Inputs: 1 to ${max}.\n${logic}\n\nExample Interaction:\nMe: "5"\nYou: "5"\nMe: "2"\nYou: "${ps.currentMode === 'simon' ? '5, 2' : '2'}"\n\nStart now. Waiting for input.`;
+        const txt = `Act as a fast sequence tracking assistant.
+SETTINGS:
+- Valid Inputs: 1 to ${max}
+- Game Mode: ${modeName}
+- Playback Speed: ${speed}x
+- Delay between rounds: ${delay}s
+
+${logic}
+
+Example Interaction:
+Me: "5"
+You: "5"
+Me: "2"
+You: "${ps.currentMode === 'simon' ? '5, 2' : '2'}"
+
+Start now. Waiting for input.`;
         
         this.dom.promptDisplay.value = txt;
     }

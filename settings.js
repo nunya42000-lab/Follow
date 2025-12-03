@@ -1,11 +1,17 @@
 // settings.js
 export const PREMADE_THEMES={'default':{name:"Default Dark",bgMain:"#000000",bgCard:"#121212",bubble:"#4f46e5",btn:"#1a1a1a",text:"#e5e5e5"},'light':{name:"Light Mode",bgMain:"#f3f4f6",bgCard:"#ffffff",bubble:"#4f46e5",btn:"#e5e7eb",text:"#111827"},'ocean':{name:"Ocean Blue",bgMain:"#0f172a",bgCard:"#1e293b",bubble:"#0ea5e9",btn:"#334155",text:"#e2e8f0"},'matrix':{name:"The Matrix",bgMain:"#000000",bgCard:"#0a0a0a",bubble:"#00ff41",btn:"#002200",text:"#00ff41"},'cyber':{name:"Cyberpunk",bgMain:"#050505",bgCard:"#1a1625",bubble:"#d946ef",btn:"#2d1b4e",text:"#f0abfc"},'volcano':{name:"Volcano",bgMain:"#1a0505",bgCard:"#450a0a",bubble:"#b91c1c",btn:"#7f1d1d",text:"#fecaca"},'forest':{name:"Deep Forest",bgMain:"#021408",bgCard:"#064e3b",bubble:"#166534",btn:"#14532d",text:"#dcfce7"},'sunset':{name:"Sunset",bgMain:"#1a021c",bgCard:"#701a75",bubble:"#fb923c",btn:"#86198f",text:"#fff7ed"}};
+
+// Expanded Voice Presets
 export const PREMADE_VOICE_PRESETS = {
     'standard': { name: "Standard", pitch: 1.0, rate: 1.0, volume: 1.0 },
-    'robot': { name: "Robot", pitch: 0.5, rate: 0.8, volume: 1.0 },
-    'chipmunk': { name: "Chipmunk", pitch: 2.0, rate: 1.2, volume: 1.0 },
-    'speed_reader': { name: "Speed Reader", pitch: 1.0, rate: 2.0, volume: 1.0 }
+    'speed': { name: "Speed Reader", pitch: 1.0, rate: 2.0, volume: 1.0 },
+    'slow': { name: "Slow Motion", pitch: 1.0, rate: 0.6, volume: 1.0 },
+    'deep': { name: "Deep Voice", pitch: 0.6, rate: 0.9, volume: 1.0 },
+    'high': { name: "High Pitch", pitch: 1.6, rate: 1.1, volume: 1.0 },
+    'robot': { name: "Robot", pitch: 0.1, rate: 0.8, volume: 1.0 },
+    'chipmunk': { name: "Chipmunk", pitch: 2.0, rate: 1.3, volume: 1.0 }
 };
+
 const CRAYONS=["#000000","#1F75FE","#1CA9C9","#0D98BA","#FFFFFF","#C5D0E6","#B0B7C6","#AF4035","#F5F5F5","#FEFEFA","#FFFAFA","#F0F8FF","#F8F8FF","#F5F5DC","#FFFACD","#FAFAD2","#FFFFE0","#FFFFF0","#FFFF00","#FFEFD5","#FFE4B5","#FFDAB9","#EEE8AA","#F0E68C","#BDB76B","#E6E6FA","#D8BFD8","#DDA0DD","#EE82EE","#DA70D6","#FF00FF","#BA55D3","#9370DB","#8A2BE2","#9400D3","#9932CC","#8B008B","#800000","#4B0082","#483D8B","#6A5ACD","#7B68EE","#ADFF2F","#7FFF00","#7CFC00","#00FF00","#32CD32","#98FB98","#90EE90","#00FA9A","#00FF7F","#3CB371","#2E8B57","#228B22","#008000","#006400","#9ACD32","#6B8E23","#808000","#556B2F","#66CDAA","#8FBC8F","#20B2AA","#008B8B","#008080","#00FFFF","#00CED1","#40E0D0","#48D1CC","#AFEEEE","#7FFFD4","#B0E0E6","#5F9EA0","#4682B4","#6495ED","#00BFFF","#1E90FF","#ADD8E6","#87CEEB","#87CEFA","#191970","#000080","#0000FF","#0000CD","#4169E1","#8A2BE2","#4B0082","#FFE4C4","#FFEBCD","#F5DEB3","#DEB887","#D2B48C","#BC8F8F","#F4A460","#DAA520","#B8860B","#CD853F","#D2691E","#8B4513","#A0522D","#A52A2A","#800000","#FFA07A","#FA8072","#E9967A","#F08080","#CD5C5C","#DC143C","#B22222","#FF0000","#FF4500","#FF6347","#FF7F50","#FF8C00","#FFA500","#FFD700","#FFFF00","#808000","#556B2F","#6B8E23","#999999","#808080","#666666","#333333","#222222","#111111","#0A0A0A","#000000"];
 const LANG={en:{quick_title:"👋 Quick Start",select_profile:"Select Profile",autoplay:"Autoplay",audio:"Audio",help_btn:"Help 📚",settings_btn:"Settings",dont_show:"Don't show again",play_btn:"PLAY",theme_editor:"🎨 Theme Editor"},es:{quick_title:"👋 Inicio Rápido",select_profile:"Perfil",autoplay:"Reproducción",audio:"Audio",help_btn:"Ayuda 📚",settings_btn:"Ajustes",dont_show:"No mostrar más",play_btn:"JUGAR",theme_editor:"🎨 Editor de Temas"}};
 
@@ -22,7 +28,6 @@ export class SettingsManager{
             voicePresetSave: document.getElementById('voice-preset-save'),
             voicePresetRename: document.getElementById('voice-preset-rename'),
             voicePresetDelete: document.getElementById('voice-preset-delete'),
-            voiceEngineSelect: document.getElementById('voice-engine-select'),
             
             voicePitch:document.getElementById('voice-pitch'),voiceRate:document.getElementById('voice-rate'),voiceVolume:document.getElementById('voice-volume'),voiceTestBtn:document.getElementById('test-voice-btn'),
             settingsModal:document.getElementById('settings-modal'),themeSelect:document.getElementById('theme-select'),themeAdd:document.getElementById('theme-add'),themeRename:document.getElementById('theme-rename'),themeDelete:document.getElementById('theme-delete'),themeSave:document.getElementById('theme-save'),
@@ -45,32 +50,9 @@ export class SettingsManager{
             chatShareBtn:document.getElementById('chat-share-button'), emailShareBtn:document.getElementById('email-share-button')
         };
         this.tempTheme=null;this.initListeners();this.populateConfigDropdown();this.populateThemeDropdown();this.buildColorGrid();this.populateVoicePresetDropdown();
-        setTimeout(() => this.populateVoiceEngineDropdown(), 500);
-        if(window.speechSynthesis) window.speechSynthesis.onvoiceschanged = () => this.populateVoiceEngineDropdown();
+        // Removed voice engine population since we removed the dropdown
     }
-    populateVoiceEngineDropdown(){
-        if(!this.dom.voiceEngineSelect)return;
-        const voices=window.speechSynthesis.getVoices();
-        if(voices.length === 0) return;
-        
-        // Save current engine selection from runtime or active preset
-        const currentEngine = this.appSettings.selectedVoice;
-
-        this.dom.voiceEngineSelect.innerHTML='';
-        voices.forEach(v=>{
-            const o=document.createElement('option');
-            o.value=v.name;
-            o.textContent=v.name;
-            this.dom.voiceEngineSelect.appendChild(o);
-        });
-        
-        if(currentEngine) {
-            this.dom.voiceEngineSelect.value = currentEngine;
-        } else if (voices.length > 0) {
-            this.dom.voiceEngineSelect.value = voices[0].name;
-            this.appSettings.selectedVoice = voices[0].name;
-        }
-    }
+    
     populateVoicePresetDropdown(){
         if(!this.dom.voicePresetSelect) return;
         this.dom.voicePresetSelect.innerHTML = '';
@@ -110,8 +92,7 @@ export class SettingsManager{
         this.appSettings.voicePitch = preset.pitch;
         this.appSettings.voiceRate = preset.rate;
         this.appSettings.voiceVolume = preset.volume;
-        // Only update engine if the preset has a specific one saved, otherwise keep current
-        if(preset.voiceEngine) this.appSettings.selectedVoice = preset.voiceEngine;
+        // removed selectedVoice update since the dropdown is gone
 
         // Update UI
         this.updateUIFromSettings();
@@ -146,13 +127,11 @@ export class SettingsManager{
             this.appSettings.voicePitch=parseFloat(this.dom.voicePitch.value);
             this.appSettings.voiceRate=parseFloat(this.dom.voiceRate.value);
             this.appSettings.voiceVolume=parseFloat(this.dom.voiceVolume.value);
-            if(this.dom.voiceEngineSelect) this.appSettings.selectedVoice = this.dom.voiceEngineSelect.value;
             // Note: We do NOT save to preset automatically, mirroring Profile behavior
         };
         if(this.dom.voicePitch) this.dom.voicePitch.oninput=updateVoiceLive;
         if(this.dom.voiceRate) this.dom.voiceRate.oninput=updateVoiceLive;
         if(this.dom.voiceVolume) this.dom.voiceVolume.oninput=updateVoiceLive;
-        if(this.dom.voiceEngineSelect) this.dom.voiceEngineSelect.onchange=updateVoiceLive;
 
         // Voice Preset Management
         if(this.dom.voicePresetSelect) this.dom.voicePresetSelect.onchange=(e)=>{
@@ -167,8 +146,7 @@ export class SettingsManager{
                     name: n,
                     pitch: this.appSettings.voicePitch,
                     rate: this.appSettings.voiceRate,
-                    volume: this.appSettings.voiceVolume,
-                    voiceEngine: this.appSettings.selectedVoice
+                    volume: this.appSettings.voiceVolume
                 };
                 this.appSettings.activeVoicePresetId = id;
                 this.populateVoicePresetDropdown();
@@ -186,8 +164,7 @@ export class SettingsManager{
                     ...this.appSettings.voicePresets[id],
                     pitch: parseFloat(this.dom.voicePitch.value),
                     rate: parseFloat(this.dom.voiceRate.value),
-                    volume: parseFloat(this.dom.voiceVolume.value),
-                    voiceEngine: this.dom.voiceEngineSelect.value
+                    volume: parseFloat(this.dom.voiceVolume.value)
                 };
                 this.callbacks.onSave();
                 alert("Voice Preset Saved!");
@@ -395,6 +372,8 @@ export class SettingsManager{
     
     generatePrompt(){
         if(!this.dom.promptDisplay) return;
+        // Use global appSettings to get the current runtime settings directly
+        // This ensures even if UI isn't fully synced, the data is correct.
         const ps = this.appSettings.runtimeSettings;
         const max = ps.currentInput === 'key12' ? 12 : 9;
         
@@ -438,7 +417,6 @@ export class SettingsManager{
         if(this.dom.voicePitch)this.dom.voicePitch.value=gs.voicePitch||1.0;
         if(this.dom.voiceRate)this.dom.voiceRate.value=gs.voiceRate||1.0;
         if(this.dom.voiceVolume)this.dom.voiceVolume.value=gs.voiceVolume||1.0;
-        if(this.dom.voiceEngineSelect && gs.selectedVoice) this.dom.voiceEngineSelect.value = gs.selectedVoice;
         if(this.dom.voicePresetSelect) this.dom.voicePresetSelect.value = gs.activeVoicePresetId || 'standard';
 
         if(this.dom.practiceMode)this.dom.practiceMode.checked=gs.isPracticeModeEnabled;
@@ -453,8 +431,6 @@ export class SettingsManager{
 
         if(this.dom.uiScale) this.dom.uiScale.value = gs.globalUiScale || 100; 
         if(this.dom.seqSize) this.dom.seqSize.value = Math.round(gs.uiScaleMultiplier*100) || 100;
-        
-        if(this.dom.voiceSelect && gs.selectedVoice) this.dom.voiceSelect.value = gs.selectedVoice;
     }
     hexToHsl(hex){let r=0,g=0,b=0;if(hex.length===4){r="0x"+hex[1]+hex[1];g="0x"+hex[2]+hex[2];b="0x"+hex[3]+hex[3];}else if(hex.length===7){r="0x"+hex[1]+hex[2];g="0x"+hex[3]+hex[4];b="0x"+hex[5]+hex[6];}r/=255;g/=255;b/=255;let cmin=Math.min(r,g,b),cmax=Math.max(r,g,b),delta=cmax-cmin,h=0,s=0,l=0;if(delta===0)h=0;else if(cmax===r)h=((g-b)/delta)%6;else if(cmax===g)h=(b-r)/delta+2;else h=(r-g)/delta+4;h=Math.round(h*60);if(h<0)h+=360;l=(cmax+cmin)/2;s=delta===0?0:delta/(1-Math.abs(2*l-1));s=+(s*100).toFixed(1);l=+(l*100).toFixed(1);return[h,s,l];}
     hslToHex(h,s,l){s/=100;l/=100;let c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2,r=0,g=0,b=0;if(0<=h&&h<60){r=c;g=x;b=0;}else if(60<=h&&h<120){r=x;g=c;b=0;}else if(120<=h&&h<180){r=0;g=c;b=x;}else if(180<=h&&h<240){r=0;g=x;b=c;}else if(240<=h&&h<300){r=x;g=0;b=c;}else{r=c;g=0;b=x;}r=Math.round((r+m)*255).toString(16);g=Math.round((g+m)*255).toString(16);b=Math.round((b+m)*255).toString(16);if(r.length===1)r="0"+r;if(g.length===1)g="0"+g;if(b.length===1)b="0"+b;return"#"+r+g+b;}

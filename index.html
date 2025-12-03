@@ -73,7 +73,7 @@
             <div class="space-y-6">
                 <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
                     <button id="btn-cashapp-main" class="w-full bg-[#00D632] hover:bg-[#00bf2c] text-white font-bold py-3 rounded-lg mb-3 shadow-lg flex items-center justify-center text-lg">
-                        <span class="mr-2">💸</span> Cash App: $jwo83
+                        <span class="mr-2">💸</span> Cash App
                     </button>
                     <div class="grid grid-cols-7 gap-1">
                         <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="cash" data-amount="1">☕</button>
@@ -91,7 +91,7 @@
 
                 <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
                     <button id="btn-paypal-main" class="w-full bg-[#0070BA] hover:bg-[#005ea6] text-white font-bold py-3 rounded-lg mb-3 shadow-lg flex items-center justify-center text-lg">
-                        <span class="mr-2">🅿️</span> PayPal: Oyster981
+                        <span class="mr-2">🅿️</span> PayPal
                     </button>
                     <div class="grid grid-cols-7 gap-1">
                         <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="1">☕</button>
@@ -111,7 +111,7 @@
 
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh] overflow-hidden border border-custom m-4">
-            <div class="p-4 border-b border-custom flex justify-between items-center">
+            <div class="p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
                 <div class="flex items-center space-x-2">
                     <h3 class="text-xl font-bold">Settings</h3>
                     <select id="general-lang-select" class="bg-black bg-opacity-30 text-white text-xs rounded p-1 border border-gray-600"><option value="en">🇺🇸</option><option value="es">🇲🇽</option></select>
@@ -124,7 +124,9 @@
                     <button id="open-help-button" class="text-xl opacity-70 hover:opacity-100" title="Help">❓</button>
                 </div>
             </div>
+            
             <div class="flex border-b border-custom bg-black bg-opacity-20"><div class="tab-btn active" data-tab="mode">Game</div><div class="tab-btn" data-tab="playback">Playback</div><div class="tab-btn" data-tab="general">General</div></div>
+            
             <div class="overflow-y-auto flex-grow p-5 space-y-4">
                 <div id="tab-mode" class="tab-content active">
                     <div class="mb-5 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
@@ -223,42 +225,58 @@
         <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
             <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center"><h3 class="text-2xl font-bold">Manual 📘</h3><button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button></div>
             <div class="flex border-b border-custom bg-black bg-opacity-10">
-                <div class="tab-btn active" data-tab="help-basics">Goal</div>
-                <div class="tab-btn" data-tab="help-practice">Settings</div>
-                <div class="tab-btn" data-tab="help-features">Stealth</div>
+                <div class="tab-btn active" data-tab="help-about">About</div>
+                <div class="tab-btn" data-tab="help-settings">Settings</div>
                 <div class="tab-btn" data-tab="help-voice">Voice</div>
             </div>
             <div class="p-6 overflow-y-auto leading-relaxed space-y-6 text-sm flex-grow">
-                <div id="tab-help-basics" class="tab-content active">
+                <div id="tab-help-about" class="tab-content active">
                     <h4 class="font-bold text-lg text-primary-app mb-2">The Goal 🎯</h4>
                     <p class="mb-4 opacity-90">This is a sandbox tool designed to help you beat the "Follow" memory portion of skill-based machines.</p>
-                    <p class="mt-4 opacity-90"><strong>Support the Dev ☕:</strong> If this app helps you win, click the coffee icon in settings to send a tip via Cash App or PayPal!</p>
-                    <p class="mt-2 opacity-90"><strong>ATM Icon (🏧):</strong> Opens the Redeem barcode.</p>
+                    <p class="mb-4 opacity-90"><strong>How to use:</strong> Select your input method (9-Key is standard). When the machine flashes a number, press it here. The app tracks the full sequence so you don't have to memorize it.</p>
+                    <p class="mt-4 opacity-90"><strong>ATM Icon (🏧):</strong> Opens the Redeem barcode for easy cashout at compatible kiosks.</p>
+                    <p class="mt-4 opacity-90"><strong>Support ☕:</strong> If this app helps you win, use the Coffee icon in Settings to send a tip!</p>
                 </div>
-                <div id="tab-help-practice" class="tab-content">
-                    <h4 class="font-bold text-lg text-primary-app mb-2">Detailed Settings ⚙️</h4>
-                    <div class="space-y-3">
-                        <p><strong>Profile:</strong> Select a preset or create a new one. <br><em>Note: Switching profiles only changes Game settings (Mode, Inputs), not your Theme or Audio settings.</em></p>
-                        <p><strong>Practice Mode:</strong> Mimics your current Game settings (Input/Mode) to let you train your memory without a machine.</p>
-                        <p><strong>Input:</strong> Choose 9-Key, 12-Key, or Piano to match the physical buttons on your machine.</p>
-                        <p><strong>Mode (Simon Says):</strong> For machines where the pattern repeats and adds one new number each time.</p>
-                        <p><strong>Mode (Unique):</strong> For machines that generate a completely new random sequence every round.</p>
-                        <p><strong>Machines:</strong> Tracks multiple machines simultaneously.</p>
-                        <p><strong>Auto-Advance:</strong> (Unique Mode Only) Automatically clears the screen and moves to the next round after playback.</p>
-                        <p><strong>Speed Delete:</strong> Hold 'Backspace' to rapidly clear the whole sequence.</p>
+
+                <div id="tab-help-settings" class="tab-content">
+                    <h4 class="font-bold text-lg text-primary-app mb-4">Settings Glossary ⚙️</h4>
+                    
+                    <div class="space-y-4">
+                        <div class="p-3 bg-black bg-opacity-20 rounded border border-gray-700">
+                            <h5 class="font-bold text-sm text-white mb-1">Game Mode</h5>
+                            <ul class="list-disc pl-4 space-y-1 text-xs opacity-80">
+                                <li><strong>Simon Says:</strong> For machines where the pattern repeats and adds one new number each time.</li>
+                                <li><strong>Unique:</strong> For machines that generate a completely new random sequence every round.</li>
+                                <li><strong>Auto-Advance:</strong> (Unique Only) Automatically clears the screen and moves to the next round after playback finishes.</li>
+                            </ul>
+                        </div>
+
+                        <div class="p-3 bg-black bg-opacity-20 rounded border border-gray-700">
+                            <h5 class="font-bold text-sm text-white mb-1">Playback Controls</h5>
+                            <ul class="list-disc pl-4 space-y-1 text-xs opacity-80">
+                                <li><strong>Autoplay:</strong> Automatically plays back the sequence when you enter a new number.</li>
+                                <li><strong>Audio Speech:</strong> Reads the numbers out loud.</li>
+                                <li><strong>Chunk Size:</strong> Breaks long sequences into groups (e.g., 3 numbers at a time) for easier memorization.</li>
+                                <li><strong>Delay:</strong> Adds a pause between machines or chunks.</li>
+                            </ul>
+                        </div>
+
+                        <div class="p-3 bg-black bg-opacity-20 rounded border border-gray-700">
+                            <h5 class="font-bold text-sm text-white mb-1">Stealth & Shortcuts 🥷</h5>
+                            <ul class="list-disc pl-4 space-y-1 text-xs opacity-80">
+                                <li><strong>Stealth Toggle (Hold '1'):</strong> If enabled, holding '1' for 1 second hides the UI.</li>
+                                <li><strong>Speed Delete:</strong> Hold 'Backspace' to rapidly delete the entire sequence.</li>
+                                <li><strong>Blackout Mode:</strong> Shake your phone firmly to turn the screen completely black. Shake again to wake.</li>
+                                <li><strong>Long Press Play:</strong> Hold the 'Play' button to quickly toggle Autoplay on/off without opening settings.</li>
+                                <li><strong>Stop Playback:</strong> Press 'Play' again while a sequence is running to stop it immediately.</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-                <div id="tab-help-features" class="tab-content">
-                    <h4 class="font-bold text-lg text-primary-app mb-2">Stealth & Sensors 🥷</h4>
-                    <ul class="space-y-4 opacity-80">
-                        <li><strong>Blackout Mode:</strong> Shake your phone firmly to turn the screen completely black. Shake again to wake it.</li>
-                        <li><strong>Haptics:</strong> Turn on Haptics and Haptic Morse in settings. Keep the phone in your pocket and "feel" the sequence.</li>
-                        <li><strong>Sensor Calibration:</strong> Use the "Calibrate" button in settings to filter out casino noise.</li>
-                    </ul>
-                </div>
+
                 <div id="tab-help-voice" class="tab-content">
                     <h4 class="font-bold text-lg text-primary-app mb-2">AI Assistant Prompt 🤖</h4>
-                    <p class="mb-4 opacity-90 text-xs">Copy this prompt into your preferred AI Audio Assistant. It generates instructions based on your <strong>current</strong> settings.</p>
+                    <p class="mb-4 opacity-90 text-xs">Copy this prompt into your preferred AI Audio Assistant (like ChatGPT Voice). It generates instructions based on your <strong>current</strong> settings.</p>
                     <div class="flex justify-end space-x-2 mb-2">
                         <button id="generate-prompt-btn" class="bg-green-600 hover:bg-green-500 text-white text-xs font-bold px-3 py-1 rounded shadow">🔄 Update</button>
                         <button id="copy-prompt-btn" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded shadow">📋 Copy</button>

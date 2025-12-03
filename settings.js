@@ -18,12 +18,12 @@ const LANG={en:{quick_title:"👋 Quick Start",select_profile:"Select Profile",a
 export class SettingsManager{
     constructor(appSettings,callbacks,sensorEngine){
         this.appSettings=appSettings;this.callbacks=callbacks;this.sensorEngine=sensorEngine;this.currentTargetKey='bubble';
-        this.injectLongPressToggle(); // Dynamically add toggle
-        this.injectHelpText(); // Dynamically add help text
+        this.injectLongPressToggle(); 
         this.dom={
             editorModal:document.getElementById('theme-editor-modal'),editorGrid:document.getElementById('color-grid'),ftContainer:document.getElementById('fine-tune-container'),ftToggle:document.getElementById('toggle-fine-tune'),ftPreview:document.getElementById('fine-tune-preview'),ftHue:document.getElementById('ft-hue'),ftSat:document.getElementById('ft-sat'),ftLit:document.getElementById('ft-lit'),
             targetBtns:document.querySelectorAll('.target-btn'),edName:document.getElementById('theme-name-input'),edPreview:document.getElementById('theme-preview-box'),edPreviewBtn:document.getElementById('preview-btn'),edPreviewCard:document.getElementById('preview-card'),edSave:document.getElementById('save-theme-btn'),edCancel:document.getElementById('cancel-theme-btn'),
             openEditorBtn:document.getElementById('open-theme-editor'),
+            
             // Voice Preset DOM
             voicePresetSelect: document.getElementById('voice-preset-select'),
             voicePresetAdd: document.getElementById('voice-preset-add'),
@@ -32,22 +32,37 @@ export class SettingsManager{
             voicePresetDelete: document.getElementById('voice-preset-delete'),
             
             voicePitch:document.getElementById('voice-pitch'),voiceRate:document.getElementById('voice-rate'),voiceVolume:document.getElementById('voice-volume'),voiceTestBtn:document.getElementById('test-voice-btn'),
+            
             settingsModal:document.getElementById('settings-modal'),themeSelect:document.getElementById('theme-select'),themeAdd:document.getElementById('theme-add'),themeRename:document.getElementById('theme-rename'),themeDelete:document.getElementById('theme-delete'),themeSave:document.getElementById('theme-save'),
             configSelect:document.getElementById('config-select'),quickConfigSelect:document.getElementById('quick-config-select'),configAdd:document.getElementById('config-add'),configRename:document.getElementById('config-rename'),configDelete:document.getElementById('config-delete'),configSave:document.getElementById('config-save'),
+            
+            // Inputs for Prompt Generation
             input:document.getElementById('input-select'),mode:document.getElementById('mode-select'),practiceMode:document.getElementById('practice-mode-toggle'),machines:document.getElementById('machines-select'),seqLength:document.getElementById('seq-length-select'),
             autoClear:document.getElementById('autoclear-toggle'),autoplay:document.getElementById('autoplay-toggle'),audio:document.getElementById('audio-toggle'),hapticMorse:document.getElementById('haptic-morse-toggle'),playbackSpeed:document.getElementById('playback-speed-select'),chunk:document.getElementById('chunk-select'),delay:document.getElementById('delay-select'),
+            
             haptics:document.getElementById('haptics-toggle'),speedDelete:document.getElementById('speed-delete-toggle'),showWelcome:document.getElementById('show-welcome-toggle'),blackoutToggle:document.getElementById('blackout-toggle'),stealth1KeyToggle:document.getElementById('stealth-1key-toggle'),
-            longPressToggle: document.getElementById('long-press-autoplay-toggle'), // New Toggle
+            longPressToggle: document.getElementById('long-press-autoplay-toggle'),
             uiScale:document.getElementById('ui-scale-select'),seqSize:document.getElementById('seq-size-select'),gestureMode:document.getElementById('gesture-mode-select'),autoInput:document.getElementById('auto-input-select'),
-            quickLang:document.getElementById('quick-lang-select'),generalLang:document.getElementById('general-lang-select'),closeSettingsBtn:document.getElementById('close-settings'),tabs:document.querySelectorAll('.tab-btn'),contents:document.querySelectorAll('.tab-content'),helpModal:document.getElementById('help-modal'),setupModal:document.getElementById('game-setup-modal'),shareModal:document.getElementById('share-modal'),closeSetupBtn:document.getElementById('close-game-setup-modal'),quickSettings:document.getElementById('quick-open-settings'),quickHelp:document.getElementById('quick-open-help'),
+            quickLang:document.getElementById('quick-lang-select'),generalLang:document.getElementById('general-lang-select'),closeSettingsBtn:document.getElementById('close-settings'),
+            
+            // TABS (Global selection to catch Help tabs too)
+            tabs:document.querySelectorAll('.tab-btn'),
+            contents:document.querySelectorAll('.tab-content'),
+            
+            helpModal:document.getElementById('help-modal'),setupModal:document.getElementById('game-setup-modal'),shareModal:document.getElementById('share-modal'),closeSetupBtn:document.getElementById('close-game-setup-modal'),quickSettings:document.getElementById('quick-open-settings'),quickHelp:document.getElementById('quick-open-help'),
             quickAutoplay:document.getElementById('quick-autoplay-toggle'),quickAudio:document.getElementById('quick-audio-toggle'),dontShowWelcome:document.getElementById('dont-show-welcome-toggle'),
             quickResizeUp:document.getElementById('quick-resize-up'),quickResizeDown:document.getElementById('quick-resize-down'),
+            
             openShareInside:document.getElementById('open-share-button'),closeShareBtn:document.getElementById('close-share'),closeHelpBtn:document.getElementById('close-help'),closeHelpBtnBottom:document.getElementById('close-help-btn-bottom'),openHelpBtn:document.getElementById('open-help-button'),promptDisplay:document.getElementById('prompt-display'),copyPromptBtn:document.getElementById('copy-prompt-btn'), generatePromptBtn:document.getElementById('generate-prompt-btn'),
             restoreBtn:document.querySelector('button[data-action="restore-defaults"]'),
             calibModal:document.getElementById('calibration-modal'),openCalibBtn:document.getElementById('open-calibration-btn'),closeCalibBtn:document.getElementById('close-calibration-btn'),calibAudioSlider:document.getElementById('calib-audio-slider'),calibCamSlider:document.getElementById('calib-cam-slider'),calibAudioBar:document.getElementById('calib-audio-bar'),calibCamBar:document.getElementById('calib-cam-bar'),calibAudioMarker:document.getElementById('calib-audio-marker'),calibCamMarker:document.getElementById('calib-cam-marker'),calibAudioVal:document.getElementById('audio-val-display'),calibCamVal:document.getElementById('cam-val-display'),
             redeemModal:document.getElementById('redeem-modal'),openRedeemBtn:document.getElementById('open-redeem-btn'),closeRedeemBtn:document.getElementById('close-redeem-btn'),
+            
+            // Header Buttons for Settings Modal
+            openDonateBtn:document.getElementById('open-donate-btn'), 
             openRedeemSettingsBtn:document.getElementById('open-redeem-btn-settings'),
-            donateModal:document.getElementById('donate-modal'), openDonateBtn:document.getElementById('open-donate-btn'), closeDonateBtn:document.getElementById('close-donate-btn'),
+            
+            donateModal:document.getElementById('donate-modal'), closeDonateBtn:document.getElementById('close-donate-btn'),
             btnCashMain:document.getElementById('btn-cashapp-main'), btnPaypalMain:document.getElementById('btn-paypal-main'),
             copyLinkBtn:document.getElementById('copy-link-button'), nativeShareBtn:document.getElementById('native-share-button'),
             chatShareBtn:document.getElementById('chat-share-button'), emailShareBtn:document.getElementById('email-share-button')
@@ -55,7 +70,6 @@ export class SettingsManager{
         this.tempTheme=null;this.initListeners();this.populateConfigDropdown();this.populateThemeDropdown();this.buildColorGrid();this.populateVoicePresetDropdown();
     }
     
-    // UPDATED: Safe injection that finds the correct parent container
     injectLongPressToggle() {
         if(document.getElementById('long-press-autoplay-toggle')) return;
         
@@ -63,17 +77,15 @@ export class SettingsManager{
         div.className = "flex justify-between items-center p-3 rounded-lg settings-input"; 
         div.innerHTML = `<span class="font-bold text-sm">Long Press 'Play' Toggle</span><input type="checkbox" id="long-press-autoplay-toggle" class="h-5 w-5 accent-indigo-500">`;
         
-        // Find reference point: Speed Delete toggle row
         const speedDeleteInput = document.getElementById('speed-delete-toggle');
         
         if (speedDeleteInput && speedDeleteInput.parentElement) {
             const row = speedDeleteInput.parentElement;
-            const container = row.parentElement; // This is likely the space-y-3 div
+            const container = row.parentElement; 
             if (container) {
                 container.insertBefore(div, row.nextSibling);
             }
         } else {
-            // Fallback: just append to general tab content if specific row not found
             const generalTab = document.getElementById('tab-general');
             if(generalTab) {
                  const inner = generalTab.querySelector('.space-y-3');
@@ -83,26 +95,10 @@ export class SettingsManager{
         }
     }
 
-    // Inject Help text for new features
-    injectHelpText() {
-        const list = document.querySelector('#tab-help-features ul');
-        if(!list || document.getElementById('help-long-press')) return;
-        
-        const li1 = document.createElement('li');
-        li1.id = 'help-long-press';
-        li1.innerHTML = `<strong>Quick Autoplay:</strong> Hold the Play button to toggle Autoplay on/off. (Enable in General Settings)`;
-        list.appendChild(li1);
-
-        const li2 = document.createElement('li');
-        li2.innerHTML = `<strong>Stop Playback:</strong> Press Play again during a sequence to stop it immediately.`;
-        list.appendChild(li2);
-    }
-
     populateVoicePresetDropdown(){
         if(!this.dom.voicePresetSelect) return;
         this.dom.voicePresetSelect.innerHTML = '';
         
-        // Built-in Group
         const grp1 = document.createElement('optgroup');
         grp1.label = "Built-in";
         Object.keys(PREMADE_VOICE_PRESETS).forEach(k => {
@@ -113,7 +109,6 @@ export class SettingsManager{
         });
         this.dom.voicePresetSelect.appendChild(grp1);
 
-        // Custom Group
         const grp2 = document.createElement('optgroup');
         grp2.label = "My Voices";
         if(this.appSettings.voicePresets) {
@@ -126,19 +121,14 @@ export class SettingsManager{
         }
         this.dom.voicePresetSelect.appendChild(grp2);
         
-        // Select active
         this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
     }
     
     applyVoicePreset(id) {
         let preset = this.appSettings.voicePresets[id] || PREMADE_VOICE_PRESETS[id] || PREMADE_VOICE_PRESETS['standard'];
-        
-        // Update App Runtime Settings
         this.appSettings.voicePitch = preset.pitch;
         this.appSettings.voiceRate = preset.rate;
         this.appSettings.voiceVolume = preset.volume;
-
-        // Update UI
         this.updateUIFromSettings();
         this.callbacks.onSave();
     }
@@ -155,10 +145,9 @@ export class SettingsManager{
     openCalibration(){if(this.dom.calibModal){this.dom.calibModal.classList.remove('opacity-0','pointer-events-none');this.dom.calibModal.style.pointerEvents='auto';this.sensorEngine.toggleAudio(true);this.sensorEngine.toggleCamera(true);this.sensorEngine.setCalibrationCallback((data)=>{if(this.dom.calibAudioBar){const pct=((data.audio-(-100))/((-30)-(-100)))*100;this.dom.calibAudioBar.style.width=`${Math.max(0,Math.min(100,pct))}%`;}if(this.dom.calibCamBar){const pct=Math.min(100,data.camera);this.dom.calibCamBar.style.width=`${pct}%`;}});}}
     closeCalibration(){if(this.dom.calibModal){this.dom.calibModal.classList.add('opacity-0','pointer-events-none');this.dom.calibModal.style.pointerEvents='none';this.sensorEngine.setCalibrationCallback(null);this.sensorEngine.toggleAudio(this.appSettings.isAudioEnabled);this.sensorEngine.toggleCamera(this.appSettings.autoInputMode==='cam'||this.appSettings.autoInputMode==='both');}}
     
-    // UPDATED: Does not close settings modal
+    // Toggle Redeem (Keeps Settings Open)
     toggleRedeem(show){
         if(show){
-            // if(this.dom.settingsModal)this.dom.settingsModal.classList.add('opacity-0','pointer-events-none'); // Removed to keep settings open
             if(this.dom.redeemModal){
                 this.dom.redeemModal.classList.remove('opacity-0','pointer-events-none');
                 this.dom.redeemModal.style.pointerEvents='auto';
@@ -171,10 +160,9 @@ export class SettingsManager{
         }
     }
     
-    // UPDATED: Does not close settings modal
+    // Toggle Donate (Keeps Settings Open)
     toggleDonate(show){
         if(show){
-            // if(this.dom.settingsModal)this.dom.settingsModal.classList.add('opacity-0','pointer-events-none'); // Removed
             if(this.dom.donateModal){
                 this.dom.donateModal.classList.remove('opacity-0','pointer-events-none');
                 this.dom.donateModal.style.pointerEvents='auto';
@@ -201,7 +189,6 @@ export class SettingsManager{
             this.appSettings.voicePitch=parseFloat(this.dom.voicePitch.value);
             this.appSettings.voiceRate=parseFloat(this.dom.voiceRate.value);
             this.appSettings.voiceVolume=parseFloat(this.dom.voiceVolume.value);
-            // Note: We do NOT save to preset automatically, mirroring Profile behavior
         };
         if(this.dom.voicePitch) this.dom.voicePitch.oninput=updateVoiceLive;
         if(this.dom.voiceRate) this.dom.voiceRate.oninput=updateVoiceLive;
@@ -290,7 +277,7 @@ export class SettingsManager{
         };
         
         bind(this.dom.input,'currentInput',false);bind(this.dom.machines,'machineCount',false,true);bind(this.dom.seqLength,'sequenceLength',false,true);bind(this.dom.autoClear,'isUniqueRoundsAutoClearEnabled',true);
-        bind(this.dom.longPressToggle,'isLongPressAutoplayEnabled',true); // Bind new toggle
+        bind(this.dom.longPressToggle,'isLongPressAutoplayEnabled',true); 
 
         // Mode switch special case
         if(this.dom.mode){
@@ -302,12 +289,13 @@ export class SettingsManager{
             };
         }
         
-        // Also ensure inputs trigger prompt regeneration
+        // Ensure inputs trigger prompt regeneration explicitly
         if(this.dom.input) this.dom.input.addEventListener('change', () => this.generatePrompt());
         if(this.dom.machines) this.dom.machines.addEventListener('change', () => this.generatePrompt());
+        if(this.dom.seqLength) this.dom.seqLength.addEventListener('change', () => this.generatePrompt());
         if(this.dom.playbackSpeed) this.dom.playbackSpeed.addEventListener('change', () => this.generatePrompt());
         if(this.dom.delay) this.dom.delay.addEventListener('change', () => this.generatePrompt());
-        if(this.dom.chunk) this.dom.chunk.addEventListener('change', () => this.generatePrompt()); // Added listener for chunk
+        if(this.dom.chunk) this.dom.chunk.addEventListener('change', () => this.generatePrompt());
 
         if(this.dom.autoplay){
             this.dom.autoplay.onchange=(e)=>{
@@ -398,9 +386,15 @@ export class SettingsManager{
         if(this.dom.calibAudioSlider)this.dom.calibAudioSlider.oninput=()=>{const val=parseInt(this.dom.calibAudioSlider.value);this.appSettings.sensorAudioThresh=val;this.sensorEngine.setSensitivity('audio',val);const pct=((val-(-100))/((-30)-(-100)))*100;this.dom.calibAudioMarker.style.left=`${pct}%`;this.dom.calibAudioVal.innerText=val+'dB';this.callbacks.onSave();};
         if(this.dom.calibCamSlider)this.dom.calibCamSlider.oninput=()=>{const val=parseInt(this.dom.calibCamSlider.value);this.appSettings.sensorCamThresh=val;this.sensorEngine.setSensitivity('camera',val);const pct=Math.min(100,val);this.dom.calibCamMarker.style.left=`${pct}%`;this.dom.calibCamVal.innerText=val;this.callbacks.onSave();};
         
+        // TAB LOGIC (Now correctly handles Help tabs too)
         this.dom.tabs.forEach(btn=>btn.onclick=()=>{
-            this.dom.tabs.forEach(b=>b.classList.remove('active'));
-            this.dom.contents.forEach(c=>c.classList.remove('active'));
+            // Find which container this tab belongs to (Settings or Help)
+            const parent = btn.parentElement.parentElement;
+            
+            // Scoped deactivation: Only remove active class from buttons and content in THIS modal
+            parent.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+            parent.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+            
             btn.classList.add('active');
             const target = btn.dataset.tab;
             if(target === 'help-voice') this.generatePrompt();
@@ -411,10 +405,11 @@ export class SettingsManager{
         if(this.dom.closeShareBtn)this.dom.closeShareBtn.onclick=()=>this.closeShare();
         if(this.dom.openRedeemBtn)this.dom.openRedeemBtn.onclick=()=>this.toggleRedeem(true);
         if(this.dom.closeRedeemBtn)this.dom.closeRedeemBtn.onclick=()=>this.toggleRedeem(false);
-        // Corrected listener for the redeem button inside settings modal
-        if(this.dom.openRedeemSettingsBtn) this.dom.openRedeemSettingsBtn.onclick=()=>this.toggleRedeem(true);
         
-        if(this.dom.openDonateBtn)this.dom.openDonateBtn.onclick=()=>this.toggleDonate(true);
+        // HEADER BUTTONS (Settings Modal)
+        if(this.dom.openRedeemSettingsBtn) this.dom.openRedeemSettingsBtn.onclick=()=>this.toggleRedeem(true);
+        if(this.dom.openDonateBtn) this.dom.openDonateBtn.onclick=()=>this.toggleDonate(true);
+        
         if(this.dom.closeDonateBtn)this.dom.closeDonateBtn.onclick=()=>this.toggleDonate(false);
 
         if(this.dom.copyLinkBtn) this.dom.copyLinkBtn.onclick=()=>{ navigator.clipboard.writeText(window.location.href).then(()=>alert("Link Copied!")); };
@@ -468,16 +463,14 @@ export class SettingsManager{
     generatePrompt(){
         if(!this.dom.promptDisplay) return;
         
-        // --- REAL TIME SETTINGS FETCH ---
-        // We read directly from DOM to ensure we get the latest uncommitted changes if any
-        // But falling back to appSettings is safer for logic
         const ps = this.appSettings.runtimeSettings;
         const gs = this.appSettings;
         
         const max = ps.currentInput === 'key12' ? 12 : 9;
         const speed = gs.playbackSpeed || 1.0;
         
-        // Logic for Delay/Chunk text: Only show if machines > 1
+        // Show Delay/Chunk always if machine > 1, OR if user wants full transparency
+        // Forcing display if machines > 1
         let multiMachineExtras = "";
         if(ps.machineCount > 1) {
             const delay = (ps.simonInterSequenceDelay / 1000) || 0;
@@ -549,14 +542,11 @@ Start now. Waiting for input.`;
         if(this.dom.practiceMode)this.dom.practiceMode.checked=gs.isPracticeModeEnabled;
         if(this.dom.stealth1KeyToggle)this.dom.stealth1KeyToggle.checked=gs.isStealth1KeyEnabled;
         
-        // New Toggle UI Update
         if(this.dom.longPressToggle) this.dom.longPressToggle.checked = (typeof gs.isLongPressAutoplayEnabled === 'undefined') ? true : gs.isLongPressAutoplayEnabled;
 
         if(this.dom.calibAudioSlider)this.dom.calibAudioSlider.value=gs.sensorAudioThresh||-85;
         if(this.dom.calibCamSlider)this.dom.calibCamSlider.value=gs.sensorCamThresh||30;
         
-        // --- DEFAULTS UI FIX ---
-        // Treat undefined as true for these settings
         if(this.dom.haptics) this.dom.haptics.checked = (typeof gs.isHapticsEnabled === 'undefined') ? true : gs.isHapticsEnabled;
         if(this.dom.speedDelete) this.dom.speedDelete.checked = (typeof gs.isSpeedDeletingEnabled === 'undefined') ? true : gs.isSpeedDeletingEnabled;
 

@@ -13,7 +13,7 @@ export const PREMADE_THEMES = {
     'forest': { name: "Deep Forest", bgMain: "#021408", bgCard: "#064e3b", bubble: "#166534", btn: "#14532d", text: "#dcfce7" },
     'sunset': { name: "Sunset", bgMain: "#1a021c", bgCard: "#701a75", bubble: "#fb923c", btn: "#86198f", text: "#fff7ed" },
     'halloween': { name: "Halloween 🎃", bgMain: "#1a0500", bgCard: "#2e0a02", bubble: "#ff6600", btn: "#4a1005", text: "#ffbf00" },
-    'liberty': { name: "Liberty 🗽", bgMain: "#0d1b1e", bgCard: "#1c3f44", bubble: "#2e8b57", btn: "#143136", text: "#d4af37" }, // Gold text for coin feel
+    'liberty': { name: "Liberty 🗽", bgMain: "#0d1b1e", bgCard: "#1c3f44", bubble: "#2e8b57", btn: "#143136", text: "#d4af37" },
     'shamrock': { name: "Shamrock ☘️", bgMain: "#021a02", bgCard: "#053305", bubble: "#00c92c", btn: "#0a450a", text: "#e0ffe0" },
     'midnight': { name: "Midnight 🌑", bgMain: "#000000", bgCard: "#111111", bubble: "#3b82f6", btn: "#1f1f1f", text: "#ffffff" },
     'candy': { name: "Candy 🍬", bgMain: "#260516", bgCard: "#4a0a2f", bubble: "#ff69b4", btn: "#701046", text: "#ffe4e1" },
@@ -21,7 +21,7 @@ export const PREMADE_THEMES = {
     'blueprint': { name: "Blueprint 📐", bgMain: "#0f2e52", bgCard: "#1b4d8a", bubble: "#ffffff", btn: "#2563eb", text: "#ffffff" },
     'rose': { name: "Rose Gold 🌹", bgMain: "#1f1212", bgCard: "#3d2323", bubble: "#e1adac", btn: "#5c3333", text: "#ffe4e1" },
     'hacker': { name: "Terminal 💻", bgMain: "#0c0c0c", bgCard: "#1a1a1a", bubble: "#00ff00", btn: "#0f380f", text: "#00ff00" },
-    'royal': { name: "Royal 👑", bgMain: "#120024", bgCard: "#2e0059", bubble: "#9333ea", btn: "#4c1d95", text: "#ffd700" },
+    'royal': { name: "Royal 👑", bgMain: "#120024", bgCard: "#2e0059", bubble: "#9333ea", btn: "#4c1d95", text: "#ffd700" }
 };
 
 export const PREMADE_VOICE_PRESETS = {
@@ -517,26 +517,42 @@ export class SettingsManager {
         const ps = this.appSettings.runtimeSettings;
         const max = ps.currentInput === 'key12' ? 12 : 9;
         const speed = this.appSettings.playbackSpeed || 1.0;
-        const delay = (ps.simonInterSequenceDelay / 1000) || 0;
+        const machines = ps.machineCount || 1;
         const chunk = ps.simonChunkSize || 3;
+        const delay = (ps.simonInterSequenceDelay / 1000) || 0;
         
         let instructions = "";
-        let modeDescription = "";
         
-        if (ps.currentMode === 'simon') {
-            modeDescription = `MODE: SIMON SAYS (Accumulative).
-            - The sequence grows by one number each round.
-            - I will speak the NEW number.
-            - You must add it to the list and READ BACK the ENTIRE list from the start.`;
+        // --- MULTI-MACHINE AUTOPLAY LOGIC ---
+        if (machines > 1) {
+            instructions = `MODE: MULTI-MACHINE AUTOPLAY (${machines} Machines).
             
-            if (ps.machineCount > 1) {
-                modeDescription += `\n- There are ${ps.machineCount} machines. I will tell you which machine the number is for (e.g., "Machine 1: Five"). We cycle through them.`;
-            }
+            YOUR JOB:
+            1. I will speak a batch of ${machines} numbers at once.
+            2. You must immediately SORT them:
+               - 1st number -> Machine 1
+               - 2nd number -> Machine 2
+               - 3rd number -> Machine 3 (if active), etc.
+            3. IMMEDIATELY after hearing the numbers, you must READ BACK the sequences for all machines.
+            
+            READBACK RULES (Interleaved Chunking):
+            - Recite the history in chunks of ${chunk}.
+            - Order: Machine 1 (Chunk 1) -> Machine 2 (Chunk 1) -> ... -> Machine 1 (Chunk 2) -> Machine 2 (Chunk 2)...
+            - Do not stop between machines. Flow through the list.
+            - Pause ${delay} seconds between machine switches.`;
         } else {
-            modeDescription = `MODE: UNIQUE (Random/Non-Repeating).
-            - Every round is a fresh random sequence of numbers.
-            - I will speak a number. You simply repeat that number to confirm.
-            - Keep a running list in your memory. If I say "Review", read the whole list.`;
+            // --- SINGLE MACHINE LOGIC ---
+            if (ps.currentMode === 'simon') {
+                instructions = `MODE: SIMON SAYS (Single Machine).
+                - The sequence grows by one number each round.
+                - I will speak the NEW number.
+                - You must add it to the list and READ BACK the ENTIRE list from the start.`;
+            } else {
+                instructions = `MODE: UNIQUE (Random/Non-Repeating).
+                - Every round is a fresh random sequence.
+                - I will speak a number. You simply repeat that number to confirm.
+                - Keep a running list. If I say "Review", read the whole list.`;
+            }
         }
 
         const promptText = `Act as a professional Sequence Caller for a memory skill game. 
@@ -544,18 +560,16 @@ You are the "Caller" (App). I am the "Player" (User).
 
 SETTINGS:
 - Max Number: ${max}
-- Playback Speed: ${speed}x (Speak fast and clear)
-- Machines Active: ${ps.machineCount}
+- Playback Speed: ${speed}x (Speak fast)
+- Active Machines: ${machines}
 - Chunk Size: ${chunk}
-- Delay between sets: ${delay} seconds
 
-${modeDescription}
+${instructions}
 
 YOUR RULES:
 1. Speak clearly but quickly. No fluff. No conversational filler.
-2. Wait for my voice confirmation before moving to the next number.
-3. If I get it wrong, correct me immediately.
-4. If I say "Status", tell me the current round and sequence length.
+2. If I get it wrong, correct me immediately.
+3. If I say "Status", tell me the current round/sequence length.
 
 START IMMEDIATELY upon my next input. Waiting for signal.`;
 

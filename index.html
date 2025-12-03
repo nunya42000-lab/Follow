@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -14,7 +14,6 @@
 <body class="min-h-screen flex flex-col font-sans transition-colors duration-200">
     <div id="blackout-layer"></div>
 
-    <!-- Quick Start / Setup Modal -->
     <div id="game-setup-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
             <div class="flex items-center justify-between border-b border-custom pb-3 mb-4 relative">
@@ -34,7 +33,6 @@
         </div>
     </div>
 
-    <!-- Theme Editor Modal -->
     <div id="theme-editor-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[100] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-md w-full transform scale-90 transition-transform duration-300 flex flex-col border border-custom max-h-[95vh] overflow-hidden">
             <h3 class="text-xl font-bold mb-4" data-i18n="theme_editor">🎨 Theme Editor</h3>
@@ -54,12 +52,10 @@
         </div>
     </div>
 
-    <!-- Redeem Modal -->
     <div id="redeem-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="relative w-full max-w-lg h-[95vh] flex flex-col items-center justify-center p-4"><button id="close-redeem-btn" class="absolute top-4 right-4 z-50 bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600">✕</button><div class="bg-white p-2 rounded-lg shadow-2xl w-full h-full flex items-center justify-center overflow-hidden"><img src="redeem.jpg" alt="Redeem Barcode" class="w-full h-full object-contain"></div></div>
     </div>
 
-    <!-- Calibration Modal -->
     <div id="calibration-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[110] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-md w-full border border-custom">
             <h3 class="text-xl font-bold mb-4">🎛️ Sensor Calibration</h3>
@@ -69,14 +65,12 @@
         </div>
     </div>
 
-    <!-- Donate Modal -->
     <div id="donate-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[140] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom flex flex-col text-center">
             <h3 class="text-2xl font-bold mb-2">Buy me a Coffee? ☕</h3>
             <p class="text-sm opacity-80 mb-6">If this app helps you win, consider sending a tip!</p>
             
             <div class="space-y-6">
-                <!-- Cash App -->
                 <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
                     <button id="btn-cashapp-main" class="w-full bg-[#00D632] hover:bg-[#00bf2c] text-white font-bold py-3 rounded-lg mb-3 shadow-lg flex items-center justify-center text-lg">
                         <span class="mr-2">💸</span> Cash App: $jwo83
@@ -95,7 +89,6 @@
                     </div>
                 </div>
 
-                <!-- PayPal -->
                 <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
                     <button id="btn-paypal-main" class="w-full bg-[#0070BA] hover:bg-[#005ea6] text-white font-bold py-3 rounded-lg mb-3 shadow-lg flex items-center justify-center text-lg">
                         <span class="mr-2">🅿️</span> PayPal: Oyster981
@@ -116,16 +109,13 @@
         </div>
     </div>
 
-    <!-- Settings Modal (Rearranged Header) -->
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh] overflow-hidden border border-custom m-4">
             <div class="p-4 border-b border-custom flex justify-between items-center">
-                <!-- Left Side: Title + Lang -->
                 <div class="flex items-center space-x-2">
                     <h3 class="text-xl font-bold">Settings</h3>
                     <select id="general-lang-select" class="bg-black bg-opacity-30 text-white text-xs rounded p-1 border border-gray-600"><option value="en">🇺🇸</option><option value="es">🇲🇽</option></select>
                 </div>
-                <!-- Right Side: Icons (Coffee First) -->
                 <div class="flex space-x-3 items-center">
                     <button id="open-donate-btn" class="text-2xl hover:scale-110 transition-transform" title="Donate">☕</button>
                     <button id="open-redeem-btn-settings" class="text-2xl opacity-70 hover:opacity-100" title="ATM Cashout">🏧</button>
@@ -156,7 +146,6 @@
                         <div class="mt-2"><label class="block text-xs font-bold mb-1 text-muted-custom">Chunk Size</label><select id="chunk-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="2">2 items</option><option value="3">3 items</option><option value="4">4 items</option><option value="5">5 items</option></select></div>
                         <div class="mt-6 pt-4 border-t border-custom">
                             <h4 class="font-bold text-sm mb-3 text-primary-app">Voice Settings 🗣️</h4>
-                            <!-- Voice Preset Manager -->
                             <div class="mb-4 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
                                 <label class="text-xs font-bold uppercase text-muted-custom mb-2 block">Voice Profile</label>
                                 <select id="voice-preset-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
@@ -230,7 +219,6 @@
         </div>
     </div>
 
-    <!-- Help Modal (Updated with Generate Button) -->
     <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
             <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center"><h3 class="text-2xl font-bold">Manual 📘</h3><button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button></div>
@@ -284,7 +272,6 @@
         </div>
     </div>
 
-    <!-- Share Modal (Updated) -->
     <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-80 flex flex-col justify-end z-[70] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="share-sheet p-6 text-center flex flex-col items-center border-t border-gray-700 shadow-2xl transform translate-y-full transition-transform duration-300">
             <div class="w-12 h-1 bg-gray-600 rounded-full mb-4"></div> <div class="bg-white p-2 rounded-lg mb-6 shadow-inner"><img src="qr.jpg" alt="QR Code" class="w-64 h-64 object-contain"></div>
@@ -298,7 +285,6 @@
         </div>
     </div>
 
-    <!-- Comment Modal -->
     <div id="comment-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[120] transition-opacity duration-300 opacity-0 pointer-events-none hidden">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom">
              <h3 class="font-bold text-lg mb-4">Send Feedback 💬</h3>
@@ -332,5 +318,3 @@
     <script type="module" src="app.js"></script>
 </body>
 </html>
-
-

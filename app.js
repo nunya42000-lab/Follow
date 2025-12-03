@@ -10,7 +10,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // --- CONFIG ---
-const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 250, SPEED_DELETE_INTERVAL: 20, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v44', STORAGE_KEY_STATE: 'followMeAppState_v44', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } };
+const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 250, SPEED_DELETE_INTERVAL: 20, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v45', STORAGE_KEY_STATE: 'followMeAppState_v45', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } };
 
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 400 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
@@ -46,7 +46,6 @@ function loadState() {
             const loaded = JSON.parse(s); 
             appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } }; 
             
-            // Fix defaults
             if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
             if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
             if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
@@ -271,7 +270,7 @@ function playDemo() {
     const settings = getProfileSettings(); 
     const state = getState(); 
     const demoBtn = document.querySelector(`#pad-${settings.currentInput} button[data-action="play-demo"]`);
-    const settingsBtn = document.querySelector('button[data-action="open-settings"]');
+    const settingsBtns = document.querySelectorAll('button[data-action="open-settings"]');
     
     if(isDemoPlaying) {
         isDemoPlaying = false;
@@ -283,7 +282,7 @@ function playDemo() {
         }
         
         // REVERT SETTINGS BUTTON
-        if(settingsBtn) settingsBtn.innerHTML = '⚙️';
+        settingsBtns.forEach(btn => btn.innerHTML = '⚙️');
         
         showToast("Playback Stopped 🛑");
         return;
@@ -313,10 +312,15 @@ function playDemo() {
     }
     
     disableInput(true); 
-    isDemoPlaying = true; 
     
-    // CHANGE SETTINGS BUTTON TO STOP ICON
-    if(settingsBtn) settingsBtn.innerHTML = '■';
+    // !!! VITAL: Re-enable Play and Settings buttons so they can act as STOP !!!
+    if(demoBtn) demoBtn.disabled = false;
+    settingsBtns.forEach(btn => {
+        btn.disabled = false;
+        btn.innerHTML = '■'; // Show stop icon on settings
+    });
+
+    isDemoPlaying = true; 
     
     let i = 0; 
     const speed = appSettings.playbackSpeed || 1; 
@@ -329,7 +333,7 @@ function playDemo() {
             disableInput(false); 
             isDemoPlaying = false; 
             if(demoBtn) { demoBtn.innerHTML = '▶'; demoBtn.disabled = false; }
-            if(settingsBtn) settingsBtn.innerHTML = '⚙️';
+            settingsBtns.forEach(btn => btn.innerHTML = '⚙️');
             
             if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.isUniqueRoundsAutoClearEnabled) { 
                 state.sequences[0] = []; 
@@ -349,7 +353,7 @@ function playDemo() {
         const seqBoxes = document.getElementById('sequence-container').children; 
         if(seqBoxes[item.machine]) { seqBoxes[item.machine].style.transform = 'scale(1.05)'; setTimeout(() => seqBoxes[item.machine].style.transform = 'scale(1)', 250 / speed); } 
         
-        // --- DISPLAY POSITION NUMBER IN BUTTON ---
+        // --- DISPLAY POSITION NUMBER IN PLAY BUTTON ---
         if(demoBtn) demoBtn.innerText = (i + 1);
 
         let nextDelay = baseInterval;
@@ -563,11 +567,11 @@ window.onload = function() {
              b.addEventListener('mouseleave', cancelSettingsLong);
              b.addEventListener('touchend', cancelSettingsLong);
              
-             // --- NEW CLICK LOGIC FOR SETTINGS BUTTON (STOP FUNCTIONALITY) ---
+             // --- NEW: SETTINGS BUTTON ACTS AS STOP DURING PLAYBACK ---
              b.onclick = () => {
                  if(timers.settingsLongPress) clearTimeout(timers.settingsLongPress);
                  if(isDemoPlaying) {
-                     playDemo(); // Calls the playDemo function which handles stopping logic
+                     playDemo(); // Stops playback
                      return;
                  }
                  modules.settings.openSettings();

@@ -10,7 +10,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // --- CONFIG ---
-const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 250, SPEED_DELETE_INTERVAL: 20, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v42', STORAGE_KEY_STATE: 'followMeAppState_v42', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } };
+const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 250, SPEED_DELETE_INTERVAL: 20, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v43', STORAGE_KEY_STATE: 'followMeAppState_v43', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } };
 
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 400 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
@@ -46,7 +46,7 @@ function loadState() {
             const loaded = JSON.parse(s); 
             appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } }; 
             
-            // Fix: Ensure defaults are respected
+            // Fix defaults
             if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
             if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
             if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
@@ -102,14 +102,16 @@ function speak(text) {
     } 
     let p = appSettings.voicePitch || 1.0; 
     let r = appSettings.voiceRate || 1.0; 
-    u.pitch = Math.min(2, Math.max(0.1, p)); 
-    u.rate = Math.min(10, Math.max(0.1, r)); 
     u.volume = appSettings.voiceVolume || 1.0; 
+    
+    // Safety check for voice pitch/rate limits
+    u.pitch = Math.min(2, Math.max(0.1, p));
+    u.rate = Math.min(10, Math.max(0.1, r));
+
     window.speechSynthesis.speak(u); 
 }
 
 function showToast(msg) { 
-    // Translate toast if possible
     const lang = appSettings.generalLanguage || 'en';
     const dict = DICTIONARY[lang] || DICTIONARY['en'];
     if(msg === "Reset to Round 1") msg = dict.reset;
@@ -128,32 +130,98 @@ function applyTheme(themeKey) { const body = document.body; body.className = bod
 function updateAllChrome() { applyTheme(appSettings.activeTheme); document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`; renderUI(); }
 
 function startPracticeRound() {
-    const state = getState(); const settings = getProfileSettings(); const max = (settings.currentInput === 'key12') ? 12 : 9;
-    const getRand = () => { if(settings.currentInput === 'piano') { const keys = ['C','D','E','F','G','A','B','1','2','3','4','5']; return keys[Math.floor(Math.random()*keys.length)]; } return Math.floor(Math.random() * max) + 1; };
-    if(state.currentRound < 1) state.currentRound = 1;
+    // Only run if not currently in Settings modal
+    const settingsModal = document.getElementById('settings-modal');
+    if(settingsModal && !settingsModal.classList.contains('pointer-events-none')) return;
+
+    const state = getState(); 
+    const settings = getProfileSettings(); 
+    const max = (settings.currentInput === 'key12') ? 12 : 9;
+    
+    const getRand = () => { 
+        if(settings.currentInput === 'piano') { 
+            const keys = ['C','D','E','F','G','A','B','1','2','3','4','5']; 
+            return keys[Math.floor(Math.random()*keys.length)]; 
+        } 
+        return Math.floor(Math.random() * max) + 1; 
+    };
+
+    // Ensure we start fresh if just enabled
+    if(practiceSequence.length === 0) {
+        state.currentRound = 1;
+    }
+
     if(settings.currentMode === CONFIG.MODES.SIMON) {
-        if(practiceSequence.length === 0) { practiceSequence.push(getRand()); } else { practiceSequence.push(getRand()); }
+        // Simon: Add 1 number to the sequence
+        practiceSequence.push(getRand());
         state.currentRound = practiceSequence.length;
     } else {
-        practiceSequence = []; const len = state.currentRound + 2; for(let i=0; i<len; i++) practiceSequence.push(getRand());
+        // Unique: New random sequence of length 'currentRound'
+        practiceSequence = []; 
+        const len = state.currentRound; 
+        for(let i=0; i<len; i++) practiceSequence.push(getRand());
     }
-    practiceInputIndex = 0; showToast(`Practice Round ${state.currentRound}`); setTimeout(() => playPracticeSequence(), 1000);
+    
+    practiceInputIndex = 0; 
+    renderUI(); // Update UI to show "Round X"
+    showToast(`Practice Round ${state.currentRound}`); 
+    setTimeout(() => playPracticeSequence(), 1000);
 }
+
 function playPracticeSequence() {
-    disableInput(true); let i = 0; const speed = appSettings.playbackSpeed || 1.0;
+    // Double check we aren't in settings
+    const settingsModal = document.getElementById('settings-modal');
+    if(settingsModal && !settingsModal.classList.contains('pointer-events-none')) return;
+
+    disableInput(true); 
+    let i = 0; 
+    const speed = appSettings.playbackSpeed || 1.0;
+    
     function next() {
         if(i >= practiceSequence.length) { disableInput(false); return; }
-        const val = practiceSequence[i]; const settings = getProfileSettings(); const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${val}"]`);
-        if(key) { key.classList.add('flash-active'); setTimeout(() => key.classList.remove('flash-active'), 250 / speed); }
-        speak(val); i++; setTimeout(next, 800 / speed);
-    } next();
+        const val = practiceSequence[i]; 
+        const settings = getProfileSettings(); 
+        const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${val}"]`);
+        
+        if(key) { 
+            key.classList.add('flash-active'); 
+            setTimeout(() => key.classList.remove('flash-active'), 250 / speed); 
+        }
+        
+        speak(val); 
+        i++; 
+        setTimeout(next, 800 / speed);
+    } 
+    next();
 }
+
 function addValue(value) {
-    vibrate(); const state = getState(); const settings = getProfileSettings();
+    vibrate(); 
+    const state = getState(); 
+    const settings = getProfileSettings();
+    
+    // --- PRACTICE MODE LOGIC ---
     if(appSettings.isPracticeModeEnabled) {
-        if(practiceSequence.length === 0) return; if(value == practiceSequence[practiceInputIndex]) { practiceInputIndex++; if(practiceInputIndex >= practiceSequence.length) { speak("Correct"); state.currentRound++; setTimeout(startPracticeRound, 1500); } } else { speak("Wrong"); navigator.vibrate(500); setTimeout(() => playPracticeSequence(), 1500); } return;
+        if(practiceSequence.length === 0) return; 
+        
+        if(value == practiceSequence[practiceInputIndex]) { 
+            practiceInputIndex++; 
+            if(practiceInputIndex >= practiceSequence.length) { 
+                speak("Correct"); 
+                state.currentRound++; 
+                setTimeout(startPracticeRound, 1500); 
+            } 
+        } else { 
+            speak("Wrong"); 
+            navigator.vibrate(500); 
+            setTimeout(() => playPracticeSequence(), 1500); 
+        } 
+        return;
     }
-    let targetIndex = 0; if (settings.currentMode === CONFIG.MODES.SIMON) targetIndex = state.nextSequenceIndex % settings.machineCount;
+    
+    // --- REGULAR GAME LOGIC ---
+    let targetIndex = 0; 
+    if (settings.currentMode === CONFIG.MODES.SIMON) targetIndex = state.nextSequenceIndex % settings.machineCount;
     
     const roundNum = parseInt(state.currentRound) || 1;
     const limit = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? roundNum : settings.sequenceLength;
@@ -161,7 +229,10 @@ function addValue(value) {
     if(state.sequences[targetIndex] && state.sequences[targetIndex].length >= limit) return;
     if(!state.sequences[targetIndex]) state.sequences[targetIndex] = [];
     
-    state.sequences[targetIndex].push(value); state.nextSequenceIndex++; renderUI(); saveState();
+    state.sequences[targetIndex].push(value); 
+    state.nextSequenceIndex++; 
+    renderUI(); 
+    saveState();
     
     if(appSettings.isAutoplayEnabled) {
         if (settings.currentMode === CONFIG.MODES.SIMON) { 
@@ -175,37 +246,94 @@ function addValue(value) {
         }
     }
 }
-function handleBackspace(e) { if(e && isDeleting) return; vibrate(); const state = getState(); const settings = getProfileSettings(); if(state.nextSequenceIndex === 0) return; let targetIndex = 0; if(settings.currentMode === CONFIG.MODES.SIMON) targetIndex = (state.nextSequenceIndex - 1) % settings.machineCount; if(state.sequences[targetIndex] && state.sequences[targetIndex].length > 0) { state.sequences[targetIndex].pop(); state.nextSequenceIndex--; if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) disableInput(false); renderUI(); saveState(); } }
-function resetRounds() { const state = getState(); state.currentRound = 1; state.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); state.nextSequenceIndex = 0; disableInput(false); renderUI(); saveState(); showToast("Reset to Round 1"); }
+
+function handleBackspace(e) { 
+    if(e && isDeleting) return; 
+    vibrate(); 
+    const state = getState(); 
+    const settings = getProfileSettings(); 
+    if(state.nextSequenceIndex === 0) return; 
+    
+    let targetIndex = 0; 
+    if(settings.currentMode === CONFIG.MODES.SIMON) targetIndex = (state.nextSequenceIndex - 1) % settings.machineCount; 
+    
+    if(state.sequences[targetIndex] && state.sequences[targetIndex].length > 0) { 
+        state.sequences[targetIndex].pop(); 
+        state.nextSequenceIndex--; 
+        if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) disableInput(false); 
+        renderUI(); 
+        saveState(); 
+    } 
+}
+
+function resetRounds() { 
+    const state = getState(); 
+    state.currentRound = 1; 
+    state.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); 
+    state.nextSequenceIndex = 0; 
+    disableInput(false); 
+    renderUI(); 
+    saveState(); 
+    showToast("Reset to Round 1"); 
+}
+
 function disableInput(disabled) { const pad = document.getElementById(`pad-${getProfileSettings().currentInput}`); if(pad) pad.querySelectorAll('button').forEach(b => b.disabled = disabled); }
 
 function playDemo() {
-    const settings = getProfileSettings(); const state = getState(); const demoBtn = document.querySelector(`#pad-${settings.currentInput} button[data-action="play-demo"]`);
+    const settings = getProfileSettings(); 
+    const state = getState(); 
+    const demoBtn = document.querySelector(`#pad-${settings.currentInput} button[data-action="play-demo"]`);
     
+    // --- STOP LOGIC FIXED ---
     if(isDemoPlaying) {
         isDemoPlaying = false;
         if(timers.playback) clearTimeout(timers.playback);
         disableInput(false);
-        if(demoBtn) { demoBtn.innerHTML = '▶'; demoBtn.disabled = false; }
+        if(demoBtn) { 
+            demoBtn.innerHTML = '▶'; 
+            demoBtn.disabled = false; 
+        }
         showToast("Playback Stopped 🛑");
         return;
     }
 
-    if(demoBtn && demoBtn.disabled && !appSettings.isAutoplayEnabled) return; 
+    // Don't start if disabled (unless autoplay triggered it internally)
+    // We check !isDemoPlaying to differentiate a user click from an internal call
+    if(demoBtn && demoBtn.disabled && !isDemoPlaying) return; 
 
     let playlist = [];
-    if(settings.currentMode === CONFIG.MODES.SIMON) { const activeSeqs = state.sequences.slice(0, settings.machineCount); const maxLen = Math.max(...activeSeqs.map(s => s.length)); if(maxLen === 0) return; const chunkSize = (settings.machineCount > 1) ? settings.simonChunkSize : maxLen; const numChunks = Math.ceil(maxLen / chunkSize); for(let c=0; c<numChunks; c++) { for(let m=0; m<settings.machineCount; m++) { for(let k=0; k<chunkSize; k++) { const idx = (c*chunkSize) + k; if(activeSeqs[m][idx]) playlist.push({ val: activeSeqs[m][idx], machine: m }); } } } } else { const seq = state.sequences[0]; if(!seq || seq.length === 0) { disableInput(false); return; } playlist = seq.map(v => ({ val: v, machine: 0 })); }
+    if(settings.currentMode === CONFIG.MODES.SIMON) { 
+        const activeSeqs = state.sequences.slice(0, settings.machineCount); 
+        const maxLen = Math.max(...activeSeqs.map(s => s.length)); 
+        if(maxLen === 0) return; 
+        const chunkSize = (settings.machineCount > 1) ? settings.simonChunkSize : maxLen; 
+        const numChunks = Math.ceil(maxLen / chunkSize); 
+        for(let c=0; c<numChunks; c++) { 
+            for(let m=0; m<settings.machineCount; m++) { 
+                for(let k=0; k<chunkSize; k++) { 
+                    const idx = (c*chunkSize) + k; 
+                    if(activeSeqs[m][idx]) playlist.push({ val: activeSeqs[m][idx], machine: m }); 
+                } 
+            } 
+        } 
+    } else { 
+        const seq = state.sequences[0]; 
+        if(!seq || seq.length === 0) { disableInput(false); return; } 
+        playlist = seq.map(v => ({ val: v, machine: 0 })); 
+    }
     
     disableInput(true); 
     isDemoPlaying = true; 
     
     if(demoBtn) demoBtn.innerHTML = '■'; 
     
-    let i = 0; const speed = appSettings.playbackSpeed || 1; 
+    let i = 0; 
+    const speed = appSettings.playbackSpeed || 1; 
     const baseInterval = CONFIG.DEMO_DELAY_BASE_MS / speed;
     
     function next() { 
         if(!isDemoPlaying) return; 
+        
         if(i >= playlist.length) { 
             disableInput(false); 
             isDemoPlaying = false; 
@@ -230,11 +358,8 @@ function playDemo() {
         if(seqBoxes[item.machine]) { seqBoxes[item.machine].style.transform = 'scale(1.05)'; setTimeout(() => seqBoxes[item.machine].style.transform = 'scale(1)', 250 / speed); } 
         
         let nextDelay = baseInterval;
-
-        // --- Logic for delay between chunks/machines ---
         if (i + 1 < playlist.length) {
             const nextItem = playlist[i+1];
-            // If the machine changes, add the custom inter-sequence delay
             if (nextItem.machine !== item.machine) {
                 nextDelay += (settings.simonInterSequenceDelay || 0);
             }
@@ -246,14 +371,49 @@ function playDemo() {
 }
 
 function renderUI() {
-    const container = document.getElementById('sequence-container'); container.innerHTML = ''; const settings = getProfileSettings();
-    ['key9', 'key12', 'piano'].forEach(k => { const el = document.getElementById(`pad-${k}`); if(el) el.style.display = (settings.currentInput === k) ? 'block' : 'none'; });
+    const container = document.getElementById('sequence-container'); 
+    container.innerHTML = ''; 
+    const settings = getProfileSettings();
+    const state = getState();
+
+    // Show correct Input Pad
+    ['key9', 'key12', 'piano'].forEach(k => { 
+        const el = document.getElementById(`pad-${k}`); 
+        if(el) el.style.display = (settings.currentInput === k) ? 'block' : 'none'; 
+    });
+
+    // --- PRACTICE MODE UI ---
     if(appSettings.isPracticeModeEnabled) {
-        if(practiceSequence.length === 0) setTimeout(startPracticeRound, 100); container.innerHTML = `<h2 class="text-2xl font-bold text-center w-full mt-10" style="color:var(--text-main)">Practice Mode (${settings.currentMode === CONFIG.MODES.SIMON ? 'Simon' : 'Unique'})<br><span class="text-sm opacity-70">Round ${getState().currentRound}</span></h2>`; return;
+        if(practiceSequence.length === 0) {
+            // First time entry logic
+            practiceSequence = [];
+            state.currentRound = 1;
+            setTimeout(startPracticeRound, 100);
+        }
+        container.innerHTML = `<h2 class="text-2xl font-bold text-center w-full mt-10" style="color:var(--text-main)">Practice Mode (${settings.currentMode === CONFIG.MODES.SIMON ? 'Simon' : 'Unique'})<br><span class="text-sm opacity-70">Round ${state.currentRound}</span></h2>`; 
+        return;
     }
-    const state = getState(); const activeSeqs = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);
-    if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) { const h = document.createElement('h2'); h.className = "text-center text-2xl font-bold mb-4 w-full"; h.textContent = `Round ${state.currentRound} / ${settings.sequenceLength}`; container.appendChild(h); }
-    let gridCols = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 1 : Math.min(settings.machineCount, 4); container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
+
+    // --- GAME MODE UI ---
+    const activeSeqs = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);
+    
+    // --- FIXED: DISPLAY ROUND COUNTER FOR BOTH MODES ---
+    // Previously only for Unique. Now Simon shows total sequence length as "Round" equivalent.
+    const h = document.createElement('h2'); 
+    h.className = "text-center text-2xl font-bold mb-4 w-full"; 
+    
+    if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
+        h.textContent = `Round ${state.currentRound} / ${settings.sequenceLength}`; 
+    } else {
+        // For Simon, "Round" is basically how many items are in the first machine's list + 1
+        const count = state.sequences[0] ? state.sequences[0].length : 0;
+        h.textContent = `Sequence Length: ${count}`;
+    }
+    container.appendChild(h);
+
+    let gridCols = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 1 : Math.min(settings.machineCount, 4); 
+    container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
+    
     activeSeqs.forEach((seq) => { 
         const card = document.createElement('div'); card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)]"; 
         const numGrid = document.createElement('div'); 
@@ -261,10 +421,12 @@ function renderUI() {
         (seq || []).forEach(num => { const span = document.createElement('span'); span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold"; const scale = appSettings.uiScaleMultiplier || 1.0; span.style.width = (40 * scale) + 'px'; span.style.height = (40 * scale) + 'px'; span.style.fontSize = (1.2 * scale) + 'rem'; span.textContent = num; numGrid.appendChild(span); }); 
         card.appendChild(numGrid); container.appendChild(card); 
     });
+    
     document.querySelectorAll('#mic-master-btn').forEach(btn => { btn.classList.toggle('hidden', !appSettings.showMicBtn); btn.classList.toggle('master-active', modules.sensor && modules.sensor.mode.audio); });
     document.querySelectorAll('#camera-master-btn').forEach(btn => { btn.classList.toggle('hidden', !appSettings.showCamBtn); btn.classList.toggle('master-active', modules.sensor && modules.sensor.mode.camera); });
     document.querySelectorAll('.reset-button').forEach(b => { b.style.display = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 'block' : 'none'; });
 }
+
 function toggleBlackout() { blackoutState.isActive = !blackoutState.isActive; document.body.classList.toggle('blackout-active', blackoutState.isActive); if(blackoutState.isActive) { if(appSettings.isAudioEnabled) speak("Stealth Active"); document.getElementById('blackout-layer').addEventListener('touchstart', handleBlackoutTouch, {passive: false}); } else { document.getElementById('blackout-layer').removeEventListener('touchstart', handleBlackoutTouch); } }
 function handleShake(e) { if(!appSettings.isBlackoutFeatureEnabled) return; const acc = e.acceleration; if(!acc) return; if(Math.hypot(acc.x, acc.y, acc.z) > 15) { const now = Date.now(); if(now - blackoutState.lastShake > 1000) { toggleBlackout(); vibrate(); blackoutState.lastShake = now; } } }
 function handleBlackoutTouch(e) { if(!blackoutState.isActive) return; e.preventDefault(); e.stopPropagation(); const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX; const y = e.changedTouches ? e.changedTouches[0].clientY : e.clientY; const w = window.innerWidth, h = window.innerHeight; const settings = getProfileSettings(); let val = null; if(settings.currentInput === 'piano') { const keys = ['C','D','E','F','G','A','B','1','2','3','4','5']; const idx = Math.floor(x / (w / keys.length)); if(keys[idx]) val = keys[idx]; } else { const c = Math.floor(x / (w/3)); const r = Math.floor(y / (h/ (settings.currentInput==='key12'?4:3))); let num = (r * 3) + c + 1; if(num > 0 && num <= (settings.currentInput==='key12'?12:9)) val = num.toString(); } if(val) { addValue(val); speak(val); vibrateMorse(val); } }
@@ -326,9 +488,16 @@ window.onload = function() {
                     appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
                     showToast("Game Mode Reset 🔄");
                 }
+                
+                // PRACTICE MODE RESET
+                if(appSettings.isPracticeModeEnabled) {
+                    practiceSequence = [];
+                    practiceInputIndex = 0;
+                    appState['current_session'].currentRound = 1;
+                }
+
                 updateAllChrome(); 
                 saveState(); 
-                if(appSettings.isPracticeModeEnabled && practiceSequence.length === 0) { appState['current_session'].currentRound = 1; practiceSequence = []; startPracticeRound(); } 
             },
             onSave: () => saveState(), onReset: () => { localStorage.clear(); location.reload(); },
             onProfileSwitch: (id) => { 
@@ -348,7 +517,15 @@ window.onload = function() {
                 showToast("Profile Settings Saved 💾"); 
             }
         }, modules.sensor);
-        updateAllChrome(); if(appSettings.isPracticeModeEnabled) setTimeout(startPracticeRound, 500);
+        updateAllChrome(); 
+        
+        // Safety check to start practice mode only if settings are closed
+        if(appSettings.isPracticeModeEnabled) {
+            const settingsModal = document.getElementById('settings-modal');
+            if(!settingsModal || settingsModal.classList.contains('pointer-events-none')) {
+                setTimeout(startPracticeRound, 500);
+            }
+        }
 
         document.querySelectorAll('.btn-pad-number, .piano-key-white, .piano-key-black').forEach(btn => {
             if(btn.dataset.value === '1') {
@@ -432,7 +609,15 @@ window.onload = function() {
             b.addEventListener('mousedown', startDelete); b.addEventListener('touchstart', startDelete, { passive: true }); b.addEventListener('mouseup', stopDelete); b.addEventListener('mouseleave', stopDelete); b.addEventListener('touchend', stopDelete); b.addEventListener('touchcancel', stopDelete); 
         });
         document.querySelectorAll('button[data-action="open-share"]').forEach(b => b.addEventListener('click', () => modules.settings.openShare())); 
-        // Note: onclick is overridden here, but the long press logic above is separate via event listeners
+        
+        // Modified: Close button now triggers check for Practice Mode start
+        document.getElementById('close-settings').addEventListener('click', () => {
+            if(appSettings.isPracticeModeEnabled) {
+                // Short delay to let modal animate out
+                setTimeout(startPracticeRound, 500);
+            }
+        });
+
         document.querySelectorAll('button[data-action="open-settings"]').forEach(b => b.onclick = () => { 
             if(timers.settingsLongPress) clearTimeout(timers.settingsLongPress); // safety
             modules.settings.openSettings(); 

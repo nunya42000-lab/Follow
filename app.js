@@ -9,19 +9,23 @@ const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", auth
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- CONFIG: Speed Delete Interval lowered to 20ms for much faster deletion ---
-const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 250, SPEED_DELETE_INTERVAL: 20, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v40', STORAGE_KEY_STATE: 'followMeAppState_v40', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } };
+// --- CONFIG ---
+const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 250, SPEED_DELETE_INTERVAL: 20, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v42', STORAGE_KEY_STATE: 'followMeAppState_v42', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } };
 
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
-const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 200 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
+const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 400 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
 
-// --- DEFAULTS: Haptics, Speed Delete, and Long Press Autoplay explicitly set to true ---
-const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard' };
+const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en' };
+
+const DICTIONARY = {
+    'en': { correct: "Correct", wrong: "Wrong", stealth: "Stealth Active", reset: "Reset to Round 1", stop: "Playback Stopped 🛑" },
+    'es': { correct: "Correcto", wrong: "Incorrecto", stealth: "Modo Sigilo", reset: "Reiniciar Ronda 1", stop: "Detenido 🛑" }
+};
 
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
 let modules = { sensor: null, settings: null };
-let timers = { speedDelete: null, initialDelay: null, longPress: null, stealth: null, stealthAction: null, playback: null };
+let timers = { speedDelete: null, initialDelay: null, longPress: null, settingsLongPress: null, stealth: null, stealthAction: null, playback: null };
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 let blackoutState = { isActive: false, lastShake: 0 }; 
 let isDeleting = false; 
@@ -42,15 +46,16 @@ function loadState() {
             const loaded = JSON.parse(s); 
             appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } }; 
             
-            // Fix: Ensure defaults are respected if keys are missing in loaded data
+            // Fix: Ensure defaults are respected
             if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
             if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
             if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
             if (!appSettings.voicePresets) appSettings.voicePresets = {};
             if (!appSettings.activeVoicePresetId) appSettings.activeVoicePresetId = 'standard';
+            if (!appSettings.generalLanguage) appSettings.generalLanguage = 'en';
+            if (!appSettings.gestureResizeMode) appSettings.gestureResizeMode = 'global';
 
             if(!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS)); 
-            
             if(appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
         } else { 
             appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles['profile_1'].settings)); 
@@ -69,10 +74,27 @@ function loadState() {
 
 function vibrate() { if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10); }
 function vibrateMorse(num) { if(!navigator.vibrate || !appSettings.isHapticMorseEnabled) return; const speed = appSettings.playbackSpeed || 1.0; const factor = 1.0 / speed; const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor; let pattern = []; const n = parseInt(num); if (n >= 1 && n <= 3) { for(let i=0; i<n; i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 4 && n <= 6) { pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(n-3); i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 7 && n <= 9) { pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(n-6); i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 10) { pattern.push(DASH); pattern.push(DOT); } if(pattern.length > 0) navigator.vibrate(pattern); }
+
 function speak(text) { 
     if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; 
     window.speechSynthesis.cancel(); 
-    const u = new SpeechSynthesisUtterance(text); 
+    
+    // Translation Logic
+    const lang = appSettings.generalLanguage || 'en';
+    const dict = DICTIONARY[lang] || DICTIONARY['en'];
+    let msg = text;
+    
+    // Map system words
+    if(text === "Correct") msg = dict.correct;
+    if(text === "Wrong") msg = dict.wrong;
+    if(text === "Stealth Active") msg = dict.stealth;
+
+    const u = new SpeechSynthesisUtterance(msg); 
+    
+    // Language tag for voice engine
+    if(lang === 'es') u.lang = 'es-MX';
+    else u.lang = 'en-US';
+
     if(appSettings.selectedVoice){
         const voices = window.speechSynthesis.getVoices();
         const v = voices.find(voice => voice.name === appSettings.selectedVoice);
@@ -85,7 +107,23 @@ function speak(text) {
     u.volume = appSettings.voiceVolume || 1.0; 
     window.speechSynthesis.speak(u); 
 }
-function showToast(msg) { const t = document.getElementById('toast-notification'); const m = document.getElementById('toast-message'); if(!t || !m) return; m.textContent = msg; t.classList.remove('opacity-0', '-translate-y-10'); setTimeout(() => t.classList.add('opacity-0', '-translate-y-10'), 2000); }
+
+function showToast(msg) { 
+    // Translate toast if possible
+    const lang = appSettings.generalLanguage || 'en';
+    const dict = DICTIONARY[lang] || DICTIONARY['en'];
+    if(msg === "Reset to Round 1") msg = dict.reset;
+    if(msg === "Playback Stopped 🛑") msg = dict.stop;
+    if(msg === "Stealth Active") msg = dict.stealth;
+
+    const t = document.getElementById('toast-notification'); 
+    const m = document.getElementById('toast-message'); 
+    if(!t || !m) return; 
+    m.textContent = msg; 
+    t.classList.remove('opacity-0', '-translate-y-10'); 
+    setTimeout(() => t.classList.add('opacity-0', '-translate-y-10'), 2000); 
+}
+
 function applyTheme(themeKey) { const body = document.body; body.className = body.className.replace(/theme-\w+/g, ''); let t = appSettings.customThemes[themeKey]; if (!t && PREMADE_THEMES[themeKey]) t = PREMADE_THEMES[themeKey]; if (!t) t = PREMADE_THEMES['default']; body.style.setProperty('--primary', t.bubble); body.style.setProperty('--bg-main', t.bgMain); body.style.setProperty('--bg-modal', t.bgCard); body.style.setProperty('--card-bg', t.bgCard); body.style.setProperty('--seq-bubble', t.bubble); body.style.setProperty('--btn-bg', t.btn); body.style.setProperty('--bg-input', t.bgMain); body.style.setProperty('--text-main', t.text); const isDark = parseInt(t.bgCard.replace('#',''), 16) < 0xffffff / 2; body.style.setProperty('--border', isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'); }
 function updateAllChrome() { applyTheme(appSettings.activeTheme); document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`; renderUI(); }
 
@@ -163,7 +201,8 @@ function playDemo() {
     
     if(demoBtn) demoBtn.innerHTML = '■'; 
     
-    let i = 0; const speed = appSettings.playbackSpeed || 1; const interval = CONFIG.DEMO_DELAY_BASE_MS / speed;
+    let i = 0; const speed = appSettings.playbackSpeed || 1; 
+    const baseInterval = CONFIG.DEMO_DELAY_BASE_MS / speed;
     
     function next() { 
         if(!isDemoPlaying) return; 
@@ -182,14 +221,27 @@ function playDemo() {
             } 
             return; 
         } 
+        
         const item = playlist[i]; 
         const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${item.val}"]`); 
         if(key) { key.classList.add('flash-active'); setTimeout(() => key.classList.remove('flash-active'), 250 / speed); } 
         speak(item.val); vibrateMorse(item.val); 
         const seqBoxes = document.getElementById('sequence-container').children; 
         if(seqBoxes[item.machine]) { seqBoxes[item.machine].style.transform = 'scale(1.05)'; setTimeout(() => seqBoxes[item.machine].style.transform = 'scale(1)', 250 / speed); } 
+        
+        let nextDelay = baseInterval;
+
+        // --- Logic for delay between chunks/machines ---
+        if (i + 1 < playlist.length) {
+            const nextItem = playlist[i+1];
+            // If the machine changes, add the custom inter-sequence delay
+            if (nextItem.machine !== item.machine) {
+                nextDelay += (settings.simonInterSequenceDelay || 0);
+            }
+        }
+        
         i++; 
-        timers.playback = setTimeout(next, interval); 
+        timers.playback = setTimeout(next, nextDelay); 
     } next();
 }
 
@@ -343,6 +395,23 @@ window.onload = function() {
             b.addEventListener('mouseleave', cancelLong); 
             b.addEventListener('touchend', cancelLong); 
         });
+        
+        // --- Settings Button Long Press Logic (Redeem) ---
+        document.querySelectorAll('button[data-action="open-settings"]').forEach(b => {
+             const startSettingsLong = () => {
+                 timers.settingsLongPress = setTimeout(() => {
+                     vibrate();
+                     if(modules.settings) modules.settings.toggleRedeem(true);
+                 }, 800);
+             };
+             const cancelSettingsLong = () => { if(timers.settingsLongPress) clearTimeout(timers.settingsLongPress); };
+             
+             b.addEventListener('mousedown', startSettingsLong);
+             b.addEventListener('touchstart', startSettingsLong, { passive: true });
+             b.addEventListener('mouseup', cancelSettingsLong);
+             b.addEventListener('mouseleave', cancelSettingsLong);
+             b.addEventListener('touchend', cancelSettingsLong);
+        });
 
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => b.addEventListener('click', () => { if(confirm("Reset to Round 1?")) resetRounds(); }));
         document.querySelectorAll('button[data-action="backspace"]').forEach(b => { 
@@ -363,7 +432,11 @@ window.onload = function() {
             b.addEventListener('mousedown', startDelete); b.addEventListener('touchstart', startDelete, { passive: true }); b.addEventListener('mouseup', stopDelete); b.addEventListener('mouseleave', stopDelete); b.addEventListener('touchend', stopDelete); b.addEventListener('touchcancel', stopDelete); 
         });
         document.querySelectorAll('button[data-action="open-share"]').forEach(b => b.addEventListener('click', () => modules.settings.openShare())); 
-        document.querySelectorAll('button[data-action="open-settings"]').forEach(b => b.onclick = () => modules.settings.openSettings());
+        // Note: onclick is overridden here, but the long press logic above is separate via event listeners
+        document.querySelectorAll('button[data-action="open-settings"]').forEach(b => b.onclick = () => { 
+            if(timers.settingsLongPress) clearTimeout(timers.settingsLongPress); // safety
+            modules.settings.openSettings(); 
+        });
         if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
     } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }
 };

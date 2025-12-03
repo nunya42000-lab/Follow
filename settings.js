@@ -22,7 +22,10 @@ export class SettingsManager{
             openShareInside:document.getElementById('open-share-button'),closeShareBtn:document.getElementById('close-share'),closeHelpBtn:document.getElementById('close-help'),closeHelpBtnBottom:document.getElementById('close-help-btn-bottom'),openHelpBtn:document.getElementById('open-help-button'),promptDisplay:document.getElementById('prompt-display'),copyPromptBtn:document.getElementById('copy-prompt-btn'),restoreBtn:document.querySelector('button[data-action="restore-defaults"]'),
             calibModal:document.getElementById('calibration-modal'),openCalibBtn:document.getElementById('open-calibration-btn'),closeCalibBtn:document.getElementById('close-calibration-btn'),calibAudioSlider:document.getElementById('calib-audio-slider'),calibCamSlider:document.getElementById('calib-cam-slider'),calibAudioBar:document.getElementById('calib-audio-bar'),calibCamBar:document.getElementById('calib-cam-bar'),calibAudioMarker:document.getElementById('calib-audio-marker'),calibCamMarker:document.getElementById('calib-cam-marker'),calibAudioVal:document.getElementById('audio-val-display'),calibCamVal:document.getElementById('cam-val-display'),
             redeemModal:document.getElementById('redeem-modal'),openRedeemBtn:document.getElementById('open-redeem-btn'),closeRedeemBtn:document.getElementById('close-redeem-btn'),
-            copyLinkBtn:document.getElementById('copy-link-button'), nativeShareBtn:document.getElementById('native-share-button')
+            donateModal:document.getElementById('donate-modal'), openDonateBtn:document.getElementById('open-donate-btn'), closeDonateBtn:document.getElementById('close-donate-btn'),
+            btnCashMain:document.getElementById('btn-cashapp-main'), btnPaypalMain:document.getElementById('btn-paypal-main'),
+            copyLinkBtn:document.getElementById('copy-link-button'), nativeShareBtn:document.getElementById('native-share-button'),
+            chatShareBtn:document.getElementById('chat-share-button'), emailShareBtn:document.getElementById('email-share-button')
         };
         this.tempTheme=null;this.initListeners();this.populateConfigDropdown();this.populateThemeDropdown();this.buildColorGrid();
         setTimeout(() => this.populateVoiceDropdown(), 500);
@@ -30,9 +33,12 @@ export class SettingsManager{
     }
     populateVoiceDropdown(){
         if(!this.dom.voiceSelect)return;
-        if(this.dom.voiceSelect.options.length > 1) return; 
         const voices=window.speechSynthesis.getVoices();
         if(voices.length === 0) return;
+        
+        // Save current selection before clearing
+        const currentSelection = this.appSettings.selectedVoice;
+
         this.dom.voiceSelect.innerHTML='';
         voices.forEach(v=>{
             const o=document.createElement('option');
@@ -40,7 +46,14 @@ export class SettingsManager{
             o.textContent=v.name;
             this.dom.voiceSelect.appendChild(o);
         });
-        if(this.appSettings.selectedVoice) this.dom.voiceSelect.value=this.appSettings.selectedVoice;
+        
+        // Re-apply selection or default
+        if(currentSelection) {
+            this.dom.voiceSelect.value = currentSelection;
+        } else if (voices.length > 0) {
+            this.dom.voiceSelect.value = voices[0].name;
+            this.appSettings.selectedVoice = voices[0].name;
+        }
     }
     buildColorGrid(){if(!this.dom.editorGrid)return;this.dom.editorGrid.innerHTML='';CRAYONS.forEach(color=>{const btn=document.createElement('div');btn.style.backgroundColor=color;btn.className="w-full h-6 rounded cursor-pointer border border-gray-700 hover:scale-125 transition-transform shadow-sm";btn.onclick=()=>this.applyColorToTarget(color);this.dom.editorGrid.appendChild(btn);});}
     applyColorToTarget(hex){if(!this.tempTheme)return;this.tempTheme[this.currentTargetKey]=hex;const[h,s,l]=this.hexToHsl(hex);this.dom.ftHue.value=h;this.dom.ftSat.value=s;this.dom.ftLit.value=l;this.dom.ftPreview.style.backgroundColor=hex;if(this.dom.ftContainer.classList.contains('hidden')){this.dom.ftContainer.classList.remove('hidden');this.dom.ftToggle.style.display='none';}this.updatePreview();}
@@ -54,6 +67,8 @@ export class SettingsManager{
     openCalibration(){if(this.dom.calibModal){this.dom.calibModal.classList.remove('opacity-0','pointer-events-none');this.dom.calibModal.style.pointerEvents='auto';this.sensorEngine.toggleAudio(true);this.sensorEngine.toggleCamera(true);this.sensorEngine.setCalibrationCallback((data)=>{if(this.dom.calibAudioBar){const pct=((data.audio-(-100))/((-30)-(-100)))*100;this.dom.calibAudioBar.style.width=`${Math.max(0,Math.min(100,pct))}%`;}if(this.dom.calibCamBar){const pct=Math.min(100,data.camera);this.dom.calibCamBar.style.width=`${pct}%`;}});}}
     closeCalibration(){if(this.dom.calibModal){this.dom.calibModal.classList.add('opacity-0','pointer-events-none');this.dom.calibModal.style.pointerEvents='none';this.sensorEngine.setCalibrationCallback(null);this.sensorEngine.toggleAudio(this.appSettings.isAudioEnabled);this.sensorEngine.toggleCamera(this.appSettings.autoInputMode==='cam'||this.appSettings.autoInputMode==='both');}}
     toggleRedeem(show){if(show){if(this.dom.settingsModal)this.dom.settingsModal.classList.add('opacity-0','pointer-events-none');if(this.dom.redeemModal){this.dom.redeemModal.classList.remove('opacity-0','pointer-events-none');this.dom.redeemModal.style.pointerEvents='auto';}}else{if(this.dom.redeemModal){this.dom.redeemModal.classList.add('opacity-0','pointer-events-none');this.dom.redeemModal.style.pointerEvents='none';}}}
+    toggleDonate(show){if(show){if(this.dom.settingsModal)this.dom.settingsModal.classList.add('opacity-0','pointer-events-none');if(this.dom.donateModal){this.dom.donateModal.classList.remove('opacity-0','pointer-events-none');this.dom.donateModal.style.pointerEvents='auto';}}else{if(this.dom.donateModal){this.dom.donateModal.classList.add('opacity-0','pointer-events-none');this.dom.donateModal.style.pointerEvents='none';}}}
+    
     initListeners(){
         this.dom.targetBtns.forEach(btn=>{btn.onclick=()=>{this.dom.targetBtns.forEach(b=>{b.classList.remove('active','bg-primary-app');b.classList.add('opacity-60');});btn.classList.add('active','bg-primary-app');btn.classList.remove('opacity-60');this.currentTargetKey=btn.dataset.target;if(this.tempTheme){const[h,s,l]=this.hexToHsl(this.tempTheme[this.currentTargetKey]);this.dom.ftHue.value=h;this.dom.ftSat.value=s;this.dom.ftLit.value=l;this.dom.ftPreview.style.backgroundColor=this.tempTheme[this.currentTargetKey];}};});
         [this.dom.ftHue,this.dom.ftSat,this.dom.ftLit].forEach(sl=>{sl.oninput=()=>this.updateColorFromSliders();});
@@ -188,6 +203,9 @@ export class SettingsManager{
         if(this.dom.closeShareBtn)this.dom.closeShareBtn.onclick=()=>this.closeShare();
         if(this.dom.openRedeemBtn)this.dom.openRedeemBtn.onclick=()=>this.toggleRedeem(true);
         if(this.dom.closeRedeemBtn)this.dom.closeRedeemBtn.onclick=()=>this.toggleRedeem(false);
+        if(this.dom.openDonateBtn)this.dom.openDonateBtn.onclick=()=>this.toggleDonate(true);
+        if(this.dom.closeDonateBtn)this.dom.closeDonateBtn.onclick=()=>this.toggleDonate(false);
+
         if(this.dom.copyLinkBtn) this.dom.copyLinkBtn.onclick=()=>{ navigator.clipboard.writeText(window.location.href).then(()=>alert("Link Copied!")); };
         if(this.dom.copyPromptBtn) this.dom.copyPromptBtn.onclick=()=>{ 
             if(this.dom.promptDisplay) {
@@ -196,6 +214,22 @@ export class SettingsManager{
             }
         };
         if(this.dom.nativeShareBtn) this.dom.nativeShareBtn.onclick=()=>{ if(navigator.share){ navigator.share({title:"Follow Me", url:window.location.href}); }else{ alert("Share not supported"); } };
+        
+        if(this.dom.chatShareBtn) this.dom.chatShareBtn.onclick=()=>{ window.location.href = `sms:?body=Check%20out%20Follow%20Me:%20${window.location.href}`; };
+        if(this.dom.emailShareBtn) this.dom.emailShareBtn.onclick=()=>{ window.location.href = `mailto:?subject=Follow%20Me%20App&body=Check%20out%20Follow%20Me:%20${window.location.href}`; };
+
+        if(this.dom.btnCashMain) this.dom.btnCashMain.onclick=()=>{ window.open('https://cash.app/$jwo83', '_blank'); };
+        if(this.dom.btnPaypalMain) this.dom.btnPaypalMain.onclick=()=>{ window.open('https://www.paypal.me/Oyster981', '_blank'); };
+
+        document.querySelectorAll('.donate-quick-btn').forEach(btn => {
+            btn.onclick = () => {
+                const app = btn.dataset.app;
+                const amt = btn.dataset.amount;
+                if(app === 'cash') window.open(`https://cash.app/$jwo83/${amt}`, '_blank');
+                if(app === 'paypal') window.open(`https://www.paypal.me/Oyster981/${amt}`, '_blank');
+            };
+        });
+
         if(this.dom.restoreBtn)this.dom.restoreBtn.onclick=()=>{if(confirm("Factory Reset?"))this.callbacks.onReset();};
         if(this.dom.quickResizeUp)this.dom.quickResizeUp.onclick=()=>{this.appSettings.globalUiScale=Math.min(200,this.appSettings.globalUiScale+10);this.callbacks.onUpdate();};
         if(this.dom.quickResizeDown)this.dom.quickResizeDown.onclick=()=>{this.appSettings.globalUiScale=Math.max(50,this.appSettings.globalUiScale-10);this.callbacks.onUpdate();};

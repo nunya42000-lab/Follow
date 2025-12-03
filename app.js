@@ -46,7 +46,6 @@ function loadState() {
             const loaded = JSON.parse(s); 
             appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } }; 
             
-            // Fix defaults
             if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
             if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
             if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
@@ -73,7 +72,38 @@ function loadState() {
 }
 
 function vibrate() { if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10); }
-function vibrateMorse(num) { if(!navigator.vibrate || !appSettings.isHapticMorseEnabled) return; const speed = appSettings.playbackSpeed || 1.0; const factor = 1.0 / speed; const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor; let pattern = []; const n = parseInt(num); if (n >= 1 && n <= 3) { for(let i=0; i<n; i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 4 && n <= 6) { pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(n-3); i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 7 && n <= 9) { pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(n-6); i++) { pattern.push(DOT); pattern.push(GAP); } } else if (n >= 10) { pattern.push(DASH); pattern.push(DOT); } if(pattern.length > 0) navigator.vibrate(pattern); }
+
+function vibrateMorse(val) { 
+    if(!navigator.vibrate || !appSettings.isHapticMorseEnabled) return; 
+    
+    // --- MAP LETTERS TO NUMBERS 6-12 ---
+    let num = parseInt(val);
+    if(isNaN(num)) {
+        const map = { 'A':6, 'B':7, 'C':8, 'D':9, 'E':10, 'F':11, 'G':12 };
+        num = map[val.toUpperCase()] || 0;
+    }
+
+    const speed = appSettings.playbackSpeed || 1.0; 
+    const factor = 1.0 / speed; 
+    const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor; 
+    let pattern = []; 
+    
+    if (num >= 1 && num <= 3) { 
+        for(let i=0; i<num; i++) { pattern.push(DOT); pattern.push(GAP); } 
+    } else if (num >= 4 && num <= 6) { 
+        pattern.push(DASH); pattern.push(GAP); 
+        for(let i=0; i<(num-3); i++) { pattern.push(DOT); pattern.push(GAP); } 
+    } else if (num >= 7 && num <= 9) { 
+        pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); 
+        for(let i=0; i<(num-6); i++) { pattern.push(DOT); pattern.push(GAP); } 
+    } else if (num >= 10 && num <= 12) { 
+        // 10-12: Three Dashes + Dots
+        pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP);
+        for(let i=0; i<(num-10); i++) { pattern.push(DOT); pattern.push(GAP); } 
+    } 
+    
+    if(pattern.length > 0) navigator.vibrate(pattern); 
+}
 
 function speak(text) { 
     if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; 
@@ -315,14 +345,12 @@ function playDemo() {
         playlist = seq.map(v => ({ val: v, machine: 0 })); 
     }
     
-    // --- ENABLE BUTTONS FOR STOP FUNCTIONALITY ---
     disableInput(true); 
     
-    // Re-enable Play and Settings buttons specifically
     if(demoBtn) demoBtn.disabled = false;
     settingsBtns.forEach(btn => {
         btn.disabled = false;
-        btn.innerHTML = '■'; // Show stop icon on settings
+        btn.innerHTML = '■'; 
     });
 
     isDemoPlaying = true; 
@@ -361,7 +389,6 @@ function playDemo() {
         const seqBoxes = document.getElementById('sequence-container').children; 
         if(seqBoxes[item.machine]) { seqBoxes[item.machine].style.transform = 'scale(1.05)'; setTimeout(() => seqBoxes[item.machine].style.transform = 'scale(1)', 250 / speed); } 
         
-        // --- DISPLAY POSITION NUMBER IN BUTTON ---
         if(demoBtn) demoBtn.innerText = (i + 1);
 
         let nextDelay = baseInterval;
@@ -398,7 +425,6 @@ function renderUI() {
         return;
     }
 
-    // --- GAME MODE UI ---
     const activeSeqs = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);
     
     let gridCols = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 1 : Math.min(settings.machineCount, 4); 
@@ -420,7 +446,7 @@ function renderUI() {
 function toggleBlackout() { blackoutState.isActive = !blackoutState.isActive; document.body.classList.toggle('blackout-active', blackoutState.isActive); if(blackoutState.isActive) { if(appSettings.isAudioEnabled) speak("Stealth Active"); document.getElementById('blackout-layer').addEventListener('touchstart', handleBlackoutTouch, {passive: false}); } else { document.getElementById('blackout-layer').removeEventListener('touchstart', handleBlackoutTouch); } }
 function handleShake(e) { if(!appSettings.isBlackoutFeatureEnabled) return; const acc = e.acceleration; if(!acc) return; if(Math.hypot(acc.x, acc.y, acc.z) > 15) { const now = Date.now(); if(now - blackoutState.lastShake > 1000) { toggleBlackout(); vibrate(); blackoutState.lastShake = now; } } }
 function handleBlackoutTouch(e) { if(!blackoutState.isActive) return; e.preventDefault(); e.stopPropagation(); const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX; const y = e.changedTouches ? e.changedTouches[0].clientY : e.clientY; const w = window.innerWidth, h = window.innerHeight; const settings = getProfileSettings(); let val = null; if(settings.currentInput === 'piano') { const keys = ['C','D','E','F','G','A','B','1','2','3','4','5']; const idx = Math.floor(x / (w / keys.length)); if(keys[idx]) val = keys[idx]; } else { const c = Math.floor(x / (w/3)); const r = Math.floor(y / (h/ (settings.currentInput==='key12'?4:3))); let num = (r * 3) + c + 1; if(num > 0 && num <= (settings.currentInput==='key12'?12:9)) val = num.toString(); } 
-    // MODIFIED: NO SPEAK DURING BLACKOUT
+    // FIXED: Removed speak(), retained vibration & addition
     if(val) { addValue(val); vibrateMorse(val); } 
 }
 
@@ -578,11 +604,10 @@ window.onload = function() {
              b.addEventListener('mouseleave', cancelSettingsLong);
              b.addEventListener('touchend', cancelSettingsLong);
              
-             // --- NEW: SETTINGS BUTTON ACTS AS STOP DURING PLAYBACK ---
              b.onclick = () => {
                  if(timers.settingsLongPress) clearTimeout(timers.settingsLongPress);
                  if(isDemoPlaying) {
-                     playDemo(); // Stops playback
+                     playDemo(); 
                      return;
                  }
                  modules.settings.openSettings();

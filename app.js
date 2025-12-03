@@ -266,15 +266,23 @@ window.onload = function() {
                 if(appSettings.isPracticeModeEnabled && practiceSequence.length === 0) { appState['current_session'].currentRound = 1; practiceSequence = []; startPracticeRound(); } 
             },
             onSave: () => saveState(), onReset: () => { localStorage.clear(); location.reload(); },
-            onProfileSwitch: (id) => { appSettings.activeProfileId = id; appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings)); if(appSettings.profiles[id].theme) appSettings.activeTheme = appSettings.profiles[id].theme; appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 }; practiceSequence = []; updateAllChrome(); saveState(); },
+            onProfileSwitch: (id) => { 
+                appSettings.activeProfileId = id; 
+                appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings)); 
+                // Removed Theme update here so it persists
+                appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 }; 
+                practiceSequence = []; 
+                updateAllChrome(); 
+                saveState(); 
+            },
             onProfileAdd: (name) => { const id = 'p_' + Date.now(); appSettings.profiles[id] = { name, settings: JSON.parse(JSON.stringify(appSettings.runtimeSettings)), theme: appSettings.activeTheme }; appSettings.activeProfileId = id; updateAllChrome(); saveState(); },
             onProfileRename: (name) => { appSettings.profiles[appSettings.activeProfileId].name = name; saveState(); },
             onProfileDelete: () => { delete appSettings.profiles[appSettings.activeProfileId]; appSettings.activeProfileId = Object.keys(appSettings.profiles)[0]; appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings)); if(appSettings.profiles[appSettings.activeProfileId].theme) appSettings.activeTheme = appSettings.profiles[appSettings.activeProfileId].theme; updateAllChrome(); saveState(); },
             onProfileSave: () => { 
                 appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings)); 
-                appSettings.profiles[appSettings.activeProfileId].theme = appSettings.activeTheme;
+                // Theme saving is handled by the Theme editor now
                 saveState(); 
-                showToast("Profile & Theme Saved 💾"); 
+                showToast("Profile Settings Saved 💾"); 
             }
         }, modules.sensor);
         updateAllChrome(); if(appSettings.isPracticeModeEnabled) setTimeout(startPracticeRound, 500);

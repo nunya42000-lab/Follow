@@ -14,6 +14,7 @@
 <body class="min-h-screen flex flex-col font-sans transition-colors duration-200">
     <div id="blackout-layer"></div>
 
+    <!-- QUICK START MODAL -->
     <div id="game-setup-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
             <div class="flex items-center justify-between border-b border-custom pb-3 mb-4 relative">
@@ -33,6 +34,7 @@
         </div>
     </div>
 
+    <!-- THEME EDITOR -->
     <div id="theme-editor-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[100] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-md w-full transform scale-90 transition-transform duration-300 flex flex-col border border-custom max-h-[95vh] overflow-hidden">
             <h3 class="text-xl font-bold mb-4" data-i18n="theme_editor">🎨 Theme Editor</h3>
@@ -52,10 +54,12 @@
         </div>
     </div>
 
+    <!-- REDEEM MODAL -->
     <div id="redeem-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="relative w-full max-w-lg h-[95vh] flex flex-col items-center justify-center p-4"><button id="close-redeem-btn" class="absolute top-4 right-4 z-50 bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600">✕</button><div class="bg-white p-2 rounded-lg shadow-2xl w-full h-full flex items-center justify-center overflow-hidden"><img src="redeem.jpg" alt="Redeem Barcode" class="w-full h-full object-contain"></div></div>
     </div>
 
+    <!-- CALIBRATION MODAL -->
     <div id="calibration-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[110] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-md w-full border border-custom">
             <h3 class="text-xl font-bold mb-4">🎛️ Sensor Calibration</h3>
@@ -65,6 +69,7 @@
         </div>
     </div>
 
+    <!-- DONATE MODAL -->
     <div id="donate-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[140] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom flex flex-col text-center">
             <h3 class="text-2xl font-bold mb-2">Buy me a Coffee? ☕</h3>
@@ -106,8 +111,10 @@
         </div>
     </div>
 
+    <!-- SETTINGS MODAL -->
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh] overflow-hidden border border-custom m-4">
+            <!-- Header (Always Visible) -->
             <div class="p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
                 <div class="flex items-center space-x-2">
                     <h3 class="text-xl font-bold" data-i18n="settings_btn">Settings</h3>
@@ -129,6 +136,7 @@
             </div>
             
             <div class="overflow-y-auto flex-grow p-5 space-y-4">
+                <!-- MODE TAB -->
                 <div id="tab-mode" class="tab-content active">
                     <div class="mb-5 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
                         <label class="text-xs font-bold uppercase text-muted-custom mb-2 block" data-i18n="lbl_profiles">Profiles</label>
@@ -141,6 +149,7 @@
                     <div class="flex justify-between items-center p-3 rounded-lg settings-input border border-custom mt-2"><span class="font-bold text-sm">Auto-Advance (Unique)</span><input type="checkbox" id="autoclear-toggle" class="h-5 w-5 accent-indigo-500"></div>
                 </div>
 
+                <!-- PLAYBACK TAB -->
                 <div id="tab-playback" class="tab-content">
                     <div class="space-y-3">
                         <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm" data-i18n="autoplay">Autoplay</span><input type="checkbox" id="autoplay-toggle" class="h-5 w-5 accent-indigo-500"></div>
@@ -171,6 +180,7 @@
                     </div>
                 </div>
 
+                <!-- GENERAL TAB -->
                 <div id="tab-general" class="tab-content">
                     <div class="space-y-3">
                         <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm">Stealth Toggle (Hold '1')</span><input type="checkbox" id="stealth-1key-toggle" class="h-5 w-5 accent-indigo-500"></div>
@@ -224,6 +234,7 @@
         </div>
     </div>
 
+    <!-- HELP MODAL -->
     <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
             <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center"><h3 class="text-2xl font-bold">Manual 📘</h3><button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button></div>
@@ -275,6 +286,25 @@
                                 <li><strong>Stop Playback:</strong> Press 'Play' again while a sequence is running to stop it immediately.</li>
                             </ul>
                         </div>
+
+                        <!-- HAPTIC MORSE GUIDE -->
+                        <div class="p-3 bg-black bg-opacity-20 rounded border border-gray-700">
+                            <h5 class="font-bold text-sm text-white mb-1">Haptic Morse Guide 📳</h5>
+                            <p class="text-xs mb-2 opacity-80">Recognize numbers by feel during Blackout Mode.</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                                <div class="bg-black bg-opacity-40 p-1 rounded">1: •</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">2: • •</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">3: • • •</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">4: ▬ •</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">5: ▬ • •</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">6: ▬ • • •</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">7: ▬ ▬ •</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">8: ▬ ▬ • •</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">9: ▬ ▬ • • •</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">10: ▬ • (Dash Dot)</div>
+                            </div>
+                            <p class="text-[10px] mt-2 opacity-60">Key: • = Short Vibrate, ▬ = Long Vibrate</p>
+                        </div>
                     </div>
                 </div>
 
@@ -294,6 +324,7 @@
         </div>
     </div>
 
+    <!-- SHARE MODAL -->
     <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-80 flex flex-col justify-end z-[70] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="share-sheet p-6 text-center flex flex-col items-center border-t border-gray-700 shadow-2xl transform translate-y-full transition-transform duration-300">
             <div class="w-12 h-1 bg-gray-600 rounded-full mb-4"></div> <div class="bg-white p-2 rounded-lg mb-6 shadow-inner"><img src="qr.jpg" alt="QR Code" class="w-64 h-64 object-contain"></div>
@@ -307,6 +338,7 @@
         </div>
     </div>
 
+    <!-- FEEDBACK MODAL -->
     <div id="comment-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[120] transition-opacity duration-300 opacity-0 pointer-events-none hidden">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom">
              <h3 class="font-bold text-lg mb-4">Send Feedback 💬</h3>
@@ -317,8 +349,10 @@
         </div>
     </div>
 
+    <!-- MAIN APP CONTAINER -->
     <div id="app" class="max-w-7xl w-full mx-auto flex-grow pb-32"><main id="sequence-container" class="flex-grow mb-6 transition-all duration-300 pt-4 flex flex-col items-center justify-center"></main></div>
 
+    <!-- INPUT FOOTER -->
     <footer id="input-footer" class="fixed bottom-0 left-0 right-0 p-2 md:p-4 shadow-2xl z-40 safe-area-bottom transition-colors duration-200">
         <div id="pad-key9" class="max-w-md mx-auto">
             <div class="grid grid-cols-3 gap-3 mb-2"><button data-value="1" class="btn-input btn-pad-number">1</button><button data-value="2" class="btn-input btn-pad-number">2</button><button data-value="3" class="btn-input btn-pad-number">3</button><button data-value="4" class="btn-input btn-pad-number">4</button><button data-value="5" class="btn-input btn-pad-number">5</button><button data-value="6" class="btn-input btn-pad-number">6</button><button data-value="7" class="btn-input btn-pad-number">7</button><button data-value="8" class="btn-input btn-pad-number">8</button><button data-value="9" class="btn-input btn-pad-number">9</button></div>
@@ -348,3 +382,4 @@
     </script>
 </body>
 </html>
+

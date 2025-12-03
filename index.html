@@ -154,7 +154,31 @@
                         <div class="flex justify-between items-center p-3 rounded-lg settings-input border border-yellow-500 border-opacity-30"><div><span class="font-bold text-sm block">Haptic Morse</span></div><input type="checkbox" id="haptic-morse-toggle" class="h-5 w-5 accent-indigo-500"></div>
                         <div class="grid grid-cols-2 gap-3 mt-4"><div><label class="block text-xs font-bold mb-1 text-muted-custom">Speed</label><select id="playback-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="0.5">50%</option><option value="0.75">75%</option><option value="1.0">100%</option><option value="1.25">125%</option><option value="1.5">150%</option><option value="1.75">175%</option><option value="2.0">200%</option></select></div><div><label class="block text-xs font-bold mb-1 text-muted-custom">Delay</label><select id="delay-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="0">0s</option><option value="0.2">0.2s</option><option value="0.4">0.4s</option><option value="0.6">0.6s</option><option value="0.8">0.8s</option><option value="1.0">1.0s</option></select></div></div>
                         <div class="mt-2"><label class="block text-xs font-bold mb-1 text-muted-custom">Chunk Size</label><select id="chunk-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="2">2 items</option><option value="3">3 items</option><option value="4">4 items</option><option value="5">5 items</option></select></div>
-                        <div class="mt-6 pt-4 border-t border-custom"><h4 class="font-bold text-sm mb-3 text-primary-app">Voice Settings</h4><div class="flex justify-between items-center p-2 rounded settings-input mb-3"><label class="block text-xs font-bold mr-2">Voice</label><select id="voice-select" class="settings-input flex-grow p-1 rounded text-sm font-semibold shadow-sm max-w-[70%]"></select></div><div class="space-y-3"><div><label class="block text-xs font-bold mb-1">Pitch / Tone</label><input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div><div><label class="block text-xs font-bold mb-1">Speed</label><input type="range" id="voice-rate" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div><div><label class="block text-xs font-bold mb-1">Volume</label><input type="range" id="voice-volume" min="0" max="1" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div></div><button id="test-voice-btn" class="w-full py-2 bg-gray-700 text-white rounded font-bold text-xs mt-3">Test Voice 🔊</button></div>
+                        <div class="mt-6 pt-4 border-t border-custom">
+                            <h4 class="font-bold text-sm mb-3 text-primary-app">Voice Settings 🗣️</h4>
+                            <!-- Voice Preset Manager -->
+                            <div class="mb-4 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
+                                <label class="text-xs font-bold uppercase text-muted-custom mb-2 block">Voice Profile</label>
+                                <select id="voice-preset-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button id="voice-preset-add" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button>
+                                    <button id="voice-preset-save" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">SAVE 💾</button>
+                                    <button id="voice-preset-rename" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button>
+                                    <button id="voice-preset-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-3 p-2 bg-black bg-opacity-20 rounded-lg">
+                                <div>
+                                    <label class="block text-xs font-bold mb-1 text-muted-custom">System Voice Engine</label>
+                                    <select id="voice-engine-select" class="settings-input w-full p-1 rounded text-xs font-semibold shadow-sm"></select>
+                                </div>
+                                <div><label class="block text-xs font-bold mb-1">Pitch / Tone</label><input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
+                                <div><label class="block text-xs font-bold mb-1">Speed</label><input type="range" id="voice-rate" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
+                                <div><label class="block text-xs font-bold mb-1">Volume</label><input type="range" id="voice-volume" min="0" max="1" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
+                            </div>
+                            <button id="test-voice-btn" class="w-full py-2 bg-gray-700 text-white rounded font-bold text-xs mt-3">Test Voice 🔊</button>
+                        </div>
                     </div>
                 </div>
                 <div id="tab-general" class="tab-content">
@@ -210,7 +234,7 @@
         </div>
     </div>
 
-    <!-- Help Modal (Updated with Donate) -->
+    <!-- Help Modal (Updated with Generate Button) -->
     <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
             <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center"><h3 class="text-2xl font-bold">Manual 📘</h3><button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button></div>
@@ -251,9 +275,12 @@
                 <div id="tab-help-voice" class="tab-content">
                     <h4 class="font-bold text-lg text-primary-app mb-2">AI Assistant Prompt 🤖</h4>
                     <p class="mb-4 opacity-90 text-xs">Copy this prompt into your preferred AI Audio Assistant. It generates instructions based on your <strong>current</strong> settings.</p>
+                    <div class="flex justify-end space-x-2 mb-2">
+                        <button id="generate-prompt-btn" class="bg-green-600 hover:bg-green-500 text-white text-xs font-bold px-3 py-1 rounded shadow">🔄 Update</button>
+                        <button id="copy-prompt-btn" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded shadow">📋 Copy</button>
+                    </div>
                     <div class="relative">
                         <textarea id="prompt-display" class="w-full h-48 bg-gray-900 border border-gray-700 rounded-lg p-3 text-xs font-mono text-green-400 resize-none" readonly></textarea>
-                        <button id="copy-prompt-btn" class="absolute top-2 right-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded shadow">COPY</button>
                     </div>
                 </div>
             </div>

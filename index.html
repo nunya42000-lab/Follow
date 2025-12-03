@@ -30,7 +30,6 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4 mb-2"><button id="quick-open-help" class="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-bold transition" data-i18n="help_btn">Help 📚</button><button id="quick-open-settings" class="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-bold transition" data-i18n="settings_btn">Settings</button></div>
             </div>
-            <!-- The Big PLAY Button for Quick Start -->
             <div class="flex justify-between items-center pt-4 border-t border-custom mt-2"><label class="flex items-center text-sm text-muted-custom"><input type="checkbox" id="dont-show-welcome-toggle" class="mr-2 rounded"> <span data-i18n="dont_show">Don't show again</span></label><button id="close-game-setup-modal" class="px-8 py-3 text-white bg-primary-app hover:opacity-90 rounded-lg font-bold shadow-lg transition transform active:scale-95" data-i18n="play_btn">PLAY</button></div>
         </div>
     </div>
@@ -70,13 +69,70 @@
         </div>
     </div>
 
-    <!-- Settings Modal -->
+    <!-- Donate Modal -->
+    <div id="donate-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[140] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom flex flex-col text-center">
+            <h3 class="text-2xl font-bold mb-2">Buy me a Coffee? ☕</h3>
+            <p class="text-sm opacity-80 mb-6">If this app helps you win, consider sending a tip!</p>
+            
+            <div class="space-y-6">
+                <!-- Cash App -->
+                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                    <button id="btn-cashapp-main" class="w-full bg-[#00D632] hover:bg-[#00bf2c] text-white font-bold py-3 rounded-lg mb-3 shadow-lg flex items-center justify-center text-lg">
+                        <span class="mr-2">💸</span> Cash App: $jwo83
+                    </button>
+                    <div class="grid grid-cols-7 gap-1">
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="cash" data-amount="1">☕</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="cash" data-amount="2">🍦</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="cash" data-amount="3">🍺</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="cash" data-amount="5">🍔</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="cash" data-amount="10">🍕</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="cash" data-amount="20">🥩</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="cash" data-amount="50">🦞</button>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-[10px] text-gray-400 mt-1 font-bold">
+                        <span>$1</span><span>$2</span><span>$3</span><span>$5</span><span>$10</span><span>$20</span><span>$50</span>
+                    </div>
+                </div>
+
+                <!-- PayPal -->
+                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                    <button id="btn-paypal-main" class="w-full bg-[#0070BA] hover:bg-[#005ea6] text-white font-bold py-3 rounded-lg mb-3 shadow-lg flex items-center justify-center text-lg">
+                        <span class="mr-2">🅿️</span> PayPal: Oyster981
+                    </button>
+                    <div class="grid grid-cols-7 gap-1">
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="1">☕</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="2">🍦</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="3">🍺</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="5">🍔</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="10">🍕</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="20">🥩</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="50">🦞</button>
+                    </div>
+                </div>
+            </div>
+
+            <button id="close-donate-btn" class="mt-6 w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold">Close</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal (Rearranged Header) -->
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh] overflow-hidden border border-custom m-4">
             <div class="p-4 border-b border-custom flex justify-between items-center">
-                <select id="general-lang-select" class="bg-black bg-opacity-30 text-white text-xs rounded p-1 border border-gray-600 mr-2"><option value="en">🇺🇸</option><option value="es">🇲🇽</option></select>
-                <h3 class="text-xl font-bold flex-grow text-center">Settings</h3>
-                <div class="flex space-x-3"><button id="open-redeem-btn" class="text-2xl opacity-70 hover:opacity-100" title="ATM Cashout">🏧</button><button id="open-share-button" class="text-xl opacity-70 hover:opacity-100">📤</button><button id="open-comment-modal" class="text-xl opacity-70 hover:opacity-100">💬</button><button id="open-help-button" class="text-xl opacity-70 hover:opacity-100">❓</button></div>
+                <!-- Left Side: Title + Lang -->
+                <div class="flex items-center space-x-2">
+                    <h3 class="text-xl font-bold">Settings</h3>
+                    <select id="general-lang-select" class="bg-black bg-opacity-30 text-white text-xs rounded p-1 border border-gray-600"><option value="en">🇺🇸</option><option value="es">🇲🇽</option></select>
+                </div>
+                <!-- Right Side: Icons (Coffee First) -->
+                <div class="flex space-x-3 items-center">
+                    <button id="open-donate-btn" class="text-2xl hover:scale-110 transition-transform" title="Donate">☕</button>
+                    <button id="open-redeem-btn" class="text-2xl opacity-70 hover:opacity-100" title="ATM Cashout">🏧</button>
+                    <button id="open-share-button" class="text-xl opacity-70 hover:opacity-100" title="Share">📤</button>
+                    <button id="open-comment-modal" class="text-xl opacity-70 hover:opacity-100" title="Feedback">💬</button>
+                    <button id="open-help-button" class="text-xl opacity-70 hover:opacity-100" title="Help">❓</button>
+                </div>
             </div>
             <div class="flex border-b border-custom bg-black bg-opacity-20"><div class="tab-btn active" data-tab="mode">Game</div><div class="tab-btn" data-tab="playback">Playback</div><div class="tab-btn" data-tab="general">General</div></div>
             <div class="overflow-y-auto flex-grow p-5 space-y-4">
@@ -154,7 +210,7 @@
         </div>
     </div>
 
-    <!-- Help Modal (With New Voice Tab) -->
+    <!-- Help Modal (Updated with Donate) -->
     <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
             <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center"><h3 class="text-2xl font-bold">Manual 📘</h3><button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button></div>
@@ -167,43 +223,34 @@
             <div class="p-6 overflow-y-auto leading-relaxed space-y-6 text-sm flex-grow">
                 <div id="tab-help-basics" class="tab-content active">
                     <h4 class="font-bold text-lg text-primary-app mb-2">The Goal 🎯</h4>
-                    <p class="mb-4 opacity-90">This is a sandbox tool designed to help you beat the "Follow" memory portion of skill-based machines. These machines often have a "Safe" mode where you can win back your bet amount by repeating a sequence correctly.</p>
-                    <p class="mb-2 opacity-90"><strong>Strategy:</strong></p>
-                    <ul class="space-y-2 opacity-80 list-disc list-inside"><li>Use this app to perfectly track the sequence the machine displays.</li><li>This guarantees you pass the "skill check" to get your money back.</li><li>This allows you to spin/bet repeatedly for "free" until you hit a high-value bonus.</li></ul>
-                    <p class="mt-4 opacity-90"><strong>ATM Icon (🏧):</strong> Opens the Redeem barcode. Use this to cash out your ticket without showing ID if your local machine supports it.</p>
+                    <p class="mb-4 opacity-90">This is a sandbox tool designed to help you beat the "Follow" memory portion of skill-based machines.</p>
+                    <p class="mt-4 opacity-90"><strong>Support the Dev ☕:</strong> If this app helps you win, click the coffee icon in settings to send a tip via Cash App or PayPal!</p>
+                    <p class="mt-2 opacity-90"><strong>ATM Icon (🏧):</strong> Opens the Redeem barcode.</p>
                 </div>
                 <div id="tab-help-practice" class="tab-content">
                     <h4 class="font-bold text-lg text-primary-app mb-2">Detailed Settings ⚙️</h4>
                     <div class="space-y-3">
-                        <p><strong>Profile:</strong> Select a preset or create a new one. <br><em>Note: Changing settings (like Speed) only affects the current session. Click <strong>SAVE</strong> to update the profile.</em></p>
+                        <p><strong>Profile:</strong> Select a preset or create a new one. <br><em>Note: Switching profiles only changes Game settings (Mode, Inputs), not your Theme or Audio settings.</em></p>
                         <p><strong>Practice Mode:</strong> Mimics your current Game settings (Input/Mode) to let you train your memory without a machine.</p>
                         <p><strong>Input:</strong> Choose 9-Key, 12-Key, or Piano to match the physical buttons on your machine.</p>
-                        <p><strong>Mode (Simon Says):</strong> For machines where the pattern repeats and adds one new number each time (e.g., 1 -> 1,2 -> 1,2,3).</p>
+                        <p><strong>Mode (Simon Says):</strong> For machines where the pattern repeats and adds one new number each time.</p>
                         <p><strong>Mode (Unique):</strong> For machines that generate a completely new random sequence every round.</p>
-                        <p><strong>Machines:</strong> Tracks multiple machines simultaneously if you are playing more than one.</p>
-                        <p><strong>Length:</strong> Sets the target sequence length (e.g., 20) before the round is considered "won".</p>
+                        <p><strong>Machines:</strong> Tracks multiple machines simultaneously.</p>
                         <p><strong>Auto-Advance:</strong> (Unique Mode Only) Automatically clears the screen and moves to the next round after playback.</p>
-                        <p><strong>Autoplay:</strong> Automatically plays back the sequence on your screen when you input a new number.</p>
-                        <p><strong>Audio Speech:</strong> Reads the numbers out loud (use with headphones).</p>
-                        <p><strong>Haptic Morse:</strong> Vibrates the number value (e.g., 3 short pulses for '3') for silent reading.</p>
-                        <p><strong>Speed:</strong> Controls how fast the app plays back the sequence.</p>
-                        <p><strong>Delay:</strong> Adds a pause between the machine's sequence and your playback.</p>
-                        <p><strong>Chunk Size:</strong> (Simon Mode) Groups numbers (e.g., 3 at a time) to make memorization easier.</p>
                         <p><strong>Speed Delete:</strong> Hold 'Backspace' to rapidly clear the whole sequence.</p>
-                        <p><strong>Stealth Toggle (Hold 1):</strong> When enabled, holding '1' for 1s toggles the visibility of control buttons. <br><strong>When Hidden:</strong> Hold '7' to Play, Hold '8' to Backspace, Hold '9' to Speed Delete.</p>
                     </div>
                 </div>
                 <div id="tab-help-features" class="tab-content">
                     <h4 class="font-bold text-lg text-primary-app mb-2">Stealth & Sensors 🥷</h4>
                     <ul class="space-y-4 opacity-80">
-                        <li><strong>Blackout Mode:</strong> Shake your phone firmly to turn the screen completely black. It looks like the phone is off, but touches still register. Shake again to wake it. Great for playing without drawing attention.</li>
-                        <li><strong>Haptics:</strong> Turn on Haptics and Haptic Morse in settings. Keep the phone in your pocket and "feel" the sequence instead of looking at it.</li>
-                        <li><strong>Sensor Calibration:</strong> Use the "Calibrate" button in settings. Adjust the sliders so the bar only moves when the machine makes a specific beep or flash. This filters out background casino noise.</li>
+                        <li><strong>Blackout Mode:</strong> Shake your phone firmly to turn the screen completely black. Shake again to wake it.</li>
+                        <li><strong>Haptics:</strong> Turn on Haptics and Haptic Morse in settings. Keep the phone in your pocket and "feel" the sequence.</li>
+                        <li><strong>Sensor Calibration:</strong> Use the "Calibrate" button in settings to filter out casino noise.</li>
                     </ul>
                 </div>
                 <div id="tab-help-voice" class="tab-content">
                     <h4 class="font-bold text-lg text-primary-app mb-2">AI Assistant Prompt 🤖</h4>
-                    <p class="mb-4 opacity-90 text-xs">Copy this prompt and paste it into your preferred AI Audio Assistant. It generates instructions based on your <strong>current</strong> settings so the AI knows exactly how to help you win.</p>
+                    <p class="mb-4 opacity-90 text-xs">Copy this prompt into your preferred AI Audio Assistant. It generates instructions based on your <strong>current</strong> settings.</p>
                     <div class="relative">
                         <textarea id="prompt-display" class="w-full h-48 bg-gray-900 border border-gray-700 rounded-lg p-3 text-xs font-mono text-green-400 resize-none" readonly></textarea>
                         <button id="copy-prompt-btn" class="absolute top-2 right-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded shadow">COPY</button>
@@ -214,12 +261,17 @@
         </div>
     </div>
 
-    <!-- Share Modal -->
+    <!-- Share Modal (Updated) -->
     <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-80 flex flex-col justify-end z-[70] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="share-sheet p-6 text-center flex flex-col items-center border-t border-gray-700 shadow-2xl transform translate-y-full transition-transform duration-300">
             <div class="w-12 h-1 bg-gray-600 rounded-full mb-4"></div> <div class="bg-white p-2 rounded-lg mb-6 shadow-inner"><img src="qr.jpg" alt="QR Code" class="w-64 h-64 object-contain"></div>
             <div class="flex items-center w-full mb-6"><div class="share-app-icon mr-4">🌎</div><div class="text-left flex-grow"><h3 class="text-lg font-bold">Follow Me</h3><p class="text-xs opacity-70 text-truncate w-48">https://nunya42000-lab.github.io/Follow/</p></div><button id="copy-link-button" class="p-2 bg-gray-700 rounded hover:bg-gray-600 text-white">📋</button></div>
-            <div class="grid grid-cols-4 gap-4 w-full"><button id="native-share-button" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-xl">📤</div><span class="text-xs">Share</span></button><button class="flex flex-col items-center gap-1 opacity-50 cursor-not-allowed"><div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-xl">💬</div><span class="text-xs">Chat</span></button><button class="flex flex-col items-center gap-1 opacity-50 cursor-not-allowed"><div class="w-12 h-12 bg-yellow-600 rounded-full flex items-center justify-center text-xl">📧</div><span class="text-xs">Email</span></button><button id="close-share" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl">✕</div><span class="text-xs">Close</span></button></div>
+            <div class="grid grid-cols-4 gap-4 w-full">
+                <button id="native-share-button" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-xl">📤</div><span class="text-xs">Share</span></button>
+                <button id="chat-share-button" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-xl">💬</div><span class="text-xs">Chat</span></button>
+                <button id="email-share-button" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-yellow-600 rounded-full flex items-center justify-center text-xl">📧</div><span class="text-xs">Email</span></button>
+                <button id="close-share" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl">✕</div><span class="text-xs">Close</span></button>
+            </div>
         </div>
     </div>
 
@@ -236,21 +288,15 @@
 
     <div id="app" class="max-w-7xl w-full mx-auto flex-grow pb-32"><main id="sequence-container" class="flex-grow mb-6 transition-all duration-300 pt-4 flex flex-col items-center justify-center"></main></div>
 
-    <!-- Footers with Keypads -->
     <footer id="input-footer" class="fixed bottom-0 left-0 right-0 p-2 md:p-4 shadow-2xl z-40 safe-area-bottom transition-colors duration-200">
-        <!-- 9 Key Pad -->
         <div id="pad-key9" class="max-w-md mx-auto">
             <div class="grid grid-cols-3 gap-3 mb-2"><button data-value="1" class="btn-input btn-pad-number">1</button><button data-value="2" class="btn-input btn-pad-number">2</button><button data-value="3" class="btn-input btn-pad-number">3</button><button data-value="4" class="btn-input btn-pad-number">4</button><button data-value="5" class="btn-input btn-pad-number">5</button><button data-value="6" class="btn-input btn-pad-number">6</button><button data-value="7" class="btn-input btn-pad-number">7</button><button data-value="8" class="btn-input btn-pad-number">8</button><button data-value="9" class="btn-input btn-pad-number">9</button></div>
             <div class="grid grid-cols-6 gap-2 control-row"><button data-action="reset-unique-rounds" class="reset-button btn-input btn-control !bg-red-600 text-sm font-bold" style="display:none">RESET</button><button data-action="play-demo" class="btn-input btn-control !bg-primary-app col-span-2 text-white">▶</button><button id="mic-master-btn" class="btn-input btn-control auto-input-btn hidden">🎤</button><button id="camera-master-btn" class="btn-input btn-control auto-input-btn hidden">📷</button><button data-action="backspace" class="btn-input btn-control">←</button><button data-action="open-settings" class="btn-input btn-control !bg-primary-app text-white">⚙️</button></div>
         </div>
-
-        <!-- 12 Key Pad -->
         <div id="pad-key12" class="max-w-lg mx-auto" style="display: none;">
             <div class="grid grid-cols-4 gap-3 mb-2"><button data-value="1" class="btn-input btn-pad-number">1</button><button data-value="2" class="btn-input btn-pad-number">2</button><button data-value="3" class="btn-input btn-pad-number">3</button><button data-value="4" class="btn-input btn-pad-number">4</button><button data-value="5" class="btn-input btn-pad-number">5</button><button data-value="6" class="btn-input btn-pad-number">6</button><button data-value="7" class="btn-input btn-pad-number">7</button><button data-value="8" class="btn-input btn-pad-number">8</button><button data-value="9" class="btn-input btn-pad-number">9</button><button data-value="10" class="btn-input btn-pad-number">10</button><button data-value="11" class="btn-input btn-pad-number">11</button><button data-value="12" class="btn-input btn-pad-number">12</button></div>
             <div class="grid grid-cols-6 gap-2 control-row"><button data-action="reset-unique-rounds" class="reset-button btn-input btn-control !bg-red-600 text-sm font-bold" style="display:none">RESET</button><button data-action="play-demo" class="btn-input btn-control !bg-primary-app col-span-2 text-white">▶</button><button id="mic-master-btn" class="btn-input btn-control auto-input-btn hidden">🎤</button><button id="camera-master-btn" class="btn-input btn-control auto-input-btn hidden">📷</button><button data-action="backspace" class="btn-input btn-control">←</button><button data-action="open-settings" class="btn-input btn-control !bg-primary-app text-white">⚙️</button></div>
         </div>
-
-        <!-- Piano Pad -->
         <div id="pad-piano" class="max-w-2xl mx-auto pt-0 pb-1" style="display:none;">
             <div id="piano-keys" class="relative h-40 w-full mb-2 border border-custom">
                 <div class="flex h-full w-full"><div class="key-container"><button data-value="C" class="piano-key-white btn-input">C</button></div><div class="key-container"><button data-value="D" class="piano-key-white btn-input">D</button></div><div class="key-container"><button data-value="E" class="piano-key-white btn-input">E</button></div><div class="key-container"><button data-value="F" class="piano-key-white btn-input">F</button></div><div class="key-container"><button data-value="G" class="piano-key-white btn-input">G</button></div><div class="key-container"><button data-value="A" class="piano-key-white btn-input">A</button></div><div class="key-container"><button data-value="B" class="piano-key-white btn-input">B</button></div></div>
@@ -263,3 +309,5 @@
     <script type="module" src="app.js"></script>
 </body>
 </html>
+
+

@@ -9,13 +9,13 @@ const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", auth
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- CONFIG: Speed Delete Interval lowered to 30ms for faster deletion ---
-const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 300, SPEED_DELETE_INTERVAL: 30, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v40', STORAGE_KEY_STATE: 'followMeAppState_v40', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } };
+// --- CONFIG: Speed Delete Interval lowered to 20ms for much faster deletion ---
+const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 250, SPEED_DELETE_INTERVAL: 20, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v40', STORAGE_KEY_STATE: 'followMeAppState_v40', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } };
 
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 200 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
 
-// --- DEFAULTS: Haptics and Speed Delete set to true ---
+// --- DEFAULTS: Haptics and Speed Delete explicitly set to true ---
 const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null };
 
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
@@ -39,9 +39,12 @@ function loadState() {
         const st = localStorage.getItem(CONFIG.STORAGE_KEY_STATE); 
         if(s) { 
             const loaded = JSON.parse(s); 
-            // Merge loaded settings with defaults to ensure new defaults (like haptics=true) are respected if key is missing, 
-            // but preserve user preference if key exists.
             appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } }; 
+            
+            // Fix: Ensure defaults are respected if keys are missing in loaded data
+            if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
+            if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
+
             if(!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS)); 
             
             if(appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';

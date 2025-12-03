@@ -55,28 +55,31 @@ export class SettingsManager{
         this.tempTheme=null;this.initListeners();this.populateConfigDropdown();this.populateThemeDropdown();this.buildColorGrid();this.populateVoicePresetDropdown();
     }
     
-    // Inject HTML for new toggle so user doesn't have to edit index.html
+    // UPDATED: Safe injection that finds the correct parent container
     injectLongPressToggle() {
-        const generalTab = document.getElementById('tab-general');
-        if(!generalTab || document.getElementById('long-press-autoplay-toggle')) return;
+        if(document.getElementById('long-press-autoplay-toggle')) return;
         
         const div = document.createElement('div');
-        div.className = "flex justify-between items-center p-3 rounded-lg settings-input mt-3";
+        div.className = "flex justify-between items-center p-3 rounded-lg settings-input"; 
         div.innerHTML = `<span class="font-bold text-sm">Long Press 'Play' Toggle</span><input type="checkbox" id="long-press-autoplay-toggle" class="h-5 w-5 accent-indigo-500">`;
         
-        // Insert before the last item (reset/exit row is outside tab, but let's put it before Blackout)
-        const blackoutDiv = document.getElementById('blackout-toggle')?.parentElement?.parentElement; // wrapper div
-        if(blackoutDiv) {
-             // General tab has direct children as setting rows
-             // Finding a good spot: after Speed Delete
-             const speedDeleteRow = document.getElementById('speed-delete-toggle')?.parentElement;
-             if(speedDeleteRow && speedDeleteRow.nextSibling) {
-                 generalTab.insertBefore(div, speedDeleteRow.nextSibling);
-             } else {
-                 generalTab.appendChild(div);
-             }
+        // Find reference point: Speed Delete toggle row
+        const speedDeleteInput = document.getElementById('speed-delete-toggle');
+        
+        if (speedDeleteInput && speedDeleteInput.parentElement) {
+            const row = speedDeleteInput.parentElement;
+            const container = row.parentElement; // This is likely the space-y-3 div
+            if (container) {
+                container.insertBefore(div, row.nextSibling);
+            }
         } else {
-            generalTab.appendChild(div);
+            // Fallback: just append to general tab content if specific row not found
+            const generalTab = document.getElementById('tab-general');
+            if(generalTab) {
+                 const inner = generalTab.querySelector('.space-y-3');
+                 if(inner) inner.appendChild(div);
+                 else generalTab.appendChild(div);
+            }
         }
     }
 

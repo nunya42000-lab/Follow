@@ -247,8 +247,15 @@ function addValue(value) {
     if(state.sequences[targetIndex] && state.sequences[targetIndex].length >= limit) {
         // Fix for "Freeze": Feedback if the user tries to input when full
         if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
-            showToast("Round Full - Reset? 🛑");
-            vibrate();
+            // FIX: If Autoplay is enabled and the sequence is full, trigger playback instead of just blocking input.
+            if (appSettings.isAutoplayEnabled && !isDemoPlaying) {
+                disableInput(true);
+                showToast("Round Full - Playing... ▶");
+                setTimeout(playDemo, 50); // Start playback with minimal delay
+            } else {
+                showToast("Round Full - Reset? 🛑");
+                vibrate();
+            }
         }
         return;
     }

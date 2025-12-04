@@ -1,11 +1,11 @@
 // app.js
-import { initializeApp } from \"https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js\";
-import { getFirestore } from \"https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js\";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { SensorEngine } from './sensors.js';
 import { SettingsManager, PREMADE_THEMES, PREMADE_VOICE_PRESETS } from './settings.js';
 import { initComments } from './comments.js';
 
-const firebaseConfig = { apiKey: \"AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4\", authDomain: \"follow-me-app-de3e9.firebaseapp.com\", projectId: \"follow-me-app-de3e9\", storageBucket: \"follow-me-app-de3e9.firebasestorage.app\", messagingSenderId: \"957006680126\", appId: \"1:957006680126:web:6d679717d9277fd9ae816f\" };
+const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -13,13 +13,13 @@ const db = getFirestore(app);
 const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 250, SPEED_DELETE_INTERVAL: 20, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v46', STORAGE_KEY_STATE: 'followMeAppState_v46', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } };
 
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
-const PREMADE_PROFILES = { 'profile_1': { name: \"Follow Me\", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: \"2 Machines\", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 400 }, theme: 'default' }, 'profile_3': { name: \"Bananas\", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: \"Piano\", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: \"15 Rounds\", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
+const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 400 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
 
 const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en' };
 
 const DICTIONARY = {
-    'en': { correct: \"Correct\", wrong: \"Wrong\", stealth: \"Stealth Active\", reset: \"Reset to Round 1\", stop: \"Playback Stopped 🛑\" },
-    'es': { correct: \"Correcto\", wrong: \"Incorrecto\", stealth: \"Modo Sigilo\", reset: \"Reiniciar Ronda 1\", stop: \"Detenido 🛑\" }
+    'en': { correct: "Correct", wrong: "Wrong", stealth: "Stealth Active", reset: "Reset to Round 1", stop: "Playback Stopped 🛑" },
+    'es': { correct: "Correcto", wrong: "Incorrecto", stealth: "Modo Sigilo", reset: "Reiniciar Ronda 1", stop: "Detenido 🛑" }
 };
 
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
@@ -68,7 +68,7 @@ function loadState() {
         appState['current_session'].currentRound = parseInt(appState['current_session'].currentRound) || 1;
         
     } catch(e) { 
-        console.error(\"Load failed\", e); 
+        console.error("Load failed", e); 
         appSettings = JSON.parse(JSON.stringify(DEFAULT_APP)); 
         saveState(); 
     } 
@@ -115,9 +115,9 @@ function speak(text) {
     const dict = DICTIONARY[lang] || DICTIONARY['en'];
     let msg = text;
     
-    if(text === \"Correct\") msg = dict.correct;
-    if(text === \"Wrong\") msg = dict.wrong;
-    if(text === \"Stealth Active\") msg = dict.stealth;
+    if(text === "Correct") msg = dict.correct;
+    if(text === "Wrong") msg = dict.wrong;
+    if(text === "Stealth Active") msg = dict.stealth;
 
     const u = new SpeechSynthesisUtterance(msg); 
     if(lang === 'es') u.lang = 'es-MX';
@@ -141,9 +141,9 @@ function speak(text) {
 function showToast(msg) { 
     const lang = appSettings.generalLanguage || 'en';
     const dict = DICTIONARY[lang] || DICTIONARY['en'];
-    if(msg === \"Reset to Round 1\") msg = dict.reset;
-    if(msg === \"Playback Stopped 🛑\") msg = dict.stop;
-    if(msg === \"Stealth Active\") msg = dict.stealth;
+    if(msg === "Reset to Round 1") msg = dict.reset;
+    if(msg === "Playback Stopped 🛑") msg = dict.stop;
+    if(msg === "Stealth Active") msg = dict.stealth;
 
     const t = document.getElementById('toast-notification'); 
     const m = document.getElementById('toast-message'); 
@@ -153,7 +153,7 @@ function showToast(msg) {
     setTimeout(() => t.classList.add('opacity-0', '-translate-y-10'), 2000); 
 }
 
-function applyTheme(themeKey) { const body = document.body; body.className = body.className.replace(/theme-\\w+/g, ''); let t = appSettings.customThemes[themeKey]; if (!t && PREMADE_THEMES[themeKey]) t = PREMADE_THEMES[themeKey]; if (!t) t = PREMADE_THEMES['default']; body.style.setProperty('--primary', t.bubble); body.style.setProperty('--bg-main', t.bgMain); body.style.setProperty('--bg-modal', t.bgCard); body.style.setProperty('--card-bg', t.bgCard); body.style.setProperty('--seq-bubble', t.bubble); body.style.setProperty('--btn-bg', t.btn); body.style.setProperty('--bg-input', t.bgMain); body.style.setProperty('--text-main', t.text); const isDark = parseInt(t.bgCard.replace('#',''), 16) < 0xffffff / 2; body.style.setProperty('--border', isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'); }
+function applyTheme(themeKey) { const body = document.body; body.className = body.className.replace(/theme-\w+/g, ''); let t = appSettings.customThemes[themeKey]; if (!t && PREMADE_THEMES[themeKey]) t = PREMADE_THEMES[themeKey]; if (!t) t = PREMADE_THEMES['default']; body.style.setProperty('--primary', t.bubble); body.style.setProperty('--bg-main', t.bgMain); body.style.setProperty('--bg-modal', t.bgCard); body.style.setProperty('--card-bg', t.bgCard); body.style.setProperty('--seq-bubble', t.bubble); body.style.setProperty('--btn-bg', t.btn); body.style.setProperty('--bg-input', t.bgMain); body.style.setProperty('--text-main', t.text); const isDark = parseInt(t.bgCard.replace('#',''), 16) < 0xffffff / 2; body.style.setProperty('--border', isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'); }
 function updateAllChrome() { applyTheme(appSettings.activeTheme); document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`; renderUI(); }
 
 function startPracticeRound() {
@@ -228,12 +228,12 @@ function addValue(value) {
         if(value == practiceSequence[practiceInputIndex]) { 
             practiceInputIndex++; 
             if(practiceInputIndex >= practiceSequence.length) { 
-                speak(\"Correct\"); 
+                speak("Correct"); 
                 state.currentRound++; 
                 setTimeout(startPracticeRound, 1500); 
             } 
         } else { 
-            speak(\"Wrong\"); 
+            speak("Wrong"); 
             navigator.vibrate(500); 
             setTimeout(() => playPracticeSequence(), 1500); 
         } 
@@ -256,7 +256,7 @@ function addValue(value) {
     
     if(state.sequences[targetIndex] && state.sequences[targetIndex].length >= limit) {
         if (isUnique && appSettings.isUniqueRoundsAutoClearEnabled) {
-            showToast(\"Round Full - Reset? 🛑\");
+            showToast("Round Full - Reset? 🛑");
             vibrate();
         }
         return;
@@ -316,7 +316,7 @@ function resetRounds() {
     disableInput(false); 
     renderUI(); 
     saveState(); 
-    showToast(\"Reset to Round 1\"); 
+    showToast("Reset to Round 1"); 
 }
 
 function disableInput(disabled) { const pad = document.getElementById(`pad-${getProfileSettings().currentInput}`); if(pad) pad.querySelectorAll('button').forEach(b => b.disabled = disabled); }
@@ -342,7 +342,7 @@ function playDemo() {
             btn.disabled = false;
         });
         
-        showToast(\"Playback Stopped 🛑\");
+        showToast("Playback Stopped 🛑");
         return;
     }
 
@@ -429,7 +429,7 @@ function playDemo() {
             timers.playback = setTimeout(next, nextDelay); 
 
         } catch (err) {
-            console.error(\"Playback error\", err);
+            console.error("Playback error", err);
             disableInput(false);
             isDemoPlaying = false;
             if(demoBtn) demoBtn.innerHTML = '▶';
@@ -465,8 +465,8 @@ function renderUI() {
     if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
         const roundNum = parseInt(state.currentRound) || 1;
         const header = document.createElement('h2');
-        header.className = \"text-xl font-bold text-center w-full mb-4 opacity-80\";
-        header.style.color = \"var(--text-main)\";
+        header.className = "text-xl font-bold text-center w-full mb-4 opacity-80";
+        header.style.color = "var(--text-main)";
         header.innerHTML = `Unique Mode: <span class=\"text-primary-app\">Round ${roundNum}</span>`;
         container.appendChild(header);
     }
@@ -475,10 +475,10 @@ function renderUI() {
     container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
     
     activeSeqs.forEach((seq) => { 
-        const card = document.createElement('div'); card.className = \"p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)]\"; 
+        const card = document.createElement('div'); card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)]"; 
         const numGrid = document.createElement('div'); 
-        if (settings.machineCount > 1) { numGrid.className = \"grid grid-cols-4 gap-2 justify-items-center\"; } else { numGrid.className = \"flex flex-wrap gap-2 justify-center\"; }
-        (seq || []).forEach(num => { const span = document.createElement('span'); span.className = \"number-box rounded-lg shadow-sm flex items-center justify-center font-bold\"; const scale = appSettings.uiScaleMultiplier || 1.0; span.style.width = (40 * scale) + 'px'; span.style.height = (40 * scale) + 'px'; span.style.fontSize = (1.2 * scale) + 'rem'; span.textContent = num; numGrid.appendChild(span); }); 
+        if (settings.machineCount > 1) { numGrid.className = "grid grid-cols-4 gap-2 justify-items-center"; } else { numGrid.className = "flex flex-wrap gap-2 justify-center"; }
+        (seq || []).forEach(num => { const span = document.createElement('span'); span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold"; const scale = appSettings.uiScaleMultiplier || 1.0; span.style.width = (40 * scale) + 'px'; span.style.height = (40 * scale) + 'px'; span.style.fontSize = (1.2 * scale) + 'rem'; span.textContent = num; numGrid.appendChild(span); }); 
         card.appendChild(numGrid); container.appendChild(card); 
     });
     
@@ -494,7 +494,7 @@ function toggleBlackout() {
     const layer = document.getElementById('blackout-layer');
 
     if(blackoutState.isActive) { 
-        if(appSettings.isAudioEnabled) speak(\"Stealth Active\"); 
+        if(appSettings.isAudioEnabled) speak("Stealth Active"); 
         
         // --- GESTURE TOGGLE CHECK ---
         if (appSettings.isBlackoutGesturesEnabled) {
@@ -691,7 +691,7 @@ window.onload = function() {
             onUpdate: (type) => { 
                 if(type === 'mode_switch') {
                     appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
-                    showToast(\"Game Mode Reset 🔄\");
+                    showToast("Game Mode Reset 🔄");
                 }
                 
                 if(appSettings.isPracticeModeEnabled) {
@@ -718,7 +718,7 @@ window.onload = function() {
             onProfileSave: () => { 
                 appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings)); 
                 saveState(); 
-                showToast(\"Profile Settings Saved 💾\"); 
+                showToast("Profile Settings Saved 💾"); 
             }
         }, modules.sensor);
         updateAllChrome(); 
@@ -800,7 +800,7 @@ window.onload = function() {
              };
         });
 
-        document.querySelectorAll('button[data-action=\"reset-unique-rounds\"]').forEach(b => b.addEventListener('click', () => { if(confirm(\"Reset to Round 1?\")) resetRounds(); }));
+        document.querySelectorAll('button[data-action=\"reset-unique-rounds\"]').forEach(b => b.addEventListener('click', () => { if(confirm("Reset to Round 1?")) resetRounds(); }));
         document.querySelectorAll('button[data-action=\"backspace\"]').forEach(b => { 
             b.addEventListener('click', handleBackspace); 
             const startDelete = (e) => { 
@@ -827,5 +827,5 @@ window.onload = function() {
         });
 
         if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
-    } catch (error) { console.error(\"CRITICAL ERROR:\", error); alert(\"App crashed: \" + error.message); }
+    } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }
 };

@@ -5,7 +5,7 @@ import { SensorEngine } from './sensors.js';
 import { SettingsManager, PREMADE_THEMES, PREMADE_VOICE_PRESETS } from './settings.js';
 import { initComments } from './comments.js';
 
-const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sRraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
+const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -34,6 +34,11 @@ let isDemoPlaying = false;
 let practiceSequence = [];
 let practiceInputIndex = 0;
 let ignoreNextClick = false;
+
+// --- NEW STATE FOR AUTOPLAY FIX ---
+let pendingInput = null;
+let pendingInputTargetIndex = 0;
+// -----------------------------------
 
 const getProfileSettings = () => appSettings.runtimeSettings;
 const getState = () => appState['current_session'] || (appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 });
@@ -246,10 +251,27 @@ function addValue(value) {
     const roundNum = parseInt(state.currentRound) || 1;
     const limit = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? roundNum : settings.sequenceLength;
     
+    // Check for "Unique Rounds" completion BEFORE adding the value
+    if(appSettings.isAutoplayEnabled && settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && !isDemoPlaying) {
+        if (!state.sequences[targetIndex]) state.sequences[targetIndex] = [];
+        // Check if adding this value would complete the round
+        if(state.sequences[targetIndex].length == roundNum - 1) { 
+            
+            // --- NEW AUTOPLAY FIX: Store value, trigger playback immediately ---
+            pendingInput = value;
+            pendingInputTargetIndex = targetIndex;
+            disableInput(true);
+            showToast("Round Full - Playing... ▶");
+            playDemo(); 
+            return; // EXIT before adding the value
+            // ------------------------------------------------------------------
+        }
+    }
+    
+    // Check if the sequence is full (for Simon mode or Unique Rounds where Autoplay is OFF/already full)
     if(state.sequences[targetIndex] && state.sequences[targetIndex].length >= limit) {
-        // Fix for "Freeze": Feedback if the user tries to input when full
         if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
-            // FIX: If Autoplay is enabled and the sequence is full, trigger playback instead of just blocking input.
+            // FIX: If Autoplay is enabled and the sequence is full, trigger playback instead of just blocking input. (If pendingInput logic somehow failed)
             if (appSettings.isAutoplayEnabled && !isDemoPlaying) {
                 disableInput(true); // Explicitly ensure input is disabled
                 showToast("Round Full - Playing... ▶");
@@ -273,18 +295,8 @@ function addValue(value) {
         if (settings.currentMode === CONFIG.MODES.SIMON) { 
             const justFilled = (state.nextSequenceIndex - 1) % settings.machineCount; 
             if(justFilled === settings.machineCount - 1) setTimeout(playDemo, 250); 
-        } else { 
-            // FINAL ATTEMPT FIX: Re-introduce a small delay (50ms) on success path 
-            // to ensure the input event is fully processed before playback begins. (As suggested by user)
-            if(state.sequences[0].length == roundNum) { 
-                disableInput(true); 
-                showToast("Round Full - Playing... ▶");
-                
-                setTimeout(playDemo, 50); 
-                
-                return; 
-            } 
-        }
+        } 
+        // Unique Rounds Autoplay logic is now handled by the 'pendingInput' check above.
     }
 }
 
@@ -328,6 +340,10 @@ function playDemo() {
     
     if(isDemoPlaying) {
         isDemoPlaying = false;
+        // Also clear any pending input if playback is cancelled
+        pendingInput = null;
+        pendingInputTargetIndex = 0;
+        
         if(timers.playback) clearTimeout(timers.playback);
         disableInput(false);
         if(demoBtn) { 
@@ -346,6 +362,19 @@ function playDemo() {
     }
 
     if(demoBtn && demoBtn.disabled && !isDemoPlaying) return; 
+
+    // --- NEW AUTOPLAY FIX: Finalize Sequence for Unique Rounds if input was pending ---
+    if(pendingInput !== null && settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
+        if(!state.sequences[pendingInputTargetIndex]) state.sequences[pendingInputTargetIndex] = [];
+        state.sequences[pendingInputTargetIndex].push(pendingInput); 
+        state.nextSequenceIndex++; 
+        // Clear flags and save the state BEFORE starting playback
+        pendingInput = null;
+        pendingInputTargetIndex = 0;
+        saveState();
+        renderUI(); // Render the final value before playback
+    }
+    // --------------------------------------------------------------------------------
 
     let playlist = [];
     if(settings.currentMode === CONFIG.MODES.SIMON) { 

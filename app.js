@@ -274,13 +274,13 @@ function addValue(value) {
             const justFilled = (state.nextSequenceIndex - 1) % settings.machineCount; 
             if(justFilled === settings.machineCount - 1) setTimeout(playDemo, 250); 
         } else { 
-            // CRITICAL FIX: Immediately call playDemo on successful unique round completion
+            // FINAL ATTEMPT FIX: Re-introduce a small delay (50ms) on success path 
+            // to ensure the input event is fully processed before playback begins. (As suggested by user)
             if(state.sequences[0].length == roundNum) { 
                 disableInput(true); 
                 showToast("Round Full - Playing... ▶");
                 
-                // CRITICAL FIX: Call playDemo() immediately to eliminate race condition.
-                playDemo(); 
+                setTimeout(playDemo, 50); 
                 
                 return; 
             } 

@@ -251,7 +251,7 @@ function addValue(value) {
         if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
             // FIX: If Autoplay is enabled and the sequence is full, trigger playback instead of just blocking input.
             if (appSettings.isAutoplayEnabled && !isDemoPlaying) {
-                disableInput(true);
+                disableInput(true); // Explicitly ensure input is disabled
                 showToast("Round Full - Playing... ▶");
                 setTimeout(playDemo, 50); // Start playback with minimal delay
             } else {
@@ -274,10 +274,15 @@ function addValue(value) {
             const justFilled = (state.nextSequenceIndex - 1) % settings.machineCount; 
             if(justFilled === settings.machineCount - 1) setTimeout(playDemo, 250); 
         } else { 
+            // CRITICAL FIX: Immediately call playDemo on successful unique round completion
             if(state.sequences[0].length == roundNum) { 
                 disableInput(true); 
-                showToast("Round Full - Playing... ▶"); // New toast for success path
-                setTimeout(playDemo, 50); // Reduced delay for success path
+                showToast("Round Full - Playing... ▶");
+                
+                // CRITICAL FIX: Call playDemo() immediately to eliminate race condition.
+                playDemo(); 
+                
+                return; 
             } 
         }
     }

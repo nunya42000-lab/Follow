@@ -5,7 +5,7 @@ import { SensorEngine } from './sensors.js';
 import { SettingsManager, PREMADE_THEMES, PREMADE_VOICE_PRESETS } from './settings.js';
 import { initComments } from './comments.js';
 
-const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
+const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sRraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -15,7 +15,7 @@ const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 2
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 400 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
 
-const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en' };
+const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en' };
 
 const DICTIONARY = {
     'en': { correct: "Correct", wrong: "Wrong", stealth: "Stealth Active", reset: "Reset to Round 1", stop: "Playback Stopped 🛑" },
@@ -50,6 +50,8 @@ function loadState() {
             if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
             if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
             if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
+            if (typeof appSettings.isBlackoutFeatureEnabled === 'undefined') appSettings.isBlackoutFeatureEnabled = false;
+            if (typeof appSettings.isBlackoutGesturesEnabled === 'undefined') appSettings.isBlackoutGesturesEnabled = false;
             if (!appSettings.voicePresets) appSettings.voicePresets = {};
             if (!appSettings.activeVoicePresetId) appSettings.activeVoicePresetId = 'standard';
             if (!appSettings.generalLanguage) appSettings.generalLanguage = 'en';
@@ -274,7 +276,8 @@ function addValue(value) {
         } else { 
             if(state.sequences[0].length == roundNum) { 
                 disableInput(true); 
-                setTimeout(playDemo, 250); 
+                showToast("Round Full - Playing... ▶"); // New toast for success path
+                setTimeout(playDemo, 50); // Reduced delay for success path
             } 
         }
     }

@@ -15,7 +15,7 @@ const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 2
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 400 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
 
-const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en' };
+const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en' };
 
 const DICTIONARY = {
     'en': { correct: "Correct", wrong: "Wrong", stealth: "Stealth Active", reset: "Reset to Round 1", stop: "Playback Stopped 🛑" },
@@ -25,9 +25,10 @@ const DICTIONARY = {
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
 let modules = { sensor: null, settings: null };
-let timers = { speedDelete: null, initialDelay: null, longPress: null, settingsLongPress: null, stealth: null, stealthAction: null, playback: null };
+let timers = { speedDelete: null, initialDelay: null, longPress: null, settingsLongPress: null, stealth: null, stealthAction: null, playback: null, tap: null };
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 let blackoutState = { isActive: false, lastShake: 0 }; 
+let gestureInputState = { startX: 0, startY: 0, startTime: 0, maxTouches: 0, isTapCandidate: false, tapCount: 0 };
 let isDeleting = false; 
 let isDemoPlaying = false; 
 let practiceSequence = [];
@@ -97,7 +98,6 @@ function vibrateMorse(val) {
         pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); 
         for(let i=0; i<(num-6); i++) { pattern.push(DOT); pattern.push(GAP); } 
     } else if (num >= 10 && num <= 12) { 
-        // 10-12: Three Dashes + Dots
         pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP);
         for(let i=0; i<(num-10); i++) { pattern.push(DOT); pattern.push(GAP); } 
     } 
@@ -244,7 +244,15 @@ function addValue(value) {
     const roundNum = parseInt(state.currentRound) || 1;
     const limit = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? roundNum : settings.sequenceLength;
     
-    if(state.sequences[targetIndex] && state.sequences[targetIndex].length >= limit) return;
+    if(state.sequences[targetIndex] && state.sequences[targetIndex].length >= limit) {
+        // Fix for "Freeze": Feedback if the user tries to input when full
+        if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
+            showToast("Round Full - Reset? 🛑");
+            vibrate();
+        }
+        return;
+    }
+
     if(!state.sequences[targetIndex]) state.sequences[targetIndex] = [];
     
     state.sequences[targetIndex].push(value); 
@@ -360,48 +368,58 @@ function playDemo() {
     const baseInterval = CONFIG.DEMO_DELAY_BASE_MS / speed;
     
     function next() { 
-        if(!isDemoPlaying) return; 
-        
-        if(i >= playlist.length) { 
-            disableInput(false); 
-            isDemoPlaying = false; 
-            if(demoBtn) { demoBtn.innerHTML = '▶'; demoBtn.disabled = false; }
-            settingsBtns.forEach(btn => {
-                btn.innerHTML = '⚙️';
-                btn.disabled = false;
-            });
+        // SAFETY: Wrap in try/catch to ensure inputs are re-enabled even if logic fails
+        try {
+            if(!isDemoPlaying) return; 
             
-            if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.isUniqueRoundsAutoClearEnabled) { 
-                state.sequences[0] = []; 
-                state.nextSequenceIndex = 0; 
-                state.currentRound = (parseInt(state.currentRound) || 1) + 1; 
-                if(state.currentRound > settings.sequenceLength) resetRounds(); 
-                renderUI(); 
-                saveState(); 
+            if(i >= playlist.length) { 
+                disableInput(false); 
+                isDemoPlaying = false; 
+                if(demoBtn) { demoBtn.innerHTML = '▶'; demoBtn.disabled = false; }
+                settingsBtns.forEach(btn => {
+                    btn.innerHTML = '⚙️';
+                    btn.disabled = false;
+                });
+                
+                if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.isUniqueRoundsAutoClearEnabled) { 
+                    state.sequences[0] = []; 
+                    state.nextSequenceIndex = 0; 
+                    state.currentRound = (parseInt(state.currentRound) || 1) + 1; 
+                    if(state.currentRound > settings.sequenceLength) resetRounds(); 
+                    renderUI(); 
+                    saveState(); 
+                } 
+                return; 
             } 
-            return; 
-        } 
-        
-        const item = playlist[i]; 
-        const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${item.val}"]`); 
-        if(key) { key.classList.add('flash-active'); setTimeout(() => key.classList.remove('flash-active'), 250 / speed); } 
-        speak(item.val); vibrateMorse(item.val); 
-        const seqBoxes = document.getElementById('sequence-container').children; 
-        if(seqBoxes[item.machine]) { seqBoxes[item.machine].style.transform = 'scale(1.05)'; setTimeout(() => seqBoxes[item.machine].style.transform = 'scale(1)', 250 / speed); } 
-        
-        if(demoBtn) demoBtn.innerText = (i + 1);
+            
+            const item = playlist[i]; 
+            const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${item.val}"]`); 
+            if(key) { key.classList.add('flash-active'); setTimeout(() => key.classList.remove('flash-active'), 250 / speed); } 
+            speak(item.val); vibrateMorse(item.val); 
+            const seqBoxes = document.getElementById('sequence-container').children; 
+            if(seqBoxes[item.machine]) { seqBoxes[item.machine].style.transform = 'scale(1.05)'; setTimeout(() => seqBoxes[item.machine].style.transform = 'scale(1)', 250 / speed); } 
+            
+            if(demoBtn) demoBtn.innerText = (i + 1);
 
-        let nextDelay = baseInterval;
-        if (i + 1 < playlist.length) {
-            const nextItem = playlist[i+1];
-            if (nextItem.machine !== item.machine) {
-                nextDelay += (settings.simonInterSequenceDelay || 0);
+            let nextDelay = baseInterval;
+            if (i + 1 < playlist.length) {
+                const nextItem = playlist[i+1];
+                if (nextItem.machine !== item.machine) {
+                    nextDelay += (settings.simonInterSequenceDelay || 0);
+                }
             }
+            
+            i++; 
+            timers.playback = setTimeout(next, nextDelay); 
+
+        } catch (err) {
+            console.error("Playback error", err);
+            disableInput(false);
+            isDemoPlaying = false;
+            if(demoBtn) demoBtn.innerHTML = '▶';
         }
-        
-        i++; 
-        timers.playback = setTimeout(next, nextDelay); 
-    } next();
+    } 
+    next();
 }
 
 function renderUI() {
@@ -443,12 +461,154 @@ function renderUI() {
     document.querySelectorAll('.reset-button').forEach(b => { b.style.display = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 'block' : 'none'; });
 }
 
-function toggleBlackout() { blackoutState.isActive = !blackoutState.isActive; document.body.classList.toggle('blackout-active', blackoutState.isActive); if(blackoutState.isActive) { if(appSettings.isAudioEnabled) speak("Stealth Active"); document.getElementById('blackout-layer').addEventListener('touchstart', handleBlackoutTouch, {passive: false}); } else { document.getElementById('blackout-layer').removeEventListener('touchstart', handleBlackoutTouch); } }
+function toggleBlackout() { 
+    blackoutState.isActive = !blackoutState.isActive; 
+    document.body.classList.toggle('blackout-active', blackoutState.isActive); 
+    
+    const layer = document.getElementById('blackout-layer');
+
+    if(blackoutState.isActive) { 
+        if(appSettings.isAudioEnabled) speak("Stealth Active"); 
+        
+        // --- GESTURE TOGGLE CHECK ---
+        if (appSettings.isBlackoutGesturesEnabled) {
+            // New Gesture Handlers
+            layer.addEventListener('touchstart', handleBlackoutGestureStart, {passive: false});
+            layer.addEventListener('touchmove', handleBlackoutGestureMove, {passive: false});
+            layer.addEventListener('touchend', handleBlackoutGestureEnd, {passive: false});
+        } else {
+            // Legacy Grid Handler
+            layer.addEventListener('touchstart', handleBlackoutTouch, {passive: false}); 
+        }
+
+    } else { 
+        // Remove ALL possible listeners
+        layer.removeEventListener('touchstart', handleBlackoutTouch); 
+        layer.removeEventListener('touchstart', handleBlackoutGestureStart);
+        layer.removeEventListener('touchmove', handleBlackoutGestureMove);
+        layer.removeEventListener('touchend', handleBlackoutGestureEnd);
+    } 
+}
+
 function handleShake(e) { if(!appSettings.isBlackoutFeatureEnabled) return; const acc = e.acceleration; if(!acc) return; if(Math.hypot(acc.x, acc.y, acc.z) > 15) { const now = Date.now(); if(now - blackoutState.lastShake > 1000) { toggleBlackout(); vibrate(); blackoutState.lastShake = now; } } }
-function handleBlackoutTouch(e) { if(!blackoutState.isActive) return; e.preventDefault(); e.stopPropagation(); const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX; const y = e.changedTouches ? e.changedTouches[0].clientY : e.clientY; const w = window.innerWidth, h = window.innerHeight; const settings = getProfileSettings(); let val = null; if(settings.currentInput === 'piano') { const keys = ['C','D','E','F','G','A','B','1','2','3','4','5']; const idx = Math.floor(x / (w / keys.length)); if(keys[idx]) val = keys[idx]; } else { const c = Math.floor(x / (w/3)); const r = Math.floor(y / (h/ (settings.currentInput==='key12'?4:3))); let num = (r * 3) + c + 1; if(num > 0 && num <= (settings.currentInput==='key12'?12:9)) val = num.toString(); } 
-    // FIXED: Removed speak(), retained vibration & addition
+
+// Legacy Grid-Based Touch System
+function handleBlackoutTouch(e) { 
+    if(!blackoutState.isActive) return; 
+    e.preventDefault(); e.stopPropagation(); 
+    const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX; 
+    const y = e.changedTouches ? e.changedTouches[0].clientY : e.clientY; 
+    const w = window.innerWidth, h = window.innerHeight; 
+    const settings = getProfileSettings(); 
+    let val = null; 
+    
+    if(settings.currentInput === 'piano') { 
+        const keys = ['C','D','E','F','G','A','B','1','2','3','4','5']; 
+        const idx = Math.floor(x / (w / keys.length)); 
+        if(keys[idx]) val = keys[idx]; 
+    } else { 
+        const c = Math.floor(x / (w/3)); 
+        const r = Math.floor(y / (h/ (settings.currentInput==='key12'?4:3))); 
+        let num = (r * 3) + c + 1; 
+        if(num > 0 && num <= (settings.currentInput==='key12'?12:9)) val = num.toString(); 
+    } 
+    
     if(val) { addValue(val); vibrateMorse(val); } 
 }
+
+// --- NEW BLACKOUT GESTURE SYSTEM ---
+function handleBlackoutGestureStart(e) {
+    e.preventDefault();
+    if (e.touches.length === 0) return;
+    
+    // If it's a new tap sequence (not a multi-touch add-on)
+    if (!gestureInputState.startTime || (Date.now() - gestureInputState.startTime > 500)) {
+        gestureInputState.maxTouches = e.touches.length;
+        gestureInputState.startX = e.touches[0].clientX;
+        gestureInputState.startY = e.touches[0].clientY;
+        gestureInputState.startTime = Date.now();
+    } else {
+        // Update max touches if fingers added
+        gestureInputState.maxTouches = Math.max(gestureInputState.maxTouches, e.touches.length);
+    }
+}
+
+function handleBlackoutGestureMove(e) {
+    e.preventDefault();
+    gestureInputState.maxTouches = Math.max(gestureInputState.maxTouches, e.touches.length);
+}
+
+function handleBlackoutGestureEnd(e) {
+    e.preventDefault();
+    if (e.touches.length > 0) return; // Wait for ALL fingers to lift
+
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const diffX = endX - gestureInputState.startX;
+    const diffY = endY - gestureInputState.startY;
+    const duration = Date.now() - gestureInputState.startTime;
+    const absX = Math.abs(diffX);
+    const absY = Math.abs(diffY);
+    
+    let val = null;
+
+    // TAP DETECTION (Short duration, low movement)
+    if (duration < 300 && absX < 30 && absY < 30) {
+        if (gestureInputState.maxTouches === 1) {
+            // Handle Double Tap Logic
+            if (gestureInputState.isTapCandidate) {
+                // Double Tap Detected -> 11 (F)
+                clearTimeout(timers.tap);
+                gestureInputState.isTapCandidate = false;
+                val = '11'; // F
+            } else {
+                gestureInputState.isTapCandidate = true;
+                timers.tap = setTimeout(() => {
+                    // Single Tap Confirmed -> 5
+                    if (gestureInputState.isTapCandidate) {
+                        addValue('5'); 
+                        vibrateMorse('5');
+                        gestureInputState.isTapCandidate = false;
+                    }
+                }, 250); // Double tap window
+                return; // Wait for timer
+            }
+        } else if (gestureInputState.maxTouches === 2) {
+            val = '10'; // E (2-finger tap)
+        }
+    } 
+    // LONG PRESS DETECTION
+    else if (duration > 500 && absX < 30 && absY < 30) {
+        val = '12'; // G (Long Press)
+    }
+    // SWIPE DETECTION
+    else if (Math.max(absX, absY) > 50) {
+        // Determine Direction
+        const isHorizontal = absX > absY;
+        const isPositive = (isHorizontal ? diffX : diffY) > 0;
+        
+        // 1-Finger Swipes
+        if (gestureInputState.maxTouches === 1) {
+            if (!isHorizontal && !isPositive) val = '1'; // Up
+            else if (isHorizontal && isPositive) val = '2'; // Right
+            else if (!isHorizontal && isPositive) val = '3'; // Down
+            else if (isHorizontal && !isPositive) val = '4'; // Left
+        } 
+        // 2-Finger Swipes
+        else if (gestureInputState.maxTouches === 2) {
+             if (!isHorizontal && !isPositive) val = 'A'; // 6 (Up)
+            else if (isHorizontal && isPositive) val = 'B'; // 7 (Right)
+            else if (!isHorizontal && isPositive) val = 'C'; // 8 (Down)
+            else if (isHorizontal && !isPositive) val = 'D'; // 9 (Left)
+        }
+    }
+
+    if (val) {
+        addValue(val);
+        vibrateMorse(val);
+    }
+}
+
 
 function handle1KeyStart() {
     if(!appSettings.isStealth1KeyEnabled) return;

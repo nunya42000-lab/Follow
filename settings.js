@@ -35,7 +35,7 @@ export const PREMADE_VOICE_PRESETS = {
     'whisper': { name: "Quiet", pitch: 1.2, rate: 0.8, volume: 0.4 }
 };
  
-const TEXT = {
+const LANG = {
     'en': {
         title: "Settings", inputsHaptics: "Inputs & Haptics", autoSensors: "Auto & Sensors", appearance: "Appearance & Voice", profile: "Profile & Game", gestures: "Blackout Gesture Mapping (1-12)", morse: "Haptic Morse Mapping (1-12)",
         inputMode: "Input Mode", sequenceLen: "Sequence Length", machineCount: "Machine Count", simonChunk: "Simon Chunk Size", delay: "Inter-Sequence Delay (ms)",

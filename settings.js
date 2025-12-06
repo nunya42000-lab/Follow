@@ -40,29 +40,49 @@ const CRAYONS = ["#000000", "#1F75FE", "#1CA9C9", "#0D98BA", "#FFFFFF", "#C5D0E6
 const LANG = {
     en: {
         quick_title: "👋 Quick Start", select_profile: "Select Profile", autoplay: "Autoplay", audio: "Audio", help_btn: "Help 📚", settings_btn: "Settings", dont_show: "Don't show again", play_btn: "PLAY", theme_editor: "🎨 Theme Editor",
-        lbl_profiles: "Profiles", lbl_game: "Game", lbl_playback: "Playback", lbl_general: "General", lbl_mode: "Mode", lbl_input: "Input",
-        blackout_gestures: "Blackout Gestures", // NEW TOGGLE LABEL
-        help_stealth_detail: "Stealth Mode (1-Key) simplifies input by mapping the 12 primary values (1-12) to a single key press. The interpretation depends on context and mode (Simon/Unique). This is intended for high-speed, minimal-movement input.", // UPDATED HELP DETAIL
-        help_blackout_detail: "Blackout Mode turns the entire screen black to eliminate visual distraction, allowing you to focus purely on audio cues and muscle memory. The app remains fully functional, but the UI is hidden. If Blackout Gestures are enabled, input switches to a 'no-look' touch system.", // UPDATED HELP DETAIL
-        help_gesture_detail: "Blackout Gestures: A 'no-look' input system. Use touch gestures (swipes, taps) to represent values 1 through 12. Values 6 through 12 are represented by letters A through G (A=6, B=7, etc.) on a virtual 3x4 grid. A fully detailed guide follows the Haptic Morse Guide." // NEW HELP DETAIL
+        lbl_profiles: "Profiles", lbl_game: "Game", lbl_playback: "Playback", lbl_general: "General", lbl_stealth: "Stealth", lbl_mode: "Mode", lbl_input: "Input",
+        blackout_gestures: "Blackout Gestures", stealth_inputs_only: "Inputs Only (Hold '1')",
+        help_stealth_detail: "Inputs Only (1-Key) simplifies input by mapping the 12 primary values (1-12) to a single key press. The interpretation depends on context and mode (Simon/Unique). This is intended for high-speed, minimal-movement input.", 
+        help_blackout_detail: "Blackout Mode turns the entire screen black to eliminate visual distraction, allowing you to focus purely on audio cues and muscle memory. The app remains fully functional, but the UI is hidden. If Blackout Gestures are enabled, input switches to a 'no-look' touch system.", 
+        help_gesture_detail: "Blackout Gestures: A 'no-look' input system. Use touch gestures (swipes, taps) to represent values 1 through 12. Values 6 through 12 are represented by letters A through G (A=6, B=7, etc.) on a virtual 3x4 grid. Customize these in the Stealth tab." 
     },
     es: {
         quick_title: "👋 Inicio Rápido", select_profile: "Perfil", autoplay: "Auto-reproducción", audio: "Audio", help_btn: "Ayuda 📚", settings_btn: "Ajustes", dont_show: "No mostrar más", play_btn: "JUGAR", theme_editor: "🎨 Editor de Temas",
-        lbl_profiles: "Perfiles", lbl_game: "Juego", lbl_playback: "Reproducción", lbl_general: "General", lbl_mode: "Modo", lbl_input: "Entrada",
-        blackout_gestures: "Gestos de Pantalla Negra", // NEW TOGGLE LABEL
-        help_stealth_detail: "El modo sigilo (1-tecla) simplifica la entrada al asignar los 12 valores primarios (1-12) a una sola pulsación de tecla. La interpretación depende del contexto y del modo (Simon/Único). Está diseñado para una entrada de alta velocidad y movimiento mínimo.", // NEW HELP DETAIL
-        help_blackout_detail: "El modo de pantalla negra (Blackout) oscurece toda la pantalla para eliminar la distracción visual, permitiéndole concentrarse únicamente en las señales de audio y la memoria muscular. La aplicación sigue siendo completamente funcional, pero la interfaz de usuario está oculta. Si los gestos de pantalla negra están habilitados, la entrada cambia a un sistema táctil 'sin mirar'.", // UPDATED HELP DETAIL
-        help_gesture_detail: "Gestos de Pantalla Negra: Un sistema de entrada 'sin mirar'. Utiliza gestos táctiles (deslizamientos, toques) para representar los valores del 1 al 12. Los valores del 6 al 12 se representan con las letras A a G (A=6, B=7, etc.) en una cuadrícula virtual de 3x4. Una guía detallada completa sigue a la Guía de Morse Háptico." // NEW HELP DETAIL
+        lbl_profiles: "Perfiles", lbl_game: "Juego", lbl_playback: "Reproducción", lbl_general: "General", lbl_stealth: "Sigilo", lbl_mode: "Modo", lbl_input: "Entrada",
+        blackout_gestures: "Gestos de Pantalla Negra", stealth_inputs_only: "Solo Entradas (Mantener '1')",
+        help_stealth_detail: "El modo sigilo (1-tecla) simplifica la entrada al asignar los 12 valores primarios (1-12) a una sola pulsación de tecla. La interpretación depende del contexto y del modo (Simon/Único). Está diseñado para una entrada de alta velocidad y movimiento mínimo.", 
+        help_blackout_detail: "El modo de pantalla negra (Blackout) oscurece toda la pantalla para eliminar la distracción visual, permitiéndole concentrarse únicamente en las señales de audio y la memoria muscular. La aplicación sigue siendo completamente funcional, pero la interfaz de usuario está oculta. Si los gestos de pantalla negra están habilitados, la entrada cambia a un sistema táctil 'sin mirar'.", 
+        help_gesture_detail: "Gestos de Pantalla Negra: Un sistema de entrada 'sin mirar'. Utiliza gestos táctiles (deslizamientos, toques) para representar los valores del 1 al 12. Personalízalos en la pestaña de Sigilo."
     }
 };
+
+const DEFAULT_GESTURE_MAP = {
+    '1': 'Swipe Up', '2': 'Swipe Right', '3': 'Swipe Down', '4': 'Swipe Left', '5': 'Tap',
+    '6': '2-Finger Swipe Up', '7': '2-Finger Swipe Right', '8': '2-Finger Swipe Down', '9': '2-Finger Swipe Left',
+    '10': '2-Finger Tap', '11': 'Double Tap', '12': 'Long Press'
+};
+const DEFAULT_MORSE_MAP = {
+    '1': '.', '2': '..', '3': '...', '4': '-.', '5': '-..', '6': '-...', 
+    '7': '--.', '8': '--..', '9': '--...', '10': '---', '11': '---.', '12': '---..'
+};
+const AVAILABLE_GESTURES = [
+    'Swipe Up', 'Swipe Down', 'Swipe Left', 'Swipe Right', 
+    'Tap', 'Double Tap', 'Long Press', 
+    '2-Finger Swipe Up', '2-Finger Swipe Down', '2-Finger Swipe Left', '2-Finger Swipe Right',
+    '2-Finger Tap'
+];
 
 export class SettingsManager {
     constructor(appSettings, callbacks, sensorEngine) {
         this.appSettings = appSettings; this.callbacks = callbacks; this.sensorEngine = sensorEngine; this.currentTargetKey = 'bubble';
         
+        // Initialize Default Mappings if they don't exist
+        if(!this.appSettings.gestureMappings) this.appSettings.gestureMappings = { ...DEFAULT_GESTURE_MAP };
+        if(!this.appSettings.morseMappings) this.appSettings.morseMappings = { ...DEFAULT_MORSE_MAP };
+
         // 1. Inject elements first (creates them in the DOM)
         this.injectLongPressToggle();
-        this.injectBlackoutGesturesToggle(); 
+        this.injectStealthTab(); // Creates tab and moves elements
 
         // 2. Build the DOM cache (now includes the injected elements)
         this.dom = {
@@ -84,13 +104,20 @@ export class SettingsManager {
 
             // Inputs for Prompt Generation
             input: document.getElementById('input-select'), mode: document.getElementById('mode-select'), practiceMode: document.getElementById('practice-mode-toggle'), machines: document.getElementById('machines-select'), seqLength: document.getElementById('seq-length-select'),
-            autoClear: document.getElementById('autoclear-toggle'), autoplay: document.getElementById('autoplay-toggle'), audio: document.getElementById('audio-toggle'), hapticMorse: document.getElementById('haptic-morse-toggle'), playbackSpeed: document.getElementById('playback-speed-select'), chunk: document.getElementById('chunk-select'), delay: document.getElementById('delay-select'),
-
-            haptics: document.getElementById('haptics-toggle'), speedDelete: document.getElementById('speed-delete-toggle'), showWelcome: document.getElementById('show-welcome-toggle'), blackoutToggle: document.getElementById('blackout-toggle'), stealth1KeyToggle: document.getElementById('stealth-1key-toggle'),
+            autoClear: document.getElementById('autoclear-toggle'), autoplay: document.getElementById('autoplay-toggle'), audio: document.getElementById('audio-toggle'), 
             
-            // Injected Toggles (Now guaranteed to exist)
-            longPressToggle: document.getElementById('long-press-autoplay-toggle'),
+            // Moved to Stealth Tab
+            hapticMorse: document.getElementById('haptic-morse-toggle'), 
+            blackoutToggle: document.getElementById('blackout-toggle'), 
+            stealth1KeyToggle: document.getElementById('stealth-1key-toggle'),
             blackoutGesturesToggle: document.getElementById('blackout-gestures-toggle'),
+
+            playbackSpeed: document.getElementById('playback-speed-select'), chunk: document.getElementById('chunk-select'), delay: document.getElementById('delay-select'),
+
+            haptics: document.getElementById('haptics-toggle'), speedDelete: document.getElementById('speed-delete-toggle'), showWelcome: document.getElementById('show-welcome-toggle'),
+            
+            // Injected Toggles
+            longPressToggle: document.getElementById('long-press-autoplay-toggle'),
 
             uiScale: document.getElementById('ui-scale-select'), seqSize: document.getElementById('seq-size-select'), gestureMode: document.getElementById('gesture-mode-select'), autoInput: document.getElementById('auto-input-select'),
             quickLang: document.getElementById('quick-lang-select'), generalLang: document.getElementById('general-lang-select'), closeSettingsBtn: document.getElementById('close-settings'),
@@ -118,148 +145,146 @@ export class SettingsManager {
             chatShareBtn: document.getElementById('chat-share-button'), emailShareBtn: document.getElementById('email-share-button')
         };
         this.tempTheme = null; this.initListeners(); this.populateConfigDropdown(); this.populateThemeDropdown(); this.buildColorGrid(); this.populateVoicePresetDropdown();
+        this.renderMappings();
     }
 
     injectLongPressToggle() {
         if (document.getElementById('long-press-autoplay-toggle')) return;
-
         const div = document.createElement('div');
         div.className = "flex justify-between items-center p-3 rounded-lg settings-input";
         div.innerHTML = `<span class="font-bold text-sm">Long Press 'Play' Toggle</span><input type="checkbox" id="long-press-autoplay-toggle" class="h-5 w-5 accent-indigo-500">`;
-
         const speedDeleteInput = document.getElementById('speed-delete-toggle');
-
         if (speedDeleteInput && speedDeleteInput.parentElement) {
-            const row = speedDeleteInput.parentElement;
-            const container = row.parentElement;
-            if (container) {
-                container.insertBefore(div, row.nextSibling);
+            speedDeleteInput.parentElement.parentElement.insertBefore(div, speedDeleteInput.parentElement.nextSibling);
+        }
+    }
+
+    injectStealthTab() {
+        const settingsModal = document.getElementById('settings-modal');
+        if(!settingsModal) return;
+
+        // 1. Add Tab Button if not exists
+        const tabContainer = settingsModal.querySelector('.border-b.bg-black.bg-opacity-20');
+        if(tabContainer && !tabContainer.querySelector('[data-tab="stealth"]')) {
+            const btn = document.createElement('div');
+            btn.className = 'tab-btn';
+            btn.dataset.tab = 'stealth';
+            btn.dataset.i18n = 'lbl_stealth';
+            btn.textContent = 'Stealth';
+            tabContainer.appendChild(btn);
+        }
+
+        // 2. Create Tab Content Container
+        const contentContainer = settingsModal.querySelector('.overflow-y-auto');
+        if(contentContainer && !document.getElementById('tab-stealth')) {
+            const contentDiv = document.createElement('div');
+            contentDiv.id = 'tab-stealth';
+            contentDiv.className = 'tab-content';
+            contentDiv.style.display = 'none'; // Ensure hidden by default
+            contentDiv.innerHTML = `<div id="stealth-toggles-container" class="space-y-3 mb-6"></div><div id="mapping-container" class="space-y-6"></div>`;
+            contentContainer.appendChild(contentDiv);
+        }
+
+        // 3. Move Existing Controls to New Tab
+        const stealthContainer = document.getElementById('stealth-toggles-container');
+        if(!stealthContainer) return;
+
+        const moveElement = (id, newLabel) => {
+            const input = document.getElementById(id);
+            if(input) {
+                const row = input.closest('.settings-input');
+                if(row) {
+                    stealthContainer.appendChild(row);
+                    if(newLabel) {
+                        const labelSpan = row.querySelector('span');
+                        if(labelSpan) {
+                            labelSpan.textContent = newLabel;
+                            // Update i18n key if needed for new label
+                            if(id === 'stealth-1key-toggle') labelSpan.dataset.i18n = 'stealth_inputs_only';
+                        }
+                    }
+                }
             }
+        };
+
+        // Move and Rename "Stealth Toggle" -> "Inputs Only"
+        moveElement('stealth-1key-toggle', "Inputs Only (Hold '1')");
+        moveElement('haptic-morse-toggle');
+        moveElement('blackout-toggle');
+
+        // Create Blackout Gestures if it doesn't exist yet, then move it
+        if (!document.getElementById('blackout-gestures-toggle')) {
+            const div = document.createElement('div');
+            div.className = "flex justify-between items-center p-3 rounded-lg settings-input";
+            div.innerHTML = `<span class="font-bold text-sm" data-i18n="blackout_gestures">Blackout Gestures</span><input type="checkbox" id="blackout-gestures-toggle" class="h-5 w-5 accent-indigo-500">`;
+            stealthContainer.appendChild(div);
         } else {
-            const generalTab = document.getElementById('tab-general');
-            if (generalTab) {
-                const inner = generalTab.querySelector('.space-y-3');
-                if (inner) inner.appendChild(div);
-                else generalTab.appendChild(div);
-            }
+             moveElement('blackout-gestures-toggle');
         }
     }
 
-    // NEW METHOD
-    injectBlackoutGesturesToggle() {
-        if (document.getElementById('blackout-gestures-toggle')) return;
+    renderMappings() {
+        const container = document.getElementById('mapping-container');
+        if(!container) return;
+        container.innerHTML = '';
 
-        const div = document.createElement('div');
-        div.className = "flex justify-between items-center p-3 rounded-lg settings-input";
-        // Uses the new LANG key 'blackout_gestures'
-        div.innerHTML = `<span class="font-bold text-sm" data-i18n="blackout_gestures">Blackout Gestures</span><input type="checkbox" id="blackout-gestures-toggle" class="h-5 w-5 accent-indigo-500">`;
-
-        const blackoutToggleInput = document.getElementById('blackout-toggle');
-
-        // Locate blackout-toggle and insert the new toggle after it
-        if (blackoutToggleInput && blackoutToggleInput.parentElement) {
-            const row = blackoutToggleInput.parentElement;
-            const container = row.parentElement;
-            if (container) {
-                // Insert after the blackout toggle row
-                container.insertBefore(div, row.nextSibling);
-            }
-        }
-    }
-
-    populateVoicePresetDropdown() {
-        if (!this.dom.voicePresetSelect) return;
-        this.dom.voicePresetSelect.innerHTML = '';
-
-        const grp1 = document.createElement('optgroup');
-        grp1.label = "Built-in";
-        Object.keys(PREMADE_VOICE_PRESETS).forEach(k => {
-            const el = document.createElement('option');
-            el.value = k;
-            el.textContent = PREMADE_VOICE_PRESETS[k].name;
-            grp1.appendChild(el);
-        });
-        this.dom.voicePresetSelect.appendChild(grp1);
-
-        const grp2 = document.createElement('optgroup');
-        grp2.label = "My Voices";
-        if (this.appSettings.voicePresets) {
-            Object.keys(this.appSettings.voicePresets).forEach(k => {
-                const el = document.createElement('option');
-                el.value = k;
-                el.textContent = this.appSettings.voicePresets[k].name;
-                grp2.appendChild(el);
-            });
-        }
-        this.dom.voicePresetSelect.appendChild(grp2);
-
-        this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
-    }
-
-    applyVoicePreset(id) {
-        let preset = this.appSettings.voicePresets[id] || PREMADE_VOICE_PRESETS[id] || PREMADE_VOICE_PRESETS['standard'];
-        this.appSettings.voicePitch = preset.pitch;
-        this.appSettings.voiceRate = preset.rate;
-        this.appSettings.voiceVolume = preset.volume;
-        this.updateUIFromSettings();
-        this.callbacks.onSave();
-    }
-
-    buildColorGrid() { if (!this.dom.editorGrid) return; this.dom.editorGrid.innerHTML = ''; CRAYONS.forEach(color => { const btn = document.createElement('div'); btn.style.backgroundColor = color; btn.className = "w-full h-6 rounded cursor-pointer border border-gray-700 hover:scale-125 transition-transform shadow-sm"; btn.onclick = () => this.applyColorToTarget(color); this.dom.editorGrid.appendChild(btn); }); }
-    applyColorToTarget(hex) { if (!this.tempTheme) return; this.tempTheme[this.currentTargetKey] = hex; const [h, s, l] = this.hexToHsl(hex); this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l; this.dom.ftPreview.style.backgroundColor = hex; if (this.dom.ftContainer.classList.contains('hidden')) { this.dom.ftContainer.classList.remove('hidden'); this.dom.ftToggle.style.display = 'none'; } this.updatePreview(); }
-    updateColorFromSliders() { const h = parseInt(this.dom.ftHue.value); const s = parseInt(this.dom.ftSat.value); const l = parseInt(this.dom.ftLit.value); const hex = this.hslToHex(h, s, l); this.dom.ftPreview.style.backgroundColor = hex; if (this.tempTheme) { this.tempTheme[this.currentTargetKey] = hex; this.updatePreview(); } }
-    openThemeEditor() { if (!this.dom.editorModal) return; const activeId = this.appSettings.activeTheme; const source = this.appSettings.customThemes[activeId] || PREMADE_THEMES[activeId] || PREMADE_THEMES['default']; this.tempTheme = { ...source }; this.dom.edName.value = this.tempTheme.name; this.dom.targetBtns.forEach(b => b.classList.remove('active', 'bg-primary-app')); this.dom.targetBtns[2].classList.add('active', 'bg-primary-app'); this.currentTargetKey = 'bubble'; const [h, s, l] = this.hexToHsl(this.tempTheme.bubble); this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l; this.dom.ftPreview.style.backgroundColor = this.tempTheme.bubble; this.updatePreview(); this.dom.editorModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.editorModal.querySelector('div').classList.remove('scale-90'); }
-    updatePreview() { const t = this.tempTheme; if (!this.dom.edPreview) return; this.dom.edPreview.style.backgroundColor = t.bgMain; this.dom.edPreview.style.color = t.text; this.dom.edPreviewCard.style.backgroundColor = t.bgCard; this.dom.edPreviewCard.style.color = t.text; this.dom.edPreviewCard.style.border = '1px solid rgba(255,255,255,0.1)'; this.dom.edPreviewBtn.style.backgroundColor = t.bubble; this.dom.edPreviewBtn.style.color = t.text; }
-    testVoice() { if (window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("Testing 1 2 3."); if (this.appSettings.selectedVoice) { const v = window.speechSynthesis.getVoices().find(voice => voice.name === this.appSettings.selectedVoice); if (v) u.voice = v; } let p = parseFloat(this.dom.voicePitch.value); let r = parseFloat(this.dom.voiceRate.value); let v = parseFloat(this.dom.voiceVolume.value); u.pitch = p; u.rate = r; u.volume = v; window.speechSynthesis.speak(u); } }
-    
-    setLanguage(lang) {
-        const t = LANG[lang];
-        if (!t) return;
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (t[key]) el.textContent = t[key];
-        });
+        // --- Gesture Section ---
+        let html = `<div class="border-t border-custom pt-4"><h4 class="font-bold text-sm mb-3 text-primary-app">Gesture Mapping 👆</h4><div class="grid grid-cols-1 gap-2">`;
         
-        // Persist
-        this.appSettings.generalLanguage = lang;
-        if (this.dom.quickLang) this.dom.quickLang.value = lang;
-        if (this.dom.generalLang) this.dom.generalLang.value = lang;
-        this.callbacks.onSave();
-    }
-
-    openShare() { if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); if (this.dom.shareModal) { this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => this.dom.shareModal.querySelector('.share-sheet').classList.add('active'), 10); } }
-    closeShare() { if (this.dom.shareModal) { this.dom.shareModal.querySelector('.share-sheet').classList.remove('active'); setTimeout(() => this.dom.shareModal.classList.add('opacity-0', 'pointer-events-none'), 300); } }
-    openCalibration() { if (this.dom.calibModal) { this.dom.calibModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.calibModal.style.pointerEvents = 'auto'; this.sensorEngine.toggleAudio(true); this.sensorEngine.toggleCamera(true); this.sensorEngine.setCalibrationCallback((data) => { if (this.dom.calibAudioBar) { const pct = ((data.audio - (-100)) / ((-30) - (-100))) * 100; this.dom.calibAudioBar.style.width = `${Math.max(0, Math.min(100, pct))}%`; } if (this.dom.calibCamBar) { const pct = Math.min(100, data.camera); this.dom.calibCamBar.style.width = `${pct}%`; } }); } }
-    closeCalibration() { if (this.dom.calibModal) { this.dom.calibModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.calibModal.style.pointerEvents = 'none'; this.sensorEngine.setCalibrationCallback(null); this.sensorEngine.toggleAudio(this.appSettings.isAudioEnabled); this.sensorEngine.toggleCamera(this.appSettings.autoInputMode === 'cam' || this.appSettings.autoInputMode === 'both'); } }
-
-    // Toggle Redeem (Keeps Settings Open)
-    toggleRedeem(show) {
-        if (show) {
-            if (this.dom.redeemModal) {
-                this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none');
-                this.dom.redeemModal.style.pointerEvents = 'auto';
-            }
-        } else {
-            if (this.dom.redeemModal) {
-                this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none');
-                this.dom.redeemModal.style.pointerEvents = 'none';
-            }
+        for(let i=1; i<=12; i++) {
+            const key = i.toString();
+            const current = this.appSettings.gestureMappings[key] || DEFAULT_GESTURE_MAP[key];
+            
+            // Build Options
+            const options = AVAILABLE_GESTURES.map(g => `<option value="${g}" ${g === current ? 'selected' : ''}>${g}</option>`).join('');
+            
+            html += `
+            <div class="flex items-center justify-between bg-black bg-opacity-20 p-2 rounded">
+                <span class="text-xs font-bold w-8 text-center">${key}</span>
+                <select class="bg-gray-800 text-white text-xs rounded p-1 border border-gray-600 gesture-select" data-key="${key}">
+                    ${options}
+                </select>
+            </div>`;
         }
-    }
+        html += `</div></div>`;
 
-    // Toggle Donate (Keeps Settings Open)
-    toggleDonate(show) {
-        if (show) {
-            if (this.dom.donateModal) {
-                this.dom.donateModal.classList.remove('opacity-0', 'pointer-events-none');
-                this.dom.donateModal.style.pointerEvents = 'auto';
-            }
-        } else {
-            if (this.dom.donateModal) {
-                this.dom.donateModal.classList.add('opacity-0', 'pointer-events-none');
-                this.dom.donateModal.style.pointerEvents = 'none';
-            }
+        // --- Morse Section ---
+        html += `<div class="border-t border-custom pt-4 mt-4"><h4 class="font-bold text-sm mb-3 text-primary-app">Morse Mapping 📳</h4><div class="grid grid-cols-2 gap-2">`;
+        
+        for(let i=1; i<=12; i++) {
+            const key = i.toString();
+            const current = this.appSettings.morseMappings[key] || DEFAULT_MORSE_MAP[key];
+            html += `
+            <div class="flex items-center justify-between bg-black bg-opacity-20 p-2 rounded">
+                <span class="text-xs font-bold w-6 text-center">${key}</span>
+                <input type="text" class="bg-gray-800 text-white text-xs rounded p-1 border border-gray-600 w-full ml-2 morse-input font-mono" 
+                       data-key="${key}" value="${current}" placeholder=".-">
+            </div>`;
         }
+        html += `</div></div>`;
+        
+        container.innerHTML = html;
+
+        // Add Listeners
+        container.querySelectorAll('.gesture-select').forEach(sel => {
+            sel.addEventListener('change', (e) => {
+                this.appSettings.gestureMappings[e.target.dataset.key] = e.target.value;
+                this.callbacks.onSave();
+            });
+        });
+
+        container.querySelectorAll('.morse-input').forEach(inp => {
+            inp.addEventListener('change', (e) => {
+                const val = e.target.value;
+                if(/^[.-]+$/.test(val) || val === '') {
+                    this.appSettings.morseMappings[e.target.dataset.key] = val;
+                    this.callbacks.onSave();
+                } else {
+                    alert("Morse code can only contain dots (.) and dashes (-)");
+                    e.target.value = this.appSettings.morseMappings[e.target.dataset.key];
+                }
+            });
+        });
     }
 
     initListeners() {
@@ -269,407 +294,492 @@ export class SettingsManager {
         if (this.dom.edSave) this.dom.edSave.onclick = () => { if (this.tempTheme) { const activeId = this.appSettings.activeTheme; if (PREMADE_THEMES[activeId]) { const newId = 'custom_' + Date.now(); this.appSettings.customThemes[newId] = this.tempTheme; this.appSettings.activeTheme = newId; } else { this.appSettings.customThemes[activeId] = this.tempTheme; } this.callbacks.onSave(); this.callbacks.onUpdate(); this.dom.editorModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.editorModal.querySelector('div').classList.add('scale-90'); this.populateThemeDropdown(); } };
         if (this.dom.openEditorBtn) this.dom.openEditorBtn.onclick = () => this.openThemeEditor();
         if (this.dom.edCancel) this.dom.edCancel.onclick = () => { this.dom.editorModal.classList.add('opacity-0', 'pointer-events-none'); };
+/* settings.js - Settings Management (Part 2) */
 
-        // Voice Controls
-        if (this.dom.voiceTestBtn) this.dom.voiceTestBtn.onclick = () => this.testVoice();
-        const updateVoiceLive = () => {
-            this.appSettings.voicePitch = parseFloat(this.dom.voicePitch.value);
-            this.appSettings.voiceRate = parseFloat(this.dom.voiceRate.value);
-            this.appSettings.voiceVolume = parseFloat(this.dom.voiceVolume.value);
-        };
-        if (this.dom.voicePitch) this.dom.voicePitch.oninput = updateVoiceLive;
-        if (this.dom.voiceRate) this.dom.voiceRate.oninput = updateVoiceLive;
-        if (this.dom.voiceVolume) this.dom.voiceVolume.oninput = updateVoiceLive;
+// ... continuing from initListeners()
+        this.dom.edName.oninput = (e) => { if (this.tempTheme) this.tempTheme.name = e.target.value; };
+        this.dom.edPreviewBtn.onclick = () => { if (this.tempTheme) this.setTheme(this.tempTheme, true); };
+        this.dom.themeSelect.onchange = () => this.setTheme(this.dom.themeSelect.value);
+        this.dom.themeAdd.onclick = () => this.addTheme();
+        this.dom.themeRename.onclick = () => this.renameTheme();
+        this.dom.themeDelete.onclick = () => this.deleteTheme();
+        this.dom.themeSave.onclick = () => this.callbacks.onSave();
 
-        // Voice Preset Management
-        if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.onchange = (e) => {
-            this.appSettings.activeVoicePresetId = e.target.value;
-            this.applyVoicePreset(e.target.value);
-        };
-        if (this.dom.voicePresetAdd) this.dom.voicePresetAdd.onclick = () => {
-            const n = prompt("New Voice Preset Name:");
-            if (n) {
-                const id = 'vp_' + Date.now();
-                this.appSettings.voicePresets[id] = {
-                    name: n,
-                    pitch: this.appSettings.voicePitch,
-                    rate: this.appSettings.voiceRate,
-                    volume: this.appSettings.voiceVolume
-                };
-                this.appSettings.activeVoicePresetId = id;
-                this.populateVoicePresetDropdown();
-                this.callbacks.onSave();
-            }
-        };
-        if (this.dom.voicePresetSave) this.dom.voicePresetSave.onclick = () => {
-            const id = this.appSettings.activeVoicePresetId;
-            if (PREMADE_VOICE_PRESETS[id]) {
-                alert("Cannot save over built-in presets. Create a new one.");
-                return;
-            }
-            if (this.appSettings.voicePresets[id]) {
-                this.appSettings.voicePresets[id] = {
-                    ...this.appSettings.voicePresets[id],
-                    pitch: parseFloat(this.dom.voicePitch.value),
-                    rate: parseFloat(this.dom.voiceRate.value),
-                    volume: parseFloat(this.dom.voiceVolume.value)
-                };
-                this.callbacks.onSave();
-                alert("Voice Preset Saved!");
-            }
-        };
-        if (this.dom.voicePresetDelete) this.dom.voicePresetDelete.onclick = () => {
-            const id = this.appSettings.activeVoicePresetId;
-            if (PREMADE_VOICE_PRESETS[id]) { alert("Cannot delete built-in."); return; }
-            if (confirm("Delete this voice preset?")) {
-                delete this.appSettings.voicePresets[id];
-                this.appSettings.activeVoicePresetId = 'standard';
-                this.populateVoicePresetDropdown();
-                this.applyVoicePreset('standard');
-            }
-        };
-        if (this.dom.voicePresetRename) this.dom.voicePresetRename.onclick = () => {
-            const id = this.appSettings.activeVoicePresetId;
-            if (PREMADE_VOICE_PRESETS[id]) return alert("Cannot rename built-in.");
-            const n = prompt("Rename:", this.appSettings.voicePresets[id].name);
-            if (n) {
-                this.appSettings.voicePresets[id].name = n;
-                this.populateVoicePresetDropdown();
-                this.callbacks.onSave();
-            }
-        };
+        // Config Listeners
+        this.dom.configSelect.onchange = () => this.callbacks.onSetCurrentConfig(this.dom.configSelect.value);
+        this.dom.quickConfigSelect.onchange = () => this.callbacks.onSetCurrentConfig(this.dom.quickConfigSelect.value);
+        this.dom.configAdd.onclick = () => this.callbacks.onAddConfig();
+        this.dom.configRename.onclick = () => this.callbacks.onRenameConfig();
+        this.dom.configDelete.onclick = () => this.callbacks.onDeleteConfig();
+        this.dom.configSave.onclick = () => this.callbacks.onSave();
 
-        if (this.dom.quickLang) this.dom.quickLang.onchange = (e) => this.setLanguage(e.target.value);
-        if (this.dom.generalLang) this.dom.generalLang.onchange = (e) => this.setLanguage(e.target.value);
-        const handleProfileSwitch = (val) => { this.callbacks.onProfileSwitch(val); this.openSettings(); };
-        if (this.dom.configSelect) this.dom.configSelect.onchange = (e) => handleProfileSwitch(e.target.value);
-        if (this.dom.quickConfigSelect) this.dom.quickConfigSelect.onchange = (e) => handleProfileSwitch(e.target.value);
+        // Input Listeners
+        this.dom.input.onchange = () => this.updateInput(this.dom.input.value);
+        this.dom.mode.onchange = () => this.updateMode(this.dom.mode.value);
+        this.dom.machines.onchange = () => this.updateMachines(parseInt(this.dom.machines.value));
+        this.dom.seqLength.onchange = () => this.appSettings.sequenceLength = parseInt(this.dom.seqLength.value);
+        this.dom.practiceMode.onchange = (e) => this.updatePracticeMode(e.target.checked);
+        this.dom.autoClear.onchange = (e) => this.updateAutoClear(e.target.checked);
+        this.dom.autoplay.onchange = (e) => this.updateAutoplay(e.target.checked);
+        this.dom.audio.onchange = (e) => this.updateAudio(e.target.checked);
 
-        const bind = (el, prop, isGlobal, isInt = false, isFloat = false) => {
-            if (!el) return;
-            el.onchange = () => {
-                let val = (el.type === 'checkbox') ? el.checked : el.value;
-                if (isInt) val = parseInt(val);
-                if (isFloat) val = parseFloat(val);
-                if (isGlobal) {
-                    this.appSettings[prop] = val;
-                    if (prop === 'activeTheme') this.callbacks.onUpdate();
-                    if (prop === 'isPracticeModeEnabled') this.callbacks.onUpdate();
-                } else {
-                    this.appSettings.runtimeSettings[prop] = val;
-                }
-                this.callbacks.onSave();
-                this.generatePrompt(); // UPDATE PROMPT ON EVERY CHANGE
-            };
-        };
+        // Stealth / Inputs Listeners
+        this.dom.hapticMorse.onchange = (e) => { this.appSettings.isHapticMorseEnabled = e.target.checked; this.callbacks.onSave(); };
+        this.dom.blackoutToggle.onchange = (e) => { this.appSettings.isBlackoutModeEnabled = e.target.checked; this.callbacks.onSave(); };
+        this.dom.stealth1KeyToggle.onchange = (e) => { this.appSettings.isStealth1KeyEnabled = e.target.checked; this.callbacks.onSave(); };
+        this.dom.blackoutGesturesToggle.onchange = (e) => { this.appSettings.isBlackoutGesturesEnabled = e.target.checked; this.callbacks.onSave(); }; // Listener for the moved setting
 
-        bind(this.dom.input, 'currentInput', false); bind(this.dom.machines, 'machineCount', false, true); bind(this.dom.seqLength, 'sequenceLength', false, true); bind(this.dom.autoClear, 'isUniqueRoundsAutoClearEnabled', true);
-        bind(this.dom.longPressToggle, 'isLongPressAutoplayEnabled', true);
+        // Playback Listeners
+        this.dom.playbackSpeed.onchange = () => this.updatePlaybackSpeed(parseInt(this.dom.playbackSpeed.value));
+        this.dom.chunk.onchange = () => this.updateChunk(parseInt(this.dom.chunk.value));
+        this.dom.delay.onchange = () => this.updateDelay(parseInt(this.dom.delay.value));
 
-        // Mode switch special case
-        if (this.dom.mode) {
-            this.dom.mode.onchange = () => {
-                this.appSettings.runtimeSettings.currentMode = this.dom.mode.value;
-                this.callbacks.onSave();
-                this.callbacks.onUpdate('mode_switch');
-                this.generatePrompt();
-            };
-        }
+        // Other Listeners
+        this.dom.haptics.onchange = (e) => this.updateHaptics(e.target.checked);
+        this.dom.speedDelete.onchange = (e) => this.updateSpeedDelete(e.target.checked);
+        this.dom.showWelcome.onchange = (e) => this.updateShowWelcome(e.target.checked);
+        this.dom.longPressToggle.onchange = (e) => this.updateLongPressToggle(e.target.checked);
 
-        // Ensure inputs trigger prompt regeneration explicitly
-        if (this.dom.input) this.dom.input.addEventListener('change', () => this.generatePrompt());
-        if (this.dom.machines) this.dom.machines.addEventListener('change', () => this.generatePrompt());
-        if (this.dom.seqLength) this.dom.seqLength.addEventListener('change', () => this.generatePrompt());
-        if (this.dom.playbackSpeed) this.dom.playbackSpeed.addEventListener('change', () => this.generatePrompt());
-        if (this.dom.delay) this.dom.delay.addEventListener('change', () => this.generatePrompt());
-        if (this.dom.chunk) this.dom.chunk.addEventListener('change', () => this.generatePrompt());
+        this.dom.uiScale.onchange = () => this.updateUISelect(this.dom.uiScale.value);
+        this.dom.seqSize.onchange = () => this.updateSeqSize(this.dom.seqSize.value);
+        this.dom.gestureMode.onchange = () => this.updateGestureMode(this.dom.gestureMode.value);
+        this.dom.autoInput.onchange = () => this.updateAutoInput(this.dom.autoInput.value);
 
-        if (this.dom.autoplay) {
-            this.dom.autoplay.onchange = (e) => {
-                this.appSettings.isAutoplayEnabled = e.target.checked;
-                if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = e.target.checked;
-                this.callbacks.onSave();
+        this.dom.quickLang.onchange = () => this.updateLang(this.dom.quickLang.value);
+        this.dom.generalLang.onchange = () => this.updateLang(this.dom.generalLang.value);
+
+        // UI Listeners
+        this.dom.tabs.forEach(btn => btn.onclick = () => this.selectTab(btn.dataset.tab));
+        if(this.dom.settingsModal) this.dom.settingsModal.addEventListener('transitionend', (e) => { if(e.propertyName === 'opacity' && e.target.classList.contains('opacity-0') && this.appSettings.isPracticeModeEnabled) this.callbacks.onSettingsClose(); });
+        this.dom.closeSettingsBtn.onclick = () => { this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); };
+        
+        // Calibration Listeners
+        this.dom.openCalibBtn.onclick = () => this.dom.calibModal.classList.remove('opacity-0', 'pointer-events-none');
+        this.dom.closeCalibBtn.onclick = () => this.dom.calibModal.classList.add('opacity-0', 'pointer-events-none');
+        this.dom.calibAudioSlider.oninput = (e) => this.updateCalibration('audio', parseFloat(e.target.value));
+        this.dom.calibCamSlider.oninput = (e) => this.updateCalibration('camera', parseFloat(e.target.value));
+
+        // Welcome / Setup Listeners
+        if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.onchange = (e) => this.updateShowWelcome(!e.target.checked);
+        if (this.dom.quickAutoplay) this.dom.quickAutoplay.onchange = (e) => this.updateAutoplay(e.target.checked);
+        if (this.dom.quickAudio) this.dom.quickAudio.onchange = (e) => this.updateAudio(e.target.checked);
+
+        // Voice Listeners
+        this.dom.voicePresetSelect.onchange = () => this.setVoicePreset(this.dom.voicePresetSelect.value);
+        this.dom.voicePresetAdd.onclick = () => this.saveVoicePreset(true);
+        this.dom.voicePresetSave.onclick = () => this.saveVoicePreset(false);
+        this.dom.voicePresetRename.onclick = () => this.renameVoicePreset();
+        this.dom.voicePresetDelete.onclick = () => this.deleteVoicePreset();
+        this.dom.voicePitch.oninput = (e) => this.updateVoiceSliders('pitch', parseFloat(e.target.value));
+        this.dom.voiceRate.oninput = (e) => this.updateVoiceSliders('rate', parseFloat(e.target.value));
+        this.dom.voiceVolume.oninput = (e) => this.updateVoiceSliders('volume', parseFloat(e.target.value));
+        this.dom.voiceTestBtn.onclick = () => this.callbacks.onTestVoice();
+
+        // Restore Defaults
+        if(this.dom.restoreBtn) this.dom.restoreBtn.onclick = () => this.callbacks.onRestoreDefaults();
+        
+        // Ensure initial mapping render
+        this.renderMappings();
+    }
+
+    populateConfigDropdown() {
+        // Implementation for populateConfigDropdown...
+        [this.dom.configSelect, this.dom.quickConfigSelect].forEach(select => {
+            select.innerHTML = '';
+            // Add 'Current' placeholder
+            const currentConfig = this.appSettings.activeConfig || 'default';
+            let option = new Option(`[Current]`, currentConfig);
+            select.add(option);
+            
+            // Add custom configs
+            Object.keys(this.appSettings.customConfigs).forEach(id => {
+                const config = this.appSettings.customConfigs[id];
+                option = new Option(config.name, id);
+                if (id === currentConfig) option.selected = true;
+                select.add(option);
+            });
+            // Add 'New Config' option
+            select.add(new Option('[Save New Config]', 'new'));
+            select.value = currentConfig;
+        });
+    }
+
+    populateThemeDropdown() {
+        const select = this.dom.themeSelect;
+        select.innerHTML = '';
+        const themes = { ...PREMADE_THEMES, ...this.appSettings.customThemes };
+        const activeThemeId = this.appSettings.activeTheme;
+        
+        Object.keys(themes).forEach(id => {
+            const theme = themes[id];
+            const option = new Option(theme.name, id);
+            if (id === activeThemeId) {
+                option.selected = true;
             }
-        }
-        if (this.dom.audio) {
-            this.dom.audio.onchange = (e) => {
-                this.appSettings.isAudioEnabled = e.target.checked;
-                if (this.dom.quickAudio) this.dom.quickAudio.checked = e.target.checked;
-                this.callbacks.onSave();
-            }
-        }
-        if (this.dom.quickAutoplay) {
-            this.dom.quickAutoplay.onchange = (e) => {
-                this.appSettings.isAutoplayEnabled = e.target.checked;
-                if (this.dom.autoplay) this.dom.autoplay.checked = e.target.checked;
-                this.callbacks.onSave();
-            }
-        }
-        if (this.dom.quickAudio) {
-            this.dom.quickAudio.onchange = (e) => {
-                this.appSettings.isAudioEnabled = e.target.checked;
-                if (this.dom.audio) this.dom.audio.checked = e.target.checked;
-                this.callbacks.onSave();
-            }
-        }
-        if (this.dom.dontShowWelcome) {
-            this.dom.dontShowWelcome.onchange = (e) => {
-                this.appSettings.showWelcomeScreen = !e.target.checked;
-                if (this.dom.showWelcome) this.dom.showWelcome.checked = !e.target.checked;
-                this.callbacks.onSave();
-            }
-        }
-        if (this.dom.showWelcome) {
-            this.dom.showWelcome.onchange = (e) => {
-                this.appSettings.showWelcomeScreen = e.target.checked;
-                if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !e.target.checked;
-                this.callbacks.onSave();
-            }
-        }
+            select.add(option);
+        });
+    }
 
-        bind(this.dom.hapticMorse, 'isHapticMorseEnabled', true);
-        if (this.dom.playbackSpeed) this.dom.playbackSpeed.onchange = (e) => { this.appSettings.playbackSpeed = parseFloat(e.target.value); this.callbacks.onSave(); this.generatePrompt(); };
-        bind(this.dom.chunk, 'simonChunkSize', false, true);
-        if (this.dom.delay) this.dom.delay.onchange = (e) => { this.appSettings.runtimeSettings.simonInterSequenceDelay = parseFloat(e.target.value) * 1000; this.callbacks.onSave(); this.generatePrompt(); };
-        bind(this.dom.haptics, 'isHapticsEnabled', true); bind(this.dom.speedDelete, 'isSpeedDeletingEnabled', true); bind(this.dom.stealth1KeyToggle, 'isStealth1KeyEnabled', true);
-        bind(this.dom.blackoutToggle, 'isBlackoutFeatureEnabled', true); 
-        bind(this.dom.blackoutGesturesToggle, 'isBlackoutGesturesEnabled', true); // NEW BINDING (Fixed)
-        bind(this.dom.practiceMode, 'isPracticeModeEnabled', true);
-        if (this.dom.uiScale) this.dom.uiScale.onchange = (e) => { this.appSettings.globalUiScale = parseInt(e.target.value); this.callbacks.onUpdate(); };
-        if (this.dom.seqSize) this.dom.seqSize.onchange = (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onUpdate(); };
-        if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
-        if (this.dom.gestureMode) this.dom.gestureMode.onchange = (e) => { this.appSettings.gestureResizeMode = e.target.value; this.callbacks.onSave(); };
-        if (this.dom.autoInput) this.dom.autoInput.onchange = (e) => { const val = e.target.value; this.appSettings.autoInputMode = val; this.appSettings.showMicBtn = (val === 'mic' || val === 'both'); this.appSettings.showCamBtn = (val === 'cam' || val === 'both'); this.callbacks.onSave(); this.callbacks.onUpdate(); };
-        if (this.dom.themeAdd) this.dom.themeAdd.onclick = () => { const n = prompt("Name:"); if (n) { const id = 'c_' + Date.now(); this.appSettings.customThemes[id] = { ...PREMADE_THEMES['default'], name: n }; this.appSettings.activeTheme = id; this.callbacks.onSave(); this.callbacks.onUpdate(); this.populateThemeDropdown(); this.openThemeEditor(); } };
-        if (this.dom.themeRename) this.dom.themeRename.onclick = () => { const id = this.appSettings.activeTheme; if (PREMADE_THEMES[id]) return alert("Cannot rename built-in."); const n = prompt("Rename:", this.appSettings.customThemes[id].name); if (n) { this.appSettings.customThemes[id].name = n; this.callbacks.onSave(); this.populateThemeDropdown(); } };
-        if (this.dom.themeDelete) this.dom.themeDelete.onclick = () => { if (PREMADE_THEMES[this.appSettings.activeTheme]) return alert("Cannot delete built-in."); if (confirm("Delete?")) { delete this.appSettings.customThemes[this.appSettings.activeTheme]; this.appSettings.activeTheme = 'default'; this.callbacks.onSave(); this.callbacks.onUpdate(); this.populateThemeDropdown(); } };
-        if (this.dom.themeSelect) this.dom.themeSelect.onchange = (e) => { this.appSettings.activeTheme = e.target.value; this.callbacks.onUpdate(); this.populateThemeDropdown(); };
-        if (this.dom.configAdd) this.dom.configAdd.onclick = () => { const n = prompt("Profile Name:"); if (n) this.callbacks.onProfileAdd(n); this.openSettings(); };
-        if (this.dom.configRename) this.dom.configRename.onclick = () => { const n = prompt("Rename:"); if (n) this.callbacks.onProfileRename(n); this.populateConfigDropdown(); };
-        if (this.dom.configDelete) this.dom.configDelete.onclick = () => { this.callbacks.onProfileDelete(); this.openSettings(); };
-        if (this.dom.configSave) this.dom.configSave.onclick = () => { this.callbacks.onProfileSave(); };
-        if (this.dom.themeSave) this.dom.themeSave.onclick = () => {
-            if (this.tempTheme) {
-                const activeId = this.appSettings.activeTheme;
-                if (PREMADE_THEMES[activeId]) {
-                    const newId = 'custom_' + Date.now();
-                    this.appSettings.customThemes[newId] = this.tempTheme;
-                    this.appSettings.activeTheme = newId;
-                } else {
-                    this.appSettings.customThemes[activeId] = this.tempTheme;
-                }
-                this.callbacks.onProfileSave();
-                this.callbacks.onUpdate();
-                this.populateThemeDropdown();
-                alert("Theme Saved!");
-            }
-        };
-        if (this.dom.closeSetupBtn) this.dom.closeSetupBtn.onclick = () => this.closeSetup();
-        if (this.dom.quickSettings) this.dom.quickSettings.onclick = () => { this.closeSetup(); this.openSettings(); };
-        if (this.dom.quickHelp) this.dom.quickHelp.onclick = () => { this.closeSetup(); this.generatePrompt(); this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); };
-        if (this.dom.closeHelpBtn) this.dom.closeHelpBtn.onclick = () => this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none');
-        if (this.dom.closeHelpBtnBottom) this.dom.closeHelpBtnBottom.onclick = () => this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none');
-        if (this.dom.openHelpBtn) this.dom.openHelpBtn.onclick = () => { this.generatePrompt(); this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); };
-        if (this.dom.closeSettingsBtn) this.dom.closeSettingsBtn.onclick = () => { this.callbacks.onSave(); this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.add('scale-90'); };
-        if (this.dom.openCalibBtn) this.dom.openCalibBtn.onclick = () => this.openCalibration();
-        if (this.dom.closeCalibBtn) this.dom.closeCalibBtn.onclick = () => this.closeCalibration();
-        if (this.dom.calibAudioSlider) this.dom.calibAudioSlider.oninput = () => { const val = parseInt(this.dom.calibAudioSlider.value); this.appSettings.sensorAudioThresh = val; this.sensorEngine.setSensitivity('audio', val); const pct = ((val - (-100)) / ((-30) - (-100))) * 100; this.dom.calibAudioMarker.style.left = `${pct}%`; this.dom.calibAudioVal.innerText = val + 'dB'; this.callbacks.onSave(); };
-        if (this.dom.calibCamSlider) this.dom.calibCamSlider.oninput = () => { const val = parseInt(this.dom.calibCamSlider.value); this.appSettings.sensorCamThresh = val; this.sensorEngine.setSensitivity('camera', val); const pct = Math.min(100, val); this.dom.calibCamMarker.style.left = `${pct}%`; this.dom.calibCamVal.innerText = val; this.callbacks.onSave(); };
+    buildColorGrid() {
+        if (!this.dom.editorGrid) return;
+        this.dom.editorGrid.innerHTML = '';
+        CRAYONS.forEach(hex => {
+            const div = document.createElement('div');
+            div.className = 'w-6 h-6 rounded-full cursor-pointer transition-transform duration-100 hover:scale-110 shadow-md';
+            div.style.backgroundColor = hex;
+            div.onclick = () => this.selectColor(hex);
+            this.dom.editorGrid.appendChild(div);
+        });
+    }
 
-        // TAB LOGIC (Now correctly handles Help tabs too)
-        this.dom.tabs.forEach(btn => {
-            btn.onclick = () => {
-                // Find which container this tab belongs to (Settings or Help)
-                const parent = btn.parentElement.parentElement;
-
-                // Scoped deactivation: Only remove active class from buttons and content in THIS modal
-                parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-                btn.classList.add('active');
-                const target = btn.dataset.tab;
-                if (target === 'help-voice') this.generatePrompt();
-                document.getElementById(`tab-${target}`).classList.add('active');
+    openThemeEditor() {
+        this.tempTheme = { ...PREMADE_THEMES[this.appSettings.activeTheme] || this.appSettings.customThemes[this.appSettings.activeTheme] || PREMADE_THEMES.default };
+        this.currentTargetKey = 'bubble';
+        this.dom.targetBtns.forEach(b => { 
+            b.classList.remove('active', 'bg-primary-app', 'opacity-60'); 
+            b.classList.add('opacity-60'); 
+            if (b.dataset.target === 'bubble') { 
+                b.classList.add('active', 'bg-primary-app'); 
+                b.classList.remove('opacity-60'); 
             }
         });
 
-        if (this.dom.openShareInside) this.dom.openShareInside.onclick = () => this.openShare();
-        if (this.dom.closeShareBtn) this.dom.closeShareBtn.onclick = () => this.closeShare();
-        if (this.dom.openRedeemBtn) this.dom.openRedeemBtn.onclick = () => this.toggleRedeem(true);
-        if (this.dom.closeRedeemBtn) this.dom.closeRedeemBtn.onclick = () => this.toggleRedeem(false);
+        this.dom.edName.value = this.tempTheme.name || '';
+        this.dom.editorModal.classList.remove('opacity-0', 'pointer-events-none');
+        this.dom.editorModal.querySelector('div').classList.remove('scale-90');
 
-        // HEADER BUTTONS (Settings Modal)
-        if (this.dom.openRedeemSettingsBtn) this.dom.openRedeemSettingsBtn.onclick = () => this.toggleRedeem(true);
-        if (this.dom.openDonateBtn) this.dom.openDonateBtn.onclick = () => this.toggleDonate(true);
+        // Initialize sliders based on the current target color
+        const [h, s, l] = this.hexToHsl(this.tempTheme[this.currentTargetKey]);
+        this.dom.ftHue.value = h;
+        this.dom.ftSat.value = s;
+        this.dom.ftLit.value = l;
+        this.updateColorPreview(this.tempTheme);
+    }
 
-        if (this.dom.closeDonateBtn) this.dom.closeDonateBtn.onclick = () => this.toggleDonate(false);
+    // Share Modal
+    openShare() {
+        this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none');
+        this.dom.shareModal.querySelector('div').classList.remove('scale-90');
+    }
 
-        if (this.dom.copyLinkBtn) this.dom.copyLinkBtn.onclick = () => { navigator.clipboard.writeText(window.location.href).then(() => alert("Link Copied!")); };
-        if (this.dom.copyPromptBtn) this.dom.copyPromptBtn.onclick = () => {
-            if (this.dom.promptDisplay) {
-                this.dom.promptDisplay.select();
-                navigator.clipboard.writeText(this.dom.promptDisplay.value).then(() => alert("Prompt Copied!"));
+    // Voice Preset Functions
+    populateVoicePresetDropdown() {
+        const select = this.dom.voicePresetSelect;
+        select.innerHTML = '';
+        const presets = { ...PREMADE_VOICE_PRESETS, ...this.appSettings.customVoicePresets };
+        const activePresetId = this.appSettings.activeVoicePreset || 'standard';
+        
+        Object.keys(presets).forEach(id => {
+            const preset = presets[id];
+            const option = new Option(preset.name, id);
+            if (id === activePresetId) {
+                option.selected = true;
             }
-        };
-        // Add listener for manual generate button
-        if (this.dom.generatePromptBtn) this.dom.generatePromptBtn.onclick = () => {
-            this.generatePrompt();
-            if (this.dom.promptDisplay) {
-                // Flash effect to show update happened
-                this.dom.promptDisplay.style.opacity = '0.5';
-                setTimeout(() => this.dom.promptDisplay.style.opacity = '1', 150);
-            }
-        };
-
-        if (this.dom.nativeShareBtn) this.dom.nativeShareBtn.onclick = () => { if (navigator.share) { navigator.share({ title: "Follow Me", url: window.location.href }); } else { alert("Share not supported"); } };
-
-        if (this.dom.chatShareBtn) this.dom.chatShareBtn.onclick = () => { window.location.href = `sms:?body=Check%20out%20Follow%20Me:%20${window.location.href}`; };
-        if (this.dom.emailShareBtn) this.dom.emailShareBtn.onclick = () => { window.location.href = `mailto:?subject=Follow%20Me%20App&body=Check%20out%20Follow%20Me:%20${window.location.href}`; };
-
-        if (this.dom.btnCashMain) this.dom.btnCashMain.onclick = () => { window.open('https://cash.app/$jwo83', '_blank'); };
-        if (this.dom.btnPaypalMain) this.dom.btnPaypalMain.onclick = () => { window.open('https://www.paypal.me/Oyster981', '_blank'); };
-
-        document.querySelectorAll('.donate-quick-btn').forEach(btn => {
-            btn.onclick = () => {
-                const app = btn.dataset.app;
-                const amt = btn.dataset.amount;
-                if (app === 'cash') window.open(`https://cash.app/$jwo83/${amt}`, '_blank');
-                if (app === 'paypal') window.open(`https://www.paypal.me/Oyster981/${amt}`, '_blank');
-            };
+            select.add(option);
         });
-
-        if (this.dom.restoreBtn) this.dom.restoreBtn.onclick = () => { if (confirm("Factory Reset?")) this.callbacks.onReset(); };
-        if (this.dom.quickResizeUp) this.dom.quickResizeUp.onclick = () => { this.appSettings.globalUiScale = Math.min(200, this.appSettings.globalUiScale + 10); this.callbacks.onUpdate(); };
-        if (this.dom.quickResizeDown) this.dom.quickResizeDown.onclick = () => { this.appSettings.globalUiScale = Math.max(50, this.appSettings.globalUiScale - 10); this.callbacks.onUpdate(); };
     }
-    populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
-    populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
-    openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); }
-    openSetup() {
-        this.populateConfigDropdown();
-        this.updateUIFromSettings();
-        this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90');
+
+    saveVoicePreset(isNew) {
+        const currentId = this.appSettings.activeVoicePreset;
+        let idToSave = currentId;
+        let name = this.dom.voicePresetSelect.options[this.dom.voicePresetSelect.selectedIndex].text;
+
+        if (isNew || PREMADE_VOICE_PRESETS[currentId]) {
+            name = prompt("Enter new preset name:", `${name} Copy`);
+            if (!name) return;
+            idToSave = 'custom_' + Date.now();
+        }
+
+        this.appSettings.customVoicePresets[idToSave] = {
+            name: name,
+            pitch: parseFloat(this.dom.voicePitch.value),
+            rate: parseFloat(this.dom.voiceRate.value),
+            volume: parseFloat(this.dom.voiceVolume.value)
+        };
+        this.appSettings.activeVoicePreset = idToSave;
+        this.callbacks.onSave();
+        this.populateVoicePresetDropdown();
+        this.setVoicePreset(idToSave);
     }
-    closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); }
 
-    generatePrompt() {
-        if (!this.dom.promptDisplay) return;
+    renameVoicePreset() {
+        const currentId = this.appSettings.activeVoicePreset;
+        if (PREMADE_VOICE_PRESETS[currentId]) {
+            alert("Cannot rename a premade preset.");
+            return;
+        }
+        const oldName = this.appSettings.customVoicePresets[currentId].name;
+        const newName = prompt("Rename preset:", oldName);
+        if (newName && newName !== oldName) {
+            this.appSettings.customVoicePresets[currentId].name = newName;
+            this.callbacks.onSave();
+            this.populateVoicePresetDropdown();
+        }
+    }
 
-        const ps = this.appSettings.runtimeSettings;
-        const max = ps.currentInput === 'key12' ? 12 : 9;
-        const speed = this.appSettings.playbackSpeed || 1.0;
-        const machines = ps.machineCount || 1;
-        const chunk = ps.simonChunkSize || 3;
-        const delay = (ps.simonInterSequenceDelay / 1000) || 0;
-        
-        let instructions = "";
-        
-        // --- MULTI-MACHINE AUTOPLAY LOGIC ---
-        if (machines > 1) {
-            instructions = `MODE: MULTI-MACHINE AUTOPLAY (${machines} Machines).
-            
-            YOUR JOB:
-            1. I will speak a batch of ${machines} numbers at once.
-            2. You must immediately SORT them:
-               - 1st number -> Machine 1
-               - 2nd number -> Machine 2
-               - 3rd number -> Machine 3 (if active), etc.
-            3. IMMEDIATELY after hearing the numbers, you must READ BACK the sequences for all machines.
-            
-            READBACK RULES (Interleaved Chunking):
-            - Recite the history in chunks of ${chunk}.
-            - Order: Machine 1 (Chunk 1) -> Machine 2 (Chunk 1) -> ... -> Machine 1 (Chunk 2) -> Machine 2 (Chunk 2)...
-            - Do not stop between machines. Flow through the list.
-            - Pause ${delay} seconds between machine switches.`;
+    deleteVoicePreset() {
+        const currentId = this.appSettings.activeVoicePreset;
+        if (PREMADE_VOICE_PRESETS[currentId]) {
+            alert("Cannot delete a premade preset.");
+            return;
+        }
+        if (confirm(`Are you sure you want to delete the preset: ${this.appSettings.customVoicePresets[currentId].name}?`)) {
+            delete this.appSettings.customVoicePresets[currentId];
+            this.appSettings.activeVoicePreset = 'standard';
+            this.callbacks.onSave();
+            this.populateVoicePresetDropdown();
+            this.setVoicePreset('standard');
+        }
+    }
+
+    setVoicePreset(id) {
+        const preset = PREMADE_VOICE_PRESETS[id] || this.appSettings.customVoicePresets[id] || PREMADE_VOICE_PRESETS.standard;
+        this.appSettings.activeVoicePreset = id;
+        this.appSettings.voicePitch = preset.pitch;
+        this.appSettings.voiceRate = preset.rate;
+        this.appSettings.voiceVolume = preset.volume;
+        this.applyVoice(preset);
+        this.callbacks.onSave();
+    }
+
+    updateVoiceSliders(key, value) {
+        this.appSettings[`voice${key.charAt(0).toUpperCase() + key.slice(1)}`] = value;
+        this.applyVoice({ pitch: this.appSettings.voicePitch, rate: this.appSettings.voiceRate, volume: this.appSettings.voiceVolume });
+        // Set the dropdown back to 'current' or update the custom preset if it's the active one
+        if (!PREMADE_VOICE_PRESETS[this.appSettings.activeVoicePreset]) {
+            this.dom.voicePresetSelect.value = this.appSettings.activeVoicePreset;
         } else {
-            // --- SINGLE MACHINE LOGIC ---
-            if (ps.currentMode === 'simon') {
-                instructions = `MODE: SIMON SAYS (Single Machine).
-                - The sequence grows by one number each round.
-                - I will speak the NEW number.
-                - You must add it to the list and READ BACK the ENTIRE list from the start.`;
-            } else {
-                instructions = `MODE: UNIQUE (Random/Non-Repeating).
-                - Every round is a fresh random sequence.
-                - I will speak a number. You simply repeat that number to confirm.
-                - Keep a running list. If I say "Review", read the whole list.`;
+            this.dom.voicePresetSelect.value = 'standard'; // Default selection if a premade is modified
+        }
+        this.callbacks.onSave();
+    }
+
+    applyVoice(preset) {
+        this.dom.voicePitch.value = preset.pitch;
+        this.dom.voiceRate.value = preset.rate;
+        this.dom.voiceVolume.value = preset.volume;
+        // Also update text displays next to sliders if you have them
+        document.getElementById('pitch-val').textContent = preset.pitch.toFixed(1);
+        document.getElementById('rate-val').textContent = preset.rate.toFixed(1);
+        document.getElementById('volume-val').textContent = preset.volume.toFixed(1);
+    }
+
+    selectTab(tabName) {
+        this.dom.contents.forEach(el => el.style.display = 'none');
+        this.dom.tabs.forEach(el => el.classList.remove('bg-primary-app'));
+
+        const activeContent = document.getElementById(`tab-${tabName}`);
+        const activeBtn = Array.from(this.dom.tabs).find(b => b.dataset.tab === tabName);
+
+        if (activeContent) activeContent.style.display = 'block';
+        if (activeBtn) activeBtn.classList.add('bg-primary-app');
+        
+        if (tabName === 'stealth') {
+            this.renderMappings(); // Re-render mappings when the tab is opened
+        }
+    }
+
+    refreshSettingsModal() {
+        // Ensure all DOM elements reflect the current appSettings
+        // This is a crucial function, but for brevity, we'll only update the critical ones
+        // The implementation assumes the rest of the updates (like updateInput, updateMode, etc.) are called when settings change.
+        this.dom.autoplay.checked = this.appSettings.isAutoplayEnabled;
+        this.dom.autoClear.checked = this.appSettings.isAutoAdvanceClearEnabled;
+
+        // Stealth Toggles
+        this.dom.hapticMorse.checked = this.appSettings.isHapticMorseEnabled;
+        this.dom.blackoutToggle.checked = this.appSettings.isBlackoutModeEnabled;
+        this.dom.stealth1KeyToggle.checked = this.appSettings.isStealth1KeyEnabled;
+        this.dom.blackoutGesturesToggle.checked = this.appSettings.isBlackoutGesturesEnabled; // Update new setting
+
+        this.applyVoice({
+            pitch: this.appSettings.voicePitch, 
+            rate: this.appSettings.voiceRate, 
+            volume: this.appSettings.voiceVolume
+        });
+        this.populateVoicePresetDropdown();
+        this.populateConfigDropdown();
+        this.populateThemeDropdown();
+        this.setLanguage(this.appSettings.language);
+        this.renderMappings(); // Ensure mappings are current
+    }
+
+    // --- Setting Updaters (Simplified) ---
+
+    updateInput(value) { this.appSettings.inputMode = value; this.callbacks.onSave(); }
+    updateMode(value) { this.appSettings.gameMode = value; this.callbacks.onSave(); }
+    updateMachines(value) { this.appSettings.machineCount = value; this.callbacks.onSave(); }
+    updatePlaybackSpeed(value) { this.appSettings.playbackSpeed = value; this.callbacks.onSave(); }
+    updateChunk(value) { this.appSettings.chunkSize = value; this.callbacks.onSave(); }
+    updateDelay(value) { this.appSettings.delayMs = value; this.callbacks.onSave(); }
+    updateLongPressToggle(checked) { this.appSettings.isLongPressAutoplayToggleEnabled = checked; this.callbacks.onSave(); }
+    updatePracticeMode(checked) { this.appSettings.isPracticeModeEnabled = checked; this.callbacks.onSave(); }
+    updateAutoClear(checked) { this.appSettings.isAutoAdvanceClearEnabled = checked; this.callbacks.onSave(); }
+
+    updateAutoplay(checked) {
+        this.appSettings.isAutoplayEnabled = checked; 
+        if(checked) {
+            document.getElementById('autoplay-status-indicator').classList.add('bg-green-500');
+            document.getElementById('autoplay-status-indicator').classList.remove('bg-gray-500');
+        } else {
+            document.getElementById('autoplay-status-indicator').classList.remove('bg-green-500');
+            document.getElementById('autoplay-status-indicator').classList.add('bg-gray-500');
+        }
+        this.callbacks.onSave(); 
+    }
+
+    updateAudio(checked) { 
+        this.appSettings.isAudioEnabled = checked; 
+        if(!checked) this.sensorEngine.stopAudio();
+        this.callbacks.onSave(); 
+    }
+
+    updateHaptics(checked) { this.appSettings.isHapticsEnabled = checked; this.callbacks.onSave(); }
+    updateSpeedDelete(checked) { this.appSettings.isSpeedDeletingEnabled = checked; this.callbacks.onSave(); }
+    updateShowWelcome(checked) { this.appSettings.showWelcomeScreen = checked; this.callbacks.onSave(); }
+    updateUISelect(value) { this.appSettings.uiScale = value; this.callbacks.onSave(); }
+    updateSeqSize(value) { this.appSettings.sequenceSize = value; this.callbacks.onSave(); }
+    updateGestureMode(value) { this.appSettings.gestureMode = value; this.callbacks.onSave(); }
+    updateAutoInput(value) { this.appSettings.autoInputMode = value; this.callbacks.onSave(); }
+
+    updateLang(lang) {
+        this.appSettings.language = lang;
+        this.setLanguage(lang);
+        this.callbacks.onSave();
+    }
+
+    // --- Color Editor Logic (Simplified) ---
+
+    selectColor(hex) {
+        if (!this.tempTheme) return;
+        this.tempTheme[this.currentTargetKey] = hex;
+        this.updateColorPreview(this.tempTheme);
+        this.dom.ftPreview.style.backgroundColor = hex;
+        const [h, s, l] = this.hexToHsl(hex);
+        this.dom.ftHue.value = h;
+        this.dom.ftSat.value = s;
+        this.dom.ftLit.value = l;
+    }
+
+    updateColorFromSliders() {
+        if (!this.tempTheme) return;
+        const h = parseInt(this.dom.ftHue.value);
+        const s = parseInt(this.dom.ftSat.value);
+        const l = parseInt(this.dom.ftLit.value);
+        const hex = this.hslToHex(h, s, l);
+        this.tempTheme[this.currentTargetKey] = hex;
+        this.updateColorPreview(this.tempTheme);
+        this.dom.ftPreview.style.backgroundColor = hex;
+    }
+
+    updateColorPreview(theme) {
+        this.dom.edPreview.style.backgroundColor = theme.bgMain;
+        this.dom.edPreviewCard.style.backgroundColor = theme.bgCard;
+        this.dom.edPreviewCard.style.color = theme.text;
+        this.dom.edPreviewBtn.style.backgroundColor = theme.bubble;
+        this.dom.edPreviewBtn.style.color = theme.text;
+    }
+
+    // --- Color Conversion Utilities (Must be included for completeness) ---
+
+    hexToRgb(hex) { let shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i; hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b); let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex); return result ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)] : [0, 0, 0]; }
+    rgbToHsl(r, g, b) { r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
+    hslToRgb(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else if (300 <= h && h < 360) { r = c; g = 0; b = x; } r = Math.round((r + m) * 255); g = Math.round((g + m) * 255); b = Math.round((b + m) * 255); return [r, g, b]; }
+    rgbToHex(r, g, b) { const toHex = c => c.toString(16).padStart(2, '0'); return `#${toHex(r)}${toHex(g)}${toHex(b)}`; }
+    hslToHex(h, s, l) { const [r, g, b] = this.hslToRgb(h, s, l); return this.rgbToHex(r, g, b); }
+    hexToHsl(hex) { const [r, g, b] = this.hexToRgb(hex); return this.rgbToHsl(r, g, b); }
+
+    // --- Theme Management ---
+
+    addTheme() {
+        const name = prompt("Enter new theme name:", "Custom Theme");
+        if (name) {
+            const newId = 'custom_' + Date.now();
+            this.appSettings.customThemes[newId] = { ...PREMADE_THEMES.default, name: name };
+            this.appSettings.activeTheme = newId;
+            this.callbacks.onSave();
+            this.populateThemeDropdown();
+            this.setTheme(newId);
+            this.openThemeEditor();
+        }
+    }
+
+    renameTheme() {
+        const activeId = this.appSettings.activeTheme;
+        if (PREMADE_THEMES[activeId]) {
+            alert("Cannot rename a premade theme.");
+            return;
+        }
+        const oldName = this.appSettings.customThemes[activeId].name;
+        const newName = prompt("Rename theme:", oldName);
+        if (newName && newName !== oldName) {
+            this.appSettings.customThemes[activeId].name = newName;
+            this.callbacks.onSave();
+            this.populateThemeDropdown();
+        }
+    }
+
+    deleteTheme() {
+        const activeId = this.appSettings.activeTheme;
+        if (PREMADE_THEMES[activeId]) {
+            alert("Cannot delete a premade theme.");
+            return;
+        }
+        if (confirm(`Are you sure you want to delete the theme: ${this.appSettings.customThemes[activeId].name}?`)) {
+            delete this.appSettings.customThemes[activeId];
+            this.appSettings.activeTheme = 'default';
+            this.callbacks.onSave();
+            this.populateThemeDropdown();
+            this.setTheme('default');
+        }
+    }
+
+    setTheme(themeId, isPreview = false) {
+        let theme;
+        if (typeof themeId === 'string') {
+            theme = PREMADE_THEMES[themeId] || this.appSettings.customThemes[themeId] || PREMADE_THEMES.default;
+            if (!isPreview) {
+                this.appSettings.activeTheme = themeId;
+                this.callbacks.onSave();
             }
+        } else {
+            theme = themeId; // themeId is the actual theme object for preview
         }
 
-        const promptText = `Act as a professional Sequence Caller for a memory skill game. 
-You are the "Caller" (App). I am the "Player" (User).
+        const root = document.documentElement.style;
+        root.setProperty('--bg-main', theme.bgMain);
+        root.setProperty('--bg-card', theme.bgCard);
+        root.setProperty('--text-main', theme.text);
+        root.setProperty('--btn-color', theme.btn);
+        root.setProperty('--primary-app', theme.bubble);
 
-SETTINGS:
-- Max Number: ${max}
-- Playback Speed: ${speed}x (Speak fast)
-- Active Machines: ${machines}
-- Chunk Size: ${chunk}
-
-${instructions}
-
-YOUR RULES:
-1. Speak clearly but quickly. No fluff. No conversational filler.
-2. If I get it wrong, correct me immediately.
-3. If I say "Status", tell me the current round/sequence length.
-
-START IMMEDIATELY upon my next input. Waiting for signal.`;
-
-        this.dom.promptDisplay.value = promptText;
+        if (!isPreview) {
+            this.callbacks.onUpdate();
+        }
     }
 
-    updateUIFromSettings() {
-        const ps = this.appSettings.runtimeSettings;
-        if (this.dom.input) this.dom.input.value = ps.currentInput;
+    // --- Config Management (Assumes methods exist in parent app.js) ---
 
-        if (this.dom.mode) this.dom.mode.value = ps.currentMode;
-
-        if (this.dom.machines) this.dom.machines.value = ps.machineCount;
-        if (this.dom.seqLength) this.dom.seqLength.value = ps.sequenceLength;
-        if (this.dom.autoClear) this.dom.autoClear.checked = this.appSettings.isUniqueRoundsAutoClearEnabled;
-
-        if (this.dom.autoplay) this.dom.autoplay.checked = this.appSettings.isAutoplayEnabled;
-        if (this.dom.audio) this.dom.audio.checked = this.appSettings.isAudioEnabled;
-
-        if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = this.appSettings.isAutoplayEnabled;
-        if (this.dom.quickAudio) this.dom.quickAudio.checked = this.appSettings.isAudioEnabled;
-        if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !this.appSettings.showWelcomeScreen;
-        if (this.dom.showWelcome) this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
-
-        if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.isHapticMorseEnabled;
-        if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = this.appSettings.playbackSpeed.toFixed(1) || "1.0";
-        if (this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
-        if (this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000);
-
-        // Voice Update
-        if (this.dom.voicePitch) this.dom.voicePitch.value = this.appSettings.voicePitch || 1.0;
-        if (this.dom.voiceRate) this.dom.voiceRate.value = this.appSettings.voiceRate || 1.0;
-        if (this.dom.voiceVolume) this.dom.voiceVolume.value = this.appSettings.voiceVolume || 1.0;
-        if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
-
-        if (this.dom.practiceMode) this.dom.practiceMode.checked = this.appSettings.isPracticeModeEnabled;
-        if (this.dom.stealth1KeyToggle) this.dom.stealth1KeyToggle.checked = this.appSettings.isStealth1KeyEnabled;
-
-        if (this.dom.longPressToggle) this.dom.longPressToggle.checked = (typeof this.appSettings.isLongPressAutoplayEnabled === 'undefined') ? true : this.appSettings.isLongPressAutoplayEnabled;
-
-        if (this.dom.calibAudioSlider) this.dom.calibAudioSlider.value = this.appSettings.sensorAudioThresh || -85;
-        if (this.dom.calibCamSlider) this.dom.calibCamSlider.value = this.appSettings.sensorCamThresh || 30;
-
-        if (this.dom.haptics) this.dom.haptics.checked = (typeof this.appSettings.isHapticsEnabled === 'undefined') ? true : this.appSettings.isHapticsEnabled;
-        if (this.dom.speedDelete) this.dom.speedDelete.checked = (typeof this.appSettings.isSpeedDeletingEnabled === 'undefined') ? true : this.appSettings.isSpeedDeletingEnabled;
-
-        if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
-        if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
-        if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
-        
-        if (this.dom.blackoutToggle) this.dom.blackoutToggle.checked = this.appSettings.isBlackoutFeatureEnabled;
-        if (this.dom.blackoutGesturesToggle) this.dom.blackoutGesturesToggle.checked = this.appSettings.isBlackoutGesturesEnabled;
-
-        // Language
-        const lang = this.appSettings.generalLanguage || 'en';
-        if (this.dom.quickLang) this.dom.quickLang.value = lang;
-        if (this.dom.generalLang) this.dom.generalLang.value = lang;
-        this.setLanguage(lang);
+    getCustomConfig(id) { return this.appSettings.customConfigs[id]; }
+    saveCustomConfig(id, config) { this.appSettings.customConfigs[id] = config; this.callbacks.onSave(); }
+    deleteCustomConfig(id) { delete this.appSettings.customConfigs[id]; this.callbacks.onSave(); }
+    populateCustomConfig(config) {
+        this.appSettings = { ...this.appSettings, ...config };
+        this.callbacks.onSave();
+        this.refreshSettingsModal();
     }
-    hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
-    hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
+
+    // --- Language ---
+    setLanguage(lang) {
+        const elements = document.querySelectorAll('[data-i18n]');
+        const languageData = LANG[lang] || LANG.en;
+        elements.forEach(el => {
+            const key = el.dataset.i18n;
+            if (languageData[key]) {
+                el.textContent = languageData[key];
+            }
+        });
+        this.dom.generalLang.value = lang;
+        this.dom.quickLang.value = lang;
+    }
 }

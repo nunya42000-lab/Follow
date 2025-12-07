@@ -1,218 +1,393 @@
-export class SensorEngine {
-    constructor(onTrigger, onStatusUpdate) {
-        this.onTrigger = onTrigger;
-        this.onStatusUpdate = onStatusUpdate;
-        this.calibrationCallback = null;
-        this.COLORS = [{ n: 3, hue: 0, range: 12, satMin: 0.5 }, { n: 9, hue: 30, range: 15, satMin: 0.5 }, { n: 4, hue: 60, range: 20, satMin: 0.4 }, { n: 5, hue: 120, range: 30, satMin: 0.3 }, { n: 6, hue: 180, range: 25, satMin: 0.3 }, { n: 2, hue: 240, range: 25, satMin: 0.4 }, { n: 1, hue: 275, range: 20, satMin: 0.3 }, { n: 8, hue: 315, range: 25, satMin: 0.3 }];
-        this.TONES = [{ n: 1, f: 261 }, { n: 2, f: 293 }, { n: 3, f: 329 }, { n: 4, f: 349 }, { n: 5, f: 392 }, { n: 6, f: 440 }, { n: 7, f: 493 }, { n: 8, f: 523 }, { n: 9, f: 587 }];
-        this.isActive = false;
-        this.mode = { audio: false, camera: false };
-        this.lastTriggerTime = 0;
-        this.COOLDOWN = 600;
-        this.loopId = null;
-        this.audioCtx = null;
-        this.analyser = null;
-        this.micSrc = null;
-        this.audioThresh = -85;
-        this.videoEl = null;
-        this.canvasEl = null;
-        this.ctx = null;
-        this.prevFrame = null;
-        this.motionThresh = 30;
-        this.isFlashing = false;
-        this.flashFrames = 0;
-        this.peakBrightness = 0;
-        this.peakColorData = null;
-    }
-    setCalibrationCallback(cb) { this.calibrationCallback = cb; }
-    setupDOM(videoElement, canvasElement) {
-        this.videoEl = videoElement;
-        this.canvasEl = canvasElement;
-        if (this.canvasEl) { this.ctx = this.canvasEl.getContext('2d', { willReadFrequently: true }); }
-    }
-    setSensitivity(type, val) { if (type === 'audio') this.audioThresh = val; if (type === 'camera') this.motionThresh = val; }
-    async toggleAudio(enable) {
-        this.mode.audio = enable;
-        if (enable && !this.audioCtx) {
-            try {
-                this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                this.analyser = this.audioCtx.createAnalyser();
-                this.analyser.fftSize = 8192;
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                this.micSrc = this.audioCtx.createMediaStreamSource(stream);
-                this.micSrc.connect(this.analyser);
-                this.onStatusUpdate("Audio Active");
-            } catch (e) {
-                console.error("Audio Init Failed", e);
-                this.onStatusUpdate("Audio Failed: " + e.message);
-                this.mode.audio = false;
-            }
-        } else if (!enable && this.audioCtx) {
-            if (this.audioCtx.state === 'running') this.audioCtx.suspend();
-        } else if (enable && this.audioCtx.state === 'suspended') {
-            this.audioCtx.resume();
-        }
-        this.checkLoop();
-    }
-    async toggleCamera(enable) {
-        this.mode.camera = enable;
-        if (enable) {
-            // Safety: Create hidden elements if they don't exist yet
-            if (!this.videoEl) {
-                this.videoEl = document.createElement('video');
-                this.videoEl.setAttribute('autoplay', '');
-                this.videoEl.setAttribute('playsinline', '');
-                this.videoEl.style.display = 'none';
-                document.body.appendChild(this.videoEl);
-            }
-            if (!this.canvasEl) {
-                this.canvasEl = document.createElement('canvas');
-                this.canvasEl.width = 64;
-                this.canvasEl.height = 64;
-                this.canvasEl.style.display = 'none';
-                document.body.appendChild(this.canvasEl);
-                this.ctx = this.canvasEl.getContext('2d', { willReadFrequently: true });
-            }
+// sensors.js
+// SensorEngine - integrates microphone & camera sensors and forwards tokens to mapping/translators.
+// Emits mapping:token events and sensor:audio_pulse / sensor:camera_flash events.
 
-            if (!this.videoEl.srcObject) {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } } });
-                    this.videoEl.srcObject = stream;
-                    this.videoEl.onloadedmetadata = () => {
-                        if (this.canvasEl) {
-                            this.canvasEl.width = 64;
-                            this.canvasEl.height = 64;
-                        }
-                    };
-                    this.onStatusUpdate("Camera Active");
-                } catch (e) {
-                    console.error("Camera Init Failed", e);
-                    this.onStatusUpdate("Camera Failed: " + e.message);
-                    this.mode.camera = false;
-                }
+(function () {
+  const SensorEngine = function () {
+    // internal state
+    this._audioCtx = null;
+    this._micStream = null;
+    this._analyser = null;
+    this._audioData = null;
+    this._audioRunning = false;
+    this._audioInterval = null;
+    this._audioThreshold = 0.25; // default RMS threshold (0..1)
+    this._audioSmoothing = 0.85; // smoothing factor for level
+    this._audioSmoothed = 0;
+    this._cameraStream = null;
+    this._cameraRunning = false;
+    this._cameraInterval = null;
+    this._cameraThreshold = 18; // average brightness diff threshold
+    this._translator = null; // mappingAPI.applyMappingsToSensor(...).handleToken(token)
+    this._onTrigger = null; // fallback onTrigger(k, source) (used if translator absent)
+    this._pollMs = 120; // poll interval for audio/camera checks
+    this._lastAudioEmitTs = 0;
+    this._audioCooldownMs = 350; // avoid multiple triggers in short succession
+    this._lastCameraEmitTs = 0;
+    this._cameraCooldownMs = 350;
+    this._attached = false;
+  };
+
+  SensorEngine.prototype.setTranslator = function (translator) {
+    // translator expected shape: { handleToken: fn(token, source), tokenToKey: {} }
+    this._translator = translator;
+  };
+
+  SensorEngine.prototype.setOnTrigger = function (fn) {
+    this._onTrigger = typeof fn === 'function' ? fn : null;
+  };
+
+  SensorEngine.prototype.emitToken = function (token, source = 'sensor') {
+    try {
+      // prefer translator if present
+      if (this._translator && typeof this._translator.handleToken === 'function') {
+        try {
+          this._translator.handleToken(token, source);
+        } catch (e) {
+          console.warn('SensorEngine: translator.handleToken failed', e);
+        }
+      } else if (this._onTrigger && typeof this._onTrigger === 'function') {
+        // translator not provided - fallback to onTrigger numeric mapping not possible here
+        // but call with token so consumer can map or interpret
+        try { this._onTrigger(token, source); } catch (e) {}
+      }
+      // Always emit mapping:token as well so mapping UI / app can pick up
+      window.dispatchEvent(new CustomEvent('mapping:token', { detail: { token, source } }));
+    } catch (e) {
+      console.warn('SensorEngine.emitToken error', e);
+    }
+  };
+
+  // Small helper to read calibration slider values if present
+  SensorEngine.prototype._readCalibration = function () {
+    try {
+      const audioSlider = document.getElementById('calib-audio-slider');
+      if (audioSlider) {
+        const v = parseFloat(audioSlider.value);
+        // slider is -100..-30 in index.html, we map to RMS threshold roughly
+        // convert dB value to normalized RMS estimate: simple linear map to 0..1
+        // Note: this is heuristic — fine tuned via UI by user
+        const db = v; // -100 .. -30
+        // map -100 -> 0.01, -30 -> 0.6
+        const mapped = ((db + 100) / 70) * 0.59 + 0.01;
+        this._audioThreshold = clamp(mapped, 0.01, 0.9);
+      }
+    } catch (e) {}
+
+    try {
+      const camSlider = document.getElementById('calib-cam-slider');
+      if (camSlider) {
+        // slider 5..100 in index.html; map to pixel brightness jump threshold (10..40)
+        const v = parseFloat(camSlider.value);
+        const mapped = Math.round(clamp((v / 100) * 40, 8, 60));
+        this._cameraThreshold = mapped;
+      }
+    } catch (e) {}
+  };
+
+  // ---------------- Audio capture & pulse detection ----------------
+  SensorEngine.prototype._ensureAudio = async function () {
+    if (this._audioCtx) return;
+    try {
+      this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) {
+      console.warn('SensorEngine: WebAudio not supported', e);
+      this._audioCtx = null;
+      return;
+    }
+  };
+
+  SensorEngine.prototype.startAudio = async function () {
+    try {
+      await this._ensureAudio();
+      if (!this._audioCtx) return;
+
+      // if already running, don't re-request
+      if (this._audioRunning) return;
+
+      // request microphone
+      if (!this._micStream) {
+        try {
+          this._micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        } catch (err) {
+          console.warn('SensorEngine: microphone permission denied or unavailable', err);
+          this._micStream = null;
+          return;
+        }
+      }
+
+      // create analyser
+      const src = this._audioCtx.createMediaStreamSource(this._micStream);
+      this._analyser = this._audioCtx.createAnalyser();
+      this._analyser.fftSize = 2048;
+      src.connect(this._analyser);
+      this._audioData = new Float32Array(this._analyser.fftSize);
+
+      this._audioRunning = true;
+      this._readCalibration();
+
+      // start polling
+      this._audioInterval = setInterval(() => {
+        try {
+          this._analyser.getFloatTimeDomainData(this._audioData);
+          // compute RMS
+          let sum = 0;
+          for (let i = 0; i < this._audioData.length; i++) {
+            const s = this._audioData[i];
+            sum += s * s;
+          }
+          const rms = Math.sqrt(sum / this._audioData.length);
+          // smooth
+          this._audioSmoothed = (this._audioSmoothing * this._audioSmoothed) + ((1 - this._audioSmoothing) * rms);
+
+          // threshold crossing detection - consider short transient (use raw rms)
+          const now = Date.now();
+          // use short-term raw rms for detecting impulses
+          if (rms > this._audioThreshold && (now - this._lastAudioEmitTs) > this._audioCooldownMs) {
+            this._lastAudioEmitTs = now;
+            // emit token for audio pulse
+            const token = 'audio_pulse';
+            window.dispatchEvent(new CustomEvent('sensor:audio_pulse', { detail: { rms, threshold: this._audioThreshold } }));
+            this.emitToken(token, 'audio');
+          }
+        } catch (e) {
+          console.warn('SensorEngine: audio poll error', e);
+        }
+      }, this._pollMs);
+    } catch (e) {
+      console.warn('SensorEngine.startAudio failed', e);
+      this._audioRunning = false;
+    }
+  };
+
+  SensorEngine.prototype.stopAudio = function () {
+    try {
+      if (this._audioInterval) { clearInterval(this._audioInterval); this._audioInterval = null; }
+      if (this._analyser) { try { this._analyser.disconnect(); } catch (e) {} this._analyser = null; }
+      if (this._micStream) {
+        try {
+          this._micStream.getTracks().forEach(t => t.stop());
+        } catch (e) {}
+        this._micStream = null;
+      }
+      if (this._audioCtx) {
+        try { this._audioCtx.close(); } catch (e) {}
+        this._audioCtx = null;
+      }
+      this._audioRunning = false;
+    } catch (e) {
+      console.warn('SensorEngine.stopAudio failed', e);
+    }
+  };
+
+  // ---------------- Camera frame-difference brightness detection ----------------
+  SensorEngine.prototype.startCamera = async function (facingMode = 'environment') {
+    try {
+      if (this._cameraRunning) return;
+      // request camera
+      try {
+        this._cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode } });
+      } catch (e) {
+        console.warn('SensorEngine: camera permission denied or unavailable', e);
+        this._cameraStream = null;
+        return;
+      }
+
+      const video = document.createElement('video');
+      video.autoplay = true;
+      video.playsInline = true;
+      video.muted = true;
+      video.srcObject = this._cameraStream;
+
+      // ensure video starts
+      await video.play().catch(() => {});
+
+      // create small offscreen canvas for frame analysis
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // initial size
+      const w = 160;
+      const h = 120;
+      canvas.width = w;
+      canvas.height = h;
+
+      let lastAvg = null;
+      this._cameraRunning = true;
+      this._readCalibration();
+
+      this._cameraInterval = setInterval(() => {
+        try {
+          if (video.readyState < 2) return;
+          ctx.drawImage(video, 0, 0, w, h);
+          const img = ctx.getImageData(0, 0, w, h).data;
+          let sum = 0;
+          let count = 0;
+          for (let i = 0; i < img.length; i += 4) {
+            // luminance approximation
+            const r = img[i], g = img[i+1], b = img[i+2];
+            const lum = (0.299*r + 0.587*g + 0.114*b);
+            sum += lum;
+            count++;
+          }
+          const avg = sum / count;
+          if (lastAvg !== null) {
+            const diff = Math.abs(avg - lastAvg);
+            const now = Date.now();
+            if (diff > this._cameraThreshold && (now - this._lastCameraEmitTs) > this._cameraCooldownMs) {
+              this._lastCameraEmitTs = now;
+              const token = 'camera_flash';
+              window.dispatchEvent(new CustomEvent('sensor:camera_flash', { detail: { avg, lastAvg, diff, threshold: this._cameraThreshold } }));
+              this.emitToken(token, 'camera');
             }
-        } else if (!enable && this.videoEl && this.videoEl.srcObject) {
-            const tracks = this.videoEl.srcObject.getTracks();
-            tracks.forEach(t => t.stop());
-            this.videoEl.srcObject = null;
+          }
+          lastAvg = avg;
+        } catch (e) {
+          console.warn('SensorEngine: camera interval error', e);
         }
-        this.checkLoop();
+      }, this._pollMs);
+    } catch (e) {
+      console.warn('SensorEngine.startCamera failed', e);
+      this._cameraRunning = false;
     }
-    checkLoop() {
-        const shouldRun = this.mode.audio || this.mode.camera;
-        if (shouldRun && !this.isActive) {
-            this.isActive = true;
-            this.loop();
-        } else if (!shouldRun) {
-            this.isActive = false;
-            if (this.loopId) cancelAnimationFrame(this.loopId);
-        }
+  };
+
+  SensorEngine.prototype.stopCamera = function () {
+    try {
+      if (this._cameraInterval) { clearInterval(this._cameraInterval); this._cameraInterval = null; }
+      if (this._cameraStream) {
+        try { this._cameraStream.getTracks().forEach(t => t.stop()); } catch (e) {}
+        this._cameraStream = null;
+      }
+      this._cameraRunning = false;
+    } catch (e) {
+      console.warn('SensorEngine.stopCamera failed', e);
     }
-    loop() {
-        if (!this.isActive) return;
-        let audioLevel = -120;
-        let cameraLevel = 0;
-        if (this.mode.audio) audioLevel = this.processAudio();
-        if (this.mode.camera) cameraLevel = this.processCamera();
-        if (this.calibrationCallback) {
-            this.calibrationCallback({ audio: audioLevel, camera: cameraLevel });
-        }
-        this.loopId = requestAnimationFrame(() => this.loop());
+  };
+
+  // ---------------- Attach gesture token listeners ----------------
+  SensorEngine.prototype.attachGestureListeners = function () {
+    if (this._attached) return;
+    this._attached = true;
+    // Forward gesture tokens to translator
+    window.addEventListener('gesture:token', (ev) => {
+      try {
+        const token = ev?.detail?.token;
+        if (!token) return;
+        this.emitToken(token, 'gesture');
+      } catch (e) {}
+    });
+
+    window.addEventListener('mapping:token', (ev) => {
+      // mapping:token events might be generated by other modules; ignore to avoid loop
+    });
+
+    // Also pick up raw gesture taps/swipes with token fields
+    window.addEventListener('gesture:tap', (ev) => {
+      try {
+        const d = ev.detail || {};
+        if (d && d.token) this.emitToken(d.token, 'gesture');
+      } catch (e) {}
+    });
+
+    window.addEventListener('gesture:swipe', (ev) => {
+      try {
+        const d = ev.detail || {};
+        if (d && d.token) this.emitToken(d.token, 'gesture');
+      } catch (e) {}
+    });
+  };
+
+  // ---------------- Init / start / stop top-level ----------------
+  SensorEngine.prototype.init = function (opts = {}) {
+    // opts may include autoStartAudio, autoStartCamera, onTrigger (fallback), translator
+    if (opts.onTrigger) this.setOnTrigger(opts.onTrigger);
+    if (opts.translator) this.setTranslator(opts.translator);
+    this._readCalibration();
+    this.attachGestureListeners();
+    if (opts.autoStartAudio) this.startAudio();
+    if (opts.autoStartCamera) this.startCamera(opts.facingMode || 'environment');
+  };
+
+  SensorEngine.prototype.start = function (opts = {}) {
+    opts = opts || {};
+    this._readCalibration();
+    if (opts.startAudio) this.startAudio();
+    if (opts.startCamera) this.startCamera(opts.facingMode || 'environment');
+    this.attachGestureListeners();
+  };
+
+  SensorEngine.prototype.stop = function () {
+    this.stopAudio();
+    this.stopCamera();
+  };
+
+  // expose singleton
+  const engine = new SensorEngine();
+
+  // Utility clamp used inside readCalibration
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  // Auto-initialize small parts when DOM ready: read calibration and wire to sliders
+  document.addEventListener('DOMContentLoaded', () => {
+    try {
+      // Wire calibration UI to update engine thresholds live
+      const audioSlider = document.getElementById('calib-audio-slider');
+      if (audioSlider) {
+        audioSlider.addEventListener('input', () => {
+          try { engine._readCalibration(); } catch (e) {}
+        });
+      }
+      const camSlider = document.getElementById('calib-cam-slider');
+      if (camSlider) {
+        camSlider.addEventListener('input', () => {
+          try { engine._readCalibration(); } catch (e) {}
+        });
+      }
+
+      // If the settings indicate we should start audio/camera, honor them (non-blocking)
+      setTimeout(() => {
+        try {
+          const cfg = (window.settingsManager && settingsManager.appSettings) ? settingsManager.appSettings : {};
+          if (cfg && cfg.autoStartMicrophone) {
+            engine.startAudio().catch(()=>{});
+          }
+          if (cfg && cfg.autoStartCamera) {
+            engine.startCamera().catch(()=>{});
+          }
+        } catch (e) {}
+      }, 300);
+    } catch (e) {
+      console.warn('SensorEngine DOM ready init failed', e);
     }
-    processAudio() {
-        if (!this.analyser) return -120;
-        const buffer = new Float32Array(this.analyser.frequencyBinCount);
-        this.analyser.getFloatFrequencyData(buffer);
-        let maxVal = -Infinity, maxIdx = -1;
-        const hzPerBin = this.audioCtx.sampleRate / 2 / buffer.length;
-        const startBin = Math.floor(200 / hzPerBin);
-        const endBin = Math.floor(700 / hzPerBin);
-        for (let i = startBin; i < endBin; i++) {
-            if (buffer[i] > maxVal) {
-                maxVal = buffer[i];
-                maxIdx = i;
-            }
+  });
+
+  // Provide global API
+  window.sensorEngine = engine;
+
+  // If mappingAPI.applyMappingsToSensor exists, automatically attach translator when mappingAPI ready
+  // mappingAPI.applyMappingsToSensor expects sensorEngine-like object with onTrigger callback; our translator will be created when app calls it.
+  // But provide a convenience: if mappingAPI exists now, create translator and set it
+  try {
+    if (globalThis.mappingAPI && typeof mappingAPI.applyMappingsToSensor === 'function') {
+      // create a translator for the current default mode (if settingsManager available)
+      const mode = (window.settingsManager && settingsManager.appSettings && settingsManager.appSettings.runtimeSettings && settingsManager.appSettings.runtimeSettings.currentInput) || 'key9';
+      const translator = mappingAPI.applyMappingsToSensor({
+        onTrigger: (k, source) => {
+          // If translator calls with numeric key, dispatch as mapping or call fallback onTrigger
+          // If onTrigger expects numeric, call engine._onTrigger if present
+          if (engine._onTrigger) {
+            try { engine._onTrigger(k, source); } catch (e) {}
+          } else {
+            // Emit generic mapping event so App can handle
+            window.dispatchEvent(new CustomEvent('mapping:trigger', { detail: { key: k, source } }));
+          }
         }
-        if (maxVal > this.audioThresh) {
-            const freq = maxIdx * hzPerBin;
-            const match = this.TONES.find(t => Math.abs(t.f - freq) < (t.f * 0.04));
-            if (match) { this.trigger(match.n, 'audio'); }
-        }
-        return maxVal;
+      }, mode);
+      if (translator) engine.setTranslator(translator);
     }
-    processCamera() {
-        if (!this.videoEl || !this.videoEl.videoWidth || !this.ctx) return 0;
-        this.ctx.drawImage(this.videoEl, 0, 0, this.canvasEl.width, this.canvasEl.height);
-        const frame = this.ctx.getImageData(0, 0, this.canvasEl.width, this.canvasEl.height);
-        const data = frame.data;
-        if (!this.prevFrame) {
-            this.prevFrame = new Uint8ClampedArray(data);
-            return 0;
-        }
-        let diffScore = 0, rSum = 0, gSum = 0, bSum = 0, pxCount = 0;
-        for (let i = 0; i < data.length; i += 4) {
-            const r = data[i], g = data[i + 1], b = data[i + 2];
-            const diff = Math.abs(r - this.prevFrame[i]) + Math.abs(g - this.prevFrame[i + 1]) + Math.abs(b - this.prevFrame[i + 2]);
-            if (diff > 50) {
-                diffScore++;
-                rSum += r;
-                gSum += g;
-                bSum += b;
-                pxCount++;
-            }
-        }
-        this.prevFrame.set(data);
-        if (diffScore > this.motionThresh) {
-            this.isFlashing = true;
-            this.flashFrames++;
-            const avgR = rSum / pxCount, avgG = gSum / pxCount, avgB = bSum / pxCount;
-            const brightness = (avgR + avgG + avgB) / 3;
-            const [h, s, l] = this.rgbToHsl(avgR, avgG, avgB);
-            const quality = brightness * (s + 0.5);
-            if (quality > this.peakBrightness) {
-                this.peakBrightness = quality;
-                this.peakColorData = { h: Math.round(h * 360), s, l };
-            }
-        } else {
-            if (this.isFlashing) {
-                if (this.flashFrames > 2 && this.peakColorData) {
-                    this.identifyColor(this.peakColorData);
-                }
-                this.isFlashing = false;
-                this.flashFrames = 0;
-                this.peakBrightness = 0;
-                this.peakColorData = null;
-            }
-        }
-        return diffScore;
-    }
-    identifyColor(data) {
-        const { h, s } = data;
-        if (s < 0.25) { this.trigger(7, 'camera-white'); return; }
-        if (h > 350 || h < 10) { this.trigger(3, 'camera'); return; }
-        const match = this.COLORS.find(c => (h >= c.hue - c.range && h <= c.hue + c.range));
-        if (match) this.trigger(match.n, 'camera');
-    }
-    trigger(num, source) {
-        const now = Date.now();
-        if (now - this.lastTriggerTime < this.COOLDOWN) return;
-        this.lastTriggerTime = now;
-        this.onTrigger(num, source);
-    }
-    rgbToHsl(r, g, b) {
-        r /= 255, g /= 255, b /= 255;
-        const max = Math.max(r, g, b), min = Math.min(r, g, b);
-        let h, s, l = (max + min) / 2;
-        if (max == min) { h = s = 0; } else {
-            const d = max - min;
-            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-            switch (max) {
-                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-                case g: h = (b - r) / d + 2; break;
-                case b: h = (r - g) / d + 4; break;
-            }
-            h /= 6;
-        }
-        return [h, s, l];
-    }
-}
+  } catch (e) {
+    // don't crash if mappingAPI not yet available
+  }
+
+})();

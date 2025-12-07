@@ -1,831 +1,656 @@
-// app.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-import { SensorEngine } from './sensors.js';
-import { SettingsManager, PREMADE_THEMES, PREMADE_VOICE_PRESETS } from './settings.js';
-import { initComments } from './comments.js';
+// app.js (merged - Version B style for UI + Input engine)
+// Full, complete file. Drop-in replacement for your app's app.js.
+// Works with settings.js, sensors.js, mappingAPI, gesturePad, and autoplayManager.
 
-const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// ----------------------------- Boot / Globals -----------------------------
+const App = (function () {
+  // internal state
+  const state = {
+    sequence: [],            // current sequence array (numbers or letters)
+    userInput: [],           // inputs user has entered this round
+    roundActive: false,      // whether round is currently in play (autoplay or user input active)
+    mode: 'simon',           // 'simon' or 'unique'
+    inputType: 'key9',       // 'key9' | 'key12' | 'piano'
+    machines: 1,
+    sequenceLength: 20,
+    playbackChunk: 3,
+    uniqueRoundIndex: 0,     // index used for unique rounds progression
+    awaitingNextUnique: false,
+    isPractice: false,
+    lastTriggeredFrom: null  // source of last input (mapping token, button, etc.)
+  };
 
-// --- CONFIG ---
-const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 250, SPEED_DELETE_INTERVAL: 20, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v46', STORAGE_KEY_STATE: 'followMeAppState_v46', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } };
+  // convenience refs
+  const dom = {};
 
-const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
-const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 400 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
+  // expose for debugging
+  window._APP_STATE = state;
 
-const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en' };
+  // ------------------------ Utility Functions ------------------------
 
-const DICTIONARY = {
-    'en': { correct: "Correct", wrong: "Wrong", stealth: "Stealth Active", reset: "Reset to Round 1", stop: "Playback Stopped 🛑" },
-    'es': { correct: "Correcto", wrong: "Incorrecto", stealth: "Modo Sigilo", reset: "Reiniciar Ronda 1", stop: "Detenido 🛑" }
-};
+  function $(id) { return document.getElementById(id); }
+  function q(selector) { return document.querySelector(selector); }
 
-let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
-let appState = {};
-let modules = { sensor: null, settings: null };
-let timers = { speedDelete: null, initialDelay: null, longPress: null, settingsLongPress: null, stealth: null, stealthAction: null, playback: null, tap: null };
-let gestureState = { startDist: 0, startScale: 1, isPinching: false };
-let blackoutState = { isActive: false, lastShake: 0 }; 
-let gestureInputState = { startX: 0, startY: 0, startTime: 0, maxTouches: 0, isTapCandidate: false, tapCount: 0 };
-let isDeleting = false; 
-let isDemoPlaying = false; 
-let practiceSequence = [];
-let practiceInputIndex = 0;
-let ignoreNextClick = false;
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
-const getProfileSettings = () => appSettings.runtimeSettings;
-const getState = () => appState['current_session'] || (appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 });
-function saveState() { localStorage.setItem(CONFIG.STORAGE_KEY_SETTINGS, JSON.stringify(appSettings)); localStorage.setItem(CONFIG.STORAGE_KEY_STATE, JSON.stringify(appState)); }
+  function log(...args) { console.debug('[APP]', ...args); }
+  function warn(...args) { console.warn('[APP]', ...args); }
 
-function loadState() { 
-    try { 
-        const s = localStorage.getItem(CONFIG.STORAGE_KEY_SETTINGS); 
-        const st = localStorage.getItem(CONFIG.STORAGE_KEY_STATE); 
-        if(s) { 
-            const loaded = JSON.parse(s); 
-            appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } }; 
-            
-            if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
-            if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
-            if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
-            if (typeof appSettings.isUniqueRoundsAutoClearEnabled === 'undefined') appSettings.isUniqueRoundsAutoClearEnabled = true; // Safety default
-            
-            if (!appSettings.voicePresets) appSettings.voicePresets = {};
-            if (!appSettings.activeVoicePresetId) appSettings.activeVoicePresetId = 'standard';
-            if (!appSettings.generalLanguage) appSettings.generalLanguage = 'en';
-            if (!appSettings.gestureResizeMode) appSettings.gestureResizeMode = 'global';
+  // small sleep helper
+  const sleep = ms => new Promise(res => setTimeout(res, ms));
 
-            if(!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS)); 
-            if(appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
-        } else { 
-            appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles['profile_1'].settings)); 
-        } 
-        if(st) appState = JSON.parse(st); 
-        if(!appState['current_session']) appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
-        
-        appState['current_session'].currentRound = parseInt(appState['current_session'].currentRound) || 1;
-        
-    } catch(e) { 
-        console.error("Load failed", e); 
-        appSettings = JSON.parse(JSON.stringify(DEFAULT_APP)); 
-        saveState(); 
-    } 
-}
+  // Format value safely to display (numbers or letters)
+  function formatInputValue(v) { return String(v); }
 
-function vibrate() { if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10); }
+  // ------------------------ DOM Creation: pads ------------------------
 
-function vibrateMorse(val) { 
-    if(!navigator.vibrate || !appSettings.isHapticMorseEnabled) return; 
-    
-    // --- MAP LETTERS TO NUMBERS 6-12 ---
-    let num = parseInt(val);
-    if(isNaN(num)) {
-        const map = { 'A':6, 'B':7, 'C':8, 'D':9, 'E':10, 'F':11, 'G':12 };
-        num = map[val.toUpperCase()] || 0;
+  function createKeypad9(container) {
+    container.innerHTML = '';
+    for (let i = 1; i <= 9; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'pad-btn p-4 rounded-lg font-bold text-xl';
+      btn.dataset.value = String(i);
+      btn.id = `pad-key9-${i}`;
+      btn.textContent = String(i);
+      container.appendChild(btn);
+    }
+  }
+
+  function createKeypad12(container) {
+    container.innerHTML = '';
+    for (let i = 1; i <= 12; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'pad-btn p-3 rounded-lg font-bold text-lg';
+      btn.dataset.value = String(i);
+      btn.id = `pad-key12-${i}`;
+      btn.textContent = String(i);
+      container.appendChild(btn);
+    }
+  }
+
+  function createPiano(container) {
+    container.innerHTML = '';
+    const notes = ['C','D','E','F','G','A','B'];
+    const pianoArea = document.createElement('div');
+    pianoArea.className = 'flex gap-1';
+    // 5 numeric region for your 1..5 config then notes
+    for (let i = 1; i <= 5; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'piano-btn py-4 px-3 rounded-md text-sm font-bold';
+      btn.dataset.value = String(i);
+      btn.id = `pad-piano-${i}`;
+      btn.textContent = String(i);
+      pianoArea.appendChild(btn);
+    }
+    notes.forEach(n => {
+      const btn = document.createElement('button');
+      btn.className = 'piano-btn py-4 px-3 rounded-md text-sm font-bold';
+      btn.dataset.value = n;
+      btn.id = `pad-piano-${n}`;
+      btn.textContent = n;
+      pianoArea.appendChild(btn);
+    });
+
+    container.appendChild(pianoArea);
+  }
+
+  // Ensure pads exist in DOM from index.html container references
+  function ensurePads() {
+    dom.padKey9 = $('pad-key9');
+    dom.padKey12 = $('pad-key12');
+    dom.padPiano = $('pad-piano');
+
+    if (!dom.padKey9) {
+      // create a container
+      const el = document.createElement('div');
+      el.id = 'pad-key9';
+      el.className = 'w-full grid grid-cols-3 gap-3';
+      $('input-footer') && $('input-footer').insertBefore(el, $('input-footer').firstChild);
+      dom.padKey9 = el;
+    }
+    if (!dom.padKey12) {
+      const el = document.createElement('div');
+      el.id = 'pad-key12';
+      el.className = 'w-full grid grid-cols-4 gap-3 hidden';
+      $('input-footer') && $('input-footer').appendChild(el);
+      dom.padKey12 = el;
+    }
+    if (!dom.padPiano) {
+      const el = document.createElement('div');
+      el.id = 'pad-piano';
+      el.className = 'w-full hidden';
+      $('input-footer') && $('input-footer').appendChild(el);
+      dom.padPiano = el;
     }
 
-    const speed = appSettings.playbackSpeed || 1.0; 
-    const factor = 1.0 / speed; 
-    const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor; 
-    let pattern = []; 
-    
-    if (num >= 1 && num <= 3) { 
-        for(let i=0; i<num; i++) { pattern.push(DOT); pattern.push(GAP); } 
-    } else if (num >= 4 && num <= 6) { 
-        pattern.push(DASH); pattern.push(GAP); 
-        for(let i=0; i<(num-3); i++) { pattern.push(DOT); pattern.push(GAP); } 
-    } else if (num >= 7 && num <= 9) { 
-        pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); 
-        for(let i=0; i<(num-6); i++) { pattern.push(DOT); pattern.push(GAP); } 
-    } else if (num >= 10 && num <= 12) { 
-        pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP);
-        for(let i=0; i<(num-10); i++) { pattern.push(DOT); pattern.push(GAP); } 
-    } 
-    
-    if(pattern.length > 0) navigator.vibrate(pattern); 
-}
+    // populate
+    createKeypad9(dom.padKey9);
+    createKeypad12(dom.padKey12);
+    createPiano(dom.padPiano);
+  }
 
-function speak(text) { 
-    if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; 
-    window.speechSynthesis.cancel(); 
-    
-    const lang = appSettings.generalLanguage || 'en';
-    const dict = DICTIONARY[lang] || DICTIONARY['en'];
-    let msg = text;
-    
-    if(text === "Correct") msg = dict.correct;
-    if(text === "Wrong") msg = dict.wrong;
-    if(text === "Stealth Active") msg = dict.stealth;
+  // ------------------------ UI Update / Render ------------------------
 
-    const u = new SpeechSynthesisUtterance(msg); 
-    if(lang === 'es') u.lang = 'es-MX';
-    else u.lang = 'en-US';
+  function showInputMode(mode) {
+    state.inputType = mode;
+    if (!dom.padKey9) ensurePads();
+    dom.padKey9.classList.toggle('hidden', mode !== 'key9');
+    dom.padKey12.classList.toggle('hidden', mode !== 'key12');
+    dom.padPiano.classList.toggle('hidden', mode !== 'piano');
 
-    if(appSettings.selectedVoice){
-        const voices = window.speechSynthesis.getVoices();
-        const v = voices.find(voice => voice.name === appSettings.selectedVoice);
-        if(v) u.voice = v;
-    } 
-    let p = appSettings.voicePitch || 1.0; 
-    let r = appSettings.voiceRate || 1.0; 
-    u.volume = appSettings.voiceVolume || 1.0; 
-    
-    u.pitch = Math.min(2, Math.max(0.1, p));
-    u.rate = Math.min(10, Math.max(0.1, r));
-
-    window.speechSynthesis.speak(u); 
-}
-
-function showToast(msg) { 
-    const lang = appSettings.generalLanguage || 'en';
-    const dict = DICTIONARY[lang] || DICTIONARY['en'];
-    if(msg === "Reset to Round 1") msg = dict.reset;
-    if(msg === "Playback Stopped 🛑") msg = dict.stop;
-    if(msg === "Stealth Active") msg = dict.stealth;
-
-    const t = document.getElementById('toast-notification'); 
-    const m = document.getElementById('toast-message'); 
-    if(!t || !m) return; 
-    m.textContent = msg; 
-    t.classList.remove('opacity-0', '-translate-y-10'); 
-    setTimeout(() => t.classList.add('opacity-0', '-translate-y-10'), 2000); 
-}
-
-function applyTheme(themeKey) { const body = document.body; body.className = body.className.replace(/theme-\w+/g, ''); let t = appSettings.customThemes[themeKey]; if (!t && PREMADE_THEMES[themeKey]) t = PREMADE_THEMES[themeKey]; if (!t) t = PREMADE_THEMES['default']; body.style.setProperty('--primary', t.bubble); body.style.setProperty('--bg-main', t.bgMain); body.style.setProperty('--bg-modal', t.bgCard); body.style.setProperty('--card-bg', t.bgCard); body.style.setProperty('--seq-bubble', t.bubble); body.style.setProperty('--btn-bg', t.btn); body.style.setProperty('--bg-input', t.bgMain); body.style.setProperty('--text-main', t.text); const isDark = parseInt(t.bgCard.replace('#',''), 16) < 0xffffff / 2; body.style.setProperty('--border', isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'); }
-function updateAllChrome() { applyTheme(appSettings.activeTheme); document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`; renderUI(); }
-
-function startPracticeRound() {
-    const settingsModal = document.getElementById('settings-modal');
-    if(settingsModal && !settingsModal.classList.contains('pointer-events-none')) return;
-
-    const state = getState(); 
-    const settings = getProfileSettings(); 
-    const max = (settings.currentInput === 'key12') ? 12 : 9;
-    
-    const getRand = () => { 
-        if(settings.currentInput === 'piano') { 
-            const keys = ['C','D','E','F','G','A','B','1','2','3','4','5']; 
-            return keys[Math.floor(Math.random()*keys.length)]; 
-        } 
-        return Math.floor(Math.random() * max) + 1; 
-    };
-
-    if(practiceSequence.length === 0) {
-        state.currentRound = 1;
-    }
-
-    if(settings.currentMode === CONFIG.MODES.SIMON) {
-        practiceSequence.push(getRand());
-        state.currentRound = practiceSequence.length;
+    // ensure gesture pad visible only if gestures mode and appSetting allow
+    if (window.settingsManager && settingsManager.appSettings.isGesturesEnabled) {
+      // keep existing gesture pad visibility state
+      if (settingsManager.appSettings._gesturePadVisible) settingsManager.showGesturePad();
     } else {
-        practiceSequence = []; 
-        const len = state.currentRound; 
-        for(let i=0; i<len; i++) practiceSequence.push(getRand());
+      // disable gesture pad
+      settingsManager && settingsManager.hideGesturePad && settingsManager.hideGesturePad();
     }
-    
-    practiceInputIndex = 0; 
-    renderUI(); 
-    showToast(`Practice Round ${state.currentRound}`); 
-    setTimeout(() => playPracticeSequence(), 1000);
-}
+  }
 
-function playPracticeSequence() {
-    const settingsModal = document.getElementById('settings-modal');
-    if(settingsModal && !settingsModal.classList.contains('pointer-events-none')) return;
-
-    disableInput(true); 
-    let i = 0; 
-    const speed = appSettings.playbackSpeed || 1.0;
-    
-    function next() {
-        if(i >= practiceSequence.length) { disableInput(false); return; }
-        const val = practiceSequence[i]; 
-        const settings = getProfileSettings(); 
-        const key = document.querySelector(`#pad-${settings.currentInput} button[data-value=\"${val}\"]`);
-        
-        if(key) { 
-            key.classList.add('flash-active'); 
-            setTimeout(() => key.classList.remove('flash-active'), 250 / speed); 
-        }
-        
-        speak(val); 
-        i++; 
-        setTimeout(next, 800 / speed);
-    } 
-    next();
-}
-
-function addValue(value) {
-    vibrate(); 
-    const state = getState(); 
-    const settings = getProfileSettings();
-    
-    if(appSettings.isPracticeModeEnabled) {
-        if(practiceSequence.length === 0) return; 
-        
-        if(value == practiceSequence[practiceInputIndex]) { 
-            practiceInputIndex++; 
-            if(practiceInputIndex >= practiceSequence.length) { 
-                speak("Correct"); 
-                state.currentRound++; 
-                setTimeout(startPracticeRound, 1500); 
-            } 
-        } else { 
-            speak("Wrong"); 
-            navigator.vibrate(500); 
-            setTimeout(() => playPracticeSequence(), 1500); 
-        } 
-        return;
-    }
-    
-    let targetIndex = 0; 
-    if (settings.currentMode === CONFIG.MODES.SIMON) targetIndex = state.nextSequenceIndex % settings.machineCount;
-    
-    const roundNum = parseInt(state.currentRound) || 1;
-    const isUnique = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS;
-
-    // --- SMART LIMIT LOGIC ---
-    let limit;
-    if (isUnique) {
-        limit = appSettings.isUniqueRoundsAutoClearEnabled ? roundNum : settings.sequenceLength;
-    } else {
-        limit = settings.sequenceLength;
-    }
-    
-    if(state.sequences[targetIndex] && state.sequences[targetIndex].length >= limit) {
-        if (isUnique && appSettings.isUniqueRoundsAutoClearEnabled) {
-            showToast("Round Full - Reset? 🛑");
-            vibrate();
-        }
-        return;
-    }
-
-    if(!state.sequences[targetIndex]) state.sequences[targetIndex] = [];
-    
-    state.sequences[targetIndex].push(value); 
-    state.nextSequenceIndex++; 
-    renderUI(); 
-    saveState();
-    
-    if(appSettings.isAutoplayEnabled) {
-        if (settings.currentMode === CONFIG.MODES.SIMON) { 
-            const justFilled = (state.nextSequenceIndex - 1) % settings.machineCount; 
-            if(justFilled === settings.machineCount - 1) setTimeout(playDemo, 250); 
-        } else { 
-            // --- UPDATED UNIQUE AUTOPLAY LOGIC ---
-            if (appSettings.isUniqueRoundsAutoClearEnabled) {
-                // Strict Game Mode: Play only when round is complete
-                if(state.sequences[0].length >= roundNum) { 
-                    disableInput(true); 
-                    setTimeout(playDemo, 250); 
-                } 
-            } else {
-                // Freeform/Manual Mode: Play after EVERY input (Recorder style)
-                setTimeout(playDemo, 250); 
-            }
-        }
-    }
-}
-
-function handleBackspace(e) { 
-    if(e && isDeleting) return; 
-    vibrate(); 
-    const state = getState(); 
-    const settings = getProfileSettings(); 
-    if(state.nextSequenceIndex === 0) return; 
-    
-    let targetIndex = 0; 
-    if(settings.currentMode === CONFIG.MODES.SIMON) targetIndex = (state.nextSequenceIndex - 1) % settings.machineCount; 
-    
-    if(state.sequences[targetIndex] && state.sequences[targetIndex].length > 0) { 
-        state.sequences[targetIndex].pop(); 
-        state.nextSequenceIndex--; 
-        if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) disableInput(false); 
-        renderUI(); 
-        saveState(); 
-    } 
-}
-
-function resetRounds() { 
-    const state = getState(); 
-    state.currentRound = 1; 
-    state.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); 
-    state.nextSequenceIndex = 0; 
-    disableInput(false); 
-    renderUI(); 
-    saveState(); 
-    showToast("Reset to Round 1"); 
-}
-
-function disableInput(disabled) { const pad = document.getElementById(`pad-${getProfileSettings().currentInput}`); if(pad) pad.querySelectorAll('button').forEach(b => b.disabled = disabled); }
-
-function playDemo() {
-    const settings = getProfileSettings(); 
-    const state = getState(); 
-    const demoBtn = document.querySelector(`#pad-${settings.currentInput} button[data-action=\"play-demo\"]`);
-    const settingsBtns = document.querySelectorAll('button[data-action=\"open-settings\"]');
-    
-    if(isDemoPlaying) {
-        isDemoPlaying = false;
-        if(timers.playback) clearTimeout(timers.playback);
-        disableInput(false);
-        if(demoBtn) { 
-            demoBtn.innerHTML = '▶'; 
-            demoBtn.disabled = false; 
-        }
-        
-        // REVERT SETTINGS BUTTON
-        settingsBtns.forEach(btn => {
-            btn.innerHTML = '⚙️';
-            btn.disabled = false;
-        });
-        
-        showToast("Playback Stopped 🛑");
-        return;
-    }
-
-    if(demoBtn && demoBtn.disabled && !isDemoPlaying) return; 
-
-    let playlist = [];
-    if(settings.currentMode === CONFIG.MODES.SIMON) { 
-        const activeSeqs = state.sequences.slice(0, settings.machineCount); 
-        const maxLen = Math.max(...activeSeqs.map(s => s.length)); 
-        if(maxLen === 0) return; 
-        const chunkSize = (settings.machineCount > 1) ? settings.simonChunkSize : maxLen; 
-        const numChunks = Math.ceil(maxLen / chunkSize); 
-        for(let c=0; c<numChunks; c++) { 
-            for(let m=0; m<settings.machineCount; m++) { 
-                for(let k=0; k<chunkSize; k++) { 
-                    const idx = (c*chunkSize) + k; 
-                    if(activeSeqs[m][idx]) playlist.push({ val: activeSeqs[m][idx], machine: m }); 
-                } 
-            } 
-        } 
-    } else { 
-        const seq = state.sequences[0]; 
-        if(!seq || seq.length === 0) { disableInput(false); return; } 
-        playlist = seq.map(v => ({ val: v, machine: 0 })); 
-    }
-    
-    disableInput(true); 
-    
-    if(demoBtn) demoBtn.disabled = false;
-    settingsBtns.forEach(btn => {
-        btn.disabled = false;
-        btn.innerHTML = '■'; 
+  // Render sequence visualization (simple)
+  function renderSequence() {
+    const visuals = $('sequence-visuals');
+    if (!visuals) return;
+    visuals.innerHTML = '';
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex flex-wrap gap-2 justify-center';
+    state.sequence.forEach((s, idx) => {
+      const bubble = document.createElement('div');
+      bubble.className = 'px-3 py-2 rounded-full bg-[var(--card-bg)] text-sm font-mono';
+      bubble.textContent = formatInputValue(s);
+      if (state.roundActive && state.userInput.length > idx) {
+        bubble.classList.add('opacity-50');
+      }
+      wrapper.appendChild(bubble);
     });
+    visuals.appendChild(wrapper);
+  }
 
-    isDemoPlaying = true; 
-    
-    let i = 0; 
-    const speed = appSettings.playbackSpeed || 1; 
-    const baseInterval = CONFIG.DEMO_DELAY_BASE_MS / speed;
-    
-    function next() { 
-        // SAFETY: Wrap in try/catch to ensure inputs are re-enabled even if logic fails
-        try {
-            if(!isDemoPlaying) return; 
-            
-            if(i >= playlist.length) { 
-                disableInput(false); 
-                isDemoPlaying = false; 
-                if(demoBtn) { demoBtn.innerHTML = '▶'; demoBtn.disabled = false; }
-                settingsBtns.forEach(btn => {
-                    btn.innerHTML = '⚙️';
-                    btn.disabled = false;
-                });
-                
-                if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.isUniqueRoundsAutoClearEnabled) { 
-                    state.sequences[0] = []; 
-                    state.nextSequenceIndex = 0; 
-                    state.currentRound = (parseInt(state.currentRound) || 1) + 1; 
-                    if(state.currentRound > settings.sequenceLength) resetRounds(); 
-                    renderUI(); 
-                    saveState(); 
-                } 
-                return; 
-            } 
-            
-            const item = playlist[i]; 
-            const key = document.querySelector(`#pad-${settings.currentInput} button[data-value=\"${item.val}\"]`); 
-            if(key) { key.classList.add('flash-active'); setTimeout(() => key.classList.remove('flash-active'), 250 / speed); } 
-            speak(item.val); vibrateMorse(item.val); 
-            const seqBoxes = document.getElementById('sequence-container').children; 
-            if(seqBoxes[item.machine]) { seqBoxes[item.machine].style.transform = 'scale(1.05)'; setTimeout(() => seqBoxes[item.machine].style.transform = 'scale(1)', 250 / speed); } 
-            
-            if(demoBtn) demoBtn.innerText = (i + 1);
+  // ------------------------ Sequence Management ------------------------
 
-            let nextDelay = baseInterval;
-            if (i + 1 < playlist.length) {
-                const nextItem = playlist[i+1];
-                if (nextItem.machine !== item.machine) {
-                    nextDelay += (settings.simonInterSequenceDelay || 0);
-                }
-            }
-            
-            i++; 
-            timers.playback = setTimeout(next, nextDelay); 
+  // Helpers to generate sequences (unique or simon)
+  function randomChoice(arr) {
+    if (!arr || arr.length === 0) return null;
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
 
-        } catch (err) {
-            console.error("Playback error", err);
-            disableInput(false);
-            isDemoPlaying = false;
-            if(demoBtn) demoBtn.innerHTML = '▶';
-        }
-    } 
-    next();
-}
+  function possibleKeysForCurrentMode() {
+    if (state.inputType === 'key9') return Array.from({length:9}, (_,i)=>String(i+1));
+    if (state.inputType === 'key12') return Array.from({length:12}, (_,i)=>String(i+1));
+    if (state.inputType === 'piano') return ['1','2','3','4','5','C','D','E','F','G','A','B'];
+    return [];
+  }
 
-function renderUI() {
-    const container = document.getElementById('sequence-container'); 
-    container.innerHTML = ''; 
-    const settings = getProfileSettings();
-    const state = getState();
+  function createInitialSequence() {
+    state.sequence = [];
+    const keys = possibleKeysForCurrentMode();
+    for (let i = 0; i < state.sequenceLength; i++) {
+      state.sequence.push(randomChoice(keys));
+    }
+    renderSequence();
+  }
 
-    ['key9', 'key12', 'piano'].forEach(k => { 
-        const el = document.getElementById(`pad-${k}`); 
-        if(el) el.style.display = (settings.currentInput === k) ? 'block' : 'none'; 
-    });
+  // Unique sequence flow: holds a master sequence but reveals new items one-at-a-time per round
+  function uniqueReset() {
+    state.uniqueSequenceFull = [];
+    // create a longer list of random unique items (no repetition guaranteed not enforced)
+    const keys = possibleKeysForCurrentMode();
+    for (let i = 0; i < state.sequenceLength; i++) {
+      state.uniqueSequenceFull.push(randomChoice(keys));
+    }
+    state.uniqueRoundIndex = 0;
+    state.sequence = state.uniqueSequenceFull.slice(0, state.uniqueRoundIndex+1);
+    renderSequence();
+  }
 
-    if(appSettings.isPracticeModeEnabled) {
-        if(practiceSequence.length === 0) {
-            practiceSequence = [];
-            state.currentRound = 1;
-            setTimeout(startPracticeRound, 100);
-        }
-        container.innerHTML = `<h2 class=\"text-2xl font-bold text-center w-full mt-10\" style=\"color:var(--text-main)\">Practice Mode (${settings.currentMode === CONFIG.MODES.SIMON ? 'Simon' : 'Unique'})<br><span class=\"text-sm opacity-70\">Round ${state.currentRound}</span></h2>`; 
+  function uniqueAdvanceOne() {
+    state.uniqueRoundIndex = Math.min(state.uniqueRoundIndex + 1, state.uniqueSequenceFull.length - 1);
+    state.sequence = state.uniqueSequenceFull.slice(0, state.uniqueRoundIndex+1);
+    renderSequence();
+  }
+
+  // Start a new round (mode-specific)
+  async function startRound() {
+    // Check practice guard
+    if (settingsManager && settingsManager.practiceGuard && settingsManager.practiceGuard()) {
+      // blocked: practice guard shows start button; do not auto-start
+      return;
+    }
+
+    state.userInput = [];
+    state.roundActive = true;
+    renderSequence();
+
+    // Signal autoplay manager to play sequence if allowed
+    if (globalThis.autoplayManager) {
+      // autoplayManager will check settings and play if allowed
+      await globalThis.autoplayManager.playSequence();
+    }
+  }
+
+  // End current round: used when player completes input or loses
+  function endRound({won=false, lost=false} = {}) {
+    state.roundActive = false;
+    // practice mode re-show start
+    if (settingsManager && settingsManager.practiceState && settingsManager.practiceState.modeEnabled) {
+      settingsManager.practiceSetState({ won, lost });
+    }
+    // notify settings manager of game end
+    settingsManager && settingsManager.onGameEnded && settingsManager.onGameEnded({won, lost});
+  }
+
+  // ------------------------ Input Handling ------------------------
+
+  // common handler for receiving an input value (string or number)
+  async function handleInputValue(val, source = 'button') {
+    // respect practice guard
+    if (settingsManager && settingsManager.practiceGuard && settingsManager.practiceGuard()) {
+      return;
+    }
+
+    // If blackout mode is on and blackout gestures enabled, allow gestures but ignore button presses?
+    if (settingsManager && settingsManager.appSettings.isBlackoutFeatureEnabled) {
+      // If blackout hides UI, still accept mapping tokens or touch events if blackout gestures enabled
+      if (!settingsManager.appSettings.isBlackoutGesturesEnabled && source === 'button') {
+        // ignore button input during blackout if gestures-only
         return;
+      }
     }
 
-    const activeSeqs = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);
-    
-    // --- VISUAL HEADER FOR ROUNDS (NEW) ---
-    if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
-        const roundNum = parseInt(state.currentRound) || 1;
-        const header = document.createElement('h2');
-        header.className = "text-xl font-bold text-center w-full mb-4 opacity-80";
-        header.style.color = "var(--text-main)";
-        header.innerHTML = `Unique Mode: <span class=\"text-primary-app\">Round ${roundNum}</span>`;
-        container.appendChild(header);
+    // If 'inputs-only' (Inputs only) reduce behavior? For now treat as same input handling
+
+    // Append input and check against sequence
+    state.userInput.push(String(val));
+    state.lastTriggeredFrom = source;
+    // Provide immediate audio/haptic feedback if enabled (light)
+    if (settingsManager && settingsManager.appSettings.isAudioEnabled) {
+      // speak the value (very simple)
+      const utter = new SpeechSynthesisUtterance(String(val));
+      utter.rate = settingsManager.appSettings.voiceRate || 1.0;
+      utter.pitch = settingsManager.appSettings.voicePitch || 1.0;
+      utter.volume = settingsManager.appSettings.voiceVolume || 1.0;
+      try { speechSynthesis.speak(utter); } catch (e) {}
     }
 
-    let gridCols = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 1 : Math.min(settings.machineCount, 4); 
-    container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
-    
-    activeSeqs.forEach((seq) => { 
-        const card = document.createElement('div'); card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)]"; 
-        const numGrid = document.createElement('div'); 
-        if (settings.machineCount > 1) { numGrid.className = "grid grid-cols-4 gap-2 justify-items-center"; } else { numGrid.className = "flex flex-wrap gap-2 justify-center"; }
-        (seq || []).forEach(num => { const span = document.createElement('span'); span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold"; const scale = appSettings.uiScaleMultiplier || 1.0; span.style.width = (40 * scale) + 'px'; span.style.height = (40 * scale) + 'px'; span.style.fontSize = (1.2 * scale) + 'rem'; span.textContent = num; numGrid.appendChild(span); }); 
-        card.appendChild(numGrid); container.appendChild(card); 
-    });
-    
-    document.querySelectorAll('#mic-master-btn').forEach(btn => { btn.classList.toggle('hidden', !appSettings.showMicBtn); btn.classList.toggle('master-active', modules.sensor && modules.sensor.mode.audio); });
-    document.querySelectorAll('#camera-master-btn').forEach(btn => { btn.classList.toggle('hidden', !appSettings.showCamBtn); btn.classList.toggle('master-active', modules.sensor && modules.sensor.mode.camera); });
-    document.querySelectorAll('.reset-button').forEach(b => { b.style.display = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 'block' : 'none'; });
-}
-
-function toggleBlackout() { 
-    blackoutState.isActive = !blackoutState.isActive; 
-    document.body.classList.toggle('blackout-active', blackoutState.isActive); 
-    
-    const layer = document.getElementById('blackout-layer');
-
-    if(blackoutState.isActive) { 
-        if(appSettings.isAudioEnabled) speak("Stealth Active"); 
-        
-        // --- GESTURE TOGGLE CHECK ---
-        if (appSettings.isBlackoutGesturesEnabled) {
-            // New Gesture Handlers
-            layer.addEventListener('touchstart', handleBlackoutGestureStart, {passive: false});
-            layer.addEventListener('touchmove', handleBlackoutGestureMove, {passive: false});
-            layer.addEventListener('touchend', handleBlackoutGestureEnd, {passive: false});
+    // If input length equals sequence length, evaluate
+    if (state.userInput.length >= state.sequence.length) {
+      // Check if matched
+      const matched = state.sequence.every((v, idx) => String(v) === String(state.userInput[idx]));
+      if (matched) {
+        // Player won this round
+        // If unique mode, ask autoplayManager to advance if needed
+        if (state.mode === 'unique') {
+          // If auto-clear is on, let autoplayManager.playNextIfNeeded handle it
+          if (globalThis.autoplayManager && settingsManager.appSettings.isUniqueRoundsAutoClearEnabled) {
+            await globalThis.autoplayManager.playNextIfNeeded();
+          } else {
+            // no auto-advance - just notify app that round ended
+            endRound({won:true});
+          }
         } else {
-            // Legacy Grid Handler
-            layer.addEventListener('touchstart', handleBlackoutTouch, {passive: false}); 
+          // simon mode: sequences usually grow, so app should extend and start next round
+          endRound({won:true});
         }
-
-    } else { 
-        // Remove ALL possible listeners
-        layer.removeEventListener('touchstart', handleBlackoutTouch); 
-        layer.removeEventListener('touchstart', handleBlackoutGestureStart);
-        layer.removeEventListener('touchmove', handleBlackoutGestureMove);
-        layer.removeEventListener('touchend', handleBlackoutGestureEnd);
-    } 
-}
-
-function handleShake(e) { if(!appSettings.isBlackoutFeatureEnabled) return; const acc = e.acceleration; if(!acc) return; if(Math.hypot(acc.x, acc.y, acc.z) > 15) { const now = Date.now(); if(now - blackoutState.lastShake > 1000) { toggleBlackout(); vibrate(); blackoutState.lastShake = now; } } }
-
-// Legacy Grid-Based Touch System
-function handleBlackoutTouch(e) { 
-    if(!blackoutState.isActive) return; 
-    e.preventDefault(); e.stopPropagation(); 
-    const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX; 
-    const y = e.changedTouches ? e.changedTouches[0].clientY : e.clientY; 
-    const w = window.innerWidth, h = window.innerHeight; 
-    const settings = getProfileSettings(); 
-    let val = null; 
-    
-    if(settings.currentInput === 'piano') { 
-        const keys = ['C','D','E','F','G','A','B','1','2','3','4','5']; 
-        const idx = Math.floor(x / (w / keys.length)); 
-        if(keys[idx]) val = keys[idx]; 
-    } else { 
-        const c = Math.floor(x / (w/3)); 
-        const r = Math.floor(y / (h/ (settings.currentInput==='key12'?4:3))); 
-        let num = (r * 3) + c + 1; 
-        if(num > 0 && num <= (settings.currentInput==='key12'?12:9)) val = num.toString(); 
-    } 
-    
-    if(val) { addValue(val); vibrateMorse(val); } 
-}
-
-// --- NEW BLACKOUT GESTURE SYSTEM ---
-function handleBlackoutGestureStart(e) {
-    e.preventDefault();
-    if (e.touches.length === 0) return;
-    
-    // If it's a new tap sequence (not a multi-touch add-on)
-    if (!gestureInputState.startTime || (Date.now() - gestureInputState.startTime > 500)) {
-        gestureInputState.maxTouches = e.touches.length;
-        gestureInputState.startX = e.touches[0].clientX;
-        gestureInputState.startY = e.touches[0].clientY;
-        gestureInputState.startTime = Date.now();
-    } else {
-        // Update max touches if fingers added
-        gestureInputState.maxTouches = Math.max(gestureInputState.maxTouches, e.touches.length);
-    }
-}
-
-function handleBlackoutGestureMove(e) {
-    e.preventDefault();
-    gestureInputState.maxTouches = Math.max(gestureInputState.maxTouches, e.touches.length);
-}
-
-function handleBlackoutGestureEnd(e) {
-    e.preventDefault();
-    if (e.touches.length > 0) return; // Wait for ALL fingers to lift
-
-    const endX = e.changedTouches[0].clientX;
-    const endY = e.changedTouches[0].clientY;
-    const diffX = endX - gestureInputState.startX;
-    const diffY = endY - gestureInputState.startY;
-    const duration = Date.now() - gestureInputState.startTime;
-    const absX = Math.abs(diffX);
-    const absY = Math.abs(diffY);
-    
-    let val = null;
-
-    // TAP DETECTION (Short duration, low movement)
-    if (duration < 300 && absX < 30 && absY < 30) {
-        if (gestureInputState.maxTouches === 1) {
-            // Handle Double Tap Logic
-            if (gestureInputState.isTapCandidate) {
-                // Double Tap Detected -> 11 (F)
-                clearTimeout(timers.tap);
-                gestureInputState.isTapCandidate = false;
-                val = '11'; // F
-            } else {
-                gestureInputState.isTapCandidate = true;
-                timers.tap = setTimeout(() => {
-                    // Single Tap Confirmed -> 5
-                    if (gestureInputState.isTapCandidate) {
-                        addValue('5'); 
-                        vibrateMorse('5');
-                        gestureInputState.isTapCandidate = false;
-                    }
-                }, 250); // Double tap window
-                return; // Wait for timer
-            }
-        } else if (gestureInputState.maxTouches === 2) {
-            val = '10'; // E (2-finger tap)
-        }
-    } 
-    // LONG PRESS DETECTION
-    else if (duration > 500 && absX < 30 && absY < 30) {
-        val = '12'; // G (Long Press)
-    }
-    // SWIPE DETECTION
-    else if (Math.max(absX, absY) > 50) {
-        // Determine Direction
-        const isHorizontal = absX > absY;
-        const isPositive = (isHorizontal ? diffX : diffY) > 0;
-        
-        // 1-Finger Swipes
-        if (gestureInputState.maxTouches === 1) {
-            if (!isHorizontal && !isPositive) val = '1'; // Up
-            else if (isHorizontal && isPositive) val = '2'; // Right
-            else if (!isHorizontal && isPositive) val = '3'; // Down
-            else if (isHorizontal && !isPositive) val = '4'; // Left
-        } 
-        // 2-Finger Swipes
-        else if (gestureInputState.maxTouches === 2) {
-             if (!isHorizontal && !isPositive) val = 'A'; // 6 (Up)
-            else if (isHorizontal && isPositive) val = 'B'; // 7 (Right)
-            else if (!isHorizontal && isPositive) val = 'C'; // 8 (Down)
-            else if (isHorizontal && !isPositive) val = 'D'; // 9 (Left)
-        }
+      } else {
+        // player lost - provide feedback and end round
+        endRound({lost:true});
+      }
     }
 
-    if (val) {
-        addValue(val);
-        vibrateMorse(val);
-    }
-}
+    renderSequence();
+  }
 
+  // Button click wiring (for pads)
+  function wirePadButtons() {
+    // Key9
+    dom.padKey9 && dom.padKey9.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('button');
+      if (!btn) return;
+      const val = btn.dataset.value;
+      if (!val) return;
+      handleInputValue(val, 'button');
+    });
 
-function handle1KeyStart() {
-    if(!appSettings.isStealth1KeyEnabled) return;
-    ignoreNextClick = false;
-    timers.stealth = setTimeout(() => {
-        ignoreNextClick = true;
-        document.body.classList.toggle('hide-controls');
-        vibrate();
-    }, 1000); 
-}
-function handle1KeyEnd() { if(timers.stealth) clearTimeout(timers.stealth); }
+    // Key12
+    dom.padKey12 && dom.padKey12.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('button');
+      if (!btn) return;
+      const val = btn.dataset.value;
+      if (!val) return;
+      handleInputValue(val, 'button');
+    });
 
-function handleStealthActionStart(action) {
-    if(!document.body.classList.contains('hide-controls')) return;
-    ignoreNextClick = false;
-    timers.stealthAction = setTimeout(() => {
-        ignoreNextClick = true;
-        vibrate();
-        if(action === 'play') playDemo();
-        if(action === 'backspace') handleBackspace();
-        if(action === 'delete') {
-             const settings = getProfileSettings();
-             const targetIndex = settings.currentMode === CONFIG.MODES.SIMON ? (getState().nextSequenceIndex - 1) % settings.machineCount : 0;
-             getState().sequences[targetIndex] = [];
-             getState().nextSequenceIndex = 0;
-             renderUI(); saveState();
-        }
-    }, 800); 
-}
-function handleStealthActionEnd() { if(timers.stealthAction) clearTimeout(timers.stealthAction); }
+    // Piano
+    dom.padPiano && dom.padPiano.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('button');
+      if (!btn) return;
+      const val = btn.dataset.value;
+      if (!val) return;
+      handleInputValue(val, 'button');
+    });
 
-window.onload = function() {
+    // Backspace button
+    const backspace = $('btn-backspace');
+    if (backspace) backspace.addEventListener('click', () => {
+      if (state.userInput.length > 0) {
+        state.userInput.pop();
+        renderSequence();
+      }
+    });
+  }
+
+  // ------------------------ Mapping Token Handling ------------------------
+
+  // Map incoming mapping tokens to actual input values using mappingAPI/getMappingForMode
+  // If mappingAPI.applyMappingsToSensor exists, app could prefer that; here we do a direct mapping approach with fallback
+  function handleMappingToken(token) {
     try {
-        loadState(); initComments(db); if (window.DeviceMotionEvent) window.addEventListener('devicemotion', handleShake, false); const target = document.body;
-        target.addEventListener('touchstart', (e) => { if(modules.sensor && modules.sensor.audioCtx && modules.sensor.audioCtx.state === 'suspended') modules.sensor.audioCtx.resume(); 
-            if (e.touches.length === 2) { gestureState.isPinching = true; gestureState.startDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); gestureState.startScale = (appSettings.gestureResizeMode === 'sequence') ? (appSettings.uiScaleMultiplier || 1.0) : (appSettings.globalUiScale || 100); } }, { passive: false });
-        target.addEventListener('touchmove', (e) => { 
-            if (gestureState.isPinching && e.touches.length === 2) { 
-                e.preventDefault(); const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); const ratio = dist / gestureState.startDist; 
-                let newScale = gestureState.startScale * ratio;
-                if (appSettings.gestureResizeMode === 'sequence') { 
-                    newScale = Math.round(newScale * 10) / 10; 
-                    appSettings.uiScaleMultiplier = Math.min(Math.max(newScale, 0.5), 3.0); renderUI(); 
-                } else { 
-                    newScale = Math.round(newScale / 10) * 10;
-                    appSettings.globalUiScale = Math.min(Math.max(newScale, 50), 300); updateAllChrome(); 
-                } 
-            } 
-        }, { passive: false });
-        target.addEventListener('touchend', () => { if(gestureState.isPinching) { gestureState.isPinching = false; saveState(); } });
-
-        modules.sensor = new SensorEngine((val) => addValue(val), (msg) => showToast(msg)); if (appSettings.sensorAudioThresh) modules.sensor.setSensitivity('audio', appSettings.sensorAudioThresh); if (appSettings.sensorCamThresh) modules.sensor.setSensitivity('camera', appSettings.sensorCamThresh);
-        modules.settings = new SettingsManager(appSettings, {
-            onUpdate: (type) => { 
-                if(type === 'mode_switch') {
-                    appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
-                    showToast("Game Mode Reset 🔄");
-                }
-                
-                if(appSettings.isPracticeModeEnabled) {
-                    practiceSequence = [];
-                    practiceInputIndex = 0;
-                    appState['current_session'].currentRound = 1;
-                }
-
-                updateAllChrome(); 
-                saveState(); 
-            },
-            onSave: () => saveState(), onReset: () => { localStorage.clear(); location.reload(); },
-            onProfileSwitch: (id) => { 
-                appSettings.activeProfileId = id; 
-                appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings)); 
-                appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 }; 
-                practiceSequence = []; 
-                updateAllChrome(); 
-                saveState(); 
-            },
-            onProfileAdd: (name) => { const id = 'p_' + Date.now(); appSettings.profiles[id] = { name, settings: JSON.parse(JSON.stringify(appSettings.runtimeSettings)), theme: appSettings.activeTheme }; appSettings.activeProfileId = id; updateAllChrome(); saveState(); },
-            onProfileRename: (name) => { appSettings.profiles[appSettings.activeProfileId].name = name; saveState(); },
-            onProfileDelete: () => { delete appSettings.profiles[appSettings.activeProfileId]; appSettings.activeProfileId = Object.keys(appSettings.profiles)[0]; appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings)); if(appSettings.profiles[appSettings.activeProfileId].theme) appSettings.activeTheme = appSettings.profiles[appSettings.activeProfileId].theme; updateAllChrome(); saveState(); },
-            onProfileSave: () => { 
-                appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings)); 
-                saveState(); 
-                showToast("Profile Settings Saved 💾"); 
+      // Prefer mappingAPI.tokenToKey mapping
+      if (globalThis.mappingAPI && typeof mappingAPI.getMappingForMode === 'function') {
+        const map = mappingAPI.getMappingForMode(state.inputType);
+        if (map && map.gestures) {
+          // gestures map token -> key
+          for (let k of Object.keys(map.gestures)) {
+            if (map.gestures[k] === token) {
+              // trigger input
+              handleInputValue(k, 'gesture-token');
+              return;
             }
-        }, modules.sensor);
-        updateAllChrome(); 
-        
-        if(appSettings.isPracticeModeEnabled) {
-            const settingsModal = document.getElementById('settings-modal');
-            if(!settingsModal || settingsModal.classList.contains('pointer-events-none')) {
-                setTimeout(startPracticeRound, 500);
-            }
+          }
         }
+      }
 
-        document.querySelectorAll('.btn-pad-number, .piano-key-white, .piano-key-black').forEach(btn => {
-            if(btn.dataset.value === '1') {
-                btn.addEventListener('mousedown', handle1KeyStart); btn.addEventListener('touchstart', handle1KeyStart, {passive: true});
-                btn.addEventListener('mouseup', handle1KeyEnd); btn.addEventListener('touchend', handle1KeyEnd); btn.addEventListener('mouseleave', handle1KeyEnd);
-            }
-            const val = btn.dataset.value;
-            if(val === '7' || val === 'C') {
-                btn.addEventListener('mousedown', () => handleStealthActionStart('play')); btn.addEventListener('touchstart', () => handleStealthActionStart('play'), {passive: true});
-                btn.addEventListener('mouseup', handleStealthActionEnd); btn.addEventListener('touchend', handleStealthActionEnd); btn.addEventListener('mouseleave', handleStealthActionEnd);
-            }
-            if(val === '8' || val === 'D') {
-                btn.addEventListener('mousedown', () => handleStealthActionStart('backspace')); btn.addEventListener('touchstart', () => handleStealthActionStart('backspace'), {passive: true});
-                btn.addEventListener('mouseup', handleStealthActionEnd); btn.addEventListener('touchend', handleStealthActionEnd); btn.addEventListener('mouseleave', handleStealthActionEnd);
-            }
-            if(val === '9' || val === 'E') {
-                btn.addEventListener('mousedown', () => handleStealthActionStart('delete')); btn.addEventListener('touchstart', () => handleStealthActionStart('delete'), {passive: true});
-                btn.addEventListener('mouseup', handleStealthActionEnd); btn.addEventListener('touchend', handleStealthActionEnd); btn.addEventListener('mouseleave', handleStealthActionEnd);
-            }
+      // Legacy: handle tokens like 'tap_1f' -> map to DEFAULT_MAPPING if available
+      if (typeof DEFAULT_MAPPING !== 'undefined' && DEFAULT_MAPPING[state.inputType]) {
+        const gest = DEFAULT_MAPPING[state.inputType].gestures || {};
+        for (let k of Object.keys(gest)) {
+          if (gest[k] === token) {
+            handleInputValue(k, 'gesture-token');
+            return;
+          }
+        }
+      }
 
-            btn.addEventListener('click', (e) => {
-                if((val === '1' || val === '7' || val === '8' || val === '9' || val === 'C' || val === 'D' || val === 'E') && ignoreNextClick) { ignoreNextClick = false; return; }
-                addValue(e.target.dataset.value);
-            });
-        });
-        
-        document.querySelectorAll('button[data-action=\"play-demo\"]').forEach(b => { 
-            b.addEventListener('click', playDemo); 
-            const startLongPress = () => { 
-                timers.longPress = setTimeout(() => { 
-                    if(appSettings.isLongPressAutoplayEnabled !== false) {
-                        appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled; 
-                        showToast(`Autoplay: ${appSettings.isAutoplayEnabled?'ON':'OFF'}`); 
-                        saveState(); 
-                        vibrate(); 
-                    }
-                }, 500); 
-            }; 
-            const cancelLong = () => clearTimeout(timers.longPress); 
-            b.addEventListener('mousedown', startLongPress); 
-            b.addEventListener('touchstart', startLongPress, { passive: true }); 
-            b.addEventListener('mouseup', cancelLong); 
-            b.addEventListener('mouseleave', cancelLong); 
-            b.addEventListener('touchend', cancelLong); 
-        });
-        
-        document.querySelectorAll('button[data-action=\"open-settings\"]').forEach(b => {
-             const startSettingsLong = () => {
-                 timers.settingsLongPress = setTimeout(() => {
-                     vibrate();
-                     if(modules.settings) modules.settings.toggleRedeem(true);
-                 }, 800);
-             };
-             const cancelSettingsLong = () => { if(timers.settingsLongPress) clearTimeout(timers.settingsLongPress); };
-             
-             b.addEventListener('mousedown', startSettingsLong);
-             b.addEventListener('touchstart', startSettingsLong, { passive: true });
-             b.addEventListener('mouseup', cancelSettingsLong);
-             b.addEventListener('mouseleave', cancelSettingsLong);
-             b.addEventListener('touchend', cancelSettingsLong);
-             
-             b.onclick = () => {
-                 if(timers.settingsLongPress) clearTimeout(timers.settingsLongPress);
-                 if(isDemoPlaying) {
-                     playDemo(); 
-                     return;
-                 }
-                 modules.settings.openSettings();
-             };
-        });
+      // If not found, just log
+      console.debug('Mapping token not matched', token);
+    } catch (e) {
+      console.warn("handleMappingToken error", e);
+    }
+  }
 
-        document.querySelectorAll('button[data-action=\"reset-unique-rounds\"]').forEach(b => b.addEventListener('click', () => { if(confirm("Reset to Round 1?")) resetRounds(); }));
-        document.querySelectorAll('button[data-action=\"backspace\"]').forEach(b => { 
-            b.addEventListener('click', handleBackspace); 
-            const startDelete = (e) => { 
-                if(!appSettings.isSpeedDeletingEnabled) return; 
-                isDeleting = false; 
-                timers.initialDelay = setTimeout(() => { 
-                    isDeleting = true; 
-                    timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL); 
-                }, CONFIG.SPEED_DELETE_DELAY); 
-            }; 
-            const stopDelete = () => { 
-                clearTimeout(timers.initialDelay); 
-                clearInterval(timers.speedDelete); 
-                setTimeout(() => isDeleting = false, 50); 
-            }; 
-            b.addEventListener('mousedown', startDelete); b.addEventListener('touchstart', startDelete, { passive: true }); b.addEventListener('mouseup', stopDelete); b.addEventListener('mouseleave', stopDelete); b.addEventListener('touchend', stopDelete); b.addEventListener('touchcancel', stopDelete); 
-        });
-        document.querySelectorAll('button[data-action=\"open-share\"]').forEach(b => b.addEventListener('click', () => modules.settings.openShare())); 
-        
-        document.getElementById('close-settings').addEventListener('click', () => {
-            if(appSettings.isPracticeModeEnabled) {
-                setTimeout(startPracticeRound, 500);
-            }
-        });
+  // Listen for mapping tokens emitted by gesturePad or mapping module
+  function wireMappingTokenListeners() {
+    window.addEventListener('mapping:token', (ev) => {
+      try {
+        const token = ev?.detail?.token;
+        if (!token) return;
+        handleMappingToken(token);
+      } catch (e) {}
+    });
 
-        if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
-    } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }
-};
+    window.addEventListener('gesture:token', (ev) => {
+      try {
+        const token = ev?.detail?.token;
+        if (!token) return;
+        handleMappingToken(token);
+      } catch (e) {}
+    });
+
+    // Also listen to gesture:tap or gesture:swipe optionally
+    window.addEventListener('gesture:tap', (ev) => {
+      // triple tap to toggle gesture pad is handled by settingsManager.triple-tap detector
+      // but also handle direct tokens
+      try {
+        const detail = ev.detail || {};
+        if (detail.token) handleMappingToken(detail.token);
+      } catch (e) {}
+    });
+
+    window.addEventListener('gesture:swipe', (ev) => {
+      try {
+        const detail = ev.detail || {};
+        if (detail.token) handleMappingToken(detail.token);
+      } catch (e) {}
+    });
+  }
+
+  // ------------------------ Autoplay & Integration ------------------------
+
+  // Register autoplay callbacks: must be called once settings:ready triggers initialization
+  function registerAutoplayCallbacks() {
+    if (!settingsManager) return;
+    settingsManager.registerAutoplayAppCallbacks({
+      onPlayStep: (idx, value) => {
+        // highlight the step visually (temporary highlight)
+        highlightSequenceStep(idx);
+        // If the step is a mapping token (value may be token?), the app uses mappingAPI to show specifics
+      },
+      onSequenceStart: (seq) => { /* optional */ },
+      onSequenceEnd: (seq) => { /* optional */ },
+      getSequence: () => state.sequence.slice(),
+      getMode: () => state.mode,
+      getSettings: () => ({
+        isAutoplayEnabled: settingsManager.appSettings.isAutoplayEnabled,
+        isUniqueRoundsAutoClearEnabled: settingsManager.appSettings.isUniqueRoundsAutoClearEnabled,
+        playbackSpeed: settingsManager.appSettings.playbackSpeed,
+        gesturePause: settingsManager.appSettings.gesturePause
+      }),
+      notifyAutoClearRequest: () => {
+        // App should extend/advance sequence for unique mode synchronous to this call
+        if (state.mode === 'unique') {
+          uniqueAdvanceOne();
+        }
+      }
+    });
+  }
+
+  function highlightSequenceStep(idx) {
+    // Simple visual: flash the bubble in sequence visuals
+    const visuals = $('sequence-visuals');
+    if (!visuals) return;
+    const bubble = visuals.querySelectorAll('div > div')[idx];
+    if (!bubble) return;
+    bubble.classList.add('ring', 'ring-offset-2');
+    setTimeout(() => bubble.classList.remove('ring','ring-offset-2'), 350);
+  }
+
+  // ------------------------ Practice Mode Integration ------------------------
+
+  function hookPracticeStartButton() {
+    // The settings.js created 'practice-start-overlay' and 'practice-start-btn'
+    const overlay = $('practice-start-overlay');
+    const startBtn = $('practice-start-btn'); // this is the overlay button created in Section 9
+    if (!overlay || !startBtn) {
+      // settingsManager.initPracticeModeUI will create them later; wait for settings ready
+      return;
+    }
+    // When clicked, settingsManager.practiceAPI.guard will be cleared and 'practice:start' event will be fired by settingsManager
+    // App listens for that to actually call startRound()
+    window.addEventListener('practice:start', () => {
+      // begin round when user hits Start
+      // Only start if practice mode is enabled and not currently active
+      state.isPractice = true;
+      startRound();
+    });
+  }
+
+  // ------------------------ Header relocation wiring ------------------------
+
+  function hookHeaderLayoutInit() {
+    // Provide toggles for showing cam/mic buttons (these moves are handled by settingsManager)
+    // Repositioning is done by settingsManager.initHeaderLayout called during finalizeIntegration
+    // Here we just expose events to update layout if settings change.
+    window.addEventListener('settings:ready', () => {
+      try {
+        // ensure settingsManager repositioning
+        settingsManager && settingsManager.initHeaderLayout && settingsManager.initHeaderLayout();
+      } catch (e) {}
+    });
+  }
+
+  // ------------------------ Init / Ready Sequence ------------------------
+
+  async function initialize() {
+    // Wait for settings ready
+    if (!window.settingsManager) {
+      // Wait for settings:ready event
+      await new Promise((resolve) => {
+        window.addEventListener('settings:ready', () => resolve(), { once: true });
+      });
+    } else {
+      // If manager already present but maybe not fully initialized, wait for settings:ready too
+      if (!settingsManager.__initializedFinal) {
+        await new Promise((resolve) => {
+          window.addEventListener('settings:ready', () => resolve(), { once: true });
+        });
+      }
+    }
+
+    // Once here, settingsManager is ready.
+    log('Settings ready — booting app');
+
+    // Ensure pads exist and wire buttons
+    ensurePads();
+    wirePadButtons();
+
+    // mapping token wiring
+    wireMappingTokenListeners();
+
+    // get initial mode from settings
+    state.mode = settingsManager.appSettings?.runtimeSettings?.mode || 'simon';
+    state.inputType = settingsManager.appSettings?.runtimeSettings?.currentInput || settingsManager.appSettings?.autoInputMode || 'key9';
+    showInputMode(state.inputType);
+
+    // Build initial sequence
+    if (state.mode === 'unique') {
+      uniqueReset();
+    } else {
+      // simon
+      createInitialSequence();
+    }
+
+    // Wire mappingAPI registration if available
+    if (globalThis.mappingAPI && typeof mappingAPI.registerSettingsManager === 'function') {
+      // already registered by settingsManager, but ensure mappingAPI knows about the app
+      mappingAPI.onMappingChanged((mapping) => {
+        // mapping updated; we may want to refresh hints etc
+        log('Mapping updated', mapping);
+      });
+    }
+
+    // Register autoplay callbacks
+    try {
+      registerAutoplayCallbacks();
+    } catch (e) { warn('autoplay callback registration failed', e); }
+
+    // Setup practice API hooks
+    hookPracticeStartButton();
+
+    // Hook for practice guard use: app should check settingsManager.practiceGuard() before starting round
+    window.addEventListener('practice:ended', (ev) => {
+      // when practice ended (won/lost) settingsManager will show start button, app shouldn't auto start
+      log('Practice round ended', ev.detail);
+    });
+
+    // Try to wire gestures to sensors mapping if mappingAPI provides helper
+    if (mappingAPI && mappingAPI.applyMappingsToSensor && typeof mappingAPI.applyMappingsToSensor === 'function') {
+      // If you have a sensorEngine, you can pass it. In this app we'll create a thin adapter that listens to mapping:token events
+      // and calls handleInputValue (already wired above). We'll also offer mappingAPI a handleToken translator.
+      const translator = mappingAPI.applyMappingsToSensor({
+        onTrigger: (k, source) => {
+          try { handleInputValue(k, source || 'sensor'); } catch (e) {}
+        }
+      }, state.inputType);
+
+      // translator.handleToken can be used if your sensor engine prefers calling a function
+      if (translator) {
+        // listen for mapping:token and pass to translator.handleToken (translator may call onTrigger)
+        window.addEventListener('mapping:token', (ev) => {
+          try {
+            const token = ev.detail?.token;
+            if (!token) return;
+            if (translator && typeof translator.handleToken === 'function') translator.handleToken(token, 'mapping');
+          } catch (e) {}
+        });
+      }
+    }
+
+    // Integrations:
+    // - Header layout repositioning
+    settingsManager.initHeaderLayout && settingsManager.initHeaderLayout();
+
+    // - Timer & Counter already initialized by settings.finalization; but ensure initial visibility
+    if (settingsManager.appSettings.showTimerButton && $('top-left-timer')) $('top-left-timer').style.display = 'flex';
+    if (settingsManager.appSettings.showCounterButton && $('top-right-counter')) $('top-right-counter').style.display = 'flex';
+
+    // - Gesture pad attach listeners
+    if (window.gesturePad && typeof gesturePad.attachPadListeners === 'function') {
+      gesturePad.attachPadListeners();
+    }
+
+    // - Wire practice guard to prevent auto start
+    // initial state
+    settingsManager.practiceState.modeEnabled = !!settingsManager.appSettings.isPracticeModeEnabled;
+    if (settingsManager.practiceState.modeEnabled) {
+      // If practice mode enabled, show Start button (unless game started)
+      settingsManager.practiceShowStartButton(true);
+    }
+
+    // - Register to UI events: Manual replay button
+    const replay = document.querySelector('[data-action="play-demo"]');
+    if (replay) {
+      replay.addEventListener('click', async () => {
+        if (settingsManager.practiceGuard && settingsManager.practiceGuard()) return;
+        if (globalThis.autoplayManager) await globalThis.autoplayManager.playSequence();
+      });
+    }
+
+    // - On user completing input signal for app.js, call settingsManager.onPlayerCompletedInput
+    // We expect app code to call settingsManager.onPlayerCompletedInput after evaluating inputs; however for simplicity
+    // we call it automatically where appropriate (in handleInputValue).
+    // (The mapping to settingManager.onPlayerCompletedInput was done earlier in handleInputValue for unique mode.)
+
+    // All set — emit app ready
+    window.dispatchEvent(new CustomEvent('app:ready', { detail: { state } }));
+    log('App initialized and ready');
+  }
+
+  // ------------------------ Public API (optional) ------------------------
+
+  return {
+    init: initialize,
+    getState: () => state,
+    setInputMode: (m) => {
+      showInputMode(m);
+      state.inputType = m;
+    },
+    setMode: (m) => {
+      state.mode = m;
+    },
+    setSequenceLength: (len) => {
+      state.sequenceLength = len;
+    },
+    createSequence: createInitialSequence,
+    uniqueReset,
+    startRound,
+    endRound,
+    handleInputValue, // exposed for debugging/testing
+  };
+})();
+
+// ------------------------ Auto-init (wait for settings ready) ------------------------
+(function autoInit() {
+  // If settings manager exists and is ready, initialize now; otherwise wait for event
+  if (window.settingsManager && window.settingsManager.__initializedFinal) {
+    App.init();
+  } else {
+    window.addEventListener('settings:ready', () => {
+      setTimeout(() => App.init(), 20);
+    }, { once: true });
+  }
+})();
+
+// ------------------------ Exports for console debugging ------------------------
+window.App = App;
+

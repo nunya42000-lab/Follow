@@ -50,7 +50,7 @@ function loadState() {
             if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
             if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
             if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
-            if (typeof appSettings.isUniqueRoundsAutoClearEnabled === 'undefined') appSettings.isUniqueRoundsAutoClearEnabled = true; // Safety default
+            if (typeof appSettings.isUniqueRoundsAutoClearEnabled === 'undefined') appSettings.isUniqueRoundsAutoClearEnabled = true; 
             
             if (!appSettings.voicePresets) appSettings.voicePresets = {};
             if (!appSettings.activeVoicePresetId) appSettings.activeVoicePresetId = 'standard';
@@ -78,31 +78,20 @@ function vibrate() { if(appSettings.isHapticsEnabled && navigator.vibrate) navig
 
 function vibrateMorse(val) { 
     if(!navigator.vibrate || !appSettings.isHapticMorseEnabled) return; 
-    
-    // --- MAP LETTERS TO NUMBERS 6-12 ---
     let num = parseInt(val);
     if(isNaN(num)) {
         const map = { 'A':6, 'B':7, 'C':8, 'D':9, 'E':10, 'F':11, 'G':12 };
         num = map[val.toUpperCase()] || 0;
     }
-
     const speed = appSettings.playbackSpeed || 1.0; 
     const factor = 1.0 / speed; 
     const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor; 
     let pattern = []; 
     
-    if (num >= 1 && num <= 3) { 
-        for(let i=0; i<num; i++) { pattern.push(DOT); pattern.push(GAP); } 
-    } else if (num >= 4 && num <= 6) { 
-        pattern.push(DASH); pattern.push(GAP); 
-        for(let i=0; i<(num-3); i++) { pattern.push(DOT); pattern.push(GAP); } 
-    } else if (num >= 7 && num <= 9) { 
-        pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); 
-        for(let i=0; i<(num-6); i++) { pattern.push(DOT); pattern.push(GAP); } 
-    } else if (num >= 10 && num <= 12) { 
-        pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP);
-        for(let i=0; i<(num-10); i++) { pattern.push(DOT); pattern.push(GAP); } 
-    } 
+    if (num >= 1 && num <= 3) { for(let i=0; i<num; i++) { pattern.push(DOT); pattern.push(GAP); } } 
+    else if (num >= 4 && num <= 6) { pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(num-3); i++) { pattern.push(DOT); pattern.push(GAP); } } 
+    else if (num >= 7 && num <= 9) { pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(num-6); i++) { pattern.push(DOT); pattern.push(GAP); } } 
+    else if (num >= 10 && num <= 12) { pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(num-10); i++) { pattern.push(DOT); pattern.push(GAP); } } 
     
     if(pattern.length > 0) navigator.vibrate(pattern); 
 }
@@ -114,7 +103,6 @@ function speak(text) {
     const lang = appSettings.generalLanguage || 'en';
     const dict = DICTIONARY[lang] || DICTIONARY['en'];
     let msg = text;
-    
     if(text === "Correct") msg = dict.correct;
     if(text === "Wrong") msg = dict.wrong;
     if(text === "Stealth Active") msg = dict.stealth;
@@ -131,10 +119,8 @@ function speak(text) {
     let p = appSettings.voicePitch || 1.0; 
     let r = appSettings.voiceRate || 1.0; 
     u.volume = appSettings.voiceVolume || 1.0; 
-    
     u.pitch = Math.min(2, Math.max(0.1, p));
     u.rate = Math.min(10, Math.max(0.1, r));
-
     window.speechSynthesis.speak(u); 
 }
 
@@ -144,7 +130,6 @@ function showToast(msg) {
     if(msg === "Reset to Round 1") msg = dict.reset;
     if(msg === "Playback Stopped 🛑") msg = dict.stop;
     if(msg === "Stealth Active") msg = dict.stealth;
-
     const t = document.getElementById('toast-notification'); 
     const m = document.getElementById('toast-message'); 
     if(!t || !m) return; 
@@ -159,23 +144,12 @@ function updateAllChrome() { applyTheme(appSettings.activeTheme); document.docum
 function startPracticeRound() {
     const settingsModal = document.getElementById('settings-modal');
     if(settingsModal && !settingsModal.classList.contains('pointer-events-none')) return;
-
     const state = getState(); 
     const settings = getProfileSettings(); 
     const max = (settings.currentInput === 'key12') ? 12 : 9;
-    
-    const getRand = () => { 
-        if(settings.currentInput === 'piano') { 
-            const keys = ['C','D','E','F','G','A','B','1','2','3','4','5']; 
-            return keys[Math.floor(Math.random()*keys.length)]; 
-        } 
-        return Math.floor(Math.random() * max) + 1; 
-    };
+    const getRand = () => { if(settings.currentInput === 'piano') { const keys = ['C','D','E','F','G','A','B','1','2','3','4','5']; return keys[Math.floor(Math.random()*keys.length)]; } return Math.floor(Math.random() * max) + 1; };
 
-    if(practiceSequence.length === 0) {
-        state.currentRound = 1;
-    }
-
+    if(practiceSequence.length === 0) { state.currentRound = 1; }
     if(settings.currentMode === CONFIG.MODES.SIMON) {
         practiceSequence.push(getRand());
         state.currentRound = practiceSequence.length;
@@ -184,9 +158,7 @@ function startPracticeRound() {
         const len = state.currentRound; 
         for(let i=0; i<len; i++) practiceSequence.push(getRand());
     }
-    
-    practiceInputIndex = 0; 
-    renderUI(); 
+    practiceInputIndex = 0; renderUI(); 
     showToast(`Practice Round ${state.currentRound}`); 
     setTimeout(() => playPracticeSequence(), 1000);
 }
@@ -194,25 +166,16 @@ function startPracticeRound() {
 function playPracticeSequence() {
     const settingsModal = document.getElementById('settings-modal');
     if(settingsModal && !settingsModal.classList.contains('pointer-events-none')) return;
-
     disableInput(true); 
     let i = 0; 
     const speed = appSettings.playbackSpeed || 1.0;
-    
     function next() {
         if(i >= practiceSequence.length) { disableInput(false); return; }
         const val = practiceSequence[i]; 
         const settings = getProfileSettings(); 
         const key = document.querySelector(`#pad-${settings.currentInput} button[data-value=\"${val}\"]`);
-        
-        if(key) { 
-            key.classList.add('flash-active'); 
-            setTimeout(() => key.classList.remove('flash-active'), 250 / speed); 
-        }
-        
-        speak(val); 
-        i++; 
-        setTimeout(next, 800 / speed);
+        if(key) { key.classList.add('flash-active'); setTimeout(() => key.classList.remove('flash-active'), 250 / speed); }
+        speak(val); i++; setTimeout(next, 800 / speed);
     } 
     next();
 }
@@ -224,19 +187,10 @@ function addValue(value) {
     
     if(appSettings.isPracticeModeEnabled) {
         if(practiceSequence.length === 0) return; 
-        
         if(value == practiceSequence[practiceInputIndex]) { 
             practiceInputIndex++; 
-            if(practiceInputIndex >= practiceSequence.length) { 
-                speak("Correct"); 
-                state.currentRound++; 
-                setTimeout(startPracticeRound, 1500); 
-            } 
-        } else { 
-            speak("Wrong"); 
-            navigator.vibrate(500); 
-            setTimeout(() => playPracticeSequence(), 1500); 
-        } 
+            if(practiceInputIndex >= practiceSequence.length) { speak("Correct"); state.currentRound++; setTimeout(startPracticeRound, 1500); } 
+        } else { speak("Wrong"); navigator.vibrate(500); setTimeout(() => playPracticeSequence(), 1500); } 
         return;
     }
     
@@ -249,21 +203,19 @@ function addValue(value) {
     // --- SMART LIMIT LOGIC ---
     let limit;
     if (isUnique) {
+        // In Unique Mode: Limit is the Round Number (if auto-clear) OR the Sequence Length (if manual)
         limit = appSettings.isUniqueRoundsAutoClearEnabled ? roundNum : settings.sequenceLength;
     } else {
+        // In Simon Mode: Limit is strictly the Sequence Length cap
         limit = settings.sequenceLength;
     }
     
     if(state.sequences[targetIndex] && state.sequences[targetIndex].length >= limit) {
-        if (isUnique && appSettings.isUniqueRoundsAutoClearEnabled) {
-            showToast("Round Full - Reset? 🛑");
-            vibrate();
-        }
+        if (isUnique && appSettings.isUniqueRoundsAutoClearEnabled) { showToast("Round Full - Reset? 🛑"); vibrate(); }
         return;
     }
 
     if(!state.sequences[targetIndex]) state.sequences[targetIndex] = [];
-    
     state.sequences[targetIndex].push(value); 
     state.nextSequenceIndex++; 
     renderUI(); 
@@ -274,16 +226,12 @@ function addValue(value) {
             const justFilled = (state.nextSequenceIndex - 1) % settings.machineCount; 
             if(justFilled === settings.machineCount - 1) setTimeout(playDemo, 250); 
         } else { 
-            // --- UPDATED UNIQUE AUTOPLAY LOGIC ---
-            if (appSettings.isUniqueRoundsAutoClearEnabled) {
-                // Strict Game Mode: Play only when round is complete
-                if(state.sequences[0].length >= roundNum) { 
-                    disableInput(true); 
-                    setTimeout(playDemo, 250); 
-                } 
-            } else {
-                // Freeform/Manual Mode: Play after EVERY input (Recorder style)
-                setTimeout(playDemo, 250); 
+            // --- STRICT UNIQUE AUTOPLAY LOGIC ---
+            // Only play when the CURRENT target list is completely full.
+            const currentLen = state.sequences[0].length;
+            if (currentLen >= limit) {
+                disableInput(true); 
+                setTimeout(playDemo, 400); // Increased buffer to prevent freeze
             }
         }
     }
@@ -331,17 +279,8 @@ function playDemo() {
         isDemoPlaying = false;
         if(timers.playback) clearTimeout(timers.playback);
         disableInput(false);
-        if(demoBtn) { 
-            demoBtn.innerHTML = '▶'; 
-            demoBtn.disabled = false; 
-        }
-        
-        // REVERT SETTINGS BUTTON
-        settingsBtns.forEach(btn => {
-            btn.innerHTML = '⚙️';
-            btn.disabled = false;
-        });
-        
+        if(demoBtn) { demoBtn.innerHTML = '▶'; demoBtn.disabled = false; }
+        settingsBtns.forEach(btn => { btn.innerHTML = '⚙️'; btn.disabled = false; });
         showToast("Playback Stopped 🛑");
         return;
     }
@@ -372,10 +311,7 @@ function playDemo() {
     disableInput(true); 
     
     if(demoBtn) demoBtn.disabled = false;
-    settingsBtns.forEach(btn => {
-        btn.disabled = false;
-        btn.innerHTML = '■'; 
-    });
+    settingsBtns.forEach(btn => { btn.disabled = false; btn.innerHTML = '■'; });
 
     isDemoPlaying = true; 
     
@@ -384,26 +320,34 @@ function playDemo() {
     const baseInterval = CONFIG.DEMO_DELAY_BASE_MS / speed;
     
     function next() { 
-        // SAFETY: Wrap in try/catch to ensure inputs are re-enabled even if logic fails
         try {
             if(!isDemoPlaying) return; 
             
             if(i >= playlist.length) { 
-                disableInput(false); 
+                // --- END OF PLAYLIST LOGIC ---
                 isDemoPlaying = false; 
-                if(demoBtn) { demoBtn.innerHTML = '▶'; demoBtn.disabled = false; }
-                settingsBtns.forEach(btn => {
-                    btn.innerHTML = '⚙️';
-                    btn.disabled = false;
-                });
                 
+                // 1. RE-ENABLE INPUTS IMMEDIATELY (Prevents Freeze)
+                disableInput(false);
+                if(demoBtn) { demoBtn.innerHTML = '▶'; demoBtn.disabled = false; }
+                settingsBtns.forEach(btn => { btn.innerHTML = '⚙️'; btn.disabled = false; });
+
+                // 2. HANDLE UNIQUE AUTO-CLEAR
                 if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.isUniqueRoundsAutoClearEnabled) { 
+                    // Clear Data
                     state.sequences[0] = []; 
                     state.nextSequenceIndex = 0; 
+                    // Increment Round
                     state.currentRound = (parseInt(state.currentRound) || 1) + 1; 
-                    if(state.currentRound > settings.sequenceLength) resetRounds(); 
-                    renderUI(); 
-                    saveState(); 
+                    
+                    // Check Limit
+                    if(state.currentRound > settings.sequenceLength) { 
+                        resetRounds(); 
+                    } else {
+                        renderUI(); 
+                        saveState(); 
+                        showToast(`Round ${state.currentRound} Started`);
+                    }
                 } 
                 return; 
             } 
@@ -420,9 +364,7 @@ function playDemo() {
             let nextDelay = baseInterval;
             if (i + 1 < playlist.length) {
                 const nextItem = playlist[i+1];
-                if (nextItem.machine !== item.machine) {
-                    nextDelay += (settings.simonInterSequenceDelay || 0);
-                }
+                if (nextItem.machine !== item.machine) { nextDelay += (settings.simonInterSequenceDelay || 0); }
             }
             
             i++; 
@@ -461,7 +403,6 @@ function renderUI() {
 
     const activeSeqs = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);
     
-    // --- VISUAL HEADER FOR ROUNDS (NEW) ---
     if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
         const roundNum = parseInt(state.currentRound) || 1;
         const header = document.createElement('h2');
@@ -490,25 +431,17 @@ function renderUI() {
 function toggleBlackout() { 
     blackoutState.isActive = !blackoutState.isActive; 
     document.body.classList.toggle('blackout-active', blackoutState.isActive); 
-    
     const layer = document.getElementById('blackout-layer');
-
     if(blackoutState.isActive) { 
         if(appSettings.isAudioEnabled) speak("Stealth Active"); 
-        
-        // --- GESTURE TOGGLE CHECK ---
         if (appSettings.isBlackoutGesturesEnabled) {
-            // New Gesture Handlers
             layer.addEventListener('touchstart', handleBlackoutGestureStart, {passive: false});
             layer.addEventListener('touchmove', handleBlackoutGestureMove, {passive: false});
             layer.addEventListener('touchend', handleBlackoutGestureEnd, {passive: false});
         } else {
-            // Legacy Grid Handler
             layer.addEventListener('touchstart', handleBlackoutTouch, {passive: false}); 
         }
-
     } else { 
-        // Remove ALL possible listeners
         layer.removeEventListener('touchstart', handleBlackoutTouch); 
         layer.removeEventListener('touchstart', handleBlackoutGestureStart);
         layer.removeEventListener('touchmove', handleBlackoutGestureMove);
@@ -518,7 +451,6 @@ function toggleBlackout() {
 
 function handleShake(e) { if(!appSettings.isBlackoutFeatureEnabled) return; const acc = e.acceleration; if(!acc) return; if(Math.hypot(acc.x, acc.y, acc.z) > 15) { const now = Date.now(); if(now - blackoutState.lastShake > 1000) { toggleBlackout(); vibrate(); blackoutState.lastShake = now; } } }
 
-// Legacy Grid-Based Touch System
 function handleBlackoutTouch(e) { 
     if(!blackoutState.isActive) return; 
     e.preventDefault(); e.stopPropagation(); 
@@ -527,7 +459,6 @@ function handleBlackoutTouch(e) {
     const w = window.innerWidth, h = window.innerHeight; 
     const settings = getProfileSettings(); 
     let val = null; 
-    
     if(settings.currentInput === 'piano') { 
         const keys = ['C','D','E','F','G','A','B','1','2','3','4','5']; 
         const idx = Math.floor(x / (w / keys.length)); 
@@ -538,23 +469,18 @@ function handleBlackoutTouch(e) {
         let num = (r * 3) + c + 1; 
         if(num > 0 && num <= (settings.currentInput==='key12'?12:9)) val = num.toString(); 
     } 
-    
     if(val) { addValue(val); vibrateMorse(val); } 
 }
 
-// --- NEW BLACKOUT GESTURE SYSTEM ---
 function handleBlackoutGestureStart(e) {
     e.preventDefault();
     if (e.touches.length === 0) return;
-    
-    // If it's a new tap sequence (not a multi-touch add-on)
     if (!gestureInputState.startTime || (Date.now() - gestureInputState.startTime > 500)) {
         gestureInputState.maxTouches = e.touches.length;
         gestureInputState.startX = e.touches[0].clientX;
         gestureInputState.startY = e.touches[0].clientY;
         gestureInputState.startTime = Date.now();
     } else {
-        // Update max touches if fingers added
         gestureInputState.maxTouches = Math.max(gestureInputState.maxTouches, e.touches.length);
     }
 }
@@ -566,7 +492,7 @@ function handleBlackoutGestureMove(e) {
 
 function handleBlackoutGestureEnd(e) {
     e.preventDefault();
-    if (e.touches.length > 0) return; // Wait for ALL fingers to lift
+    if (e.touches.length > 0) return; 
 
     const endX = e.changedTouches[0].clientX;
     const endY = e.changedTouches[0].clientY;
@@ -575,66 +501,50 @@ function handleBlackoutGestureEnd(e) {
     const duration = Date.now() - gestureInputState.startTime;
     const absX = Math.abs(diffX);
     const absY = Math.abs(diffY);
-    
     let val = null;
 
-    // TAP DETECTION (Short duration, low movement)
     if (duration < 300 && absX < 30 && absY < 30) {
         if (gestureInputState.maxTouches === 1) {
-            // Handle Double Tap Logic
             if (gestureInputState.isTapCandidate) {
-                // Double Tap Detected -> 11 (F)
                 clearTimeout(timers.tap);
                 gestureInputState.isTapCandidate = false;
-                val = '11'; // F
+                val = '11'; 
             } else {
                 gestureInputState.isTapCandidate = true;
                 timers.tap = setTimeout(() => {
-                    // Single Tap Confirmed -> 5
                     if (gestureInputState.isTapCandidate) {
                         addValue('5'); 
                         vibrateMorse('5');
                         gestureInputState.isTapCandidate = false;
                     }
-                }, 250); // Double tap window
-                return; // Wait for timer
+                }, 250); 
+                return; 
             }
         } else if (gestureInputState.maxTouches === 2) {
-            val = '10'; // E (2-finger tap)
+            val = '10'; 
         }
     } 
-    // LONG PRESS DETECTION
     else if (duration > 500 && absX < 30 && absY < 30) {
-        val = '12'; // G (Long Press)
+        val = '12'; 
     }
-    // SWIPE DETECTION
     else if (Math.max(absX, absY) > 50) {
-        // Determine Direction
         const isHorizontal = absX > absY;
         const isPositive = (isHorizontal ? diffX : diffY) > 0;
-        
-        // 1-Finger Swipes
         if (gestureInputState.maxTouches === 1) {
-            if (!isHorizontal && !isPositive) val = '1'; // Up
-            else if (isHorizontal && isPositive) val = '2'; // Right
-            else if (!isHorizontal && isPositive) val = '3'; // Down
-            else if (isHorizontal && !isPositive) val = '4'; // Left
+            if (!isHorizontal && !isPositive) val = '1'; 
+            else if (isHorizontal && isPositive) val = '2'; 
+            else if (!isHorizontal && isPositive) val = '3'; 
+            else if (isHorizontal && !isPositive) val = '4'; 
         } 
-        // 2-Finger Swipes
         else if (gestureInputState.maxTouches === 2) {
-             if (!isHorizontal && !isPositive) val = 'A'; // 6 (Up)
-            else if (isHorizontal && isPositive) val = 'B'; // 7 (Right)
-            else if (!isHorizontal && isPositive) val = 'C'; // 8 (Down)
-            else if (isHorizontal && !isPositive) val = 'D'; // 9 (Left)
+             if (!isHorizontal && !isPositive) val = 'A'; 
+            else if (isHorizontal && isPositive) val = 'B'; 
+            else if (!isHorizontal && isPositive) val = 'C'; 
+            else if (isHorizontal && !isPositive) val = 'D'; 
         }
     }
-
-    if (val) {
-        addValue(val);
-        vibrateMorse(val);
-    }
+    if (val) { addValue(val); vibrateMorse(val); }
 }
-
 
 function handle1KeyStart() {
     if(!appSettings.isStealth1KeyEnabled) return;
@@ -693,13 +603,11 @@ window.onload = function() {
                     appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
                     showToast("Game Mode Reset 🔄");
                 }
-                
                 if(appSettings.isPracticeModeEnabled) {
                     practiceSequence = [];
                     practiceInputIndex = 0;
                     appState['current_session'].currentRound = 1;
                 }
-
                 updateAllChrome(); 
                 saveState(); 
             },
@@ -715,19 +623,13 @@ window.onload = function() {
             onProfileAdd: (name) => { const id = 'p_' + Date.now(); appSettings.profiles[id] = { name, settings: JSON.parse(JSON.stringify(appSettings.runtimeSettings)), theme: appSettings.activeTheme }; appSettings.activeProfileId = id; updateAllChrome(); saveState(); },
             onProfileRename: (name) => { appSettings.profiles[appSettings.activeProfileId].name = name; saveState(); },
             onProfileDelete: () => { delete appSettings.profiles[appSettings.activeProfileId]; appSettings.activeProfileId = Object.keys(appSettings.profiles)[0]; appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings)); if(appSettings.profiles[appSettings.activeProfileId].theme) appSettings.activeTheme = appSettings.profiles[appSettings.activeProfileId].theme; updateAllChrome(); saveState(); },
-            onProfileSave: () => { 
-                appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings)); 
-                saveState(); 
-                showToast("Profile Settings Saved 💾"); 
-            }
+            onProfileSave: () => { appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings)); saveState(); showToast("Profile Settings Saved 💾"); }
         }, modules.sensor);
         updateAllChrome(); 
         
         if(appSettings.isPracticeModeEnabled) {
             const settingsModal = document.getElementById('settings-modal');
-            if(!settingsModal || settingsModal.classList.contains('pointer-events-none')) {
-                setTimeout(startPracticeRound, 500);
-            }
+            if(!settingsModal || settingsModal.classList.contains('pointer-events-none')) { setTimeout(startPracticeRound, 500); }
         }
 
         document.querySelectorAll('.btn-pad-number, .piano-key-white, .piano-key-black').forEach(btn => {
@@ -748,7 +650,6 @@ window.onload = function() {
                 btn.addEventListener('mousedown', () => handleStealthActionStart('delete')); btn.addEventListener('touchstart', () => handleStealthActionStart('delete'), {passive: true});
                 btn.addEventListener('mouseup', handleStealthActionEnd); btn.addEventListener('touchend', handleStealthActionEnd); btn.addEventListener('mouseleave', handleStealthActionEnd);
             }
-
             btn.addEventListener('click', (e) => {
                 if((val === '1' || val === '7' || val === '8' || val === '9' || val === 'C' || val === 'D' || val === 'E') && ignoreNextClick) { ignoreNextClick = false; return; }
                 addValue(e.target.dataset.value);
@@ -768,34 +669,16 @@ window.onload = function() {
                 }, 500); 
             }; 
             const cancelLong = () => clearTimeout(timers.longPress); 
-            b.addEventListener('mousedown', startLongPress); 
-            b.addEventListener('touchstart', startLongPress, { passive: true }); 
-            b.addEventListener('mouseup', cancelLong); 
-            b.addEventListener('mouseleave', cancelLong); 
-            b.addEventListener('touchend', cancelLong); 
+            b.addEventListener('mousedown', startLongPress); b.addEventListener('touchstart', startLongPress, { passive: true }); b.addEventListener('mouseup', cancelLong); b.addEventListener('mouseleave', cancelLong); b.addEventListener('touchend', cancelLong); 
         });
         
         document.querySelectorAll('button[data-action=\"open-settings\"]').forEach(b => {
-             const startSettingsLong = () => {
-                 timers.settingsLongPress = setTimeout(() => {
-                     vibrate();
-                     if(modules.settings) modules.settings.toggleRedeem(true);
-                 }, 800);
-             };
+             const startSettingsLong = () => { timers.settingsLongPress = setTimeout(() => { vibrate(); if(modules.settings) modules.settings.toggleRedeem(true); }, 800); };
              const cancelSettingsLong = () => { if(timers.settingsLongPress) clearTimeout(timers.settingsLongPress); };
-             
-             b.addEventListener('mousedown', startSettingsLong);
-             b.addEventListener('touchstart', startSettingsLong, { passive: true });
-             b.addEventListener('mouseup', cancelSettingsLong);
-             b.addEventListener('mouseleave', cancelSettingsLong);
-             b.addEventListener('touchend', cancelSettingsLong);
-             
+             b.addEventListener('mousedown', startSettingsLong); b.addEventListener('touchstart', startSettingsLong, { passive: true }); b.addEventListener('mouseup', cancelSettingsLong); b.addEventListener('mouseleave', cancelSettingsLong); b.addEventListener('touchend', cancelSettingsLong);
              b.onclick = () => {
                  if(timers.settingsLongPress) clearTimeout(timers.settingsLongPress);
-                 if(isDemoPlaying) {
-                     playDemo(); 
-                     return;
-                 }
+                 if(isDemoPlaying) { playDemo(); return; }
                  modules.settings.openSettings();
              };
         });
@@ -811,21 +694,11 @@ window.onload = function() {
                     timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL); 
                 }, CONFIG.SPEED_DELETE_DELAY); 
             }; 
-            const stopDelete = () => { 
-                clearTimeout(timers.initialDelay); 
-                clearInterval(timers.speedDelete); 
-                setTimeout(() => isDeleting = false, 50); 
-            }; 
+            const stopDelete = () => { clearTimeout(timers.initialDelay); clearInterval(timers.speedDelete); setTimeout(() => isDeleting = false, 50); }; 
             b.addEventListener('mousedown', startDelete); b.addEventListener('touchstart', startDelete, { passive: true }); b.addEventListener('mouseup', stopDelete); b.addEventListener('mouseleave', stopDelete); b.addEventListener('touchend', stopDelete); b.addEventListener('touchcancel', stopDelete); 
         });
         document.querySelectorAll('button[data-action=\"open-share\"]').forEach(b => b.addEventListener('click', () => modules.settings.openShare())); 
-        
-        document.getElementById('close-settings').addEventListener('click', () => {
-            if(appSettings.isPracticeModeEnabled) {
-                setTimeout(startPracticeRound, 500);
-            }
-        });
-
+        document.getElementById('close-settings').addEventListener('click', () => { if(appSettings.isPracticeModeEnabled) { setTimeout(startPracticeRound, 500); } });
         if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
     } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }
 };

@@ -735,4 +735,149 @@ START IMMEDIATELY upon my next input. Waiting for signal.`;
             if (container) container.insertBefore(div, row.nextSibling);
         }
     }
+
+    // Mapping UI population and defaults
+    populateMappingUI() {
+        // Ensure DOM refs exist
+        if(!this.dom) return;
+        if(!this.appSettings) return;
+        if(!this.appSettings.gestureMappings) this.appSettings.gestureMappings = {};
+
+        const container9 = this.dom.mapping9Container;
+        const container12 = this.dom.mapping12Container;
+        const containerPiano = this.dom.mappingPianoContainer;
+
+        const gestureOptions = [
+            'tap','double_tap','long_tap',
+            'tap_2f','double_tap_2f','long_tap_2f',
+            'tap_3f','double_tap_3f','long_tap_3f',
+            'swipe_left','swipe_right','swipe_up','swipe_down',
+            'swipe_nw','swipe_ne','swipe_se','swipe_sw',
+            'swipe_left_2f','swipe_right_2f','swipe_up_2f','swipe_down_2f',
+            'swipe_left_3f','swipe_right_3f','swipe_up_3f','swipe_down_3f'
+        ];
+        const morseOptions = ['.', '..', '...', '-', '-.', '-..', '--', '--.', '---', '...-', '.-.', '.--', '..-','.-'];
+
+        const makeRow = (labelText, keyName, mappingId) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = "flex items-center space-x-2 mapping-row";
+            const lbl = document.createElement('div');
+            lbl.className = "text-sm font-semibold w-24";
+            lbl.textContent = labelText;
+            const gestureSelect = document.createElement('select');
+            gestureSelect.className = "settings-input p-2 rounded flex-grow";
+            gestureSelect.id = mappingId + "-gesture";
+            gestureOptions.forEach(o => { const opt = document.createElement('option'); opt.value = o; opt.textContent = o.replace(/_/g,' '); gestureSelect.appendChild(opt); });
+            const morseSelect = document.createElement('select');
+            morseSelect.className = "settings-input p-2 rounded w-28";
+            morseSelect.id = mappingId + "-morse";
+            morseOptions.forEach(m => { const opt = document.createElement('option'); opt.value = m; opt.textContent = m; morseSelect.appendChild(opt); });
+
+            wrapper.appendChild(lbl);
+            wrapper.appendChild(gestureSelect);
+            wrapper.appendChild(morseSelect);
+
+            const gm = this.appSettings.gestureMappings || {};
+            if(gm[keyName]) {
+                gestureSelect.value = gm[keyName].gesture || gestureSelect.value;
+                morseSelect.value = gm[keyName].morse || morseSelect.value;
+            }
+
+            const save = () => {
+                this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
+                this.appSettings.gestureMappings[keyName] = { gesture: gestureSelect.value, morse: morseSelect.value };
+                this.callbacks.onSave && this.callbacks.onSave();
+                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+            };
+            gestureSelect.addEventListener('change', save);
+            morseSelect.addEventListener('change', save);
+
+            return wrapper;
+        };
+
+        // 9-key
+        if(container9) {
+            container9.innerHTML = '';
+            for(let i=1;i<=9;i++){
+                const key = 'k9_' + i;
+                const row = makeRow(String(i), key, 'map9_'+i);
+                container9.appendChild(row);
+            }
+        }
+        // 12-key
+        if(container12) {
+            container12.innerHTML = '';
+            for(let i=1;i<=12;i++){
+                const key = 'k12_' + i;
+                const row = makeRow(String(i), key, 'map12_'+i);
+                container12.appendChild(row);
+            }
+        }
+        // Piano
+        if(containerPiano) {
+            containerPiano.innerHTML = '';
+            const pianoOrder = ['C','D','E','F','G','A','B','1','2','3','4','5'];
+            pianoOrder.forEach((id) => {
+                const key = 'piano_' + id;
+                const row = makeRow(id, key, 'mapp_' + id);
+                containerPiano.appendChild(row);
+            });
+        }
+
+        // Apply defaults if empty
+        if(!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
+            this.applyDefaultGestureMappings();
+            this.callbacks.onSave && this.callbacks.onSave();
+            // repopulate to reflect defaults
+            setTimeout(()=>{ this.populateMappingUI(); }, 50);
+        }
+    }
+
+    applyDefaultGestureMappings() {
+        this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
+
+        // 9-key defaults
+        const defs = {
+            'k9_1': { gesture: 'tap', morse: '.' },
+            'k9_2': { gesture: 'double_tap', morse: '..' },
+            'k9_3': { gesture: 'long_tap', morse: '...' },
+            'k9_4': { gesture: 'tap_2f', morse: '-' },
+            'k9_5': { gesture: 'double_tap_2f', morse: '-.' },
+            'k9_6': { gesture: 'long_tap_2f', morse: '-..' },
+            'k9_7': { gesture: 'tap_3f', morse: '--' },
+            'k9_8': { gesture: 'double_tap_3f', morse: '--.' },
+            'k9_9': { gesture: 'long_tap_3f', morse: '---' },
+
+            // 12-key defaults
+            'k12_1': { gesture: 'swipe_left', morse: '.' },
+            'k12_2': { gesture: 'swipe_down', morse: '..' },
+            'k12_3': { gesture: 'swipe_up', morse: '...' },
+            'k12_4': { gesture: 'swipe_right', morse: '...-' },
+            'k12_5': { gesture: 'swipe_left_2f', morse: '-' },
+            'k12_6': { gesture: 'swipe_down_2f', morse: '-.' },
+            'k12_7': { gesture: 'swipe_up_2f', morse: '-..' },
+            'k12_8': { gesture: 'swipe_right_2f', morse: '-.-' },
+            'k12_9': { gesture: 'swipe_left_3f', morse: '--' },
+            'k12_10': { gesture: 'swipe_down_3f', morse: '--.' },
+            'k12_11': { gesture: 'swipe_up_3f', morse: '--..' },
+            'k12_12': { gesture: 'swipe_right_3f', morse: '---' },
+
+            // Piano defaults
+            'piano_C': { gesture: 'swipe_nw', morse: '.' },
+            'piano_D': { gesture: 'swipe_left', morse: '..' },
+            'piano_E': { gesture: 'swipe_sw', morse: '.-' },
+            'piano_F': { gesture: 'swipe_down', morse: '...' },
+            'piano_G': { gesture: 'swipe_se', morse: '..-' },
+            'piano_A': { gesture: 'swipe_right', morse: '.-.' },
+            'piano_B': { gesture: 'swipe_ne', morse: '.--' },
+            'piano_1': { gesture: 'swipe_left_2f', morse: '-' },
+            'piano_2': { gesture: 'swipe_nw_2f', morse: '-.' },
+            'piano_3': { gesture: 'swipe_up_2f', morse: '--' },
+            'piano_4': { gesture: 'swipe_ne_2f', morse: '-..' },
+            'piano_5': { gesture: 'swipe_right_2f', morse: '-.-' }
+        };
+
+        this.appSettings.gestureMappings = Object.assign({}, defs, this.appSettings.gestureMappings || {});
+    }
+
 }

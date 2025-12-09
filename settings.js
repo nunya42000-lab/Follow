@@ -90,6 +90,8 @@ export class SettingsManager {
             
             // Injected Toggles (Now guaranteed to exist)
             longPressToggle: document.getElementById('long-press-autoplay-toggle'),
+            timerToggle: document.getElementById('timer-toggle'),
+            counterToggle: document.getElementById('counter-toggle'),
             blackoutGesturesToggle: document.getElementById('blackout-gestures-toggle'),
 
             uiScale: document.getElementById('ui-scale-select'), seqSize: document.getElementById('seq-size-select'), gestureMode: document.getElementById('gesture-mode-select'), autoInput: document.getElementById('auto-input-select'),
@@ -120,6 +122,26 @@ export class SettingsManager {
         this.tempTheme = null; this.initListeners(); this.populateConfigDropdown(); this.populateThemeDropdown(); this.buildColorGrid(); this.populateVoicePresetDropdown();
     }
 
+
+    injectTimerCounterToggles() {
+        if (document.getElementById('timer-toggle') || document.getElementById('counter-toggle')) return;
+        const timerDiv = document.createElement('div');
+        timerDiv.className = "flex justify-between items-center p-3 rounded-lg settings-input";
+        timerDiv.innerHTML = `<span class="font-bold text-sm">Timer</span><input type="checkbox" id="timer-toggle" class="h-5 w-5 accent-indigo-500">`;
+        const counterDiv = document.createElement('div');
+        counterDiv.className = "flex justify-between items-center p-3 rounded-lg settings-input";
+        counterDiv.innerHTML = `<span class="font-bold text-sm">Counter</span><input type="checkbox" id="counter-toggle" class="h-5 w-5 accent-indigo-500">`;
+        const ref = document.getElementById('blackout-toggle');
+        if (ref && ref.parentElement && ref.parentElement.parentElement) {
+            const row = ref.parentElement;
+            const container = row.parentElement;
+            container.insertBefore(timerDiv, row.nextSibling);
+            container.insertBefore(counterDiv, row.nextSibling.nextSibling);
+        } else {
+            const generalTab = document.getElementById('tab-general');
+            if (generalTab) generalTab.appendChild(timerDiv), generalTab.appendChild(counterDiv);
+        }
+    }
     injectLongPressToggle() {
         if (document.getElementById('long-press-autoplay-toggle')) return;
 
@@ -365,6 +387,8 @@ export class SettingsManager {
 
         bind(this.dom.input, 'currentInput', false); bind(this.dom.machines, 'machineCount', false, true); bind(this.dom.seqLength, 'sequenceLength', false, true); bind(this.dom.autoClear, 'isUniqueRoundsAutoClearEnabled', true);
         bind(this.dom.longPressToggle, 'isLongPressAutoplayEnabled', true);
+        if (this.dom.timerToggle) this.dom.timerToggle.onchange = (e) => { this.appSettings.enableTimer = e.target.checked; this.callbacks.onSave(); this.callbacks.onUpdate(); };
+        if (this.dom.counterToggle) this.dom.counterToggle.onchange = (e) => { this.appSettings.enableCounter = e.target.checked; this.callbacks.onSave(); this.callbacks.onUpdate(); };
 
         // Mode switch special case
         if (this.dom.mode) {
@@ -655,6 +679,8 @@ START IMMEDIATELY upon my next input. Waiting for signal.`;
         if (this.dom.calibCamSlider) this.dom.calibCamSlider.value = this.appSettings.sensorCamThresh || 30;
 
         if (this.dom.haptics) this.dom.haptics.checked = (typeof this.appSettings.isHapticsEnabled === 'undefined') ? true : this.appSettings.isHapticsEnabled;
+        if (this.dom.timerToggle) this.dom.timerToggle.checked = !!this.appSettings.enableTimer;
+        if (this.dom.counterToggle) this.dom.counterToggle.checked = !!this.appSettings.enableCounter;
         if (this.dom.speedDelete) this.dom.speedDelete.checked = (typeof this.appSettings.isSpeedDeletingEnabled === 'undefined') ? true : this.appSettings.isSpeedDeletingEnabled;
 
         if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;

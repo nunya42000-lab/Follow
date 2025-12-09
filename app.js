@@ -15,7 +15,11 @@ const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 2
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 400 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
 
-const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en' };
+const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en' 
+    enableTimer: false,
+    enableCounter: false,
+    counterValue: 0,
+};
 
 const DICTIONARY = {
     'en': { correct: "Correct", wrong: "Wrong", stealth: "Stealth Active", reset: "Reset to Round 1", stop: "Playback Stopped 🛑" },
@@ -438,6 +442,25 @@ function playDemo() {
     next();
 }
 
+
+
+// --- Header: Timer + Counter + Mic + Cam (compact) ---
+let headerTimer = { running:false, start:0, elapsed:0, interval:null };
+
+function formatHeaderTime(ms){ const s=Math.floor(ms/1000); const m=Math.floor(s/60); return `${m}:${String(s%60).padStart(2,'0')}`; }
+
+function updateHeaderTimer(){ const btn=document.getElementById('hb-timer'); if(!btn) return; let total = headerTimer.elapsed; if(headerTimer.running) total += Date.now()-headerTimer.start; btn.textContent = formatHeaderTime(total); }
+
+function startHeaderTimer(){ if(headerTimer.running) return; headerTimer.running=true; headerTimer.start=Date.now(); headerTimer.interval=setInterval(updateHeaderTimer,250); }
+
+function stopHeaderTimer(){ if(!headerTimer.running) return; headerTimer.running=false; headerTimer.elapsed += Date.now()-headerTimer.start; if(headerTimer.interval){ clearInterval(headerTimer.interval); headerTimer.interval=null; } updateHeaderTimer(); }
+
+function resetHeaderTimer(){ headerTimer.running=false; headerTimer.start=0; headerTimer.elapsed=0; if(headerTimer.interval){ clearInterval(headerTimer.interval); headerTimer.interval=null; } const btn=document.getElementById('hb-timer'); if(btn) btn.textContent='0:00'; }
+
+function attachLongPress(el, action, ms=600){ let t=null; el.addEventListener('touchstart', ()=>{ t=setTimeout(action, ms); }, {passive:true}); el.addEventListener('mousedown', ()=>{ t=setTimeout(action, ms); }); const cancel = ()=>{ if(t){ clearTimeout(t); t=null; } }; el.addEventListener('touchend', cancel); el.addEventListener('mouseup', cancel); el.addEventListener('mouseleave', cancel); }
+
+function renderHeader(){ const hb=document.getElementById('header-bar'); if(!hb) return; hb.innerHTML=''; const left=document.createElement('div'); left.className='hb-left'; const center=document.createElement('div'); center.className='hb-center'; const right=document.createElement('div'); right.className='hb-right'; let has=false; if(appSettings.enableTimer){ const tbtn=document.createElement('button'); tbtn.id='hb-timer'; tbtn.className='hb-btn'; tbtn.textContent = formatHeaderTime(headerTimer.elapsed); tbtn.onclick = ()=>{ headerTimer.running ? stopHeaderTimer() : startHeaderTimer(); }; attachLongPress(tbtn, ()=>{ resetHeaderTimer(); saveState(); }); left.appendChild(tbtn); has=true; updateHeaderTimer(); } const mic=document.createElement('button'); mic.className='hb-btn'; mic.id='hb-mic-btn'; mic.textContent='🎤'; mic.onclick = ()=>{ if(modules.sensor) modules.sensor.toggleAudio(); renderUI(); }; if(!appSettings.showMicBtn) mic.classList.add('hidden'); center.appendChild(mic); const cam=document.createElement('button'); cam.className='hb-btn'; cam.id='hb-cam-btn'; cam.textContent='📷'; cam.onclick = ()=>{ if(modules.sensor) modules.sensor.toggleCamera(); renderUI(); }; if(!appSettings.showCamBtn) cam.classList.add('hidden'); center.appendChild(cam); if(appSettings.enableCounter){ const cbtn=document.createElement('button'); cbtn.id='hb-counter'; cbtn.className='hb-btn'; cbtn.textContent = String(appSettings.counterValue||0); cbtn.onclick = ()=>{ appSettings.counterValue = (appSettings.counterValue||0) + 1; saveState(); renderHeader(); }; attachLongPress(cbtn, ()=>{ appSettings.counterValue = 0; saveState(); renderHeader(); }); right.appendChild(cbtn); has=true; } hb.appendChild(left); hb.appendChild(center); hb.appendChild(right); if(has) hb.classList.remove('hidden'); else hb.classList.add('hidden'); }
+
 function renderUI() {
     const container = document.getElementById('sequence-container'); 
     container.innerHTML = ''; 
@@ -485,6 +508,8 @@ function renderUI() {
     document.querySelectorAll('#mic-master-btn').forEach(btn => { btn.classList.toggle('hidden', !appSettings.showMicBtn); btn.classList.toggle('master-active', modules.sensor && modules.sensor.mode.audio); });
     document.querySelectorAll('#camera-master-btn').forEach(btn => { btn.classList.toggle('hidden', !appSettings.showCamBtn); btn.classList.toggle('master-active', modules.sensor && modules.sensor.mode.camera); });
     document.querySelectorAll('.reset-button').forEach(b => { b.style.display = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 'block' : 'none'; });
+
+    try { renderHeader(); } catch(e) { console.error('Header render failed', e); }
 }
 
 function toggleBlackout() { 
@@ -877,24 +902,6 @@ function longPress(el, action){
     el.addEventListener('touchend', ()=>clearTimeout(t));
 }
 
-function renderHeader(){
-    const hb=document.getElementById('header-bar');
-    if(!hb) return;
-    hb.innerHTML='';
-    let has=false;
-
-    // left side (timer)
-    if(appSettings.enableTimer){
-        const t=document.createElement('button');
-        t.id='hb-timer';
-        t.className='hb-btn';
-        t.textContent='0:00';
-        t.onclick=()=>{ headerTimer.running ? stopHeaderTimer() : startHeaderTimer(); };
-        longPress(t, ()=>{ resetHeaderTimer(); saveState(); });
-        hb.appendChild(t);
-        has=true;
-        updateHeaderTimer();
-    }
 
     // mic
     const mic=document.createElement('button');
@@ -926,3 +933,15 @@ function renderHeader(){
 
     if(has) hb.classList.remove('hidden'); else hb.classList.add('hidden');
 }
+
+
+// Wiring for Timer/Counter toggles
+setTimeout(()=>{
+    try{
+        const t = document.getElementById('timer-toggle');
+        const c = document.getElementById('counter-toggle');
+        if(t){ t.checked = !!appSettings.enableTimer; t.onchange = (e)=>{ appSettings.enableTimer = e.target.checked; saveState(); renderUI(); }; }
+        if(c){ c.checked = !!appSettings.enableCounter; c.onchange = (e)=>{ appSettings.enableCounter = e.target.checked; saveState(); renderUI(); }; }
+        renderHeader();
+    }catch(e){ console.error('Timer wiring failed', e); }
+}, 400);

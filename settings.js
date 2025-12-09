@@ -62,7 +62,8 @@ export class SettingsManager {
         
         // 1. Inject elements first (creates them in the DOM)
         this.injectLongPressToggle();
-        this.injectBlackoutGesturesToggle(); 
+        this.injectBlackoutGesturesToggle();
+        this.injectGestureInputToggle(); 
 
         // 2. Build the DOM cache (now includes the injected elements)
         this.dom = {
@@ -115,9 +116,23 @@ export class SettingsManager {
             donateModal: document.getElementById('donate-modal'), closeDonateBtn: document.getElementById('close-donate-btn'),
             btnCashMain: document.getElementById('btn-cashapp-main'), btnPaypalMain: document.getElementById('btn-paypal-main'),
             copyLinkBtn: document.getElementById('copy-link-button'), nativeShareBtn: document.getElementById('native-share-button'),
-            chatShareBtn: document.getElementById('chat-share-button'), emailShareBtn: document.getElementById('email-share-button')
-        };
+            chatShareBtn: document.getElementById('chat-share-button'), emailShareBtn: document.getElementById('email-share-button'),
+            gestureToggle: document.getElementById('gesture-input-toggle'),
+            mapping9Container: document.getElementById('mapping-9-container'),
+            mapping12Container: document.getElementById('mapping-12-container'),
+            mappingPianoContainer: document.getElementById('mapping-piano-container'),
+};
         this.tempTheme = null; this.initListeners(); this.populateConfigDropdown(); this.populateThemeDropdown(); this.buildColorGrid(); this.populateVoicePresetDropdown();
+        this.populateMappingUI();
+        if(this.dom.gestureToggle){
+            this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+            this.dom.gestureToggle.addEventListener('change', (e) => {
+                this.appSettings.isGestureInputEnabled = !!e.target.checked;
+                this.callbacks.onSave();
+                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+            });
+        }
+
     }
 
     injectLongPressToggle() {
@@ -298,6 +313,16 @@ export class SettingsManager {
                 };
                 this.appSettings.activeVoicePresetId = id;
                 this.populateVoicePresetDropdown();
+        this.populateMappingUI();
+        if(this.dom.gestureToggle){
+            this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+            this.dom.gestureToggle.addEventListener('change', (e) => {
+                this.appSettings.isGestureInputEnabled = !!e.target.checked;
+                this.callbacks.onSave();
+                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+            });
+        }
+
                 this.callbacks.onSave();
             }
         };
@@ -325,6 +350,16 @@ export class SettingsManager {
                 delete this.appSettings.voicePresets[id];
                 this.appSettings.activeVoicePresetId = 'standard';
                 this.populateVoicePresetDropdown();
+        this.populateMappingUI();
+        if(this.dom.gestureToggle){
+            this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+            this.dom.gestureToggle.addEventListener('change', (e) => {
+                this.appSettings.isGestureInputEnabled = !!e.target.checked;
+                this.callbacks.onSave();
+                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+            });
+        }
+
                 this.applyVoicePreset('standard');
             }
         };
@@ -335,6 +370,16 @@ export class SettingsManager {
             if (n) {
                 this.appSettings.voicePresets[id].name = n;
                 this.populateVoicePresetDropdown();
+        this.populateMappingUI();
+        if(this.dom.gestureToggle){
+            this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+            this.dom.gestureToggle.addEventListener('change', (e) => {
+                this.appSettings.isGestureInputEnabled = !!e.target.checked;
+                this.callbacks.onSave();
+                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+            });
+        }
+
                 this.callbacks.onSave();
             }
         };
@@ -674,23 +719,20 @@ START IMMEDIATELY upon my next input. Waiting for signal.`;
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
 
 
-    // Accordion helpers
-    createAccordionSection(title, container) {
-        const header = document.createElement('div');
-        header.className = 'accordion-header';
-        header.textContent = title;
-        const content = document.createElement('div');
-        content.className = 'accordion-content';
-        // default state: only 9-key open
-        if (title === "9-Key Mapping") content.classList.add('open');
-
-        // move container children into content
-        content.appendChild(container);
-
-        header.addEventListener('click', () => {
-            content.classList.toggle('open');
-        });
-
-        return {header, content};
-    },
+    // Added gesture input toggle method
+    injectGestureInputToggle() {
+        if (document.getElementById('gesture-input-toggle')) return;
+        const div = document.createElement('div');
+        div.className = "flex justify-between items-center p-3 rounded-lg settings-input";
+        div.innerHTML = `
+            <span class="font-bold text-sm">Gesture Input Mode</span>
+            <input type="checkbox" id="gesture-input-toggle" class="h-5 w-5 accent-indigo-500">
+        `;
+        const stealthRow = document.getElementById('stealth-1key-toggle');
+        if (stealthRow && stealthRow.parentElement) {
+            const row = stealthRow.parentElement;
+            const container = row.parentElement;
+            if (container) container.insertBefore(div, row.nextSibling);
+        }
+    }
 }

@@ -41,10 +41,10 @@ const LANG = {
     en: {
         quick_title: "👋 Quick Start", select_profile: "Select Profile", autoplay: "Autoplay", audio: "Audio", help_btn: "Help 📚", settings_btn: "Settings", dont_show: "Don't show again", play_btn: "PLAY", theme_editor: "🎨 Theme Editor",
         lbl_profiles: "Profiles", lbl_game: "Game", lbl_playback: "Playback", lbl_general: "General", lbl_mode: "Mode", lbl_input: "Input",
-        blackout_gestures: "Blackout Gestures", // NEW TOGGLE LABEL
+        blackout_gestures: "Blackout Blackout Gestures", // NEW TOGGLE LABEL
         help_stealth_detail: "Stealth Mode (1-Key) simplifies input by mapping the 12 primary values (1-12) to a single key press. The interpretation depends on context and mode (Simon/Unique). This is intended for high-speed, minimal-movement input.", // UPDATED HELP DETAIL
-        help_blackout_detail: "Blackout Mode turns the entire screen black to eliminate visual distraction, allowing you to focus purely on audio cues and muscle memory. The app remains fully functional, but the UI is hidden. If Blackout Gestures are enabled, input switches to a 'no-look' touch system.", // UPDATED HELP DETAIL
-        help_gesture_detail: "Blackout Gestures: A 'no-look' input system. Use touch gestures (swipes, taps) to represent values 1 through 12. Values 6 through 12 are represented by letters A through G (A=6, B=7, etc.) on a virtual 3x4 grid. A fully detailed guide follows the Haptic Morse Guide." // NEW HELP DETAIL
+        help_blackout_detail: "Blackout Mode turns the entire screen black to eliminate visual distraction, allowing you to focus purely on audio cues and muscle memory. The app remains fully functional, but the UI is hidden. If Blackout Blackout Gestures are enabled, input switches to a 'no-look' touch system.", // UPDATED HELP DETAIL
+        help_gesture_detail: "Blackout Blackout Gestures: A 'no-look' input system. Use touch gestures (swipes, taps) to represent values 1 through 12. Values 6 through 12 are represented by letters A through G (A=6, B=7, etc.) on a virtual 3x4 grid. A fully detailed guide follows the Haptic Morse Guide." // NEW HELP DETAIL
     },
     es: {
         quick_title: "👋 Inicio Rápido", select_profile: "Perfil", autoplay: "Auto-reproducción", audio: "Audio", help_btn: "Ayuda 📚", settings_btn: "Ajustes", dont_show: "No mostrar más", play_btn: "JUGAR", theme_editor: "🎨 Editor de Temas",
@@ -62,7 +62,7 @@ export class SettingsManager {
         
         // 1. Inject elements first (creates them in the DOM)
         this.injectLongPressToggle();
-        this.injectBlackoutGesturesToggle(); 
+        this.injectBlackoutBlackout GesturesToggle(); 
 
         // 2. Build the DOM cache (now includes the injected elements)
         this.dom = {
@@ -90,7 +90,7 @@ export class SettingsManager {
             
             // Injected Toggles (Now guaranteed to exist)
             longPressToggle: document.getElementById('long-press-autoplay-toggle'),
-            blackoutGesturesToggle: document.getElementById('blackout-gestures-toggle'),
+            blackoutBlackout GesturesToggle: document.getElementById('blackout-gestures-toggle'),
 
             uiScale: document.getElementById('ui-scale-select'), seqSize: document.getElementById('seq-size-select'), gestureMode: document.getElementById('gesture-mode-select'), autoInput: document.getElementById('auto-input-select'),
             quickLang: document.getElementById('quick-lang-select'), generalLang: document.getElementById('general-lang-select'), closeSettingsBtn: document.getElementById('close-settings'),
@@ -146,13 +146,13 @@ export class SettingsManager {
     }
 
     // NEW METHOD
-    injectBlackoutGesturesToggle() {
+    injectBlackoutBlackout GesturesToggle() {
         if (document.getElementById('blackout-gestures-toggle')) return;
 
         const div = document.createElement('div');
         div.className = "flex justify-between items-center p-3 rounded-lg settings-input";
         // Uses the new LANG key 'blackout_gestures'
-        div.innerHTML = `<span class="font-bold text-sm" data-i18n="blackout_gestures">Blackout Gestures</span><input type="checkbox" id="blackout-gestures-toggle" class="h-5 w-5 accent-indigo-500">`;
+        div.innerHTML = `<span class="font-bold text-sm" data-i18n="blackout_gestures">Blackout Blackout Gestures</span><input type="checkbox" id="blackout-gestures-toggle" class="h-5 w-5 accent-indigo-500">`;
 
         const blackoutToggleInput = document.getElementById('blackout-toggle');
 
@@ -433,7 +433,7 @@ export class SettingsManager {
         if (this.dom.delay) this.dom.delay.onchange = (e) => { this.appSettings.runtimeSettings.simonInterSequenceDelay = parseFloat(e.target.value) * 1000; this.callbacks.onSave(); this.generatePrompt(); };
         bind(this.dom.haptics, 'isHapticsEnabled', true); bind(this.dom.speedDelete, 'isSpeedDeletingEnabled', true); bind(this.dom.stealth1KeyToggle, 'isStealth1KeyEnabled', true);
         bind(this.dom.blackoutToggle, 'isBlackoutFeatureEnabled', true); 
-        bind(this.dom.blackoutGesturesToggle, 'isBlackoutGesturesEnabled', true); // NEW BINDING (Fixed)
+        bind(this.dom.blackoutBlackout GesturesToggle, 'isBlackoutBlackout GesturesEnabled', true); // NEW BINDING (Fixed)
         bind(this.dom.practiceMode, 'isPracticeModeEnabled', true);
         if (this.dom.uiScale) this.dom.uiScale.onchange = (e) => { this.appSettings.globalUiScale = parseInt(e.target.value); this.callbacks.onUpdate(); };
         if (this.dom.seqSize) this.dom.seqSize.onchange = (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onUpdate(); };
@@ -662,7 +662,7 @@ START IMMEDIATELY upon my next input. Waiting for signal.`;
         if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
         
         if (this.dom.blackoutToggle) this.dom.blackoutToggle.checked = this.appSettings.isBlackoutFeatureEnabled;
-        if (this.dom.blackoutGesturesToggle) this.dom.blackoutGesturesToggle.checked = this.appSettings.isBlackoutGesturesEnabled;
+        if (this.dom.blackoutBlackout GesturesToggle) this.dom.blackoutBlackout GesturesToggle.checked = this.appSettings.isBlackoutBlackout GesturesEnabled;
 
         // Language
         const lang = this.appSettings.generalLanguage || 'en';
@@ -673,25 +673,3 @@ START IMMEDIATELY upon my next input. Waiting for signal.`;
     hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
 }
-
-
-// Inject timer/counter toggles into General tab
-document.addEventListener('DOMContentLoaded',()=>{
-  const gen=document.querySelector('#tab-general');
-  if(gen && !document.getElementById('timer-toggle')){
-    const wrap=document.createElement('div');
-    wrap.className='p-3 rounded-lg settings-input';
-    wrap.innerHTML=`<label class="font-semibold">Timer</label><input type="checkbox" id="timer-toggle" class="h-5 w-5 accent-indigo-500">`;
-    gen.appendChild(wrap);
-    const wrap2=document.createElement('div');
-    wrap2.className='p-3 rounded-lg settings-input';
-    wrap2.innerHTML=`<label class="font-semibold">Counter</label><input type="checkbox" id="counter-toggle" class="h-5 w-5 accent-indigo-500">`;
-    gen.appendChild(wrap2);
-  }
-  setTimeout(()=>{
-    const t=document.getElementById('timer-toggle');
-    const c=document.getElementById('counter-toggle');
-    if(t){ t.checked=appSettings.enableTimer||false; t.onchange=()=>{ appSettings.enableTimer=t.checked; saveState(); renderUI(); }; }
-    if(c){ c.checked=appSettings.enableCounter||false; c.onchange=()=>{ appSettings.enableCounter=c.checked; saveState(); renderUI(); }; }
-  },500);
-});

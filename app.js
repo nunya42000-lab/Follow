@@ -829,3 +829,100 @@ window.onload = function() {
         if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
     } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }
 };
+
+// --- Enhanced Header with Timer & Counter ---
+let headerTimer = { running:false, start:0, elapsed:0, interval:null };
+
+function updateHeaderTimer(){
+    const btn=document.getElementById('hb-timer');
+    if(!btn) return;
+    let total = headerTimer.elapsed;
+    if(headerTimer.running) total += Date.now()-headerTimer.start;
+    const s=Math.floor(total/1000);
+    const m=Math.floor(s/60);
+    const ss=String(s%60).padStart(2,'0');
+    btn.textContent=`${m}:${ss}`;
+}
+
+function startHeaderTimer(){
+    if(headerTimer.running) return;
+    headerTimer.running=true;
+    headerTimer.start=Date.now();
+    headerTimer.interval=setInterval(updateHeaderTimer,250);
+}
+
+function stopHeaderTimer(){
+    if(!headerTimer.running) return;
+    headerTimer.running=false;
+    headerTimer.elapsed += Date.now()-headerTimer.start;
+    clearInterval(headerTimer.interval);
+    headerTimer.interval=null;
+    updateHeaderTimer();
+}
+
+function resetHeaderTimer(){
+    headerTimer.running=false;
+    headerTimer.start=0;
+    headerTimer.elapsed=0;
+    if(headerTimer.interval){ clearInterval(headerTimer.interval); headerTimer.interval=null; }
+    updateHeaderTimer();
+}
+
+function longPress(el, action){
+    let t;
+    el.addEventListener('mousedown', ()=>{ t=setTimeout(action,600); });
+    el.addEventListener('mouseup', ()=>clearTimeout(t));
+    el.addEventListener('mouseleave', ()=>clearTimeout(t));
+    el.addEventListener('touchstart', ()=>{ t=setTimeout(action,600); }, {passive:true});
+    el.addEventListener('touchend', ()=>clearTimeout(t));
+}
+
+function renderHeader(){
+    const hb=document.getElementById('header-bar');
+    if(!hb) return;
+    hb.innerHTML='';
+    let has=false;
+
+    // left side (timer)
+    if(appSettings.enableTimer){
+        const t=document.createElement('button');
+        t.id='hb-timer';
+        t.className='hb-btn';
+        t.textContent='0:00';
+        t.onclick=()=>{ headerTimer.running ? stopHeaderTimer() : startHeaderTimer(); };
+        longPress(t, ()=>{ resetHeaderTimer(); saveState(); });
+        hb.appendChild(t);
+        has=true;
+        updateHeaderTimer();
+    }
+
+    // mic
+    const mic=document.createElement('button');
+    mic.className='hb-btn';
+    mic.textContent='🎤';
+    mic.onclick=()=>{ if(modules.sensor) modules.sensor.toggleAudio(); };
+    if(!appSettings.showMicBtn) mic.classList.add('hidden');
+    hb.appendChild(mic);
+
+    // cam
+    const cam=document.createElement('button');
+    cam.className='hb-btn';
+    cam.textContent='📷';
+    cam.onclick=()=>{ if(modules.sensor) modules.sensor.toggleCamera(); };
+    if(!appSettings.showCamBtn) cam.classList.add('hidden');
+    hb.appendChild(cam);
+
+    // counter
+    if(appSettings.enableCounter){
+        const c=document.createElement('button');
+        c.id='hb-counter';
+        c.className='hb-btn';
+        c.textContent=appSettings.counterValue||0;
+        c.onclick=()=>{ appSettings.counterValue=(appSettings.counterValue||0)+1; saveState(); renderHeader(); };
+        longPress(c, ()=>{ appSettings.counterValue=0; saveState(); renderHeader(); });
+        hb.appendChild(c);
+        has=true;
+    }
+
+    if(has) hb.classList.remove('hidden'); else hb.classList.add('hidden');
+}

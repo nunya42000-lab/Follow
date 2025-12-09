@@ -15,8 +15,7 @@ const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 2
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 400 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
 
-const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en'     enableTimer: false, enableCounter: false, counterValue: 0,
-};
+const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en' };
 
 const DICTIONARY = {
     'en': { correct: "Correct", wrong: "Wrong", stealth: "Stealth Active", reset: "Reset to Round 1", stop: "Playback Stopped 🛑" },
@@ -486,8 +485,6 @@ function renderUI() {
     document.querySelectorAll('#mic-master-btn').forEach(btn => { btn.classList.toggle('hidden', !appSettings.showMicBtn); btn.classList.toggle('master-active', modules.sensor && modules.sensor.mode.audio); });
     document.querySelectorAll('#camera-master-btn').forEach(btn => { btn.classList.toggle('hidden', !appSettings.showCamBtn); btn.classList.toggle('master-active', modules.sensor && modules.sensor.mode.camera); });
     document.querySelectorAll('.reset-button').forEach(b => { b.style.display = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 'block' : 'none'; });
-
-    renderHeader();
 }
 
 function toggleBlackout() { 
@@ -669,89 +666,6 @@ function handleStealthActionStart(action) {
 }
 function handleStealthActionEnd() { if(timers.stealthAction) clearTimeout(timers.stealthAction); }
 
-
-
-// --- HEADER RENDERER (Timer / Counter / Mic / Camera) ---
-let headerTimer = { interval: null, start: 0, acc: 0 };
-function formatTime(ms){
-    const s = Math.floor(ms/1000);
-    const m = Math.floor(s/60);
-    const ss = String(s%60).padStart(2,'0');
-    return `${m}:${ss}`;
-}
-function startHeaderTimer(){
-    if(headerTimer.interval) return;
-    headerTimer.start = Date.now();
-    headerTimer.interval = setInterval(()=>{
-        const el = document.getElementById('hb-timer-btn');
-        if(el) el.textContent = formatTime(headerTimer.acc + (Date.now()-headerTimer.start));
-    },250);
-}
-function stopHeaderTimer(){
-    if(!headerTimer.interval) return;
-    clearInterval(headerTimer.interval); headerTimer.interval = null;
-    headerTimer.acc += (Date.now()-headerTimer.start);
-}
-function resetHeaderTimer(){
-    if(headerTimer.interval){ clearInterval(headerTimer.interval); headerTimer.interval = null; }
-    headerTimer.acc = 0; headerTimer.start = 0;
-    const el = document.getElementById('hb-timer-btn');
-    if(el) el.textContent = '0:00';
-}
-// long-press helpers
-function attachLongPress(el, onLong, ms=600){
-    let t=null, moved=false;
-    const start = (e)=>{ moved=false; t=setTimeout(()=>{ onLong(e); }, ms); };
-    const cancel = ()=>{ if(t) clearTimeout(t); t=null; };
-    el.addEventListener('touchstart', start, {passive:true}); el.addEventListener('mousedown', start);
-    el.addEventListener('touchmove', ()=>{ moved=true; }, {passive:true}); el.addEventListener('mousemove', ()=>{ moved=true; });
-    el.addEventListener('touchend', cancel); el.addEventListener('mouseup', cancel); el.addEventListener('mouseleave', cancel);
-}
-
-// Render header based on appSettings
-function renderHeader(){
-    const hb = document.getElementById('header-bar');
-    if(!hb) return;
-    // clear
-    hb.innerHTML = '';
-    const left = document.createElement('div'); left.className='hb-left';
-    const center = document.createElement('div'); center.className='hb-center';
-    const right = document.createElement('div'); right.className='hb-right';
-    // TIMER (top-left)
-    if(appSettings.enableTimer){
-        const tbtn = document.createElement('button');
-        tbtn.id='hb-timer-btn';
-        tbtn.className='hb-btn';
-        tbtn.textContent = formatTime(headerTimer.acc);
-        tbtn.onclick = ()=>{ if(headerTimer.interval) stopHeaderTimer(); else startHeaderTimer(); };
-        attachLongPress(tbtn, ()=>{ resetHeaderTimer(); saveState(); });
-        left.appendChild(tbtn);
-    }
-    // MIC (middle-left)
-    const mic = document.createElement('button'); mic.id='hb-mic-btn'; mic.className='hb-btn'; mic.textContent='🎤';
-    mic.onclick = ()=>{ if(modules.sensor) modules.sensor.toggleAudio(); renderUI(); };
-    if(!appSettings.showMicBtn) mic.classList.add('hidden');
-    center.appendChild(mic);
-    // CAMERA (middle-right)
-    const cam = document.createElement('button'); cam.id='hb-cam-btn'; cam.className='hb-btn'; cam.textContent='📷';
-    cam.onclick = ()=>{ if(modules.sensor) modules.sensor.toggleCamera(); renderUI(); };
-    if(!appSettings.showCamBtn) cam.classList.add('hidden');
-    center.appendChild(cam);
-    // COUNTER (top-right)
-    if(appSettings.enableCounter){
-        const cbtn = document.createElement('button'); cbtn.id='hb-counter-btn'; cbtn.className='hb-btn';
-        cbtn.textContent = String(appSettings.counterValue || 0);
-        cbtn.onclick = ()=>{ appSettings.counterValue = (appSettings.counterValue||0) + 1; saveState(); renderHeader(); };
-        attachLongPress(cbtn, ()=>{ appSettings.counterValue = 0; saveState(); renderHeader(); });
-        right.appendChild(cbtn);
-    }
-    // assemble
-    hb.appendChild(left); hb.appendChild(center); hb.appendChild(right);
-    // show/hide header
-    const has = hb.querySelectorAll('.hb-btn:not(.hidden)').length > 0;
-    if(has) hb.classList.remove('header-hidden'); else hb.classList.add('header-hidden');
-}
-
 window.onload = function() {
     try {
         loadState(); initComments(db); if (window.DeviceMotionEvent) window.addEventListener('devicemotion', handleShake, false); const target = document.body;
@@ -778,17 +692,7 @@ window.onload = function() {
                 if(type === 'mode_switch') {
                     appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
                     showToast("Game Mode Reset 🔄");
-                
-        // --- wire timer/counter toggles in settings modal ---
-        setTimeout(()=>{
-            const tgl = document.getElementById('timer-toggle');
-            const cgl = document.getElementById('counter-toggle');
-            if(tgl){ tgl.checked = !!appSettings.enableTimer; tgl.onchange = ()=>{ appSettings.enableTimer = tgl.checked; saveState(); renderUI(); }; }
-            if(cgl){ cgl.checked = !!appSettings.enableCounter; cgl.onchange = ()=>{ appSettings.enableCounter = cgl.checked; saveState(); renderUI(); }; }
-            // initialize header display (in case page loaded with settings)
-            renderHeader();
-        },500);
-    }
+                }
                 
                 if(appSettings.isPracticeModeEnabled) {
                     practiceSequence = [];

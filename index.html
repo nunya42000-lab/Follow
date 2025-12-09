@@ -12,7 +12,6 @@
     <style> body { touch-action: none; overscroll-behavior: none; } </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans transition-colors duration-200">
-<div id="header-bar" class="header-hidden"></div>
     <div id="blackout-layer"></div>
 
     <div id="game-setup-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
@@ -179,10 +178,6 @@
                         <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm">Speed Delete</span><input type="checkbox" id="speed-delete-toggle" class="h-5 w-5 accent-indigo-500"></div>
                         <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm">Show Quick Start</span><input type="checkbox" id="show-welcome-toggle" class="h-5 w-5 accent-indigo-500"></div>
                         <div class="flex justify-between items-center p-3 rounded-lg settings-input border border-red-500 border-opacity-30"><div><span class="font-bold text-sm block">Blackout Mode</span></div><input type="checkbox" id="blackout-toggle" class="h-5 w-5 accent-indigo-500"></div>
-
-                        <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm">Timer</span><input type="checkbox" id="timer-toggle" class="h-5 w-5 accent-indigo-500"></div>
-                        <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm">Counter</span><input type="checkbox" id="counter-toggle" class="h-5 w-5 accent-indigo-500"></div>
-
                         <div class="mt-4 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
                             <label class="text-xs font-bold uppercase text-muted-custom mb-2 block">App Theme</label>
                             <div class="flex items-center space-x-2 mb-3">

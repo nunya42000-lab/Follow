@@ -2,15 +2,22 @@
 body.hide-controls .control-row { display: none !important; }
 
 
+
 /* Accordion */
+.accordion { display:block; }
+.accordion-item { margin-bottom: 0.75rem; }
 .accordion-header {
   width:100%;
   text-align:left;
   padding:10px;
-  background:#222;
-  border:1px solid #444;
+  background:var(--card-bg);
+  border:1px solid rgba(255,255,255,0.04);
   border-radius:6px;
   margin-bottom:4px;
+  font-weight:700;
+  cursor:pointer;
 }
-.accordion-item .accordion-body { display:none; padding:8px 0; }
+.accordion-body { display:none; padding:8px 0 0 0; }
 .accordion-item.open .accordion-body { display:block; }
+.accordion-header::after { content: "▸"; float:right; transform:rotate(0deg); transition:transform .18s ease; }
+.accordion-item.open .accordion-header::after { transform:rotate(90deg); }

@@ -961,17 +961,3 @@ window.onload = function() {
         if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
     } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }
 };
-
-
-
-// Accordion toggle logic (added by assistant)
-(function(){
-  document.addEventListener("click", function(e){
-    const el = e.target;
-    if (el.classList && el.classList.contains("accordion-header")) {
-      const item = el.closest(".accordion-item");
-      if (!item) return;
-      item.classList.toggle("open");
-    }
-  }, false);
-})();

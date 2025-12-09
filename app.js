@@ -15,7 +15,7 @@ const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 2
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 400 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
 
-const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en' };
+const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en', isGestureInputEnabled: false, gestureMappings: {} };
 
 const DICTIONARY = {
     'en': { correct: "Correct", wrong: "Wrong", stealth: "Stealth Active", reset: "Reset to Round 1", stop: "Playback Stopped 🛑" },
@@ -106,6 +106,120 @@ function vibrateMorse(val) {
     
     if(pattern.length > 0) navigator.vibrate(pattern); 
 }
+
+function initGesturePad() {
+    const pad = document.getElementById('gesture-pad');
+    const indicator = document.getElementById('gesture-indicator');
+    if(!pad) return;
+    let touchState = { timers: {}, points: [], lastTapTime: 0, tapCount: 0, lastTapFingers: 0, startTime:0, maxTouches:0 };
+
+    const resetTouch = () => { touchState.points = []; clearTimeout(touchState.timers.long); touchState.startTime = 0; touchState.maxTouches = 0; };
+
+    const getDir = (dx, dy) => {
+        const ax = Math.abs(dx), ay = Math.abs(dy);
+        if(ax < 20 && ay < 20) return 'tap';
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+        if(angle >= -22 && angle < 22) return 'swipe_right';
+        if(angle >= 22 && angle < 68) return 'swipe_ne';
+        if(angle >= 68 && angle < 112) return 'swipe_up';
+        if(angle >= 112 && angle < 158) return 'swipe_nw';
+        if(angle >= 158 || angle < -158) return 'swipe_left';
+        if(angle >= -158 && angle < -112) return 'swipe_sw';
+        if(angle >= -112 && angle < -68) return 'swipe_down';
+        if(angle >= -68 && angle < -22) return 'swipe_se';
+        return 'swipe';
+    };
+
+    pad.addEventListener('touchstart', (ev) => {
+        ev.preventDefault();
+        const t = ev.touches;
+        touchState.points = [{ x: t[0].clientX, y: t[0].clientY }];
+        touchState.startTime = Date.now();
+        touchState.maxTouches = t.length;
+        // start long-press timer
+        touchState.timers.long = setTimeout(() => {
+            const kind = `long_tap${touchState.maxTouches === 2 ? '_2f' : touchState.maxTouches === 3 ? '_3f' : ''}`;
+            handleGesture(kind);
+        }, 500);
+    }, {passive:false});
+
+    pad.addEventListener('touchmove', (ev) => {
+        ev.preventDefault();
+        if(ev.touches && ev.touches.length) {
+            const t = ev.touches[0];
+            touchState.points.push({ x: t.clientX, y: t.clientY });
+        }
+    }, {passive:false});
+
+    pad.addEventListener('touchend', (ev) => {
+        ev.preventDefault();
+        clearTimeout(touchState.timers.long);
+        const duration = Date.now() - (touchState.startTime || 0);
+        const touches = touchState.maxTouches || 1;
+        const p0 = touchState.points[0] || { x:0, y:0 };
+        const pN = touchState.points[touchState.points.length-1] || p0;
+        const dx = pN.x - p0.x;
+        const dy = pN.y - p0.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+
+        if(dist < 20) {
+            const now = Date.now();
+            if(now - touchState.lastTapTime < 350 && touchState.lastTapFingers === touches) {
+                touchState.tapCount = (touchState.tapCount || 1) + 1;
+            } else {
+                touchState.tapCount = 1;
+            }
+            touchState.lastTapTime = now;
+            touchState.lastTapFingers = touches;
+
+            const kind = (touchState.tapCount === 1) ? `tap${touches===2? '_2f' : touches===3? '_3f' : ''}` :
+                          (touchState.tapCount === 2) ? `double_tap${touches===2? '_2f' : touches===3? '_3f' : ''}` :
+                          `tap${touches===2? '_2f' : touches===3? '_3f' : ''}`;
+
+            handleGesture(kind);
+        } else {
+            const dir = getDir(dx, dy);
+            const suf = touches===2? '_2f' : touches===3? '_3f' : '';
+            handleGesture(dir + suf);
+        }
+
+        resetTouch();
+    }, {passive:false});
+
+    function handleGesture(kind) {
+        if(indicator) {
+            indicator.textContent = `Gesture: ${kind}`;
+            setTimeout(()=>indicator.textContent = 'Use gestures here — swipes, taps, multi-finger.', 700);
+        }
+        const settings = getProfileSettings();
+        const mapResult = mapGestureToValue(kind, settings.currentInput);
+        if(mapResult !== null) {
+            addValue(mapResult);
+        }
+    }
+}
+
+function mapGestureToValue(kind, currentInput) {
+    const gm = appSettings.gestureMappings || {};
+    if(currentInput === CONFIG.INPUTS.PIANO) {
+        for(const k in gm) {
+            if(k.startsWith('piano_') && gm[k].gesture === kind) {
+                const id = k.replace('piano_','');
+                return id;
+            }
+        }
+    }
+    for(let i=1;i<=12;i++){
+        const k12 = 'k12_' + i;
+        if(gm[k12] && gm[k12].gesture === kind) return i;
+    }
+    for(let i=1;i<=9;i++){
+        const k9 = 'k9_' + i;
+        if(gm[k9] && gm[k9].gesture === kind) return i;
+    }
+    return null;
+}
+
 
 function speak(text) { 
     if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; 
@@ -440,6 +554,24 @@ function playDemo() {
 
 function renderUI() {
     const container = document.getElementById('sequence-container'); 
+
+
+    // --- Gesture pad show/hide ---
+    try {
+        const gpWrap = document.getElementById('gesture-pad-wrapper');
+        if (gpWrap) {
+            if (appSettings.isGestureInputEnabled) {
+                gpWrap.classList.remove('hidden');
+                if (!window.__gesturePadInited) {
+                    initGesturePad();
+                    window.__gesturePadInited = true;
+                }
+            } else {
+                gpWrap.classList.add('hidden');
+            }
+        }
+    } catch(e) { console.error('Gesture UI error', e); }
+
     container.innerHTML = ''; 
     const settings = getProfileSettings();
     const state = getState();
@@ -703,7 +835,7 @@ window.onload = function() {
                 updateAllChrome(); 
                 saveState(); 
             },
-            onSave: () => saveState(), onReset: () => { localStorage.clear(); location.reload(); },
+            onSave: () => saveState(), onSettingsChanged: () => { renderUI(); if(window.updateHelpMappings) updateHelpMappings(); }, onReset: () => { localStorage.clear(); location.reload(); },
             onProfileSwitch: (id) => { 
                 appSettings.activeProfileId = id; 
                 appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings)); 

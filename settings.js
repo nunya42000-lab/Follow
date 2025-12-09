@@ -62,7 +62,8 @@ export class SettingsManager {
         
         // 1. Inject elements first (creates them in the DOM)
         this.injectLongPressToggle();
-        this.injectBlackoutGesturesToggle(); 
+        this.injectBlackoutGesturesToggle();
+        this.injectGestureInputToggle(); 
 
         // 2. Build the DOM cache (now includes the injected elements)
         this.dom = {
@@ -115,9 +116,23 @@ export class SettingsManager {
             donateModal: document.getElementById('donate-modal'), closeDonateBtn: document.getElementById('close-donate-btn'),
             btnCashMain: document.getElementById('btn-cashapp-main'), btnPaypalMain: document.getElementById('btn-paypal-main'),
             copyLinkBtn: document.getElementById('copy-link-button'), nativeShareBtn: document.getElementById('native-share-button'),
-            chatShareBtn: document.getElementById('chat-share-button'), emailShareBtn: document.getElementById('email-share-button')
-        };
+            chatShareBtn: document.getElementById('chat-share-button'), emailShareBtn: document.getElementById('email-share-button'),
+            gestureToggle: document.getElementById('gesture-input-toggle'),
+            mapping9Container: document.getElementById('mapping-9-container'),
+            mapping12Container: document.getElementById('mapping-12-container'),
+            mappingPianoContainer: document.getElementById('mapping-piano-container'),
+};
         this.tempTheme = null; this.initListeners(); this.populateConfigDropdown(); this.populateThemeDropdown(); this.buildColorGrid(); this.populateVoicePresetDropdown();
+        this.populateMappingUI();
+        if(this.dom.gestureToggle){
+            this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+            this.dom.gestureToggle.addEventListener('change', (e) => {
+                this.appSettings.isGestureInputEnabled = !!e.target.checked;
+                this.callbacks.onSave();
+                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+            });
+        }
+
     }
 
     injectLongPressToggle() {
@@ -298,6 +313,16 @@ export class SettingsManager {
                 };
                 this.appSettings.activeVoicePresetId = id;
                 this.populateVoicePresetDropdown();
+        this.populateMappingUI();
+        if(this.dom.gestureToggle){
+            this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+            this.dom.gestureToggle.addEventListener('change', (e) => {
+                this.appSettings.isGestureInputEnabled = !!e.target.checked;
+                this.callbacks.onSave();
+                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+            });
+        }
+
                 this.callbacks.onSave();
             }
         };
@@ -325,6 +350,16 @@ export class SettingsManager {
                 delete this.appSettings.voicePresets[id];
                 this.appSettings.activeVoicePresetId = 'standard';
                 this.populateVoicePresetDropdown();
+        this.populateMappingUI();
+        if(this.dom.gestureToggle){
+            this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+            this.dom.gestureToggle.addEventListener('change', (e) => {
+                this.appSettings.isGestureInputEnabled = !!e.target.checked;
+                this.callbacks.onSave();
+                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+            });
+        }
+
                 this.applyVoicePreset('standard');
             }
         };
@@ -335,6 +370,16 @@ export class SettingsManager {
             if (n) {
                 this.appSettings.voicePresets[id].name = n;
                 this.populateVoicePresetDropdown();
+        this.populateMappingUI();
+        if(this.dom.gestureToggle){
+            this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+            this.dom.gestureToggle.addEventListener('change', (e) => {
+                this.appSettings.isGestureInputEnabled = !!e.target.checked;
+                this.callbacks.onSave();
+                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+            });
+        }
+
                 this.callbacks.onSave();
             }
         };

@@ -881,3 +881,62 @@ START IMMEDIATELY upon my next input. Waiting for signal.`;
     }
 
 }
+
+
+
+/* ===== SETTINGS HELPERS: inject Timer & Counter toggles into General tab =====
+   This block is safe to append to the end of your existing settings.js.
+*/
+(function () {
+    function ensureInject() {
+        const generalTab = document.getElementById('tab-general');
+        if (!generalTab) return setTimeout(ensureInject, 250);
+
+        if (!document.getElementById('timer-toggle-row')) {
+            const div = document.createElement('div');
+            div.id = 'timer-toggle-row';
+            div.className = "flex justify-between items-center p-3 rounded-lg settings-input";
+            div.innerHTML = `<span class="font-bold text-sm">Show Timer (header)</span><input type="checkbox" id="header-timer-toggle" class="h-5 w-5 accent-indigo-500">`;
+            const blackoutRow = document.getElementById('blackout-toggle')?.closest('.settings-input') || generalTab.querySelector('.settings-input');
+            if (blackoutRow && blackoutRow.parentElement) blackoutRow.parentElement.insertBefore(div, blackoutRow.nextSibling);
+            else generalTab.appendChild(div);
+
+            const t = document.getElementById('header-timer-toggle');
+            if (typeof appSettings !== 'undefined' && typeof appSettings.showTimerBtn !== 'undefined') t.checked = !!appSettings.showTimerBtn;
+            else t.checked = false;
+
+            t.addEventListener('change', (e) => {
+                if (typeof appSettings !== 'undefined') appSettings.showTimerBtn = !!e.target.checked;
+                if (typeof saveState === 'function') saveState();
+                if (typeof onSettingsChanged_updateHeader === 'function') onSettingsChanged_updateHeader();
+            });
+        }
+
+        if (!document.getElementById('counter-toggle-row')) {
+            const div = document.createElement('div');
+            div.id = 'counter-toggle-row';
+            div.className = "flex justify-between items-center p-3 rounded-lg settings-input";
+            div.innerHTML = `<span class="font-bold text-sm">Show Counter (header)</span><input type="checkbox" id="header-counter-toggle" class="h-5 w-5 accent-indigo-500">`;
+            const blackoutRow = document.getElementById('blackout-toggle')?.closest('.settings-input') || generalTab.querySelector('.settings-input');
+            if (blackoutRow && blackoutRow.parentElement) blackoutRow.parentElement.insertBefore(div, blackoutRow.nextSibling);
+            else generalTab.appendChild(div);
+
+            const t = document.getElementById('header-counter-toggle');
+            if (typeof appSettings !== 'undefined' && typeof appSettings.showCounterBtn !== 'undefined') t.checked = !!appSettings.showCounterBtn;
+            else t.checked = false;
+
+            t.addEventListener('change', (e) => {
+                if (typeof appSettings !== 'undefined') appSettings.showCounterBtn = !!e.target.checked;
+                if (typeof saveState === 'function') saveState();
+                if (typeof onSettingsChanged_updateHeader === 'function') onSettingsChanged_updateHeader();
+            });
+        }
+    }
+
+    setTimeout(ensureInject, 300);
+    const settingsModal = document.getElementById('settings-modal');
+    if (settingsModal) {
+        const observer = new MutationObserver(() => ensureInject());
+        observer.observe(settingsModal, { attributes: true, subtree: true, childList: true });
+    }
+})();

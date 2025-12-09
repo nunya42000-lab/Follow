@@ -829,3 +829,52 @@ window.onload = function() {
         if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
     } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }
 };
+
+
+// --- HEADER TIMER/COUNTER ---
+function initHeaderBar(){
+  const bar=document.getElementById('header-bar');
+  if(!bar) return;
+  bar.innerHTML='';
+  let has=false;
+
+  if(appSettings.enableTimer){
+    const btn=document.createElement('button');
+    btn.id='timer-btn';
+    btn.textContent='00:00';
+    btn.onmousedown=()=>{ timerReset(); };
+    btn.onclick=()=>{ toggleTimer(); };
+    bar.appendChild(btn);
+    has=true;
+  }
+  if(appSettings.enableCounter){
+    const btn=document.createElement('button');
+    btn.id='counter-btn';
+    btn.textContent=appState.counter||0;
+    btn.onmousedown=()=>{ appState.counter=0; saveState(); renderUI(); };
+    btn.onclick=()=>{ appState.counter=(appState.counter||0)+1; saveState(); renderUI(); };
+    bar.appendChild(btn);
+    has=true;
+  }
+  bar.classList.toggle('hidden',!has);
+}
+let timerInt=null, timerStart=0;
+function toggleTimer(){
+  if(timerInt){
+    clearInterval(timerInt); timerInt=null;
+  } else {
+    timerStart=Date.now();
+    timerInt=setInterval(()=>{
+      const s=Math.floor((Date.now()-timerStart)/1000);
+      const m=Math.floor(s/60);
+      const ss=(s%60).toString().padStart(2,'0');
+      document.getElementById('timer-btn').textContent=`${m}:${ss}`;
+    },500);
+  }
+}
+function timerReset(){
+  if(document.getElementById('timer-btn')) document.getElementById('timer-btn').textContent='00:00';
+  if(timerInt){ clearInterval(timerInt); timerInt=null; }
+}
+const origRenderUI=renderUI;
+renderUI=function(){ origRenderUI(); initHeaderBar(); };

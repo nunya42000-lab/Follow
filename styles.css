@@ -2,30 +2,6 @@
 body.hide-controls .control-row { display: none !important; }
 
 
-/* Make the mapping tab scrollable */
-.tab-content[data-tab="mapping"] {
-    max-height: calc(95vh - 140px);
-    overflow-y: auto;
-    padding-right: 6px;
-}
-.mapping-section {
-    margin-bottom: 1rem;
-    padding: 0.75rem;
-    border: 1px solid var(--border);
-    border-radius: 0.75rem;
-    background-color: rgba(255,255,255,0.03);
-}
-.mapping-label {
-    font-size: 0.75rem;
-    opacity: 0.7;
-    font-weight: 700;
-    margin-bottom: 6px;
-    text-transform: uppercase;
-}
-.tab-content[data-tab="mapping"]::-webkit-scrollbar {
-    width: 6px;
-}
-.tab-content[data-tab="mapping"]::-webkit-scrollbar-thumb {
-    background: var(--seq-bubble);
-    border-radius: 4px;
-}
+.mapping-acc {border:1px solid var(--border); border-radius:0.75rem; padding:0.25rem; background:rgba(255,255,255,0.03);}
+.mapping-sum {font-weight:700; padding:0.5rem; cursor:pointer;}
+.tab-content[data-tab="mapping"] {max-height:75vh; overflow-y:auto;}

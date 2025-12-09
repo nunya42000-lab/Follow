@@ -227,23 +227,23 @@
                     <h3 class="text-lg font-bold mb-3">Mapping — Gestures & Morse</h3>
 
                     <div class="space-y-4">
-                        <div class="p-3 rounded-lg border border-custom settings-input">
+                        <details class="mapping-acc" open><summary class="mapping-sum">9-Key Mapping</summary><div class="p-3 rounded-lg border border-custom settings-input">
                             <div class="font-bold mb-2">9-Key Mapping</div>
                             <div id="mapping-9-container" class="grid grid-cols-2 gap-2"></div>
                             <p class="text-xs opacity-75 mt-2">Choose the gesture for each value and the Morse feedback (dot/dash combos). Changes save automatically.</p>
-                        </div>
+                        </div></details>
 
-                        <div class="p-3 rounded-lg border border-custom settings-input">
+                        <details class="mapping-acc" open><summary class="mapping-sum">12-Key Mapping</summary><div class="p-3 rounded-lg border border-custom settings-input">
                             <div class="font-bold mb-2">12-Key Mapping</div>
                             <div id="mapping-12-container" class="grid grid-cols-2 gap-2"></div>
                             <p class="text-xs opacity-75 mt-2">12-key supports more swipe-based gestures by default.</p>
-                        </div>
+                        </div></details>
 
-                        <div class="p-3 rounded-lg border border-custom settings-input">
+                        <details class="mapping-acc" open><summary class="mapping-sum">Piano Mapping</summary><div class="p-3 rounded-lg border border-custom settings-input">
                             <div class="font-bold mb-2">Piano Mapping</div>
                             <div id="mapping-piano-container" class="grid grid-cols-2 gap-2"></div>
                             <p class="text-xs opacity-75 mt-2">Piano keys map to swipe gestures and their Morse feedback. Piano is the only input that may produce letters A–G for values 6–12.</p>
-                        </div>
+                        </div></details>
                     </div>
                 </div>
 <div class="p-4 border-t border-custom flex justify-between items-center bg-opacity-20 bg-black"><button data-action="restore-defaults" class="px-5 py-2 bg-red-800 hover:bg-red-700 text-white rounded text-sm font-bold transition shadow">Reset</button><button id="close-settings" class="px-8 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold transition shadow">Exit</button></div>

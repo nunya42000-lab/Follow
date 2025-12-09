@@ -760,16 +760,16 @@ START IMMEDIATELY upon my next input. Waiting for signal.`;
 
         const makeRow = (labelText, keyName, mappingId) => {
             const wrapper = document.createElement('div');
-            wrapper.className = "flex items-center space-x-2 mapping-row";
+            wrapper.className = "flex flex-col space-y-1 mapping-row";
             const lbl = document.createElement('div');
-            lbl.className = "text-sm font-semibold w-24";
+            lbl.className = "text-sm font-semibold w-full";
             lbl.textContent = labelText;
             const gestureSelect = document.createElement('select');
-            gestureSelect.className = "settings-input p-2 rounded flex-grow";
+            gestureSelect.className = "settings-input p-2 rounded w-full";
             gestureSelect.id = mappingId + "-gesture";
             gestureOptions.forEach(o => { const opt = document.createElement('option'); opt.value = o; opt.textContent = o.replace(/_/g,' '); gestureSelect.appendChild(opt); });
             const morseSelect = document.createElement('select');
-            morseSelect.className = "settings-input p-2 rounded w-28";
+            morseSelect.className = "settings-input p-2 rounded w-full";
             morseSelect.id = mappingId + "-morse";
             morseOptions.forEach(m => { const opt = document.createElement('option'); opt.value = m; opt.textContent = m; morseSelect.appendChild(opt); });
 

@@ -13,27 +13,6 @@
 </head>
 <body class="min-h-screen flex flex-col font-sans transition-colors duration-200">
     <div id="blackout-layer"></div>
-    <!-- TOP HEADER BAR (auto-hide when empty) - pushes content down when visible -->
-    <div id="top-header-bar" class="top-header-bar hidden">
-      <div class="max-w-[1100px] mx-auto flex items-center justify-between py-2 px-3">
-        <!-- left area: timer -->
-        <div class="flex items-center gap-2">
-          <button id="header-timer-btn" class="header-btn hidden" title="Timer">00:00</button>
-        </div>
-
-        <!-- center area: camera/mic -->
-        <div class="flex items-center gap-4">
-          <button id="header-mic-btn" class="header-btn hidden" title="Mic">🎤</button>
-          <button id="header-cam-btn" class="header-btn hidden" title="Cam">📷</button>
-        </div>
-
-        <!-- right area: counter -->
-        <div class="flex items-center gap-2">
-          <button id="header-counter-btn" class="header-btn hidden" title="Counter">0</button>
-        </div>
-      </div>
-    </div>
-
 
     <div id="game-setup-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">

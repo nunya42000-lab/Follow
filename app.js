@@ -963,9 +963,17 @@ window.onload = function() {
 };
 
 
-document.addEventListener("click", e=>{
-   if(e.target.classList.contains("accordion-header")){
-      const item=e.target.closest(".accordion-item");
+
+// Accordion toggle logic (added by assistant)
+(function(){
+  document.addEventListener("click", function(e){
+    const el = e.target;
+    if (el.classList && el.classList.contains("accordion-header")) {
+      const item = el.closest(".accordion-item");
+      if (!item) return;
+      // close other items if you want single-open behavior: (commented out)
+      // document.querySelectorAll(".accordion-item").forEach(i=>{ if(i!==item) i.classList.remove("open"); });
       item.classList.toggle("open");
-   }
-});
+    }
+  }, false);
+})();

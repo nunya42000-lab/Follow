@@ -553,31 +553,6 @@ function playDemo() {
 }
 
 function renderUI() {
-    // Practice Start button injection: if practice mode enabled, ensure button exists in sequence container
-    try {
-        var seqContainer = document.getElementById('sequence-container');
-        if(seqContainer && typeof appSettings !== 'undefined' && appSettings.isPracticeModeEnabled) {
-            // Ensure start button exists and is visible
-            var existing = document.getElementById('practice-start-btn');
-            if(!existing) {
-                var btn = document.createElement('button');
-                btn.id = 'practice-start-btn';
-                btn.className = 'practice-start-btn';
-                btn.innerText = 'START';
-                btn.onclick = function(e) {
-                    btn.style.display = 'none';
-                    try { if(window.startPracticeRound) window.startPracticeRound(); } catch(err){ console.error(err); }
-                };
-                seqContainer.appendChild(btn);
-            } else {
-                existing.style.display = 'block';
-            }
-        } else {
-            var existing = document.getElementById('practice-start-btn');
-            if(existing) existing.style.display = 'none';
-        }
-    } catch(err) { console.error(err); }
-
     const container = document.getElementById('sequence-container'); 
 
 

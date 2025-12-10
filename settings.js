@@ -62,12 +62,8 @@ export class SettingsManager {
         
         // 1. Inject elements first (creates them in the DOM)
         this.injectLongPressToggle();
-        try{ this.injectTimerToggle(); this.injectCounterToggle(); this.injectMorsePauseControls(); } catch(e) { console.error(e); }
         this.injectBlackoutGesturesToggle();
-        this.injectGestureInputToggle();
-        this.injectTimerToggle();
-        this.injectCounterToggle();
-        this.injectMorsePauseControls(); 
+        this.injectGestureInputToggle(); 
 
         // 2. Build the DOM cache (now includes the injected elements)
         this.dom = {
@@ -96,9 +92,6 @@ export class SettingsManager {
             // Injected Toggles (Now guaranteed to exist)
             longPressToggle: document.getElementById('long-press-autoplay-toggle'),
             blackoutGesturesToggle: document.getElementById('blackout-gestures-toggle'),
-            timerToggle: document.getElementById('timer-toggle'),
-            counterToggle: document.getElementById('counter-toggle'),
-            morsePauseRow: document.getElementById('morse-pause-row'),
 
             uiScale: document.getElementById('ui-scale-select'), seqSize: document.getElementById('seq-size-select'), gestureMode: document.getElementById('gesture-mode-select'), autoInput: document.getElementById('auto-input-select'),
             quickLang: document.getElementById('quick-lang-select'), generalLang: document.getElementById('general-lang-select'), closeSettingsBtn: document.getElementById('close-settings'),
@@ -888,17 +881,3 @@ START IMMEDIATELY upon my next input. Waiting for signal.`;
     }
 
 }
-
-
-
-
-// Ensure the stealth toggle label shows 'Inputs only'
-function setInputsOnlyLabel() {
-    try {
-        var lbl = document.getElementById('label-stealth1') || document.querySelector('label[for="stealth-1key-toggle"]');
-        if(lbl) lbl.innerText = 'Inputs only';
-    } catch(e) { console.error(e); }
-}
-
-// Call it shortly after load in case DOM wasn't ready
-try { setTimeout(setInputsOnlyLabel, 150); } catch(e) {}

@@ -977,3 +977,13 @@ window.onload = function() {
     }
   }, false);
 })();
+
+function initFullMappingAccordion(){
+  document.querySelectorAll('.accordion-header').forEach(h=>{
+    h.onclick=()=>{
+      const body=h.nextElementSibling;
+      body.classList.toggle('active');
+    };
+  });
+}
+setTimeout(initFullMappingAccordion,600);

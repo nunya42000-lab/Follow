@@ -51,14 +51,15 @@ body.hide-controls .control-row { display: none !important; }
 .mapping-row .morse-select { width:84px; }
 .mapping-row .settings-input { background-color:var(--bg-main); color:var(--text-main); border:1px solid var(--border); padding:8px; border-radius:8px; }
 
-/* Enhanced Mapping UI (Style E) */
-.mapping-grid{display:flex;flex-direction:column;gap:12px;margin-top:10px;}
-.mapping-row{display:flex;align-items:center;gap:12px;padding:12px;
-    background:var(--bg-elevated);border-radius:12px;border:1px solid var(--border);}
-.mapping-row .label{width:40px;font-weight:700;color:var(--text-main);}
-.mapping-row select,.mapping-row input{
-    flex:1;background:var(--input-bg);color:var(--text-main);
-    border:1px solid var(--border);padding:10px;border-radius:10px;font-size:15px;}
-#mapping-reset-btn,#mapping-export-btn,#mapping-import-btn{
-    padding:10px 16px;border-radius:10px;border:1px solid var(--border);
-    background:var(--bg-elevated);color:var(--text-main);}
+/* FULL MAPPING UI */
+.mapping-title{
+  font-size:20px;
+  font-weight:800;
+  margin-bottom:12px;
+  color:var(--text-main);
+}
+.accordion{display:flex;flex-direction:column;gap:14px;}
+.accordion-item{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:10px;}
+.accordion-header{padding:12px;font-weight:700;border-radius:10px;background:var(--bg-elevated);cursor:pointer;}
+.accordion-body{display:none;padding:12px;border-radius:10px;background:var(--bg-elevated);margin-top:8px;}
+.accordion-body.active{display:block;}

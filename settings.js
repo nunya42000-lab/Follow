@@ -881,17 +881,3 @@ START IMMEDIATELY upon my next input. Waiting for signal.`;
     }
 
 }
-
-
-SettingsManager.prototype.initAccordion = function() {
-    try {
-        const container = document.querySelector('#tab-mapping .accordion');
-        if (!container) return;
-        container.querySelectorAll('.accordion-header').forEach(hdr => {
-            hdr.addEventListener('click', () => {
-                const item = hdr.parentElement;
-                if (item) item.classList.toggle('open');
-            });
-        });
-    } catch(e){}
-};

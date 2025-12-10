@@ -1013,3 +1013,15 @@ function initAccordion(){
 }
 
 setTimeout(()=>{initAccordion();renderAllMappings();},700);
+
+
+// Mapping tab activation hook
+document.querySelectorAll("[data-tab]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const tab = btn.dataset.tab;
+    if (tab === "mapping") {
+      if (typeof renderAllMappings === "function") renderAllMappings();
+      if (typeof initAccordion === "function") initAccordion();
+    }
+  });
+});

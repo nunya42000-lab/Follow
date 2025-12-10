@@ -2,51 +2,79 @@
 body.hide-controls .control-row { display: none !important; }
 
 
-/* Compact header */
-.compact-header{
-  position:fixed;
-  top:6px;
-  left:6px;
-  right:6px;
-  z-index:99;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:6px;
-  padding:6px;
-  background:rgba(0,0,0,0.35);
-  backdrop-filter:blur(6px);
-  border-radius:10px;
-}
-.compact-header.hidden{display:none;}
-.hb-btn{
-  padding:4px 8px;
-  font-size:13px;
-  border:1px solid #666;
-  border-radius:8px;
-  background:#222;
-  color:white;
-}
 
-/* Three‑Section Mapping UI */
-.mapping-grid{display:flex;flex-direction:column;gap:14px;margin-top:10px;}
-.mapping-row{
-  display:flex;align-items:center;gap:12px;padding:12px;
-  background:var(--bg-elevated);border-radius:14px;border:1px solid var(--border);
+/* Accordion */
+.accordion { display:block; }
+.accordion-item { margin-bottom: 0.75rem; }
+.accordion-header {
+  width:100%;
+  text-align:left;
+  padding:10px;
+  background:#121212;
+  border:1px solid rgba(255,255,255,0.04);
+  border-radius:6px;
+  margin-bottom:4px;
+  font-weight:700;
+  cursor:pointer;
 }
-.mapping-row .label{width:48px;font-weight:800;text-align:center;}
-.mapping-row input, .mapping-row select{
-  flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);
-  background:var(--input-bg);color:var(--text-main);
+.accordion-body { display:none; padding:8px 0 0 0; }
+.accordion-item.open .accordion-body { display:block; }
+.accordion-header::after { content: "▸"; float:right; transform:rotate(0deg); transition:transform .18s ease; }
+.accordion-item.open .accordion-header::after { transform:rotate(90deg); }
+
+
+/* Mapping accordion visuals */
+.accordion { display:block; }
+.accordion-item { margin-bottom: 0.5rem; border-radius: 0.5rem; overflow: hidden; }
+.accordion-header {
+  width:100%;
+  text-align:left;
+  padding:10px 12px;
+  background:var(--card-bg);
+  border:1px solid var(--border);
+  font-weight:700;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:0.5rem;
 }
-.accordion{display:flex;flex-direction:column;gap:16px;}
-.accordion-item{
-  background:var(--card-bg);border:1px solid var(--border);
-  padding:10px;border-radius:16px;
+.accordion-body { display:none; padding-top:8px; }
+.accordion-item.open .accordion-body { display:block; }
+.accordion-header::after { content: "▸"; margin-left:8px; transform:rotate(0deg); transition:transform .18s ease; }
+.accordion-item.open .accordion-header::after { transform:rotate(90deg); }
+
+.mapping-grid { display:flex; flex-direction:column; gap:8px; }
+.mapping-row { display:flex; align-items:center; gap:8px; }
+.mapping-row .label { width:4.5rem; font-weight:700; font-size:0.95rem; text-align:left; }
+.mapping-row .gesture-select { flex:1; min-width:120px; }
+.mapping-row .morse-select { width:84px; }
+.mapping-row .settings-input { background-color:var(--bg-main); color:var(--text-main); border:1px solid var(--border); padding:8px; border-radius:8px; }
+
+/* Clean mapping styles */
+.mapping-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 1fr 1fr;
+  gap: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
 }
-.accordion-header{
-  padding:12px;font-weight:700;border-radius:12px;cursor:pointer;
-  background:var(--bg-elevated);
+.mapping-row input {
+  background: var(--bg-main);
+  border: 1px solid var(--border);
+  padding: 8px;
+  border-radius: 8px;
+  color: var(--text-main);
 }
-.accordion-body{display:none;padding:10px;margin-top:8px;}
-.accordion-body.active{display:block;}
+.accordion-header {
+  padding: 12px;
+  background: var(--bg-modal);
+  margin-top: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+}
+.accordion-body.active { display:block; }

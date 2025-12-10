@@ -62,7 +62,8 @@ export class SettingsManager {
         
         // 1. Inject elements first (creates them in the DOM)
         this.injectLongPressToggle();
-        this.injectBlackoutGesturesToggle(); 
+        this.injectBlackoutGesturesToggle();
+        this.injectGestureInputToggle(); 
 
         // 2. Build the DOM cache (now includes the injected elements)
         this.dom = {
@@ -90,8 +91,6 @@ export class SettingsManager {
             
             // Injected Toggles (Now guaranteed to exist)
             longPressToggle: document.getElementById('long-press-autoplay-toggle'),
-            timerToggle: document.getElementById('timer-toggle'),
-            counterToggle: document.getElementById('counter-toggle'),
             blackoutGesturesToggle: document.getElementById('blackout-gestures-toggle'),
 
             uiScale: document.getElementById('ui-scale-select'), seqSize: document.getElementById('seq-size-select'), gestureMode: document.getElementById('gesture-mode-select'), autoInput: document.getElementById('auto-input-select'),
@@ -117,9 +116,23 @@ export class SettingsManager {
             donateModal: document.getElementById('donate-modal'), closeDonateBtn: document.getElementById('close-donate-btn'),
             btnCashMain: document.getElementById('btn-cashapp-main'), btnPaypalMain: document.getElementById('btn-paypal-main'),
             copyLinkBtn: document.getElementById('copy-link-button'), nativeShareBtn: document.getElementById('native-share-button'),
-            chatShareBtn: document.getElementById('chat-share-button'), emailShareBtn: document.getElementById('email-share-button')
-        };
+            chatShareBtn: document.getElementById('chat-share-button'), emailShareBtn: document.getElementById('email-share-button'),
+            gestureToggle: document.getElementById('gesture-input-toggle'),
+            mapping9Container: document.getElementById('mapping-9-container'),
+            mapping12Container: document.getElementById('mapping-12-container'),
+            mappingPianoContainer: document.getElementById('mapping-piano-container'),
+};
         this.tempTheme = null; this.initListeners(); this.populateConfigDropdown(); this.populateThemeDropdown(); this.buildColorGrid(); this.populateVoicePresetDropdown();
+        this.populateMappingUI();
+        if(this.dom.gestureToggle){
+            this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+            this.dom.gestureToggle.addEventListener('change', (e) => {
+                this.appSettings.isGestureInputEnabled = !!e.target.checked;
+                this.callbacks.onSave();
+                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+            });
+        }
+
     }
 
     injectLongPressToggle() {
@@ -300,6 +313,16 @@ export class SettingsManager {
                 };
                 this.appSettings.activeVoicePresetId = id;
                 this.populateVoicePresetDropdown();
+        this.populateMappingUI();
+        if(this.dom.gestureToggle){
+            this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+            this.dom.gestureToggle.addEventListener('change', (e) => {
+                this.appSettings.isGestureInputEnabled = !!e.target.checked;
+                this.callbacks.onSave();
+                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+            });
+        }
+
                 this.callbacks.onSave();
             }
         };
@@ -327,6 +350,16 @@ export class SettingsManager {
                 delete this.appSettings.voicePresets[id];
                 this.appSettings.activeVoicePresetId = 'standard';
                 this.populateVoicePresetDropdown();
+        this.populateMappingUI();
+        if(this.dom.gestureToggle){
+            this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+            this.dom.gestureToggle.addEventListener('change', (e) => {
+                this.appSettings.isGestureInputEnabled = !!e.target.checked;
+                this.callbacks.onSave();
+                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+            });
+        }
+
                 this.applyVoicePreset('standard');
             }
         };
@@ -337,6 +370,16 @@ export class SettingsManager {
             if (n) {
                 this.appSettings.voicePresets[id].name = n;
                 this.populateVoicePresetDropdown();
+        this.populateMappingUI();
+        if(this.dom.gestureToggle){
+            this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+            this.dom.gestureToggle.addEventListener('change', (e) => {
+                this.appSettings.isGestureInputEnabled = !!e.target.checked;
+                this.callbacks.onSave();
+                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+            });
+        }
+
                 this.callbacks.onSave();
             }
         };
@@ -367,8 +410,6 @@ export class SettingsManager {
 
         bind(this.dom.input, 'currentInput', false); bind(this.dom.machines, 'machineCount', false, true); bind(this.dom.seqLength, 'sequenceLength', false, true); bind(this.dom.autoClear, 'isUniqueRoundsAutoClearEnabled', true);
         bind(this.dom.longPressToggle, 'isLongPressAutoplayEnabled', true);
-        if(this.dom.timerToggle) this.dom.timerToggle.onchange = e => { this.appSettings.enableTimer = e.target.checked; this.callbacks.onSave(); this.callbacks.onUpdate(); };
-        if(this.dom.counterToggle) this.dom.counterToggle.onchange = e => { this.appSettings.enableCounter = e.target.checked; this.callbacks.onSave(); this.callbacks.onUpdate(); };
 
         // Mode switch special case
         if (this.dom.mode) {
@@ -659,8 +700,6 @@ START IMMEDIATELY upon my next input. Waiting for signal.`;
         if (this.dom.calibCamSlider) this.dom.calibCamSlider.value = this.appSettings.sensorCamThresh || 30;
 
         if (this.dom.haptics) this.dom.haptics.checked = (typeof this.appSettings.isHapticsEnabled === 'undefined') ? true : this.appSettings.isHapticsEnabled;
-        if(this.dom.timerToggle) this.dom.timerToggle.checked = !!this.appSettings.enableTimer;
-        if(this.dom.counterToggle) this.dom.counterToggle.checked = !!this.appSettings.enableCounter;
         if (this.dom.speedDelete) this.dom.speedDelete.checked = (typeof this.appSettings.isSpeedDeletingEnabled === 'undefined') ? true : this.appSettings.isSpeedDeletingEnabled;
 
         if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
@@ -678,4 +717,181 @@ START IMMEDIATELY upon my next input. Waiting for signal.`;
     }
     hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
+
+
+    // Added gesture input toggle method
+    injectGestureInputToggle() {
+        if (document.getElementById('gesture-input-toggle')) return;
+        const div = document.createElement('div');
+        div.className = "flex justify-between items-center p-3 rounded-lg settings-input";
+        div.innerHTML = `
+            <span class="font-bold text-sm">Gesture Input Mode</span>
+            <input type="checkbox" id="gesture-input-toggle" class="h-5 w-5 accent-indigo-500">
+        `;
+        const stealthRow = document.getElementById('stealth-1key-toggle');
+        if (stealthRow && stealthRow.parentElement) {
+            const row = stealthRow.parentElement;
+            const container = row.parentElement;
+            if (container) container.insertBefore(div, row.nextSibling);
+        }
+    }
+
+    // Mapping UI population and defaults
+    populateMappingUI() {
+        // Ensure DOM refs exist
+        if(!this.dom) return;
+        if(!this.appSettings) return;
+        if(!this.appSettings.gestureMappings) this.appSettings.gestureMappings = {};
+
+        const container9 = this.dom.mapping9Container;
+        const container12 = this.dom.mapping12Container;
+        const containerPiano = this.dom.mappingPianoContainer;
+
+        const gestureOptions = [
+            'tap','double_tap','long_tap',
+            'tap_2f','double_tap_2f','long_tap_2f',
+            'tap_3f','double_tap_3f','long_tap_3f',
+            'swipe_left','swipe_right','swipe_up','swipe_down',
+            'swipe_nw','swipe_ne','swipe_se','swipe_sw',
+            'swipe_left_2f','swipe_right_2f','swipe_up_2f','swipe_down_2f',
+            'swipe_left_3f','swipe_right_3f','swipe_up_3f','swipe_down_3f'
+        ];
+        const morseOptions = ['.', '..', '...', '-', '-.', '-..', '--', '--.', '---', '...-', '.-.', '.--', '..-','.-'];
+
+        const makeRow = (labelText, keyName, mappingId) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = "flex items-center space-x-2 mapping-row";
+            const lbl = document.createElement('div');
+            lbl.className = "text-sm font-semibold w-24";
+            lbl.textContent = labelText;
+            const gestureSelect = document.createElement('select');
+            gestureSelect.className = "settings-input p-2 rounded flex-grow";
+            gestureSelect.id = mappingId + "-gesture";
+            gestureOptions.forEach(o => { const opt = document.createElement('option'); opt.value = o; opt.textContent = o.replace(/_/g,' '); gestureSelect.appendChild(opt); });
+            const morseSelect = document.createElement('select');
+            morseSelect.className = "settings-input p-2 rounded w-28";
+            morseSelect.id = mappingId + "-morse";
+            morseOptions.forEach(m => { const opt = document.createElement('option'); opt.value = m; opt.textContent = m; morseSelect.appendChild(opt); });
+
+            wrapper.appendChild(lbl);
+            wrapper.appendChild(gestureSelect);
+            wrapper.appendChild(morseSelect);
+
+            const gm = this.appSettings.gestureMappings || {};
+            if(gm[keyName]) {
+                gestureSelect.value = gm[keyName].gesture || gestureSelect.value;
+                morseSelect.value = gm[keyName].morse || morseSelect.value;
+            }
+
+            const save = () => {
+                this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
+                this.appSettings.gestureMappings[keyName] = { gesture: gestureSelect.value, morse: morseSelect.value };
+                this.callbacks.onSave && this.callbacks.onSave();
+                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+            };
+            gestureSelect.addEventListener('change', save);
+            morseSelect.addEventListener('change', save);
+
+            return wrapper;
+        };
+
+        // 9-key
+        if(container9) {
+            container9.innerHTML = '';
+            for(let i=1;i<=9;i++){
+                const key = 'k9_' + i;
+                const row = makeRow(String(i), key, 'map9_'+i);
+                container9.appendChild(row);
+            }
+        }
+        // 12-key
+        if(container12) {
+            container12.innerHTML = '';
+            for(let i=1;i<=12;i++){
+                const key = 'k12_' + i;
+                const row = makeRow(String(i), key, 'map12_'+i);
+                container12.appendChild(row);
+            }
+        }
+        // Piano
+        if(containerPiano) {
+            containerPiano.innerHTML = '';
+            const pianoOrder = ['C','D','E','F','G','A','B','1','2','3','4','5'];
+            pianoOrder.forEach((id) => {
+                const key = 'piano_' + id;
+                const row = makeRow(id, key, 'mapp_' + id);
+                containerPiano.appendChild(row);
+            });
+        }
+
+        // Apply defaults if empty
+        if(!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
+            this.applyDefaultGestureMappings();
+            this.callbacks.onSave && this.callbacks.onSave();
+            // repopulate to reflect defaults
+            setTimeout(()=>{ this.populateMappingUI(); }, 50);
+        }
+    }
+
+    applyDefaultGestureMappings() {
+        this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
+
+        // 9-key defaults
+        const defs = {
+            'k9_1': { gesture: 'tap', morse: '.' },
+            'k9_2': { gesture: 'double_tap', morse: '..' },
+            'k9_3': { gesture: 'long_tap', morse: '...' },
+            'k9_4': { gesture: 'tap_2f', morse: '-' },
+            'k9_5': { gesture: 'double_tap_2f', morse: '-.' },
+            'k9_6': { gesture: 'long_tap_2f', morse: '-..' },
+            'k9_7': { gesture: 'tap_3f', morse: '--' },
+            'k9_8': { gesture: 'double_tap_3f', morse: '--.' },
+            'k9_9': { gesture: 'long_tap_3f', morse: '---' },
+
+            // 12-key defaults
+            'k12_1': { gesture: 'swipe_left', morse: '.' },
+            'k12_2': { gesture: 'swipe_down', morse: '..' },
+            'k12_3': { gesture: 'swipe_up', morse: '...' },
+            'k12_4': { gesture: 'swipe_right', morse: '...-' },
+            'k12_5': { gesture: 'swipe_left_2f', morse: '-' },
+            'k12_6': { gesture: 'swipe_down_2f', morse: '-.' },
+            'k12_7': { gesture: 'swipe_up_2f', morse: '-..' },
+            'k12_8': { gesture: 'swipe_right_2f', morse: '-.-' },
+            'k12_9': { gesture: 'swipe_left_3f', morse: '--' },
+            'k12_10': { gesture: 'swipe_down_3f', morse: '--.' },
+            'k12_11': { gesture: 'swipe_up_3f', morse: '--..' },
+            'k12_12': { gesture: 'swipe_right_3f', morse: '---' },
+
+            // Piano defaults
+            'piano_C': { gesture: 'swipe_nw', morse: '.' },
+            'piano_D': { gesture: 'swipe_left', morse: '..' },
+            'piano_E': { gesture: 'swipe_sw', morse: '.-' },
+            'piano_F': { gesture: 'swipe_down', morse: '...' },
+            'piano_G': { gesture: 'swipe_se', morse: '..-' },
+            'piano_A': { gesture: 'swipe_right', morse: '.-.' },
+            'piano_B': { gesture: 'swipe_ne', morse: '.--' },
+            'piano_1': { gesture: 'swipe_left_2f', morse: '-' },
+            'piano_2': { gesture: 'swipe_nw_2f', morse: '-.' },
+            'piano_3': { gesture: 'swipe_up_2f', morse: '--' },
+            'piano_4': { gesture: 'swipe_ne_2f', morse: '-..' },
+            'piano_5': { gesture: 'swipe_right_2f', morse: '-.-' }
+        };
+
+        this.appSettings.gestureMappings = Object.assign({}, defs, this.appSettings.gestureMappings || {});
+    }
+
 }
+
+
+SettingsManager.prototype.initAccordion = function() {
+    try {
+        const container = document.querySelector('#tab-mapping .accordion');
+        if (!container) return;
+        container.querySelectorAll('.accordion-header').forEach(hdr => {
+            hdr.addEventListener('click', () => {
+                const item = hdr.parentElement;
+                if (item) item.classList.toggle('open');
+            });
+        });
+    } catch(e){}
+};

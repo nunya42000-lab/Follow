@@ -62,9 +62,10 @@ export class SettingsManager {
         
         // 1. Inject elements first (creates them in the DOM)
         this.injectLongPressToggle();
+        try { this.injectTimerToggle(); this.injectCounterToggle(); this.injectMorsePauseControls(); } catch(e) { console.error(e); }
+        try{ } catch(e) { console.error(e); }
         this.injectBlackoutGesturesToggle();
-        this.injectGestureInputToggle(); 
-
+        this.injectGestureInputToggle();
         // 2. Build the DOM cache (now includes the injected elements)
         this.dom = {
             editorModal: document.getElementById('theme-editor-modal'), editorGrid: document.getElementById('color-grid'), ftContainer: document.getElementById('fine-tune-container'), ftToggle: document.getElementById('toggle-fine-tune'), ftPreview: document.getElementById('fine-tune-preview'), ftHue: document.getElementById('ft-hue'), ftSat: document.getElementById('ft-sat'), ftLit: document.getElementById('ft-lit'),
@@ -92,6 +93,9 @@ export class SettingsManager {
             // Injected Toggles (Now guaranteed to exist)
             longPressToggle: document.getElementById('long-press-autoplay-toggle'),
             blackoutGesturesToggle: document.getElementById('blackout-gestures-toggle'),
+            timerToggle: document.getElementById('timer-toggle'),
+            counterToggle: document.getElementById('counter-toggle'),
+            morsePauseRow: document.getElementById('morse-pause-row'),
 
             uiScale: document.getElementById('ui-scale-select'), seqSize: document.getElementById('seq-size-select'), gestureMode: document.getElementById('gesture-mode-select'), autoInput: document.getElementById('auto-input-select'),
             quickLang: document.getElementById('quick-lang-select'), generalLang: document.getElementById('general-lang-select'), closeSettingsBtn: document.getElementById('close-settings'),
@@ -436,6 +440,12 @@ export class SettingsManager {
                 this.callbacks.onSave();
             }
         }
+        // Morse pause button handlers
+        if (this.dom.morsePauseRow) {
+            const buttons = Array.from(this.dom.morsePauseRow.querySelectorAll('.morse-pause-btn'));
+            buttons.forEach(btn => { btn.onclick = () => { buttons.forEach(b => b.classList.remove('active')); btn.classList.add('active'); const val = parseFloat(btn.dataset.pause || '0.2'); this.appSettings.morsePause = val; this.callbacks.onSave(); }; });
+            if (typeof this.appSettings.morsePause === 'undefined') this.appSettings.morsePause = 0.2;
+        }
         if (this.dom.audio) {
             this.dom.audio.onchange = (e) => {
                 this.appSettings.isAudioEnabled = e.target.checked;
@@ -695,6 +705,10 @@ START IMMEDIATELY upon my next input. Waiting for signal.`;
         if (this.dom.stealth1KeyToggle) this.dom.stealth1KeyToggle.checked = this.appSettings.isStealth1KeyEnabled;
 
         if (this.dom.longPressToggle) this.dom.longPressToggle.checked = (typeof this.appSettings.isLongPressAutoplayEnabled === 'undefined') ? true : this.appSettings.isLongPressAutoplayEnabled;
+        if (this.dom.timerToggle) this.dom.timerToggle.checked = !!this.appSettings.isTimerEnabled;
+        if (this.dom.counterToggle) this.dom.counterToggle.checked = !!this.appSettings.isCounterEnabled;
+        // Set morse pause button active state
+        if (this.dom.morsePauseRow) { const v = (typeof this.appSettings.morsePause === 'undefined') ? 0.2 : this.appSettings.morsePause; this.dom.morsePauseRow.querySelectorAll('.morse-pause-btn').forEach(b => b.classList.toggle('active', parseFloat(b.dataset.pause)===v)); }
 
         if (this.dom.calibAudioSlider) this.dom.calibAudioSlider.value = this.appSettings.sensorAudioThresh || -85;
         if (this.dom.calibCamSlider) this.dom.calibCamSlider.value = this.appSettings.sensorCamThresh || 30;
@@ -881,3 +895,17 @@ START IMMEDIATELY upon my next input. Waiting for signal.`;
     }
 
 }
+
+
+
+
+// Ensure the stealth toggle label shows 'Inputs only'
+function setInputsOnlyLabel() {
+    try {
+        var lbl = document.getElementById('label-stealth1') || document.querySelector('label[for="stealth-1key-toggle"]');
+        if(lbl) lbl.innerText = 'Inputs only';
+    } catch(e) { console.error(e); }
+}
+
+// Call it shortly after load in case DOM wasn't ready
+try { setTimeout(setInputsOnlyLabel, 150); } catch(e) {}

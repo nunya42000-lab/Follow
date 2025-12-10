@@ -26,6 +26,96 @@ let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
 let modules = { sensor: null, settings: null };
 let timers = { speedDelete: null, initialDelay: null, longPress: null, settingsLongPress: null, stealth: null, stealthAction: null, playback: null, tap: null };
+
+let headerState = { timerRunning:false, timerStart:0, timerElapsed:0, timerInterval:null, counter:0 };
+
+
+// Header helpers: show/hide and timer/counter logic
+function updateHeaderVisibility() {
+    const hdr = document.getElementById('dynamic-header');
+    if(!hdr) return;
+    const enabled = !!(appSettings && (appSettings.isTimerEnabled || appSettings.isCounterEnabled || appSettings.showMicBtn || appSettings.showCamBtn));
+    if (enabled) hdr.classList.remove('hidden'); else hdr.classList.add('hidden');
+}
+
+function formatMsToMMSS(ms) {
+    const total = Math.floor(ms/1000);
+    const mm = Math.floor(total/60).toString().padStart(2,'0');
+    const ss = (total%60).toString().padStart(2,'0');
+    return mm + ':' + ss;
+}
+
+function updateTimerDisplay() {
+    const el = document.getElementById('header-timer');
+    if(!el) return;
+    const elapsed = headerState.timerElapsed + (headerState.timerRunning ? (Date.now()-headerState.timerStart) : 0);
+    el.textContent = formatMsToMMSS(elapsed);
+}
+
+function startStopTimerToggle() {
+    if (!appSettings || !appSettings.isTimerEnabled) return;
+    if (headerState.timerRunning) {
+        headerState.timerElapsed += Date.now() - headerState.timerStart;
+        headerState.timerRunning = false;
+        if (headerState.timerInterval) { clearInterval(headerState.timerInterval); headerState.timerInterval = null; }
+    } else {
+        headerState.timerStart = Date.now();
+        headerState.timerRunning = true;
+        headerState.timerInterval = setInterval(updateTimerDisplay, 250);
+    }
+    updateTimerDisplay();
+}
+
+function resetTimer() {
+    headerState.timerRunning = false;
+    headerState.timerStart = 0;
+    headerState.timerElapsed = 0;
+    if (headerState.timerInterval) { clearInterval(headerState.timerInterval); headerState.timerInterval = null; }
+    updateTimerDisplay();
+}
+
+function setupHeaderBindings() {
+    const tbtn = document.getElementById('header-timer');
+    if (tbtn) {
+        let longTimer = null;
+        tbtn.addEventListener('click', () => { startStopTimerToggle(); saveState && saveState(); });
+        tbtn.addEventListener('touchstart', (e) => { e.preventDefault(); longTimer = setTimeout(() => { resetTimer(); saveState && saveState(); }, 700); }, {passive:false});
+        tbtn.addEventListener('touchend', (e) => { if(longTimer) clearTimeout(longTimer); }, {passive:false});
+        tbtn.addEventListener('mousedown', () => { longTimer = setTimeout(() => { resetTimer(); saveState && saveState(); }, 700); });
+        tbtn.addEventListener('mouseup', () => { if(longTimer) clearTimeout(longTimer); });
+    }
+    const cbtn = document.getElementById('header-counter');
+    if (cbtn) {
+        let longTimer = null;
+        cbtn.addEventListener('click', () => { if(!appSettings || !appSettings.isCounterEnabled) return; headerState.counter = (headerState.counter||0) + 1; cbtn.textContent = headerState.counter; saveState && saveState(); });
+        cbtn.addEventListener('touchstart', (e) => { e.preventDefault(); longTimer = setTimeout(() => { headerState.counter = 0; cbtn.textContent = '0'; saveState && saveState(); }, 700); }, {passive:false});
+        cbtn.addEventListener('touchend', (e) => { if(longTimer) clearTimeout(longTimer); }, {passive:false});
+        cbtn.addEventListener('mousedown', () => { longTimer = setTimeout(() => { headerState.counter = 0; cbtn.textContent = '0'; saveState && saveState(); }, 700); });
+        cbtn.addEventListener('mouseup', () => { if(longTimer) clearTimeout(longTimer); });
+    }
+    // mirror mic/cam
+    const hMic = document.getElementById('header-mic-btn');
+    const hCam = document.getElementById('header-cam-btn');
+    if (hMic) hMic.addEventListener('click', () => { appSettings.showMicBtn = !appSettings.showMicBtn; if(window.modules && modules.sensor) modules.sensor.toggleAudio(appSettings.showMicBtn); saveState && saveState(); updateAllChrome && updateAllChrome(); });
+    if (hCam) hCam.addEventListener('click', () => { appSettings.showCamBtn = !appSettings.showCamBtn; if(window.modules && modules.sensor) modules.sensor.toggleCamera(appSettings.showCamBtn); saveState && saveState(); updateAllChrome && updateAllChrome(); });
+}
+
+
+
+// Schedule autoplay safely (debounced)
+function scheduleAutoplay(delayMs) {
+    try {
+        if (timers.autoplay) { clearTimeout(timers.autoplay); timers.autoplay = null; }
+        timers.autoplay = setTimeout(() => {
+            timers.autoplay = null;
+            // only trigger demo if not already playing
+            if (!isDemoPlaying) {
+                playDemo();
+            }
+        }, Math.max(50, delayMs || 250));
+    } catch(e) { console.error('scheduleAutoplay error', e); }
+}
+
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 let blackoutState = { isActive: false, lastShake: 0 }; 
 let gestureInputState = { startX: 0, startY: 0, startTime: 0, maxTouches: 0, isTapCandidate: false, tapCount: 0 };
@@ -553,6 +643,8 @@ function playDemo() {
 }
 
 function renderUI() {
+    try { updateHeaderVisibility(); updateTimerDisplay && updateTimerDisplay(); if (!window.__headerBindingsSet) { setupHeaderBindings(); window.__headerBindingsSet = true; } } catch(e) {}
+
     const container = document.getElementById('sequence-container'); 
 
 

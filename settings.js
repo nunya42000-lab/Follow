@@ -62,6 +62,7 @@ export class SettingsManager {
         
         // 1. Inject elements first (creates them in the DOM)
         this.injectLongPressToggle();
+        try{ this.injectTimerToggle(); this.injectCounterToggle(); this.injectMorsePauseControls(); } catch(e) { console.error(e); }
         this.injectBlackoutGesturesToggle();
         this.injectGestureInputToggle();
         this.injectTimerToggle();

@@ -2,47 +2,20 @@
 body.hide-controls .control-row { display: none !important; }
 
 
-
-/* Header bar */
-#dynamic-header {
-  position: fixed;
-  top: env(safe-area-inset-top);
-  left: 0;
-  right: 0;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 6px 12px;
-  z-index: 80;
-  pointer-events: auto;
-  transition: transform .18s ease, opacity .18s;
+/* Practice Start Button */
+.practice-start-btn {
+  background: var(--seq-bubble);
+  color: var(--text-main);
+  border: none;
+  padding: 12px 20px;
+  font-weight: 800;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+  cursor: pointer;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
-#dynamic-header.hidden { transform: translateY(-120%); opacity: 0; pointer-events: none; }
-.header-left, .header-center, .header-right { display:flex; align-items:center; gap:8px; }
-.header-left { position: absolute; left: 12px; }
-.header-right { position: absolute; right: 12px; }
-.header-center { position: absolute; left: 50%; transform: translateX(-50%); }
-
-/* Header buttons */
-.header-btn {
-  min-width:44px; height:44px; border-radius:10px; padding:6px 10px; font-weight:700; display:flex; align-items:center; justify-content:center;
-  background:var(--card-bg); border:1px solid var(--border);
-}
-.header-btn.primary { background:var(--seq-bubble); color:var(--text-main); }
-
-/* Timer / Counter displays */
-#header-timer { font-family: monospace; font-weight:700; min-width:64px; text-align:center; padding:6px 8px; border-radius:8px; }
-#header-counter { font-family: monospace; font-weight:800; min-width:48px; text-align:center; padding:6px 8px; border-radius:8px; }
-
-/* Mapping scroll wrapper */
-.mapping-scroll { max-height: calc(100vh - 320px); overflow-y: auto; padding-right:6px; }
-
-/* Morse pause row (playback) */
-#morse-pause-row { display:flex; gap:6px; align-items:center; margin-top:8px; }
-.morse-pause-btn { padding:8px 10px; border-radius:8px; min-width:44px; text-align:center; cursor:pointer; border:1px solid var(--border); background:var(--card-bg); }
-.morse-pause-btn.active { background:var(--seq-bubble); color:var(--text-main); }
-
-/* small adjustments for header colliding with modals */
-body .settings-modal-bg { z-index: 90; }
+.practice-start-btn:hover { transform: translate(-50%, -52%); }
+.practice-start-btn:active { transform: translate(-50%, -50%); }

@@ -887,3 +887,17 @@ START IMMEDIATELY upon my next input. Waiting for signal.`;
     }
 
 }
+
+
+
+
+// Ensure the stealth toggle label shows 'Inputs only'
+function setInputsOnlyLabel() {
+    try {
+        var lbl = document.getElementById('label-stealth1') || document.querySelector('label[for="stealth-1key-toggle"]');
+        if(lbl) lbl.innerText = 'Inputs only';
+    } catch(e) { console.error(e); }
+}
+
+// Call it shortly after load in case DOM wasn't ready
+try { setTimeout(setInputsOnlyLabel, 150); } catch(e) {}

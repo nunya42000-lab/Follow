@@ -15,7 +15,7 @@ const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 2
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 400 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
 
-const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isTimerEnabled: false, isCounterEnabled: false, morsePause: 0.2, isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en', isGestureInputEnabled: false, gestureMappings: {} };
+const DEFAULT_APP = { globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, showMicBtn: false, showCamBtn: false, autoInputMode: 'none', activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en', isGestureInputEnabled: false, gestureMappings: {} };
 
 const DICTIONARY = {
     'en': { correct: "Correct", wrong: "Wrong", stealth: "Stealth Active", reset: "Reset to Round 1", stop: "Playback Stopped 🛑" },
@@ -26,8 +26,6 @@ let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
 let modules = { sensor: null, settings: null };
 let timers = { speedDelete: null, initialDelay: null, longPress: null, settingsLongPress: null, stealth: null, stealthAction: null, playback: null, tap: null };
-let headerState = { timerRunning:false, timerStart:0, timerElapsed:0, timerInterval:null, counter:0, counterLongPress:null };
-
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 let blackoutState = { isActive: false, lastShake: 0 }; 
 let gestureInputState = { startX: 0, startY: 0, startTime: 0, maxTouches: 0, isTapCandidate: false, tapCount: 0 };
@@ -39,10 +37,7 @@ let ignoreNextClick = false;
 
 const getProfileSettings = () => appSettings.runtimeSettings;
 const getState = () => appState['current_session'] || (appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 });
-function saveState() { 
-    // persist header counter/timer state
-    try { appSettings.headerCounterValue = headerState.counter || 0; appSettings.headerTimerElapsed = headerState.timerElapsed || 0; } catch(e){}
-    localStorage.setItem(CONFIG.STORAGE_KEY_SETTINGS, JSON.stringify(appSettings)); localStorage.setItem(CONFIG.STORAGE_KEY_STATE, JSON.stringify(appState)); }
+function saveState() { localStorage.setItem(CONFIG.STORAGE_KEY_SETTINGS, JSON.stringify(appSettings)); localStorage.setItem(CONFIG.STORAGE_KEY_STATE, JSON.stringify(appState)); }
 
 function loadState() { 
     try { 
@@ -110,99 +105,6 @@ function vibrateMorse(val) {
     } 
     
     if(pattern.length > 0) navigator.vibrate(pattern); 
-}
-
-
-
-// ---------- Header (Timer & Counter) Helpers ----------
-function updateHeaderVisibility() {
-    try {
-        const hdr = document.getElementById('dynamic-header');
-        if(!hdr) return;
-        const enabled = !!appSettings.isTimerEnabled || !!appSettings.isCounterEnabled || !!appSettings.showMicBtn || !!appSettings.showCamBtn;
-        if(enabled) hdr.classList.remove('hidden'); else hdr.classList.add('hidden');
-    } catch(e) { console.error(e); }
-}
-
-function formatMsToMMSS(ms) {
-    const total = Math.floor(ms / 1000);
-    const mm = Math.floor(total / 60).toString().padStart(2,'0');
-    const ss = (total % 60).toString().padStart(2,'0');
-    return mm + ':' + ss;
-}
-
-function updateTimerDisplay() {
-    const el = document.getElementById('header-timer');
-    if(!el) return;
-    const elapsed = headerState.timerElapsed + (headerState.timerRunning ? (Date.now() - headerState.timerStart) : 0);
-    el.textContent = formatMsToMMSS(elapsed);
-}
-
-function startStopTimerToggle() {
-    if(!appSettings.isTimerEnabled) return;
-    if(headerState.timerRunning) {
-        // stop
-        headerState.timerElapsed += Date.now() - headerState.timerStart;
-        headerState.timerRunning = false;
-        if(headerState.timerInterval) { clearInterval(headerState.timerInterval); headerState.timerInterval = null; }
-    } else {
-        headerState.timerStart = Date.now();
-        headerState.timerRunning = true;
-        headerState.timerInterval = setInterval(updateTimerDisplay, 250);
-    }
-    updateTimerDisplay();
-}
-
-function resetTimer() {
-    headerState.timerRunning = false;
-    headerState.timerStart = 0;
-    headerState.timerElapsed = 0;
-    if(headerState.timerInterval) { clearInterval(headerState.timerInterval); headerState.timerInterval = null; }
-    updateTimerDisplay();
-}
-
-function setupHeaderListeners() {
-    const tbtn = document.getElementById('header-timer');
-    if(tbtn) {
-        let longTimer = null;
-        tbtn.addEventListener('click', (e) => { startStopTimerToggle(); saveState(); });
-        tbtn.addEventListener('touchstart', (e) => { e.preventDefault(); longTimer = setTimeout(() => { resetTimer(); saveState(); }, 700); }, {passive:false});
-        tbtn.addEventListener('touchend', (e) => { if(longTimer) clearTimeout(longTimer); }, {passive:false});
-        tbtn.addEventListener('mousedown', () => { longTimer = setTimeout(() => { resetTimer(); saveState(); }, 700); });
-        tbtn.addEventListener('mouseup', () => { if(longTimer) clearTimeout(longTimer); });
-    }
-
-    const cbtn = document.getElementById('header-counter');
-    if(cbtn) {
-        let longTimer = null;
-        cbtn.addEventListener('click', (e) => { if(!appSettings.isCounterEnabled) return; headerState.counter++; cbtn.textContent = headerState.counter; saveState(); });
-        cbtn.addEventListener('touchstart', (e) => { e.preventDefault(); longTimer = setTimeout(() => { headerState.counter = 0; cbtn.textContent = '0'; saveState(); }, 700); }, {passive:false});
-        cbtn.addEventListener('touchend', (e) => { if(longTimer) clearTimeout(longTimer); }, {passive:false});
-        cbtn.addEventListener('mousedown', () => { longTimer = setTimeout(() => { headerState.counter = 0; cbtn.textContent = '0'; saveState(); }, 700); });
-        cbtn.addEventListener('mouseup', () => { if(longTimer) clearTimeout(longTimer); });
-    }
-
-    // mirror mic/cam header to main controls
-    const hMic = document.getElementById('header-mic-btn');
-    const hCam = document.getElementById('header-cam-btn');
-    if(hMic) {
-        hMic.addEventListener('click', () => {
-            appSettings.showMicBtn = !appSettings.showMicBtn;
-            if(window.modules && window.modules.sensor) {
-                modules.sensor.toggleAudio(appSettings.showMicBtn);
-            }
-            saveState(); updateAllChrome();
-        });
-    }
-    if(hCam) {
-        hCam.addEventListener('click', () => {
-            appSettings.showCamBtn = !appSettings.showCamBtn;
-            if(window.modules && window.modules.sensor) {
-                modules.sensor.toggleCamera(appSettings.showCamBtn);
-            }
-            saveState(); updateAllChrome();
-        });
-    }
 }
 
 function initGesturePad() {
@@ -651,19 +553,30 @@ function playDemo() {
 }
 
 function renderUI() {
-    // Update header and controls visibility
+    // Practice Start button injection: if practice mode enabled, ensure button exists in sequence container
     try {
-        // timer display
-        const ht = document.getElementById('header-timer'); if(ht) ht.textContent = formatMsToMMSS(headerState.timerElapsed + (headerState.timerRunning ? (Date.now()-headerState.timerStart):0));
-        const hc = document.getElementById('header-counter'); if(hc) hc.textContent = headerState.counter || 0;
-        // show/hide header based on enabled features
-        updateHeaderVisibility();
-        // show/hide header mic/cam
-        document.getElementById('header-mic-btn') && document.getElementById('header-mic-btn').classList.toggle('hidden', !appSettings.showMicBtn);
-        document.getElementById('header-cam-btn') && document.getElementById('header-cam-btn').classList.toggle('hidden', !appSettings.showCamBtn);
-        // ensure listeners bound
-        if(!window.__headerListenersBound) { setupHeaderListeners(); window.__headerListenersBound = true; }
-    } catch(e) { console.error('Header render error', e); }
+        var seqContainer = document.getElementById('sequence-container');
+        if(seqContainer && typeof appSettings !== 'undefined' && appSettings.isPracticeModeEnabled) {
+            // Ensure start button exists and is visible
+            var existing = document.getElementById('practice-start-btn');
+            if(!existing) {
+                var btn = document.createElement('button');
+                btn.id = 'practice-start-btn';
+                btn.className = 'practice-start-btn';
+                btn.innerText = 'START';
+                btn.onclick = function(e) {
+                    btn.style.display = 'none';
+                    try { if(window.startPracticeRound) window.startPracticeRound(); } catch(err){ console.error(err); }
+                };
+                seqContainer.appendChild(btn);
+            } else {
+                existing.style.display = 'block';
+            }
+        } else {
+            var existing = document.getElementById('practice-start-btn');
+            if(existing) existing.style.display = 'none';
+        }
+    } catch(err) { console.error(err); }
 
     const container = document.getElementById('sequence-container'); 
 

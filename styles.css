@@ -50,15 +50,3 @@ body.hide-controls .control-row { display: none !important; }
 .mapping-row .gesture-select { flex:1; min-width:120px; }
 .mapping-row .morse-select { width:84px; }
 .mapping-row .settings-input { background-color:var(--bg-main); color:var(--text-main); border:1px solid var(--border); padding:8px; border-radius:8px; }
-
-/* Modern Clean UI Enhancements */
-.accordion { display:flex; flex-direction:column; gap:14px; }
-.accordion-item { background:#111; border-radius:14px; padding:10px; box-shadow:0 0 10px rgba(0,0,0,0.4);}
-.accordion-header {
-  padding:14px; background:#1f1f1f; color:#fff; font-size:16px;
-  border-radius:10px; font-weight:700; display:flex; justify-content:space-between;
-}
-.accordion-header::after { content:"›"; transition:0.2s; }
-.accordion-body { background:#181818; border-radius:10px; padding:14px; margin-top:8px; }
-.accordion-body.active { display:block; }
-.accordion-body:not(.active) { display:none; }

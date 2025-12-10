@@ -980,7 +980,10 @@ window.onload = function() {
 
 function initAccordion(){
   document.querySelectorAll('.accordion-header').forEach(h=>{
-    h.onclick=()=>{ h.nextElementSibling.classList.toggle('active'); };
+    h.onclick=()=>{
+      const body = h.nextElementSibling;
+      body.classList.toggle('active');
+    };
   });
 }
-setTimeout(initAccordion,500);
+setTimeout(initAccordion,300);

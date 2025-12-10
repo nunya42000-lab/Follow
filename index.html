@@ -224,13 +224,17 @@
             </div>
             
                 <div id="tab-mapping" class="tab-content accordion-container">
-  <h3 class="text-lg font-bold mb-3">Mapping — Gestures & Morse</h3>
-
-  <div class="accordion space-y-3">
-    <div class="accordion-item open">
-      <button class="accordion-header">9-Key Mapping <span class="text-xs opacity-70 ml-2">(values 1–9)</span></button>
-      <div class="accordion-body p-3 bg-black bg-opacity-10 rounded-lg">
-        <div id="mapping-9-container" class="mapping-grid"></div>
+<div id="mapping-9-wrapper" class="p-3">
+  <div class="mapping-description mb-3">Configure the 9-key mapping. Choose a gesture or action for each key. Changes save automatically.</div>
+  <div id="mapping-9-container" class="mapping-grid"></div>
+  <div class="flex gap-3 mt-4">
+    <button id="mapping-reset-btn" class="hb-btn">Reset</button>
+    <button id="mapping-export-btn" class="hb-btn">Export</button>
+    <button id="mapping-import-btn" class="hb-btn">Import</button>
+  </div>
+  <input type="file" id="mapping-import-file" accept="application/json" style="display:none" />
+</div>
+</div>
       </div>
     </div>
     <div class="accordion-item">

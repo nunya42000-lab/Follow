@@ -14,21 +14,6 @@
 <body class="min-h-screen flex flex-col font-sans transition-colors duration-200">
     <div id="blackout-layer"></div>
 
-    <!-- Dynamic Header (auto-hide when empty) -->
-    <div id="dynamic-header" class="hidden" aria-hidden="true">
-        <div class="header-left">
-            <div id="header-timer" class="header-btn" title="Timer">00:00</div>
-        </div>
-        <div class="header-center">
-            <button id="header-mic-btn" class="header-btn" title="Microphone">🎤</button>
-            <button id="header-cam-btn" class="header-btn" title="Camera">📷</button>
-        </div>
-        <div class="header-right">
-            <div id="header-counter" class="header-btn" title="Counter">0</div>
-        </div>
-    </div>
-
-
     <div id="game-setup-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
             <div class="flex items-center justify-between border-b border-custom pb-3 mb-4 relative">
@@ -238,30 +223,10 @@
                 </div>
             </div>
             
-                <div id="tab-mapping" class="tab-content">
-                    <h3 class="text-lg font-bold mb-3">Mapping — Gestures & Morse</h3>
-
-                    <div class="space-y-4">
-                        <div class="p-3 rounded-lg border border-custom settings-input">
-                            <div class="font-bold mb-2">9-Key Mapping</div>
-                            <div id="mapping-9-container" class="grid grid-cols-2 gap-2"></div>
-                            <p class="text-xs opacity-75 mt-2">Choose the gesture for each value and the Morse feedback (dot/dash combos). Changes save automatically.</p>
-                        </div>
-
-                        <div class="p-3 rounded-lg border border-custom settings-input">
-                            <div class="font-bold mb-2">12-Key Mapping</div>
-                            <div id="mapping-12-container" class="grid grid-cols-2 gap-2"></div>
-                            <p class="text-xs opacity-75 mt-2">12-key supports more swipe-based gestures by default.</p>
-                        </div>
-
-                        <div class="p-3 rounded-lg border border-custom settings-input">
-                            <div class="font-bold mb-2">Piano Mapping</div>
-                            <div id="mapping-piano-container" class="grid grid-cols-2 gap-2"></div>
-                            <p class="text-xs opacity-75 mt-2">Piano keys map to swipe gestures and their Morse feedback. Piano is the only input that may produce letters A–G for values 6–12.</p>
-                        </div>
-                    </div>
+            <div id="tab-mapping" class="tab-content h-full">
                 </div>
-<div class="p-4 border-t border-custom flex justify-between items-center bg-opacity-20 bg-black"><button data-action="restore-defaults" class="px-5 py-2 bg-red-800 hover:bg-red-700 text-white rounded text-sm font-bold transition shadow">Reset</button><button id="close-settings" class="px-8 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold transition shadow">Exit</button></div>
+
+            <div class="p-4 border-t border-custom flex justify-between items-center bg-opacity-20 bg-black"><button data-action="restore-defaults" class="px-5 py-2 bg-red-800 hover:bg-red-700 text-white rounded text-sm font-bold transition shadow">Reset</button><button id="close-settings" class="px-8 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold transition shadow">Exit</button></div>
         </div>
     </div>
 
@@ -401,7 +366,6 @@
     <div id="app" class="max-w-7xl w-full mx-auto flex-grow pb-32"><main id="sequence-container" class="flex-grow mb-6 transition-all duration-300 pt-4 flex flex-col items-center justify-center"></main></div>
 
     
-    <!-- Gesture pad wrapper inserted by assistant -->
     <div id="gesture-pad-wrapper" class="hidden">
         <div id="gesture-pad" class="p-4 rounded-lg m-4 border border-custom settings-input" style="height:220px; display:flex; align-items:center; justify-content:center;">
             <div id="gesture-indicator" class="text-center text-sm opacity-80">Use gestures here — swipes, taps, multi-finger.</div>
@@ -437,3 +401,5 @@
 </body>
 </html>
 
+
+}

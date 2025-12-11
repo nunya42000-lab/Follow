@@ -26,96 +26,6 @@ let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
 let modules = { sensor: null, settings: null };
 let timers = { speedDelete: null, initialDelay: null, longPress: null, settingsLongPress: null, stealth: null, stealthAction: null, playback: null, tap: null };
-
-let headerState = { timerRunning:false, timerStart:0, timerElapsed:0, timerInterval:null, counter:0 };
-
-
-// Header helpers: show/hide and timer/counter logic
-function updateHeaderVisibility() {
-    const hdr = document.getElementById('dynamic-header');
-    if(!hdr) return;
-    const enabled = !!(appSettings && (appSettings.isTimerEnabled || appSettings.isCounterEnabled || appSettings.showMicBtn || appSettings.showCamBtn));
-    if (enabled) hdr.classList.remove('hidden'); else hdr.classList.add('hidden');
-}
-
-function formatMsToMMSS(ms) {
-    const total = Math.floor(ms/1000);
-    const mm = Math.floor(total/60).toString().padStart(2,'0');
-    const ss = (total%60).toString().padStart(2,'0');
-    return mm + ':' + ss;
-}
-
-function updateTimerDisplay() {
-    const el = document.getElementById('header-timer');
-    if(!el) return;
-    const elapsed = headerState.timerElapsed + (headerState.timerRunning ? (Date.now()-headerState.timerStart) : 0);
-    el.textContent = formatMsToMMSS(elapsed);
-}
-
-function startStopTimerToggle() {
-    if (!appSettings || !appSettings.isTimerEnabled) return;
-    if (headerState.timerRunning) {
-        headerState.timerElapsed += Date.now() - headerState.timerStart;
-        headerState.timerRunning = false;
-        if (headerState.timerInterval) { clearInterval(headerState.timerInterval); headerState.timerInterval = null; }
-    } else {
-        headerState.timerStart = Date.now();
-        headerState.timerRunning = true;
-        headerState.timerInterval = setInterval(updateTimerDisplay, 250);
-    }
-    updateTimerDisplay();
-}
-
-function resetTimer() {
-    headerState.timerRunning = false;
-    headerState.timerStart = 0;
-    headerState.timerElapsed = 0;
-    if (headerState.timerInterval) { clearInterval(headerState.timerInterval); headerState.timerInterval = null; }
-    updateTimerDisplay();
-}
-
-function setupHeaderBindings() {
-    const tbtn = document.getElementById('header-timer');
-    if (tbtn) {
-        let longTimer = null;
-        tbtn.addEventListener('click', () => { startStopTimerToggle(); saveState && saveState(); });
-        tbtn.addEventListener('touchstart', (e) => { e.preventDefault(); longTimer = setTimeout(() => { resetTimer(); saveState && saveState(); }, 700); }, {passive:false});
-        tbtn.addEventListener('touchend', (e) => { if(longTimer) clearTimeout(longTimer); }, {passive:false});
-        tbtn.addEventListener('mousedown', () => { longTimer = setTimeout(() => { resetTimer(); saveState && saveState(); }, 700); });
-        tbtn.addEventListener('mouseup', () => { if(longTimer) clearTimeout(longTimer); });
-    }
-    const cbtn = document.getElementById('header-counter');
-    if (cbtn) {
-        let longTimer = null;
-        cbtn.addEventListener('click', () => { if(!appSettings || !appSettings.isCounterEnabled) return; headerState.counter = (headerState.counter||0) + 1; cbtn.textContent = headerState.counter; saveState && saveState(); });
-        cbtn.addEventListener('touchstart', (e) => { e.preventDefault(); longTimer = setTimeout(() => { headerState.counter = 0; cbtn.textContent = '0'; saveState && saveState(); }, 700); }, {passive:false});
-        cbtn.addEventListener('touchend', (e) => { if(longTimer) clearTimeout(longTimer); }, {passive:false});
-        cbtn.addEventListener('mousedown', () => { longTimer = setTimeout(() => { headerState.counter = 0; cbtn.textContent = '0'; saveState && saveState(); }, 700); });
-        cbtn.addEventListener('mouseup', () => { if(longTimer) clearTimeout(longTimer); });
-    }
-    // mirror mic/cam
-    const hMic = document.getElementById('header-mic-btn');
-    const hCam = document.getElementById('header-cam-btn');
-    if (hMic) hMic.addEventListener('click', () => { appSettings.showMicBtn = !appSettings.showMicBtn; if(window.modules && modules.sensor) modules.sensor.toggleAudio(appSettings.showMicBtn); saveState && saveState(); updateAllChrome && updateAllChrome(); });
-    if (hCam) hCam.addEventListener('click', () => { appSettings.showCamBtn = !appSettings.showCamBtn; if(window.modules && modules.sensor) modules.sensor.toggleCamera(appSettings.showCamBtn); saveState && saveState(); updateAllChrome && updateAllChrome(); });
-}
-
-
-
-// Schedule autoplay safely (debounced)
-function scheduleAutoplay(delayMs) {
-    try {
-        if (timers.autoplay) { clearTimeout(timers.autoplay); timers.autoplay = null; }
-        timers.autoplay = setTimeout(() => {
-            timers.autoplay = null;
-            // only trigger demo if not already playing
-            if (!isDemoPlaying) {
-                playDemo();
-            }
-        }, Math.max(50, delayMs || 250));
-    } catch(e) { console.error('scheduleAutoplay error', e); }
-}
-
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 let blackoutState = { isActive: false, lastShake: 0 }; 
 let gestureInputState = { startX: 0, startY: 0, startTime: 0, maxTouches: 0, isTapCandidate: false, tapCount: 0 };
@@ -301,11 +211,11 @@ function mapGestureToValue(kind, currentInput) {
     }
     for(let i=1;i<=12;i++){
         const k12 = 'k12_' + i;
-        if(gm[k12] && gm[k12].gesture === kind) return i;
+        if(gm['k12_' + i] && gm['k12_' + i].gesture === kind) return i;
     }
     for(let i=1;i<=9;i++){
         const k9 = 'k9_' + i;
-        if(gm[k9] && gm[k9].gesture === kind) return i;
+        if(gm['k9_' + i] && gm['k9_' + i].gesture === kind) return i;
     }
     return null;
 }
@@ -341,7 +251,6 @@ function speak(text) {
 
     window.speechSynthesis.speak(u); 
 }
-
 function showToast(msg) { 
     const lang = appSettings.generalLanguage || 'en';
     const dict = DICTIONARY[lang] || DICTIONARY['en'];
@@ -524,7 +433,6 @@ function resetRounds() {
 }
 
 function disableInput(disabled) { const pad = document.getElementById(`pad-${getProfileSettings().currentInput}`); if(pad) pad.querySelectorAll('button').forEach(b => b.disabled = disabled); }
-
 function playDemo() {
     const settings = getProfileSettings(); 
     const state = getState(); 
@@ -643,10 +551,7 @@ function playDemo() {
 }
 
 function renderUI() {
-    try { updateHeaderVisibility(); updateTimerDisplay && updateTimerDisplay(); if (!window.__headerBindingsSet) { setupHeaderBindings(); window.__headerBindingsSet = true; } } catch(e) {}
-
     const container = document.getElementById('sequence-container'); 
-
 
     // --- Gesture pad show/hide ---
     try {
@@ -857,199 +762,5 @@ function handleBlackoutGestureEnd(e) {
         addValue(val);
         vibrateMorse(val);
     }
-}
-
-
-function handle1KeyStart() {
-    if(!appSettings.isStealth1KeyEnabled) return;
-    ignoreNextClick = false;
-    timers.stealth = setTimeout(() => {
-        ignoreNextClick = true;
-        document.body.classList.toggle('hide-controls');
-        vibrate();
-    }, 1000); 
-}
-function handle1KeyEnd() { if(timers.stealth) clearTimeout(timers.stealth); }
-
-function handleStealthActionStart(action) {
-    if(!document.body.classList.contains('hide-controls')) return;
-    ignoreNextClick = false;
-    timers.stealthAction = setTimeout(() => {
-        ignoreNextClick = true;
-        vibrate();
-        if(action === 'play') playDemo();
-        if(action === 'backspace') handleBackspace();
-        if(action === 'delete') {
-             const settings = getProfileSettings();
-             const targetIndex = settings.currentMode === CONFIG.MODES.SIMON ? (getState().nextSequenceIndex - 1) % settings.machineCount : 0;
-             getState().sequences[targetIndex] = [];
-             getState().nextSequenceIndex = 0;
-             renderUI(); saveState();
-        }
-    }, 800); 
-}
-function handleStealthActionEnd() { if(timers.stealthAction) clearTimeout(timers.stealthAction); }
-
-window.onload = function() {
-    try {
-        loadState(); initComments(db); if (window.DeviceMotionEvent) window.addEventListener('devicemotion', handleShake, false); const target = document.body;
-        target.addEventListener('touchstart', (e) => { if(modules.sensor && modules.sensor.audioCtx && modules.sensor.audioCtx.state === 'suspended') modules.sensor.audioCtx.resume(); 
-            if (e.touches.length === 2) { gestureState.isPinching = true; gestureState.startDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); gestureState.startScale = (appSettings.gestureResizeMode === 'sequence') ? (appSettings.uiScaleMultiplier || 1.0) : (appSettings.globalUiScale || 100); } }, { passive: false });
-        target.addEventListener('touchmove', (e) => { 
-            if (gestureState.isPinching && e.touches.length === 2) { 
-                e.preventDefault(); const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); const ratio = dist / gestureState.startDist; 
-                let newScale = gestureState.startScale * ratio;
-                if (appSettings.gestureResizeMode === 'sequence') { 
-                    newScale = Math.round(newScale * 10) / 10; 
-                    appSettings.uiScaleMultiplier = Math.min(Math.max(newScale, 0.5), 3.0); renderUI(); 
-                } else { 
-                    newScale = Math.round(newScale / 10) * 10;
-                    appSettings.globalUiScale = Math.min(Math.max(newScale, 50), 300); updateAllChrome(); 
-                } 
-            } 
-        }, { passive: false });
-        target.addEventListener('touchend', () => { if(gestureState.isPinching) { gestureState.isPinching = false; saveState(); } });
-
-        modules.sensor = new SensorEngine((val) => addValue(val), (msg) => showToast(msg)); if (appSettings.sensorAudioThresh) modules.sensor.setSensitivity('audio', appSettings.sensorAudioThresh); if (appSettings.sensorCamThresh) modules.sensor.setSensitivity('camera', appSettings.sensorCamThresh);
-        modules.settings = new SettingsManager(appSettings, {
-            onUpdate: (type) => { 
-                if(type === 'mode_switch') {
-                    appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
-                    showToast("Game Mode Reset 🔄");
-                }
-                
-                if(appSettings.isPracticeModeEnabled) {
-                    practiceSequence = [];
-                    practiceInputIndex = 0;
-                    appState['current_session'].currentRound = 1;
-                }
-
-                updateAllChrome(); 
-                saveState(); 
-            },
-            onSave: () => saveState(), onSettingsChanged: () => { renderUI(); if(window.updateHelpMappings) updateHelpMappings(); }, onReset: () => { localStorage.clear(); location.reload(); },
-            onProfileSwitch: (id) => { 
-                appSettings.activeProfileId = id; 
-                appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings)); 
-                appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 }; 
-                practiceSequence = []; 
-                updateAllChrome(); 
-                saveState(); 
-            },
-            onProfileAdd: (name) => { const id = 'p_' + Date.now(); appSettings.profiles[id] = { name, settings: JSON.parse(JSON.stringify(appSettings.runtimeSettings)), theme: appSettings.activeTheme }; appSettings.activeProfileId = id; updateAllChrome(); saveState(); },
-            onProfileRename: (name) => { appSettings.profiles[appSettings.activeProfileId].name = name; saveState(); },
-            onProfileDelete: () => { delete appSettings.profiles[appSettings.activeProfileId]; appSettings.activeProfileId = Object.keys(appSettings.profiles)[0]; appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings)); if(appSettings.profiles[appSettings.activeProfileId].theme) appSettings.activeTheme = appSettings.profiles[appSettings.activeProfileId].theme; updateAllChrome(); saveState(); },
-            onProfileSave: () => { 
-                appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings)); 
-                saveState(); 
-                showToast("Profile Settings Saved 💾"); 
             }
-        }, modules.sensor);
-        updateAllChrome(); 
-        
-        if(appSettings.isPracticeModeEnabled) {
-            const settingsModal = document.getElementById('settings-modal');
-            if(!settingsModal || settingsModal.classList.contains('pointer-events-none')) {
-                setTimeout(startPracticeRound, 500);
-            }
-        }
-
-        document.querySelectorAll('.btn-pad-number, .piano-key-white, .piano-key-black').forEach(btn => {
-            if(btn.dataset.value === '1') {
-                btn.addEventListener('mousedown', handle1KeyStart); btn.addEventListener('touchstart', handle1KeyStart, {passive: true});
-                btn.addEventListener('mouseup', handle1KeyEnd); btn.addEventListener('touchend', handle1KeyEnd); btn.addEventListener('mouseleave', handle1KeyEnd);
-            }
-            const val = btn.dataset.value;
-            if(val === '7' || val === 'C') {
-                btn.addEventListener('mousedown', () => handleStealthActionStart('play')); btn.addEventListener('touchstart', () => handleStealthActionStart('play'), {passive: true});
-                btn.addEventListener('mouseup', handleStealthActionEnd); btn.addEventListener('touchend', handleStealthActionEnd); btn.addEventListener('mouseleave', handleStealthActionEnd);
-            }
-            if(val === '8' || val === 'D') {
-                btn.addEventListener('mousedown', () => handleStealthActionStart('backspace')); btn.addEventListener('touchstart', () => handleStealthActionStart('backspace'), {passive: true});
-                btn.addEventListener('mouseup', handleStealthActionEnd); btn.addEventListener('touchend', handleStealthActionEnd); btn.addEventListener('mouseleave', handleStealthActionEnd);
-            }
-            if(val === '9' || val === 'E') {
-                btn.addEventListener('mousedown', () => handleStealthActionStart('delete')); btn.addEventListener('touchstart', () => handleStealthActionStart('delete'), {passive: true});
-                btn.addEventListener('mouseup', handleStealthActionEnd); btn.addEventListener('touchend', handleStealthActionEnd); btn.addEventListener('mouseleave', handleStealthActionEnd);
-            }
-
-            btn.addEventListener('click', (e) => {
-                if((val === '1' || val === '7' || val === '8' || val === '9' || val === 'C' || val === 'D' || val === 'E') && ignoreNextClick) { ignoreNextClick = false; return; }
-                addValue(e.target.dataset.value);
-            });
-        });
-        
-        document.querySelectorAll('button[data-action=\"play-demo\"]').forEach(b => { 
-            b.addEventListener('click', playDemo); 
-            const startLongPress = () => { 
-                timers.longPress = setTimeout(() => { 
-                    if(appSettings.isLongPressAutoplayEnabled !== false) {
-                        appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled; 
-                        showToast(`Autoplay: ${appSettings.isAutoplayEnabled?'ON':'OFF'}`); 
-                        saveState(); 
-                        vibrate(); 
-                    }
-                }, 500); 
-            }; 
-            const cancelLong = () => clearTimeout(timers.longPress); 
-            b.addEventListener('mousedown', startLongPress); 
-            b.addEventListener('touchstart', startLongPress, { passive: true }); 
-            b.addEventListener('mouseup', cancelLong); 
-            b.addEventListener('mouseleave', cancelLong); 
-            b.addEventListener('touchend', cancelLong); 
-        });
-        
-        document.querySelectorAll('button[data-action=\"open-settings\"]').forEach(b => {
-             const startSettingsLong = () => {
-                 timers.settingsLongPress = setTimeout(() => {
-                     vibrate();
-                     if(modules.settings) modules.settings.toggleRedeem(true);
-                 }, 800);
-             };
-             const cancelSettingsLong = () => { if(timers.settingsLongPress) clearTimeout(timers.settingsLongPress); };
-             
-             b.addEventListener('mousedown', startSettingsLong);
-             b.addEventListener('touchstart', startSettingsLong, { passive: true });
-             b.addEventListener('mouseup', cancelSettingsLong);
-             b.addEventListener('mouseleave', cancelSettingsLong);
-             b.addEventListener('touchend', cancelSettingsLong);
-             
-             b.onclick = () => {
-                 if(timers.settingsLongPress) clearTimeout(timers.settingsLongPress);
-                 if(isDemoPlaying) {
-                     playDemo(); 
-                     return;
-                 }
-                 modules.settings.openSettings();
-             };
-        });
-
-        document.querySelectorAll('button[data-action=\"reset-unique-rounds\"]').forEach(b => b.addEventListener('click', () => { if(confirm("Reset to Round 1?")) resetRounds(); }));
-        document.querySelectorAll('button[data-action=\"backspace\"]').forEach(b => { 
-            b.addEventListener('click', handleBackspace); 
-            const startDelete = (e) => { 
-                if(!appSettings.isSpeedDeletingEnabled) return; 
-                isDeleting = false; 
-                timers.initialDelay = setTimeout(() => { 
-                    isDeleting = true; 
-                    timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL); 
-                }, CONFIG.SPEED_DELETE_DELAY); 
-            }; 
-            const stopDelete = () => { 
-                clearTimeout(timers.initialDelay); 
-                clearInterval(timers.speedDelete); 
-                setTimeout(() => isDeleting = false, 50); 
-            }; 
-            b.addEventListener('mousedown', startDelete); b.addEventListener('touchstart', startDelete, { passive: true }); b.addEventListener('mouseup', stopDelete); b.addEventListener('mouseleave', stopDelete); b.addEventListener('touchend', stopDelete); b.addEventListener('touchcancel', stopDelete); 
-        });
-        document.querySelectorAll('button[data-action=\"open-share\"]').forEach(b => b.addEventListener('click', () => modules.settings.openShare())); 
-        
-        document.getElementById('close-settings').addEventListener('click', () => {
-            if(appSettings.isPracticeModeEnabled) {
-                setTimeout(startPracticeRound, 500);
-            }
-        });
-
-        if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
-    } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }
-};
+                        

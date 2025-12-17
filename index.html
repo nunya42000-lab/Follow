@@ -481,5 +481,26 @@
 <div id="gesture-feedback"
      class="gesture-feedback hidden">
 </div>
+<!-- ================================
+     MORSE PAUSE CONTROLS
+     ================================ -->
+<div id="morse-pause-row" class="morse-pause-row hidden">
+  <label for="morsePause" class="mr-2 text-sm opacity-80">
+    Morse pause
+  </label>
+
+  <input id="morsePause"
+         type="range"
+         min="0"
+         max="0.5"
+         step="0.1"
+         value="0.2"
+         onchange="appSettings.morsePause = parseFloat(this.value)" />
+</div>
+
+<!-- ================================
+     GESTURE FEEDBACK OVERLAY
+     ================================ -->
+<div id="gesture-feedback" class="gesture-feedback hidden"></div>
 </body>
 </html>

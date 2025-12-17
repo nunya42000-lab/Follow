@@ -1083,3 +1083,117 @@ function showGestureFeedback(text) {
     el.classList.add("hidden");
   }, 700);
       }
+/* ================================
+   PRACTICE MODE CONTROL
+   ================================ */
+
+let practiceRunning = false;
+
+function canStartPractice() {
+  return appSettings.isPracticeModeEnabled &&
+         !document.getElementById("settings-modal")?.classList.contains("show");
+}
+
+function startPracticeGame() {
+  if (!canStartPractice()) return;
+  practiceRunning = true;
+  hidePracticeStartButton();
+  beginPracticeRound?.();
+}
+
+function endPracticeGame() {
+  practiceRunning = false;
+  showPracticeStartButton();
+}
+
+/* ================================
+   PRACTICE START BUTTON HELPERS
+   ================================ */
+
+function showPracticeStartButton() {
+  document.getElementById("practice-start-btn")
+    ?.classList.remove("hidden");
+}
+
+function hidePracticeStartButton() {
+  document.getElementById("practice-start-btn")
+    ?.classList.add("hidden");
+}
+
+/* ================================
+   AUTOPLAY UNIQUE ROUNDS FIX
+   ================================ */
+
+function getNextUniqueRound(pool, used) {
+  const available = pool.filter(x => !used.has(x));
+  if (!available.length) {
+    used.clear();
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+  const choice = available[Math.floor(Math.random() * available.length)];
+  used.add(choice);
+  return choice;
+}
+
+/* ================================
+   MORSE PAUSE SUPPORT
+   ================================ */
+
+appSettings.morsePause ??= 0.2;
+
+function playWithPause(sequence) {
+  let delay = 0;
+  sequence.forEach(symbol => {
+    setTimeout(() => playMorseSymbol(symbol), delay);
+    delay += appSettings.morsePause * 1000;
+  });
+}
+
+/* ================================
+   TIMER & COUNTER STATE
+   ================================ */
+
+let timerRunning = false;
+let timerStart = 0;
+let counterValue = 0;
+
+function toggleTimer(btn) {
+  if (!timerRunning) {
+    timerRunning = true;
+    timerStart = Date.now();
+    btn._timerInterval = setInterval(() => {
+      btn.textContent = ((Date.now() - timerStart) / 1000).toFixed(1);
+    }, 100);
+  } else {
+    timerRunning = false;
+    clearInterval(btn._timerInterval);
+  }
+}
+
+function resetTimer(btn) {
+  timerRunning = false;
+  clearInterval(btn._timerInterval);
+  btn.textContent = "0.0";
+}
+
+function incrementCounter(btn) {
+  counterValue++;
+  btn.textContent = counterValue;
+}
+
+function resetCounter(btn) {
+  counterValue = 0;
+  btn.textContent = "0";
+}
+
+/* ================================
+   GESTURE INPUT MODE BEHAVIOR
+   ================================ */
+
+function applyGestureInputMode(enabled) {
+  document.body.classList.toggle("gesture-input", enabled);
+  document.getElementById("input-buttons")
+    ?.classList.toggle("hidden", enabled);
+  document.getElementById("gesture-pad")
+    ?.classList.toggle("hidden", !enabled);
+}

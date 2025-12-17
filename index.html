@@ -13,7 +13,34 @@
 </head>
 <body class="min-h-screen flex flex-col font-sans transition-colors duration-200">
     <div id="blackout-layer"></div>
+<!-- ================================
+     HEADER BAR
+     ================================ -->
+<div id="header-bar" class="header-bar hidden">
 
+  <!-- Timer (top-left) -->
+  <button id="timer-btn"
+          class="header-btn hidden"
+          onclick="toggleTimer(this)"
+          oncontextmenu="resetTimer(this); return false;">
+    0.0
+  </button>
+
+  <!-- Camera / Mic (middle left & right) -->
+  <div class="header-middle">
+    <button id="camera-btn" class="header-btn hidden">📷</button>
+    <button id="mic-btn" class="header-btn hidden">🎤</button>
+  </div>
+
+  <!-- Counter (top-right) -->
+  <button id="counter-btn"
+          class="header-btn hidden"
+          onclick="incrementCounter(this)"
+          oncontextmenu="resetCounter(this); return false;">
+    0
+  </button>
+
+</div>
     <div id="game-setup-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
             <div class="flex items-center justify-between border-b border-custom pb-3 mb-4 relative">

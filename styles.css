@@ -459,3 +459,27 @@ body.gesture-input #gesture-pad-wrapper {
 .morse-pause-row input[type="range"] {
   width: 160px;
     }
+/* ================================
+   GESTURE FEEDBACK BUBBLE
+   ================================ */
+
+.gesture-feedback {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 14px 22px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.9);
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 2000;
+}
+
+.gesture-feedback.show {
+  opacity: 1;
+}

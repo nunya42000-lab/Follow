@@ -397,3 +397,28 @@ body.hide-controls .control-row {
     transform: translate(-50%, -50%) scale(1);
   }
 }
+/* ================================
+   GESTURE PAD (NON-BLACKOUT MODE)
+   ================================ */
+
+.gesture-pad {
+  width: 100%;
+  height: 220px;
+  margin: 12px auto;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+}
+
+/* When gesture input is enabled, hide buttons */
+body.gesture-input #input-buttons {
+  display: none;
+}
+
+body.gesture-input #gesture-pad-wrapper {
+  display: block;
+}

@@ -436,3 +436,26 @@ body.gesture-input #gesture-pad-wrapper {
 .mapping-section {
   margin-bottom: 24px;
 }
+/* ================================
+   MORSE PAUSE CONTROL
+   ================================ */
+
+.morse-pause-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  margin: 8px auto;
+  width: fit-content;
+}
+
+.morse-pause-row label {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.morse-pause-row input[type="range"] {
+  width: 160px;
+    }

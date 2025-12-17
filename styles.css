@@ -422,3 +422,17 @@ body.gesture-input #input-buttons {
 body.gesture-input #gesture-pad-wrapper {
   display: block;
 }
+/* ================================
+   MAPPING TAB SCROLL FIX
+   ================================ */
+
+#tab-mapping,
+.mapping-tab {
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  padding-bottom: 40px;
+}
+
+.mapping-section {
+  margin-bottom: 24px;
+}

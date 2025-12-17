@@ -364,3 +364,36 @@ body.hide-controls .control-row {
   display: flex;
   gap: 8px;
     }
+/* ================================
+   PRACTICE MODE START BUTTON
+   ================================ */
+
+.practice-start {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 18px 36px;
+  border-radius: 18px;
+  border: none;
+  background: #3b82f6;
+  color: #ffffff;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+  animation: practicePulse 1.8s infinite;
+}
+
+@keyframes practicePulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}

@@ -89,6 +89,42 @@ const DEFAULT_SETTINGS = {
 };
 
 let appSettings = loadSettings();
+/* ================================
+   SETTINGS PERSISTENCE
+   ================================ */
+
+function loadSettings() {
+  try {
+    const stored = JSON.parse(localStorage.getItem("followme_settings"));
+    if (!stored) return structuredClone(DEFAULT_SETTINGS);
+
+    return {
+      ...structuredClone(DEFAULT_SETTINGS),
+      ...stored,
+      mappings: {
+        ...structuredClone(DEFAULT_SETTINGS.mappings),
+        ...(stored.mappings || {})
+      },
+      presets: {
+        ...structuredClone(DEFAULT_SETTINGS.presets),
+        ...(stored.presets || {})
+      },
+      gestures: {
+        general: {
+          ...structuredClone(DEFAULT_SETTINGS.gestures.general),
+          ...(stored.gestures?.general || {})
+        }
+      }
+    };
+  } catch (e) {
+    console.warn("Failed to load settings, using defaults", e);
+    return structuredClone(DEFAULT_SETTINGS);
+  }
+}
+
+function saveSettings() {
+  localStorage.setItem("followme_settings", JSON.stringify(appSettings));
+}
 export class SettingsManager {
     constructor(appSettings, callbacks, sensorEngine) {
         this.appSettings = appSettings; this.callbacks = callbacks; this.sensorEngine = sensorEngine; this.currentTargetKey = 'bubble';

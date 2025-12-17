@@ -55,7 +55,40 @@ const LANG = {
         help_gesture_detail: "Gestos de Pantalla Negra: Un sistema de entrada 'sin mirar'. Utiliza gestos táctiles (deslizamientos, toques) para representar los valores del 1 al 12. Los valores del 6 al 12 se representan con las letras A a G (A=6, B=7, etc.) en una cuadrícula virtual de 3x4. Una guía detallada completa sigue a la Guía de Morse Háptico."
     }
 };
+/* ================================
+   APP SETTINGS STATE
+   ================================ */
 
+const DEFAULT_SETTINGS = {
+  inputMode: "9key",
+
+  gestureInput: false,
+  blackoutGestures: false,
+
+  timerEnabled: false,
+  counterEnabled: false,
+
+  practiceMode: false,
+  morsePause: 0.2,
+
+  mappings: {
+    "9key": {},
+    "12key": {},
+    "piano": {}
+  },
+
+  gestures: {
+    general: {}
+  },
+
+  presets: {
+    "9key": {},
+    "12key": {},
+    "piano": {}
+  }
+};
+
+let appSettings = loadSettings();
 export class SettingsManager {
     constructor(appSettings, callbacks, sensorEngine) {
         this.appSettings = appSettings; this.callbacks = callbacks; this.sensorEngine = sensorEngine; this.currentTargetKey = 'bubble';

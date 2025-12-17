@@ -325,3 +325,42 @@ body.blackout-active #blackout-layer {
 body.hide-controls .control-row {
     display: none !important;
 }
+/* ================================
+   HEADER BAR (Timer / Counter / Mic)
+   ================================ */
+
+.header-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+}
+
+.header-btn {
+  min-width: 44px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: none;
+  background: #1f1f1f;
+  color: #fff;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.header-btn:active {
+  transform: scale(0.96);
+}
+
+.header-middle {
+  display: flex;
+  gap: 8px;
+    }

@@ -1065,3 +1065,21 @@ window.onload = function() {
                        }
                        }
                        }
+/* ================================
+   GESTURE FEEDBACK GLUE
+   ================================ */
+
+function showGestureFeedback(text) {
+  const el = document.getElementById("gesture-feedback");
+  if (!el) return;
+
+  el.textContent = text;
+  el.classList.remove("hidden");
+  el.classList.add("show");
+
+  clearTimeout(el._hideTimer);
+  el._hideTimer = setTimeout(() => {
+    el.classList.remove("show");
+    el.classList.add("hidden");
+  }, 700);
+      }

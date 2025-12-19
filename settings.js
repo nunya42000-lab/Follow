@@ -202,7 +202,67 @@ export class SettingsManager {
             });
         }
     }
+injectTimerButton() {
+  if (document.getElementById("timer-btn")) return;
 
+  const btn = document.createElement("button");
+  btn.id = "timer-btn";
+  btn.className = "header-btn";
+  btn.textContent = "00:00";
+
+  let startTime = null;
+  let interval = null;
+
+  const update = () => {
+    const elapsed = Date.now() - startTime;
+    const sec = Math.floor(elapsed / 1000);
+    const min = Math.floor(sec / 60);
+    btn.textContent =
+      String(min).padStart(2, "0") + ":" +
+      String(sec % 60).padStart(2, "0");
+  };
+
+  btn.onclick = () => {
+    if (!interval) {
+      startTime = Date.now();
+      interval = setInterval(update, 500);
+    } else {
+      clearInterval(interval);
+      interval = null;
+    }
+  };
+
+  btn.oncontextmenu = e => {
+    e.preventDefault();
+    startTime = null;
+    btn.textContent = "00:00";
+  };
+
+  document.getElementById("header-left")?.appendChild(btn);
+}
+
+injectCounterButton() {
+  if (document.getElementById("counter-btn")) return;
+
+  let count = 0;
+  const btn = document.createElement("button");
+  btn.id = "counter-btn";
+  btn.className = "header-btn";
+  btn.textContent = "0";
+
+  btn.onclick = () => {
+    count++;
+    btn.textContent = count;
+  };
+
+  btn.oncontextmenu = e => {
+    e.preventDefault();
+    count = 0;
+    btn.textContent = "0";
+  };
+
+  document.getElementById("header-right")?.appendChild(btn);
+    }
     injectLongPressToggle() {
         if (document.getElementById('long-press-autoplay-toggle')) return;
 

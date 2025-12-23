@@ -1,4 +1,4 @@
-// settings.js
+// settings.js - Part 1/4
 export const PREMADE_THEMES = {
     'default': { name: "Default Dark", bgMain: "#000000", bgCard: "#121212", bubble: "#4f46e5", btn: "#1a1a1a", text: "#e5e5e5" },
     'light': { name: "Light Mode", bgMain: "#f3f4f6", bgCard: "#ffffff", bubble: "#4f46e5", btn: "#e5e7eb", text: "#111827" },
@@ -40,7 +40,7 @@ const CRAYONS = ["#000000", "#1F75FE", "#1CA9C9", "#0D98BA", "#FFFFFF", "#C5D0E6
 const LANG = {
     en: {
         quick_title: "👋 Quick Start", select_profile: "Select Profile", autoplay: "Autoplay", audio: "Audio", help_btn: "Help 📚", settings_btn: "Settings", dont_show: "Don't show again", play_btn: "PLAY", theme_editor: "🎨 Theme Editor",
-        lbl_profiles: "Profiles", lbl_game: "Game", lbl_playback: "Playback", lbl_general: "General", lbl_mode: "Modo", lbl_input: "Input",
+        lbl_profiles: "Profiles", lbl_game: "Game", lbl_playback: "Playback", lbl_general: "General", lbl_mode: "Mode", lbl_input: "Input",
         blackout_gestures: "Blackout Gestures",
         help_stealth_detail: "Stealth Mode (1-Key) simplifies input by mapping the 12 primary values (1-12) to a single key press. The interpretation depends on context and mode (Simon/Unique). This is intended for high-speed, minimal-movement input.",
         help_blackout_detail: "Blackout Mode turns the entire screen black to eliminate visual distraction, allowing you to focus purely on audio cues and muscle memory. The app remains fully functional, but the UI is hidden. If Blackout Gestures are enabled, input switches to a 'no-look' touch system.",
@@ -55,76 +55,7 @@ const LANG = {
         help_gesture_detail: "Gestos de Pantalla Negra: Un sistema de entrada 'sin mirar'. Utiliza gestos táctiles (deslizamientos, toques) para representar los valores del 1 al 12. Los valores del 6 al 12 se representan con las letras A a G (A=6, B=7, etc.) en una cuadrícula virtual de 3x4. Una guía detallada completa sigue a la Guía de Morse Háptico."
     }
 };
-/* ================================
-   APP SETTINGS STATE
-   ================================ */
 
-const DEFAULT_SETTINGS = {
-  inputMode: "9key",
-
-  gestureInput: false,
-  blackoutGestures: false,
-
-  timerEnabled: false,
-  counterEnabled: false,
-
-  practiceMode: false,
-  morsePause: 0.2,
-
-  mappings: {
-    "9key": {},
-    "12key": {},
-    "piano": {}
-  },
-
-  gestures: {
-    general: {}
-  },
-
-  presets: {
-    "9key": {},
-    "12key": {},
-    "piano": {}
-  }
-};
-
-let appSettings = loadSettings();
-/* ================================
-   SETTINGS PERSISTENCE
-   ================================ */
-
-function loadSettings() {
-  try {
-    const stored = JSON.parse(localStorage.getItem("followme_settings"));
-    if (!stored) return structuredClone(DEFAULT_SETTINGS);
-
-    return {
-      ...structuredClone(DEFAULT_SETTINGS),
-      ...stored,
-      mappings: {
-        ...structuredClone(DEFAULT_SETTINGS.mappings),
-        ...(stored.mappings || {})
-      },
-      presets: {
-        ...structuredClone(DEFAULT_SETTINGS.presets),
-        ...(stored.presets || {})
-      },
-      gestures: {
-        general: {
-          ...structuredClone(DEFAULT_SETTINGS.gestures.general),
-          ...(stored.gestures?.general || {})
-        }
-      }
-    };
-  } catch (e) {
-    console.warn("Failed to load settings, using defaults", e);
-    return structuredClone(DEFAULT_SETTINGS);
-  }
-}
-
-function saveSettings() {
-  localStorage.setItem("followme_settings", JSON.stringify(appSettings));
-}
 export class SettingsManager {
     constructor(appSettings, callbacks, sensorEngine) {
         this.appSettings = appSettings; this.callbacks = callbacks; this.sensorEngine = sensorEngine; this.currentTargetKey = 'bubble';
@@ -133,7 +64,8 @@ export class SettingsManager {
         this.injectLongPressToggle();
         this.injectBlackoutGesturesToggle();
         this.injectGestureInputToggle(); 
-        this.injectCounterToggle(); // --- PATCH 4A: Inject Toggle
+        this.injectTimerToggle();   // <--- NEW: Inject Timer
+        this.injectCounterToggle(); // <--- NEW: Inject Counter
 
         // 2. Build the DOM cache (now includes the injected elements)
         this.dom = {
@@ -162,7 +94,13 @@ export class SettingsManager {
             // Injected Toggles (Now guaranteed to exist)
             longPressToggle: document.getElementById('long-press-autoplay-toggle'),
             blackoutGesturesToggle: document.getElementById('blackout-gestures-toggle'),
-            counterToggle: document.getElementById('counter-toggle'), // --- PATCH 4B: Add to DOM cache
+            counterToggle: document.getElementById('counter-toggle'), // <--- NEW
+            timerToggle: document.getElementById('timer-toggle'),     // <--- NEW
+
+            // Header Elements
+            headerBar: document.getElementById('header-bar'),
+            timerBtn: document.getElementById('timer-btn'),
+            counterBtn: document.getElementById('counter-btn'),
 
             uiScale: document.getElementById('ui-scale-select'), seqSize: document.getElementById('seq-size-select'), gestureMode: document.getElementById('gesture-mode-select'), autoInput: document.getElementById('auto-input-select'),
             quickLang: document.getElementById('quick-lang-select'), generalLang: document.getElementById('general-lang-select'), closeSettingsBtn: document.getElementById('close-settings'),
@@ -193,8 +131,17 @@ export class SettingsManager {
             mapping12Container: document.getElementById('mapping-12-container'),
             mappingPianoContainer: document.getElementById('mapping-piano-container'),
         };
-        this.tempTheme = null; this.initListeners(); this.populateConfigDropdown(); this.populateThemeDropdown(); this.buildColorGrid(); this.populateVoicePresetDropdown();
+        this.tempTheme = null; 
+        this.initListeners(); 
+        this.populateConfigDropdown(); 
+        this.populateThemeDropdown(); 
+        this.buildColorGrid(); 
+        this.populateVoicePresetDropdown();
         this.populateMappingUI();
+        
+        // Initialize header visibility
+        this.updateHeaderButtons();
+
         if(this.dom.gestureToggle){
             this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
             this.dom.gestureToggle.addEventListener('change', (e) => {
@@ -204,15 +151,15 @@ export class SettingsManager {
             });
         }
     }
+// settings.js - Part 2/4
+    // ... inside SettingsManager class ...
 
     injectCounterToggle() {
         if (document.getElementById('counter-toggle')) return;
         const div = document.createElement('div');
         div.className = "flex justify-between items-center p-3 rounded-lg settings-input";
         div.innerHTML = `<span class="font-bold text-sm">Show Counter</span><input type="checkbox" id="counter-toggle" class="h-5 w-5 accent-indigo-500">`;
-        
-        // Insert after timer toggle (long-press-autoplay-toggle is technically the "timer" area in General tab)
-        // or just append to General Tab
+
         const generalTab = document.getElementById('tab-general');
         if (generalTab) {
             const inner = generalTab.querySelector('.space-y-3');
@@ -220,15 +167,43 @@ export class SettingsManager {
         }
     }
 
+    // --- NEW: Inject Timer Toggle ---
+    injectTimerToggle() {
+        if (document.getElementById('timer-toggle')) return;
+        const div = document.createElement('div');
+        div.className = "flex justify-between items-center p-3 rounded-lg settings-input";
+        div.innerHTML = `<span class="font-bold text-sm">Show Timer</span><input type="checkbox" id="timer-toggle" class="h-5 w-5 accent-indigo-500">`;
+
+        const generalTab = document.getElementById('tab-general');
+        if (generalTab) {
+            const inner = generalTab.querySelector('.space-y-3');
+            if (inner) inner.appendChild(div);
+        }
+    }
+
+    // --- NEW: Update Header Visibility ---
+    updateHeaderButtons() {
+        const s = this.appSettings;
+        
+        // Toggle specific buttons
+        if (this.dom.timerBtn) this.dom.timerBtn.classList.toggle('hidden', !s.isTimerEnabled);
+        if (this.dom.counterBtn) this.dom.counterBtn.classList.toggle('hidden', !s.isCounterEnabled);
+        
+        // Check if ANY header element is active (Timer, Counter, Mic, Cam)
+        const anyActive = s.isTimerEnabled || s.isCounterEnabled || s.showMicBtn || s.showCamBtn;
+        
+        if (this.dom.headerBar) {
+            this.dom.headerBar.classList.toggle('hidden', !anyActive);
+        }
+    }
+
     injectLongPressToggle() {
         if (document.getElementById('long-press-autoplay-toggle')) return;
-
         const div = document.createElement('div');
         div.className = "flex justify-between items-center p-3 rounded-lg settings-input";
         div.innerHTML = `<span class="font-bold text-sm">Long Press 'Play' Toggle</span><input type="checkbox" id="long-press-autoplay-toggle" class="h-5 w-5 accent-indigo-500">`;
 
         const speedDeleteInput = document.getElementById('speed-delete-toggle');
-
         if (speedDeleteInput && speedDeleteInput.parentElement) {
             const row = speedDeleteInput.parentElement;
             const container = row.parentElement;
@@ -245,37 +220,27 @@ export class SettingsManager {
         }
     }
 
-    // NEW METHOD
     injectBlackoutGesturesToggle() {
         if (document.getElementById('blackout-gestures-toggle')) return;
-
         const div = document.createElement('div');
         div.className = "flex justify-between items-center p-3 rounded-lg settings-input";
-        // Uses the new LANG key 'blackout_gestures'
         div.innerHTML = `<span class="font-bold text-sm" data-i18n="blackout_gestures">Blackout Gestures</span><input type="checkbox" id="blackout-gestures-toggle" class="h-5 w-5 accent-indigo-500">`;
 
         const blackoutToggleInput = document.getElementById('blackout-toggle');
-
-        // Locate blackout-toggle and insert the new toggle after it
         if (blackoutToggleInput && blackoutToggleInput.parentElement) {
             const row = blackoutToggleInput.parentElement;
             const container = row.parentElement;
             if (container) {
-                // Insert after the blackout toggle row
                 container.insertBefore(div, row.nextSibling);
             }
         }
     }
 
-    // Added gesture input toggle method
     injectGestureInputToggle() {
         if (document.getElementById('gesture-input-toggle')) return;
         const div = document.createElement('div');
         div.className = "flex justify-between items-center p-3 rounded-lg settings-input";
-        div.innerHTML = `
-            <span class="font-bold text-sm">Gesture Input Mode</span>
-            <input type="checkbox" id="gesture-input-toggle" class="h-5 w-5 accent-indigo-500">
-        `;
+        div.innerHTML = `<span class="font-bold text-sm">Gesture Input Mode</span><input type="checkbox" id="gesture-input-toggle" class="h-5 w-5 accent-indigo-500">`;
         const stealthRow = document.getElementById('stealth-1key-toggle');
         if (stealthRow && stealthRow.parentElement) {
             const row = stealthRow.parentElement;
@@ -287,7 +252,6 @@ export class SettingsManager {
     populateVoicePresetDropdown() {
         if (!this.dom.voicePresetSelect) return;
         this.dom.voicePresetSelect.innerHTML = '';
-
         const grp1 = document.createElement('optgroup');
         grp1.label = "Built-in";
         Object.keys(PREMADE_VOICE_PRESETS).forEach(k => {
@@ -297,7 +261,6 @@ export class SettingsManager {
             grp1.appendChild(el);
         });
         this.dom.voicePresetSelect.appendChild(grp1);
-
         const grp2 = document.createElement('optgroup');
         grp2.label = "My Voices";
         if (this.appSettings.voicePresets) {
@@ -309,7 +272,6 @@ export class SettingsManager {
             });
         }
         this.dom.voicePresetSelect.appendChild(grp2);
-
         this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
     }
 
@@ -349,196 +311,9 @@ export class SettingsManager {
     openCalibration() { if (this.dom.calibModal) { this.dom.calibModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.calibModal.style.pointerEvents = 'auto'; this.sensorEngine.toggleAudio(true); this.sensorEngine.toggleCamera(true); this.sensorEngine.setCalibrationCallback((data) => { if (this.dom.calibAudioBar) { const pct = ((data.audio - (-100)) / ((-30) - (-100))) * 100; this.dom.calibAudioBar.style.width = `${Math.max(0, Math.min(100, pct))}%`; } if (this.dom.calibCamBar) { const pct = Math.min(100, data.camera); this.dom.calibCamBar.style.width = `${pct}%`; } }); } }
     closeCalibration() { if (this.dom.calibModal) { this.dom.calibModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.calibModal.style.pointerEvents = 'none'; this.sensorEngine.setCalibrationCallback(null); this.sensorEngine.toggleAudio(this.appSettings.isAudioEnabled); this.sensorEngine.toggleCamera(this.appSettings.autoInputMode === 'cam' || this.appSettings.autoInputMode === 'both'); } }
 
-    // Toggle Redeem (Keeps Settings Open)
-    toggleRedeem(show) {
-        if (show) {
-            if (this.dom.redeemModal) {
-                this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none');
-                this.dom.redeemModal.style.pointerEvents = 'auto';
-            }
-        } else {
-            if (this.dom.redeemModal) {
-                this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none');
-                this.dom.redeemModal.style.pointerEvents = 'none';
-            }
-        }
-    }
-
-    // Toggle Donate (Keeps Settings Open)
-    toggleDonate(show) {
-        if (show) {
-            if (this.dom.donateModal) {
-                this.dom.donateModal.classList.remove('opacity-0', 'pointer-events-none');
-                this.dom.donateModal.style.pointerEvents = 'auto';
-            }
-        } else {
-            if (this.dom.donateModal) {
-                this.dom.donateModal.classList.add('opacity-0', 'pointer-events-none');
-                this.dom.donateModal.style.pointerEvents = 'none';
-            }
-        }
-    }
-// settings.js - Part 2
-
-    injectLongPressToggle() {
-        if (document.getElementById('long-press-autoplay-toggle')) return;
-
-        const div = document.createElement('div');
-        div.className = "flex justify-between items-center p-3 rounded-lg settings-input";
-        div.innerHTML = `<span class="font-bold text-sm">Long Press 'Play' Toggle</span><input type="checkbox" id="long-press-autoplay-toggle" class="h-5 w-5 accent-indigo-500">`;
-
-        const speedDeleteInput = document.getElementById('speed-delete-toggle');
-
-        if (speedDeleteInput && speedDeleteInput.parentElement) {
-            const row = speedDeleteInput.parentElement;
-            const container = row.parentElement;
-            if (container) {
-                container.insertBefore(div, row.nextSibling);
-            }
-        } else {
-            const generalTab = document.getElementById('tab-general');
-            if (generalTab) {
-                const inner = generalTab.querySelector('.space-y-3');
-                if (inner) inner.appendChild(div);
-                else generalTab.appendChild(div);
-            }
-        }
-    }
-
-    // NEW METHOD
-    injectBlackoutGesturesToggle() {
-        if (document.getElementById('blackout-gestures-toggle')) return;
-
-        const div = document.createElement('div');
-        div.className = "flex justify-between items-center p-3 rounded-lg settings-input";
-        // Uses the new LANG key 'blackout_gestures'
-        div.innerHTML = `<span class="font-bold text-sm" data-i18n="blackout_gestures">Blackout Gestures</span><input type="checkbox" id="blackout-gestures-toggle" class="h-5 w-5 accent-indigo-500">`;
-
-        const blackoutToggleInput = document.getElementById('blackout-toggle');
-
-        // Locate blackout-toggle and insert the new toggle after it
-        if (blackoutToggleInput && blackoutToggleInput.parentElement) {
-            const row = blackoutToggleInput.parentElement;
-            const container = row.parentElement;
-            if (container) {
-                // Insert after the blackout toggle row
-                container.insertBefore(div, row.nextSibling);
-            }
-        }
-    }
-
-    // Added gesture input toggle method
-    injectGestureInputToggle() {
-        if (document.getElementById('gesture-input-toggle')) return;
-        const div = document.createElement('div');
-        div.className = "flex justify-between items-center p-3 rounded-lg settings-input";
-        div.innerHTML = `
-            <span class="font-bold text-sm">Gesture Input Mode</span>
-            <input type="checkbox" id="gesture-input-toggle" class="h-5 w-5 accent-indigo-500">
-        `;
-        const stealthRow = document.getElementById('stealth-1key-toggle');
-        if (stealthRow && stealthRow.parentElement) {
-            const row = stealthRow.parentElement;
-            const container = row.parentElement;
-            if (container) container.insertBefore(div, row.nextSibling);
-        }
-    }
-
-    populateVoicePresetDropdown() {
-        if (!this.dom.voicePresetSelect) return;
-        this.dom.voicePresetSelect.innerHTML = '';
-
-        const grp1 = document.createElement('optgroup');
-        grp1.label = "Built-in";
-        Object.keys(PREMADE_VOICE_PRESETS).forEach(k => {
-            const el = document.createElement('option');
-            el.value = k;
-            el.textContent = PREMADE_VOICE_PRESETS[k].name;
-            grp1.appendChild(el);
-        });
-        this.dom.voicePresetSelect.appendChild(grp1);
-
-        const grp2 = document.createElement('optgroup');
-        grp2.label = "My Voices";
-        if (this.appSettings.voicePresets) {
-            Object.keys(this.appSettings.voicePresets).forEach(k => {
-                const el = document.createElement('option');
-                el.value = k;
-                el.textContent = this.appSettings.voicePresets[k].name;
-                grp2.appendChild(el);
-            });
-        }
-        this.dom.voicePresetSelect.appendChild(grp2);
-
-        this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
-    }
-
-    applyVoicePreset(id) {
-        let preset = this.appSettings.voicePresets[id] || PREMADE_VOICE_PRESETS[id] || PREMADE_VOICE_PRESETS['standard'];
-        this.appSettings.voicePitch = preset.pitch;
-        this.appSettings.voiceRate = preset.rate;
-        this.appSettings.voiceVolume = preset.volume;
-        this.updateUIFromSettings();
-        this.callbacks.onSave();
-    }
-
-    buildColorGrid() { if (!this.dom.editorGrid) return; this.dom.editorGrid.innerHTML = ''; CRAYONS.forEach(color => { const btn = document.createElement('div'); btn.style.backgroundColor = color; btn.className = "w-full h-6 rounded cursor-pointer border border-gray-700 hover:scale-125 transition-transform shadow-sm"; btn.onclick = () => this.applyColorToTarget(color); this.dom.editorGrid.appendChild(btn); }); }
-    applyColorToTarget(hex) { if (!this.tempTheme) return; this.tempTheme[this.currentTargetKey] = hex; const [h, s, l] = this.hexToHsl(hex); this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l; this.dom.ftPreview.style.backgroundColor = hex; if (this.dom.ftContainer.classList.contains('hidden')) { this.dom.ftContainer.classList.remove('hidden'); this.dom.ftToggle.style.display = 'none'; } this.updatePreview(); }
-    updateColorFromSliders() { const h = parseInt(this.dom.ftHue.value); const s = parseInt(this.dom.ftSat.value); const l = parseInt(this.dom.ftLit.value); const hex = this.hslToHex(h, s, l); this.dom.ftPreview.style.backgroundColor = hex; if (this.tempTheme) { this.tempTheme[this.currentTargetKey] = hex; this.updatePreview(); } }
-    openThemeEditor() { if (!this.dom.editorModal) return; const activeId = this.appSettings.activeTheme; const source = this.appSettings.customThemes[activeId] || PREMADE_THEMES[activeId] || PREMADE_THEMES['default']; this.tempTheme = { ...source }; this.dom.edName.value = this.tempTheme.name; this.dom.targetBtns.forEach(b => b.classList.remove('active', 'bg-primary-app')); this.dom.targetBtns[2].classList.add('active', 'bg-primary-app'); this.currentTargetKey = 'bubble'; const [h, s, l] = this.hexToHsl(this.tempTheme.bubble); this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l; this.dom.ftPreview.style.backgroundColor = this.tempTheme.bubble; this.updatePreview(); this.dom.editorModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.editorModal.querySelector('div').classList.remove('scale-90'); }
-    updatePreview() { const t = this.tempTheme; if (!this.dom.edPreview) return; this.dom.edPreview.style.backgroundColor = t.bgMain; this.dom.edPreview.style.color = t.text; this.dom.edPreviewCard.style.backgroundColor = t.bgCard; this.dom.edPreviewCard.style.color = t.text; this.dom.edPreviewCard.style.border = '1px solid rgba(255,255,255,0.1)'; this.dom.edPreviewBtn.style.backgroundColor = t.bubble; this.dom.edPreviewBtn.style.color = t.text; }
-    testVoice() { if (window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("Testing 1 2 3."); if (this.appSettings.selectedVoice) { const v = window.speechSynthesis.getVoices().find(voice => voice.name === this.appSettings.selectedVoice); if (v) u.voice = v; } let p = parseFloat(this.dom.voicePitch.value); let r = parseFloat(this.dom.voiceRate.value); let v = parseFloat(this.dom.voiceVolume.value); u.pitch = p; u.rate = r; u.volume = v; window.speechSynthesis.speak(u); } }
-    
-    setLanguage(lang) {
-        const t = LANG[lang];
-        if (!t) return;
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (t[key]) el.textContent = t[key];
-        });
-        
-        // Persist
-        this.appSettings.generalLanguage = lang;
-        if (this.dom.quickLang) this.dom.quickLang.value = lang;
-        if (this.dom.generalLang) this.dom.generalLang.value = lang;
-        this.callbacks.onSave();
-    }
-
-    openShare() { if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); if (this.dom.shareModal) { this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => this.dom.shareModal.querySelector('.share-sheet').classList.add('active'), 10); } }
-    closeShare() { if (this.dom.shareModal) { this.dom.shareModal.querySelector('.share-sheet').classList.remove('active'); setTimeout(() => this.dom.shareModal.classList.add('opacity-0', 'pointer-events-none'), 300); } }
-    openCalibration() { if (this.dom.calibModal) { this.dom.calibModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.calibModal.style.pointerEvents = 'auto'; this.sensorEngine.toggleAudio(true); this.sensorEngine.toggleCamera(true); this.sensorEngine.setCalibrationCallback((data) => { if (this.dom.calibAudioBar) { const pct = ((data.audio - (-100)) / ((-30) - (-100))) * 100; this.dom.calibAudioBar.style.width = `${Math.max(0, Math.min(100, pct))}%`; } if (this.dom.calibCamBar) { const pct = Math.min(100, data.camera); this.dom.calibCamBar.style.width = `${pct}%`; } }); } }
-    closeCalibration() { if (this.dom.calibModal) { this.dom.calibModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.calibModal.style.pointerEvents = 'none'; this.sensorEngine.setCalibrationCallback(null); this.sensorEngine.toggleAudio(this.appSettings.isAudioEnabled); this.sensorEngine.toggleCamera(this.appSettings.autoInputMode === 'cam' || this.appSettings.autoInputMode === 'both'); } }
-
-    // Toggle Redeem (Keeps Settings Open)
-    toggleRedeem(show) {
-        if (show) {
-            if (this.dom.redeemModal) {
-                this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none');
-                this.dom.redeemModal.style.pointerEvents = 'auto';
-            }
-        } else {
-            if (this.dom.redeemModal) {
-                this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none');
-                this.dom.redeemModal.style.pointerEvents = 'none';
-            }
-        }
-    }
-
-    // Toggle Donate (Keeps Settings Open)
-    toggleDonate(show) {
-        if (show) {
-            if (this.dom.donateModal) {
-                this.dom.donateModal.classList.remove('opacity-0', 'pointer-events-none');
-                this.dom.donateModal.style.pointerEvents = 'auto';
-            }
-        } else {
-            if (this.dom.donateModal) {
-                this.dom.donateModal.classList.add('opacity-0', 'pointer-events-none');
-                this.dom.donateModal.style.pointerEvents = 'none';
-            }
-        }
-    }
-
+    toggleRedeem(show) { if (show) { if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.style.pointerEvents = 'auto'; } } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.style.pointerEvents = 'none'; } } }
+    toggleDonate(show) { if (show) { if (this.dom.donateModal) { this.dom.donateModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'auto'; } } else { if (this.dom.donateModal) { this.dom.donateModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'none'; } } }
+// settings.js - Part 3/4
     initListeners() {
         this.dom.targetBtns.forEach(btn => { btn.onclick = () => { this.dom.targetBtns.forEach(b => { b.classList.remove('active', 'bg-primary-app'); b.classList.add('opacity-60'); }); btn.classList.add('active', 'bg-primary-app'); btn.classList.remove('opacity-60'); this.currentTargetKey = btn.dataset.target; if (this.tempTheme) { const [h, s, l] = this.hexToHsl(this.tempTheme[this.currentTargetKey]); this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l; this.dom.ftPreview.style.backgroundColor = this.tempTheme[this.currentTargetKey]; } }; });
         [this.dom.ftHue, this.dom.ftSat, this.dom.ftLit].forEach(sl => { sl.oninput = () => this.updateColorFromSliders(); });
@@ -567,12 +342,7 @@ export class SettingsManager {
             const n = prompt("New Voice Preset Name:");
             if (n) {
                 const id = 'vp_' + Date.now();
-                this.appSettings.voicePresets[id] = {
-                    name: n,
-                    pitch: this.appSettings.voicePitch,
-                    rate: this.appSettings.voiceRate,
-                    volume: this.appSettings.voiceVolume
-                };
+                this.appSettings.voicePresets[id] = { name: n, pitch: this.appSettings.voicePitch, rate: this.appSettings.voiceRate, volume: this.appSettings.voiceVolume };
                 this.appSettings.activeVoicePresetId = id;
                 this.populateVoicePresetDropdown();
                 this.callbacks.onSave();
@@ -580,17 +350,9 @@ export class SettingsManager {
         };
         if (this.dom.voicePresetSave) this.dom.voicePresetSave.onclick = () => {
             const id = this.appSettings.activeVoicePresetId;
-            if (PREMADE_VOICE_PRESETS[id]) {
-                alert("Cannot save over built-in presets. Create a new one.");
-                return;
-            }
+            if (PREMADE_VOICE_PRESETS[id]) { alert("Cannot save over built-in presets. Create a new one."); return; }
             if (this.appSettings.voicePresets[id]) {
-                this.appSettings.voicePresets[id] = {
-                    ...this.appSettings.voicePresets[id],
-                    pitch: parseFloat(this.dom.voicePitch.value),
-                    rate: parseFloat(this.dom.voiceRate.value),
-                    volume: parseFloat(this.dom.voiceVolume.value)
-                };
+                this.appSettings.voicePresets[id] = { ...this.appSettings.voicePresets[id], pitch: parseFloat(this.dom.voicePitch.value), rate: parseFloat(this.dom.voiceRate.value), volume: parseFloat(this.dom.voiceVolume.value) };
                 this.callbacks.onSave();
                 alert("Voice Preset Saved!");
             }
@@ -609,11 +371,7 @@ export class SettingsManager {
             const id = this.appSettings.activeVoicePresetId;
             if (PREMADE_VOICE_PRESETS[id]) return alert("Cannot rename built-in.");
             const n = prompt("Rename:", this.appSettings.voicePresets[id].name);
-            if (n) {
-                this.appSettings.voicePresets[id].name = n;
-                this.populateVoicePresetDropdown();
-                this.callbacks.onSave();
-            }
+            if (n) { this.appSettings.voicePresets[id].name = n; this.populateVoicePresetDropdown(); this.callbacks.onSave(); }
         };
 
         if (this.dom.quickLang) this.dom.quickLang.onchange = (e) => this.setLanguage(e.target.value);
@@ -632,23 +390,26 @@ export class SettingsManager {
                     this.appSettings[prop] = val;
                     if (prop === 'activeTheme') this.callbacks.onUpdate();
                     if (prop === 'isPracticeModeEnabled') this.callbacks.onUpdate();
-                    // Update header if counter toggled
-                    if (prop === 'isCounterEnabled' || prop === 'isTimerEnabled') this.updateHeaderButtons();
+                    
+                    // --- NEW: Trigger Header Update for Timer/Counter ---
+                    if (prop === 'isCounterEnabled' || prop === 'isTimerEnabled') {
+                        this.updateHeaderButtons();
+                    }
                 } else {
                     this.appSettings.runtimeSettings[prop] = val;
                 }
                 this.callbacks.onSave();
-                this.generatePrompt(); // UPDATE PROMPT ON EVERY CHANGE
+                this.generatePrompt();
             };
         };
 
         bind(this.dom.input, 'currentInput', false); bind(this.dom.machines, 'machineCount', false, true); bind(this.dom.seqLength, 'sequenceLength', false, true); bind(this.dom.autoClear, 'isUniqueRoundsAutoClearEnabled', true);
         bind(this.dom.longPressToggle, 'isLongPressAutoplayEnabled', true);
         
-        // --- PATCH 2: BIND TOGGLE ---
+        // --- NEW: Bind the Timer and Counter Toggles ---
         bind(this.dom.counterToggle, 'isCounterEnabled', true);
+        bind(this.dom.timerToggle, 'isTimerEnabled', true);
 
-        // Mode switch special case
         if (this.dom.mode) {
             this.dom.mode.onchange = () => {
                 this.appSettings.runtimeSettings.currentMode = this.dom.mode.value;
@@ -658,7 +419,6 @@ export class SettingsManager {
             };
         }
 
-        // Ensure inputs trigger prompt regeneration explicitly
         if (this.dom.input) this.dom.input.addEventListener('change', () => this.generatePrompt());
         if (this.dom.machines) this.dom.machines.addEventListener('change', () => this.generatePrompt());
         if (this.dom.seqLength) this.dom.seqLength.addEventListener('change', () => this.generatePrompt());
@@ -775,12 +535,9 @@ export class SettingsManager {
         if (this.dom.closeShareBtn) this.dom.closeShareBtn.onclick = () => this.closeShare();
         if (this.dom.openRedeemBtn) this.dom.openRedeemBtn.onclick = () => this.toggleRedeem(true);
         if (this.dom.closeRedeemBtn) this.dom.closeRedeemBtn.onclick = () => this.toggleRedeem(false);
-
-        // HEADER BUTTONS (Settings Modal)
         if (this.dom.openRedeemSettingsBtn) this.dom.openRedeemSettingsBtn.onclick = () => this.toggleRedeem(true);
         if (this.dom.openDonateBtn) this.dom.openDonateBtn.onclick = () => this.toggleDonate(true);
         if (this.dom.closeDonateBtn) this.dom.closeDonateBtn.onclick = () => this.toggleDonate(false);
-
         if (this.dom.copyLinkBtn) this.dom.copyLinkBtn.onclick = () => { navigator.clipboard.writeText(window.location.href).then(() => alert("Link Copied!")); };
         if (this.dom.copyPromptBtn) this.dom.copyPromptBtn.onclick = () => {
             if (this.dom.promptDisplay) {
@@ -788,7 +545,6 @@ export class SettingsManager {
                 navigator.clipboard.writeText(this.dom.promptDisplay.value).then(() => alert("Prompt Copied!"));
             }
         };
-        // Add listener for manual generate button
         if (this.dom.generatePromptBtn) this.dom.generatePromptBtn.onclick = () => {
             this.generatePrompt();
             if (this.dom.promptDisplay) {
@@ -796,15 +552,11 @@ export class SettingsManager {
                 setTimeout(() => this.dom.promptDisplay.style.opacity = '1', 150);
             }
         };
-
         if (this.dom.nativeShareBtn) this.dom.nativeShareBtn.onclick = () => { if (navigator.share) { navigator.share({ title: "Follow Me", url: window.location.href }); } else { alert("Share not supported"); } };
-
         if (this.dom.chatShareBtn) this.dom.chatShareBtn.onclick = () => { window.location.href = `sms:?body=Check%20out%20Follow%20Me:%20${window.location.href}`; };
         if (this.dom.emailShareBtn) this.dom.emailShareBtn.onclick = () => { window.location.href = `mailto:?subject=Follow%20Me%20App&body=Check%20out%20Follow%20Me:%20${window.location.href}`; };
-
         if (this.dom.btnCashMain) this.dom.btnCashMain.onclick = () => { window.open('https://cash.app/$jwo83', '_blank'); };
         if (this.dom.btnPaypalMain) this.dom.btnPaypalMain.onclick = () => { window.open('https://www.paypal.me/Oyster981', '_blank'); };
-
         document.querySelectorAll('.donate-quick-btn').forEach(btn => {
             btn.onclick = () => {
                 const app = btn.dataset.app;
@@ -813,11 +565,11 @@ export class SettingsManager {
                 if (app === 'paypal') window.open(`https://www.paypal.me/Oyster981/${amt}`, '_blank');
             };
         });
-
         if (this.dom.restoreBtn) this.dom.restoreBtn.onclick = () => { if (confirm("Factory Reset?")) this.callbacks.onReset(); };
         if (this.dom.quickResizeUp) this.dom.quickResizeUp.onclick = () => { this.appSettings.globalUiScale = Math.min(200, this.appSettings.globalUiScale + 10); this.callbacks.onUpdate(); };
         if (this.dom.quickResizeDown) this.dom.quickResizeDown.onclick = () => { this.appSettings.globalUiScale = Math.max(50, this.appSettings.globalUiScale - 10); this.callbacks.onUpdate(); };
     }
+// settings.js - Part 4/4
     populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
     populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
     openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); }
@@ -840,10 +592,8 @@ export class SettingsManager {
         
         let instructions = "";
         
-        // --- MULTI-MACHINE AUTOPLAY LOGIC ---
         if (machines > 1) {
             instructions = `MODE: MULTI-MACHINE AUTOPLAY (${machines} Machines).
-            
             YOUR JOB:
             1. I will speak a batch of ${machines} numbers at once.
             2. You must immediately SORT them:
@@ -851,14 +601,11 @@ export class SettingsManager {
                - 2nd number -> Machine 2
                - 3rd number -> Machine 3 (if active), etc.
             3. IMMEDIATELY after hearing the numbers, you must READ BACK the sequences for all machines.
-            
             READBACK RULES (Interleaved Chunking):
             - Recite the history in chunks of ${chunk}.
-            - Order: Machine 1 (Chunk 1) -> Machine 2 (Chunk 1) -> ... -> Machine 1 (Chunk 2) -> Machine 2 (Chunk 2)...
-            - Do not stop between machines. Flow through the list.
+            - Order: Machine 1 (Chunk 1) -> Machine 2 (Chunk 1) -> ...
             - Pause ${delay} seconds between machine switches.`;
         } else {
-            // --- SINGLE MACHINE LOGIC ---
             if (ps.currentMode === 'simon') {
                 instructions = `MODE: SIMON SAYS (Single Machine).
                 - The sequence grows by one number each round.
@@ -874,20 +621,16 @@ export class SettingsManager {
 
         const promptText = `Act as a professional Sequence Caller for a memory skill game. 
 You are the "Caller" (App). I am the "Player" (User).
-
 SETTINGS:
 - Max Number: ${max}
 - Playback Speed: ${speed}x (Speak fast)
 - Active Machines: ${machines}
 - Chunk Size: ${chunk}
-
 ${instructions}
-
 YOUR RULES:
 1. Speak clearly but quickly. No fluff. No conversational filler.
 2. If I get it wrong, correct me immediately.
 3. If I say "Status", tell me the current round/sequence length.
-
 START IMMEDIATELY upon my next input. Waiting for signal.`;
 
         this.dom.promptDisplay.value = promptText;
@@ -896,67 +639,54 @@ START IMMEDIATELY upon my next input. Waiting for signal.`;
     updateUIFromSettings() {
         const ps = this.appSettings.runtimeSettings;
         if (this.dom.input) this.dom.input.value = ps.currentInput;
-
         if (this.dom.mode) this.dom.mode.value = ps.currentMode;
-
         if (this.dom.machines) this.dom.machines.value = ps.machineCount;
         if (this.dom.seqLength) this.dom.seqLength.value = ps.sequenceLength;
         if (this.dom.autoClear) this.dom.autoClear.checked = this.appSettings.isUniqueRoundsAutoClearEnabled;
-
         if (this.dom.autoplay) this.dom.autoplay.checked = this.appSettings.isAutoplayEnabled;
         if (this.dom.audio) this.dom.audio.checked = this.appSettings.isAudioEnabled;
-
         if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = this.appSettings.isAutoplayEnabled;
         if (this.dom.quickAudio) this.dom.quickAudio.checked = this.appSettings.isAudioEnabled;
         if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !this.appSettings.showWelcomeScreen;
         if (this.dom.showWelcome) this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
-
         if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.isHapticMorseEnabled;
         if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = this.appSettings.playbackSpeed.toFixed(1) || "1.0";
         if (this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
         if (this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000);
-
-        // Voice Update
         if (this.dom.voicePitch) this.dom.voicePitch.value = this.appSettings.voicePitch || 1.0;
         if (this.dom.voiceRate) this.dom.voiceRate.value = this.appSettings.voiceRate || 1.0;
         if (this.dom.voiceVolume) this.dom.voiceVolume.value = this.appSettings.voiceVolume || 1.0;
         if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
-
         if (this.dom.practiceMode) this.dom.practiceMode.checked = this.appSettings.isPracticeModeEnabled;
         if (this.dom.stealth1KeyToggle) this.dom.stealth1KeyToggle.checked = this.appSettings.isStealth1KeyEnabled;
-
         if (this.dom.longPressToggle) this.dom.longPressToggle.checked = (typeof this.appSettings.isLongPressAutoplayEnabled === 'undefined') ? true : this.appSettings.isLongPressAutoplayEnabled;
 
-        // --- PATCH 3: UPDATE UI FROM SETTINGS ---
-        if (this.dom.counterToggle) {
-            this.dom.counterToggle.checked = !!this.appSettings.isCounterEnabled;
-        }
+        // --- NEW: Update Timer/Counter Toggle UI ---
+        if (this.dom.counterToggle) this.dom.counterToggle.checked = !!this.appSettings.isCounterEnabled;
+        if (this.dom.timerToggle) this.dom.timerToggle.checked = !!this.appSettings.isTimerEnabled;
 
         if (this.dom.calibAudioSlider) this.dom.calibAudioSlider.value = this.appSettings.sensorAudioThresh || -85;
         if (this.dom.calibCamSlider) this.dom.calibCamSlider.value = this.appSettings.sensorCamThresh || 30;
-
         if (this.dom.haptics) this.dom.haptics.checked = (typeof this.appSettings.isHapticsEnabled === 'undefined') ? true : this.appSettings.isHapticsEnabled;
         if (this.dom.speedDelete) this.dom.speedDelete.checked = (typeof this.appSettings.isSpeedDeletingEnabled === 'undefined') ? true : this.appSettings.isSpeedDeletingEnabled;
-
         if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
         if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
         if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
-        
         if (this.dom.blackoutToggle) this.dom.blackoutToggle.checked = this.appSettings.isBlackoutFeatureEnabled;
         if (this.dom.blackoutGesturesToggle) this.dom.blackoutGesturesToggle.checked = this.appSettings.isBlackoutGesturesEnabled;
 
-        // Language
         const lang = this.appSettings.generalLanguage || 'en';
         if (this.dom.quickLang) this.dom.quickLang.value = lang;
         if (this.dom.generalLang) this.dom.generalLang.value = lang;
         this.setLanguage(lang);
+        
+        // Ensure Header Buttons match Settings
+        this.updateHeaderButtons();
     }
     hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
 
-    // Mapping UI population and defaults
     populateMappingUI() {
-        // Ensure DOM refs exist
         if(!this.dom) return;
         if(!this.appSettings) return;
         if(!this.appSettings.gestureMappings) this.appSettings.gestureMappings = {};
@@ -1009,93 +739,27 @@ START IMMEDIATELY upon my next input. Waiting for signal.`;
             };
             gestureSelect.addEventListener('change', save);
             morseSelect.addEventListener('change', save);
-
             return wrapper;
         };
 
-        // 9-key
-        if(container9) {
-            container9.innerHTML = '';
-            for(let i=1;i<=9;i++){
-                const key = 'k9_' + i;
-                const row = makeRow(String(i), key, 'map9_'+i);
-                container9.appendChild(row);
-            }
-        }
-        // 12-key
-        if(container12) {
-            container12.innerHTML = '';
-            for(let i=1;i<=12;i++){
-                const key = 'k12_' + i;
-                const row = makeRow(String(i), key, 'map12_'+i);
-                container12.appendChild(row);
-            }
-        }
-        // Piano
-        if(containerPiano) {
-            containerPiano.innerHTML = '';
-            const pianoOrder = ['C','D','E','F','G','A','B','1','2','3','4','5'];
-            pianoOrder.forEach((id) => {
-                const key = 'piano_' + id;
-                const row = makeRow(id, key, 'mapp_' + id);
-                containerPiano.appendChild(row);
-            });
-        }
+        if(container9) { container9.innerHTML = ''; for(let i=1;i<=9;i++){ const key = 'k9_' + i; container9.appendChild(makeRow(String(i), key, 'map9_'+i)); } }
+        if(container12) { container12.innerHTML = ''; for(let i=1;i<=12;i++){ const key = 'k12_' + i; container12.appendChild(makeRow(String(i), key, 'map12_'+i)); } }
+        if(containerPiano) { containerPiano.innerHTML = ''; const pianoOrder = ['C','D','E','F','G','A','B','1','2','3','4','5']; pianoOrder.forEach((id) => { const key = 'piano_' + id; containerPiano.appendChild(makeRow(id, key, 'mapp_' + id)); }); }
 
-        // Apply defaults if empty
         if(!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
             this.applyDefaultGestureMappings();
             this.callbacks.onSave && this.callbacks.onSave();
-            // repopulate to reflect defaults
             setTimeout(()=>{ this.populateMappingUI(); }, 50);
         }
     }
 
     applyDefaultGestureMappings() {
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
-
-        // 9-key defaults
         const defs = {
-            'k9_1': { gesture: 'tap', morse: '.' },
-            'k9_2': { gesture: 'double_tap', morse: '..' },
-            'k9_3': { gesture: 'long_tap', morse: '...' },
-            'k9_4': { gesture: 'tap_2f', morse: '-' },
-            'k9_5': { gesture: 'double_tap_2f', morse: '-.' },
-            'k9_6': { gesture: 'long_tap_2f', morse: '-..' },
-            'k9_7': { gesture: 'tap_3f', morse: '--' },
-            'k9_8': { gesture: 'double_tap_3f', morse: '--.' },
-            'k9_9': { gesture: 'long_tap_3f', morse: '---' },
-
-            // 12-key defaults
-            'k12_1': { gesture: 'swipe_left', morse: '.' },
-            'k12_2': { gesture: 'swipe_down', morse: '..' },
-            'k12_3': { gesture: 'swipe_up', morse: '...' },
-            'k12_4': { gesture: 'swipe_right', morse: '...-' },
-            'k12_5': { gesture: 'swipe_left_2f', morse: '-' },
-            'k12_6': { gesture: 'swipe_down_2f', morse: '-.' },
-            'k12_7': { gesture: 'swipe_up_2f', morse: '-..' },
-            'k12_8': { gesture: 'swipe_right_2f', morse: '-.-' },
-            'k12_9': { gesture: 'swipe_left_3f', morse: '--' },
-            'k12_10': { gesture: 'swipe_down_3f', morse: '--.' },
-            'k12_11': { gesture: 'swipe_up_3f', morse: '--..' },
-            'k12_12': { gesture: 'swipe_right_3f', morse: '---' },
-
-            // Piano defaults
-            'piano_C': { gesture: 'swipe_nw', morse: '.' },
-            'piano_D': { gesture: 'swipe_left', morse: '..' },
-            'piano_E': { gesture: 'swipe_sw', morse: '.-' },
-            'piano_F': { gesture: 'swipe_down', morse: '...' },
-            'piano_G': { gesture: 'swipe_se', morse: '..-' },
-            'piano_A': { gesture: 'swipe_right', morse: '.-.' },
-            'piano_B': { gesture: 'swipe_ne', morse: '.--' },
-            'piano_1': { gesture: 'swipe_left_2f', morse: '-' },
-            'piano_2': { gesture: 'swipe_nw_2f', morse: '-.' },
-            'piano_3': { gesture: 'swipe_up_2f', morse: '--' },
-            'piano_4': { gesture: 'swipe_ne_2f', morse: '-..' },
-            'piano_5': { gesture: 'swipe_right_2f', morse: '-.-' }
+            'k9_1': { gesture: 'tap', morse: '.' }, 'k9_2': { gesture: 'double_tap', morse: '..' }, 'k9_3': { gesture: 'long_tap', morse: '...' }, 'k9_4': { gesture: 'tap_2f', morse: '-' }, 'k9_5': { gesture: 'double_tap_2f', morse: '-.' }, 'k9_6': { gesture: 'long_tap_2f', morse: '-..' }, 'k9_7': { gesture: 'tap_3f', morse: '--' }, 'k9_8': { gesture: 'double_tap_3f', morse: '--.' }, 'k9_9': { gesture: 'long_tap_3f', morse: '---' },
+            'k12_1': { gesture: 'swipe_left', morse: '.' }, 'k12_2': { gesture: 'swipe_down', morse: '..' }, 'k12_3': { gesture: 'swipe_up', morse: '...' }, 'k12_4': { gesture: 'swipe_right', morse: '...-' }, 'k12_5': { gesture: 'swipe_left_2f', morse: '-' }, 'k12_6': { gesture: 'swipe_down_2f', morse: '-.' }, 'k12_7': { gesture: 'swipe_up_2f', morse: '-..' }, 'k12_8': { gesture: 'swipe_right_2f', morse: '-.-' }, 'k12_9': { gesture: 'swipe_left_3f', morse: '--' }, 'k12_10': { gesture: 'swipe_down_3f', morse: '--.' }, 'k12_11': { gesture: 'swipe_up_3f', morse: '--..' }, 'k12_12': { gesture: 'swipe_right_3f', morse: '---' },
+            'piano_C': { gesture: 'swipe_nw', morse: '.' }, 'piano_D': { gesture: 'swipe_left', morse: '..' }, 'piano_E': { gesture: 'swipe_sw', morse: '.-' }, 'piano_F': { gesture: 'swipe_down', morse: '...' }, 'piano_G': { gesture: 'swipe_se', morse: '..-' }, 'piano_A': { gesture: 'swipe_right', morse: '.-.' }, 'piano_B': { gesture: 'swipe_ne', morse: '.--' }, 'piano_1': { gesture: 'swipe_left_2f', morse: '-' }, 'piano_2': { gesture: 'swipe_nw_2f', morse: '-.' }, 'piano_3': { gesture: 'swipe_up_2f', morse: '--' }, 'piano_4': { gesture: 'swipe_ne_2f', morse: '-..' }, 'piano_5': { gesture: 'swipe_right_2f', morse: '-.-' }
         };
-
         this.appSettings.gestureMappings = Object.assign({}, defs, this.appSettings.gestureMappings || {});
     }
-
 }

@@ -451,7 +451,6 @@ function renderUI() {
             showToast(isActive ? "Camera Input ON 📷" : "Camera Input OFF 🚫");
         };
     }
-}
 
 function disableInput(disabled) {
     const footer = document.getElementById('input-footer');

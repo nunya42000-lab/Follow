@@ -47,6 +47,10 @@ let practiceSequence = [];
 let practiceInputIndex = 0;
 let ignoreNextClick = false;
 
+// --- NEW GLOBALS FOR TIMER/COUNTER ---
+let simpleTimer = { interval: null, startTime: 0, elapsed: 0, isRunning: false };
+let simpleCounter = 0;
+
 const getProfileSettings = () => appSettings.runtimeSettings;
 const getState = () => appState['current_session'] || (appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 });
 function saveState() { localStorage.setItem(CONFIG.STORAGE_KEY_SETTINGS, JSON.stringify(appSettings)); localStorage.setItem(CONFIG.STORAGE_KEY_STATE, JSON.stringify(appState)); }
@@ -686,8 +690,7 @@ function initGlobalListeners() {
             });
         });
 
-        // --- Settings Button (RESTORED BEHAVIOR) ---
-        // Acts as STOP if playing, otherwise opens Settings
+        // --- Settings Button (STOP if playing, else Open) ---
         document.querySelectorAll('button[data-action="open-settings"]').forEach(b => {
             b.addEventListener('click', () => {
                 if(isDemoPlaying) {
@@ -772,15 +775,126 @@ function initGlobalListeners() {
              });
         }
         
-        // --- Header Buttons (Original Logic) ---
+        // ============================================
+        // NEW TIMER & COUNTER LOGIC
+        // ============================================
+
         const headerTimer = document.getElementById('header-timer-btn');
         const headerCounter = document.getElementById('header-counter-btn');
         const headerMic = document.getElementById('header-mic-btn');
         const headerCam = document.getElementById('header-cam-btn');
-
-        if(headerTimer) headerTimer.onclick = () => showToast("Timer feature coming soon! ⏱️");
-        if(headerCounter) headerCounter.onclick = () => showToast(`Sequence Count: ${getState().nextSequenceIndex}`);
         
+        // --- TIMER LOGIC (Stopwatch) ---
+        if(headerTimer) {
+            headerTimer.textContent = "00:00"; // Initial display
+            headerTimer.style.fontSize = "0.75rem"; // Ensure it fits
+            
+            // Format time helper
+            const formatTime = (ms) => {
+                const totalSec = Math.floor(ms / 1000);
+                const m = Math.floor(totalSec / 60);
+                const s = totalSec % 60;
+                return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            };
+            
+            // Update function
+            const updateTimer = () => {
+                const now = Date.now();
+                const diff = now - simpleTimer.startTime + simpleTimer.elapsed;
+                headerTimer.textContent = formatTime(diff);
+            };
+
+            // Actions
+            const toggleTimer = () => {
+                if(simpleTimer.isRunning) {
+                    // Pause
+                    clearInterval(simpleTimer.interval);
+                    simpleTimer.elapsed += Date.now() - simpleTimer.startTime;
+                    simpleTimer.isRunning = false;
+                    headerTimer.style.color = "white";
+                } else {
+                    // Start
+                    simpleTimer.startTime = Date.now();
+                    simpleTimer.interval = setInterval(updateTimer, 100);
+                    simpleTimer.isRunning = true;
+                    headerTimer.style.color = "#4f46e5"; // Active color
+                }
+                vibrate();
+            };
+            
+            const resetTimer = () => {
+                clearInterval(simpleTimer.interval);
+                simpleTimer.isRunning = false;
+                simpleTimer.elapsed = 0;
+                headerTimer.textContent = "00:00";
+                headerTimer.style.color = "white";
+                showToast("Timer Reset");
+                vibrate();
+            };
+
+            // Long Press Setup
+            let tTimer;
+            let tIsLong = false;
+            const startT = (e) => {
+                if(e.type === 'mousedown' && e.button !== 0) return;
+                tIsLong = false;
+                tTimer = setTimeout(() => { tIsLong = true; resetTimer(); }, 600);
+            };
+            const endT = (e) => {
+                if(e) e.preventDefault();
+                clearTimeout(tTimer);
+                if(!tIsLong) toggleTimer();
+            };
+            
+            headerTimer.addEventListener('mousedown', startT);
+            headerTimer.addEventListener('touchstart', startT, {passive:true});
+            headerTimer.addEventListener('mouseup', endT);
+            headerTimer.addEventListener('touchend', endT);
+            headerTimer.addEventListener('mouseleave', () => clearTimeout(tTimer));
+        }
+
+        // --- COUNTER LOGIC (Simple Count) ---
+        if(headerCounter) {
+            headerCounter.textContent = simpleCounter.toString(); // Initial
+            headerCounter.style.fontSize = "1.2rem";
+
+            const updateCounter = () => { headerCounter.textContent = simpleCounter; };
+            
+            const increment = () => {
+                simpleCounter++;
+                updateCounter();
+                vibrate();
+            };
+            
+            const resetCounter = () => {
+                simpleCounter = 0;
+                updateCounter();
+                showToast("Counter Reset");
+                vibrate();
+            };
+
+            // Long Press Setup
+            let cTimer;
+            let cIsLong = false;
+            const startC = (e) => {
+                if(e.type === 'mousedown' && e.button !== 0) return;
+                cIsLong = false;
+                cTimer = setTimeout(() => { cIsLong = true; resetCounter(); }, 600);
+            };
+            const endC = (e) => {
+                if(e) e.preventDefault();
+                clearTimeout(cTimer);
+                if(!cIsLong) increment();
+            };
+
+            headerCounter.addEventListener('mousedown', startC);
+            headerCounter.addEventListener('touchstart', startC, {passive:true});
+            headerCounter.addEventListener('mouseup', endC);
+            headerCounter.addEventListener('touchend', endC);
+            headerCounter.addEventListener('mouseleave', () => clearTimeout(cTimer));
+        }
+
+        // --- Mic/Cam Standard Logic ---
         if(headerMic) {
             headerMic.onclick = () => {
                 if(!modules.sensor) return;

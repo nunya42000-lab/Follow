@@ -1,4 +1,3 @@
-// app.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { SensorEngine } from './sensors.js';
@@ -15,7 +14,6 @@ const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 2
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
 const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 400 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
 
-// Updated DEFAULT_APP with new Timer/Counter toggles
 const DEFAULT_APP = { 
     globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, 
     isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, 
@@ -23,7 +21,7 @@ const DEFAULT_APP = {
     activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, 
     isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, 
     showMicBtn: false, showCamBtn: false, autoInputMode: 'none', 
-    showTimer: false, showCounter: false, // NEW DEFAULTS
+    showTimer: false, showCounter: false,
     activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), 
     runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), 
     isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, 
@@ -65,8 +63,6 @@ function loadState() {
             if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
             if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
             if (typeof appSettings.isUniqueRoundsAutoClearEnabled === 'undefined') appSettings.isUniqueRoundsAutoClearEnabled = true; 
-            
-            // Ensure new toggles exist in loaded state
             if (typeof appSettings.showTimer === 'undefined') appSettings.showTimer = false;
             if (typeof appSettings.showCounter === 'undefined') appSettings.showCounter = false;
 
@@ -400,57 +396,18 @@ function renderUI() {
         card.appendChild(numGrid); container.appendChild(card); 
     });
     
-    // UPDATED: VISUAL FEEDBACK FOR HEADER BUTTONS
     const hMic = document.getElementById('header-mic-btn');
     const hCam = document.getElementById('header-cam-btn');
     
-    // Note: Visibility (hidden vs block) is handled by SettingsManager.updateHeaderVisibility()
-    // Here we handle the ACTIVE state styling (e.g. green when on)
     if(hMic) {
         hMic.classList.toggle('header-btn-active', modules.sensor && modules.sensor.mode.audio);
     }
     if(hCam) {
         hCam.classList.toggle('header-btn-active', modules.sensor && modules.sensor.mode.camera);
     }
-
+    
     document.querySelectorAll('.reset-button').forEach(b => { b.style.display = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 'block' : 'none'; });
 }
-    // UPDATED: Bind new Header Button Listeners
-    const headerTimer = document.getElementById('header-timer-btn');
-    const headerCounter = document.getElementById('header-counter-btn');
-    const headerMic = document.getElementById('header-mic-btn');
-    const headerCam = document.getElementById('header-cam-btn');
-
-    if(headerTimer) {
-        headerTimer.onclick = () => {
-             // Future Logic for Timer
-             showToast("Timer feature coming soon! ⏱️");
-        };
-    }
-    if(headerCounter) {
-        headerCounter.onclick = () => {
-             // Future Logic for Counter
-             showToast("Counter feature coming soon! #");
-        };
-    }
-    if(headerMic) {
-        headerMic.onclick = () => {
-            if(!modules.sensor) return;
-            modules.sensor.toggleAudio();
-            renderUI(); // Update active state
-            const isActive = modules.sensor.mode.audio;
-            showToast(isActive ? "Mic Input ON 🎤" : "Mic Input OFF 🔇");
-        };
-    }
-    if(headerCam) {
-        headerCam.onclick = () => {
-            if(!modules.sensor) return;
-            modules.sensor.toggleCamera();
-            renderUI(); // Update active state
-            const isActive = modules.sensor.mode.camera;
-            showToast(isActive ? "Camera Input ON 📷" : "Camera Input OFF 🚫");
-        };
-    }
 
 function disableInput(disabled) {
     const footer = document.getElementById('input-footer');
@@ -571,7 +528,6 @@ function handleBackspace(e) {
     renderUI(); 
     saveState(); 
 }
-
 const startApp = () => {
     loadState();
     
@@ -673,6 +629,37 @@ const startApp = () => {
 
 function initGlobalListeners() {
     try {
+        // --- HEADER BUTTON LISTENERS (Moved here from global scope) ---
+        const headerTimer = document.getElementById('header-timer-btn');
+        const headerCounter = document.getElementById('header-counter-btn');
+        const headerMic = document.getElementById('header-mic-btn');
+        const headerCam = document.getElementById('header-cam-btn');
+
+        if(headerTimer) {
+            headerTimer.onclick = () => showToast("Timer feature coming soon! ⏱️");
+        }
+        if(headerCounter) {
+            headerCounter.onclick = () => showToast("Counter feature coming soon! #");
+        }
+        if(headerMic) {
+            headerMic.onclick = () => {
+                if(!modules.sensor) return;
+                modules.sensor.toggleAudio();
+                renderUI(); // Update active state
+                const isActive = modules.sensor.mode.audio;
+                showToast(isActive ? "Mic Input ON 🎤" : "Mic Input OFF 🔇");
+            };
+        }
+        if(headerCam) {
+            headerCam.onclick = () => {
+                if(!modules.sensor) return;
+                modules.sensor.toggleCamera();
+                renderUI(); // Update active state
+                const isActive = modules.sensor.mode.camera;
+                showToast(isActive ? "Camera Input ON 📷" : "Camera Input OFF 🚫");
+            };
+        }
+
         // --- INPUT PAD LISTENERS ---
         document.querySelectorAll('.btn-pad-number').forEach(b => {
             const press = (e) => { 
@@ -787,19 +774,11 @@ function initGlobalListeners() {
             lastX = acc.x; lastY = acc.y; lastZ = acc.z;
         });
         
-        // Allow tap on blackout layer to exit if user panics (optional, but good UX)
-        // Double tap on top-left corner to exit manually without shake
+        // Allow tap on blackout layer to exit
         const bl = document.getElementById('blackout-layer');
         if(bl) {
              let taps = 0;
              bl.addEventListener('touchstart', (e) => {
-                 // Pass through gestures if enabled
-                 if(appSettings.isBlackoutGesturesEnabled) {
-                     // Pass to gesture handler logic (simulated by overlay transparency or event forwarding)
-                     // Since blackout layer is on top, we handle gestures here directly if needed
-                     // But for now, we rely on the shake.
-                     // We can implement full screen gesture capture here later.
-                 }
                  taps++;
                  if(taps > 4) {
                      blackoutState.isActive = false;

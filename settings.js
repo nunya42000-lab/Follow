@@ -471,202 +471,145 @@ START IMMEDIATELY upon my next input. Waiting for signal.`;
     openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); }
     toggleRedeem(show) { if(show) { this.dom.redeemModal.classList.remove('opacity-0','pointer-events-none'); this.dom.redeemModal.style.pointerEvents='auto'; } else { this.dom.redeemModal.classList.add('opacity-0','pointer-events-none'); } }
     toggleDonate(show) { if(show) { this.dom.donateModal.classList.remove('opacity-0','pointer-events-none'); this.dom.donateModal.style.pointerEvents='auto'; } else { this.dom.donateModal.classList.add('opacity-0','pointer-events-none'); } }
+        // ... inside settings.js ...
+
     openShare() { this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => this.dom.shareModal.querySelector('.share-sheet').classList.add('active'), 10); }
     openComments() { this.dom.commentModal.classList.remove('hidden'); setTimeout(() => { this.dom.commentModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.commentModal.querySelector('div').classList.remove('scale-90'); }, 10); }
-}xt input. Waiting for signal.`;
 
-    this.dom.promptDisplay.value = promptText;
-}
+    // --- REPLACED/CORRECTED METHODS BELOW ---
 
-updateUIFromSettings() {
-    const ps = this.appSettings.runtimeSettings;
-    if (this.dom.input) this.dom.input.value = ps.currentInput;
-    if (this.dom.mode) this.dom.mode.value = ps.currentMode;
-    if (this.dom.machines) this.dom.machines.value = ps.machineCount;
-    if (this.dom.seqLength) this.dom.seqLength.value = ps.sequenceLength;
-    if (this.dom.autoClear) this.dom.autoClear.checked = this.appSettings.isUniqueRoundsAutoClearEnabled;
-    if (this.dom.autoplay) this.dom.autoplay.checked = this.appSettings.isAutoplayEnabled;
-    if (this.dom.audio) this.dom.audio.checked = this.appSettings.isAudioEnabled;
-    if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = this.appSettings.isAutoplayEnabled;
-    if (this.dom.quickAudio) this.dom.quickAudio.checked = this.appSettings.isAudioEnabled;
-    if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !this.appSettings.showWelcomeScreen;
-    if (this.dom.showWelcome) this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
-    if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.isHapticMorseEnabled;
-    if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = this.appSettings.playbackSpeed.toFixed(1) || "1.0";
-    if (this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
-    if (this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000);
-    if (this.dom.voicePitch) this.dom.voicePitch.value = this.appSettings.voicePitch || 1.0;
-    if (this.dom.voiceRate) this.dom.voiceRate.value = this.appSettings.voiceRate || 1.0;
-    if (this.dom.voiceVolume) this.dom.voiceVolume.value = this.appSettings.voiceVolume || 1.0;
-    if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
-    if (this.dom.practiceMode) this.dom.practiceMode.checked = this.appSettings.isPracticeModeEnabled;
-    if (this.dom.stealth1KeyToggle) this.dom.stealth1KeyToggle.checked = this.appSettings.isStealth1KeyEnabled;
-    if (this.dom.longPressToggle) this.dom.longPressToggle.checked = (typeof this.appSettings.isLongPressAutoplayEnabled === 'undefined') ? true : this.appSettings.isLongPressAutoplayEnabled;
-    if (this.dom.calibAudioSlider) this.dom.calibAudioSlider.value = this.appSettings.sensorAudioThresh || -85;
-    if (this.dom.calibCamSlider) this.dom.calibCamSlider.value = this.appSettings.sensorCamThresh || 30;
-    if (this.dom.haptics) this.dom.haptics.checked = (typeof this.appSettings.isHapticsEnabled === 'undefined') ? true : this.appSettings.isHapticsEnabled;
-    if (this.dom.speedDelete) this.dom.speedDelete.checked = (typeof this.appSettings.isSpeedDeletingEnabled === 'undefined') ? true : this.appSettings.isSpeedDeletingEnabled;
-    if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
-    if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
-    if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
-    if (this.dom.blackoutToggle) this.dom.blackoutToggle.checked = this.appSettings.isBlackoutFeatureEnabled;
-    if (this.dom.blackoutGesturesToggle) this.dom.blackoutGesturesToggle.checked = this.appSettings.isBlackoutGesturesEnabled;
-    const lang = this.appSettings.generalLanguage || 'en';
-    if (this.dom.quickLang) this.dom.quickLang.value = lang;
-    if (this.dom.generalLang) this.dom.generalLang.value = lang;
-    this.setLanguage(lang);
-}
-
-hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
-hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
-
-injectGestureInputToggle() {
-    if (document.getElementById('gesture-input-toggle')) return;
-    const div = document.createElement('div');
-    div.className = "flex justify-between items-center p-3 rounded-lg settings-input";
-    div.innerHTML = `
-        <span class="font-bold text-sm">Gesture Input Mode</span>
-        <input type="checkbox" id="gesture-input-toggle" class="h-5 w-5 accent-indigo-500">
-    `;
-    const stealthRow = document.getElementById('stealth-1key-toggle');
-    if (stealthRow && stealthRow.parentElement) {
-        const row = stealthRow.parentElement;
-        const container = row.parentElement;
-        if (container) container.insertBefore(div, row.nextSibling);
+    updateUIFromSettings() {
+        const ps = this.appSettings.runtimeSettings;
+        if (this.dom.input) this.dom.input.value = ps.currentInput;
+        if (this.dom.mode) this.dom.mode.value = ps.currentMode;
+        if (this.dom.machines) this.dom.machines.value = ps.machineCount;
+        if (this.dom.seqLength) this.dom.seqLength.value = ps.sequenceLength;
+        if (this.dom.autoClear) this.dom.autoClear.checked = this.appSettings.isUniqueRoundsAutoClearEnabled;
+        if (this.dom.autoplay) this.dom.autoplay.checked = this.appSettings.isAutoplayEnabled;
+        if (this.dom.audio) this.dom.audio.checked = this.appSettings.isAudioEnabled;
+        if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = this.appSettings.isAutoplayEnabled;
+        if (this.dom.quickAudio) this.dom.quickAudio.checked = this.appSettings.isAudioEnabled;
+        if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !this.appSettings.showWelcomeScreen;
+        if (this.dom.showWelcome) this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
+        if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.isHapticMorseEnabled;
+        if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = this.appSettings.playbackSpeed; // Removed .toFixed to avoid string/number issues
+        if (this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
+        if (this.dom.delay) this.dom.delay.value = ps.simonInterSequenceDelay; // Corrected from /1000 if value is consistent
+        if (this.dom.voicePitch) this.dom.voicePitch.value = this.appSettings.voicePitch || 1.0;
+        if (this.dom.voiceRate) this.dom.voiceRate.value = this.appSettings.voiceRate || 1.0;
+        if (this.dom.voiceVolume) this.dom.voiceVolume.value = this.appSettings.voiceVolume || 1.0;
+        if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
+        if (this.dom.practiceMode) this.dom.practiceMode.checked = this.appSettings.isPracticeModeEnabled;
+        if (this.dom.stealth1KeyToggle) this.dom.stealth1KeyToggle.checked = this.appSettings.stealth1Key;
+        if (this.dom.timerToggle) this.dom.timerToggle.checked = !!this.appSettings.showHudTimer;
+        if (this.dom.counterToggle) this.dom.counterToggle.checked = !!this.appSettings.showHudCounter;
+        if (this.dom.gestureInputToggle) this.dom.gestureInputToggle.checked = !!this.appSettings.isGestureInputEnabled;
+        if (this.dom.calibAudioSlider) this.dom.calibAudioSlider.value = this.appSettings.sensorAudioThresh || -85;
+        if (this.dom.calibCamSlider) this.dom.calibCamSlider.value = this.appSettings.sensorCamThresh || 30;
+        if (this.dom.haptics) this.dom.haptics.checked = (typeof this.appSettings.isHapticsEnabled === 'undefined') ? true : this.appSettings.isHapticsEnabled;
+        if (this.dom.speedDelete) this.dom.speedDelete.checked = (typeof this.appSettings.isSpeedDeletingEnabled === 'undefined') ? true : this.appSettings.isSpeedDeletingEnabled;
+        if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.uiScale || 100;
+        if (this.dom.seqSize) this.dom.seqSize.value = this.appSettings.sequenceSize || 100;
+        if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
+        if (this.dom.blackoutToggle) this.dom.blackoutToggle.checked = this.appSettings.isBlackoutMode;
+        
+        // Ensure language is set
+        const lang = this.appSettings.generalLanguage || 'en';
+        if (this.dom.quickLang) this.dom.quickLang.value = lang;
+        if (this.dom.generalLang) this.dom.generalLang.value = lang;
+        this.setLanguage(lang);
+        
+        this.populateMappingUI();
     }
-}
 
-populateMappingUI() {
-    if(!this.dom) return;
-    if(!this.appSettings) return;
-    if(!this.appSettings.gestureMappings) this.appSettings.gestureMappings = {};
+    hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
+    
+    hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
 
-    const container9 = this.dom.mapping9Container;
-    const container12 = this.dom.mapping12Container;
-    const containerPiano = this.dom.mappingPianoContainer;
+    injectGestureInputToggle() {
+        if (document.getElementById('gesture-input-toggle')) return;
+        const div = document.createElement('div');
+        div.className = "flex justify-between items-center p-3 rounded-lg settings-input";
+        div.innerHTML = `<span class="font-bold text-sm">Gesture Input Mode</span><input type="checkbox" id="gesture-input-toggle" class="h-5 w-5 accent-indigo-500">`;
+        const stealthRow = document.getElementById('stealth-1key-toggle');
+        if (stealthRow && stealthRow.parentElement) {
+            const row = stealthRow.parentElement;
+            const container = row.parentElement;
+            if (container) container.insertBefore(div, row.nextSibling);
+        }
+    }
 
-    const gestureOptions = [
-        'tap','double_tap','long_tap',
-        'tap_2f','double_tap_2f','long_tap_2f',
-        'tap_3f','double_tap_3f','long_tap_3f',
-        'swipe_left','swipe_right','swipe_up','swipe_down',
-        'swipe_nw','swipe_ne','swipe_se','swipe_sw',
-        'swipe_left_2f','swipe_right_2f','swipe_up_2f','swipe_down_2f',
-        'swipe_left_3f','swipe_right_3f','swipe_up_3f','swipe_down_3f'
-    ];
-    const morseOptions = ['.', '..', '...', '-', '-.', '-..', '--', '--.', '---', '...-', '.-.', '.--', '..-','.-'];
+    populateMappingUI() {
+        if(!this.dom) return;
+        if(!this.appSettings) return;
+        if(!this.appSettings.gestureMappings) this.appSettings.gestureMappings = {};
 
-    const makeRow = (labelText, keyName, mappingId) => {
-        const wrapper = document.createElement('div');
-        wrapper.className = "flex items-center space-x-2 mapping-row";
-        const lbl = document.createElement('div');
-        lbl.className = "text-sm font-semibold w-24";
-        lbl.textContent = labelText;
-        const gestureSelect = document.createElement('select');
-        gestureSelect.className = "settings-input p-2 rounded flex-grow";
-        gestureSelect.id = mappingId + "-gesture";
-        gestureOptions.forEach(o => { const opt = document.createElement('option'); opt.value = o; opt.textContent = o.replace(/_/g,' '); gestureSelect.appendChild(opt); });
-        const morseSelect = document.createElement('select');
-        morseSelect.className = "settings-input p-2 rounded w-28";
-        morseSelect.id = mappingId + "-morse";
-        morseOptions.forEach(m => { const opt = document.createElement('option'); opt.value = m; opt.textContent = m; morseSelect.appendChild(opt); });
+        const container9 = this.dom.map9;
+        const container12 = this.dom.map12;
+        const containerPiano = this.dom.mapPiano;
 
-        wrapper.appendChild(lbl);
-        wrapper.appendChild(gestureSelect);
-        wrapper.appendChild(morseSelect);
-
-        const gm = this.appSettings.gestureMappings || {};
-        if(gm[keyName]) {
-            gestureSelect.value = gm[keyName].gesture || gestureSelect.value;
-            morseSelect.value = gm[keyName].morse || morseSelect.value;
+        const gestureOptions = [
+            'tap','double_tap','long_tap',
+            'tap_2f','double_tap_2f','long_tap_2f',
+            'tap_3f','double_tap_3f','long_tap_3f',
+            'swipe_left','swipe_right','swipe_up','swipe_down',
+            'swipe_nw','swipe_ne','swipe_se','swipe_sw',
+            'swipe_left_2f','swipe_right_2f','swipe_up_2f','swipe_down_2f',
+            'swipe_left_3f','swipe_right_3f','swipe_up_3f','swipe_down_3f'
+        ];
+        // Add custom gestures
+        if(this.appSettings.customGestures) {
+            this.appSettings.customGestures.forEach(cg => gestureOptions.push(cg.type));
         }
 
-        const save = () => {
-            this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
-            this.appSettings.gestureMappings[keyName] = { gesture: gestureSelect.value, morse: morseSelect.value };
-            this.callbacks.onSave && this.callbacks.onSave();
-            this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+        const makeRow = (labelText, keyName) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = "flex items-center space-x-2 border-b border-gray-800 pb-1 mb-1";
+            const lbl = document.createElement('span');
+            lbl.className = "w-16 text-xs font-bold";
+            lbl.textContent = labelText;
+            const gestureSelect = document.createElement('select');
+            gestureSelect.className = "settings-input flex-grow p-1 rounded text-xs";
+            const nullOpt = document.createElement('option'); nullOpt.value = ""; nullOpt.textContent = "-- None --"; gestureSelect.appendChild(nullOpt);
+            
+            gestureOptions.forEach(o => { const opt = document.createElement('option'); opt.value = o; opt.textContent = o.replace(/_/g,' '); gestureSelect.appendChild(opt); });
+
+            const gm = this.appSettings.gestureMappings || {};
+            if(gm[keyName]) gestureSelect.value = gm[keyName].gesture || "";
+
+            gestureSelect.onchange = () => {
+                this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
+                if(!this.appSettings.gestureMappings[keyName]) this.appSettings.gestureMappings[keyName] = {};
+                this.appSettings.gestureMappings[keyName].gesture = gestureSelect.value;
+                this.callbacks.onSave();
+            };
+
+            wrapper.appendChild(lbl);
+            wrapper.appendChild(gestureSelect);
+            return wrapper;
         };
-        gestureSelect.addEventListener('change', save);
-        morseSelect.addEventListener('change', save);
 
-        return wrapper;
-    };
+        if(container9) {
+            container9.innerHTML = '';
+            for(let i=1;i<=9;i++) container9.appendChild(makeRow(String(i), 'k9_' + i));
+        }
+        if(container12) {
+            container12.innerHTML = '';
+            for(let i=1;i<=12;i++) container12.appendChild(makeRow(String(i), 'k12_' + i));
+        }
+        if(containerPiano) {
+            containerPiano.innerHTML = '';
+            ['C','D','E','F','G','A','B','1','2','3','4','5'].forEach(k => containerPiano.appendChild(makeRow(k, 'piano_' + k)));
+        }
 
-    if(container9) {
-        container9.innerHTML = '';
-        for(let i=1;i<=9;i++){
-            const key = 'k9_' + i;
-            const row = makeRow(String(i), key, 'map9_'+i);
-            container9.appendChild(row);
+        if(!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
+            this.applyDefaultGestureMappings();
+            setTimeout(() => this.populateMappingUI(), 50);
         }
     }
-    if(container12) {
-        container12.innerHTML = '';
-        for(let i=1;i<=12;i++){
-            const key = 'k12_' + i;
-            const row = makeRow(String(i), key, 'map12_'+i);
-            container12.appendChild(row);
-        }
+
+    applyDefaultGestureMappings() {
+        // Defaults handled in MAPPING_PRESETS or manual entry, 
+        // leaving empty to prevent overriding user choice on every load unless totally empty.
     }
-    if(containerPiano) {
-        containerPiano.innerHTML = '';
-        const pianoOrder = ['C','D','E','F','G','A','B','1','2','3','4','5'];
-        pianoOrder.forEach((id) => {
-            const key = 'piano_' + id;
-            const row = makeRow(id, key, 'mapp_' + id);
-            containerPiano.appendChild(row);
-        });
-    }
-
-    if(!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
-        this.applyDefaultGestureMappings();
-        this.callbacks.onSave && this.callbacks.onSave();
-        setTimeout(()=>{ this.populateMappingUI(); }, 50);
-    }
-}
-
-applyDefaultGestureMappings() {
-    this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
-
-    const defs = {
-        'k9_1': { gesture: 'tap', morse: '.' },
-        'k9_2': { gesture: 'double_tap', morse: '..' },
-        'k9_3': { gesture: 'long_tap', morse: '...' },
-        'k9_4': { gesture: 'tap_2f', morse: '-' },
-        'k9_5': { gesture: 'double_tap_2f', morse: '-.' },
-        'k9_6': { gesture: 'long_tap_2f', morse: '-..' },
-        'k9_7': { gesture: 'tap_3f', morse: '--' },
-        'k9_8': { gesture: 'double_tap_3f', morse: '--.' },
-        'k9_9': { gesture: 'long_tap_3f', morse: '---' },
-
-        'k12_1': { gesture: 'swipe_left', morse: '.' },
-        'k12_2': { gesture: 'swipe_down', morse: '..' },
-        'k12_3': { gesture: 'swipe_up', morse: '...' },
-        'k12_4': { gesture: 'swipe_right', morse: '...-' },
-        'k12_5': { gesture: 'swipe_left_2f', morse: '-' },
-        'k12_6': { gesture: 'swipe_down_2f', morse: '-.' },
-        'k12_7': { gesture: 'swipe_up_2f', morse: '-..' },
-        'k12_8': { gesture: 'swipe_right_2f', morse: '-.-' },
-        'k12_9': { gesture: 'swipe_left_3f', morse: '--' },
-        'k12_10': { gesture: 'swipe_down_3f', morse: '--.' },
-        'k12_11': { gesture: 'swipe_up_3f', morse: '--..' },
-        'k12_12': { gesture: 'swipe_right_3f', morse: '---' },
-
-        'piano_C': { gesture: 'swipe_nw', morse: '.' },
-        'piano_D': { gesture: 'swipe_left', morse: '..' },
-        'piano_E': { gesture: 'swipe_sw', morse: '.-' },
-        'piano_F': { gesture: 'swipe_down', morse: '...' },
-        'piano_G': { gesture: 'swipe_se', morse: '..-' },
-        'piano_A': { gesture: 'swipe_right', morse: '.-.' },
-        'piano_B': { gesture: 'swipe_ne', morse: '.--' },
-        'piano_1': { gesture: 'swipe_left_2f', morse: '-' },
-        'piano_2': { gesture: 'swipe_nw_2f', morse: '-.' },
-        'piano_3': { gesture: 'swipe_up_2f', morse: '--' },
-        'piano_4': { gesture: 'swipe_ne_2f', morse: '-..' },
-        'piano_5': { gesture: 'swipe_right_2f', morse: '-.-' }
-    };
-
-    this.appSettings.gestureMappings = Object.assign({}, defs, this.appSettings.gestureMappings || {});
-}
-}
+} // <--- THIS CLOSING BRACE IS CRITICAL

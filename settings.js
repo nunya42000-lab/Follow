@@ -213,7 +213,6 @@ export class SettingsManager {
             }
         }
     }
-}
     injectGestureInputToggle() {
         if (document.getElementById('gesture-input-toggle')) return;
         const div = document.createElement('div');

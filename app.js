@@ -399,12 +399,8 @@ function renderUI() {
     const hMic = document.getElementById('header-mic-btn');
     const hCam = document.getElementById('header-cam-btn');
     
-    if(hMic) {
-        hMic.classList.toggle('header-btn-active', modules.sensor && modules.sensor.mode.audio);
-    }
-    if(hCam) {
-        hCam.classList.toggle('header-btn-active', modules.sensor && modules.sensor.mode.camera);
-    }
+    if(hMic) hMic.classList.toggle('header-btn-active', modules.sensor && modules.sensor.mode.audio);
+    if(hCam) hCam.classList.toggle('header-btn-active', modules.sensor && modules.sensor.mode.camera);
     
     document.querySelectorAll('.reset-button').forEach(b => { b.style.display = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 'block' : 'none'; });
 }
@@ -422,25 +418,20 @@ function playDemo() {
     const settings = getProfileSettings();
     const state = getState();
     const speed = appSettings.playbackSpeed || 1.0;
+    const playBtn = document.querySelector('button[data-action="play-demo"]'); // Get button for updating text
     
-    // Determine active sequences based on mode
     let seqsToPlay = [];
     if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
-        // Unique Mode: Just play the one active sequence
         seqsToPlay = [state.sequences[0]];
     } else {
-        // Simon Mode: Play all active machine sequences
         seqsToPlay = state.sequences.slice(0, settings.machineCount);
     }
     
-    // Chunking Logic
     const chunkSize = settings.simonChunkSize || 3;
     let chunks = [];
     let maxLen = 0;
     seqsToPlay.forEach(s => { if(s.length > maxLen) maxLen = s.length; });
     
-    // Build interleaved playback list
-    // e.g. M1(1-3), M2(1-3) ... then M1(4-6), M2(4-6)
     for(let i=0; i<maxLen; i+=chunkSize) {
         for(let m=0; m<seqsToPlay.length; m++) {
             const seq = seqsToPlay[m];
@@ -449,26 +440,36 @@ function playDemo() {
                 chunks.push({ 
                     machine: m, 
                     nums: slice, 
-                    isNewRound: (m===0 && i===0 && chunks.length===0) // Flag start
+                    isNewRound: (m===0 && i===0 && chunks.length===0) 
                 });
             }
         }
     }
 
     let cIdx = 0;
+    let totalCount = 0; // Track the sequence position
+
     function nextChunk() {
+        if(!isDemoPlaying) {
+            if(playBtn) playBtn.textContent = "▶"; // Restore icon if stopped
+            return;
+        }
+
         if(cIdx >= chunks.length) { 
             isDemoPlaying = false; 
+            if(playBtn) playBtn.textContent = "▶"; // Restore icon on finish
+            
             if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.isUniqueRoundsAutoClearEnabled) {
-               // Auto-advance logic for Unique Mode
                setTimeout(() => {
-                   state.currentRound++;
-                   state.sequences[0] = [];
-                   state.nextSequenceIndex = 0;
-                   renderUI();
-                   showToast(`Round ${state.currentRound}`);
-                   saveState();
-                   disableInput(false);
+                   if(!isDemoPlaying) {
+                       state.currentRound++;
+                       state.sequences[0] = [];
+                       state.nextSequenceIndex = 0;
+                       renderUI();
+                       showToast(`Round ${state.currentRound}`);
+                       saveState();
+                       disableInput(false);
+                   }
                }, 500);
             }
             return; 
@@ -477,17 +478,24 @@ function playDemo() {
         const chunk = chunks[cIdx];
         const machineDelay = (settings.simonInterSequenceDelay) || 0;
         
-        // Speak/Play the chunk
         let nIdx = 0;
         function playNum() {
+            if(!isDemoPlaying) {
+                if(playBtn) playBtn.textContent = "▶";
+                return;
+            }
+            
             if(nIdx >= chunk.nums.length) {
                 cIdx++;
                 setTimeout(nextChunk, machineDelay);
                 return;
             }
             const val = chunk.nums[nIdx];
+            totalCount++; // Increment count
             
-            // Visual Flash
+            // UPDATE PLAY BUTTON TEXT to show position (1, 2, 3...)
+            if(playBtn) playBtn.textContent = totalCount;
+            
             const kVal = val; 
             const padId = `pad-${settings.currentInput}`;
             const btn = document.querySelector(`#${padId} button[data-value="${kVal}"]`);
@@ -528,6 +536,7 @@ function handleBackspace(e) {
     renderUI(); 
     saveState(); 
 }
+
 const startApp = () => {
     loadState();
     
@@ -587,36 +596,24 @@ const startApp = () => {
                 alert("Profile Saved!"); 
             } 
         }
-    }, null); // Sensor engine added later
+    }, null); 
 
     // Init Sensor Engine
     modules.sensor = new SensorEngine(
         (val, source) => { 
-             // Trigger callback
-             // source is 'camera' or 'camera-white' or 'audio'
              addValue(val); 
              const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
              if(btn) { btn.classList.add('flash-active'); setTimeout(() => btn.classList.remove('flash-active'), 200); }
         },
-        (status) => {
-            // Status update (reserved for debug)
-        }
+        (status) => { }
     );
     modules.settings.sensorEngine = modules.sensor;
 
-    // Apply initial state
     updateAllChrome();
-    
-    // Init Comments
     initComments(db);
-
-    // Initial Header Visibility Check
     modules.settings.updateHeaderVisibility();
-
-    // Init Global Listeners
     initGlobalListeners();
     
-    // Restore sensor state if previously active
     if (appSettings.autoInputMode === 'mic' || appSettings.autoInputMode === 'both') {
         modules.sensor.toggleAudio(true);
     }
@@ -629,38 +626,7 @@ const startApp = () => {
 
 function initGlobalListeners() {
     try {
-        // --- HEADER BUTTON LISTENERS (Moved here from global scope) ---
-        const headerTimer = document.getElementById('header-timer-btn');
-        const headerCounter = document.getElementById('header-counter-btn');
-        const headerMic = document.getElementById('header-mic-btn');
-        const headerCam = document.getElementById('header-cam-btn');
-
-        if(headerTimer) {
-            headerTimer.onclick = () => showToast("Timer feature coming soon! ⏱️");
-        }
-        if(headerCounter) {
-            headerCounter.onclick = () => showToast("Counter feature coming soon! #");
-        }
-        if(headerMic) {
-            headerMic.onclick = () => {
-                if(!modules.sensor) return;
-                modules.sensor.toggleAudio();
-                renderUI(); // Update active state
-                const isActive = modules.sensor.mode.audio;
-                showToast(isActive ? "Mic Input ON 🎤" : "Mic Input OFF 🔇");
-            };
-        }
-        if(headerCam) {
-            headerCam.onclick = () => {
-                if(!modules.sensor) return;
-                modules.sensor.toggleCamera();
-                renderUI(); // Update active state
-                const isActive = modules.sensor.mode.camera;
-                showToast(isActive ? "Camera Input ON 📷" : "Camera Input OFF 🚫");
-            };
-        }
-
-        // --- INPUT PAD LISTENERS ---
+        // --- Input Pad Listeners ---
         document.querySelectorAll('.btn-pad-number').forEach(b => {
             const press = (e) => { 
                 if(e) { e.preventDefault(); e.stopPropagation(); } 
@@ -672,7 +638,6 @@ function initGlobalListeners() {
             b.addEventListener('mousedown', press); 
             b.addEventListener('touchstart', press, { passive: false }); 
             
-            // Stealth Mode Logic
             b.addEventListener('touchstart', (e) => {
                 if(b.dataset.value === '1' && appSettings.isStealth1KeyEnabled) {
                     timers.stealth = setTimeout(() => {
@@ -686,9 +651,18 @@ function initGlobalListeners() {
             b.addEventListener('touchend', () => clearTimeout(timers.stealth));
         });
 
-        // --- CONTROL BUTTONS ---
+        // --- Play/Demo Button ---
         document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
-            const start = (e) => { if(e) { e.preventDefault(); e.stopPropagation(); } if(isDemoPlaying) { isDemoPlaying = false; showToast("Playback Stopped 🛑"); return; } playDemo(); };
+            const start = (e) => { 
+                if(e) { e.preventDefault(); e.stopPropagation(); } 
+                if(isDemoPlaying) { 
+                    isDemoPlaying = false; 
+                    b.textContent = "▶"; 
+                    showToast("Playback Stopped 🛑"); 
+                    return; 
+                } 
+                playDemo(); 
+            };
             const longStart = () => { timers.longPress = setTimeout(() => { appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled; modules.settings.updateUIFromSettings(); showToast(`Autoplay: ${appSettings.isAutoplayEnabled ? "ON" : "OFF"}`); ignoreNextClick = true; setTimeout(() => ignoreNextClick = false, 500); }, 800); };
             const longEnd = () => { clearTimeout(timers.longPress); };
             b.addEventListener('mousedown', start); b.addEventListener('touchstart', start, { passive: false }); 
@@ -697,6 +671,7 @@ function initGlobalListeners() {
             }
         });
         
+        // --- Reset Button ---
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => {
             b.addEventListener('click', () => {
                 if(confirm("Reset Round Counter to 1?")) {
@@ -711,15 +686,26 @@ function initGlobalListeners() {
             });
         });
 
+        // --- Settings Button (RESTORED BEHAVIOR) ---
+        // Acts as STOP if playing, otherwise opens Settings
         document.querySelectorAll('button[data-action="open-settings"]').forEach(b => {
-            b.addEventListener('click', () => modules.settings.openSettings());
-            // Long press for ATM/Redeem
+            b.addEventListener('click', () => {
+                if(isDemoPlaying) {
+                    isDemoPlaying = false;
+                    const pb = document.querySelector('button[data-action="play-demo"]');
+                    if(pb) pb.textContent = "▶";
+                    showToast("Playback Stopped 🛑");
+                    return;
+                }
+                modules.settings.openSettings();
+            });
+            
             const start = () => { timers.settingsLongPress = setTimeout(() => { modules.settings.toggleRedeem(true); ignoreNextClick = true; setTimeout(() => ignoreNextClick = false, 500); }, 1000); };
             const end = () => clearTimeout(timers.settingsLongPress);
             b.addEventListener('touchstart', start, {passive:true}); b.addEventListener('touchend', end); b.addEventListener('mousedown', start); b.addEventListener('mouseup', end);
         });
 
-        // Backspace with Speed Delete
+        // --- Backspace ---
         document.querySelectorAll('button[data-action="backspace"]').forEach(b => {
             const startDelete = (e) => { 
                 if(e) { e.preventDefault(); e.stopPropagation(); } 
@@ -747,21 +733,19 @@ function initGlobalListeners() {
 
         if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
         
-        // --- BLACKOUT MODE LISTENERS ---
-        // (Shake to toggle blackout)
+        // --- Blackout ---
         let lastX=0, lastY=0, lastZ=0;
         window.addEventListener('devicemotion', (e) => {
             if(!appSettings.isBlackoutFeatureEnabled) return;
             const acc = e.accelerationIncludingGravity;
             if(!acc) return;
             const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
-            if(delta > 25) { // Shake threshold
+            if(delta > 25) { 
                 const now = Date.now();
                 if(now - blackoutState.lastShake > 1000) {
                     blackoutState.isActive = !blackoutState.isActive;
                     document.body.classList.toggle('blackout-active', blackoutState.isActive);
                     if(blackoutState.isActive) {
-                        // Enter Blackout
                         if (appSettings.isBlackoutGesturesEnabled) {
                             showToast("Blackout: Gestures Active 👆");
                         } else {
@@ -774,7 +758,6 @@ function initGlobalListeners() {
             lastX = acc.x; lastY = acc.y; lastZ = acc.z;
         });
         
-        // Allow tap on blackout layer to exit
         const bl = document.getElementById('blackout-layer');
         if(bl) {
              let taps = 0;
@@ -787,6 +770,34 @@ function initGlobalListeners() {
                  }
                  setTimeout(()=>taps=0, 1000);
              });
+        }
+        
+        // --- Header Buttons (Original Logic) ---
+        const headerTimer = document.getElementById('header-timer-btn');
+        const headerCounter = document.getElementById('header-counter-btn');
+        const headerMic = document.getElementById('header-mic-btn');
+        const headerCam = document.getElementById('header-cam-btn');
+
+        if(headerTimer) headerTimer.onclick = () => showToast("Timer feature coming soon! ⏱️");
+        if(headerCounter) headerCounter.onclick = () => showToast(`Sequence Count: ${getState().nextSequenceIndex}`);
+        
+        if(headerMic) {
+            headerMic.onclick = () => {
+                if(!modules.sensor) return;
+                modules.sensor.toggleAudio();
+                renderUI(); 
+                const isActive = modules.sensor.mode.audio;
+                showToast(isActive ? "Mic Input ON 🎤" : "Mic Input OFF 🔇");
+            };
+        }
+        if(headerCam) {
+            headerCam.onclick = () => {
+                if(!modules.sensor) return;
+                modules.sensor.toggleCamera();
+                renderUI(); 
+                const isActive = modules.sensor.mode.camera;
+                showToast(isActive ? "Camera Input ON 📷" : "Camera Input OFF 🚫");
+            };
         }
 
     } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }

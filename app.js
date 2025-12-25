@@ -47,7 +47,7 @@ let practiceSequence = [];
 let practiceInputIndex = 0;
 let ignoreNextClick = false;
 
-// --- NEW GLOBALS FOR TIMER/COUNTER ---
+// --- GLOBALS FOR TIMER/COUNTER ---
 let simpleTimer = { interval: null, startTime: 0, elapsed: 0, isRunning: false };
 let simpleCounter = 0;
 
@@ -811,13 +811,11 @@ function initGlobalListeners() {
                     clearInterval(simpleTimer.interval);
                     simpleTimer.elapsed += Date.now() - simpleTimer.startTime;
                     simpleTimer.isRunning = false;
-                    headerTimer.style.color = "white";
                 } else {
                     // Start
                     simpleTimer.startTime = Date.now();
                     simpleTimer.interval = setInterval(updateTimer, 100);
                     simpleTimer.isRunning = true;
-                    headerTimer.style.color = "#4f46e5"; // Active color
                 }
                 vibrate();
             };
@@ -827,7 +825,6 @@ function initGlobalListeners() {
                 simpleTimer.isRunning = false;
                 simpleTimer.elapsed = 0;
                 headerTimer.textContent = "00:00";
-                headerTimer.style.color = "white";
                 showToast("Timer Reset");
                 vibrate();
             };

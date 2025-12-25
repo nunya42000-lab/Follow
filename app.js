@@ -1467,6 +1467,133 @@ async function initWakeLock() {
         }
     } catch (err) { console.log('Wake Lock error:', err); }
 }
+// --- MISSING GESTURE ENGINE ---
+function initGesturePad() {
+    const pad = document.getElementById('gesture-pad');
+    if(!pad) return;
+
+    let strokes = [];
+    let currentStroke = [];
+    let timer = null;
+    let isTouchActive = false;
+
+    const start = (e) => {
+        e.preventDefault();
+        isTouchActive = true;
+        clearTimeout(timer);
+        const t = e.touches[0];
+        const rect = pad.getBoundingClientRect();
+        currentStroke = [{x: t.clientX - rect.left, y: t.clientY - rect.top}];
+    };
+
+    const move = (e) => {
+        if(!isTouchActive) return;
+        e.preventDefault();
+        const t = e.touches[0];
+        const rect = pad.getBoundingClientRect();
+        currentStroke.push({x: t.clientX - rect.left, y: t.clientY - rect.top});
+    };
+
+    const end = (e) => {
+        if(!isTouchActive) return;
+        e.preventDefault();
+        isTouchActive = false;
+        
+        if(currentStroke.length > 2) strokes.push(currentStroke);
+        
+        // Wait 400ms for multi-stroke gestures
+        timer = setTimeout(() => {
+            processGestures(strokes, e.changedTouches.length); 
+            strokes = [];
+        }, 400);
+    };
+
+    pad.addEventListener('touchstart', start, {passive:false});
+    pad.addEventListener('touchmove', move, {passive:false});
+    pad.addEventListener('touchend', end, {passive:false});
+}
+
+function processGestures(strokes, fingers) {
+    if(strokes.length === 0) return;
+    
+    // 1. Custom Gesture Match
+    const customMatch = matchCustomGesture(strokes);
+    if(customMatch) {
+        resolveGesture(customMatch);
+        return;
+    }
+
+    // 2. Standard Match (Tap/Swipe)
+    if(strokes.length === 1) {
+        const s = strokes[0];
+        const dx = s[s.length-1].x - s[0].x;
+        const dy = s[s.length-1].y - s[0].y;
+        const dist = Math.hypot(dx, dy);
+        
+        let action = '';
+        const suffix = fingers === 2 ? '_2f' : fingers === 3 ? '_3f' : '';
+
+        if(dist < 20) {
+            // Simple Tap
+            action = 'tap' + suffix; 
+        } else {
+            // 8-Way Swipe
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            if(angle >= -22.5 && angle < 22.5) action = 'swipe_right';
+            else if(angle >= 22.5 && angle < 67.5) action = 'swipe_se';
+            else if(angle >= 67.5 && angle < 112.5) action = 'swipe_down';
+            else if(angle >= 112.5 && angle < 157.5) action = 'swipe_sw';
+            else if(angle >= 157.5 || angle < -157.5) action = 'swipe_left';
+            else if(angle >= -157.5 && angle < -112.5) action = 'swipe_nw';
+            else if(angle >= -112.5 && angle < -67.5) action = 'swipe_up';
+            else if(angle >= -67.5 && angle < -22.5) action = 'swipe_ne';
+            
+            action += suffix;
+        }
+        resolveGesture(action);
+    }
+}
+
+function matchCustomGesture(inputStrokes) {
+    if(!appSettings.customGestures) return null;
+    const inputNorm = normalizeStrokes(inputStrokes);
+    
+    let bestMatch = null;
+    let bestScore = Infinity;
+
+    // customGestures is an array in newer version, not object
+    if(Array.isArray(appSettings.customGestures)) {
+        appSettings.customGestures.forEach(g => {
+            if(g.data && g.data.length === inputNorm.length) {
+                const score = compareGestures(inputNorm, g.data);
+                if(score < 0.3 && score < bestScore) {
+                    bestScore = score;
+                    bestMatch = g.type; // return the type/ID
+                }
+            }
+        });
+    }
+    return bestMatch;
+}
+
+function normalizeStrokes(strokes) {
+    let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+    strokes.flat().forEach(p => { if(p.x<minX)minX=p.x; if(p.x>maxX)maxX=p.x; if(p.y<minY)minY=p.y; if(p.y>maxY)maxY=p.y; });
+    const w = Math.max(maxX - minX, 1); const h = Math.max(maxY - minY, 1); const scale = 1 / Math.max(w, h);
+    return strokes.map(s => s.map(p => ({ x: (p.x - minX) * scale, y: (p.y - minY) * scale })));
+}
+
+function compareGestures(g1, g2) {
+    let totalDist = 0, points = 0;
+    for(let i=0; i<g1.length; i++) {
+        // Simple sample comparison
+        for(let j=0; j<Math.min(g1[i].length, g2[i].length); j+=2) {
+             const d = Math.hypot(g1[i][j].x - g2[i][j].x, g1[i][j].y - g2[i][j].y);
+             totalDist += d; points++;
+        }
+    }
+    return points === 0 ? Infinity : totalDist / points;
+}
 
 // Expose state for debugging
 window.appState = state;

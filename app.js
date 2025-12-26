@@ -851,17 +851,6 @@ function initGlobalListeners() {
                 showToast("Timer Reset");
                 vibrate();
             };
-            
-            
-            const resetTimer = () => {
-                clearInterval(simpleTimer.interval);
-                simpleTimer.isRunning = false;
-                simpleTimer.elapsed = 0;
-                headerTimer.textContent = "00:00";
-                headerTimer.style.color = "white";
-                showToast("Timer Reset");
-                vibrate();
-            };
 
             // Long Press Setup
             let tTimer;

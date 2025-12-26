@@ -152,18 +152,20 @@ I'm<!DOCTYPE html>
             </div>
             
             <div class="overflow-y-auto flex-grow p-5 space-y-4">
-                <div id="tab-mode" class="tab-content active">
+                                <div id="tab-mode" class="tab-content active">
                     <div class="mb-5 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
                         <label class="text-xs font-bold uppercase text-muted-custom mb-2 block" data-i18n="lbl_profiles">Profiles</label>
                         <select id="config-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
                         <div class="grid grid-cols-2 gap-2"><button id="config-add" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button><button id="config-save" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">SAVE 💾</button><button id="config-rename" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button><button id="config-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button></div>
                     </div>
-                    <div class="flex justify-between items-center p-3 rounded-lg settings-input border border-blue-500 border-opacity-50 mb-4"><div><span class="font-bold text-sm block">Practice Mode 🎓</span><span class="text-xs text-muted-custom">Mirrors current game settings</span></div><input type="checkbox" id="practice-mode-toggle" class="h-5 w-5 accent-blue-500"></div>
+                    
                     <div class="grid grid-cols-2 gap-3 mb-4"><div><label class="block text-xs font-bold mb-1 text-muted-custom" data-i18n="lbl_input">Input</label><select id="input-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="key9">9-Key</option><option value="key12">12-Key</option><option value="piano">Piano</option></select></div><div><label class="block text-xs font-bold mb-1 text-muted-custom" data-i18n="lbl_mode">Mode</label><select id="mode-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="simon">Simon Says</option><option value="unique">Unique</option></select></div></div>
                     <div class="grid grid-cols-2 gap-3 mb-4"><div><label class="block text-xs font-bold mb-1 text-muted-custom">Machines</label><select id="machines-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></div><div><label class="block text-xs font-bold mb-1 text-muted-custom">Length</label><select id="seq-length-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"><option value="15">15</option><option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option></select></div></div>
-                    <div class="flex justify-between items-center p-3 rounded-lg settings-input border border-custom mt-2"><span class="font-bold text-sm">Auto-Advance (Unique)</span><input type="checkbox" id="autoclear-toggle" class="h-5 w-5 accent-indigo-500"></div>
-                </div>
-
+                    <div class="flex justify-between items-center p-3 rounded-lg settings-input border border-custom mt-2 mb-4"><span class="font-bold text-sm">Auto-Advance (Unique)</span><input type="checkbox" id="autoclear-toggle" class="h-5 w-5 accent-indigo-500"></div>
+                    
+                    <div class="flex justify-between items-center p-3 rounded-lg settings-input border border-blue-500 border-opacity-50"><div><span class="font-bold text-sm block">Practice Mode 🎓</span><span class="text-xs text-muted-custom">Mirrors current game settings</span></div><input type="checkbox" id="practice-mode-toggle" class="h-5 w-5 accent-blue-500"></div>
+                                </div>
+                
                 <div id="tab-playback" class="tab-content">
                     <div class="space-y-3">
                         <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm" data-i18n="autoplay">Autoplay</span><input type="checkbox" id="autoplay-toggle" class="h-5 w-5 accent-indigo-500"></div>

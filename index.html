@@ -433,10 +433,22 @@
                  <button data-action="open-settings" class="btn-input btn-control !bg-primary-app col-span-1 text-white text-xl">⚙️</button>
             </div>
         </div>
-        <div id="pad-piano" class="max-w-2xl mx-auto pt-0 pb-1" style="display:none;">
+                <div id="pad-piano" class="max-w-2xl mx-auto pt-0 pb-1" style="display:none;">
             <div id="piano-keys" class="relative h-40 w-full mb-2 border border-custom">
-                <div class="flex h-full w-full"><div class="key-container"><button data-value="C" class="piano-key-white btn-input">C</button></div><div class="key-container"><button data-value="D" class="piano-key-white btn-input">D</button></div><div class="key-container"><button data-value="E" class="piano-key-white btn-input">E</button></div><div class="key-container"><button data-value="F" class="piano-key-white btn-input">F</button></div><div class="key-container"><button data-value="G" class="piano-key-white btn-input">G</button></div><div class="key-container"><button data-value="A" class="piano-key-white btn-input">A</button></div><div class="key-container"><button data-value="B" class="piano-key-white btn-input">B</button></div></div>
-                <button data-value="1" class="piano-key-black btn-input black-1">1</button><button data-value="2" class="piano-key-black btn-input black-2">2</button><button data-value="3" class="piano-key-black btn-input black-3">3</button><button data-value="4" class="piano-key-black btn-input black-4">4</button><button data-value="5" class="piano-key-black btn-input black-5">5</button>
+                <div class="flex h-full w-full">
+                    <div class="key-container"><button data-value="C" class="piano-key-white btn-input btn-pad-number">C</button></div>
+                    <div class="key-container"><button data-value="D" class="piano-key-white btn-input btn-pad-number">D</button></div>
+                    <div class="key-container"><button data-value="E" class="piano-key-white btn-input btn-pad-number">E</button></div>
+                    <div class="key-container"><button data-value="F" class="piano-key-white btn-input btn-pad-number">F</button></div>
+                    <div class="key-container"><button data-value="G" class="piano-key-white btn-input btn-pad-number">G</button></div>
+                    <div class="key-container"><button data-value="A" class="piano-key-white btn-input btn-pad-number">A</button></div>
+                    <div class="key-container"><button data-value="B" class="piano-key-white btn-input btn-pad-number">B</button></div>
+                </div>
+                <button data-value="1" class="piano-key-black btn-input btn-pad-number black-1">1</button>
+                <button data-value="2" class="piano-key-black btn-input btn-pad-number black-2">2</button>
+                <button data-value="3" class="piano-key-black btn-input btn-pad-number black-3">3</button>
+                <button data-value="4" class="piano-key-black btn-input btn-pad-number black-4">4</button>
+                <button data-value="5" class="piano-key-black btn-input btn-pad-number black-5">5</button>
             </div>
             <div class="grid grid-cols-4 gap-2 max-w-lg mx-auto control-row">
                  <button data-action="reset-unique-rounds" class="reset-button btn-input btn-control !bg-red-600 text-sm font-bold col-span-4 mb-2" style="display:none">RESET ROUNDS</button>
@@ -444,7 +456,7 @@
                  <button data-action="backspace" class="btn-input btn-control col-span-1 text-xl">←</button>
                  <button data-action="open-settings" class="btn-input btn-control !bg-primary-app col-span-1 text-white text-xl">⚙️</button>
             </div>
-        </div>
+    </div>
     </footer>
     <div id="toast-notification" class="fixed top-20 left-1/2 -translate-x-1/2 bg-primary-app text-white px-6 py-3 rounded-xl shadow-lg z-[99] transition-all duration-300 opacity-0 transform -translate-y-10"><span id="toast-message"></span></div>
     

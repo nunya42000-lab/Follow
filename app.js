@@ -804,23 +804,34 @@ function initGlobalListeners() {
                 headerTimer.textContent = formatTime(diff);
             };
 
-            // Actions
+                        // Actions
             const toggleTimer = () => {
                 if(simpleTimer.isRunning) {
                     // Pause
                     clearInterval(simpleTimer.interval);
                     simpleTimer.elapsed += Date.now() - simpleTimer.startTime;
                     simpleTimer.isRunning = false;
-                    headerTimer.style.color = "white";
+                    // REMOVED: headerTimer.style.color = "white"; 
                 } else {
                     // Start
                     simpleTimer.startTime = Date.now();
                     simpleTimer.interval = setInterval(updateTimer, 100);
                     simpleTimer.isRunning = true;
-                    headerTimer.style.color = "#4f46e5"; // Active color
+                    // REMOVED: headerTimer.style.color = "#4f46e5";
                 }
                 vibrate();
             };
+            
+            const resetTimer = () => {
+                clearInterval(simpleTimer.interval);
+                simpleTimer.isRunning = false;
+                simpleTimer.elapsed = 0;
+                headerTimer.textContent = "00:00";
+                // REMOVED: headerTimer.style.color = "white";
+                showToast("Timer Reset");
+                vibrate();
+            };
+            
             
             const resetTimer = () => {
                 clearInterval(simpleTimer.interval);

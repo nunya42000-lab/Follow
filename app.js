@@ -373,12 +373,32 @@ function renderUI() {
         if(el) el.style.display = (settings.currentInput === k) ? 'block' : 'none'; 
     });
 
+    // --- PRACTICE MODE UI ---
     if(appSettings.isPracticeModeEnabled) {
-        if(practiceSequence.length === 0) { practiceSequence = []; state.currentRound = 1; setTimeout(startPracticeRound, 100); }
-        container.innerHTML = `<h2 class=\"text-2xl font-bold text-center w-full mt-10\" style=\"color:var(--text-main)\">Practice Mode (${settings.currentMode === CONFIG.MODES.SIMON ? 'Simon' : 'Unique'})<br><span class=\"text-sm opacity-70\">Round ${state.currentRound}</span></h2>`; 
+        // Create Header
+        const header = document.createElement('h2');
+        header.className = "text-2xl font-bold text-center w-full mt-10 mb-8";
+        header.style.color = "var(--text-main)";
+        header.innerHTML = `Practice Mode (${settings.currentMode === CONFIG.MODES.SIMON ? 'Simon' : 'Unique'})<br><span class=\"text-sm opacity-70\">Round ${state.currentRound}</span>`;
+        container.appendChild(header);
+
+        // If sequence is empty, we are waiting to start -> Show Big Button
+        if(practiceSequence.length === 0) { 
+            state.currentRound = 1; 
+            
+            const btn = document.createElement('button');
+            btn.textContent = "START";
+            btn.className = "w-48 h-48 rounded-full bg-green-600 hover:bg-green-500 text-white text-3xl font-bold shadow-[0_0_40px_rgba(22,163,74,0.5)] transition-all transform hover:scale-105 active:scale-95 animate-pulse";
+            btn.onclick = () => {
+                btn.style.display = 'none'; // Disappear
+                startPracticeRound();       // Start Game
+            };
+            container.appendChild(btn);
+        }
         return;
     }
 
+    // --- STANDARD GAME UI ---
     const activeSeqs = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);
     if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
         const roundNum = parseInt(state.currentRound) || 1;

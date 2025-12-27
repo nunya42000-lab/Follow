@@ -41,7 +41,7 @@ const CRAYONS = ["#000000", "#1F75FE", "#1CA9C9", "#0D98BA", "#FFFFFF", "#C5D0E6
 const LANG = {
     en: {
         quick_title: "👋 Quick Start", select_profile: "Select Profile", autoplay: "Autoplay", audio: "Audio", help_btn: "Help 📚", settings_btn: "Settings", dont_show: "Don't show again", play_btn: "PLAY", theme_editor: "🎨 Theme Editor",
-        lbl_profiles: "Profiles", lbl_game: "Game", lbl_playback: "Playback", lbl_general: "General", lbl_mode: "Mode", lbl_input: "Input",
+        lbl_profiles: "Profiles", lbl_game: "Game", lbl_playback: "Playback", lbl_general: "General", lbl_mode: "Modo", lbl_input: "Input",
         timer_toggle: "Timer ⏱️", counter_toggle: "Counter #", 
         // Note: Boss Mode, Inputs Only etc are now hardcoded in HTML for cleanliness
         help_stealth_detail: "Inputs Only (1-Key) simplifies input by mapping the 12 primary values (1-12) to a single key press. The interpretation depends on context and mode (Simon/Unique). This is intended for high-speed, minimal-movement input.",
@@ -100,7 +100,10 @@ export class SettingsManager {
             counterToggle: document.getElementById('counter-toggle'),
             gestureToggle: document.getElementById('gesture-input-toggle'),
 
-            uiScale: document.getElementById('ui-scale-select'), seqSize: document.getElementById('seq-size-select'), gestureMode: document.getElementById('gesture-mode-select'), autoInput: document.getElementById('auto-input-select'),
+            uiScale: document.getElementById('ui-scale-select'), 
+            seqSize: document.getElementById('seq-size-select'), 
+            seqFontSize: document.getElementById('seq-font-size-select'), // <--- NEW FONT SIZE
+            gestureMode: document.getElementById('gesture-mode-select'), autoInput: document.getElementById('auto-input-select'),
             quickLang: document.getElementById('quick-lang-select'), generalLang: document.getElementById('general-lang-select'), closeSettingsBtn: document.getElementById('close-settings'),
 
             // TABS
@@ -139,7 +142,7 @@ export class SettingsManager {
             });
         }
     }
-      populateVoicePresetDropdown() {
+    populateVoicePresetDropdown() {
         if (!this.dom.voicePresetSelect) return;
         this.dom.voicePresetSelect.innerHTML = '';
 
@@ -299,6 +302,16 @@ export class SettingsManager {
         
         if (this.dom.uiScale) this.dom.uiScale.onchange = (e) => { this.appSettings.globalUiScale = parseInt(e.target.value); this.callbacks.onUpdate(); };
         if (this.dom.seqSize) this.dom.seqSize.onchange = (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onUpdate(); };
+        
+        // --- BINDING NEW FONT SIZE DROPDOWN ---
+        if (this.dom.seqFontSize) {
+            this.dom.seqFontSize.onchange = (e) => {
+                this.appSettings.uiFontSizeMultiplier = parseInt(e.target.value) / 100.0;
+                this.callbacks.onSave();
+                this.callbacks.onUpdate();
+            };
+        }
+
         if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
         if (this.dom.gestureMode) this.dom.gestureMode.onchange = (e) => { this.appSettings.gestureResizeMode = e.target.value; this.callbacks.onSave(); };
         
@@ -423,6 +436,10 @@ export class SettingsManager {
         if (this.dom.haptics) this.dom.haptics.checked = (typeof this.appSettings.isHapticsEnabled === 'undefined') ? true : this.appSettings.isHapticsEnabled;
         if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
         if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
+        
+        // --- UPDATE FONT SIZE DROPDOWN ---
+        if (this.dom.seqFontSize) this.dom.seqFontSize.value = Math.round((this.appSettings.uiFontSizeMultiplier || 1.0) * 100);
+
         if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
         if (this.dom.autoInput) this.dom.autoInput.value = this.appSettings.autoInputMode || 'none';
         

@@ -195,28 +195,87 @@
                         </div>
                     </div>
                 </div>
-
-                <div id="tab-general" class="tab-content">
+                                <div id="tab-playback" class="tab-content">
                     <div class="space-y-3">
-                        <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm">Stealth Toggle (Hold '1')</span><input type="checkbox" id="stealth-1key-toggle" class="h-5 w-5 accent-indigo-500"></div>
-                        <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm">Haptics</span><input type="checkbox" id="haptics-toggle" class="h-5 w-5 accent-indigo-500"></div>
-                        <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm">Speed Delete</span><input type="checkbox" id="speed-delete-toggle" class="h-5 w-5 accent-indigo-500"></div>
-                        <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm">Show Quick Start</span><input type="checkbox" id="show-welcome-toggle" class="h-5 w-5 accent-indigo-500"></div>
-                        <div class="flex justify-between items-center p-3 rounded-lg settings-input"><span class="font-bold text-sm">Gesture Input (replace inputs)</span><input type="checkbox" id="gesture-input-toggle" class="h-5 w-5 accent-indigo-500"></div>
-                        <div class="flex justify-between items-center p-3 rounded-lg settings-input border border-red-500 border-opacity-30"><div><span class="font-bold text-sm block">Blackout Mode</span></div><input type="checkbox" id="blackout-toggle" class="h-5 w-5 accent-indigo-500"></div>
-                        <div class="mt-4 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
-                            <label class="text-xs font-bold uppercase text-muted-custom mb-2 block">App Theme</label>
-                            <div class="flex items-center space-x-2 mb-3">
-                                <select id="theme-select" class="settings-input flex-grow p-2 rounded text-sm font-semibold shadow-sm"></select>
-                                <button id="open-theme-editor" class="w-10 h-10 flex items-center justify-center bg-gray-600 hover:bg-gray-500 rounded text-white font-bold transition shadow" title="Edit Colors">🎨</button>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
+                                <label class="font-bold text-sm" data-i18n="autoplay">Autoplay</label>
+                                <input type="checkbox" id="autoplay-toggle" class="h-6 w-6 rounded accent-indigo-500">
                             </div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <button id="theme-add" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button>
-                                <button id="theme-save" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">SAVE 💾</button>
-                                <button id="theme-rename" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button>
-                                <button id="theme-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
+                            <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
+                                <label class="font-bold text-sm">Flash 👀</label>
+                                <input type="checkbox" id="flash-toggle" class="h-6 w-6 rounded accent-indigo-500">
                             </div>
                         </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
+                                <label class="font-bold text-sm" data-i18n="audio">Audio 👂</label>
+                                <input type="checkbox" id="audio-toggle" class="h-6 w-6 rounded accent-indigo-500">
+                            </div>
+                            <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom border-yellow-500 border-opacity-30">
+                                <label class="font-bold text-sm">Morse ✋</label>
+                                <input type="checkbox" id="haptic-morse-toggle" class="h-6 w-6 rounded accent-indigo-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Speed</label>
+                                <select id="playback-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="0.5">50%</option><option value="0.75">75%</option><option value="1.0">100%</option>
+                                    <option value="1.25">125%</option><option value="1.5">150%</option><option value="1.75">175%</option>
+                                    <option value="2.0">200%</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Pause</label>
+                                <select id="pause-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="none">None</option>
+                                    <option value="short">Short</option>
+                                    <option value="long">Long</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Chunk Size</label>
+                                <select id="chunk-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="2">2 items</option><option value="3">3 items</option><option value="4">4 items</option>
+                                    <option value="5">5 items</option><option value="40">40 items</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Delay</label>
+                                <select id="delay-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="0">0s</option><option value="0.2">0.2s</option><option value="0.4">0.4s</option>
+                                    <option value="0.6">0.6s</option><option value="0.8">0.8s</option><option value="1.0">1.0s</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 pt-4 border-t border-custom">
+                            <h4 class="font-bold text-sm mb-3 text-primary-app">Voice Settings 🗣️</h4>
+                            <div class="mb-4 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
+                                <label class="text-xs font-bold uppercase text-muted-custom mb-2 block">Voice Profile</label>
+                                <select id="voice-preset-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button id="voice-preset-add" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button>
+                                    <button id="voice-preset-save" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">SAVE 💾</button>
+                                    <button id="voice-preset-rename" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button>
+                                    <button id="voice-preset-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
+                                </div>
+                            </div>
+                            <div class="space-y-3 p-2 bg-black bg-opacity-20 rounded-lg">
+                                <div><label class="block text-xs font-bold mb-1">Pitch / Tone</label><input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
+                                <div><label class="block text-xs font-bold mb-1">Speed</label><input type="range" id="voice-rate" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
+                                <div><label class="block text-xs font-bold mb-1">Volume</label><input type="range" id="voice-volume" min="0" max="1" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
+                            </div>
+                            <button id="test-voice-btn" class="w-full py-2 bg-gray-700 text-white rounded font-bold text-xs mt-3">Test Voice 🔊</button>
+                        </div>
+                    </div>
+                </div>
                         <div class="grid grid-cols-2 gap-3 mt-4">
                             <div>
                                 <label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>

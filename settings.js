@@ -1,4 +1,4 @@
-// settings.js
+.// settings.js
 export const PREMADE_THEMES = {
     'default': { name: "Default Dark", bgMain: "#000000", bgCard: "#121212", bubble: "#4f46e5", btn: "#1a1a1a", text: "#e5e5e5" },
     'light': { name: "Light Mode", bgMain: "#f3f4f6", bgCard: "#ffffff", bubble: "#4f46e5", btn: "#e5e7eb", text: "#111827" },
@@ -86,9 +86,8 @@ export class SettingsManager {
 
             // Inputs for Prompt Generation
             input: document.getElementById('input-select'), mode: document.getElementById('mode-select'), practiceMode: document.getElementById('practice-mode-toggle'), machines: document.getElementById('machines-select'), seqLength: document.getElementById('seq-length-select'),
-            autoClear: document.getElementById('autoclear-toggle'), autoplay: document.getElementById('autoplay-toggle'), audio: document.getElementById('audio-toggle'), hapticMorse: document.getElementById('haptic-morse-toggle'), playbackSpeed: document.getElementById('playback-speed-select'), chunk: document.getElementById('chunk-select'), delay: document.getElementById('delay-select'),
-
-            haptics: document.getElementById('haptics-toggle'), speedDelete: document.getElementById('speed-delete-toggle'), showWelcome: document.getElementById('show-welcome-toggle'), blackoutToggle: document.getElementById('blackout-toggle'), stealth1KeyToggle: document.getElementById('stealth-1key-toggle'),
+            autoClear: document.getElementById('autoclear-toggle'), autoplay: document.getElementById('autoplay-toggle'), flash: document.getElementById('flash-toggle'),
+            pause: document.getElementById('pause-select'), audio: document.getElementById('audio-toggle'), hapticMorse: document.getElementById('haptic-morse-toggle'), playbackSpeed: document.getElementById('playback-speed-select'), chunk: document.getElementById('chunk-select'), delay: document.getElementById('delay-select'), haptics: document.getElementById('haptics-toggle'), speedDelete: document.getElementById('speed-delete-toggle'), showWelcome: document.getElementById('show-welcome-toggle'), blackoutToggle: document.getElementById('blackout-toggle'), stealth1KeyToggle: document.getElementById('stealth-1key-toggle'),
             
             // Injected Toggles (Now guaranteed to exist)
             longPressToggle: document.getElementById('long-press-autoplay-toggle'),

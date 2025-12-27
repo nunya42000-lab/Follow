@@ -131,104 +131,305 @@ function vibrateMorse(val) {
 }
 
 function initGesturePad() {
-    const pad = document.getElementById('gesture-pad');
-    const indicator = document.getElementById('gesture-indicator');
-    if(!pad) return;
-    let touchState = { timers: {}, points: [], lastTapTime: 0, tapCount: 0, lastTapFingers: 0, startTime:0, maxTouches:0 };
-    const resetTouch = () => { touchState.points = []; clearTimeout(touchState.timers.long); touchState.startTime = 0; touchState.maxTouches = 0; };
-    const getDir = (dx, dy) => {
-        const ax = Math.abs(dx), ay = Math.abs(dy);
-        if(ax < 20 && ay < 20) return 'tap';
-        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-        if(angle >= -22 && angle < 22) return 'swipe_right';
-        if(angle >= 22 && angle < 68) return 'swipe_ne';
-        if(angle >= 68 && angle < 112) return 'swipe_up';
-        if(angle >= 112 && angle < 158) return 'swipe_nw';
-        if(angle >= 158 || angle < -158) return 'swipe_left';
-        if(angle >= -158 && angle < -112) return 'swipe_sw';
-        if(angle >= -112 && angle < -68) return 'swipe_down';
-        if(angle >= -68 && angle < -22) return 'swipe_se';
-        return 'swipe';
+    // 1. Create the Full-Screen Gesture Layer if it doesn't exist
+    let layer = document.getElementById('gesture-input-layer');
+    if (!layer) {
+        layer = document.createElement('div');
+        layer.id = 'gesture-input-layer';
+        // z-index 35 sits above content/footer but BELOW the Header buttons (z-40)
+        layer.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; z-index:35; display:none; touch-action:none;";
+        document.body.appendChild(layer);
+    }
+
+    // 2. Visibility & Footer Toggle Logic
+    const toggleGestureMode = () => {
+        const active = appSettings.isGestureInputEnabled;
+        layer.style.display = active ? 'block' : 'none';
+        
+        // Hide Footer if active (using a body class is cleanest)
+        if (active) {
+            document.body.classList.add('gesture-mode-active');
+            document.body.classList.add('hide-controls'); // Reuse existing class to hide footer
+            showToast("Gesture Input Active 👆");
+        } else {
+            document.body.classList.remove('gesture-mode-active');
+            document.body.classList.remove('hide-controls');
+        }
     };
 
-    pad.addEventListener('touchstart', (ev) => {
-        ev.preventDefault();
-        const t = ev.touches;
-        touchState.points = [{ x: t[0].clientX, y: t[0].clientY }];
-        touchState.startTime = Date.now();
-        touchState.maxTouches = t.length;
-        touchState.timers.long = setTimeout(() => {
-            const kind = `long_tap${touchState.maxTouches === 2 ? '_2f' : touchState.maxTouches === 3 ? '_3f' : ''}`;
-            handleGesture(kind);
-        }, 500);
-    }, {passive:false});
+    // Run once on init
+    toggleGestureMode();
 
-    pad.addEventListener('touchmove', (ev) => {
-        ev.preventDefault();
-        if(ev.touches && ev.touches.length) {
-            const t = ev.touches[0];
-            touchState.points.push({ x: t.clientX, y: t.clientY });
+    // Export this function so Settings can call it when toggled
+    window.updateGestureLayerVisibility = toggleGestureMode;
+
+    // 3. Touch State Tracking
+    let touchState = { 
+        startTime: 0, 
+        startX: 0, 
+        startY: 0, 
+        maxTouches: 0, 
+        isTap: true,
+        tapCount: 0,
+        tapTimer: null,
+        longPressTimer: null
+    };
+
+    const resetState = () => {
+        touchState.maxTouches = 0;
+        touchState.isTap = true;
+        clearTimeout(touchState.longPressTimer);
+    };
+
+    // 4. Event Listeners
+    layer.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const t = e.touches[0];
+        const now = Date.now();
+
+        // If this is the first finger, start fresh
+        if (e.touches.length === 1) {
+            touchState.startTime = now;
+            touchState.startX = t.clientX;
+            touchState.startY = t.clientY;
+            touchState.isTap = true;
+            // Clear previous tap timer if we tap again quickly (for double/triple detection)
+            // But DON'T clear count yet, that happens in touchend logic
         }
-    }, {passive:false});
 
-    pad.addEventListener('touchend', (ev) => {
-        ev.preventDefault();
-        clearTimeout(touchState.timers.long);
-        const duration = Date.now() - (touchState.startTime || 0);
-        const touches = touchState.maxTouches || 1;
-        const p0 = touchState.points[0] || { x:0, y:0 };
-        const pN = touchState.points[touchState.points.length-1] || p0;
-        const dx = pN.x - p0.x;
-        const dy = pN.y - p0.y;
+        // Track max fingers seen during this gesture
+        if (e.touches.length > touchState.maxTouches) {
+            touchState.maxTouches = e.touches.length;
+        }
+
+        // Long Press Detection (only if it stays a tap)
+        clearTimeout(touchState.longPressTimer);
+        touchState.longPressTimer = setTimeout(() => {
+            if (touchState.isTap) {
+                // It's a long press!
+                triggerGesture('long_tap', touchState.maxTouches);
+                touchState.isTap = false; // Prevent touchend from firing tap
+                touchState.tapCount = 0;  // Reset tap cycle
+            }
+        }, 600); // 600ms for long press
+    }, { passive: false });
+
+    layer.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        const t = e.touches[0];
+        const dx = t.clientX - touchState.startX;
+        const dy = t.clientY - touchState.startY;
         const dist = Math.sqrt(dx*dx + dy*dy);
 
-        if(dist < 20) {
-            const now = Date.now();
-            if(now - touchState.lastTapTime < 350 && touchState.lastTapFingers === touches) {
-                touchState.tapCount = (touchState.tapCount || 1) + 1;
-            } else {
-                touchState.tapCount = 1;
-            }
-            touchState.lastTapTime = now;
-            touchState.lastTapFingers = touches;
+        // If moved more than 20px, it's a Swipe, not a Tap
+        if (dist > 20) {
+            touchState.isTap = false;
+            clearTimeout(touchState.longPressTimer);
+        }
+    }, { passive: false });
 
-            const kind = (touchState.tapCount === 1) ? `tap${touches===2? '_2f' : touches===3? '_3f' : ''}` :
-                          (touchState.tapCount === 2) ? `double_tap${touches===2? '_2f' : touches===3? '_3f' : ''}` :
-                          `tap${touches===2? '_2f' : touches===3? '_3f' : ''}`;
-            handleGesture(kind);
+    layer.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        clearTimeout(touchState.longPressTimer);
+
+        // Only process when ALL fingers lift (touches.length === 0)
+        if (e.touches.length > 0) return;
+
+        const duration = Date.now() - touchState.startTime;
+        const fingers = touchState.maxTouches || 1;
+
+        if (touchState.isTap) {
+            // It was a tap (short, no movement)
+            handleTapLogic(fingers);
         } else {
-            const dir = getDir(dx, dy);
-            const suf = touches===2? '_2f' : touches===3? '_3f' : '';
-            handleGesture(dir + suf);
+            // It was a swipe (movement detected)
+            // Calculate direction based on last known position
+            const t = e.changedTouches[0]; // Use changedTouches for lift position
+            const dx = t.clientX - touchState.startX;
+            const dy = t.clientY - touchState.startY;
+            const dir = getSwipeDirection(dx, dy);
+            
+            triggerGesture(dir, fingers);
+            touchState.tapCount = 0; // Swipe breaks tap combos
         }
-        resetTouch();
-    }, {passive:false});
+        
+        resetState();
+    }, { passive: false });
 
-    function handleGesture(kind) {
-        if(indicator) {
-            indicator.textContent = `Gesture: ${kind}`;
-            setTimeout(()=>indicator.textContent = 'Use gestures here — swipes, taps, multi-finger.', 700);
+    // 5. Helper Logic
+    
+    // Distinguish Single, Double, Triple taps
+    function handleTapLogic(fingers) {
+        touchState.tapCount++;
+        
+        clearTimeout(touchState.tapTimer);
+        touchState.tapTimer = setTimeout(() => {
+            // Timer finished, finalize the tap count
+            let type = 'tap';
+            if (touchState.tapCount === 2) type = 'double_tap';
+            if (touchState.tapCount >= 3) type = 'triple_tap';
+            
+            triggerGesture(type, fingers);
+            touchState.tapCount = 0; // Reset
+        }, 280); // 280ms window for multi-taps
+    }
+
+    // Convert XY to 8-way Direction
+    function getSwipeDirection(dx, dy) {
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI; // -180 to 180
+        
+        // 8-Way Logic (22.5 degree offsets)
+        if (angle >= -22.5 && angle < 22.5) return 'swipe_right';
+        if (angle >= 22.5 && angle < 67.5) return 'swipe_se';
+        if (angle >= 67.5 && angle < 112.5) return 'swipe_down';
+        if (angle >= 112.5 && angle < 157.5) return 'swipe_sw';
+        if (angle >= 157.5 || angle < -157.5) return 'swipe_left';
+        if (angle >= -157.5 && angle < -112.5) return 'swipe_nw';
+        if (angle >= -112.5 && angle < -67.5) return 'swipe_up';
+        if (angle >= -67.5 && angle < -22.5) return 'swipe_ne';
+        
+        return 'swipe_right'; // Fallback
+    }
+
+    // Construct the string ID and execute
+    function triggerGesture(baseName, fingers) {
+        let suffix = '';
+        if (fingers === 2) suffix = '_2f';
+        if (fingers === 3) suffix = '_3f';
+        
+        const gestureKey = baseName + suffix;
+        handleInputGesture(gestureKey);
+        
+        // Visual Feedback (Ghost Overlay) - Only if Flash is ON
+        if (appSettings.isFlashEnabled) {
+            showGestureFeedback(gestureKey);
         }
-        const settings = getProfileSettings();
-        const mapResult = mapGestureToValue(kind, settings.currentInput);
-        if(mapResult !== null) addValue(mapResult);
     }
 }
 
-function mapGestureToValue(kind, currentInput) {
-    const gm = appSettings.gestureMappings || {};
-    if(currentInput === CONFIG.INPUTS.PIANO) {
-        for(const k in gm) {
-            if(k.startsWith('piano_') && gm[k].gesture === kind) {
-                const id = k.replace('piano_','');
-                return id;
+// Looks up the gesture in settings and executes the action
+function handleInputGesture(gestureKey) {
+    const settings = getProfileSettings();
+    const currentInput = settings.currentInput; // 'key9', 'key12', 'piano'
+    
+    // 1. Check General Mappings First (Global Overrides)
+    const genAction = findActionInConfig('general', gestureKey);
+    if (genAction) {
+        executeGeneralAction(genAction);
+        return;
+    }
+
+    // 2. Check Specific Input Mappings
+    const value = findActionInConfig(currentInput, gestureKey);
+    if (value) {
+        // Map Piano Keys/Letters back to values if needed
+        addValue(value);
+        
+        // Audio Feedback (Morse)
+        const config = appSettings.gestureConfig[currentInput];
+        const mappings = getActiveMappings(currentInput);
+        // Find the map key that resulted in this value to get its morse
+        // This is a reverse lookup, slightly inefficient but robust
+        for (const [key, map] of Object.entries(mappings)) {
+             if (map.gesture === gestureKey) {
+                 if (map.morse) vibrateMorse(map.morse);
+                 break;
+             }
+        }
+    }
+}
+
+// Helper to look into the complex config object
+function findActionInConfig(sectionKey, gestureKey) {
+    const mappings = getActiveMappings(sectionKey);
+    if (!mappings) return null;
+
+    for (const [id, data] of Object.entries(mappings)) {
+        if (data.gesture === gestureKey) {
+            // ID looks like 'k9_1', 'gen_backspace', etc.
+            // We need to extract the actionable value.
+            if (sectionKey === 'general') {
+                return id.replace('gen_', ''); // returns 'backspace', 'settings'
+            } else if (sectionKey === 'piano') {
+                return id.replace('piano_', ''); // returns 'C', '1', etc.
+            } else {
+                // key9/key12: extract the number after the underscore
+                return id.split('_')[1]; 
             }
         }
     }
-    for(let i=1;i<=12;i++){ const k12 = 'k12_' + i; if(gm[k12] && gm[k12].gesture === kind) return i; }
-    for(let i=1;i<=9;i++){ const k9 = 'k9_' + i; if(gm[k9] && gm[k9].gesture === kind) return i; }
     return null;
 }
+
+// Helper to get the correct mapping object (Custom or Built-in)
+function getActiveMappings(sectionKey) {
+    if (!appSettings.gestureConfig || !appSettings.gestureConfig[sectionKey]) return {};
+    const config = appSettings.gestureConfig[sectionKey];
+    const activeId = config.activePreset;
+
+    // Try Custom
+    if (config.customPresets && config.customPresets[activeId]) {
+        return config.customPresets[activeId].mappings;
+    }
+    // Try Preloaded (Requires import, or assume global if attached to window. Or just access settings.js logic if available. 
+    // Since we are in app.js, we need access to PRELOADED_GESTURE_PRESETS.
+    // For simplicity, we will assume modules.settings has it or we re-import it. 
+    // BETTER: Let's attach PRELOADED to appSettings during load/init so app.js can see it easily without imports.)
+    
+    // *Correction*: To keep this simple without import messes, ensure PRELOADED_GESTURE_PRESETS 
+    // is available globally or accessible via modules.settings.constructor.PRELOADED...
+    // *Workaround*: We will rely on SettingsManager to have synced it, OR we just look at the `PRELOADED_GESTURE_PRESETS` 
+    // which we will assume is imported at the top of app.js. 
+    
+    // *Wait*: You cannot import at top of app.js easily if not a module. 
+    // We will assume `import { PRELOADED_GESTURE_PRESETS } from './settings.js';` is added to the top of app.js.
+    
+    if (PRELOADED_GESTURE_PRESETS && PRELOADED_GESTURE_PRESETS[sectionKey] && PRELOADED_GESTURE_PRESETS[sectionKey][activeId]) {
+        return PRELOADED_GESTURE_PRESETS[sectionKey][activeId].mappings;
+    }
+    return {};
+}
+
+function executeGeneralAction(action) {
+    console.log("General Action:", action);
+    vibrate(); // Feedback
+    if (action === 'backspace') {
+        handleBackspace();
+    } else if (action === 'settings') {
+        modules.settings.openSettings();
+    } else if (action === 'reset') {
+        // Reset Logic
+        const s = getState();
+        s.currentRound = 1;
+        s.sequences[0] = [];
+        s.nextSequenceIndex = 0;
+        renderUI();
+        saveState();
+        showToast("Reset to Round 1");
+    } else if (action === 'playstop') {
+        if (isDemoPlaying) {
+             isDemoPlaying = false; 
+             showToast("Stopped 🛑");
+        } else {
+             playDemo();
+        }
+    }
+}
+
+// Simple Visual Feedback for Gestures (Ghost Text)
+function showGestureFeedback(text) {
+    const feedback = document.createElement('div');
+    feedback.textContent = text.replace(/_/g, ' ').toUpperCase();
+    feedback.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); font-size:2rem; color:rgba(255,255,255,0.5); font-weight:bold; pointer-events:none; z-index:40; animation: fadeOut 0.5s forwards;";
+    document.body.appendChild(feedback);
+    setTimeout(() => feedback.remove(), 500);
+}
+
+// Add css animation for feedback
+const style = document.createElement('style');
+style.innerHTML = `@keyframes fadeOut { 0% { opacity: 1; transform:translate(-50%, -50%) scale(0.8); } 100% { opacity: 0; transform:translate(-50%, -50%) scale(1.5); } }`;
+document.head.appendChild(style);
+
 
 function speak(text) { 
     if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; 

@@ -917,4 +917,3 @@ export class SettingsManager {
         ];
         return sections.find(s => s.key === key);
     }
-}

@@ -239,12 +239,13 @@ export class SettingsManager {
         this.tempTheme = null; this.initListeners(); this.populateConfigDropdown(); this.populateThemeDropdown(); this.buildColorGrid(); this.populateVoicePresetDropdown();
         this.populateMappingUI();
         if(this.dom.gestureToggle){
-            this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
-            this.dom.gestureToggle.addEventListener('change', (e) => {
-                this.appSettings.isGestureInputEnabled = !!e.target.checked;
-                this.callbacks.onSave();
-                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
-            });
+    this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+    this.dom.gestureToggle.addEventListener('change', (e) => {
+        this.appSettings.isGestureInputEnabled = !!e.target.checked;
+        this.callbacks.onSave();
+        // Call the new global update function from app.js
+        if(window.updateGestureLayerVisibility) window.updateGestureLayerVisibility(); 
+    });
         }
     }
     populateVoicePresetDropdown() {

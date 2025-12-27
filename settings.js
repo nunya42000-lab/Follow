@@ -1,5 +1,110 @@
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
+// Helper to get standard morse for a value (1-12, A-G)
+const GET_MORSE = (val) => {
+    const map = {
+        '1': '.', '2': '..', '3': '...', '4': '-.', '5': '-..', '6': '-...', 
+        '7': '--', '8': '--.', '9': '---', '10': '...-', '11': '.-.', '12': '.--',
+        'C': '.', 'D': '..', 'E': '.-', 'F': '...', 'G': '..-', 'A': '.-.', 'B': '.--'
+    };
+    return map[val] || '.';
+};
+
+export const PRELOADED_GESTURE_PRESETS = {
+    'key9': {
+        'taps': {
+            name: "Taps (Default)",
+            mappings: {
+                'k9_1': { gesture: 'tap', morse: GET_MORSE('1') },
+                'k9_2': { gesture: 'double_tap', morse: GET_MORSE('2') },
+                'k9_3': { gesture: 'triple_tap', morse: GET_MORSE('3') },
+                'k9_4': { gesture: 'tap_2f', morse: GET_MORSE('4') },
+                'k9_5': { gesture: 'double_tap_2f', morse: GET_MORSE('5') },
+                'k9_6': { gesture: 'triple_tap_2f', morse: GET_MORSE('6') },
+                'k9_7': { gesture: 'tap_3f', morse: GET_MORSE('7') },
+                'k9_8': { gesture: 'double_tap_3f', morse: GET_MORSE('8') },
+                'k9_9': { gesture: 'triple_tap_3f', morse: GET_MORSE('9') },
+            }
+        },
+        'swipes': {
+            name: "Swipes (Default)",
+            mappings: {
+                'k9_1': { gesture: 'swipe_nw', morse: GET_MORSE('1') },
+                'k9_2': { gesture: 'swipe_up', morse: GET_MORSE('2') },
+                'k9_3': { gesture: 'swipe_ne', morse: GET_MORSE('3') },
+                'k9_4': { gesture: 'swipe_left', morse: GET_MORSE('4') },
+                'k9_5': { gesture: 'tap', morse: GET_MORSE('5') },
+                'k9_6': { gesture: 'swipe_right', morse: GET_MORSE('6') },
+                'k9_7': { gesture: 'swipe_sw', morse: GET_MORSE('7') },
+                'k9_8': { gesture: 'swipe_down', morse: GET_MORSE('8') },
+                'k9_9': { gesture: 'swipe_se', morse: GET_MORSE('9') },
+            }
+        }
+    },
+    'key12': {
+        'taps': {
+            name: "Taps (Default)",
+            mappings: {
+                'k12_1': { gesture: 'tap', morse: GET_MORSE('1') },
+                'k12_2': { gesture: 'double_tap', morse: GET_MORSE('2') },
+                'k12_3': { gesture: 'triple_tap', morse: GET_MORSE('3') },
+                'k12_4': { gesture: 'long_tap', morse: GET_MORSE('4') },
+                'k12_5': { gesture: 'tap_2f', morse: GET_MORSE('5') },
+                'k12_6': { gesture: 'double_tap_2f', morse: GET_MORSE('6') },
+                'k12_7': { gesture: 'triple_tap_2f', morse: GET_MORSE('7') },
+                'k12_8': { gesture: 'long_tap_2f', morse: GET_MORSE('8') },
+                'k12_9': { gesture: 'tap_3f', morse: GET_MORSE('9') },
+                'k12_10': { gesture: 'double_tap_3f', morse: GET_MORSE('10') },
+                'k12_11': { gesture: 'triple_tap_3f', morse: GET_MORSE('11') },
+                'k12_12': { gesture: 'long_tap_3f', morse: GET_MORSE('12') },
+            }
+        },
+        'swipes': {
+            name: "Swipes (Default)",
+            mappings: {
+                'k12_1': { gesture: 'swipe_left', morse: GET_MORSE('1') },
+                'k12_2': { gesture: 'swipe_up', morse: GET_MORSE('2') },
+                'k12_3': { gesture: 'swipe_down', morse: GET_MORSE('3') },
+                'k12_4': { gesture: 'swipe_right', morse: GET_MORSE('4') },
+                'k12_5': { gesture: 'swipe_left_2f', morse: GET_MORSE('5') },
+                'k12_6': { gesture: 'swipe_up_2f', morse: GET_MORSE('6') },
+                'k12_7': { gesture: 'swipe_down_2f', morse: GET_MORSE('7') },
+                'k12_8': { gesture: 'swipe_right_2f', morse: GET_MORSE('8') },
+                'k12_9': { gesture: 'swipe_left_3f', morse: GET_MORSE('9') },
+                'k12_10': { gesture: 'swipe_up_3f', morse: GET_MORSE('10') },
+                'k12_11': { gesture: 'swipe_down_3f', morse: GET_MORSE('11') },
+                'k12_12': { gesture: 'swipe_right_3f', morse: GET_MORSE('12') },
+            }
+        }
+    },
+    'piano': {
+        'swipes': {
+            name: "Swipes (Default)",
+            mappings: {
+                'piano_1': { gesture: 'swipe_left_2f', morse: GET_MORSE('1') },
+                'piano_2': { gesture: 'swipe_nw_2f', morse: GET_MORSE('2') },
+                'piano_3': { gesture: 'swipe_up_2f', morse: GET_MORSE('3') },
+                'piano_4': { gesture: 'swipe_ne_2f', morse: GET_MORSE('4') },
+                'piano_5': { gesture: 'swipe_right_2f', morse: GET_MORSE('5') },
+                'piano_C': { gesture: 'swipe_nw', morse: GET_MORSE('C') },
+                'piano_D': { gesture: 'swipe_left', morse: GET_MORSE('D') },
+                'piano_E': { gesture: 'swipe_sw', morse: GET_MORSE('E') },
+                'piano_F': { gesture: 'swipe_down', morse: GET_MORSE('F') },
+                'piano_G': { gesture: 'swipe_se', morse: GET_MORSE('G') },
+                'piano_A': { gesture: 'swipe_right', morse: GET_MORSE('A') },
+                'piano_B': { gesture: 'swipe_ne', morse: GET_MORSE('B') },
+            }
+        }
+    },
+    'general': {
+        'default': {
+            name: "General Actions",
+            mappings: {} // Will be populated later as requested
+        }
+    }
+};
+                    
+
 export const PREMADE_THEMES = {
     'default': { name: "Default Dark", bgMain: "#000000", bgCard: "#121212", bubble: "#4f46e5", btn: "#1a1a1a", text: "#e5e5e5" },
     'light': { name: "Light Mode", bgMain: "#f3f4f6", bgCard: "#ffffff", bubble: "#4f46e5", btn: "#e5e7eb", text: "#111827" },

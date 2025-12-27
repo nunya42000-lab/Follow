@@ -69,16 +69,60 @@ function loadState() {
     try { 
         const s = localStorage.getItem(CONFIG.STORAGE_KEY_SETTINGS); 
         const st = localStorage.getItem(CONFIG.STORAGE_KEY_STATE); 
+        
+        // 1. Initialize appSettings with Defaults first
+        appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
+
         if(s) { 
             const loaded = JSON.parse(s); 
-            appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } }; if (!appSettings.gestureConfig) {
-        appSettings.gestureConfig = {
-            'key9': { activePreset: 'taps', customPresets: {} },
-            'key12': { activePreset: 'taps', customPresets: {} },
-            'piano': { activePreset: 'swipes', customPresets: {} },
-            'general': { activePreset: 'default', customPresets: {} }
-        };
-    }
+            // 2. Merge loaded data carefully
+            appSettings = { 
+                ...appSettings, 
+                ...loaded, 
+                profiles: { ...appSettings.profiles, ...(loaded.profiles || {}) }, 
+                customThemes: { ...appSettings.customThemes, ...(loaded.customThemes || {}) } 
+            }; 
+
+            // 3. REPAIR: Ensure gestureConfig has all required sections
+            if (!appSettings.gestureConfig) appSettings.gestureConfig = {};
+            
+            const requiredKeys = ['key9', 'key12', 'piano', 'general'];
+            requiredKeys.forEach(key => {
+                // If a section is missing (e.g. user has old data), copy it from Default
+                if (!appSettings.gestureConfig[key]) {
+                    appSettings.gestureConfig[key] = JSON.parse(JSON.stringify(DEFAULT_APP.gestureConfig[key]));
+                }
+            });
+
+            // 4. Ensure other boolean flags exist
+            if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
+            if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
+            if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
+            if (typeof appSettings.isUniqueRoundsAutoClearEnabled === 'undefined') appSettings.isUniqueRoundsAutoClearEnabled = true; 
+            if (typeof appSettings.showTimer === 'undefined') appSettings.showTimer = false;
+            if (typeof appSettings.showCounter === 'undefined') appSettings.showCounter = false;
+            if (!appSettings.voicePresets) appSettings.voicePresets = {};
+            if (!appSettings.activeVoicePresetId) appSettings.activeVoicePresetId = 'standard';
+            if (!appSettings.generalLanguage) appSettings.generalLanguage = 'en';
+            if (!appSettings.gestureResizeMode) appSettings.gestureResizeMode = 'global';
+
+            // 5. Runtime Settings Safety
+            if(!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles['profile_1'].settings)); 
+            if(appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
+        } 
+        
+        // Load State (Session)
+        if(st) appState = JSON.parse(st); 
+        if(!appState['current_session']) appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
+        appState['current_session'].currentRound = parseInt(appState['current_session'].currentRound) || 1;
+        
+    } catch(e) { 
+        console.error("Load failed", e); 
+        // Emergency Reset
+        appSettings = JSON.parse(JSON.stringify(DEFAULT_APP)); 
+        saveState(); 
+    } 
+                }
             }
             
             if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;

@@ -587,69 +587,333 @@ export class SettingsManager {
     hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
 
+   // 1. Main Entry Point for Mapping Tab
     populateMappingUI() {
-        if(!this.dom) return;
-        if(!this.appSettings) return;
-        if(!this.appSettings.gestureMappings) this.appSettings.gestureMappings = {};
+        const root = document.getElementById('mapping-accordion-root');
+        if (!root) return;
+        root.innerHTML = ''; // Clear previous
 
-        const container9 = this.dom.mapping9Container;
-        const container12 = this.dom.mapping12Container;
-        const containerPiano = this.dom.mappingPianoContainer;
+        // Define the sections we want
+        const sections = [
+            { key: 'key9', title: '9-Key Input', mapPrefix: 'k9_', count: 9 },
+            { key: 'key12', title: '12-Key Input', mapPrefix: 'k12_', count: 12 },
+            { key: 'piano', title: 'Piano Input', mapPrefix: 'piano_', count: 12 }, // Special handling for piano keys
+            { key: 'general', title: 'General Actions', mapPrefix: 'gen_', count: 0 }
+        ];
 
-        const gestureOptions = [ 'tap','double_tap','long_tap', 'tap_2f','double_tap_2f','long_tap_2f', 'tap_3f','double_tap_3f','long_tap_3f', 'swipe_left','swipe_right','swipe_up','swipe_down', 'swipe_nw','swipe_ne','swipe_se','swipe_sw', 'swipe_left_2f','swipe_right_2f','swipe_up_2f','swipe_down_2f', 'swipe_left_3f','swipe_right_3f','swipe_up_3f','swipe_down_3f' ];
-        const morseOptions = ['.', '..', '...', '-', '-.', '-..', '--', '--.', '---', '...-', '.-.', '.--', '..-','.-'];
+        sections.forEach(sec => {
+            // A. Create Accordion
+            const details = document.createElement('details');
+            details.className = "group bg-black bg-opacity-20 border border-custom rounded-lg overflow-hidden mb-2";
+            // Open the section that matches current input mode for convenience
+            const currentModeInput = this.appSettings.runtimeSettings.currentInput;
+            if (sec.key === currentModeInput) details.open = true;
 
-        const makeRow = (labelText, keyName, mappingId) => {
-            const wrapper = document.createElement('div');
-            wrapper.className = "flex items-center space-x-2 mapping-row";
-            const lbl = document.createElement('div');
-            lbl.className = "text-sm font-semibold w-24";
-            lbl.textContent = labelText;
-            const gestureSelect = document.createElement('select');
-            gestureSelect.className = "settings-input p-2 rounded flex-grow";
-            gestureSelect.id = mappingId + "-gesture";
-            gestureOptions.forEach(o => { const opt = document.createElement('option'); opt.value = o; opt.textContent = o.replace(/_/g,' '); gestureSelect.appendChild(opt); });
-            const morseSelect = document.createElement('select');
-            morseSelect.className = "settings-input p-2 rounded w-28";
-            morseSelect.id = mappingId + "-morse";
-            morseOptions.forEach(m => { const opt = document.createElement('option'); opt.value = m; opt.textContent = m; morseSelect.appendChild(opt); });
+            const summary = document.createElement('summary');
+            summary.className = "p-3 font-bold cursor-pointer hover:bg-white hover:bg-opacity-5 select-none flex justify-between items-center";
+            summary.innerHTML = `<span>${sec.title}</span><span class="transform group-open:rotate-180 transition-transform">▼</span>`;
+            
+            const content = document.createElement('div');
+            content.className = "p-3 border-t border-custom bg-black bg-opacity-30";
 
-            wrapper.appendChild(lbl);
-            wrapper.appendChild(gestureSelect);
-            wrapper.appendChild(morseSelect);
+            // B. Create Preset Controls (Dropdown + Buttons)
+            const controls = this.createPresetControls(sec.key, content);
+            content.appendChild(controls);
 
-            const gm = this.appSettings.gestureMappings || {};
-            if(gm[keyName]) { gestureSelect.value = gm[keyName].gesture || gestureSelect.value; morseSelect.value = gm[keyName].morse || morseSelect.value; }
+            // C. Create Grid Container for Rows
+            const grid = document.createElement('div');
+            grid.id = `grid-${sec.key}`;
+            grid.className = "grid grid-cols-1 gap-2 mt-3"; 
+            content.appendChild(grid);
 
-            const save = () => {
-                this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
-                this.appSettings.gestureMappings[keyName] = { gesture: gestureSelect.value, morse: morseSelect.value };
-                this.callbacks.onSave && this.callbacks.onSave();
-                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
-            };
-            gestureSelect.addEventListener('change', save);
-            morseSelect.addEventListener('change', save);
-            return wrapper;
-        };
+            details.appendChild(summary);
+            details.appendChild(content);
+            root.appendChild(details);
 
-        if(container9) { container9.innerHTML = ''; for(let i=1;i<=9;i++){ container9.appendChild(makeRow(String(i), 'k9_' + i, 'map9_'+i)); } }
-        if(container12) { container12.innerHTML = ''; for(let i=1;i<=12;i++){ container12.appendChild(makeRow(String(i), 'k12_' + i, 'map12_'+i)); } }
-        if(containerPiano) { containerPiano.innerHTML = ''; const pianoOrder = ['C','D','E','F','G','A','B','1','2','3','4','5']; pianoOrder.forEach((id) => { containerPiano.appendChild(makeRow(id, 'piano_' + id, 'mapp_' + id)); }); }
-
-        if(!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
-            this.applyDefaultGestureMappings();
-            this.callbacks.onSave && this.callbacks.onSave();
-            setTimeout(()=>{ this.populateMappingUI(); }, 50);
-        }
+            // D. Render the actual rows based on active preset
+            this.renderMappingRows(sec, grid);
+        });
     }
 
-    applyDefaultGestureMappings() {
-        this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
-        const defs = {
-            'k9_1': { gesture: 'tap', morse: '.' }, 'k9_2': { gesture: 'double_tap', morse: '..' }, 'k9_3': { gesture: 'long_tap', morse: '...' }, 'k9_4': { gesture: 'tap_2f', morse: '-' }, 'k9_5': { gesture: 'double_tap_2f', morse: '-.' }, 'k9_6': { gesture: 'long_tap_2f', morse: '-..' }, 'k9_7': { gesture: 'tap_3f', morse: '--' }, 'k9_8': { gesture: 'double_tap_3f', morse: '--.' }, 'k9_9': { gesture: 'long_tap_3f', morse: '---' },
-            'k12_1': { gesture: 'swipe_left', morse: '.' }, 'k12_2': { gesture: 'swipe_down', morse: '..' }, 'k12_3': { gesture: 'swipe_up', morse: '...' }, 'k12_4': { gesture: 'swipe_right', morse: '...-' }, 'k12_5': { gesture: 'swipe_left_2f', morse: '-' }, 'k12_6': { gesture: 'swipe_down_2f', morse: '-.' }, 'k12_7': { gesture: 'swipe_up_2f', morse: '-..' }, 'k12_8': { gesture: 'swipe_right_2f', morse: '-.-' }, 'k12_9': { gesture: 'swipe_left_3f', morse: '--' }, 'k12_10': { gesture: 'swipe_down_3f', morse: '--.' }, 'k12_11': { gesture: 'swipe_up_3f', morse: '--..' }, 'k12_12': { gesture: 'swipe_right_3f', morse: '---' },
-            'piano_C': { gesture: 'swipe_nw', morse: '.' }, 'piano_D': { gesture: 'swipe_left', morse: '..' }, 'piano_E': { gesture: 'swipe_sw', morse: '.-' }, 'piano_F': { gesture: 'swipe_down', morse: '...' }, 'piano_G': { gesture: 'swipe_se', morse: '..-' }, 'piano_A': { gesture: 'swipe_right', morse: '.-.' }, 'piano_B': { gesture: 'swipe_ne', morse: '.--' }, 'piano_1': { gesture: 'swipe_left_2f', morse: '-' }, 'piano_2': { gesture: 'swipe_nw_2f', morse: '-.' }, 'piano_3': { gesture: 'swipe_up_2f', morse: '--' }, 'piano_4': { gesture: 'swipe_ne_2f', morse: '-..' }, 'piano_5': { gesture: 'swipe_right_2f', morse: '-.-' }
+    // 2. Build the Preset Control Bar
+    createPresetControls(sectionKey, parentDiv) {
+        const container = document.createElement('div');
+        container.className = "mb-4 p-2 bg-white bg-opacity-5 rounded border border-gray-700";
+
+        // Dropdown
+        const select = document.createElement('select');
+        select.className = "settings-input w-full p-2 rounded mb-2 font-bold text-sm";
+        this.populatePresetSelect(select, sectionKey);
+        
+        select.onchange = (e) => {
+            // Update State
+            this.appSettings.gestureConfig[sectionKey].activePreset = e.target.value;
+            this.callbacks.onSave();
+            // Re-render rows
+            const grid = parentDiv.querySelector(`#grid-${sectionKey}`);
+            this.renderMappingRows(this.getSectionDef(sectionKey), grid);
         };
-        this.appSettings.gestureMappings = Object.assign({}, defs, this.appSettings.gestureMappings || {});
+
+        // Buttons Row
+        const btnRow = document.createElement('div');
+        btnRow.className = "grid grid-cols-4 gap-2";
+
+        const mkBtn = (txt, color, cb) => {
+            const b = document.createElement('button');
+            b.textContent = txt;
+            b.className = `py-1 px-2 text-[10px] md:text-xs font-bold text-white rounded bg-${color}-600 hover:bg-${color}-500`;
+            b.onclick = cb;
+            return b;
+        };
+
+        // NEW
+        btnRow.appendChild(mkBtn("NEW", "blue", () => {
+            const name = prompt("New Preset Name:");
+            if(!name) return;
+            const newId = 'cust_' + Date.now();
+            const currentMappings = this.getCurrentMappings(sectionKey);
+            
+            // Init customPresets if missing
+            if(!this.appSettings.gestureConfig[sectionKey].customPresets) {
+                this.appSettings.gestureConfig[sectionKey].customPresets = {};
+            }
+
+            this.appSettings.gestureConfig[sectionKey].customPresets[newId] = {
+                name: name,
+                mappings: JSON.parse(JSON.stringify(currentMappings)) // Deep copy current
+            };
+            this.appSettings.gestureConfig[sectionKey].activePreset = newId;
+            
+            this.callbacks.onSave();
+            this.populatePresetSelect(select, sectionKey); // Refresh dropdown
+            const grid = parentDiv.querySelector(`#grid-${sectionKey}`);
+            this.renderMappingRows(this.getSectionDef(sectionKey), grid); // Refresh grid
+        }));
+
+        // SAVE
+        btnRow.appendChild(mkBtn("SAVE", "green", () => {
+            const activeId = this.appSettings.gestureConfig[sectionKey].activePreset;
+            // Check if built-in
+            if (PRELOADED_GESTURE_PRESETS[sectionKey] && PRELOADED_GESTURE_PRESETS[sectionKey][activeId]) {
+                alert("Cannot overwrite built-in presets. Please create a NEW one.");
+                return;
+            }
+            // It's custom, so save current DOM values to state
+            this.scrapeAndSaveRows(sectionKey);
+            alert("Preset Saved!");
+        }));
+
+        // RENAME
+        btnRow.appendChild(mkBtn("RENAME", "gray", () => {
+            const activeId = this.appSettings.gestureConfig[sectionKey].activePreset;
+            if (PRELOADED_GESTURE_PRESETS[sectionKey] && PRELOADED_GESTURE_PRESETS[sectionKey][activeId]) {
+                alert("Cannot rename built-in presets.");
+                return;
+            }
+            const currentName = this.appSettings.gestureConfig[sectionKey].customPresets[activeId].name;
+            const newName = prompt("Rename:", currentName);
+            if(newName) {
+                this.appSettings.gestureConfig[sectionKey].customPresets[activeId].name = newName;
+                this.callbacks.onSave();
+                this.populatePresetSelect(select, sectionKey);
+            }
+        }));
+
+        // DELETE
+        btnRow.appendChild(mkBtn("DELETE", "red", () => {
+            const activeId = this.appSettings.gestureConfig[sectionKey].activePreset;
+            if (PRELOADED_GESTURE_PRESETS[sectionKey] && PRELOADED_GESTURE_PRESETS[sectionKey][activeId]) {
+                alert("Cannot delete built-in presets.");
+                return;
+            }
+            if(confirm("Delete this preset?")) {
+                delete this.appSettings.gestureConfig[sectionKey].customPresets[activeId];
+                // Fallback to first available preset
+                const builtIns = Object.keys(PRELOADED_GESTURE_PRESETS[sectionKey] || {});
+                this.appSettings.gestureConfig[sectionKey].activePreset = builtIns[0] || 'default';
+                
+                this.callbacks.onSave();
+                this.populatePresetSelect(select, sectionKey);
+                // Trigger change to reload grid
+                select.onchange({target: select});
+            }
+        }));
+
+        container.appendChild(select);
+        container.appendChild(btnRow);
+        return container;
+    }
+
+    // 3. Render the Rows (Inputs)
+    renderMappingRows(section, gridDiv) {
+        if(!gridDiv) return;
+        gridDiv.innerHTML = '';
+
+        // Get current mapping object
+        const mappings = this.getCurrentMappings(section.key);
+        
+        // Define items to render
+        let items = [];
+        if (section.key === 'piano') {
+            items = ['C','D','E','F','G','A','B','1','2','3','4','5'];
+        } else if (section.key === 'general') {
+            // General Placeholders for now
+            items = ['Backspace', 'Play/Stop', 'Reset Rounds', 'Settings']; 
+        } else {
+            // 1 to Count
+            for(let i=1; i<=section.count; i++) items.push(String(i));
+        }
+
+        const gestureOptions = [ 'tap','double_tap','triple_tap','long_tap', 'tap_2f','double_tap_2f','triple_tap_2f','long_tap_2f', 'tap_3f','double_tap_3f','triple_tap_3f','long_tap_3f', 'swipe_left','swipe_right','swipe_up','swipe_down', 'swipe_nw','swipe_ne','swipe_se','swipe_sw', 'swipe_left_2f','swipe_right_2f','swipe_up_2f','swipe_down_2f', 'swipe_left_3f','swipe_right_3f','swipe_up_3f','swipe_down_3f' ];
+        const morseOptions = ['.', '..', '...', '-', '-.', '-..', '--', '--.', '---', '...-', '.-.', '.--', '..-','.-'];
+
+        items.forEach(val => {
+            // Determine ID
+            let mapId;
+            if (section.key === 'general') {
+                mapId = 'gen_' + val.toLowerCase().replace(/[^a-z]/g, '');
+            } else {
+                mapId = section.mapPrefix + val;
+            }
+
+            const row = document.createElement('div');
+            row.className = "flex items-center gap-2 mb-1 p-1 rounded hover:bg-white hover:bg-opacity-5";
+            row.dataset.mapId = mapId; // Store for scraping later
+
+            // Label
+            const lbl = document.createElement('div');
+            lbl.className = "w-16 font-bold text-sm text-right pr-2";
+            lbl.textContent = val;
+            
+            // Gesture Select
+            const gSel = document.createElement('select');
+            gSel.className = "flex-grow bg-black bg-opacity-40 border border-gray-600 rounded text-xs p-2 h-8";
+            gSel.dataset.type = "gesture";
+            
+            // Default blank option
+            const defOpt = document.createElement('option');
+            defOpt.value = ""; defOpt.textContent = "--";
+            gSel.appendChild(defOpt);
+
+            gestureOptions.forEach(opt => {
+                const o = document.createElement('option');
+                o.value = opt;
+                o.textContent = opt.replace(/_/g, ' ');
+                gSel.appendChild(o);
+            });
+
+            // Morse Select
+            const mSel = document.createElement('select');
+            mSel.className = "w-20 bg-black bg-opacity-40 border border-gray-600 rounded text-xs p-2 h-8 font-mono";
+            mSel.dataset.type = "morse";
+            morseOptions.forEach(opt => {
+                const o = document.createElement('option');
+                o.value = opt;
+                o.textContent = opt;
+                mSel.appendChild(o);
+            });
+
+            // Apply values if they exist in mapping
+            if (mappings[mapId]) {
+                gSel.value = mappings[mapId].gesture || "";
+                mSel.value = mappings[mapId].morse || ".";
+            }
+
+            // Auto-save on change? 
+            // The prompt requested standard Save button logic. 
+            // So we WON'T auto-save to state here, but we could highlight the row as 'dirty'.
+            // For simplicity, we just let the Save button handle the scrape.
+
+            row.appendChild(lbl);
+            row.appendChild(gSel);
+            row.appendChild(mSel);
+            gridDiv.appendChild(row);
+        });
+    }
+
+    // Helper: Scrape DOM and update the Custom Preset
+    scrapeAndSaveRows(sectionKey) {
+        const grid = document.getElementById(`grid-${sectionKey}`);
+        if(!grid) return;
+        
+        const activeId = this.appSettings.gestureConfig[sectionKey].activePreset;
+        // Ensure we are editing a custom preset
+        if(!this.appSettings.gestureConfig[sectionKey].customPresets[activeId]) return;
+
+        const newMappings = {};
+        const rows = grid.children;
+        for (let row of rows) {
+            const mapId = row.dataset.mapId;
+            const gVal = row.querySelector('[data-type="gesture"]').value;
+            const mVal = row.querySelector('[data-type="morse"]').value;
+            
+            if(gVal) {
+                newMappings[mapId] = { gesture: gVal, morse: mVal };
+            }
+        }
+        
+        this.appSettings.gestureConfig[sectionKey].customPresets[activeId].mappings = newMappings;
+        this.callbacks.onSave();
+    }
+
+    // Helper: Get Current Mapping Object based on Active Preset
+    getCurrentMappings(sectionKey) {
+        const config = this.appSettings.gestureConfig[sectionKey];
+        if(!config) return {};
+        const activeId = config.activePreset;
+
+        // 1. Try Custom
+        if (config.customPresets && config.customPresets[activeId]) {
+            return config.customPresets[activeId].mappings;
+        }
+        // 2. Try Built-in
+        if (PRELOADED_GESTURE_PRESETS[sectionKey] && PRELOADED_GESTURE_PRESETS[sectionKey][activeId]) {
+            return PRELOADED_GESTURE_PRESETS[sectionKey][activeId].mappings;
+        }
+        return {};
+    }
+
+    // Helper: Populate Dropdown
+    populatePresetSelect(selectElement, sectionKey) {
+        selectElement.innerHTML = '';
+        const config = this.appSettings.gestureConfig[sectionKey];
+
+        // Built-ins
+        const grp1 = document.createElement('optgroup');
+        grp1.label = "Built-in";
+        const builtIns = PRELOADED_GESTURE_PRESETS[sectionKey] || {};
+        Object.keys(builtIns).forEach(key => {
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = builtIns[key].name;
+            grp1.appendChild(opt);
+        });
+        selectElement.appendChild(grp1);
+
+        // Customs
+        const grp2 = document.createElement('optgroup');
+        grp2.label = "My Presets";
+        const customs = config.customPresets || {};
+        Object.keys(customs).forEach(key => {
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = customs[key].name;
+            grp2.appendChild(opt);
+        });
+        selectElement.appendChild(grp2);
+
+        // Set Active
+        selectElement.value = config.activePreset;
+    }
+
+    // Helper: Get section definition object by key
+    getSectionDef(key) {
+        const sections = [
+            { key: 'key9', title: '9-Key Input', mapPrefix: 'k9_', count: 9 },
+            { key: 'key12', title: '12-Key Input', mapPrefix: 'k12_', count: 12 },
+            { key: 'piano', title: 'Piano Input', mapPrefix: 'piano_', count: 12 },
+            { key: 'general', title: 'General Actions', mapPrefix: 'gen_', count: 0 }
+        ];
+        return sections.find(s => s.key === key);
     }
 }

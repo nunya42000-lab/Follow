@@ -920,7 +920,7 @@ function initGlobalListeners() {
         if(headerMic) {
             headerMic.onclick = () => {
                 if(!modules.sensor) return;
-                modules.sensor.toggleAudio();
+                modules.sensor.toggleAudio(!modules.sensor.mode.audio); 
                 renderUI(); 
                 const isActive = modules.sensor.mode.audio;
                 showToast(isActive ? "Mic Input ON 🎤" : "Mic Input OFF 🔇");
@@ -929,7 +929,7 @@ function initGlobalListeners() {
         if(headerCam) {
             headerCam.onclick = () => {
                 if(!modules.sensor) return;
-                modules.sensor.toggleCamera();
+                modules.sensor.toggleCamera(!modules.sensor.mode.camera);
                 renderUI(); 
                 const isActive = modules.sensor.mode.camera;
                 showToast(isActive ? "Camera Input ON 📷" : "Camera Input OFF 🚫");

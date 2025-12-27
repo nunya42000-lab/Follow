@@ -28,7 +28,15 @@ const DEFAULT_APP = {
     runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), 
     isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, 
     selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en', 
-    isGestureInputEnabled: false, gestureMappings: {} 
+    isGestureInputEnabled: false,  
+gestureConfig: {
+    'key9': { activePreset: 'taps', customPresets: {} },
+    'key12': { activePreset: 'taps', customPresets: {} },
+    'piano': { activePreset: 'swipes', customPresets: {} },
+    'general': { activePreset: 'default', customPresets: {} }
+},
+isGestureInputEnabled: false
+
 };
 
 const DICTIONARY = {
@@ -63,7 +71,15 @@ function loadState() {
         const st = localStorage.getItem(CONFIG.STORAGE_KEY_STATE); 
         if(s) { 
             const loaded = JSON.parse(s); 
-            appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } }; 
+            appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } }; if (!appSettings.gestureConfig) {
+        appSettings.gestureConfig = {
+            'key9': { activePreset: 'taps', customPresets: {} },
+            'key12': { activePreset: 'taps', customPresets: {} },
+            'piano': { activePreset: 'swipes', customPresets: {} },
+            'general': { activePreset: 'default', customPresets: {} }
+        };
+    }
+            }
             
             if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
             if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;

@@ -1,3 +1,4 @@
+
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
 export const PREMADE_THEMES = {
@@ -481,7 +482,6 @@ export class SettingsManager {
 
     hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
-
     populateMappingUI() {
         if(!this.dom) return;
         if(!this.appSettings) return;
@@ -491,7 +491,23 @@ export class SettingsManager {
         const container12 = this.dom.mapping12Container;
         const containerPiano = this.dom.mappingPianoContainer;
 
-        const gestureOptions = [ 'tap','double_tap','long_tap', 'tap_2f','double_tap_2f','long_tap_2f', 'tap_3f','double_tap_3f','long_tap_3f', 'swipe_left','swipe_right','swipe_up','swipe_down', 'swipe_nw','swipe_ne','swipe_se','swipe_sw', 'swipe_left_2f','swipe_right_2f','swipe_up_2f','swipe_down_2f', 'swipe_left_3f','swipe_right_3f','swipe_up_3f','swipe_down_3f' ];
+        // --- UPDATED GESTURE OPTIONS GENERATOR ---
+        const gestureOptions = [];
+        const fingerSuffixes = ['', '_2f', '_3f']; // 1, 2, 3 fingers
+        
+        // 1. Taps
+        const tapTypes = ['tap', 'double_tap', 'triple_tap', 'long_tap'];
+        fingerSuffixes.forEach(f => {
+            tapTypes.forEach(t => gestureOptions.push(t + f));
+        });
+
+        // 2. Swipes (8 Directions)
+        const swipeDirs = ['swipe_up', 'swipe_down', 'swipe_left', 'swipe_right', 'swipe_nw', 'swipe_ne', 'swipe_sw', 'swipe_se'];
+        fingerSuffixes.forEach(f => {
+            swipeDirs.forEach(s => gestureOptions.push(s + f));
+        });
+        // -----------------------------------------
+
         const morseOptions = ['.', '..', '...', '-', '-.', '-..', '--', '--.', '---', '...-', '.-.', '.--', '..-','.-'];
 
         const makeRow = (labelText, keyName, mappingId) => {
@@ -500,10 +516,25 @@ export class SettingsManager {
             const lbl = document.createElement('div');
             lbl.className = "text-sm font-semibold w-24";
             lbl.textContent = labelText;
+            
             const gestureSelect = document.createElement('select');
-            gestureSelect.className = "settings-input p-2 rounded flex-grow";
+            gestureSelect.className = "settings-input p-2 rounded flex-grow text-xs"; // Made text smaller for long names
             gestureSelect.id = mappingId + "-gesture";
-            gestureOptions.forEach(o => { const opt = document.createElement('option'); opt.value = o; opt.textContent = o.replace(/_/g,' '); gestureSelect.appendChild(opt); });
+            
+            // Populate Options
+            gestureOptions.forEach(o => { 
+                const opt = document.createElement('option'); 
+                opt.value = o; 
+                // Format "swipe_nw_2f" -> "Swipe NW (2)"
+                let text = o.replace(/_/g,' ');
+                if(text.includes('2f')) text = text.replace(' 2f', ' (2)');
+                else if(text.includes('3f')) text = text.replace(' 3f', ' (3)');
+                else text = text + ' (1)';
+                
+                opt.textContent = text; 
+                gestureSelect.appendChild(opt); 
+            });
+
             const morseSelect = document.createElement('select');
             morseSelect.className = "settings-input p-2 rounded w-28";
             morseSelect.id = mappingId + "-morse";
@@ -537,6 +568,8 @@ export class SettingsManager {
             setTimeout(()=>{ this.populateMappingUI(); }, 50);
         }
     }
+
+    
 
     applyDefaultGestureMappings() {
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};

@@ -528,7 +528,7 @@ export class SettingsManager {
 
     hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
-            populateMappingUI() {
+    populateMappingUI() {
         if(!this.dom) return;
         if(!this.appSettings) return;
         if(!this.appSettings.gestureMappings) this.appSettings.gestureMappings = {};
@@ -562,10 +562,11 @@ export class SettingsManager {
             'swipe_up_3f', 'swipe_nw_3f', 'swipe_left_3f', 'swipe_sw_3f', 'swipe_down_3f', 'swipe_se_3f', 'swipe_right_3f', 'swipe_ne_3f'
         ];
 
-        // 4. Create Profile Controls (Load/Save/Delete) - RESTYLED TO MATCH PROFILES
+        // 4. Create Profile Controls (Load/Save/Delete)
         const createProfileControls = (container, typeFilter) => {
             const ctrlDiv = document.createElement('div');
-            ctrlDiv.className = "mb-5 p-3 rounded-lg border border-custom bg-opacity-50 settings-input";
+            // FIX: added 'col-span-2' so this block spans the full width of the grid
+            ctrlDiv.className = "col-span-2 mb-5 p-3 rounded-lg border border-custom bg-opacity-50 settings-input";
             
             const lbl = document.createElement('label');
             lbl.textContent = "Gesture Profile";
@@ -671,14 +672,14 @@ export class SettingsManager {
         // 5. Row Builder
         const makeRow = (labelText, keyName, mappingId) => {
             const wrapper = document.createElement('div');
-            wrapper.className = "flex items-center space-x-2 mapping-row border-b border-custom pb-2 mb-2";
+            wrapper.className = "flex items-center space-x-1 mapping-row border-b border-custom pb-1 mb-1";
             
             const lbl = document.createElement('div');
-            lbl.className = "text-sm font-bold w-12 text-center bg-gray-800 rounded py-1 border border-gray-600";
+            lbl.className = "text-sm font-bold w-8 text-center bg-gray-800 rounded py-1 border border-gray-600";
             lbl.textContent = labelText;
             
             const gestureSelect = document.createElement('select');
-            gestureSelect.className = "settings-input p-2 rounded flex-grow text-xs h-9 font-semibold";
+            gestureSelect.className = "settings-input p-1 rounded flex-grow text-[10px] h-8 font-semibold w-full min-w-0";
             gestureSelect.id = mappingId + "-gesture";
             
             gestureList.forEach(g => {
@@ -689,7 +690,7 @@ export class SettingsManager {
             });
 
             const morseSelect = document.createElement('select');
-            morseSelect.className = "settings-input p-1 rounded w-16 text-xs h-9 opacity-80 font-mono";
+            morseSelect.className = "settings-input p-1 rounded w-12 text-[10px] h-8 opacity-80 font-mono";
             morseSelect.id = mappingId + "-morse";
             const morseOpts = ['.', '..', '...', '-', '-.', '-..', '--', '--.', '---', '...-', '.-.', '.--', '..-','.-'];
             morseOpts.forEach(m => { const opt = document.createElement('option'); opt.value = m; opt.textContent = m; morseSelect.appendChild(opt); });
@@ -741,6 +742,7 @@ export class SettingsManager {
             this.applyDefaultGestureMappings();
         }
     }
+
 
     applyDefaultGestureMappings() {
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};

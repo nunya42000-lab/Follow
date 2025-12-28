@@ -141,14 +141,11 @@
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh] overflow-hidden border border-custom m-4">
             
-                        <div class="p-4 border-b border-custom grid grid-cols-3 items-center bg-[var(--card-bg)] z-10 relative">
-                <div class="justify-self-start">
+                        <div class="p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
+                <div class="flex items-center">
                     <select id="general-lang-select" class="bg-black bg-opacity-30 text-white text-xs rounded p-1 border border-gray-600"><option value="en">🇺🇸</option><option value="es">🇲🇽</option></select>
                 </div>
-                <div class="justify-self-center">
-                    <h3 class="text-3xl">⚙️</h3>
-                </div>
-                <div class="justify-self-end flex space-x-5 items-center">
+                <div class="flex space-x-5 items-center">
                     <button id="open-donate-btn" class="text-2xl hover:scale-110 transition-transform" title="Donate">☕</button>
                     <button id="open-redeem-btn-settings" class="text-2xl opacity-70 hover:opacity-100" title="ID">🆔</button>
                     <button id="open-share-button" class="text-xl opacity-70 hover:opacity-100" title="Share">📤</button>

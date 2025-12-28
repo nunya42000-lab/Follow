@@ -27,3 +27,39 @@ body.hide-controls .control-row { display: none !important; }
     border-color: var(--text-main) !important;
     box-shadow: 0 0 10px var(--seq-bubble) !important;
 }
+/* --- INPUT GESTURES MODE (Full Screen) --- */
+/* Hide the footer completely */
+body.input-gestures-mode #input-footer {
+    display: none !important;
+}
+
+/* Expand the gesture wrapper to fill screen */
+body.input-gestures-mode #gesture-pad-wrapper {
+    display: block !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 30; /* Below Header (40) but above standard content */
+    background: rgba(0, 0, 0, 0.05); /* Very subtle tint to indicate active area */
+}
+
+/* Force the pad itself to fill the wrapper */
+body.input-gestures-mode #gesture-pad {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+}
+
+/* Center the help text and ensure it doesn't block touches */
+body.input-gestures-mode #gesture-indicator {
+    font-size: 1.2rem;
+    font-weight: bold;
+    opacity: 0.3;
+    pointer-events: none;
+    color: var(--text-main);
+                          }

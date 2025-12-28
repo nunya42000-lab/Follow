@@ -1,4 +1,5 @@
 
+
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
 export const PREMADE_THEMES = {
@@ -164,7 +165,15 @@ export class SettingsManager {
             openShareInside: document.getElementById('open-share-button'), closeShareBtn: document.getElementById('close-share'), closeHelpBtn: document.getElementById('close-help'), closeHelpBtnBottom: document.getElementById('close-help-btn-bottom'), openHelpBtn: document.getElementById('open-help-button'), promptDisplay: document.getElementById('prompt-display'), copyPromptBtn: document.getElementById('copy-prompt-btn'), generatePromptBtn: document.getElementById('generate-prompt-btn'),
             restoreBtn: document.querySelector('button[data-action="restore-defaults"]'),
             calibModal: document.getElementById('calibration-modal'), openCalibBtn: document.getElementById('open-calibration-btn'), closeCalibBtn: document.getElementById('close-calibration-btn'), calibAudioSlider: document.getElementById('calib-audio-slider'), calibCamSlider: document.getElementById('calib-cam-slider'), calibAudioBar: document.getElementById('calib-audio-bar'), calibCamBar: document.getElementById('calib-cam-bar'), calibAudioMarker: document.getElementById('calib-audio-marker'), calibCamMarker: document.getElementById('calib-cam-marker'), calibAudioVal: document.getElementById('audio-val-display'), calibCamVal: document.getElementById('cam-val-display'),
-            redeemModal: document.getElementById('redeem-modal'), openRedeemBtn: document.getElementById('open-redeem-btn'), closeRedeemBtn: document.getElementById('close-redeem-btn'),
+            redeemModal: document.getElementById('redeem-modal'), 
+            openRedeemBtn: document.getElementById('open-redeem-btn'), 
+            closeRedeemBtn: document.getElementById('close-redeem-btn'),
+            redeemImg: document.getElementById('redeem-img'),
+            redeemPlus: document.getElementById('redeem-zoom-in'),
+            redeemMinus: document.getElementById('redeem-zoom-out'),
+
+            openDonateBtn: document.getElementById('open-donate-btn'),
+
 
             openDonateBtn: document.getElementById('open-donate-btn'),
             openRedeemSettingsBtn: document.getElementById('open-redeem-btn-settings'),
@@ -394,8 +403,21 @@ export class SettingsManager {
                 document.getElementById(`tab-${target}`).classList.add('active');
             }
         });
-
         if (this.dom.openShareInside) this.dom.openShareInside.onclick = () => this.openShare();
+        // Restore Settings when closing share
+        if (this.dom.closeShareBtn) this.dom.closeShareBtn.onclick = () => { this.closeShare(); this.openSettings(); };
+        
+        // Redeem Zoom Logic
+        let rScale = 100;
+        const updateRedeem = () => { if(this.dom.redeemImg) this.dom.redeemImg.style.transform = `scale(${rScale/100})`; };
+        
+        if (this.dom.openRedeemBtn) this.dom.openRedeemBtn.onclick = () => { rScale = 100; updateRedeem(); this.toggleRedeem(true); };
+        if (this.dom.closeRedeemBtn) this.dom.closeRedeemBtn.onclick = () => this.toggleRedeem(false);
+        if (this.dom.openRedeemSettingsBtn) this.dom.openRedeemSettingsBtn.onclick = () => { rScale = 100; updateRedeem(); this.toggleRedeem(true); };
+        
+        if (this.dom.redeemPlus) this.dom.redeemPlus.onclick = () => { rScale = Math.min(100, rScale + 10); updateRedeem(); };
+        if (this.dom.redeemMinus) this.dom.redeemMinus.onclick = () => { rScale = Math.max(10, rScale - 10); updateRedeem(); };
+
         if (this.dom.closeShareBtn) this.dom.closeShareBtn.onclick = () => this.closeShare();
         if (this.dom.openRedeemBtn) this.dom.openRedeemBtn.onclick = () => this.toggleRedeem(true);
         if (this.dom.closeRedeemBtn) this.dom.closeRedeemBtn.onclick = () => this.toggleRedeem(false);

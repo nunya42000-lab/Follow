@@ -528,20 +528,25 @@ export class SettingsManager {
 
     hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
-            populateMappingUI() {
+    populateMappingUI() {
         if (!this.dom) return;
         if (!this.appSettings) return;
-        if (!this.appSettings.gestureMappings) this.appSettings.gestureMappings = {};
+        
+        // FIX: Apply defaults BEFORE building the UI so the dropdowns have data
+        if (!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
+            this.applyDefaultGestureMappings();
+        }
+        
         if (!this.appSettings.gestureProfiles) this.appSettings.gestureProfiles = {};
 
-        // 1. CLEAN SLATE: Wipe the tab to remove old headers/text from HTML
+        // 1. CLEAN SLATE
         const tabRoot = document.getElementById('tab-mapping');
         if (tabRoot) {
             tabRoot.innerHTML = ''; 
-            tabRoot.className = "tab-content p-1 space-y-4"; // Ensure clean spacing
+            tabRoot.className = "tab-content p-1 space-y-4";
         }
 
-        // 2. Readable Labels (No Abbreviations)
+        // 2. Readable Labels
         const getLabel = (techName) => {
             let fingers = "";
             if (techName.includes('_3f')) fingers = " (3 Finger)";
@@ -572,24 +577,29 @@ export class SettingsManager {
             'swipe_up_3f', 'swipe_nw_3f', 'swipe_left_3f', 'swipe_sw_3f', 'swipe_down_3f', 'swipe_se_3f', 'swipe_right_3f', 'swipe_ne_3f'
         ];
 
-        // 3. Section Builder Function
+        // 3. Section Builder
         const buildSection = (type, title, keyPrefix, count, customKeys = null) => {
             const wrapper = document.createElement('div');
-            // Card Style matching Game Tab
             wrapper.className = "p-3 rounded-lg border border-custom settings-input bg-opacity-50 mb-4";
 
-            // A. HEADER (e.g. "9-KEY PROFILE")
+            // Header
             const header = document.createElement('div');
             header.className = "mb-2";
             header.innerHTML = `<label class="text-xs font-bold uppercase text-muted-custom block">${title} PROFILE</label>`;
             wrapper.appendChild(header);
 
-            // B. DROPDOWN
+            // Profile Select
             const select = document.createElement('select');
             select.className = "settings-input w-full p-2 rounded mb-3 font-bold";
             
             const populateSelect = () => {
                 select.innerHTML = '';
+                // Default Option to show current state if not strictly matching a profile
+                const def = document.createElement('option');
+                def.textContent = "-- Select Preset --";
+                def.value = "";
+                select.appendChild(def);
+
                 const grp1 = document.createElement('optgroup'); grp1.label = "Built-in";
                 Object.keys(GESTURE_PRESETS).forEach(k => {
                     if(GESTURE_PRESETS[k].type === type) {
@@ -615,36 +625,70 @@ export class SettingsManager {
             populateSelect();
             wrapper.appendChild(select);
 
-            // C. 2x2 BUTTON GRID
+            // Buttons
             const btnGrid = document.createElement('div');
             btnGrid.className = "grid grid-cols-2 gap-2 mb-4"; 
 
-            const btnNew = document.createElement('button'); 
-            btnNew.className = "py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold transition shadow";
-            btnNew.textContent = "NEW";
+            const createBtn = (txt, color, onClick) => {
+                const b = document.createElement('button');
+                b.textContent = txt;
+                b.className = `py-2 text-xs bg-${color}-600 hover:bg-${color}-500 rounded text-white font-bold transition shadow`;
+                b.onclick = onClick;
+                return b;
+            };
 
-            const btnSave = document.createElement('button'); 
-            btnSave.className = "py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold transition shadow";
-            btnSave.textContent = "SAVE 💾";
+            const btnNew = createBtn("NEW", "blue", () => {
+                const name = prompt("New Profile Name:");
+                if(!name) return;
+                const id = 'cust_gest_' + Date.now();
+                const currentMap = {};
+                listContainer.querySelectorAll('select').forEach(inp => currentMap[inp.dataset.key] = inp.value);
+                this.appSettings.gestureProfiles[id] = { name: name, type: type, map: currentMap };
+                this.callbacks.onSave();
+                populateSelect();
+                select.value = id;
+            });
 
-            const btnRen = document.createElement('button'); 
-            btnRen.className = "py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold transition shadow";
-            btnRen.textContent = "RENAME";
+            const btnSave = createBtn("SAVE 💾", "green", () => {
+                const val = select.value;
+                if(!val || GESTURE_PRESETS[val]) return alert("Select a custom profile to save (or use NEW).");
+                const currentMap = {};
+                listContainer.querySelectorAll('select').forEach(inp => currentMap[inp.dataset.key] = inp.value);
+                this.appSettings.gestureProfiles[val].map = currentMap;
+                this.callbacks.onSave();
+                alert("Profile Saved!");
+            });
 
-            const btnDel = document.createElement('button'); 
-            btnDel.className = "py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold transition shadow";
-            btnDel.textContent = "DELETE";
+            const btnRen = createBtn("RENAME", "gray", () => {
+                const val = select.value;
+                if(!val || GESTURE_PRESETS[val]) return alert("Cannot rename built-in profiles.");
+                const newName = prompt("Rename:", this.appSettings.gestureProfiles[val].name);
+                if(newName) {
+                    this.appSettings.gestureProfiles[val].name = newName;
+                    this.callbacks.onSave();
+                    populateSelect();
+                    select.value = val;
+                }
+            });
+
+            const btnDel = createBtn("DELETE", "red", () => {
+                const val = select.value;
+                if(!val || GESTURE_PRESETS[val]) return alert("Cannot delete built-in profiles.");
+                if(confirm("Delete this profile?")) {
+                    delete this.appSettings.gestureProfiles[val];
+                    this.callbacks.onSave();
+                    populateSelect();
+                }
+            });
 
             btnGrid.append(btnNew, btnSave, btnRen, btnDel);
             wrapper.appendChild(btnGrid);
 
-            // D. MAPPING LIST CONTAINER
+            // Mappings List
             const listContainer = document.createElement('div');
             listContainer.className = "space-y-2 border-t border-custom pt-3";
             wrapper.appendChild(listContainer);
 
-            // --- FUNCTIONS ---
-            
             const renderMappings = () => {
                 listContainer.innerHTML = '';
                 const keysToRender = customKeys || Array.from({length: count}, (_, i) => String(i + 1));
@@ -654,12 +698,10 @@ export class SettingsManager {
                     const row = document.createElement('div');
                     row.className = "flex items-center space-x-3";
 
-                    // Key Label
                     const lbl = document.createElement('div');
                     lbl.className = "text-sm font-bold w-10 h-10 flex items-center justify-center bg-gray-800 rounded border border-gray-600 shadow-sm";
                     lbl.textContent = k;
 
-                    // Gesture Dropdown
                     const dropdown = document.createElement('select');
                     dropdown.className = "settings-input p-2 rounded flex-grow text-xs font-semibold h-10 border border-custom";
                     dropdown.setAttribute('data-key', keyId);
@@ -671,12 +713,11 @@ export class SettingsManager {
                         dropdown.appendChild(opt);
                     });
 
-                    // Set Value
-                    if(this.appSettings.gestureMappings[keyId]) {
+                    // FIX: Ensure value is set from current mappings
+                    if(this.appSettings.gestureMappings && this.appSettings.gestureMappings[keyId]) {
                         dropdown.value = this.appSettings.gestureMappings[keyId].gesture || 'tap';
                     }
 
-                    // Save on Change
                     dropdown.onchange = () => {
                         if(!this.appSettings.gestureMappings[keyId]) this.appSettings.gestureMappings[keyId] = {};
                         this.appSettings.gestureMappings[keyId].gesture = dropdown.value;
@@ -689,14 +730,12 @@ export class SettingsManager {
                 });
             };
 
-            // Initial Render
             renderMappings();
 
-            // --- EVENTS ---
-            
-            // SELECT: Loads profile immediately
+            // Select Change Event
             select.onchange = () => {
                  const val = select.value;
+                 if(!val) return;
                  let data = GESTURE_PRESETS[val] ? GESTURE_PRESETS[val].map : (this.appSettings.gestureProfiles[val] ? this.appSettings.gestureProfiles[val].map : null);
                  if(data) {
                      Object.keys(data).forEach(key => {
@@ -704,68 +743,8 @@ export class SettingsManager {
                          this.appSettings.gestureMappings[key].gesture = data[key];
                      });
                      this.callbacks.onSave();
-                     renderMappings(); // Refresh UI
+                     renderMappings();
                  }
-            };
-
-            // NEW: Creates profile from current UI state
-            btnNew.onclick = () => {
-                const name = prompt("New Profile Name:");
-                if(!name) return;
-                const id = 'cust_gest_' + Date.now();
-                
-                const currentMap = {};
-                const inputs = listContainer.querySelectorAll('select');
-                inputs.forEach(inp => {
-                    currentMap[inp.dataset.key] = inp.value;
-                });
-
-                this.appSettings.gestureProfiles[id] = { name: name, type: type, map: currentMap };
-                this.callbacks.onSave();
-                populateSelect();
-                select.value = id; // Switch to new
-            };
-
-            // SAVE: Updates selected custom profile
-            btnSave.onclick = () => {
-                const val = select.value;
-                if(GESTURE_PRESETS[val]) return alert("Cannot overwrite built-in profiles. Use NEW.");
-                
-                const inputs = listContainer.querySelectorAll('select');
-                const currentMap = {};
-                inputs.forEach(inp => {
-                    currentMap[inp.dataset.key] = inp.value;
-                });
-
-                this.appSettings.gestureProfiles[val].map = currentMap;
-                this.callbacks.onSave();
-                alert("Profile Saved!");
-            };
-
-            // RENAME
-            btnRen.onclick = () => {
-                const val = select.value;
-                if(GESTURE_PRESETS[val]) return alert("Cannot rename built-in profiles.");
-                const newName = prompt("Rename:", this.appSettings.gestureProfiles[val].name);
-                if(newName) {
-                    this.appSettings.gestureProfiles[val].name = newName;
-                    this.callbacks.onSave();
-                    populateSelect();
-                    select.value = val;
-                }
-            };
-
-            // DELETE
-            btnDel.onclick = () => {
-                const val = select.value;
-                if(GESTURE_PRESETS[val]) return alert("Cannot delete built-in profiles.");
-                if(confirm("Delete this profile?")) {
-                    delete this.appSettings.gestureProfiles[val];
-                    this.callbacks.onSave();
-                    populateSelect();
-                    select.selectedIndex = 0; 
-                    select.onchange(); 
-                }
             };
 
             if(tabRoot) tabRoot.appendChild(wrapper);
@@ -775,13 +754,7 @@ export class SettingsManager {
         buildSection('key9', '9-Key', 'k9_', 9);
         buildSection('key12', '12-Key', 'k12_', 12);
         buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
-        
-        // Auto-load defaults if needed
-        if(!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
-            this.applyDefaultGestureMappings();
-        }
     }
-
 
 
     applyDefaultGestureMappings() {

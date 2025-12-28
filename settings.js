@@ -595,7 +595,7 @@ export class SettingsManager {
             });
             select.appendChild(grp1);
 
-           . // Populate Custom
+           // Populate Custom
             const grp2 = document.createElement('optgroup'); grp2.label = "My Setups";
             Object.keys(this.appSettings.gestureProfiles).forEach(k => {
                 if(this.appSettings.gestureProfiles[k].type === typeFilter) {
@@ -750,19 +750,29 @@ export class SettingsManager {
             pianoOrder.forEach((id) => { containerPiano.appendChild(makeRow(id, 'piano_' + id, 'mapp_' + id)); }); 
         }
         
-        // Auto-load defaults if empty
+                // Auto-load defaults if empty
         if(!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
             this.applyDefaultGestureMappings();
         }
-    
+    } // <--- This brace was missing
 
     applyDefaultGestureMappings() {
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
         const defs = {
-            'k9_1': { gesture: 'tap', morse: '.' }, 'k9_2': { gesture: 'double_tap', morse: '..' }, 'k9_3': { gesture: 'long_tap', morse: '...' }, 'k9_4': { gesture: 'tap_2f', morse: '-' }, 'k9_5': { gesture: 'double_tap_2f', morse: '-.' }, 'k9_6': { gesture: 'long_tap_2f', morse: '-..' }, 'k9_7': { gesture: 'tap_3f', morse: '--' }, 'k9_8': { gesture: 'double_tap_3f', morse: '--.' }, 'k9_9': { gesture: 'long_tap_3f', morse: '---' },
-            'k12_1': { gesture: 'swipe_left', morse: '.' }, 'k12_2': { gesture: 'swipe_down', morse: '..' }, 'k12_3': { gesture: 'swipe_up', morse: '...' }, 'k12_4': { gesture: 'swipe_right', morse: '...-' }, 'k12_5': { gesture: 'swipe_left_2f', morse: '-' }, 'k12_6': { gesture: 'swipe_down_2f', morse: '-.' }, 'k12_7': { gesture: 'swipe_up_2f', morse: '-..' }, 'k12_8': { gesture: 'swipe_right_2f', morse: '-.-' }, 'k12_9': { gesture: 'swipe_left_3f', morse: '--' }, 'k12_10': { gesture: 'swipe_down_3f', morse: '--.' }, 'k12_11': { gesture: 'swipe_up_3f', morse: '--..' }, 'k12_12': { gesture: 'swipe_right_3f', morse: '---' },
-            'piano_C': { gesture: 'swipe_nw', morse: '.' }, 'piano_D': { gesture: 'swipe_left', morse: '..' }, 'piano_E': { gesture: 'swipe_sw', morse: '.-' }, 'piano_F': { gesture: 'swipe_down', morse: '...' }, 'piano_G': { gesture: 'swipe_se', morse: '..-' }, 'piano_A': { gesture: 'swipe_right', morse: '.-.' }, 'piano_B': { gesture: 'swipe_ne', morse: '.--' }, 'piano_1': { gesture: 'swipe_left_2f', morse: '-' }, 'piano_2': { gesture: 'swipe_nw_2f', morse: '-.' }, 'piano_3': { gesture: 'swipe_up_2f', morse: '--' }, 'piano_4': { gesture: 'swipe_ne_2f', morse: '-..' }, 'piano_5': { gesture: 'swipe_right_2f', morse: '-.-' }
+            'k9_1': { gesture: 'tap', morse: '.' }, 'k9_2': { gesture: 'double_tap', morse: '..' }, 'k9_3': { gesture: 'triple_tap', morse: '...' }, 
+            'k9_4': { gesture: 'tap_2f', morse: '-' }, 'k9_5': { gesture: 'double_tap_2f', morse: '-.' }, 'k9_6': { gesture: 'triple_tap_2f', morse: '-..' }, 
+            'k9_7': { gesture: 'tap_3f', morse: '--' }, 'k9_8': { gesture: 'double_tap_3f', morse: '--.' }, 'k9_9': { gesture: 'triple_tap_3f', morse: '---' },
+
+            'k12_1': { gesture: 'tap', morse: '.' }, 'k12_2': { gesture: 'double_tap', morse: '..' }, 'k12_3': { gesture: 'triple_tap', morse: '...' }, 'k12_4': { gesture: 'long_tap', morse: '...-' }, 
+            'k12_5': { gesture: 'tap_2f', morse: '-' }, 'k12_6': { gesture: 'double_tap_2f', morse: '-.' }, 'k12_7': { gesture: 'triple_tap_2f', morse: '-..' }, 'k12_8': { gesture: 'long_tap_2f', morse: '-.-' }, 
+            'k12_9': { gesture: 'tap_3f', morse: '--' }, 'k12_10': { gesture: 'double_tap_3f', morse: '--.' }, 'k12_11': { gesture: 'triple_tap_3f', morse: '--..' }, 'k12_12': { gesture: 'long_tap_3f', morse: '---' },
+
+            'piano_C': { gesture: 'swipe_nw', morse: '.' }, 'piano_D': { gesture: 'swipe_left', morse: '..' }, 'piano_E': { gesture: 'swipe_sw', morse: '.-' }, 'piano_F': { gesture: 'swipe_down', morse: '...' }, 'piano_G': { gesture: 'swipe_se', morse: '..-' }, 'piano_A': { gesture: 'swipe_right', morse: '.-.' }, 'piano_B': { gesture: 'swipe_ne', morse: '.--' }, 
+            'piano_1': { gesture: 'swipe_left_2f', morse: '-' }, 'piano_2': { gesture: 'swipe_nw_2f', morse: '-.' }, 'piano_3': { gesture: 'swipe_up_2f', morse: '--' }, 'piano_4': { gesture: 'swipe_ne_2f', morse: '-..' }, 'piano_5': { gesture: 'swipe_right_2f', morse: '-.-' }
         };
         this.appSettings.gestureMappings = Object.assign({}, defs, this.appSettings.gestureMappings || {});
     }
 }
+
+
+    

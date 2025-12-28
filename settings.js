@@ -719,6 +719,189 @@ export class SettingsManager {
             }
 
             const save = () => {
+
+    
+    populateMappingUI() {
+        if(!this.dom) return;
+        if(!this.appSettings) return;
+        if(!this.appSettings.gestureMappings) this.appSettings.gestureMappings = {};
+        
+        // Ensure we have a storage for custom gesture profiles
+        if(!this.appSettings.gestureProfiles) this.appSettings.gestureProfiles = {};
+
+        // 1. Determine active input type
+        const inputType = this.appSettings.runtimeSettings.currentInput || 'key9'; 
+        
+        // 2. Build the Shortcut Display Map
+        const getLabel = (techName) => {
+            let label = techName;
+            label = label.replace('swipe_nw', '↖️').replace('swipe_up', '⬆️').replace('swipe_ne', '↗️')
+                         .replace('swipe_left', '⬅️').replace('swipe_right', '➡️')
+                         .replace('swipe_sw', '↙️').replace('swipe_down', '⬇️').replace('swipe_se', '↘️');
+            label = label.replace('double_tap', 'DT').replace('triple_tap', 'TT').replace('long_tap', 'LT').replace('tap', 'T');
+            if (label.includes('_3f')) label = label.replace('_3f', '') + ' 3f';
+            else if (label.includes('_2f')) label = label.replace('_2f', '') + ' 2f';
+            else label = label + ' 1f';
+            return label;
+        };
+
+        // 3. Setup Options List
+        const gestureList = [
+            'tap', 'double_tap', 'triple_tap', 'long_tap',
+            'tap_2f', 'double_tap_2f', 'triple_tap_2f', 'long_tap_2f',
+            'tap_3f', 'double_tap_3f', 'triple_tap_3f', 'long_tap_3f',
+            'swipe_up', 'swipe_nw', 'swipe_left', 'swipe_sw', 'swipe_down', 'swipe_se', 'swipe_right', 'swipe_ne',
+            'swipe_up_2f', 'swipe_nw_2f', 'swipe_left_2f', 'swipe_sw_2f', 'swipe_down_2f', 'swipe_se_2f', 'swipe_right_2f', 'swipe_ne_2f',
+            'swipe_up_3f', 'swipe_nw_3f', 'swipe_left_3f', 'swipe_sw_3f', 'swipe_down_3f', 'swipe_se_3f', 'swipe_right_3f', 'swipe_ne_3f'
+        ];
+
+        // 4. Create Profile Controls (Load/Save/Delete)
+        const createProfileControls = (container, typeFilter) => {
+            const ctrlDiv = document.createElement('div');
+            ctrlDiv.className = "mb-4 p-2 bg-black bg-opacity-30 rounded border border-gray-700";
+            
+            const row1 = document.createElement('div');
+            row1.className = "flex justify-between items-center mb-2";
+            const lbl = document.createElement('label');
+            lbl.textContent = "Gesture Setup";
+            lbl.className = "text-xs font-bold uppercase text-gray-400";
+            
+            const select = document.createElement('select');
+            select.className = "settings-input text-xs p-1 rounded w-32";
+            
+            // Populate Presets
+            const grp1 = document.createElement('optgroup'); grp1.label = "Presets";
+            Object.keys(GESTURE_PRESETS).forEach(k => {
+                if(GESTURE_PRESETS[k].type === typeFilter) {
+                    const opt = document.createElement('option');
+                    opt.value = k;
+                    opt.textContent = GESTURE_PRESETS[k].name;
+                    grp1.appendChild(opt);
+                }
+            });
+            select.appendChild(grp1);
+
+            // Populate Custom
+            const grp2 = document.createElement('optgroup'); grp2.label = "My Setups";
+            Object.keys(this.appSettings.gestureProfiles).forEach(k => {
+                if(this.appSettings.gestureProfiles[k].type === typeFilter) {
+                    const opt = document.createElement('option');
+                    opt.value = k;
+                    opt.textContent = this.appSettings.gestureProfiles[k].name;
+                    grp2.appendChild(opt);
+                }
+            });
+            select.appendChild(grp2);
+
+            row1.appendChild(lbl);
+            row1.appendChild(select);
+            
+            const row2 = document.createElement('div');
+            row2.className = "grid grid-cols-4 gap-1";
+            
+            const btnLoad = document.createElement('button'); btnLoad.textContent = "LOAD"; btnLoad.className = "bg-blue-600 text-white text-[10px] py-1 rounded font-bold hover:bg-blue-500";
+            const btnSave = document.createElement('button'); btnSave.textContent = "SAVE"; btnSave.className = "bg-green-600 text-white text-[10px] py-1 rounded font-bold hover:bg-green-500";
+            const btnRen = document.createElement('button'); btnRen.textContent = "RENAME"; btnRen.className = "bg-gray-600 text-white text-[10px] py-1 rounded font-bold hover:bg-gray-500";
+            const btnDel = document.createElement('button'); btnDel.textContent = "DEL"; btnDel.className = "bg-red-600 text-white text-[10px] py-1 rounded font-bold hover:bg-red-500";
+
+            // Load Logic
+            btnLoad.onclick = () => {
+                const val = select.value;
+                let data = GESTURE_PRESETS[val] ? GESTURE_PRESETS[val].map : (this.appSettings.gestureProfiles[val] ? this.appSettings.gestureProfiles[val].map : null);
+                if(data) {
+                    Object.keys(data).forEach(key => {
+                        if(!this.appSettings.gestureMappings[key]) this.appSettings.gestureMappings[key] = {};
+                        this.appSettings.gestureMappings[key].gesture = data[key];
+                    });
+                    this.callbacks.onSave();
+                    this.populateMappingUI();
+                    alert("Loaded " + select.options[select.selectedIndex].text);
+                }
+            };
+
+            // Save Logic
+            btnSave.onclick = () => {
+                const name = prompt("Setup Name:");
+                if(name) {
+                    const id = 'cust_gest_' + Date.now();
+                    const currentMap = {};
+                    const inputs = container.querySelectorAll('select[id$="-gesture"]');
+                    inputs.forEach(inp => {
+                        const key = inp.id.replace('-gesture', '');
+                        currentMap[key] = inp.value;
+                    });
+                    
+                    this.appSettings.gestureProfiles[id] = { name: name, type: typeFilter, map: currentMap };
+                    this.callbacks.onSave();
+                    this.populateMappingUI();
+                }
+            };
+            
+            // Delete Logic
+            btnDel.onclick = () => {
+                const val = select.value;
+                if(GESTURE_PRESETS[val]) return alert("Cannot delete built-in presets.");
+                if(confirm("Delete this setup?")) {
+                    delete this.appSettings.gestureProfiles[val];
+                    this.callbacks.onSave();
+                    this.populateMappingUI();
+                }
+            };
+            
+            // Rename Logic
+            btnRen.onclick = () => {
+                const val = select.value;
+                if(GESTURE_PRESETS[val]) return alert("Cannot rename built-in presets.");
+                const newName = prompt("New Name:", this.appSettings.gestureProfiles[val].name);
+                if(newName) {
+                    this.appSettings.gestureProfiles[val].name = newName;
+                    this.callbacks.onSave();
+                    this.populateMappingUI();
+                }
+            };
+
+            row2.append(btnLoad, btnSave, btnRen, btnDel);
+            ctrlDiv.append(row1, row2);
+            container.appendChild(ctrlDiv);
+        };
+
+        // 5. Row Builder
+        const makeRow = (labelText, keyName, mappingId) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = "flex items-center space-x-2 mapping-row border-b border-gray-800 pb-1 mb-1";
+            
+            const lbl = document.createElement('div');
+            lbl.className = "text-sm font-bold w-12 text-center bg-gray-800 rounded py-1";
+            lbl.textContent = labelText;
+            
+            const gestureSelect = document.createElement('select');
+            gestureSelect.className = "settings-input p-1 rounded flex-grow text-xs h-8";
+            gestureSelect.id = mappingId + "-gesture";
+            
+            gestureList.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g;
+                opt.textContent = getLabel(g);
+                gestureSelect.appendChild(opt);
+            });
+
+            const morseSelect = document.createElement('select');
+            morseSelect.className = "settings-input p-1 rounded w-16 text-xs h-8 opacity-60";
+            morseSelect.id = mappingId + "-morse";
+            const morseOpts = ['.', '..', '...', '-', '-.', '-..', '--', '--.', '---', '...-', '.-.', '.--', '..-','.-'];
+            morseOpts.forEach(m => { const opt = document.createElement('option'); opt.value = m; opt.textContent = m; morseSelect.appendChild(opt); });
+
+            wrapper.appendChild(lbl);
+            wrapper.appendChild(gestureSelect);
+            wrapper.appendChild(morseSelect);
+
+            const gm = this.appSettings.gestureMappings || {};
+            if(gm[keyName]) { 
+                gestureSelect.value = gm[keyName].gesture || gestureSelect.value; 
+                morseSelect.value = gm[keyName].morse || morseSelect.value; 
+            }
+
+            const save = () => {
                 this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
                 this.appSettings.gestureMappings[keyName] = { gesture: gestureSelect.value, morse: morseSelect.value };
                 this.callbacks.onSave && this.callbacks.onSave();
@@ -750,11 +933,11 @@ export class SettingsManager {
             pianoOrder.forEach((id) => { containerPiano.appendChild(makeRow(id, 'piano_' + id, 'mapp_' + id)); }); 
         }
         
-                // Auto-load defaults if empty
+        // Auto-load defaults if empty
         if(!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
             this.applyDefaultGestureMappings();
         }
-    } // <--- This brace was missing
+    }
 
     applyDefaultGestureMappings() {
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
@@ -773,6 +956,3 @@ export class SettingsManager {
         this.appSettings.gestureMappings = Object.assign({}, defs, this.appSettings.gestureMappings || {});
     }
 }
-
-
-    

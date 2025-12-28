@@ -74,9 +74,19 @@
         </div>
     </div>
 
-    <div id="redeem-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
-        <div class="relative w-full max-w-lg h-[95vh] flex flex-col items-center justify-center p-4"><button id="close-redeem-btn" class="absolute top-4 right-4 z-50 bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600">✕</button><div class="bg-white p-2 rounded-lg shadow-2xl w-full h-full flex items-center justify-center overflow-hidden"><img src="redeem.jpg" alt="Redeem Barcode" class="w-full h-full object-contain"></div></div>
+        <div id="redeem-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="relative w-full max-w-lg h-[95vh] flex flex-col items-center justify-center p-4">
+            <button id="close-redeem-btn" class="absolute top-4 right-4 z-50 bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600">✕</button>
+            <div class="absolute top-16 right-4 z-50 flex flex-col gap-3">
+                <button id="redeem-zoom-in" class="bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600 active:bg-gray-700">+</button>
+                <button id="redeem-zoom-out" class="bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600 active:bg-gray-700">-</button>
+            </div>
+            <div class="bg-white p-2 rounded-lg shadow-2xl w-full h-full flex items-center justify-center overflow-hidden">
+                <img id="redeem-img" src="redeem.jpg" alt="Redeem Barcode" class="w-full h-full object-contain transition-transform duration-200">
+            </div>
+        </div>
     </div>
+
 
     <div id="calibration-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[110] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-md w-full border border-custom">
@@ -131,14 +141,16 @@
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh] overflow-hidden border border-custom m-4">
             
-            <div class="p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
-                <div class="flex items-center space-x-2">
-                    <h3 class="text-xl font-bold" data-i18n="settings_btn">Settings</h3>
+                        <div class="p-4 border-b border-custom grid grid-cols-3 items-center bg-[var(--card-bg)] z-10 relative">
+                <div class="justify-self-start">
                     <select id="general-lang-select" class="bg-black bg-opacity-30 text-white text-xs rounded p-1 border border-gray-600"><option value="en">🇺🇸</option><option value="es">🇲🇽</option></select>
                 </div>
-                <div class="flex space-x-3 items-center">
+                <div class="justify-self-center">
+                    <h3 class="text-3xl">⚙️</h3>
+                </div>
+                <div class="justify-self-end flex space-x-5 items-center">
                     <button id="open-donate-btn" class="text-2xl hover:scale-110 transition-transform" title="Donate">☕</button>
-                    <button id="open-redeem-btn-settings" class="text-2xl opacity-70 hover:opacity-100" title="ATM Cashout">🏧</button>
+                    <button id="open-redeem-btn-settings" class="text-2xl opacity-70 hover:opacity-100" title="ID">🆔</button>
                     <button id="open-share-button" class="text-xl opacity-70 hover:opacity-100" title="Share">📤</button>
                     <button id="open-comment-modal" class="text-xl opacity-70 hover:opacity-100" title="Feedback">💬</button>
                     <button id="open-help-button" class="text-xl opacity-70 hover:opacity-100" title="Help">❓</button>
@@ -417,7 +429,7 @@
                     <h4 class="font-bold text-lg text-primary-app mb-2">The Goal 🎯</h4>
                     <p class="mb-4 opacity-90">This is a sandbox tool designed to help you beat the "Follow" memory portion of skill-based machines.</p>
                     <p class="mb-4 opacity-90"><strong>How to use:</strong> Select your input method (9-Key is standard). When the machine flashes a number, press it here. The app tracks the full sequence so you don't have to memorize it.</p>
-                    <p class="mt-4 opacity-90"><strong>ATM Icon (🏧):</strong> Opens the Redeem barcode for easy cashout at compatible kiosks.</p>
+                    <p class="mt-4 opacity-90"><strong>ID Icon (🆔):</strong> Opens the Redeem barcode for easy cashout at compatible kiosks.</p>
                     <p class="mt-4 opacity-90"><strong>Support ☕:</strong> If this app helps you win, use the Coffee icon in Settings to send a tip!</p>
                 </div>
 

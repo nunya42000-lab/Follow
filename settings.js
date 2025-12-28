@@ -528,32 +528,34 @@ export class SettingsManager {
 
     hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
-        populateMappingUI() {
+            populateMappingUI() {
         if (!this.dom) return;
         if (!this.appSettings) return;
         if (!this.appSettings.gestureMappings) this.appSettings.gestureMappings = {};
         if (!this.appSettings.gestureProfiles) this.appSettings.gestureProfiles = {};
 
-        // 1. Readable Labels (No Abbreviations)
+        // 1. CLEAN SLATE: Wipe the tab to remove old headers/text from HTML
+        const tabRoot = document.getElementById('tab-mapping');
+        if (tabRoot) {
+            tabRoot.innerHTML = ''; 
+            tabRoot.className = "tab-content p-1 space-y-4"; // Ensure clean spacing
+        }
+
+        // 2. Readable Labels (No Abbreviations)
         const getLabel = (techName) => {
-            // Finger Count helper
             let fingers = "";
             if (techName.includes('_3f')) fingers = " (3 Finger)";
             else if (techName.includes('_2f')) fingers = " (2 Finger)";
             
-            // Base Name helper
             let base = techName.replace('_3f', '').replace('_2f', '');
-            
             const map = {
                 'tap': 'Tap', 'double_tap': 'Double Tap', 'triple_tap': 'Triple Tap', 'long_tap': 'Long Press',
                 'swipe_up': 'Swipe Up', 'swipe_down': 'Swipe Down', 'swipe_left': 'Swipe Left', 'swipe_right': 'Swipe Right',
                 'swipe_nw': 'Swipe Up-Left', 'swipe_ne': 'Swipe Up-Right', 'swipe_sw': 'Swipe Down-Left', 'swipe_se': 'Swipe Down-Right'
             };
-
             return (map[base] || base) + fingers;
         };
 
-        // 2. Simplified Profile Names
         const cleanProfileName = (name) => {
             if (name.includes("Standard Taps")) return "Taps";
             if (name.includes("Directional Swipes")) return "Swipes";
@@ -570,172 +572,211 @@ export class SettingsManager {
             'swipe_up_3f', 'swipe_nw_3f', 'swipe_left_3f', 'swipe_sw_3f', 'swipe_down_3f', 'swipe_se_3f', 'swipe_right_3f', 'swipe_ne_3f'
         ];
 
-        // 3. Builder Function
-        const buildSection = (originalContainer, type, title, keyPrefix, count, customKeys = null) => {
-            if (!originalContainer) return;
-            
-            // CLEANUP: Wipe the parent to remove old HTML headers/descriptions
-            const wrapper = originalContainer.parentElement;
-            wrapper.innerHTML = ''; 
-            wrapper.className = "p-3 rounded-lg border border-custom settings-input mb-4"; // Match Game Tab Card Style
+        // 3. Section Builder Function
+        const buildSection = (type, title, keyPrefix, count, customKeys = null) => {
+            const wrapper = document.createElement('div');
+            // Card Style matching Game Tab
+            wrapper.className = "p-3 rounded-lg border border-custom settings-input bg-opacity-50 mb-4";
 
-            // A. HEADER ("9-Key Profile")
+            // A. HEADER (e.g. "9-KEY PROFILE")
             const header = document.createElement('div');
-            header.className = "flex justify-between items-center mb-2";
-            header.innerHTML = `<label class="text-xs font-bold uppercase text-muted-custom">${title} Profile</label>`;
+            header.className = "mb-2";
+            header.innerHTML = `<label class="text-xs font-bold uppercase text-muted-custom block">${title} PROFILE</label>`;
             wrapper.appendChild(header);
 
-            // B. PROFILE SELECTOR
+            // B. DROPDOWN
             const select = document.createElement('select');
             select.className = "settings-input w-full p-2 rounded mb-3 font-bold";
             
-            const grp1 = document.createElement('optgroup'); grp1.label = "Built-in";
-            Object.keys(GESTURE_PRESETS).forEach(k => {
-                if(GESTURE_PRESETS[k].type === type) {
-                    const opt = document.createElement('option');
-                    opt.value = k;
-                    opt.textContent = cleanProfileName(GESTURE_PRESETS[k].name);
-                    grp1.appendChild(opt);
-                }
-            });
-            select.appendChild(grp1);
+            const populateSelect = () => {
+                select.innerHTML = '';
+                const grp1 = document.createElement('optgroup'); grp1.label = "Built-in";
+                Object.keys(GESTURE_PRESETS).forEach(k => {
+                    if(GESTURE_PRESETS[k].type === type) {
+                        const opt = document.createElement('option');
+                        opt.value = k;
+                        opt.textContent = cleanProfileName(GESTURE_PRESETS[k].name);
+                        grp1.appendChild(opt);
+                    }
+                });
+                select.appendChild(grp1);
 
-            const grp2 = document.createElement('optgroup'); grp2.label = "My Setups";
-            Object.keys(this.appSettings.gestureProfiles).forEach(k => {
-                if(this.appSettings.gestureProfiles[k].type === type) {
-                    const opt = document.createElement('option');
-                    opt.value = k;
-                    opt.textContent = this.appSettings.gestureProfiles[k].name;
-                    grp2.appendChild(opt);
-                }
-            });
-            select.appendChild(grp2);
+                const grp2 = document.createElement('optgroup'); grp2.label = "My Setups";
+                Object.keys(this.appSettings.gestureProfiles).forEach(k => {
+                    if(this.appSettings.gestureProfiles[k].type === type) {
+                        const opt = document.createElement('option');
+                        opt.value = k;
+                        opt.textContent = this.appSettings.gestureProfiles[k].name;
+                        grp2.appendChild(opt);
+                    }
+                });
+                select.appendChild(grp2);
+            };
+            populateSelect();
             wrapper.appendChild(select);
 
-            // C. ACTION BUTTONS (Grid)
+            // C. 2x2 BUTTON GRID
             const btnGrid = document.createElement('div');
-            btnGrid.className = "grid grid-cols-4 gap-2 mb-6 border-b border-custom pb-4";
+            btnGrid.className = "grid grid-cols-2 gap-2 mb-4"; 
+
+            const btnNew = document.createElement('button'); 
+            btnNew.className = "py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold transition shadow";
+            btnNew.textContent = "NEW";
+
+            const btnSave = document.createElement('button'); 
+            btnSave.className = "py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold transition shadow";
+            btnSave.textContent = "SAVE 💾";
+
+            const btnRen = document.createElement('button'); 
+            btnRen.className = "py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold transition shadow";
+            btnRen.textContent = "RENAME";
+
+            const btnDel = document.createElement('button'); 
+            btnDel.className = "py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold transition shadow";
+            btnDel.textContent = "DELETE";
+
+            btnGrid.append(btnNew, btnSave, btnRen, btnDel);
+            wrapper.appendChild(btnGrid);
+
+            // D. MAPPING LIST CONTAINER
+            const listContainer = document.createElement('div');
+            listContainer.className = "space-y-2 border-t border-custom pt-3";
+            wrapper.appendChild(listContainer);
+
+            // --- FUNCTIONS ---
             
-            const createBtn = (txt, color, onClick) => {
-                const b = document.createElement('button');
-                b.textContent = txt;
-                b.className = `py-2 text-xs bg-${color}-600 hover:bg-${color}-500 rounded text-white font-bold transition shadow`;
-                b.onclick = onClick;
-                return b;
+            const renderMappings = () => {
+                listContainer.innerHTML = '';
+                const keysToRender = customKeys || Array.from({length: count}, (_, i) => String(i + 1));
+                
+                keysToRender.forEach(k => {
+                    const keyId = keyPrefix + k;
+                    const row = document.createElement('div');
+                    row.className = "flex items-center space-x-3";
+
+                    // Key Label
+                    const lbl = document.createElement('div');
+                    lbl.className = "text-sm font-bold w-10 h-10 flex items-center justify-center bg-gray-800 rounded border border-gray-600 shadow-sm";
+                    lbl.textContent = k;
+
+                    // Gesture Dropdown
+                    const dropdown = document.createElement('select');
+                    dropdown.className = "settings-input p-2 rounded flex-grow text-xs font-semibold h-10 border border-custom";
+                    dropdown.setAttribute('data-key', keyId);
+
+                    gestureList.forEach(g => {
+                        const opt = document.createElement('option');
+                        opt.value = g;
+                        opt.textContent = getLabel(g);
+                        dropdown.appendChild(opt);
+                    });
+
+                    // Set Value
+                    if(this.appSettings.gestureMappings[keyId]) {
+                        dropdown.value = this.appSettings.gestureMappings[keyId].gesture || 'tap';
+                    }
+
+                    // Save on Change
+                    dropdown.onchange = () => {
+                        if(!this.appSettings.gestureMappings[keyId]) this.appSettings.gestureMappings[keyId] = {};
+                        this.appSettings.gestureMappings[keyId].gesture = dropdown.value;
+                        this.callbacks.onSave();
+                    };
+
+                    row.appendChild(lbl);
+                    row.appendChild(dropdown);
+                    listContainer.appendChild(row);
+                });
             };
 
-            btnGrid.appendChild(createBtn("LOAD", "blue", () => {
-                const val = select.value;
-                let data = GESTURE_PRESETS[val] ? GESTURE_PRESETS[val].map : (this.appSettings.gestureProfiles[val] ? this.appSettings.gestureProfiles[val].map : null);
-                if(data) {
-                    Object.keys(data).forEach(key => {
-                        if(!this.appSettings.gestureMappings[key]) this.appSettings.gestureMappings[key] = {};
-                        this.appSettings.gestureMappings[key].gesture = data[key];
-                    });
-                    this.callbacks.onSave();
-                    this.populateMappingUI(); // REFRESH UI
-                }
-            }));
+            // Initial Render
+            renderMappings();
 
-            btnGrid.appendChild(createBtn("SAVE", "green", () => {
-                const name = prompt("Setup Name:");
-                if(name) {
-                    const id = 'cust_gest_' + Date.now();
-                    const currentMap = {};
-                    // Harvest current dropdown values
-                    const inputs = wrapper.querySelectorAll('select[data-key]');
-                    inputs.forEach(inp => {
-                        currentMap[inp.dataset.key] = inp.value;
-                    });
-                    this.appSettings.gestureProfiles[id] = { name: name, type: type, map: currentMap };
-                    this.callbacks.onSave();
-                    this.populateMappingUI();
-                }
-            }));
+            // --- EVENTS ---
+            
+            // SELECT: Loads profile immediately
+            select.onchange = () => {
+                 const val = select.value;
+                 let data = GESTURE_PRESETS[val] ? GESTURE_PRESETS[val].map : (this.appSettings.gestureProfiles[val] ? this.appSettings.gestureProfiles[val].map : null);
+                 if(data) {
+                     Object.keys(data).forEach(key => {
+                         if(!this.appSettings.gestureMappings[key]) this.appSettings.gestureMappings[key] = {};
+                         this.appSettings.gestureMappings[key].gesture = data[key];
+                     });
+                     this.callbacks.onSave();
+                     renderMappings(); // Refresh UI
+                 }
+            };
 
-            btnGrid.appendChild(createBtn("RENAME", "gray", () => {
+            // NEW: Creates profile from current UI state
+            btnNew.onclick = () => {
+                const name = prompt("New Profile Name:");
+                if(!name) return;
+                const id = 'cust_gest_' + Date.now();
+                
+                const currentMap = {};
+                const inputs = listContainer.querySelectorAll('select');
+                inputs.forEach(inp => {
+                    currentMap[inp.dataset.key] = inp.value;
+                });
+
+                this.appSettings.gestureProfiles[id] = { name: name, type: type, map: currentMap };
+                this.callbacks.onSave();
+                populateSelect();
+                select.value = id; // Switch to new
+            };
+
+            // SAVE: Updates selected custom profile
+            btnSave.onclick = () => {
                 const val = select.value;
-                if(GESTURE_PRESETS[val]) return alert("Cannot rename built-in presets.");
-                const newName = prompt("New Name:", this.appSettings.gestureProfiles[val].name);
+                if(GESTURE_PRESETS[val]) return alert("Cannot overwrite built-in profiles. Use NEW.");
+                
+                const inputs = listContainer.querySelectorAll('select');
+                const currentMap = {};
+                inputs.forEach(inp => {
+                    currentMap[inp.dataset.key] = inp.value;
+                });
+
+                this.appSettings.gestureProfiles[val].map = currentMap;
+                this.callbacks.onSave();
+                alert("Profile Saved!");
+            };
+
+            // RENAME
+            btnRen.onclick = () => {
+                const val = select.value;
+                if(GESTURE_PRESETS[val]) return alert("Cannot rename built-in profiles.");
+                const newName = prompt("Rename:", this.appSettings.gestureProfiles[val].name);
                 if(newName) {
                     this.appSettings.gestureProfiles[val].name = newName;
                     this.callbacks.onSave();
-                    this.populateMappingUI();
+                    populateSelect();
+                    select.value = val;
                 }
-            }));
+            };
 
-            btnGrid.appendChild(createBtn("DELETE", "red", () => {
+            // DELETE
+            btnDel.onclick = () => {
                 const val = select.value;
-                if(GESTURE_PRESETS[val]) return alert("Cannot delete built-in presets.");
-                if(confirm("Delete this setup?")) {
+                if(GESTURE_PRESETS[val]) return alert("Cannot delete built-in profiles.");
+                if(confirm("Delete this profile?")) {
                     delete this.appSettings.gestureProfiles[val];
                     this.callbacks.onSave();
-                    this.populateMappingUI();
+                    populateSelect();
+                    select.selectedIndex = 0; 
+                    select.onchange(); 
                 }
-            }));
-            wrapper.appendChild(btnGrid);
+            };
 
-            // D. MAPPING ROWS
-            const mappingContainer = document.createElement('div');
-            mappingContainer.className = "space-y-2";
-
-            const keysToRender = customKeys || Array.from({length: count}, (_, i) => String(i + 1));
-
-            keysToRender.forEach(k => {
-                const keyId = keyPrefix + k;
-                const row = document.createElement('div');
-                row.className = "flex items-center space-x-3";
-                
-                // Key Label (1, 2, C, D...)
-                const lbl = document.createElement('div');
-                lbl.className = "text-sm font-bold w-10 h-10 flex items-center justify-center bg-gray-800 rounded border border-gray-600 shadow-sm";
-                lbl.textContent = k;
-                
-                // Dropdown
-                const dropdown = document.createElement('select');
-                dropdown.className = "settings-input p-2 rounded flex-grow text-xs font-semibold h-10 border border-custom";
-                dropdown.setAttribute('data-key', keyId); // Mark for harvesting
-                
-                gestureList.forEach(g => {
-                    const opt = document.createElement('option');
-                    opt.value = g;
-                    opt.textContent = getLabel(g);
-                    dropdown.appendChild(opt);
-                });
-
-                // Set Current Value
-                const gm = this.appSettings.gestureMappings || {};
-                if(gm[keyId]) { 
-                    dropdown.value = gm[keyId].gesture || dropdown.value;
-                }
-
-                // Save on Change
-                dropdown.onchange = () => {
-                    this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
-                    if(!this.appSettings.gestureMappings[keyId]) this.appSettings.gestureMappings[keyId] = {};
-                    this.appSettings.gestureMappings[keyId].gesture = dropdown.value;
-                    this.callbacks.onSave && this.callbacks.onSave();
-                };
-
-                row.appendChild(lbl);
-                row.appendChild(dropdown);
-                mappingContainer.appendChild(row);
-            });
-            wrapper.appendChild(mappingContainer);
+            if(tabRoot) tabRoot.appendChild(wrapper);
         };
 
-        // 4. Render Sections
-        if(this.dom.mapping9Container) {
-            buildSection(this.dom.mapping9Container, 'key9', '9-Key', 'k9_', 9);
-        }
-        if(this.dom.mapping12Container) {
-            buildSection(this.dom.mapping12Container, 'key12', '12-Key', 'k12_', 12);
-        }
-        if(this.dom.mappingPianoContainer) {
-            buildSection(this.dom.mappingPianoContainer, 'piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
-        }
+        // 4. Build Sections
+        buildSection('key9', '9-Key', 'k9_', 9);
+        buildSection('key12', '12-Key', 'k12_', 12);
+        buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
         
-        // Auto-load defaults if empty
+        // Auto-load defaults if needed
         if(!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
             this.applyDefaultGestureMappings();
         }

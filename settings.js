@@ -36,7 +36,6 @@ export const PREMADE_VOICE_PRESETS = {
     'announcer': { name: "Announcer", pitch: 0.8, rate: 1.1, volume: 1.0 },
     'whisper': { name: "Quiet", pitch: 1.2, rate: 0.8, volume: 0.4 }
 };
-// Add this near the top of settings.js, after the other imports/constants
 const GESTURE_PRESETS = {
     '9_taps': {
         name: "Standard Taps (9)",
@@ -596,7 +595,7 @@ export class SettingsManager {
             });
             select.appendChild(grp1);
 
-            // Populate Custom
+           . // Populate Custom
             const grp2 = document.createElement('optgroup'); grp2.label = "My Setups";
             Object.keys(this.appSettings.gestureProfiles).forEach(k => {
                 if(this.appSettings.gestureProfiles[k].type === typeFilter) {
@@ -755,7 +754,7 @@ export class SettingsManager {
         if(!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
             this.applyDefaultGestureMappings();
         }
-    }
+    
 
     applyDefaultGestureMappings() {
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};

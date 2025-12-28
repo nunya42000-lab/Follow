@@ -360,9 +360,13 @@ function renderUI() {
         const gpWrap = document.getElementById('gesture-pad-wrapper');
         if (gpWrap) {
             if (appSettings.isGestureInputEnabled) {
+                document.body.classList.add('input-gestures-mode'); // Enable full screen mode
                 gpWrap.classList.remove('hidden');
                 if (!window.__gesturePadInited) { initGesturePad(); window.__gesturePadInited = true; }
-            } else { gpWrap.classList.add('hidden'); }
+            } else { 
+                document.body.classList.remove('input-gestures-mode'); // Disable full screen mode
+                gpWrap.classList.add('hidden'); 
+            }
         }
     } catch(e) { console.error('Gesture UI error', e); }
 
@@ -374,6 +378,7 @@ function renderUI() {
         const el = document.getElementById(`pad-${k}`); 
         if(el) el.style.display = (settings.currentInput === k) ? 'block' : 'none'; 
     });
+    
 
     // --- PRACTICE MODE UI ---
     if(appSettings.isPracticeModeEnabled) {

@@ -113,80 +113,148 @@ function vibrateMorse(val) {
     else if (num >= 10 && num <= 12) { pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(num-10); i++) { pattern.push(DOT); pattern.push(GAP); } } 
     if(pattern.length > 0) navigator.vibrate(pattern); 
 }
-
 function initGesturePad() {
     const pad = document.getElementById('gesture-pad');
     const indicator = document.getElementById('gesture-indicator');
     if(!pad) return;
-    let touchState = { timers: {}, points: [], lastTapTime: 0, tapCount: 0, lastTapFingers: 0, startTime:0, maxTouches:0 };
-    const resetTouch = () => { touchState.points = []; clearTimeout(touchState.timers.long); touchState.startTime = 0; touchState.maxTouches = 0; };
-    const getDir = (dx, dy) => {
-        const ax = Math.abs(dx), ay = Math.abs(dy);
-        if(ax < 20 && ay < 20) return 'tap';
-        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-        if(angle >= -22 && angle < 22) return 'swipe_right';
-        if(angle >= 22 && angle < 68) return 'swipe_ne';
-        if(angle >= 68 && angle < 112) return 'swipe_up';
-        if(angle >= 112 && angle < 158) return 'swipe_nw';
-        if(angle >= 158 || angle < -158) return 'swipe_left';
-        if(angle >= -158 && angle < -112) return 'swipe_sw';
-        if(angle >= -112 && angle < -68) return 'swipe_down';
-        if(angle >= -68 && angle < -22) return 'swipe_se';
-        return 'swipe';
+
+    // State for the new engine
+    let state = {
+        startX: 0, startY: 0,
+        startTime: 0,
+        maxTouches: 0,
+        isLongPressTriggered: false,
+        longPressTimer: null,
+        tapCount: 0,
+        tapTimer: null,
+        lastTapFingers: 0
     };
+
+    // Helper: Determine 8-way direction from X/Y deltas
+    const get8WayDirection = (dx, dy) => {
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI; // Result is -180 to 180
+        
+        // 8 Slices (45 degrees each), offset by 22.5 to center the cardinal directions
+        if (angle > -22.5 && angle <= 22.5) return 'right';
+        if (angle > 22.5 && angle <= 67.5) return 'se'; // Screen Y is positive down usually, but standard math is Up=Pos.
+        // Adjusting for Screen Coordinates (Y increases downwards):
+        // Down is +90, Up is -90
+        
+        // Re-calc for Screen Coords:
+        // 0 = Right, 90 = Down, 180 = Left, -90 = Up
+        
+        if (angle > -22.5 && angle <= 22.5) return 'swipe_right';
+        if (angle > 22.5 && angle <= 67.5) return 'swipe_se';
+        if (angle > 67.5 && angle <= 112.5) return 'swipe_down';
+        if (angle > 112.5 && angle <= 157.5) return 'swipe_sw';
+        if (angle > 157.5 || angle <= -157.5) return 'swipe_left';
+        if (angle > -157.5 && angle <= -112.5) return 'swipe_nw';
+        if (angle > -112.5 && angle <= -67.5) return 'swipe_up';
+        if (angle > -67.5 && angle <= -22.5) return 'swipe_ne';
+        
+        return 'swipe_right'; // Fallback
+    };
+
+    const getFingerSuffix = (n) => (n >= 3 ? '_3f' : n === 2 ? '_2f' : '');
 
     pad.addEventListener('touchstart', (ev) => {
         ev.preventDefault();
         const t = ev.touches;
-        touchState.points = [{ x: t[0].clientX, y: t[0].clientY }];
-        touchState.startTime = Date.now();
-        touchState.maxTouches = t.length;
-        touchState.timers.long = setTimeout(() => {
-            const kind = `long_tap${touchState.maxTouches === 2 ? '_2f' : touchState.maxTouches === 3 ? '_3f' : ''}`;
-            handleGesture(kind);
-        }, 500);
-    }, {passive:false});
+        if(t.length === 0) return;
+
+        // If this is a new interaction (starting from 0 fingers or first touch of sequence)
+        if (!state.startTime || (Date.now() - state.startTime > 300 && state.tapCount === 0)) {
+            state.startX = t[0].clientX;
+            state.startY = t[0].clientY;
+            state.startTime = Date.now();
+            state.maxTouches = t.length;
+            state.isLongPressTriggered = false;
+            
+            // Start Long Press Timer
+            clearTimeout(state.longPressTimer);
+            state.longPressTimer = setTimeout(() => {
+                state.isLongPressTriggered = true;
+                const suffix = getFingerSuffix(state.maxTouches);
+                handleGesture(`long_tap${suffix}`);
+            }, 600); // 600ms for long press
+        } else {
+            // Adding fingers to an existing gesture
+            state.maxTouches = Math.max(state.maxTouches, t.length);
+        }
+    }, {passive: false});
 
     pad.addEventListener('touchmove', (ev) => {
         ev.preventDefault();
-        if(ev.touches && ev.touches.length) {
-            const t = ev.touches[0];
-            touchState.points.push({ x: t.clientX, y: t.clientY });
+        state.maxTouches = Math.max(state.maxTouches, ev.touches.length);
+        
+        // If moved significantly, cancel long press
+        const t = ev.touches[0];
+        const dx = t.clientX - state.startX;
+        const dy = t.clientY - state.startY;
+        if (Math.sqrt(dx*dx + dy*dy) > 20) {
+            clearTimeout(state.longPressTimer);
         }
-    }, {passive:false});
+    }, {passive: false});
 
     pad.addEventListener('touchend', (ev) => {
         ev.preventDefault();
-        clearTimeout(touchState.timers.long);
-        const duration = Date.now() - (touchState.startTime || 0);
-        const touches = touchState.maxTouches || 1;
-        const p0 = touchState.points[0] || { x:0, y:0 };
-        const pN = touchState.points[touchState.points.length-1] || p0;
-        const dx = pN.x - p0.x;
-        const dy = pN.y - p0.y;
+        
+        // Wait until ALL fingers lift to process the gesture action
+        if (ev.touches.length > 0) return;
+
+        clearTimeout(state.longPressTimer);
+        
+        // If Long Press already fired, ignore this lift
+        if (state.isLongPressTriggered) return;
+
+        const t = ev.changedTouches[0]; // The finger that just left
+        const dx = t.clientX - state.startX;
+        const dy = t.clientY - state.startY;
         const dist = Math.sqrt(dx*dx + dy*dy);
+        const suffix = getFingerSuffix(state.maxTouches);
 
-        if(dist < 20) {
-            const now = Date.now();
-            if(now - touchState.lastTapTime < 350 && touchState.lastTapFingers === touches) {
-                touchState.tapCount = (touchState.tapCount || 1) + 1;
-            } else {
-                touchState.tapCount = 1;
-            }
-            touchState.lastTapTime = now;
-            touchState.lastTapFingers = touches;
-
-            const kind = (touchState.tapCount === 1) ? `tap${touches===2? '_2f' : touches===3? '_3f' : ''}` :
-                          (touchState.tapCount === 2) ? `double_tap${touches===2? '_2f' : touches===3? '_3f' : ''}` :
-                          `tap${touches===2? '_2f' : touches===3? '_3f' : ''}`;
-            handleGesture(kind);
+        if (dist > 30) {
+            // --- SWIPE LOGIC ---
+            // Swipes execute immediately (no double-swipe logic)
+            state.tapCount = 0; // Reset tap cycle
+            const dir = get8WayDirection(dx, dy);
+            handleGesture(dir + suffix);
         } else {
-            const dir = getDir(dx, dy);
-            const suf = touches===2? '_2f' : touches===3? '_3f' : '';
-            handleGesture(dir + suf);
+            // --- TAP LOGIC (Single/Double/Triple) ---
+            state.tapCount++;
+            state.lastTapFingers = state.maxTouches;
+
+            clearTimeout(state.tapTimer);
+            
+            // Set a timer to finalize the tap count
+            state.tapTimer = setTimeout(() => {
+                let gesture = 'tap';
+                if (state.tapCount === 2) gesture = 'double_tap';
+                if (state.tapCount >= 3) gesture = 'triple_tap';
+                
+                // Use the finger count from the latest tap sequence
+                handleGesture(gesture + suffix);
+                
+                // Reset
+                state.tapCount = 0;
+            }, 300); // 300ms window for multi-taps
         }
-        resetTouch();
-    }, {passive:false});
+    }, {passive: false});
+
+    function handleGesture(kind) {
+        if(indicator) {
+            indicator.textContent = `Gesture: ${kind.replace(/_/g, ' ')}`;
+            indicator.style.opacity = '1';
+            setTimeout(()=> { indicator.style.opacity = '0.3'; indicator.textContent = 'Area Active'; }, 1000);
+        }
+        
+        // Map to Value
+        const settings = getProfileSettings();
+        const mapResult = mapGestureToValue(kind, settings.currentInput);
+        if(mapResult !== null) addValue(mapResult);
+    }
+}
+    
 
     function handleGesture(kind) {
         if(indicator) {

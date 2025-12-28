@@ -113,7 +113,7 @@ function vibrateMorse(val) {
     else if (num >= 10 && num <= 12) { pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(num-10); i++) { pattern.push(DOT); pattern.push(GAP); } } 
     if(pattern.length > 0) navigator.vibrate(pattern); 
 }
-function initGesturePad() {
+   function initGesturePad() {
     const pad = document.getElementById('gesture-pad');
     const indicator = document.getElementById('gesture-indicator');
     if(!pad) return;
@@ -137,11 +137,6 @@ function initGesturePad() {
         // 8 Slices (45 degrees each), offset by 22.5 to center the cardinal directions
         if (angle > -22.5 && angle <= 22.5) return 'right';
         if (angle > 22.5 && angle <= 67.5) return 'se'; // Screen Y is positive down usually, but standard math is Up=Pos.
-        // Adjusting for Screen Coordinates (Y increases downwards):
-        // Down is +90, Up is -90
-        
-        // Re-calc for Screen Coords:
-        // 0 = Right, 90 = Down, 180 = Left, -90 = Up
         
         if (angle > -22.5 && angle <= 22.5) return 'swipe_right';
         if (angle > 22.5 && angle <= 67.5) return 'swipe_se';
@@ -254,18 +249,6 @@ function initGesturePad() {
         if(mapResult !== null) addValue(mapResult);
     }
 }
-    
-
-    function handleGesture(kind) {
-        if(indicator) {
-            indicator.textContent = `Gesture: ${kind}`;
-            setTimeout(()=>indicator.textContent = 'Use gestures here — swipes, taps, multi-finger.', 700);
-        }
-        const settings = getProfileSettings();
-        const mapResult = mapGestureToValue(kind, settings.currentInput);
-        if(mapResult !== null) addValue(mapResult);
-    }
-}
 
 function mapGestureToValue(kind, currentInput) {
     const gm = appSettings.gestureMappings || {};
@@ -281,7 +264,7 @@ function mapGestureToValue(kind, currentInput) {
     for(let i=1;i<=9;i++){ const k9 = 'k9_' + i; if(gm[k9] && gm[k9].gesture === kind) return i; }
     return null;
 }
-
+       
 function speak(text) { 
     if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; 
     window.speechSynthesis.cancel(); 

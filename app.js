@@ -44,10 +44,13 @@ let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 let blackoutState = { isActive: false, lastShake: 0 }; 
 let gestureInputState = { startX: 0, startY: 0, startTime: 0, maxTouches: 0, isTapCandidate: false, tapCount: 0 };
 let isDeleting = false; 
-let isDemoPlaying = false; 
+let isDemoPlaying = false;
+let isPlaybackPaused = false;
+let playbackResumeCallback = null;
 let practiceSequence = [];
 let practiceInputIndex = 0;
 let ignoreNextClick = false;
+
 
 // --- NEW GLOBALS FOR TIMER/COUNTER ---
 let simpleTimer = { interval: null, startTime: 0, elapsed: 0, isRunning: false };
@@ -497,10 +500,13 @@ function disableInput(disabled) {
 function playDemo() {
     if(isDemoPlaying) return;
     isDemoPlaying = true;
+    isPlaybackPaused = false;
+    playbackResumeCallback = null;
+
     const settings = getProfileSettings();
     const state = getState();
     const speed = appSettings.playbackSpeed || 1.0;
-    const playBtn = document.querySelector('button[data-action="play-demo"]'); // Get button for updating text
+    const playBtn = document.querySelector('button[data-action="play-demo"]'); 
     
     let seqsToPlay = [];
     if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
@@ -529,17 +535,29 @@ function playDemo() {
     }
 
     let cIdx = 0;
-    let totalCount = 0; // Track the sequence position
+    let totalCount = 0; 
+
+    // Helper to handle pauses
+    const schedule = (fn, delay) => {
+        setTimeout(() => {
+            if(!isDemoPlaying) return; 
+            if(isPlaybackPaused) {
+                playbackResumeCallback = fn;
+            } else {
+                fn();
+            }
+        }, delay);
+    };
 
     function nextChunk() {
         if(!isDemoPlaying) {
-            if(playBtn) playBtn.textContent = "▶"; // Restore icon if stopped
+            if(playBtn) playBtn.textContent = "▶";
             return;
         }
 
         if(cIdx >= chunks.length) { 
             isDemoPlaying = false; 
-            if(playBtn) playBtn.textContent = "▶"; // Restore icon on finish
+            if(playBtn) playBtn.textContent = "▶";
             
             if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.isUniqueRoundsAutoClearEnabled) {
                setTimeout(() => {
@@ -569,13 +587,12 @@ function playDemo() {
             
             if(nIdx >= chunk.nums.length) {
                 cIdx++;
-                setTimeout(nextChunk, machineDelay);
+                schedule(nextChunk, machineDelay);
                 return;
             }
             const val = chunk.nums[nIdx];
-            totalCount++; // Increment count
+            totalCount++; 
             
-            // UPDATE PLAY BUTTON TEXT to show position (1, 2, 3...)
             if(playBtn) playBtn.textContent = totalCount;
             
             const kVal = val; 
@@ -590,12 +607,13 @@ function playDemo() {
             if(appSettings.isHapticMorseEnabled) vibrateMorse(val);
             
             nIdx++;
-            setTimeout(playNum, (CONFIG.DEMO_DELAY_BASE_MS / speed));
+            schedule(playNum, (CONFIG.DEMO_DELAY_BASE_MS / speed));
         }
         playNum();
     }
     nextChunk();
 }
+
 
 function handleBackspace(e) { 
     if(e) { e.preventDefault(); e.stopPropagation(); } 
@@ -834,17 +852,40 @@ function initGlobalListeners() {
             }; 
             b.addEventListener('mousedown', startDelete); b.addEventListener('touchstart', startDelete, { passive: false }); b.addEventListener('mouseup', stopDelete); b.addEventListener('mouseleave', stopDelete); b.addEventListener('touchend', stopDelete); b.addEventListener('touchcancel', stopDelete); 
         });
+        if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
+        
+        // --- Global Pause/Resume ---
+        const handlePause = (e) => {
+             if(isDemoPlaying) {
+                 isPlaybackPaused = true;
+                 showToast("Paused ⏸️");
+             }
+        };
+        const handleResume = (e) => {
+             if(isPlaybackPaused) {
+                 isPlaybackPaused = false;
+                 showToast("Resumed ▶️");
+                 if(playbackResumeCallback) {
+                     const fn = playbackResumeCallback;
+                     playbackResumeCallback = null;
+                     fn();
+                 }
+             }
+        };
 
+        document.body.addEventListener('mousedown', handlePause);
+        document.body.addEventListener('touchstart', handlePause, {passive:true});
+        document.body.addEventListener('mouseup', handleResume);
+        document.body.addEventListener('touchend', handleResume);
+
+        // --- Blackout ---
+        let lastX=0, lastY=0, lastZ=0;
         document.getElementById('close-settings').addEventListener('click', () => {
             if(appSettings.isPracticeModeEnabled) {
                 setTimeout(startPracticeRound, 500);
             }
         });
 
-        if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
-        
-        // --- Blackout ---
-        let lastX=0, lastY=0, lastZ=0;
         window.addEventListener('devicemotion', (e) => {
             if(!appSettings.isBlackoutFeatureEnabled) return;
             const acc = e.accelerationIncludingGravity;

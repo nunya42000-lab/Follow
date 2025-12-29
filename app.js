@@ -733,25 +733,54 @@ function initGlobalListeners() {
             b.addEventListener('touchend', () => clearTimeout(timers.stealth));
         });
 
-        // --- Play/Demo Button ---
+                // --- Play/Demo Button ---
         document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
-            const start = (e) => { 
-                if(e) { e.preventDefault(); e.stopPropagation(); } 
-                if(isDemoPlaying) { 
-                    isDemoPlaying = false; 
-                    b.textContent = "▶"; 
-                    showToast("Playback Stopped 🛑"); 
-                    return; 
-                } 
-                playDemo(); 
+            let wasPlaying = false;
+            let lpTriggered = false;
+
+            const handleDown = (e) => { 
+                if(e && e.cancelable) { e.preventDefault(); e.stopPropagation(); } 
+                wasPlaying = isDemoPlaying;
+                lpTriggered = false;
+
+                // Stop immediately if currently playing
+                if(wasPlaying) {
+                    isDemoPlaying = false;
+                    b.textContent = "▶";
+                    showToast("Playback Stopped 🛑");
+                    return;
+                }
+
+                // Start Long Press Timer
+                if (appSettings.isLongPressAutoplayEnabled) {
+                    timers.longPress = setTimeout(() => {
+                        lpTriggered = true;
+                        appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled;
+                        modules.settings.updateUIFromSettings();
+                        showToast(`Autoplay: ${appSettings.isAutoplayEnabled ? "ON" : "OFF"}`);
+                        ignoreNextClick = true; 
+                        setTimeout(() => ignoreNextClick = false, 500);
+                    }, 800);
+                }
             };
-            const longStart = () => { timers.longPress = setTimeout(() => { appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled; modules.settings.updateUIFromSettings(); showToast(`Autoplay: ${appSettings.isAutoplayEnabled ? "ON" : "OFF"}`); ignoreNextClick = true; setTimeout(() => ignoreNextClick = false, 500); }, 800); };
-            const longEnd = () => { clearTimeout(timers.longPress); };
-            b.addEventListener('mousedown', start); b.addEventListener('touchstart', start, { passive: false }); 
-            if (appSettings.isLongPressAutoplayEnabled) {
-                b.addEventListener('mousedown', longStart); b.addEventListener('touchstart', longStart, { passive: true }); b.addEventListener('mouseup', longEnd); b.addEventListener('mouseleave', longEnd); b.addEventListener('touchend', longEnd);
-            }
+
+            const handleUp = (e) => {
+                if(e && e.cancelable) { e.preventDefault(); e.stopPropagation(); } 
+                clearTimeout(timers.longPress);
+                
+                // Only start playback if we weren't already playing AND the long press didn't trigger
+                if (!wasPlaying && !lpTriggered) {
+                    playDemo();
+                }
+            };
+
+            b.addEventListener('mousedown', handleDown);
+            b.addEventListener('touchstart', handleDown, { passive: false });
+            b.addEventListener('mouseup', handleUp);
+            b.addEventListener('touchend', handleUp);
+            b.addEventListener('mouseleave', () => clearTimeout(timers.longPress));
         });
+
         
         // --- Reset Button ---
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => {

@@ -456,6 +456,19 @@ function renderUI() {
             };
             container.appendChild(btn);
         }
+                    // [PATCH] Practice Mode Reset Button
+            const resetBtn = document.createElement('button');
+            resetBtn.textContent = "RESET";
+            resetBtn.className = "mt-4 px-6 py-2 bg-red-800 hover:bg-red-700 rounded text-white font-bold uppercase text-xs tracking-wider shadow";
+            resetBtn.onclick = () => {
+                practiceSequence = [];
+                practiceInputIndex = 0;
+                state.currentRound = 1;
+                renderUI();
+                showToast("Practice Reset 🔄");
+            };
+            container.appendChild(resetBtn);
+
         return;
     }
 
@@ -799,31 +812,51 @@ function initGlobalListeners() {
         });
 
         // --- Input Pad Listeners ---
-
+        // [PATCH] Updated Button Listeners (Fixes Long Press '1' & Flash)
         document.querySelectorAll('.btn-pad-number').forEach(b => {
-            const press = (e) => { 
-                if(e) { e.preventDefault(); e.stopPropagation(); } 
-                if(ignoreNextClick) return; 
-                addValue(b.dataset.value); 
-                b.classList.add('flash-active'); 
-                setTimeout(() => b.classList.remove('flash-active'), 150); 
-            };
-            b.addEventListener('mousedown', press); 
-            b.addEventListener('touchstart', press, { passive: false }); 
-            
-            b.addEventListener('touchstart', (e) => {
-                if(b.dataset.value === '1' && appSettings.isStealth1KeyEnabled) {
-                    timers.stealth = setTimeout(() => {
+            let lpTimer = null;
+            let lpTriggered = false;
+
+            const handleDown = (e) => {
+                if(e && e.cancelable) { e.preventDefault(); e.stopPropagation(); }
+                if(ignoreNextClick) return;
+                
+                lpTriggered = false;
+                
+                // Special Case: Long Press '1' for Stealth (Inputs Only)
+                if (b.dataset.value === '1' && appSettings.isStealth1KeyEnabled) {
+                    lpTimer = setTimeout(() => {
+                        lpTriggered = true;
                         document.body.classList.toggle('hide-controls');
-                        showToast("Stealth Toggle");
-                        ignoreNextClick = true;
-                        setTimeout(() => ignoreNextClick = false, 500);
+                        showToast(document.body.classList.contains('hide-controls') ? "Stealth ON" : "Stealth OFF");
+                        vibrate(); // Feedback
                     }, 1000);
                 }
-            }, {passive:true});
-            b.addEventListener('touchend', () => clearTimeout(timers.stealth));
+            };
+
+            const handleUp = (e) => {
+                if(e) e.preventDefault();
+                clearTimeout(lpTimer);
+                
+                if (lpTriggered) return; // Don't add value if we just did a long press action
+
+                addValue(b.dataset.value);
+                
+                // Fix Flash: Only visually flash if setting is enabled
+                if (appSettings.isFlashEnabled) {
+                    b.classList.add('flash-active');
+                    setTimeout(() => b.classList.remove('flash-active'), 150);
+                }
+            };
+
+            b.addEventListener('mousedown', handleDown);
+            b.addEventListener('touchstart', handleDown, { passive: false });
+            b.addEventListener('mouseup', handleUp);
+            b.addEventListener('touchend', handleUp);
+            b.addEventListener('mouseleave', () => clearTimeout(lpTimer));
         });
 
+        
                 // --- Play/Demo Button ---
         document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
             let wasPlaying = false;
@@ -958,29 +991,32 @@ function initGlobalListeners() {
                 setTimeout(startPracticeRound, 500);
             }
         });
-
+        // [PATCH] Shake to Toggle Gesture Input
+        let lastX=0, lastY=0, lastZ=0;
+        let lastShake = 0;
         window.addEventListener('devicemotion', (e) => {
-            if(!appSettings.isBlackoutFeatureEnabled) return;
             const acc = e.accelerationIncludingGravity;
             if(!acc) return;
             const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
-            if(delta > 25) { 
+            
+            if(delta > 35) { // Slightly harder shake to prevent accidental triggers
                 const now = Date.now();
-                if(now - blackoutState.lastShake > 1000) {
-                    blackoutState.isActive = !blackoutState.isActive;
-                    document.body.classList.toggle('blackout-active', blackoutState.isActive);
-                    if(blackoutState.isActive) {
-                        if (appSettings.isBlackoutGesturesEnabled) {
-                            showToast("Blackout: Gestures Active 👆");
-                        } else {
-                            showToast("Blackout Mode Active 🌑");
-                        }
+                if(now - lastShake > 1500) {
+                    appSettings.isGestureInputEnabled = !appSettings.isGestureInputEnabled;
+                    // Update Toggle in Settings UI if exists
+                    if(modules.settings && modules.settings.dom.gestureToggle) {
+                        modules.settings.dom.gestureToggle.checked = appSettings.isGestureInputEnabled;
                     }
-                    blackoutState.lastShake = now;
+                    saveState();
+                    renderUI();
+                    showToast(appSettings.isGestureInputEnabled ? "Gestures ON 👆" : "Gestures OFF");
+                    vibrate();
+                    lastShake = now;
                 }
             }
             lastX = acc.x; lastY = acc.y; lastZ = acc.z;
         });
+
         
         const bl = document.getElementById('blackout-layer');
         if(bl) {

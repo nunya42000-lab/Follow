@@ -731,15 +731,30 @@ const startApp = () => {
         }
     }, null); 
 
-    // Init Sensor Engine
+        // Init Sensor Engine
     modules.sensor = new SensorEngine(
         (val, source) => { 
+            // [PATCH] Handle Camera Cover (Boss Mode)
+            if (val === 'cover') {
+                 if (!blackoutState.isActive) {
+                     blackoutState.isActive = true;
+                     document.body.classList.add('blackout-active');
+                     showToast("Boss Mode Active 🌑");
+                     vibrate();
+                 }
+                 return;
+            }
+
              addValue(val); 
-             const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
-             if(btn) { btn.classList.add('flash-active'); setTimeout(() => btn.classList.remove('flash-active'), 200); }
+             // Fix Flash: Check setting
+             if (appSettings.isFlashEnabled) {
+                 const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
+                 if(btn) { btn.classList.add('flash-active'); setTimeout(() => btn.classList.remove('flash-active'), 200); }
+             }
         },
         (status) => { }
     );
+
     modules.settings.sensorEngine = modules.sensor;
 
     updateAllChrome();

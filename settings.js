@@ -173,9 +173,6 @@ export class SettingsManager {
             redeemMinus: document.getElementById('redeem-zoom-out'),
 
             openDonateBtn: document.getElementById('open-donate-btn'),
-
-
-            openDonateBtn: document.getElementById('open-donate-btn'),
             openRedeemSettingsBtn: document.getElementById('open-redeem-btn-settings'),
 
             donateModal: document.getElementById('donate-modal'), closeDonateBtn: document.getElementById('close-donate-btn'),

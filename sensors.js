@@ -167,8 +167,19 @@ export class SensorEngine {
             this.flashFrames++;
             const avgR = rSum / pxCount, avgG = gSum / pxCount, avgB = bSum / pxCount;
             const brightness = (avgR + avgG + avgB) / 3;
-            const [h, s, l] = this.rgbToHsl(avgR, avgG, avgB);
-            const quality = brightness * (s + 0.5);
+
+// [PATCH] Cover/Darkness Detection for Boss Mode
+if (brightness < 5) {
+    this.coveredFrames = (this.coveredFrames || 0) + 1;
+    if (this.coveredFrames === 60) { 
+        this.onTrigger('cover', 'camera'); 
+    }
+} else {
+    this.coveredFrames = 0;
+}
+
+const [h, s, l] = this.rgbToHsl(avgR, avgG, avgB);
+ const quality = brightness * (s + 0.5);
             if (quality > this.peakBrightness) {
                 this.peakBrightness = quality;
                 this.peakColorData = { h: Math.round(h * 360), s, l };

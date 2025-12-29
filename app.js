@@ -1005,7 +1005,6 @@ function initGlobalListeners() {
         document.body.addEventListener('touchend', handleResume);
 
         // --- Blackout ---
-        let lastX=0, lastY=0, lastZ=0;
         document.getElementById('close-settings').addEventListener('click', () => {
             if(appSettings.isPracticeModeEnabled) {
                 setTimeout(startPracticeRound, 500);

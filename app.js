@@ -475,11 +475,31 @@ function renderUI() {
     
     activeSeqs.forEach((seq) => { 
         const card = document.createElement('div'); card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)]"; 
-        const numGrid = document.createElement('div'); 
+                const numGrid = document.createElement('div'); 
         if (settings.machineCount > 1) { numGrid.className = "grid grid-cols-4 gap-2 justify-items-center"; } else { numGrid.className = "flex flex-wrap gap-2 justify-center"; }
-        (seq || []).forEach(num => { const span = document.createElement('span'); span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold"; const scale = appSettings.uiScaleMultiplier || 1.0; span.style.width = (40 * scale) + 'px'; span.style.height = (40 * scale) + 'px'; span.style.fontSize = (1.2 * scale) + 'rem'; span.textContent = num; numGrid.appendChild(span); }); 
+        (seq || []).forEach(num => { 
+            const span = document.createElement('span'); 
+            span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold"; 
+            
+            // Dimensions
+            const scale = appSettings.uiScaleMultiplier || 1.0; 
+            const boxSize = 40 * scale;
+            span.style.width = boxSize + 'px'; 
+            span.style.height = boxSize + 'px'; 
+            
+            // Font Size Logic
+            // Base font is proportional to box size (approx 0.5 of box). 
+            // Multiplier scales it up from there.
+            const fontMult = appSettings.uiFontSizeMultiplier || 1.0;
+            const fontSizePx = (boxSize * 0.5) * fontMult;
+            span.style.fontSize = fontSizePx + 'px'; 
+            
+            span.textContent = num; 
+            numGrid.appendChild(span); 
+        }); 
         card.appendChild(numGrid); container.appendChild(card); 
     });
+
     
     const hMic = document.getElementById('header-mic-btn');
     const hCam = document.getElementById('header-cam-btn');
@@ -726,7 +746,60 @@ const startApp = () => {
 
 function initGlobalListeners() {
     try {
+        // --- Pinch-to-Resize Gesture ---
+        let pinchStartDist = 0;
+        let pinchStartGlobal = 100;
+        let pinchStartSeq = 1.0;
+        
+        document.body.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                pinchStartDist = Math.sqrt(dx * dx + dy * dy);
+                pinchStartGlobal = appSettings.globalUiScale || 100;
+                pinchStartSeq = appSettings.uiScaleMultiplier || 1.0;
+            }
+        }, { passive: false });
+
+        document.body.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2 && pinchStartDist > 0) {
+                if(e.cancelable) e.preventDefault(); // Stop browser zoom
+                
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const ratio = dist / pinchStartDist;
+
+                const mode = appSettings.gestureResizeMode || 'global';
+
+                if (mode === 'sequence') {
+                    // Resize Cards Only
+                    let newScale = pinchStartSeq * ratio;
+                    newScale = Math.min(2.5, Math.max(0.5, newScale)); // Clamp
+                    appSettings.uiScaleMultiplier = newScale;
+                    // Note: We don't save immediately to avoid hammering localStorage
+                    renderUI();
+                } else {
+                    // Resize Global UI
+                    let newScale = pinchStartGlobal * ratio;
+                    newScale = Math.min(200, Math.max(50, newScale)); // Clamp
+                    appSettings.globalUiScale = newScale;
+                    updateAllChrome();
+                }
+            }
+        }, { passive: false });
+
+        document.body.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2 && pinchStartDist > 0) {
+                pinchStartDist = 0;
+                saveState(); // Save final value
+                // Sync settings UI if modal is open
+                if(modules.settings) modules.settings.updateUIFromSettings();
+            }
+        });
+
         // --- Input Pad Listeners ---
+
         document.querySelectorAll('.btn-pad-number').forEach(b => {
             const press = (e) => { 
                 if(e) { e.preventDefault(); e.stopPropagation(); } 

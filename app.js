@@ -630,11 +630,16 @@ function playDemo() {
             
             const kVal = val; 
             const padId = `pad-${settings.currentInput}`;
+                    // [PATCH] Only flash during playback if enabled
+        if (appSettings.isFlashEnabled) {
+            const padId = `pad-${settings.currentInput}`;
             const btn = document.querySelector(`#${padId} button[data-value="${kVal}"]`);
             if(btn) {
                 btn.classList.add('flash-active');
                 setTimeout(() => btn.classList.remove('flash-active'), 250/speed);
             }
+        }
+
             
             speak(val);
             if(appSettings.isHapticMorseEnabled) vibrateMorse(val);

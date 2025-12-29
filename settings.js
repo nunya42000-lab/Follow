@@ -331,6 +331,20 @@ export class SettingsManager {
         if (this.dom.input) this.dom.input.addEventListener('change', () => this.generatePrompt());
         if (this.dom.machines) this.dom.machines.addEventListener('change', () => this.generatePrompt());
         if (this.dom.seqLength) this.dom.seqLength.addEventListener('change', () => this.generatePrompt());
+                // [PATCH] Populate Speed Dropdown (75% to 150% in 5% increments)
+        if (this.dom.playbackSpeed) {
+            this.dom.playbackSpeed.innerHTML = '';
+            for (let i = 75; i <= 150; i += 5) {
+                const opt = document.createElement('option');
+                const val = i / 100;
+                opt.value = val.toFixed(2);
+                opt.textContent = `${i}%`;
+                this.dom.playbackSpeed.appendChild(opt);
+            }
+            // Set initial value
+            this.dom.playbackSpeed.value = this.appSettings.playbackSpeed.toFixed(2);
+        }
+
         if (this.dom.playbackSpeed) this.dom.playbackSpeed.addEventListener('change', () => this.generatePrompt());
         if (this.dom.delay) this.dom.delay.addEventListener('change', () => this.generatePrompt());
         if (this.dom.chunk) this.dom.chunk.addEventListener('change', () => this.generatePrompt());

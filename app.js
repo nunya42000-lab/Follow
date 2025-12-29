@@ -255,18 +255,38 @@ function vibrateMorse(val) {
     }
 }
 
+// FIXED: Now strictly checks input mode to prevent 12-key gestures firing in 9-key mode
 function mapGestureToValue(kind, currentInput) {
     const gm = appSettings.gestureMappings || {};
+    
+    // Piano Check
     if(currentInput === CONFIG.INPUTS.PIANO) {
         for(const k in gm) {
             if(k.startsWith('piano_') && gm[k].gesture === kind) {
-                const id = k.replace('piano_','');
-                return id;
+                return k.replace('piano_','');
             }
         }
+        return null;
     }
-    for(let i=1;i<=12;i++){ const k12 = 'k12_' + i; if(gm[k12] && gm[k12].gesture === kind) return i; }
-    for(let i=1;i<=9;i++){ const k9 = 'k9_' + i; if(gm[k9] && gm[k9].gesture === kind) return i; }
+
+    // 12-Key Strict Check
+    if(currentInput === CONFIG.INPUTS.KEY12) {
+        for(let i=1; i<=12; i++) { 
+            const k = 'k12_' + i; 
+            if(gm[k] && gm[k].gesture === kind) return i; 
+        }
+        return null;
+    }
+
+    // 9-Key Strict Check
+    if(currentInput === CONFIG.INPUTS.KEY9) {
+        for(let i=1; i<=9; i++) { 
+            const k = 'k9_' + i; 
+            if(gm[k] && gm[k].gesture === kind) return i; 
+        }
+        return null;
+    }
+    
     return null;
 }
        

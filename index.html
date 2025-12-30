@@ -74,19 +74,9 @@
         </div>
     </div>
 
-        <div id="redeem-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
-        <div class="relative w-full max-w-lg h-[95vh] flex flex-col items-center justify-center p-4">
-            <button id="close-redeem-btn" class="absolute top-4 right-4 z-50 bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600">✕</button>
-            <div class="absolute top-16 right-4 z-50 flex flex-col gap-3">
-                <button id="redeem-zoom-in" class="bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600 active:bg-gray-700">+</button>
-                <button id="redeem-zoom-out" class="bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600 active:bg-gray-700">-</button>
-            </div>
-            <div class="bg-white p-2 rounded-lg shadow-2xl w-full h-full flex items-center justify-center overflow-hidden">
-                <img id="redeem-img" src="redeem.jpg" alt="Redeem Barcode" class="w-full h-full object-contain transition-transform duration-200">
-            </div>
-        </div>
+    <div id="redeem-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="relative w-full max-w-lg h-[95vh] flex flex-col items-center justify-center p-4"><button id="close-redeem-btn" class="absolute top-4 right-4 z-50 bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600">✕</button><div class="bg-white p-2 rounded-lg shadow-2xl w-full h-full flex items-center justify-center overflow-hidden"><img src="redeem.jpg" alt="Redeem Barcode" class="w-full h-full object-contain"></div></div>
     </div>
-
 
     <div id="calibration-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[110] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-md w-full border border-custom">
@@ -141,13 +131,14 @@
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh] overflow-hidden border border-custom m-4">
             
-                        <div class="p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
-                <div class="flex items-center">
+            <div class="p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
+                <div class="flex items-center space-x-2">
+                    <h3 class="text-xl font-bold" data-i18n="settings_btn">Settings</h3>
                     <select id="general-lang-select" class="bg-black bg-opacity-30 text-white text-xs rounded p-1 border border-gray-600"><option value="en">🇺🇸</option><option value="es">🇲🇽</option></select>
                 </div>
-                <div class="flex space-x-5 items-center">
+                <div class="flex space-x-3 items-center">
                     <button id="open-donate-btn" class="text-2xl hover:scale-110 transition-transform" title="Donate">☕</button>
-                    <button id="open-redeem-btn-settings" class="text-2xl opacity-70 hover:opacity-100" title="ID">🆔</button>
+                    <button id="open-redeem-btn-settings" class="text-2xl opacity-70 hover:opacity-100" title="ATM Cashout">🏧</button>
                     <button id="open-share-button" class="text-xl opacity-70 hover:opacity-100" title="Share">📤</button>
                     <button id="open-comment-modal" class="text-xl opacity-70 hover:opacity-100" title="Feedback">💬</button>
                     <button id="open-help-button" class="text-xl opacity-70 hover:opacity-100" title="Help">❓</button>
@@ -204,8 +195,11 @@
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-bold mb-1 text-muted-custom">Speed</label>
-                                <select id="playback-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"></select>
-
+                                <select id="playback-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="0.5">50%</option><option value="0.75">75%</option><option value="1.0">100%</option>
+                                    <option value="1.25">125%</option><option value="1.5">150%</option><option value="1.75">175%</option>
+                                    <option value="2.0">200%</option>
+                                </select>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold mb-1 text-muted-custom">Pause</label>
@@ -349,21 +343,25 @@
                             <div>
                                 <label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
                                 <select id="ui-scale-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+                                    <option value="100" selected>100%</option>
+                                    <option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+                                    <option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
-                                                        <div>
+                            <div>
                                 <label class="block text-xs font-bold mb-1 text-muted-custom">Number Size</label>
                                 <select id="seq-font-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                    <option value="100">Normal</option>
-                                    <option value="150">Large</option>
-                                    <option value="200">Huge</option>
-                                    <option value="250">Max (Fill)</option>
+                                    <option value="100" selected>100%</option>
+                                    <option value="125">125%</option>
+                                    <option value="150">150%</option>
+                                    <option value="175">175%</option>
+                                    <option value="200">200%</option>
                                 </select>
                             </div>
-
                             <div>
                                 <label class="block text-xs font-bold mb-1 text-muted-custom">Resize Gesture</label>
                                 <select id="gesture-mode-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
@@ -406,7 +404,7 @@
         </div>
     </div>
 
-    <dv id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
+    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
             <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center"><h3 class="text-2xl font-bold">Manual 📘</h3><button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button></div>
             <div class="flex border-b border-custom bg-black bg-opacity-10">
@@ -419,7 +417,7 @@
                     <h4 class="font-bold text-lg text-primary-app mb-2">The Goal 🎯</h4>
                     <p class="mb-4 opacity-90">This is a sandbox tool designed to help you beat the "Follow" memory portion of skill-based machines.</p>
                     <p class="mb-4 opacity-90"><strong>How to use:</strong> Select your input method (9-Key is standard). When the machine flashes a number, press it here. The app tracks the full sequence so you don't have to memorize it.</p>
-                    <p class="mt-4 opacity-90"><strong>ID Icon (🆔):</strong> Opens the Redeem barcode for easy cashout at compatible kiosks.</p>
+                    <p class="mt-4 opacity-90"><strong>ATM Icon (🏧):</strong> Opens the Redeem barcode for easy cashout at compatible kiosks.</p>
                     <p class="mt-4 opacity-90"><strong>Support ☕:</strong> If this app helps you win, use the Coffee icon in Settings to send a tip!</p>
                 </div>
 
@@ -478,92 +476,24 @@
                             <p class="text-[10px] mt-2 opacity-60">Expert Note: Piano Keys A through G map to numbers 6 through 12 respectively.</p>
                             <p class="text-[10px] opacity-60">Key: • = Short Vibrate, ▬ = Long Vibrate</p>
                         </div>
-    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
-        <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
-            <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center"><h3 class="text-2xl font-bold">Manual 📘</h3><button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button></div>
-            <div class="flex border-b border-custom bg-black bg-opacity-10">
-                <div class="tab-btn active" data-tab="help-about">About</div>
-                <div class="tab-btn" data-tab="help-settings">Settings</div>
-                <div class="tab-btn" data-tab="help-voice">Voice</div>
-            </div>
-            <div class="p-6 overflow-y-auto leading-relaxed space-y-6 text-sm flex-grow">
-                
-                <div id="tab-help-about" class="tab-content active">
-                    <h4 class="font-bold text-lg text-primary-app mb-2">The Goal 🎯</h4>
-                    <p class="mb-4 opacity-90">This is a sandbox tool designed to help you beat the "Follow" memory portion of skill-based machines.</p>
-                    
-                    <div class="bg-black bg-opacity-30 p-3 rounded-lg border border-gray-700 mb-4">
-                        <h5 class="font-bold text-white mb-1">🎮 How to Play</h5>
-                        <p class="text-xs opacity-80">Select your input method (9-Key, 12-Key, or Piano). When the machine flashes a number, press it here. The app tracks the full sequence so you don't have to memorize it.</p>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3 mb-4">
-                        <div class="bg-black bg-opacity-30 p-3 rounded-lg border border-gray-700">
-                            <h5 class="font-bold text-white mb-1">📤 Share & Feedback</h5>
-                            <p class="text-xs opacity-80">Use the 📤 icon in the header to share the app with friends. Use the 💬 icon to send feedback or suggestions directly to the developer.</p>
-                        </div>
-                        <div class="bg-black bg-opacity-30 p-3 rounded-lg border border-gray-700">
-                            <h5 class="font-bold text-white mb-1">⏸️ Hold to Pause</h5>
-                            <p class="text-xs opacity-80">Touch and <strong>hold anywhere</strong> on the screen during playback to pause the sequence. Release to resume instantly.</p>
-                        </div>
-                    </div>
-
-                    <p class="mt-4 opacity-90 text-xs text-center"><strong>ID Icon (🆔):</strong> Opens the Redeem barcode for compatible kiosks.<br><strong>Support ☕:</strong> If this app helps you win, use the Coffee icon to send a tip!</p>
-                </div>
-
-                <div id="tab-help-settings" class="tab-content">
-                    <h4 class="font-bold text-lg text-primary-app mb-4">Settings Glossary ⚙️</h4>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <h5 class="font-bold text-base text-white border-b border-gray-600 pb-1 mb-2">Game Tab</h5>
-                            <ul class="space-y-2 text-xs opacity-90">
-                                <li><strong>Profiles:</strong> Save/Load different setups (e.g., "Fast 9-Key", "Slow Piano").</li>
-                                <li><strong>Input:</strong> Choose between 9-Key (3x3), 12-Key (3x4), or Piano layouts.</li>
-                                <li><strong>Mode (Simon):</strong> Cumulative. Adds one number per round. App reads back the full history.</li>
-                                <li><strong>Mode (Unique):</strong> Random. New sequence every round. App forgets previous numbers.</li>
-                                <li><strong>Machines:</strong> Split the screen for tracking up to 4 machines simultaneously.</li>
-                                <li><strong>Auto-Advance:</strong> (Unique Mode) Automatically clears and starts the next round after playback.</li>
-                                <li><strong>Practice Mode:</strong> Switches from "Tracker" to "Game". The app generates sequences for you to memorize.</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h5 class="font-bold text-base text-white border-b border-gray-600 pb-1 mb-2">Playback Tab</h5>
-                            <ul class="space-y-2 text-xs opacity-90">
-                                <li><strong>Autoplay:</strong> Immediately plays back the sequence after you enter a number.</li>
-                                <li><strong>Flash:</strong> Highlights buttons visually during playback.</li>
-                                <li><strong>Audio:</strong> Reads the numbers out loud (Text-to-Speech).</li>
-                                <li><strong>Morse:</strong> Vibrates a pattern for each number so you can "feel" the sequence.</li>
-                                <li><strong>Speed:</strong> Playback tempo (75% - 150%). Affects voice and flash speed.</li>
-                                <li><strong>Chunk Size:</strong> Groups numbers (e.g., "1-2-3 ... 4-5-6") for easier memorization.</li>
-                                <li><strong>Voice Settings:</strong> Customize pitch, rate, and volume, or choose a voice preset.</li>
-                                <li><strong>Haptic Mapping:</strong> Customize exactly which vibration pattern plays for each number.</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h5 class="font-bold text-base text-white border-b border-gray-600 pb-1 mb-2">General Tab</h5>
-                            <ul class="space-y-2 text-xs opacity-90">
-                                <li><strong>Theme:</strong> Choose a look or use the Editor to build your own colors.</li>
-                                <li><strong>Timer/Counter:</strong> Adds a stopwatch or tally counter to the top header.</li>
-                                <li><strong>Boss Mode (🌑):</strong> Cover the front camera to turn the screen black. Uncover to restore.</li>
-                                <li><strong>BM Gestures:</strong> Allows touch input while the screen is black (Swipe/Tap).</li>
-                                <li><strong>Inputs Only (🥷):</strong> Hold '1' to hide all buttons except the keypad.</li>
-                                <li><strong>Gesture Input:</strong> Shake device to toggle a full-screen gesture pad.</li>
-                                <li><strong>Quick Erase:</strong> Hold 'Backspace' to delete the entire sequence.</li>
-                                <li><strong>AP Shortcut:</strong> Long-press 'Play' to toggle Autoplay on/off.</li>
-                                <li><strong>Auto Input:</strong> Automatically enables Mic or Camera sensors on launch.</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h5 class="font-bold text-base text-white border-b border-gray-600 pb-1 mb-2">Mapping Tab</h5>
-                            <p class="text-xs opacity-90 mb-2">Configures gestures for "Gesture Input" and "Boss Mode".</p>
-                            <ul class="space-y-2 text-xs opacity-90">
-                                <li><strong>Profiles:</strong> Presets like "Directional Swipes" (Faster) or "Standard Taps" (Easier).</li>
-                                <li><strong>Mapping Lists:</strong> Assign specific swipes (Up, Down, Left, Right) or taps to specific numbers.</li>
-                            </ul>
+                        
+                        <div class="p-3 bg-black bg-opacity-20 rounded border border-gray-700">
+                            <h5 class="font-bold text-sm text-white mb-1">Blackout Gestures Guide 👆</h5>
+                            <p class="text-xs mb-2 opacity-80">Use these touch gestures on the black screen (if Gestures are enabled).</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                                <div class="bg-black bg-opacity-40 p-1 rounded">1: Swipe Up</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">2: Swipe Right</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">3: Swipe Down</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">4: Swipe Left</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">5: Single Tap</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">6 (A): 2-Finger Swipe Up</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">7 (B): 2-Finger Swipe Right</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">8 (C): 2-Finger Swipe Down</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">9 (D): 2-Finger Swipe Left</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">10 (E): 2-Finger Tap</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">11 (F): Double Tap</div>
+                                <div class="bg-black bg-opacity-40 p-1 rounded">12 (G): Long Press</div>
+                            </div>
                         </div>
                     </div>
                 </div>

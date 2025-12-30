@@ -23,10 +23,6 @@ export class SensorEngine {
         this.flashFrames = 0;
         this.peakBrightness = 0;
         this.peakColorData = null;
-
-        // --- New Boss Mode State ---
-        this.darknessStart = 0;
-        this.bossModeLock = false;
     }
     setCalibrationCallback(cb) { this.calibrationCallback = cb; }
     setupDOM(videoElement, canvasElement) {
@@ -149,29 +145,6 @@ export class SensorEngine {
         this.ctx.drawImage(this.videoEl, 0, 0, this.canvasEl.width, this.canvasEl.height);
         const frame = this.ctx.getImageData(0, 0, this.canvasEl.width, this.canvasEl.height);
         const data = frame.data;
-
-        // --- Boss Mode Check (Covering Camera) ---
-        let totalLum = 0;
-        for (let i = 0; i < data.length; i += 4) {
-            totalLum += (data[i] + data[i+1] + data[i+2]);
-        }
-        const avgLum = (totalLum / 3) / (data.length / 4);
-
-        if (avgLum < 10) { // Threshold for "Dark"
-            if (!this.bossModeLock) {
-                if (this.darknessStart === 0) {
-                    this.darknessStart = Date.now();
-                } else if (Date.now() - this.darknessStart > 1000) { // 1 Second
-                    this.trigger('BOSS_MODE', 'camera');
-                    this.bossModeLock = true; // Lock until uncovered
-                }
-            }
-        } else {
-            this.darknessStart = 0;
-            this.bossModeLock = false; // Reset lock
-        }
-        // -----------------------------------------
-
         if (!this.prevFrame) {
             this.prevFrame = new Uint8ClampedArray(data);
             return 0;

@@ -9,19 +9,15 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // --- CONFIG ---
-const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 250, SPEED_DELETE_INTERVAL: 20, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v47', STORAGE_KEY_STATE: 'followMeAppState_v47', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } };
+const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 250, SPEED_DELETE_INTERVAL: 20, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v46', STORAGE_KEY_STATE: 'followMeAppState_v46', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } };
 
-// UPDATED DEFAULTS: Chunk=40 (Full), Delay=0
-const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 40, simonInterSequenceDelay: 0 };
-const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 40, simonInterSequenceDelay: 0 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
+const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 3, simonInterSequenceDelay: 400 };
+const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 4, simonInterSequenceDelay: 400 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
 
-// UPDATED DEFAULTS: Flash=True, Audio=False, PlaybackSpeed=1.0
 const DEFAULT_APP = { 
     globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, 
-    isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, 
-    isAudioEnabled: false, // UPDATED
-    isHapticsEnabled: true, 
-    isFlashEnabled: true,  // UPDATED
+    isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, isAudioEnabled: true, isHapticsEnabled: true, 
+   isFlashEnabled: false, 
     pauseSetting: 'none',
     isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, 
     activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, 
@@ -48,15 +44,10 @@ let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 let blackoutState = { isActive: false, lastShake: 0 }; 
 let gestureInputState = { startX: 0, startY: 0, startTime: 0, maxTouches: 0, isTapCandidate: false, tapCount: 0 };
 let isDeleting = false; 
-let isDemoPlaying = false;
-let isPlaybackPaused = false;
-let playbackResumeCallback = null;
+let isDemoPlaying = false; 
 let practiceSequence = [];
 let practiceInputIndex = 0;
 let ignoreNextClick = false;
-
-// New flag for Shake Toggle
-let isGesturePadVisible = true;
 
 // --- NEW GLOBALS FOR TIMER/COUNTER ---
 let simpleTimer = { interval: null, startTime: 0, elapsed: 0, isRunning: false };
@@ -259,38 +250,18 @@ function vibrateMorse(val) {
     }
 }
 
-// FIXED: Now strictly checks input mode to prevent 12-key gestures firing in 9-key mode
 function mapGestureToValue(kind, currentInput) {
     const gm = appSettings.gestureMappings || {};
-    
-    // Piano Check
     if(currentInput === CONFIG.INPUTS.PIANO) {
         for(const k in gm) {
             if(k.startsWith('piano_') && gm[k].gesture === kind) {
-                return k.replace('piano_','');
+                const id = k.replace('piano_','');
+                return id;
             }
         }
-        return null;
     }
-
-    // 12-Key Strict Check
-    if(currentInput === CONFIG.INPUTS.KEY12) {
-        for(let i=1; i<=12; i++) { 
-            const k = 'k12_' + i; 
-            if(gm[k] && gm[k].gesture === kind) return i; 
-        }
-        return null;
-    }
-
-    // 9-Key Strict Check
-    if(currentInput === CONFIG.INPUTS.KEY9) {
-        for(let i=1; i<=9; i++) { 
-            const k = 'k9_' + i; 
-            if(gm[k] && gm[k].gesture === kind) return i; 
-        }
-        return null;
-    }
-    
+    for(let i=1;i<=12;i++){ const k12 = 'k12_' + i; if(gm[k12] && gm[k12].gesture === kind) return i; }
+    for(let i=1;i<=9;i++){ const k9 = 'k9_' + i; if(gm[k9] && gm[k9].gesture === kind) return i; }
     return null;
 }
        
@@ -439,11 +410,7 @@ function renderUI() {
     try {
         const gpWrap = document.getElementById('gesture-pad-wrapper');
         if (gpWrap) {
-            // Reset to true if setting is off, so it's ready next time
-            if (!appSettings.isGestureInputEnabled) isGesturePadVisible = true;
-
-            // Updated Condition: Setting ON AND Flag ON
-            if (appSettings.isGestureInputEnabled && isGesturePadVisible) {
+            if (appSettings.isGestureInputEnabled) {
                 document.body.classList.add('input-gestures-mode'); // Enable full screen mode
                 gpWrap.classList.remove('hidden');
                 if (!window.__gesturePadInited) { initGesturePad(); window.__gesturePadInited = true; }
@@ -505,31 +472,11 @@ function renderUI() {
     
     activeSeqs.forEach((seq) => { 
         const card = document.createElement('div'); card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)]"; 
-                const numGrid = document.createElement('div'); 
+        const numGrid = document.createElement('div'); 
         if (settings.machineCount > 1) { numGrid.className = "grid grid-cols-4 gap-2 justify-items-center"; } else { numGrid.className = "flex flex-wrap gap-2 justify-center"; }
-        (seq || []).forEach(num => { 
-            const span = document.createElement('span'); 
-            span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold"; 
-            
-            // Dimensions
-            const scale = appSettings.uiScaleMultiplier || 1.0; 
-            const boxSize = 40 * scale;
-            span.style.width = boxSize + 'px'; 
-            span.style.height = boxSize + 'px'; 
-            
-            // Font Size Logic
-            // Base font is proportional to box size (approx 0.5 of box). 
-            // Multiplier scales it up from there.
-            const fontMult = appSettings.uiFontSizeMultiplier || 1.0;
-            const fontSizePx = (boxSize * 0.5) * fontMult;
-            span.style.fontSize = fontSizePx + 'px'; 
-            
-            span.textContent = num; 
-            numGrid.appendChild(span); 
-        }); 
+        (seq || []).forEach(num => { const span = document.createElement('span'); span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold"; const scale = appSettings.uiScaleMultiplier || 1.0; span.style.width = (40 * scale) + 'px'; span.style.height = (40 * scale) + 'px'; span.style.fontSize = (1.2 * scale) + 'rem'; span.textContent = num; numGrid.appendChild(span); }); 
         card.appendChild(numGrid); container.appendChild(card); 
     });
-
     
     const hMic = document.getElementById('header-mic-btn');
     const hCam = document.getElementById('header-cam-btn');
@@ -550,13 +497,10 @@ function disableInput(disabled) {
 function playDemo() {
     if(isDemoPlaying) return;
     isDemoPlaying = true;
-    isPlaybackPaused = false;
-    playbackResumeCallback = null;
-
     const settings = getProfileSettings();
     const state = getState();
     const speed = appSettings.playbackSpeed || 1.0;
-    const playBtn = document.querySelector('button[data-action="play-demo"]'); 
+    const playBtn = document.querySelector('button[data-action="play-demo"]'); // Get button for updating text
     
     let seqsToPlay = [];
     if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
@@ -585,29 +529,17 @@ function playDemo() {
     }
 
     let cIdx = 0;
-    let totalCount = 0; 
-
-    // Helper to handle pauses
-    const schedule = (fn, delay) => {
-        setTimeout(() => {
-            if(!isDemoPlaying) return; 
-            if(isPlaybackPaused) {
-                playbackResumeCallback = fn;
-            } else {
-                fn();
-            }
-        }, delay);
-    };
+    let totalCount = 0; // Track the sequence position
 
     function nextChunk() {
         if(!isDemoPlaying) {
-            if(playBtn) playBtn.textContent = "▶";
+            if(playBtn) playBtn.textContent = "▶"; // Restore icon if stopped
             return;
         }
 
         if(cIdx >= chunks.length) { 
             isDemoPlaying = false; 
-            if(playBtn) playBtn.textContent = "▶";
+            if(playBtn) playBtn.textContent = "▶"; // Restore icon on finish
             
             if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.isUniqueRoundsAutoClearEnabled) {
                setTimeout(() => {
@@ -637,12 +569,13 @@ function playDemo() {
             
             if(nIdx >= chunk.nums.length) {
                 cIdx++;
-                schedule(nextChunk, machineDelay);
+                setTimeout(nextChunk, machineDelay);
                 return;
             }
             const val = chunk.nums[nIdx];
-            totalCount++; 
+            totalCount++; // Increment count
             
+            // UPDATE PLAY BUTTON TEXT to show position (1, 2, 3...)
             if(playBtn) playBtn.textContent = totalCount;
             
             const kVal = val; 
@@ -657,13 +590,12 @@ function playDemo() {
             if(appSettings.isHapticMorseEnabled) vibrateMorse(val);
             
             nIdx++;
-            schedule(playNum, (CONFIG.DEMO_DELAY_BASE_MS / speed));
+            setTimeout(playNum, (CONFIG.DEMO_DELAY_BASE_MS / speed));
         }
         playNum();
     }
     nextChunk();
 }
-
 
 function handleBackspace(e) { 
     if(e) { e.preventDefault(); e.stopPropagation(); } 
@@ -751,16 +683,6 @@ const startApp = () => {
     // Init Sensor Engine
     modules.sensor = new SensorEngine(
         (val, source) => { 
-            // NEW: Check for Boss Mode trigger from Sensors
-            if (val === 'BOSS_MODE') {
-                 if(appSettings.isBlackoutFeatureEnabled) {
-                     blackoutState.isActive = !blackoutState.isActive;
-                     document.body.classList.toggle('blackout-active', blackoutState.isActive);
-                     showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back");
-                 }
-                 return;
-             }
-
              addValue(val); 
              const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
              if(btn) { btn.classList.add('flash-active'); setTimeout(() => btn.classList.remove('flash-active'), 200); }
@@ -786,60 +708,7 @@ const startApp = () => {
 
 function initGlobalListeners() {
     try {
-        // --- Pinch-to-Resize Gesture ---
-        let pinchStartDist = 0;
-        let pinchStartGlobal = 100;
-        let pinchStartSeq = 1.0;
-        
-        document.body.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                const dx = e.touches[0].clientX - e.touches[1].clientX;
-                const dy = e.touches[0].clientY - e.touches[1].clientY;
-                pinchStartDist = Math.sqrt(dx * dx + dy * dy);
-                pinchStartGlobal = appSettings.globalUiScale || 100;
-                pinchStartSeq = appSettings.uiScaleMultiplier || 1.0;
-            }
-        }, { passive: false });
-
-        document.body.addEventListener('touchmove', (e) => {
-            if (e.touches.length === 2 && pinchStartDist > 0) {
-                if(e.cancelable) e.preventDefault(); // Stop browser zoom
-                
-                const dx = e.touches[0].clientX - e.touches[1].clientX;
-                const dy = e.touches[0].clientY - e.touches[1].clientY;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                const ratio = dist / pinchStartDist;
-
-                const mode = appSettings.gestureResizeMode || 'global';
-
-                if (mode === 'sequence') {
-                    // Resize Cards Only
-                    let newScale = pinchStartSeq * ratio;
-                    newScale = Math.min(2.5, Math.max(0.5, newScale)); // Clamp
-                    appSettings.uiScaleMultiplier = newScale;
-                    // Note: We don't save immediately to avoid hammering localStorage
-                    renderUI();
-                } else {
-                    // Resize Global UI
-                    let newScale = pinchStartGlobal * ratio;
-                    newScale = Math.min(200, Math.max(50, newScale)); // Clamp
-                    appSettings.globalUiScale = newScale;
-                    updateAllChrome();
-                }
-            }
-        }, { passive: false });
-
-        document.body.addEventListener('touchend', (e) => {
-            if (e.touches.length < 2 && pinchStartDist > 0) {
-                pinchStartDist = 0;
-                saveState(); // Save final value
-                // Sync settings UI if modal is open
-                if(modules.settings) modules.settings.updateUIFromSettings();
-            }
-        });
-
         // --- Input Pad Listeners ---
-
         document.querySelectorAll('.btn-pad-number').forEach(b => {
             const press = (e) => { 
                 if(e) { e.preventDefault(); e.stopPropagation(); } 
@@ -864,54 +733,25 @@ function initGlobalListeners() {
             b.addEventListener('touchend', () => clearTimeout(timers.stealth));
         });
 
-                // --- Play/Demo Button ---
+        // --- Play/Demo Button ---
         document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
-            let wasPlaying = false;
-            let lpTriggered = false;
-
-            const handleDown = (e) => { 
-                if(e && e.cancelable) { e.preventDefault(); e.stopPropagation(); } 
-                wasPlaying = isDemoPlaying;
-                lpTriggered = false;
-
-                // Stop immediately if currently playing
-                if(wasPlaying) {
-                    isDemoPlaying = false;
-                    b.textContent = "▶";
-                    showToast("Playback Stopped 🛑");
-                    return;
-                }
-
-                // Start Long Press Timer
-                if (appSettings.isLongPressAutoplayEnabled) {
-                    timers.longPress = setTimeout(() => {
-                        lpTriggered = true;
-                        appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled;
-                        modules.settings.updateUIFromSettings();
-                        showToast(`Autoplay: ${appSettings.isAutoplayEnabled ? "ON" : "OFF"}`);
-                        ignoreNextClick = true; 
-                        setTimeout(() => ignoreNextClick = false, 500);
-                    }, 800);
-                }
+            const start = (e) => { 
+                if(e) { e.preventDefault(); e.stopPropagation(); } 
+                if(isDemoPlaying) { 
+                    isDemoPlaying = false; 
+                    b.textContent = "▶"; 
+                    showToast("Playback Stopped 🛑"); 
+                    return; 
+                } 
+                playDemo(); 
             };
-
-            const handleUp = (e) => {
-                if(e && e.cancelable) { e.preventDefault(); e.stopPropagation(); } 
-                clearTimeout(timers.longPress);
-                
-                // Only start playback if we weren't already playing AND the long press didn't trigger
-                if (!wasPlaying && !lpTriggered) {
-                    playDemo();
-                }
-            };
-
-            b.addEventListener('mousedown', handleDown);
-            b.addEventListener('touchstart', handleDown, { passive: false });
-            b.addEventListener('mouseup', handleUp);
-            b.addEventListener('touchend', handleUp);
-            b.addEventListener('mouseleave', () => clearTimeout(timers.longPress));
+            const longStart = () => { timers.longPress = setTimeout(() => { appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled; modules.settings.updateUIFromSettings(); showToast(`Autoplay: ${appSettings.isAutoplayEnabled ? "ON" : "OFF"}`); ignoreNextClick = true; setTimeout(() => ignoreNextClick = false, 500); }, 800); };
+            const longEnd = () => { clearTimeout(timers.longPress); };
+            b.addEventListener('mousedown', start); b.addEventListener('touchstart', start, { passive: false }); 
+            if (appSettings.isLongPressAutoplayEnabled) {
+                b.addEventListener('mousedown', longStart); b.addEventListener('touchstart', longStart, { passive: true }); b.addEventListener('mouseup', longEnd); b.addEventListener('mouseleave', longEnd); b.addEventListener('touchend', longEnd);
+            }
         });
-
         
         // --- Reset Button ---
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => {
@@ -965,55 +805,34 @@ function initGlobalListeners() {
             }; 
             b.addEventListener('mousedown', startDelete); b.addEventListener('touchstart', startDelete, { passive: false }); b.addEventListener('mouseup', stopDelete); b.addEventListener('mouseleave', stopDelete); b.addEventListener('touchend', stopDelete); b.addEventListener('touchcancel', stopDelete); 
         });
-        if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
-        
-        // --- Global Pause/Resume ---
-        const handlePause = (e) => {
-             if(isDemoPlaying) {
-                 isPlaybackPaused = true;
-                 showToast("Paused ⏸️");
-             }
-        };
-        const handleResume = (e) => {
-             if(isPlaybackPaused) {
-                 isPlaybackPaused = false;
-                 showToast("Resumed ▶️");
-                 if(playbackResumeCallback) {
-                     const fn = playbackResumeCallback;
-                     playbackResumeCallback = null;
-                     fn();
-                 }
-             }
-        };
 
-        document.body.addEventListener('mousedown', handlePause);
-        document.body.addEventListener('touchstart', handlePause, {passive:true});
-        document.body.addEventListener('mouseup', handleResume);
-        document.body.addEventListener('touchend', handleResume);
-
-        // --- Shake Listener (Fixed) ---
-        let lastX=0, lastY=0, lastZ=0;
         document.getElementById('close-settings').addEventListener('click', () => {
             if(appSettings.isPracticeModeEnabled) {
                 setTimeout(startPracticeRound, 500);
             }
         });
 
+        if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
+        
+        // --- Blackout ---
+        let lastX=0, lastY=0, lastZ=0;
         window.addEventListener('devicemotion', (e) => {
-            // UPDATED: Only toggles Gesture Pad now. Boss mode moved to Camera Cover.
-            if(!appSettings.isGestureInputEnabled) return;
-
+            if(!appSettings.isBlackoutFeatureEnabled) return;
             const acc = e.accelerationIncludingGravity;
             if(!acc) return;
             const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
-            
             if(delta > 25) { 
                 const now = Date.now();
                 if(now - blackoutState.lastShake > 1000) {
-                    isGesturePadVisible = !isGesturePadVisible;
-                    renderUI(); 
-                    if(isGesturePadVisible) showToast("Gestures Active 👆");
-                    else showToast("Standard Controls 📱");
+                    blackoutState.isActive = !blackoutState.isActive;
+                    document.body.classList.toggle('blackout-active', blackoutState.isActive);
+                    if(blackoutState.isActive) {
+                        if (appSettings.isBlackoutGesturesEnabled) {
+                            showToast("Blackout: Gestures Active 👆");
+                        } else {
+                            showToast("Blackout Mode Active 🌑");
+                        }
+                    }
                     blackoutState.lastShake = now;
                 }
             }

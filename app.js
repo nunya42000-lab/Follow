@@ -52,7 +52,8 @@ let practiceInputIndex = 0;
 let ignoreNextClick = false;
 
 // New flag for Shake Toggle
-let isGesturePadVisible = true;
+let isGesturePadVisible = false; // Start hidden so standard controls are visible
+
 
 // --- NEW GLOBALS FOR TIMER/COUNTER ---
 let simpleTimer = { interval: null, startTime: 0, elapsed: 0, isRunning: false };

@@ -406,78 +406,6 @@
         </div>
     </div>
 
-    <dv id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
-        <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
-            <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center"><h3 class="text-2xl font-bold">Manual 📘</h3><button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button></div>
-            <div class="flex border-b border-custom bg-black bg-opacity-10">
-                <div class="tab-btn active" data-tab="help-about">About</div>
-                <div class="tab-btn" data-tab="help-settings">Settings</div>
-                <div class="tab-btn" data-tab="help-voice">Voice</div>
-            </div>
-            <div class="p-6 overflow-y-auto leading-relaxed space-y-6 text-sm flex-grow">
-                <div id="tab-help-about" class="tab-content active">
-                    <h4 class="font-bold text-lg text-primary-app mb-2">The Goal 🎯</h4>
-                    <p class="mb-4 opacity-90">This is a sandbox tool designed to help you beat the "Follow" memory portion of skill-based machines.</p>
-                    <p class="mb-4 opacity-90"><strong>How to use:</strong> Select your input method (9-Key is standard). When the machine flashes a number, press it here. The app tracks the full sequence so you don't have to memorize it.</p>
-                    <p class="mt-4 opacity-90"><strong>ID Icon (🆔):</strong> Opens the Redeem barcode for easy cashout at compatible kiosks.</p>
-                    <p class="mt-4 opacity-90"><strong>Support ☕:</strong> If this app helps you win, use the Coffee icon in Settings to send a tip!</p>
-                </div>
-
-                <div id="tab-help-settings" class="tab-content">
-                    <h4 class="font-bold text-lg text-primary-app mb-4">Settings Glossary ⚙️</h4>
-                    
-                    <div class="space-y-4">
-                        <div class="p-3 bg-black bg-opacity-20 rounded border border-gray-700">
-                            <h5 class="font-bold text-sm text-white mb-1">Game Mode</h5>
-                            <ul class="list-disc pl-4 space-y-1 text-xs opacity-80">
-                                <li><strong>Simon Says:</strong> For machines where the pattern repeats and adds one new number each time.</li>
-                                <li><strong>Unique:</strong> For machines that generate a completely new random sequence every round.</li>
-                                <li><strong>Auto-Advance:</strong> (Unique Only) Automatically clears the screen and moves to the next round after playback finishes.</li>
-                            </ul>
-                        </div>
-
-                        <div class="p-3 bg-black bg-opacity-20 rounded border border-gray-700">
-                            <h5 class="font-bold text-sm text-white mb-1">Playback Controls</h5>
-                            <ul class="list-disc pl-4 space-y-1 text-xs opacity-80">
-                                <li><strong>Autoplay:</strong> Automatically plays back the sequence when you enter a new number.</li>
-                                <li><strong>Audio Speech:</strong> Reads the numbers out loud.</li>
-                                <li><strong>Chunk Size:</strong> Breaks long sequences into groups (e.g., 3 numbers at a time) for easier memorization.</li>
-                                <li><strong>Delay:</strong> Adds a pause between machines or chunks.</li>
-                            </ul>
-                        </div>
-
-                        <div class="p-3 bg-black bg-opacity-20 rounded border border-gray-700">
-                            <h5 class="font-bold text-sm text-white mb-1">Stealth & Shortcuts 🥷</h5>
-                            <ul class="list-disc pl-4 space-y-1 text-xs opacity-80">
-                                <li><strong>Stealth Toggle (Hold '1'):</strong> If enabled, holding '1' for 1 second hides the UI.</li>
-                                <li><strong>Speed Delete:</strong> Hold 'Backspace' to rapidly delete the entire sequence.</li>
-                                <li><strong>Blackout Mode:</strong> Shake your phone firmly to turn the screen completely black. Shake again to wake.</li>
-                                <li><strong>Long Press Play:</strong> Hold the 'Play' button to quickly toggle Autoplay on/off without opening settings.</li>
-                                <li><strong>Long Press Settings (⚙️):</strong> Hold for 1 second to quickly open the Redeem/ATM screen.</li>
-                                <li><strong>Stop Playback:</strong> Press 'Play' again while a sequence is running to stop it immediately.</li>
-                            </ul>
-                        </div>
-
-                        <div class="p-3 bg-black bg-opacity-20 rounded border border-gray-700">
-                            <h5 class="font-bold text-sm text-white mb-1">Haptic Morse Guide 📳</h5>
-                            <p class="text-xs mb-2 opacity-80">Recognize numbers by feel during Blackout Mode.</p>
-                            <div class="grid grid-cols-2 gap-2 text-xs font-mono">
-                                <div class="bg-black bg-opacity-40 p-1 rounded">1: •</div>
-                                <div class="bg-black bg-opacity-40 p-1 rounded">2: • •</div>
-                                <div class="bg-black bg-opacity-40 p-1 rounded">3: • • •</div>
-                                <div class="bg-black bg-opacity-40 p-1 rounded">4: ▬ •</div>
-                                <div class="bg-black bg-opacity-40 p-1 rounded">5: ▬ • •</div>
-                                <div class="bg-black bg-opacity-40 p-1 rounded">6: ▬ • • •</div>
-                                <div class="bg-black bg-opacity-40 p-1 rounded">7: ▬ ▬ •</div>
-                                <div class="bg-black bg-opacity-40 p-1 rounded">8: ▬ ▬ • •</div>
-                                <div class="bg-black bg-opacity-40 p-1 rounded">9: ▬ ▬ • • •</div>
-                                <div class="bg-black bg-opacity-40 p-1 rounded">10: ▬ ▬ ▬ (Three Dash)</div>
-                                <div class="bg-black bg-opacity-40 p-1 rounded">11: ▬ ▬ ▬ •</div>
-                                <div class="bg-black bg-opacity-40 p-1 rounded">12: ▬ ▬ ▬ • •</div>
-                            </div>
-                            <p class="text-[10px] mt-2 opacity-60">Expert Note: Piano Keys A through G map to numbers 6 through 12 respectively.</p>
-                            <p class="text-[10px] opacity-60">Key: • = Short Vibrate, ▬ = Long Vibrate</p>
-                        </div>
     <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
             <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center"><h3 class="text-2xl font-bold">Manual 📘</h3><button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button></div>
@@ -584,6 +512,7 @@
         </div>
     </div>
 
+                
     <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-80 flex flex-col justify-end z-[70] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="share-sheet p-6 text-center flex flex-col items-center border-t border-gray-700 shadow-2xl transform translate-y-full transition-transform duration-300">
             <div class="w-12 h-1 bg-gray-600 rounded-full mb-4"></div> <div class="bg-white p-2 rounded-lg mb-6 shadow-inner"><img src="qr.jpg" alt="QR Code" class="w-64 h-64 object-contain"></div>

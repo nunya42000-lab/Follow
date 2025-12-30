@@ -196,7 +196,27 @@ export class SettingsManager {
                 this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
             });
         }
+  this.populateSpeedDropdown();
     }
+
+    populateSpeedDropdown() {
+        if (!this.dom.playbackSpeed) return;
+        this.dom.playbackSpeed.innerHTML = '';
+        
+        // Range: 75% to 150% at 5% intervals
+        for (let i = 75; i <= 150; i += 5) {
+            const val = i / 100; // Convert 75 -> 0.75
+            const option = document.createElement('option');
+            option.value = val.toFixed(2);
+            option.textContent = `${i}%`;
+            this.dom.playbackSpeed.appendChild(option);
+        }
+        
+        // Set current value
+        if (this.appSettings.playbackSpeed) {
+            this.dom.playbackSpeed.value = this.appSettings.playbackSpeed.toFixed(2);
+        }
+    }  }
     populateVoicePresetDropdown() {
         if (!this.dom.voicePresetSelect) return;
         this.dom.voicePresetSelect.innerHTML = '';

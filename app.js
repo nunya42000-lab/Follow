@@ -70,6 +70,12 @@ function loadState() {
             const loaded = JSON.parse(s); 
             appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } }; 
             
+            // --- SAFETY CHECK FOR SCALE ---
+            // If the scale is corrupted or too small, force it back to 100
+            if (isNaN(appSettings.globalUiScale) || appSettings.globalUiScale < 50) {
+                appSettings.globalUiScale = 100;
+            }
+
             if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
             if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
             if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
@@ -329,7 +335,14 @@ function showToast(msg) {
 }
 
 function applyTheme(themeKey) { const body = document.body; body.className = body.className.replace(/theme-\w+/g, ''); let t = appSettings.customThemes[themeKey]; if (!t && PREMADE_THEMES[themeKey]) t = PREMADE_THEMES[themeKey]; if (!t) t = PREMADE_THEMES['default']; body.style.setProperty('--primary', t.bubble); body.style.setProperty('--bg-main', t.bgMain); body.style.setProperty('--bg-modal', t.bgCard); body.style.setProperty('--card-bg', t.bgCard); body.style.setProperty('--seq-bubble', t.bubble); body.style.setProperty('--btn-bg', t.btn); body.style.setProperty('--bg-input', t.bgMain); body.style.setProperty('--text-main', t.text); const isDark = parseInt(t.bgCard.replace('#',''), 16) < 0xffffff / 2; body.style.setProperty('--border', isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'); }
-function updateAllChrome() { applyTheme(appSettings.activeTheme); document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`; renderUI(); }
+
+// FIXED: Added sanity check here too just in case
+function updateAllChrome() { 
+    if(appSettings.globalUiScale < 50) appSettings.globalUiScale = 100;
+    applyTheme(appSettings.activeTheme); 
+    document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`; 
+    renderUI(); 
+}
 
 function startPracticeRound() {
     const settingsModal = document.getElementById('settings-modal');
@@ -783,6 +796,8 @@ const startApp = () => {
 function initGlobalListeners() {
     try {
         // --- Pinch-to-Resize Gesture ---
+        // RESTORED: As requested, this logic is back. 
+        // Safety check in loadState() handles the "load small" bug.
         let pinchStartDist = 0;
         let pinchStartGlobal = 100;
         let pinchStartSeq = 1.0;

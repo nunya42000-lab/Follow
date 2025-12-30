@@ -864,12 +864,179 @@ export class SettingsManager {
         const selects = container.querySelectorAll('select');
         selects.forEach(sel => {
             const id = sel.dataset.morseId;
+
+    populateMorseUI() {
+        const tab = document.getElementById('tab-playback');
+        if (!tab) return;
+        
+        let container = document.getElementById('morse-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'morse-container';
+            container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
+            tab.appendChild(container);
+        }
+
+        // --- NEW: Recorder Modal Logic ---
+        const openRecorder = (targetId, targetSelect) => {
+            // Create a temporary modal for tapping
+            let recModal = document.createElement('div');
+            recModal.className = "fixed inset-0 bg-black bg-opacity-95 flex flex-col items-center justify-center z-[150]";
+            recModal.innerHTML = `
+                <div class="p-6 bg-gray-900 border border-gray-600 rounded-xl text-center max-w-sm w-full">
+                    <h3 class="text-xl font-bold mb-4 text-white">Tap Rhythm: ${targetId}</h3>
+                    <div id="morse-preview" class="text-2xl font-mono text-primary-app mb-6 h-8 tracking-widest"></div>
+                    
+                    <button id="tap-btn" class="w-48 h-48 rounded-full bg-gray-800 border-4 border-gray-600 text-gray-400 font-bold text-lg shadow-lg active:bg-gray-700 active:border-primary-app active:text-white transition-all mb-6 select-none touch-manipulation">
+                        TAP HERE
+                    </button>
+                    
+                    <div class="flex gap-2">
+                        <button id="save-tap" class="flex-1 bg-green-600 py-3 rounded font-bold text-white">Save</button>
+                        <button id="cancel-tap" class="flex-1 bg-gray-700 py-3 rounded font-bold text-white">Cancel</button>
+                    </div>
+                    <p class="mt-4 text-xs text-gray-500">Short tap = Dot (•)<br>Hold > 200ms = Dash (➖)</p>
+                </div>
+            `;
+            document.body.appendChild(recModal);
+
+            const tapBtn = recModal.querySelector('#tap-btn');
+            const preview = recModal.querySelector('#morse-preview');
+            let pattern = "";
+            let pressStart = 0;
+
+            // Tap Handlers
+            const start = (e) => { 
+                if(e.cancelable) e.preventDefault();
+                pressStart = Date.now();
+                tapBtn.style.transform = "scale(0.95)";
+                tapBtn.style.borderColor = "#4f46e5"; // Primary color
+            };
             
-            // Load saved or calculate default
+            const end = (e) => {
+                if(e.cancelable) e.preventDefault();
+                if(pressStart === 0) return;
+                const duration = Date.now() - pressStart;
+                
+                // Logic: < 200ms is Dot, > 200ms is Dash
+                const symbol = (duration < 200) ? "." : "-";
+                pattern += symbol;
+                
+                // Visual Update
+                preview.textContent = pattern;
+                tapBtn.style.transform = "scale(1)";
+                tapBtn.style.borderColor = "#4b5563"; // Gray
+                
+                // Haptic Feedback for the tap itself
+                if(navigator.vibrate) navigator.vibrate(duration < 200 ? 50 : 200);
+            };
+
+            tapBtn.addEventListener('mousedown', start);
+            tapBtn.addEventListener('touchstart', start, {passive:false});
+            tapBtn.addEventListener('mouseup', end);
+            tapBtn.addEventListener('touchend', end);
+
+            // Save/Close
+            recModal.querySelector('#cancel-tap').onclick = () => recModal.remove();
+            recModal.querySelector('#save-tap').onclick = () => {
+                if(pattern.length > 0) {
+                    // Add new option if it doesn't exist
+                    let exists = false;
+                    for(let i=0; i<targetSelect.options.length; i++) {
+                        if(targetSelect.options[i].value === pattern) {
+                            targetSelect.selectedIndex = i;
+                            exists = true;
+                            break;
+                        }
+                    }
+                    if(!exists) {
+                        const opt = document.createElement('option');
+                        opt.value = pattern;
+                        opt.textContent = pattern + " (Custom)";
+                        targetSelect.appendChild(opt);
+                        targetSelect.value = pattern;
+                    }
+                    // Trigger change event to save
+                    targetSelect.dispatchEvent(new Event('change'));
+                }
+                recModal.remove();
+            };
+        };
+        // -------------------------------------
+
+        // Generate options (Standard Morse)
+        const morseOptions = [];
+        const chars = ['.', '-'];
+        const generate = (current) => {
+            if (current.length > 0) morseOptions.push(current);
+            if (current.length >= 5) return;
+            chars.forEach(c => generate(current + c));
+        };
+        generate('');
+        morseOptions.sort((a, b) => a.length - b.length || a.localeCompare(b));
+
+        const labels = ["1", "2", "3", "4", "5", "6 C", "7 D", "8 E", "9 F", "10 G", "11 A", "12 B"];
+        
+        // Rebuild container HTML
+        container.innerHTML = `<h3 class="text-sm font-bold uppercase text-gray-400 mb-3">Haptic Output Mapping</h3>`;
+        
+        const grid = document.createElement('div');
+        grid.className = "grid grid-cols-1 gap-y-2"; // Single column for better control
+        
+        labels.forEach((label, index) => {
+            const val = index + 1;
+            const row = document.createElement('div');
+            row.className = "flex items-center space-x-2 bg-gray-800 bg-opacity-40 p-1 rounded";
+            
+            // Label
+            const lbl = document.createElement('div');
+            lbl.className = "text-xs font-bold text-gray-300 w-8 text-right";
+            lbl.textContent = label;
+            
+            // Select Box
+            const sel = document.createElement('select');
+            sel.className = "bg-gray-900 text-white text-xs p-1 rounded border border-gray-600 flex-grow font-mono tracking-widest text-center h-8";
+            sel.dataset.morseId = val;
+            
+            // Populate Options
+            morseOptions.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m;
+                sel.appendChild(opt);
+            });
+            
+            // "Record" Button
+            const recBtn = document.createElement('button');
+            recBtn.className = "w-8 h-8 bg-red-900 hover:bg-red-700 rounded text-white text-xs flex items-center justify-center border border-red-700";
+            recBtn.innerHTML = "●"; // Rec symbol
+            recBtn.onclick = () => openRecorder(label, sel);
+
+            row.appendChild(lbl);
+            row.appendChild(sel);
+            row.appendChild(recBtn);
+            grid.appendChild(row);
+        });
+        
+        container.appendChild(grid);
+        
+        // Bind Listeners & Set Defaults
+        const selects = container.querySelectorAll('select');
+        selects.forEach(sel => {
+            const id = sel.dataset.morseId;
+            // Load saved or default
             if (this.appSettings.morseMappings && this.appSettings.morseMappings[id]) {
-                sel.value = this.appSettings.morseMappings[id];
+                // Ensure custom values are added to dropdown if not present
+                const savedVal = this.appSettings.morseMappings[id];
+                if (![...sel.options].some(o => o.value === savedVal)) {
+                    const opt = document.createElement('option');
+                    opt.value = savedVal;
+                    opt.textContent = savedVal + " (Saved)";
+                    sel.appendChild(opt);
+                }
+                sel.value = savedVal;
             } else {
-                // Default Logic (Standard Morse-like count)
+                // Default Logic
                 let d = "";
                 const n = parseInt(id);
                 if (n <= 3) d = ".".repeat(n);
@@ -883,18 +1050,13 @@ export class SettingsManager {
                 if (!this.appSettings.morseMappings) this.appSettings.morseMappings = {};
                 this.appSettings.morseMappings[id] = sel.value;
                 this.callbacks.onSave();
-
-                // Haptic Preview
+                // Preview Vibration
                 if (navigator.vibrate) {
                     const pattern = [];
-                    const speed = this.appSettings.playbackSpeed || 1.0;
-                    const factor = 1.0 / speed; 
-                    const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor;
-                    
                     for (let char of sel.value) {
-                        if(char === '.') pattern.push(DOT);
-                        if(char === '-') pattern.push(DASH);
-                        pattern.push(GAP);
+                        if(char === '.') pattern.push(100);
+                        if(char === '-') pattern.push(300);
+                        pattern.push(100); // Gap
                     }
                     if(pattern.length) navigator.vibrate(pattern);
                 }

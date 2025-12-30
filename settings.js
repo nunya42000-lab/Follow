@@ -186,6 +186,7 @@ export class SettingsManager {
             mappingPianoContainer: document.getElementById('mapping-piano-container'),
         };
         this.tempTheme = null; this.initListeners(); this.populateConfigDropdown(); this.populateThemeDropdown(); this.buildColorGrid(); this.populateVoicePresetDropdown();
+        this.populateSpeedDropdown(); // <--- ADDED HERE
         this.populateMappingUI();
         this.populateMorseUI();
         if(this.dom.gestureToggle){
@@ -440,6 +441,22 @@ export class SettingsManager {
     }
     populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
     populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
+    
+    populateSpeedDropdown() {
+        const el = this.dom.playbackSpeed;
+        if (!el) return;
+        el.innerHTML = '';
+        for (let i = 75; i <= 150; i += 5) {
+            const val = i / 100;
+            const opt = document.createElement('option');
+            opt.value = val.toFixed(2).replace(/\.00$/, '.0');
+            let label = `${i}%`;
+            if (i === 100) label += " (Normal)";
+            opt.textContent = label;
+            el.appendChild(opt);
+        }
+    }
+
     openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); }
     openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); }
     closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); }
@@ -480,7 +497,13 @@ export class SettingsManager {
         if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !this.appSettings.showWelcomeScreen;
         if (this.dom.showWelcome) this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
         if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.isHapticMorseEnabled;
-        if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = this.appSettings.playbackSpeed.toFixed(1) || "1.0";
+        
+        // --- FIXED: Speed Logic (allowing .05 precision) ---
+        if (this.dom.playbackSpeed) {
+            let val = this.appSettings.playbackSpeed || 1.0;
+            this.dom.playbackSpeed.value = val.toFixed(2).replace(/\.00$/, '.0');
+        }
+
         if (this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
         if (this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000);
         if (this.dom.voicePitch) this.dom.voicePitch.value = this.appSettings.voicePitch || 1.0;
@@ -517,7 +540,6 @@ export class SettingsManager {
         // Ensure header visibility matches state on load
         this.updateHeaderVisibility();
     }
-
     // NEW METHOD: Manages the Auto-Hiding Header Bar
     updateHeaderVisibility() {
         const header = document.getElementById('aux-control-header');

@@ -89,7 +89,6 @@ const LANG = {
         quick_title: "👋 Quick Start", select_profile: "Select Profile", autoplay: "Autoplay", audio: "Audio", help_btn: "Help 📚", settings_btn: "Settings", dont_show: "Don't show again", play_btn: "PLAY", theme_editor: "🎨 Theme Editor",
         lbl_profiles: "Profiles", lbl_game: "Game", lbl_playback: "Playback", lbl_general: "General", lbl_mode: "Mode", lbl_input: "Input",
         timer_toggle: "Timer ⏱️", counter_toggle: "Counter #", 
-        // Note: Boss Mode, Inputs Only etc are now hardcoded in HTML for cleanliness
         help_stealth_detail: "Inputs Only (1-Key) simplifies input by mapping the 12 primary values (1-12) to a single key press. The interpretation depends on context and mode (Simon/Unique). This is intended for high-speed, minimal-movement input.",
         help_blackout_detail: "Boss Mode (Blackout) turns the entire screen black to eliminate visual distraction, allowing you to focus purely on audio cues and muscle memory. The app remains fully functional, but the UI is hidden. If BM Gestures are enabled, input switches to a 'no-look' touch system.",
         help_gesture_detail: "BM Gestures: A 'no-look' input system. Use touch gestures (swipes, taps) to represent values 1 through 12. Values 6 through 12 are represented by letters A through G (A=6, B=7, etc.) on a virtual 3x4 grid."
@@ -106,10 +105,10 @@ const LANG = {
 
 export class SettingsManager {
     constructor(appSettings, callbacks, sensorEngine) {
-        this.appSettings = appSettings; this.callbacks = callbacks; this.sensorEngine = sensorEngine; this.currentTargetKey = 'bubble';
-        
-        // Removed dynamic injections - UI is now hardcoded in index.html for cleaner layout
-
+        this.appSettings = appSettings; 
+        this.callbacks = callbacks; 
+        this.sensorEngine = sensorEngine; 
+        this.currentTargetKey = 'bubble';
         // 2. Build the DOM cache
         this.dom = {
             editorModal: document.getElementById('theme-editor-modal'), editorGrid: document.getElementById('color-grid'), ftContainer: document.getElementById('fine-tune-container'), ftToggle: document.getElementById('toggle-fine-tune'), ftPreview: document.getElementById('fine-tune-preview'), ftHue: document.getElementById('ft-hue'), ftSat: document.getElementById('ft-sat'), ftLit: document.getElementById('ft-lit'),
@@ -131,7 +130,11 @@ export class SettingsManager {
             // Inputs
             input: document.getElementById('input-select'), mode: document.getElementById('mode-select'), practiceMode: document.getElementById('practice-mode-toggle'), machines: document.getElementById('machines-select'), seqLength: document.getElementById('seq-length-select'),
             autoClear: document.getElementById('autoclear-toggle'), autoplay: document.getElementById('autoplay-toggle'), flash: document.getElementById('flash-toggle'),
-            pause: document.getElementById('pause-select'), audio: document.getElementById('audio-toggle'), hapticMorse: document.getElementById('haptic-morse-toggle'), playbackSpeed: document.getElementById('playback-speed-select'), chunk: document.getElementById('chunk-select'), delay: document.getElementById('delay-select'), haptics: document.getElementById('haptics-toggle'), 
+            pause: document.getElementById('pause-select'), audio: document.getElementById('audio-toggle'), hapticMorse: document.getElementById('haptic-morse-toggle'), 
+            
+            playbackSpeed: document.getElementById('playback-speed-select'), // Target for the fix
+            
+            chunk: document.getElementById('chunk-select'), delay: document.getElementById('delay-select'), haptics: document.getElementById('haptics-toggle'), 
             
             // RENAMED ITEMS BINDINGS
             speedDelete: document.getElementById('speed-delete-toggle'), // "Quick Erase"
@@ -139,7 +142,6 @@ export class SettingsManager {
             blackoutToggle: document.getElementById('blackout-toggle'), // "Boss Mode"
             stealth1KeyToggle: document.getElementById('stealth-1key-toggle'), // "Inputs Only"
             
-            // Previously injected, now hardcoded
             longPressToggle: document.getElementById('long-press-autoplay-toggle'), // "AP Shortcut"
             blackoutGesturesToggle: document.getElementById('blackout-gestures-toggle'), // "BM Gestures"
             timerToggle: document.getElementById('timer-toggle'),
@@ -148,7 +150,7 @@ export class SettingsManager {
 
             uiScale: document.getElementById('ui-scale-select'), 
             seqSize: document.getElementById('seq-size-select'), 
-            seqFontSize: document.getElementById('seq-font-size-select'), // <--- NEW FONT SIZE
+            seqFontSize: document.getElementById('seq-font-size-select'),
             gestureMode: document.getElementById('gesture-mode-select'), autoInput: document.getElementById('auto-input-select'),
             quickLang: document.getElementById('quick-lang-select'), generalLang: document.getElementById('general-lang-select'), closeSettingsBtn: document.getElementById('close-settings'),
 
@@ -171,9 +173,6 @@ export class SettingsManager {
             redeemMinus: document.getElementById('redeem-zoom-out'),
 
             openDonateBtn: document.getElementById('open-donate-btn'),
-
-
-            openDonateBtn: document.getElementById('open-donate-btn'),
             openRedeemSettingsBtn: document.getElementById('open-redeem-btn-settings'),
 
             donateModal: document.getElementById('donate-modal'), closeDonateBtn: document.getElementById('close-donate-btn'),
@@ -185,9 +184,18 @@ export class SettingsManager {
             mapping12Container: document.getElementById('mapping-12-container'),
             mappingPianoContainer: document.getElementById('mapping-piano-container'),
         };
-        this.tempTheme = null; this.initListeners(); this.populateConfigDropdown(); this.populateThemeDropdown(); this.buildColorGrid(); this.populateVoicePresetDropdown();
+        this.tempTheme = null; 
+        
+        // Init calls
+        this.populateSpeedDropdown(); // <--- CRITICAL FIX
+        this.initListeners(); 
+        this.populateConfigDropdown(); 
+        this.populateThemeDropdown(); 
+        this.buildColorGrid(); 
+        this.populateVoicePresetDropdown();
         this.populateMappingUI();
         this.populateMorseUI();
+        
         if(this.dom.gestureToggle){
             this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
             this.dom.gestureToggle.addEventListener('change', (e) => {
@@ -197,6 +205,26 @@ export class SettingsManager {
             });
         }
     }
+
+    // --- NEW FUNCTION TO FIX EMPTY DROPDOWN ---
+    populateSpeedDropdown() {
+        if (!this.dom.playbackSpeed) return;
+        this.dom.playbackSpeed.innerHTML = '';
+        
+        // Generate 75 to 200 in steps of 5
+        for (let i = 75; i <= 200; i += 5) {
+            const val = i / 100.0; // Convert 105 -> 1.05
+            const el = document.createElement('option');
+            el.value = val.toFixed(2);
+            el.textContent = `${i}%`;
+            this.dom.playbackSpeed.appendChild(el);
+        }
+        
+        // Set initial value
+        const current = this.appSettings.playbackSpeed || 1.0;
+        this.dom.playbackSpeed.value = current.toFixed(2);
+    }
+
     populateVoicePresetDropdown() {
         if (!this.dom.voicePresetSelect) return;
         this.dom.voicePresetSelect.innerHTML = '';
@@ -222,7 +250,6 @@ export class SettingsManager {
             });
         }
         this.dom.voicePresetSelect.appendChild(grp2);
-
         this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
     }
 
@@ -249,7 +276,6 @@ export class SettingsManager {
             const key = el.getAttribute('data-i18n');
             if (t[key]) el.textContent = t[key];
         });
-        
         this.appSettings.generalLanguage = lang;
         if (this.dom.quickLang) this.dom.quickLang.value = lang;
         if (this.dom.generalLang) this.dom.generalLang.value = lang;
@@ -373,520 +399,176 @@ export class SettingsManager {
         if (this.dom.themeRename) this.dom.themeRename.onclick = () => { const id = this.appSettings.activeTheme; if (PREMADE_THEMES[id]) return alert("Cannot rename built-in."); const n = prompt("Rename:", this.appSettings.customThemes[id].name); if (n) { this.appSettings.customThemes[id].name = n; this.callbacks.onSave(); this.populateThemeDropdown(); } };
         if (this.dom.themeDelete) this.dom.themeDelete.onclick = () => { if (PREMADE_THEMES[this.appSettings.activeTheme]) return alert("Cannot delete built-in."); if (confirm("Delete?")) { delete this.appSettings.customThemes[this.appSettings.activeTheme]; this.appSettings.activeTheme = 'default'; this.callbacks.onSave(); this.callbacks.onUpdate(); this.populateThemeDropdown(); } };
         if (this.dom.themeSelect) this.dom.themeSelect.onchange = (e) => { this.appSettings.activeTheme = e.target.value; this.callbacks.onUpdate(); this.populateThemeDropdown(); };
-        if (this.dom.configAdd) this.dom.configAdd.onclick = () => { const n = prompt("Profile Name:"); if (n) this.callbacks.onProfileAdd(n); this.openSettings(); };
-        if (this.dom.configRename) this.dom.configRename.onclick = () => { const n = prompt("Rename:"); if (n) this.callbacks.onProfileRename(n); this.populateConfigDropdown(); };
-        if (this.dom.configDelete) this.dom.configDelete.onclick = () => { this.callbacks.onProfileDelete(); this.openSettings(); };
-        if (this.dom.configSave) this.dom.configSave.onclick = () => { this.callbacks.onProfileSave(); };
-        if (this.dom.themeSave) this.dom.themeSave.onclick = () => { if (this.tempTheme) { const activeId = this.appSettings.activeTheme; if (PREMADE_THEMES[activeId]) { const newId = 'custom_' + Date.now(); this.appSettings.customThemes[newId] = this.tempTheme; this.appSettings.activeTheme = newId; } else { this.appSettings.customThemes[activeId] = this.tempTheme; } this.callbacks.onProfileSave(); this.callbacks.onUpdate(); this.populateThemeDropdown(); alert("Theme Saved!"); } };
-        if (this.dom.closeSetupBtn) this.dom.closeSetupBtn.onclick = () => this.closeSetup();
-        if (this.dom.quickSettings) this.dom.quickSettings.onclick = () => { this.closeSetup(); this.openSettings(); };
-        if (this.dom.quickHelp) this.dom.quickHelp.onclick = () => { this.closeSetup(); this.generatePrompt(); this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); };
-        if (this.dom.closeHelpBtn) this.dom.closeHelpBtn.onclick = () => this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none');
-        if (this.dom.closeHelpBtnBottom) this.dom.closeHelpBtnBottom.onclick = () => this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none');
-        if (this.dom.openHelpBtn) this.dom.openHelpBtn.onclick = () => { this.generatePrompt(); this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); };
-        if (this.dom.closeSettingsBtn) this.dom.closeSettingsBtn.onclick = () => { this.callbacks.onSave(); this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.add('scale-90'); };
-        if (this.dom.openCalibBtn) this.dom.openCalibBtn.onclick = () => this.openCalibration();
-        if (this.dom.closeCalibBtn) this.dom.closeCalibBtn.onclick = () => this.closeCalibration();
-        if (this.dom.calibAudioSlider) this.dom.calibAudioSlider.oninput = () => { const val = parseInt(this.dom.calibAudioSlider.value); this.appSettings.sensorAudioThresh = val; this.sensorEngine.setSensitivity('audio', val); const pct = ((val - (-100)) / ((-30) - (-100))) * 100; this.dom.calibAudioMarker.style.left = `${pct}%`; this.dom.calibAudioVal.innerText = val + 'dB'; this.callbacks.onSave(); };
-        if (this.dom.calibCamSlider) this.dom.calibCamSlider.oninput = () => { const val = parseInt(this.dom.calibCamSlider.value); this.appSettings.sensorCamThresh = val; this.sensorEngine.setSensitivity('camera', val); const pct = Math.min(100, val); this.dom.calibCamMarker.style.left = `${pct}%`; this.dom.calibCamVal.innerText = val; this.callbacks.onSave(); };
-
-        this.dom.tabs.forEach(btn => {
-            btn.onclick = () => {
-                const parent = btn.parentElement.parentElement;
-                parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                btn.classList.add('active');
-                const target = btn.dataset.tab;
-                if (target === 'help-voice') this.generatePrompt();
-                document.getElementById(`tab-${target}`).classList.add('active');
-            }
+    populateConfigDropdown() {
+        if (!this.dom.configSelect) return;
+        this.dom.configSelect.innerHTML = '';
+        Object.keys(this.appSettings.profiles).forEach(k => {
+            const p = this.appSettings.profiles[k];
+            const el = document.createElement('option');
+            el.value = k;
+            el.textContent = p.name;
+            this.dom.configSelect.appendChild(el);
         });
-        if (this.dom.openShareInside) this.dom.openShareInside.onclick = () => this.openShare();
-        // Restore Settings when closing share
-        if (this.dom.closeShareBtn) this.dom.closeShareBtn.onclick = () => { this.closeShare(); this.openSettings(); };
+        this.dom.configSelect.value = this.appSettings.activeProfileId;
         
-        // Redeem Zoom Logic
-        let rScale = 100;
-        const updateRedeem = () => { if(this.dom.redeemImg) this.dom.redeemImg.style.transform = `scale(${rScale/100})`; };
-        
-        if (this.dom.openRedeemBtn) this.dom.openRedeemBtn.onclick = () => { rScale = 100; updateRedeem(); this.toggleRedeem(true); };
-        if (this.dom.closeRedeemBtn) this.dom.closeRedeemBtn.onclick = () => this.toggleRedeem(false);
-        if (this.dom.openRedeemSettingsBtn) this.dom.openRedeemSettingsBtn.onclick = () => { rScale = 100; updateRedeem(); this.toggleRedeem(true); };
-        
-        if (this.dom.redeemPlus) this.dom.redeemPlus.onclick = () => { rScale = Math.min(100, rScale + 10); updateRedeem(); };
-        if (this.dom.redeemMinus) this.dom.redeemMinus.onclick = () => { rScale = Math.max(10, rScale - 10); updateRedeem(); };
-
-        if (this.dom.closeShareBtn) this.dom.closeShareBtn.onclick = () => this.closeShare();
-        if (this.dom.openRedeemBtn) this.dom.openRedeemBtn.onclick = () => this.toggleRedeem(true);
-        if (this.dom.closeRedeemBtn) this.dom.closeRedeemBtn.onclick = () => this.toggleRedeem(false);
-        if (this.dom.openRedeemSettingsBtn) this.dom.openRedeemSettingsBtn.onclick = () => this.toggleRedeem(true);
-        if (this.dom.openDonateBtn) this.dom.openDonateBtn.onclick = () => this.toggleDonate(true);
-        if (this.dom.closeDonateBtn) this.dom.closeDonateBtn.onclick = () => this.toggleDonate(false);
-        if (this.dom.copyLinkBtn) this.dom.copyLinkBtn.onclick = () => { navigator.clipboard.writeText(window.location.href).then(() => alert("Link Copied!")); };
-        if (this.dom.copyPromptBtn) this.dom.copyPromptBtn.onclick = () => { if (this.dom.promptDisplay) { this.dom.promptDisplay.select(); navigator.clipboard.writeText(this.dom.promptDisplay.value).then(() => alert("Prompt Copied!")); } };
-        if (this.dom.generatePromptBtn) this.dom.generatePromptBtn.onclick = () => { this.generatePrompt(); if (this.dom.promptDisplay) { this.dom.promptDisplay.style.opacity = '0.5'; setTimeout(() => this.dom.promptDisplay.style.opacity = '1', 150); } };
-        if (this.dom.nativeShareBtn) this.dom.nativeShareBtn.onclick = () => { if (navigator.share) { navigator.share({ title: "Follow Me", url: window.location.href }); } else { alert("Share not supported"); } };
-        if (this.dom.chatShareBtn) this.dom.chatShareBtn.onclick = () => { window.location.href = `sms:?body=Check%20out%20Follow%20Me:%20${window.location.href}`; };
-        if (this.dom.emailShareBtn) this.dom.emailShareBtn.onclick = () => { window.location.href = `mailto:?subject=Follow%20Me%20App&body=Check%20out%20Follow%20Me:%20${window.location.href}`; };
-        if (this.dom.btnCashMain) this.dom.btnCashMain.onclick = () => { window.open('https://cash.app/$jwo83', '_blank'); };
-        if (this.dom.btnPaypalMain) this.dom.btnPaypalMain.onclick = () => { window.open('https://www.paypal.me/Oyster981', '_blank'); };
-        document.querySelectorAll('.donate-quick-btn').forEach(btn => { btn.onclick = () => { const app = btn.dataset.app; const amt = btn.dataset.amount; if (app === 'cash') window.open(`https://cash.app/$jwo83/${amt}`, '_blank'); if (app === 'paypal') window.open(`https://www.paypal.me/Oyster981/${amt}`, '_blank'); }; });
-        if (this.dom.restoreBtn) this.dom.restoreBtn.onclick = () => { if (confirm("Factory Reset?")) this.callbacks.onReset(); };
-        if (this.dom.quickResizeUp) this.dom.quickResizeUp.onclick = () => { this.appSettings.globalUiScale = Math.min(200, this.appSettings.globalUiScale + 10); this.callbacks.onUpdate(); };
-        if (this.dom.quickResizeDown) this.dom.quickResizeDown.onclick = () => { this.appSettings.globalUiScale = Math.max(50, this.appSettings.globalUiScale - 10); this.callbacks.onUpdate(); };
-
-        // INIT MORSE UI
-        this.populateMorseUI();
-    }
-    populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
-    populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
-    openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); }
-    openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); }
-    closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); }
-
-    generatePrompt() {
-        if (!this.dom.promptDisplay) return;
-        const ps = this.appSettings.runtimeSettings;
-        const max = ps.currentInput === 'key12' ? 12 : 9;
-        const speed = this.appSettings.playbackSpeed || 1.0;
-        const machines = ps.machineCount || 1;
-        const chunk = ps.simonChunkSize || 3;
-        const delay = (ps.simonInterSequenceDelay / 1000) || 0;
-        let instructions = "";
-        if (machines > 1) {
-            instructions = `MODE: MULTI-MACHINE AUTOPLAY (${machines} Machines).\nYOUR JOB:\n1. I will speak a batch of ${machines} numbers at once.\n2. You must immediately SORT them:\n   - 1st number -> Machine 1\n   - 2nd number -> Machine 2\n   - 3rd number -> Machine 3 (if active), etc.\n3. IMMEDIATELY after hearing the numbers, you must READ BACK the sequences for all machines.\n\nREADBACK RULES (Interleaved Chunking):\n- Recite the history in chunks of ${chunk}.\n- Order: Machine 1 (Chunk 1) -> Machine 2 (Chunk 1) -> ... -> Machine 1 (Chunk 2) -> Machine 2 (Chunk 2)...\n- Do not stop between machines. Flow through the list.\n- Pause ${delay} seconds between machine switches.`;
-        } else {
-            if (ps.currentMode === 'simon') {
-                instructions = `MODE: SIMON SAYS (Single Machine).\n- The sequence grows by one number each round.\n- I will speak the NEW number.\n- You must add it to the list and READ BACK the ENTIRE list from the start.`;
-            } else {
-                instructions = `MODE: UNIQUE (Random/Non-Repeating).\n- Every round is a fresh random sequence.\n- I will speak a number. You simply repeat that number to confirm.\n- Keep a running list. If I say "Review", read the whole list.`;
-            }
+        // Also update Quick Select if it exists
+        if(this.dom.quickConfigSelect) {
+             this.dom.quickConfigSelect.innerHTML = this.dom.configSelect.innerHTML;
+             this.dom.quickConfigSelect.value = this.appSettings.activeProfileId;
         }
-        const promptText = `Act as a professional Sequence Caller for a memory skill game. \nYou are the "Caller" (App). I am the "Player" (User).\n\nSETTINGS:\n- Max Number: ${max}\n- Playback Speed: ${speed}x (Speak fast)\n- Active Machines: ${machines}\n- Chunk Size: ${chunk}\n\n${instructions}\n\nYOUR RULES:\n1. Speak clearly but quickly. No fluff. No conversational filler.\n2. If I get it wrong, correct me immediately.\n3. If I say "Status", tell me the current round/sequence length.\n\nSTART IMMEDIATELY upon my next input. Waiting for signal.`;
-        this.dom.promptDisplay.value = promptText;
     }
 
-    updateUIFromSettings() {
-        const ps = this.appSettings.runtimeSettings;
-        if (this.dom.input) this.dom.input.value = ps.currentInput;
-        if (this.dom.mode) this.dom.mode.value = ps.currentMode;
-        if (this.dom.machines) this.dom.machines.value = ps.machineCount;
-        if (this.dom.seqLength) this.dom.seqLength.value = ps.sequenceLength;
-        if (this.dom.autoClear) this.dom.autoClear.checked = this.appSettings.isUniqueRoundsAutoClearEnabled;
-        if (this.dom.autoplay) this.dom.autoplay.checked = this.appSettings.isAutoplayEnabled;
-        if (this.dom.audio) this.dom.audio.checked = this.appSettings.isAudioEnabled;
-        if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = this.appSettings.isAutoplayEnabled;
-        if (this.dom.quickAudio) this.dom.quickAudio.checked = this.appSettings.isAudioEnabled;
-        if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !this.appSettings.showWelcomeScreen;
-        if (this.dom.showWelcome) this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
-        if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.isHapticMorseEnabled;
-        if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = this.appSettings.playbackSpeed.toFixed(1) || "1.0";
-        if (this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
-        if (this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000);
-        if (this.dom.voicePitch) this.dom.voicePitch.value = this.appSettings.voicePitch || 1.0;
-        if (this.dom.voiceRate) this.dom.voiceRate.value = this.appSettings.voiceRate || 1.0;
-        if (this.dom.voiceVolume) this.dom.voiceVolume.value = this.appSettings.voiceVolume || 1.0;
-        if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
-        if (this.dom.practiceMode) this.dom.practiceMode.checked = this.appSettings.isPracticeModeEnabled;
-        if (this.dom.stealth1KeyToggle) this.dom.stealth1KeyToggle.checked = this.appSettings.isStealth1KeyEnabled;
-        if (this.dom.longPressToggle) this.dom.longPressToggle.checked = (typeof this.appSettings.isLongPressAutoplayEnabled === 'undefined') ? true : this.appSettings.isLongPressAutoplayEnabled;
-        if (this.dom.timerToggle) this.dom.timerToggle.checked = !!this.appSettings.showTimer; // NEW
-        if (this.dom.counterToggle) this.dom.counterToggle.checked = !!this.appSettings.showCounter; // NEW
-        if (this.dom.calibAudioSlider) this.dom.calibAudioSlider.value = this.appSettings.sensorAudioThresh || -85;
-        if (this.dom.calibCamSlider) this.dom.calibCamSlider.value = this.appSettings.sensorCamThresh || 30;
-        if (this.dom.haptics) this.dom.haptics.checked = (typeof this.appSettings.isHapticsEnabled === 'undefined') ? true : this.appSettings.isHapticsEnabled;
-        if (this.dom.speedDelete) this.dom.speedDelete.checked = (typeof this.appSettings.isSpeedDeletingEnabled === 'undefined') ? true : this.appSettings.isSpeedDeletingEnabled;
-        if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
-        if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
+    populateThemeDropdown() {
+        if (!this.dom.themeSelect) return;
+        this.dom.themeSelect.innerHTML = '';
         
-        // --- NEW FONT SIZE UPDATE ---
-        if (this.dom.seqFontSize) this.dom.seqFontSize.value = Math.round((this.appSettings.uiFontSizeMultiplier || 1.0) * 100);
-
-        if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
-        if (this.dom.blackoutToggle) this.dom.blackoutToggle.checked = this.appSettings.isBlackoutFeatureEnabled;
-        if (this.dom.blackoutGesturesToggle) this.dom.blackoutGesturesToggle.checked = this.appSettings.isBlackoutGesturesEnabled;
-        if (this.dom.gestureToggle) this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
-        if (this.dom.autoInput) this.dom.autoInput.value = this.appSettings.autoInputMode || 'none';
+        const grp1 = document.createElement('optgroup'); grp1.label = "Built-in";
+        Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); });
+        this.dom.themeSelect.appendChild(grp1);
         
-        // Language
-        const lang = this.appSettings.generalLanguage || 'en';
-        if (this.dom.quickLang) this.dom.quickLang.value = lang;
-        if (this.dom.generalLang) this.dom.generalLang.value = lang;
-        this.setLanguage(lang);
+        const grp2 = document.createElement('optgroup'); grp2.label = "Custom";
+        Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); });
+        this.dom.themeSelect.appendChild(grp2);
         
-        // Ensure header visibility matches state on load
-        this.updateHeaderVisibility();
+        this.dom.themeSelect.value = this.appSettings.activeTheme;
     }
 
-    // NEW METHOD: Manages the Auto-Hiding Header Bar
+    hexToHsl(H) { let r = 0, g = 0, b = 0; if (H.length == 4) { r = "0x" + H[1] + H[1]; g = "0x" + H[2] + H[2]; b = "0x" + H[3] + H[3]; } else if (H.length == 7) { r = "0x" + H[1] + H[2]; g = "0x" + H[3] + H[4]; b = "0x" + H[5] + H[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta == 0) h = 0; else if (cmax == r) h = ((g - b) / delta) % 6; else if (cmax == g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
+    hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs(((h / 60) % 2) - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else if (300 <= h && h < 360) { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length == 1) r = "0" + r; if (g.length == 1) g = "0" + g; if (b.length == 1) b = "0" + b; return "#" + r + g + b; }
+
+    populateMappingUI() {
+        const containers = { 'key9': this.dom.mapping9Container, 'key12': this.dom.mapping12Container, 'piano': this.dom.mappingPianoContainer };
+        Object.values(containers).forEach(c => { if(c) c.innerHTML = ''; });
+
+        const createRow = (keyLabel, mapKey) => {
+            const row = document.createElement('div');
+            row.className = "flex items-center justify-between p-2 bg-white bg-opacity-5 rounded mb-2";
+            const current = this.appSettings.gestureMappings[mapKey] || { gesture: 'none' };
+            
+            let html = `<span class="font-bold w-16">${keyLabel}</span><select class="bg-black border border-gray-600 rounded p-1 text-xs w-40" data-key="${mapKey}">`;
+            const opts = ['none','tap','double_tap','triple_tap','long_tap','swipe_up','swipe_down','swipe_left','swipe_right','swipe_nw','swipe_ne','swipe_sw','swipe_se',
+                          'tap_2f','double_tap_2f','triple_tap_2f','long_tap_2f','swipe_up_2f','swipe_down_2f','swipe_left_2f','swipe_right_2f','swipe_nw_2f','swipe_ne_2f','swipe_sw_2f','swipe_se_2f',
+                          'tap_3f','double_tap_3f','triple_tap_3f','long_tap_3f','swipe_up_3f','swipe_down_3f','swipe_left_3f','swipe_right_3f'];
+            opts.forEach(o => { html += `<option value="${o}" ${current.gesture===o?'selected':''}>${o.replace(/_/g,' ')}</option>`; });
+            html += `</select>`;
+            row.innerHTML = html;
+            row.querySelector('select').onchange = (e) => {
+                if(!this.appSettings.gestureMappings[mapKey]) this.appSettings.gestureMappings[mapKey] = {};
+                this.appSettings.gestureMappings[mapKey].gesture = e.target.value;
+                this.callbacks.onSave();
+            };
+            return row;
+        };
+
+        if(containers.key9) { for(let i=1; i<=9; i++) containers.key9.appendChild(createRow(`Key ${i}`, `k9_${i}`)); }
+        if(containers.key12) { for(let i=1; i<=12; i++) containers.key12.appendChild(createRow(`Key ${i}`, `k12_${i}`)); }
+        if(containers.piano) {
+            ['C','D','E','F','G','A','B'].forEach(k => containers.piano.appendChild(createRow(`Note ${k}`, `piano_${k}`)));
+            ['1','2','3','4','5'].forEach(k => containers.piano.appendChild(createRow(`Black ${k}`, `piano_${k}`)));
+        }
+    }
+    
+    populateMorseUI() {
+        const div = document.getElementById('morse-reference-list');
+        if(!div) return;
+        div.innerHTML = '';
+        const data = [
+            {k:"1",m:".----"}, {k:"2",m:"..---"}, {k:"3",m:"...--"}, {k:"4",m:"....-"}, {k:"5",m:"....."},
+            {k:"6",m:"-...."}, {k:"7",m:"--..."}, {k:"8",m:"---.."}, {k:"9",m:"----."}, {k:"10",m:"-----"},
+            {k:"11",m:".---- ."}, {k:"12",m:".---- .."}
+        ];
+        data.forEach(d => {
+            const r = document.createElement('div');
+            r.className = "flex justify-between border-b border-gray-700 py-1";
+            r.innerHTML = `<span>${d.k}</span><span class="font-mono text-primary-app">${d.m}</span>`;
+            div.appendChild(r);
+        });
+    }
+
     updateHeaderVisibility() {
-        const header = document.getElementById('aux-control-header');
         const timerBtn = document.getElementById('header-timer-btn');
         const counterBtn = document.getElementById('header-counter-btn');
         const micBtn = document.getElementById('header-mic-btn');
         const camBtn = document.getElementById('header-cam-btn');
-
-        if (!header) return;
-
-        // Check States
-        const showTimer = !!this.appSettings.showTimer;
-        const showCounter = !!this.appSettings.showCounter;
-        const mode = this.appSettings.autoInputMode || 'none';
-        const showMic = (mode === 'mic' || mode === 'both');
-        const showCam = (mode === 'cam' || mode === 'both');
-
-        // Toggle Buttons
-        if(timerBtn) timerBtn.classList.toggle('hidden', !showTimer);
-        if(counterBtn) counterBtn.classList.toggle('hidden', !showCounter);
-        if(micBtn) micBtn.classList.toggle('hidden', !showMic);
-        if(camBtn) camBtn.classList.toggle('hidden', !showCam);
-
-        // Header Visibility Logic: Hide if ALL are hidden
-        if (!showTimer && !showCounter && !showMic && !showCam) {
-            header.classList.add('header-hidden');
-        } else {
-            header.classList.remove('header-hidden');
-        }
+        
+        if (timerBtn) timerBtn.classList.toggle('hidden', !this.appSettings.showTimer);
+        if (counterBtn) counterBtn.classList.toggle('hidden', !this.appSettings.showCounter);
+        
+        if (micBtn) micBtn.classList.toggle('hidden', !(this.appSettings.autoInputMode === 'mic' || this.appSettings.autoInputMode === 'both'));
+        if (camBtn) camBtn.classList.toggle('hidden', !(this.appSettings.autoInputMode === 'cam' || this.appSettings.autoInputMode === 'both'));
     }
 
-    hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
-    hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
-    populateMappingUI() {
-        if (!this.dom) return;
-        if (!this.appSettings) return;
+    updateUIFromSettings() {
+        // Dropdowns
+        if (this.dom.configSelect) this.dom.configSelect.value = this.appSettings.activeProfileId;
+        if (this.dom.quickConfigSelect) this.dom.quickConfigSelect.value = this.appSettings.activeProfileId;
+        if (this.dom.themeSelect) this.dom.themeSelect.value = this.appSettings.activeTheme;
+        if (this.dom.input) this.dom.input.value = this.appSettings.runtimeSettings.currentInput;
+        if (this.dom.mode) this.dom.mode.value = this.appSettings.runtimeSettings.currentMode;
+        if (this.dom.machines) this.dom.machines.value = this.appSettings.runtimeSettings.machineCount;
+        if (this.dom.seqLength) this.dom.seqLength.value = this.appSettings.runtimeSettings.sequenceLength;
+        if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = (this.appSettings.playbackSpeed || 1.0).toFixed(2);
+        if (this.dom.chunk) this.dom.chunk.value = this.appSettings.runtimeSettings.simonChunkSize;
+        if (this.dom.delay) this.dom.delay.value = (this.appSettings.runtimeSettings.simonInterSequenceDelay / 1000) || 0; // Fix: was undefined check
+        if (this.dom.pause) this.dom.pause.value = this.appSettings.pauseSetting || 'none';
         
-        // FIX: Apply defaults BEFORE building the UI so the dropdowns have data
-        if (!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
-            this.applyDefaultGestureMappings();
-        }
+        // Toggles
+        if (this.dom.autoClear) this.dom.autoClear.checked = !!this.appSettings.isUniqueRoundsAutoClearEnabled;
+        if (this.dom.autoplay) this.dom.autoplay.checked = !!this.appSettings.isAutoplayEnabled;
+        if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = !!this.appSettings.isAutoplayEnabled;
+        if (this.dom.flash) this.dom.flash.checked = !!this.appSettings.isFlashEnabled;
+        if (this.dom.audio) this.dom.audio.checked = !!this.appSettings.isAudioEnabled;
+        if (this.dom.quickAudio) this.dom.quickAudio.checked = !!this.appSettings.isAudioEnabled;
+        if (this.dom.haptics) this.dom.haptics.checked = !!this.appSettings.isHapticsEnabled;
+        if (this.dom.hapticMorse) this.dom.hapticMorse.checked = !!this.appSettings.isHapticMorseEnabled;
+        if (this.dom.speedDelete) this.dom.speedDelete.checked = !!this.appSettings.isSpeedDeletingEnabled;
+        if (this.dom.stealth1KeyToggle) this.dom.stealth1KeyToggle.checked = !!this.appSettings.isStealth1KeyEnabled;
+        if (this.dom.longPressToggle) this.dom.longPressToggle.checked = !!this.appSettings.isLongPressAutoplayEnabled;
+        if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !this.appSettings.showWelcomeScreen;
+        if (this.dom.showWelcome) this.dom.showWelcome.checked = !!this.appSettings.showWelcomeScreen;
+        if (this.dom.blackoutToggle) this.dom.blackoutToggle.checked = !!this.appSettings.isBlackoutFeatureEnabled;
+        if (this.dom.blackoutGesturesToggle) this.dom.blackoutGesturesToggle.checked = !!this.appSettings.isBlackoutGesturesEnabled;
+        if (this.dom.practiceMode) this.dom.practiceMode.checked = !!this.appSettings.isPracticeModeEnabled;
+
+        // New Header Toggles
+        if (this.dom.timerToggle) this.dom.timerToggle.checked = !!this.appSettings.showTimer;
+        if (this.dom.counterToggle) this.dom.counterToggle.checked = !!this.appSettings.showCounter;
+
+        if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
+        if (this.dom.seqSize) this.dom.seqSize.value = (this.appSettings.uiScaleMultiplier * 100) || 100;
         
-        if (!this.appSettings.gestureProfiles) this.appSettings.gestureProfiles = {};
+        // Font Size UI
+        if (this.dom.seqFontSize) this.dom.seqFontSize.value = (this.appSettings.uiFontSizeMultiplier * 100) || 100;
 
-        // 1. CLEAN SLATE
-        const tabRoot = document.getElementById('tab-mapping');
-        if (tabRoot) {
-            tabRoot.innerHTML = ''; 
-            tabRoot.className = "tab-content p-1 space-y-4";
-        }
-
-        // 2. Readable Labels
-        const getLabel = (techName) => {
-            let fingers = "";
-            if (techName.includes('_3f')) fingers = " (3 Finger)";
-            else if (techName.includes('_2f')) fingers = " (2 Finger)";
-            
-            let base = techName.replace('_3f', '').replace('_2f', '');
-            const map = {
-                'tap': 'Tap', 'double_tap': 'Double Tap', 'triple_tap': 'Triple Tap', 'long_tap': 'Long Press',
-                'swipe_up': 'Swipe Up', 'swipe_down': 'Swipe Down', 'swipe_left': 'Swipe Left', 'swipe_right': 'Swipe Right',
-                'swipe_nw': 'Swipe Up-Left', 'swipe_ne': 'Swipe Up-Right', 'swipe_sw': 'Swipe Down-Left', 'swipe_se': 'Swipe Down-Right'
-            };
-            return (map[base] || base) + fingers;
-        };
-
-        const cleanProfileName = (name) => {
-            if (name.includes("Standard Taps")) return "Taps";
-            if (name.includes("Directional Swipes")) return "Swipes";
-            if (name.includes("Piano Swipes")) return "Swipes";
-            return name;
-        };
-
-        const gestureList = [
-            'tap', 'double_tap', 'triple_tap', 'long_tap',
-            'tap_2f', 'double_tap_2f', 'triple_tap_2f', 'long_tap_2f',
-            'tap_3f', 'double_tap_3f', 'triple_tap_3f', 'long_tap_3f',
-            'swipe_up', 'swipe_nw', 'swipe_left', 'swipe_sw', 'swipe_down', 'swipe_se', 'swipe_right', 'swipe_ne',
-            'swipe_up_2f', 'swipe_nw_2f', 'swipe_left_2f', 'swipe_sw_2f', 'swipe_down_2f', 'swipe_se_2f', 'swipe_right_2f', 'swipe_ne_2f',
-            'swipe_up_3f', 'swipe_nw_3f', 'swipe_left_3f', 'swipe_sw_3f', 'swipe_down_3f', 'swipe_se_3f', 'swipe_right_3f', 'swipe_ne_3f'
-        ];
-
-        // 3. Section Builder
-        const buildSection = (type, title, keyPrefix, count, customKeys = null) => {
-            const wrapper = document.createElement('div');
-            wrapper.className = "p-3 rounded-lg border border-custom settings-input bg-opacity-50 mb-4";
-
-            // Header
-            const header = document.createElement('div');
-            header.className = "mb-2";
-            header.innerHTML = `<label class="text-xs font-bold uppercase text-muted-custom block">${title} PROFILE</label>`;
-            wrapper.appendChild(header);
-
-            // Profile Select
-            const select = document.createElement('select');
-            select.className = "settings-input w-full p-2 rounded mb-3 font-bold";
-            
-            const populateSelect = () => {
-                select.innerHTML = '';
-                // Default Option to show current state if not strictly matching a profile
-                const def = document.createElement('option');
-                def.textContent = "-- Select Preset --";
-                def.value = "";
-                select.appendChild(def);
-
-                const grp1 = document.createElement('optgroup'); grp1.label = "Built-in";
-                Object.keys(GESTURE_PRESETS).forEach(k => {
-                    if(GESTURE_PRESETS[k].type === type) {
-                        const opt = document.createElement('option');
-                        opt.value = k;
-                        opt.textContent = cleanProfileName(GESTURE_PRESETS[k].name);
-                        grp1.appendChild(opt);
-                    }
-                });
-                select.appendChild(grp1);
-
-                const grp2 = document.createElement('optgroup'); grp2.label = "My Setups";
-                Object.keys(this.appSettings.gestureProfiles).forEach(k => {
-                    if(this.appSettings.gestureProfiles[k].type === type) {
-                        const opt = document.createElement('option');
-                        opt.value = k;
-                        opt.textContent = this.appSettings.gestureProfiles[k].name;
-                        grp2.appendChild(opt);
-                    }
-                });
-                select.appendChild(grp2);
-            };
-            populateSelect();
-            wrapper.appendChild(select);
-
-            // Buttons
-            const btnGrid = document.createElement('div');
-            btnGrid.className = "grid grid-cols-2 gap-2 mb-4"; 
-
-            const createBtn = (txt, color, onClick) => {
-                const b = document.createElement('button');
-                b.textContent = txt;
-                b.className = `py-2 text-xs bg-${color}-600 hover:bg-${color}-500 rounded text-white font-bold transition shadow`;
-                b.onclick = onClick;
-                return b;
-            };
-
-            const btnNew = createBtn("NEW", "blue", () => {
-                const name = prompt("New Profile Name:");
-                if(!name) return;
-                const id = 'cust_gest_' + Date.now();
-                const currentMap = {};
-                listContainer.querySelectorAll('select').forEach(inp => currentMap[inp.dataset.key] = inp.value);
-                this.appSettings.gestureProfiles[id] = { name: name, type: type, map: currentMap };
-                this.callbacks.onSave();
-                populateSelect();
-                select.value = id;
-            });
-
-            const btnSave = createBtn("SAVE 💾", "green", () => {
-                const val = select.value;
-                if(!val || GESTURE_PRESETS[val]) return alert("Select a custom profile to save (or use NEW).");
-                const currentMap = {};
-                listContainer.querySelectorAll('select').forEach(inp => currentMap[inp.dataset.key] = inp.value);
-                this.appSettings.gestureProfiles[val].map = currentMap;
-                this.callbacks.onSave();
-                alert("Profile Saved!");
-            });
-
-            const btnRen = createBtn("RENAME", "gray", () => {
-                const val = select.value;
-                if(!val || GESTURE_PRESETS[val]) return alert("Cannot rename built-in profiles.");
-                const newName = prompt("Rename:", this.appSettings.gestureProfiles[val].name);
-                if(newName) {
-                    this.appSettings.gestureProfiles[val].name = newName;
-                    this.callbacks.onSave();
-                    populateSelect();
-                    select.value = val;
-                }
-            });
-
-            const btnDel = createBtn("DELETE", "red", () => {
-                const val = select.value;
-                if(!val || GESTURE_PRESETS[val]) return alert("Cannot delete built-in profiles.");
-                if(confirm("Delete this profile?")) {
-                    delete this.appSettings.gestureProfiles[val];
-                    this.callbacks.onSave();
-                    populateSelect();
-                }
-            });
-
-            btnGrid.append(btnNew, btnSave, btnRen, btnDel);
-            wrapper.appendChild(btnGrid);
-
-            // Mappings List
-            const listContainer = document.createElement('div');
-            listContainer.className = "space-y-2 border-t border-custom pt-3";
-            wrapper.appendChild(listContainer);
-
-            const renderMappings = () => {
-                listContainer.innerHTML = '';
-                const keysToRender = customKeys || Array.from({length: count}, (_, i) => String(i + 1));
-                
-                keysToRender.forEach(k => {
-                    const keyId = keyPrefix + k;
-                    const row = document.createElement('div');
-                    row.className = "flex items-center space-x-3";
-
-                    const lbl = document.createElement('div');
-                    lbl.className = "text-sm font-bold w-10 h-10 flex items-center justify-center bg-gray-800 rounded border border-gray-600 shadow-sm";
-                    lbl.textContent = k;
-
-                    const dropdown = document.createElement('select');
-                    dropdown.className = "settings-input p-2 rounded flex-grow text-xs font-semibold h-10 border border-custom";
-                    dropdown.setAttribute('data-key', keyId);
-
-                    gestureList.forEach(g => {
-                        const opt = document.createElement('option');
-                        opt.value = g;
-                        opt.textContent = getLabel(g);
-                        dropdown.appendChild(opt);
-                    });
-
-                    // FIX: Ensure value is set from current mappings
-                    if(this.appSettings.gestureMappings && this.appSettings.gestureMappings[keyId]) {
-                        dropdown.value = this.appSettings.gestureMappings[keyId].gesture || 'tap';
-                    }
-
-                    dropdown.onchange = () => {
-                        if(!this.appSettings.gestureMappings[keyId]) this.appSettings.gestureMappings[keyId] = {};
-                        this.appSettings.gestureMappings[keyId].gesture = dropdown.value;
-                        this.callbacks.onSave();
-                    };
-
-                    row.appendChild(lbl);
-                    row.appendChild(dropdown);
-                    listContainer.appendChild(row);
-                });
-            };
-
-            renderMappings();
-
-            // Select Change Event
-            select.onchange = () => {
-                 const val = select.value;
-                 if(!val) return;
-                 let data = GESTURE_PRESETS[val] ? GESTURE_PRESETS[val].map : (this.appSettings.gestureProfiles[val] ? this.appSettings.gestureProfiles[val].map : null);
-                 if(data) {
-                     Object.keys(data).forEach(key => {
-                         if(!this.appSettings.gestureMappings[key]) this.appSettings.gestureMappings[key] = {};
-                         this.appSettings.gestureMappings[key].gesture = data[key];
-                     });
-                     this.callbacks.onSave();
-                     renderMappings();
-                 }
-            };
-
-            if(tabRoot) tabRoot.appendChild(wrapper);
-        };
-
-        // 4. Build Sections
-        buildSection('key9', '9-Key', 'k9_', 9);
-        buildSection('key12', '12-Key', 'k12_', 12);
-        buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
-    }
-        populateMorseUI() {
-        const tab = document.getElementById('tab-playback');
-        if (!tab) return;
+        if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode;
+        if (this.dom.autoInput) this.dom.autoInput.value = this.appSettings.autoInputMode || 'none';
         
-        let container = document.getElementById('morse-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'morse-container';
-            container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
-            tab.appendChild(container);
-        }
-
-        // Generate all Morse combinations (1-5 length)
-        const morseOptions = [];
-        const chars = ['.', '-'];
-        const generate = (current) => {
-            if (current.length > 0) morseOptions.push(current);
-            if (current.length >= 5) return;
-            chars.forEach(c => generate(current + c));
-        };
-        generate('');
+        if (this.dom.quickLang) this.dom.quickLang.value = this.appSettings.generalLanguage || 'en';
+        if (this.dom.generalLang) this.dom.generalLang.value = this.appSettings.generalLanguage || 'en';
         
-        // Sort by length, then alphabet (dots before dashes)
-        morseOptions.sort((a, b) => a.length - b.length || a.localeCompare(b));
+        // Voice
+        if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
+        if (this.dom.voicePitch) this.dom.voicePitch.value = this.appSettings.voicePitch;
+        if (this.dom.voiceRate) this.dom.voiceRate.value = this.appSettings.voiceRate;
+        if (this.dom.voiceVolume) this.dom.voiceVolume.value = this.appSettings.voiceVolume;
 
-        // Labels as requested
-        const labels = ["1", "2", "3", "4", "5", "6 C", "7 D", "8 E", "9 F", "10 G", "11 A", "12 B"];
-
-        let gridHtml = `<div class="grid grid-cols-4 gap-y-3 gap-x-2 items-center">`;
-        
-        labels.forEach((label, index) => {
-            const val = index + 1;
-            
-            // Build the select options
-            const optionsHtml = morseOptions.map(m => `<option value="${m}">${m}</option>`).join('');
-
-            gridHtml += `
-                <div class="text-right text-xs font-bold text-gray-400 pr-1 whitespace-nowrap">${label}</div>
-                <select class="bg-gray-800 text-white text-xs p-1 rounded border border-gray-600 focus:border-primary-app outline-none h-8 w-full font-mono tracking-widest text-center" data-morse-id="${val}">
-                    ${optionsHtml}
-                </select>
-            `;
-        });
-        gridHtml += `</div>`;
-        
-        container.innerHTML = `
-            <h3 class="text-sm font-bold uppercase text-gray-400 mb-3">Haptic Output Mapping</h3>
-            ${gridHtml}
-            <p class="text-[10px] text-gray-500 mt-3 text-center">Custom dot/dash patterns for playback.</p>
-        `;
-
-        // Bind Listeners & Set Defaults
-        const selects = container.querySelectorAll('select');
-        selects.forEach(sel => {
-            const id = sel.dataset.morseId;
-            
-            // Load saved or calculate default
-            if (this.appSettings.morseMappings && this.appSettings.morseMappings[id]) {
-                sel.value = this.appSettings.morseMappings[id];
-            } else {
-                // Default Logic (Standard Morse-like count)
-                let d = "";
-                const n = parseInt(id);
-                if (n <= 3) d = ".".repeat(n);
-                else if (n <= 6) d = "-" + ".".repeat(n-3);
-                else if (n <= 9) d = "--" + ".".repeat(n-6);
-                else d = "---" + ".".repeat(n-10);
-                sel.value = d;
-            }
-
-            sel.onchange = () => {
-                if (!this.appSettings.morseMappings) this.appSettings.morseMappings = {};
-                this.appSettings.morseMappings[id] = sel.value;
-                this.callbacks.onSave();
-
-                // Haptic Preview
-                if (navigator.vibrate) {
-                    const pattern = [];
-                    const speed = this.appSettings.playbackSpeed || 1.0;
-                    const factor = 1.0 / speed; 
-                    const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor;
-                    
-                    for (let char of sel.value) {
-                        if(char === '.') pattern.push(DOT);
-                        if(char === '-') pattern.push(DASH);
-                        pattern.push(GAP);
-                    }
-                    if(pattern.length) navigator.vibrate(pattern);
-                }
-            };
-        });
+        this.generatePrompt();
+        this.updateHeaderVisibility();
     }
 
-
-    
-    applyDefaultGestureMappings() {
-        this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
-        const defs = {
-            'k9_1': { gesture: 'tap', morse: '.' }, 'k9_2': { gesture: 'double_tap', morse: '..' }, 'k9_3': { gesture: 'triple_tap', morse: '...' }, 
-            'k9_4': { gesture: 'tap_2f', morse: '-' }, 'k9_5': { gesture: 'double_tap_2f', morse: '-.' }, 'k9_6': { gesture: 'triple_tap_2f', morse: '-..' }, 
-            'k9_7': { gesture: 'tap_3f', morse: '--' }, 'k9_8': { gesture: 'double_tap_3f', morse: '--.' }, 'k9_9': { gesture: 'triple_tap_3f', morse: '---' },
-
-            'k12_1': { gesture: 'tap', morse: '.' }, 'k12_2': { gesture: 'double_tap', morse: '..' }, 'k12_3': { gesture: 'triple_tap', morse: '...' }, 'k12_4': { gesture: 'long_tap', morse: '...-' }, 
-            'k12_5': { gesture: 'tap_2f', morse: '-' }, 'k12_6': { gesture: 'double_tap_2f', morse: '-.' }, 'k12_7': { gesture: 'triple_tap_2f', morse: '-..' }, 'k12_8': { gesture: 'long_tap_2f', morse: '-.-' }, 
-            'k12_9': { gesture: 'tap_3f', morse: '--' }, 'k12_10': { gesture: 'double_tap_3f', morse: '--.' }, 'k12_11': { gesture: 'triple_tap_3f', morse: '--..' }, 'k12_12': { gesture: 'long_tap_3f', morse: '---' },
-
-            'piano_C': { gesture: 'swipe_nw', morse: '.' }, 'piano_D': { gesture: 'swipe_left', morse: '..' }, 'piano_E': { gesture: 'swipe_sw', morse: '.-' }, 'piano_F': { gesture: 'swipe_down', morse: '...' }, 'piano_G': { gesture: 'swipe_se', morse: '..-' }, 'piano_A': { gesture: 'swipe_right', morse: '.-.' }, 'piano_B': { gesture: 'swipe_ne', morse: '.--' }, 
-            'piano_1': { gesture: 'swipe_left_2f', morse: '-' }, 'piano_2': { gesture: 'swipe_nw_2f', morse: '-.' }, 'piano_3': { gesture: 'swipe_up_2f', morse: '--' }, 'piano_4': { gesture: 'swipe_ne_2f', morse: '-..' }, 'piano_5': { gesture: 'swipe_right_2f', morse: '-.-' }
-        };
-        this.appSettings.gestureMappings = Object.assign({}, defs, this.appSettings.gestureMappings || {});
+    generatePrompt() {
+        const s = this.appSettings.runtimeSettings;
+        let text = `Game: ${s.currentInput === 'piano' ? 'Piano' : (s.currentInput==='key12'?'12-Key':'9-Key')}, ${s.currentMode==='simon'?'Simon Says':'Unique Rounds'}.\n`;
+        text += `Setup: ${s.machineCount} Machine${s.machineCount>1?'s':''}, Length ${s.sequenceLength}.\n`;
+        text += `Speed: ${this.appSettings.playbackSpeed}x. `;
+        if (s.currentMode === 'simon') text += `Chunk: ${s.simonChunkSize}, Delay: ${s.simonInterSequenceDelay/1000}s.`;
+        if (this.dom.promptDisplay) this.dom.promptDisplay.textContent = text;
     }
+
+    openSettings() { if (this.dom.settingsModal) { this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); this.updateUIFromSettings(); } }
+    closeSettings() { if (this.dom.settingsModal) { this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.add('scale-90'); } }
+    openSetup() { if (this.dom.setupModal) { this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); } }
+    closeSetup() { if (this.dom.setupModal) { this.dom.setupModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); } }
+    openHelp() { if (this.dom.helpModal) { this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); } }
+    closeHelp() { if (this.dom.helpModal) { this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none'); } }
 }

@@ -523,6 +523,59 @@
                         <div>
                             <h5 class="font-bold text-base text-white border-b border-gray-600 pb-1 mb-2">Playback Tab</h5>
                             <ul class="space-y-2 text-xs opacity-90">
+    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
+            <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center"><h3 class="text-2xl font-bold">Manual 📘</h3><button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button></div>
+            <div class="flex border-b border-custom bg-black bg-opacity-10">
+                <div class="tab-btn active" data-tab="help-about">About</div>
+                <div class="tab-btn" data-tab="help-settings">Settings</div>
+                <div class="tab-btn" data-tab="help-voice">Voice</div>
+            </div>
+            <div class="p-6 overflow-y-auto leading-relaxed space-y-6 text-sm flex-grow">
+                
+                <div id="tab-help-about" class="tab-content active">
+                    <h4 class="font-bold text-lg text-primary-app mb-2">The Goal 🎯</h4>
+                    <p class="mb-4 opacity-90">This is a sandbox tool designed to help you beat the "Follow" memory portion of skill-based machines.</p>
+                    
+                    <div class="bg-black bg-opacity-30 p-3 rounded-lg border border-gray-700 mb-4">
+                        <h5 class="font-bold text-white mb-1">🎮 How to Play</h5>
+                        <p class="text-xs opacity-80">Select your input method (9-Key, 12-Key, or Piano). When the machine flashes a number, press it here. The app tracks the full sequence so you don't have to memorize it.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="bg-black bg-opacity-30 p-3 rounded-lg border border-gray-700">
+                            <h5 class="font-bold text-white mb-1">📤 Share & Feedback</h5>
+                            <p class="text-xs opacity-80">Use the 📤 icon in the header to share the app with friends. Use the 💬 icon to send feedback or suggestions directly to the developer.</p>
+                        </div>
+                        <div class="bg-black bg-opacity-30 p-3 rounded-lg border border-gray-700">
+                            <h5 class="font-bold text-white mb-1">⏸️ Hold to Pause</h5>
+                            <p class="text-xs opacity-80">Touch and <strong>hold anywhere</strong> on the screen during playback to pause the sequence. Release to resume instantly.</p>
+                        </div>
+                    </div>
+
+                    <p class="mt-4 opacity-90 text-xs text-center"><strong>ID Icon (🆔):</strong> Opens the Redeem barcode for compatible kiosks.<br><strong>Support ☕:</strong> If this app helps you win, use the Coffee icon to send a tip!</p>
+                </div>
+
+                <div id="tab-help-settings" class="tab-content">
+                    <h4 class="font-bold text-lg text-primary-app mb-4">Settings Glossary ⚙️</h4>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h5 class="font-bold text-base text-white border-b border-gray-600 pb-1 mb-2">Game Tab</h5>
+                            <ul class="space-y-2 text-xs opacity-90">
+                                <li><strong>Profiles:</strong> Save/Load different setups (e.g., "Fast 9-Key", "Slow Piano").</li>
+                                <li><strong>Input:</strong> Choose between 9-Key (3x3), 12-Key (3x4), or Piano layouts.</li>
+                                <li><strong>Mode (Simon):</strong> Cumulative. Adds one number per round. App reads back the full history.</li>
+                                <li><strong>Mode (Unique):</strong> Random. New sequence every round. App forgets previous numbers.</li>
+                                <li><strong>Machines:</strong> Split the screen for tracking up to 4 machines simultaneously.</li>
+                                <li><strong>Auto-Advance:</strong> (Unique Mode) Automatically clears and starts the next round after playback.</li>
+                                <li><strong>Practice Mode:</strong> Switches from "Tracker" to "Game". The app generates sequences for you to memorize.</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h5 class="font-bold text-base text-white border-b border-gray-600 pb-1 mb-2">Playback Tab</h5>
+                            <ul class="space-y-2 text-xs opacity-90">
                                 <li><strong>Autoplay:</strong> Immediately plays back the sequence after you enter a number.</li>
                                 <li><strong>Flash:</strong> Highlights buttons visually during playback.</li>
                                 <li><strong>Audio:</strong> Reads the numbers out loud (Text-to-Speech).</li>

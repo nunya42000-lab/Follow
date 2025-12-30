@@ -778,12 +778,10 @@ export class SettingsManager {
         buildSection('key12', '12-Key', 'k12_', 12);
         buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
     }
-
     populateMorseUI() {
         const tab = document.getElementById('tab-playback');
         if (!tab) return;
         
-        // Check if exists to avoid dupes (if called multiple times)
         let container = document.getElementById('morse-container');
         if (!container) {
             container = document.createElement('div');
@@ -793,41 +791,35 @@ export class SettingsManager {
         }
         
         container.innerHTML = `
-            <h3 class="text-sm font-bold uppercase text-gray-400 mb-3">Haptic Morse Reference</h3>
-            <div class="grid grid-cols-4 gap-2">
+            <h3 class="text-sm font-bold uppercase text-gray-400 mb-3">Haptic Output Mapping</h3>
+            <div class="grid grid-cols-2 gap-3">
         `;
 
-        // Logic matches vibrateMorse in app.js
-        // 1-3: Dots
-        // 4-6: Dash + Dots
-        // 7-9: 2 Dashes + Dots
-        // 10-12: 3 Dashes + Dots
-        const getMorse = (n) => {
-            if (n <= 3) return ".".repeat(n);
-            if (n <= 6) return "-" + ".".repeat(n-3);
-            if (n <= 9) return "--" + ".".repeat(n-6);
-            return "---" + ".".repeat(n-10);
-        };
+        // Labels matching your specific requested format
+        const labels = ["1", "2", "3", "4", "5", "6 C", "7 D", "8 E", "9 F", "10 G", "11 A", "12 B"];
 
         let gridHtml = "";
-        for (let i = 1; i <= 12; i++) {
-            const code = getMorse(i);
-            // Visual flair: bold dashes, light dots
-            const visual = code.replace(/\./g, '<span class="text-gray-500 text-xl leading-none">●</span>')
-                               .replace(/-/g, '<span class="text-primary-app text-xl leading-none">▬</span>');
-            
+        labels.forEach((label, index) => {
+            const val = index + 1;
             gridHtml += `
-                <div class="flex flex-col items-center justify-center p-2 bg-gray-800 rounded">
-                    <span class="text-xs font-bold text-gray-400 mb-1">${i}</span>
-                    <div class="flex gap-1">${visual}</div>
+                <div class="flex items-center justify-between p-2 bg-gray-800 rounded border border-gray-600 shadow-sm">
+                    <span class="text-xs font-bold text-gray-200 ml-1">${label}</span>
+                    <select class="bg-gray-900 text-white text-xs p-1 rounded border border-gray-500 w-24 h-8 focus:border-primary-app focus:outline-none" data-morse-target="${val}">
+                        <option value="standard">Standard</option>
+                        <option value="rev_up">Rev Up</option>
+                        <option value="heartbeat">Heartbeat</option>
+                        <option value="pulse_fast">Fast Pulse</option>
+                        <option value="pulse_slow">Slow Pulse</option>
+                        <option value="fade_out">Fade Out</option>
+                    </select>
                 </div>
             `;
-        }
+        });
         
-        container.innerHTML += gridHtml + `</div><p class="text-[10px] text-gray-500 mt-2 text-center">Used during playback when Haptics enabled.</p>`;
+        container.innerHTML += gridHtml + `</div><p class="text-[10px] text-gray-500 mt-2 text-center">Select vibration patterns for each value.</p>`;
     }
 
-
+    
     applyDefaultGestureMappings() {
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
         const defs = {

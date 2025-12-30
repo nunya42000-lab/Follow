@@ -216,7 +216,7 @@ export class SettingsManager {
         if (this.appSettings.playbackSpeed) {
             this.dom.playbackSpeed.value = this.appSettings.playbackSpeed.toFixed(2);
         }
-    }  }
+    }  
     populateVoicePresetDropdown() {
         if (!this.dom.voicePresetSelect) return;
         this.dom.voicePresetSelect.innerHTML = '';

@@ -747,6 +747,16 @@ const startApp = () => {
     // Init Sensor Engine
     modules.sensor = new SensorEngine(
         (val, source) => { 
+            // NEW: Check for Boss Mode trigger from Sensors
+            if (val === 'BOSS_MODE') {
+                 if(appSettings.isBlackoutFeatureEnabled) {
+                     blackoutState.isActive = !blackoutState.isActive;
+                     document.body.classList.toggle('blackout-active', blackoutState.isActive);
+                     showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back");
+                 }
+                 return;
+             }
+
              addValue(val); 
              const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
              if(btn) { btn.classList.add('flash-active'); setTimeout(() => btn.classList.remove('flash-active'), 200); }
@@ -977,7 +987,7 @@ function initGlobalListeners() {
         document.body.addEventListener('mouseup', handleResume);
         document.body.addEventListener('touchend', handleResume);
 
-        // --- Shake to Toggle Gesture Pad ---
+        // --- Shake Listener (Fixed) ---
         let lastX=0, lastY=0, lastZ=0;
         document.getElementById('close-settings').addEventListener('click', () => {
             if(appSettings.isPracticeModeEnabled) {
@@ -986,7 +996,7 @@ function initGlobalListeners() {
         });
 
         window.addEventListener('devicemotion', (e) => {
-            // UPDATED: Now depends on Gesture Input (not Blackout)
+            // UPDATED: Only toggles Gesture Pad now. Boss mode moved to Camera Cover.
             if(!appSettings.isGestureInputEnabled) return;
 
             const acc = e.accelerationIncludingGravity;
@@ -996,16 +1006,10 @@ function initGlobalListeners() {
             if(delta > 25) { 
                 const now = Date.now();
                 if(now - blackoutState.lastShake > 1000) {
-                    // TOGGLE VISIBILITY
                     isGesturePadVisible = !isGesturePadVisible;
-                    renderUI(); // Apply class change
-                    
-                    if(isGesturePadVisible) {
-                        showToast("Gestures Active 👆");
-                    } else {
-                        showToast("Standard Controls 📱");
-                    }
-                    
+                    renderUI(); 
+                    if(isGesturePadVisible) showToast("Gestures Active 👆");
+                    else showToast("Standard Controls 📱");
                     blackoutState.lastShake = now;
                 }
             }

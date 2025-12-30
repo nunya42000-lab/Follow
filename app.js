@@ -144,9 +144,6 @@ function vibrateMorse(val) {
         const angle = Math.atan2(dy, dx) * 180 / Math.PI; // Result is -180 to 180
         
         // 8 Slices (45 degrees each), offset by 22.5 to center the cardinal directions
-        if (angle > -22.5 && angle <= 22.5) return 'right';
-        if (angle > 22.5 && angle <= 67.5) return 'se'; // Screen Y is positive down usually, but standard math is Up=Pos.
-        
         if (angle > -22.5 && angle <= 22.5) return 'swipe_right';
         if (angle > 22.5 && angle <= 67.5) return 'swipe_se';
         if (angle > 67.5 && angle <= 112.5) return 'swipe_down';

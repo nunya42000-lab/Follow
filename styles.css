@@ -63,3 +63,37 @@ body.input-gestures-mode #gesture-indicator {
     pointer-events: none;
     color: var(--text-main);
                           }
+/* --- BIG FOOTER OVERRIDES --- */
+#input-footer {
+    height: 45vh; /* Takes up 45% of the screen height */
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Force containers to fill height */
+#pad-key9, #pad-key12, #pad-piano {
+    height: 100%;
+    max-width: 100% !important; /* Remove width limits */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Make the grid expand to fill available space */
+#pad-key9 .grid, #pad-key12 .grid, #pad-piano .grid {
+    flex-grow: 1;
+    height: 100%;
+}
+
+/* Make buttons fill their grid cells */
+.btn-input {
+    height: 100% !important;
+    font-size: 2.5rem !important; /* Much larger text */
+    border-width: 2px !important;
+}
+
+/* Adjust padding on the main app so it doesn't get hidden behind the huge footer */
+#app {
+    padding-bottom: 50vh !important;
+}

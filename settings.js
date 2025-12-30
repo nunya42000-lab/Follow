@@ -778,7 +778,7 @@ export class SettingsManager {
         buildSection('key12', '12-Key', 'k12_', 12);
         buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
     }
-    populateMorseUI() {
+        populateMorseUI() {
         const tab = document.getElementById('tab-playback');
         if (!tab) return;
         
@@ -789,35 +789,88 @@ export class SettingsManager {
             container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
             tab.appendChild(container);
         }
+
+        // Generate all Morse combinations (1-5 length)
+        const morseOptions = [];
+        const chars = ['.', '-'];
+        const generate = (current) => {
+            if (current.length > 0) morseOptions.push(current);
+            if (current.length >= 5) return;
+            chars.forEach(c => generate(current + c));
+        };
+        generate('');
+        
+        // Sort by length, then alphabet (dots before dashes)
+        morseOptions.sort((a, b) => a.length - b.length || a.localeCompare(b));
+
+        // Labels as requested
+        const labels = ["1", "2", "3", "4", "5", "6 C", "7 D", "8 E", "9 F", "10 G", "11 A", "12 B"];
+
+        let gridHtml = `<div class="grid grid-cols-4 gap-y-3 gap-x-2 items-center">`;
+        
+        labels.forEach((label, index) => {
+            const val = index + 1;
+            
+            // Build the select options
+            const optionsHtml = morseOptions.map(m => `<option value="${m}">${m}</option>`).join('');
+
+            gridHtml += `
+                <div class="text-right text-xs font-bold text-gray-400 pr-1 whitespace-nowrap">${label}</div>
+                <select class="bg-gray-800 text-white text-xs p-1 rounded border border-gray-600 focus:border-primary-app outline-none h-8 w-full font-mono tracking-widest text-center" data-morse-id="${val}">
+                    ${optionsHtml}
+                </select>
+            `;
+        });
+        gridHtml += `</div>`;
         
         container.innerHTML = `
             <h3 class="text-sm font-bold uppercase text-gray-400 mb-3">Haptic Output Mapping</h3>
-            <div class="grid grid-cols-2 gap-3">
+            ${gridHtml}
+            <p class="text-[10px] text-gray-500 mt-3 text-center">Custom dot/dash patterns for playback.</p>
         `;
 
-        // Labels matching your specific requested format
-        const labels = ["1", "2", "3", "4", "5", "6 C", "7 D", "8 E", "9 F", "10 G", "11 A", "12 B"];
+        // Bind Listeners & Set Defaults
+        const selects = container.querySelectorAll('select');
+        selects.forEach(sel => {
+            const id = sel.dataset.morseId;
+            
+            // Load saved or calculate default
+            if (this.appSettings.morseMappings && this.appSettings.morseMappings[id]) {
+                sel.value = this.appSettings.morseMappings[id];
+            } else {
+                // Default Logic (Standard Morse-like count)
+                let d = "";
+                const n = parseInt(id);
+                if (n <= 3) d = ".".repeat(n);
+                else if (n <= 6) d = "-" + ".".repeat(n-3);
+                else if (n <= 9) d = "--" + ".".repeat(n-6);
+                else d = "---" + ".".repeat(n-10);
+                sel.value = d;
+            }
 
-        let gridHtml = "";
-        labels.forEach((label, index) => {
-            const val = index + 1;
-            gridHtml += `
-                <div class="flex items-center justify-between p-2 bg-gray-800 rounded border border-gray-600 shadow-sm">
-                    <span class="text-xs font-bold text-gray-200 ml-1">${label}</span>
-                    <select class="bg-gray-900 text-white text-xs p-1 rounded border border-gray-500 w-24 h-8 focus:border-primary-app focus:outline-none" data-morse-target="${val}">
-                        <option value="standard">Standard</option>
-                        <option value="rev_up">Rev Up</option>
-                        <option value="heartbeat">Heartbeat</option>
-                        <option value="pulse_fast">Fast Pulse</option>
-                        <option value="pulse_slow">Slow Pulse</option>
-                        <option value="fade_out">Fade Out</option>
-                    </select>
-                </div>
-            `;
+            sel.onchange = () => {
+                if (!this.appSettings.morseMappings) this.appSettings.morseMappings = {};
+                this.appSettings.morseMappings[id] = sel.value;
+                this.callbacks.onSave();
+
+                // Haptic Preview
+                if (navigator.vibrate) {
+                    const pattern = [];
+                    const speed = this.appSettings.playbackSpeed || 1.0;
+                    const factor = 1.0 / speed; 
+                    const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor;
+                    
+                    for (let char of sel.value) {
+                        if(char === '.') pattern.push(DOT);
+                        if(char === '-') pattern.push(DASH);
+                        pattern.push(GAP);
+                    }
+                    if(pattern.length) navigator.vibrate(pattern);
+                }
+            };
         });
-        
-        container.innerHTML += gridHtml + `</div><p class="text-[10px] text-gray-500 mt-2 text-center">Select vibration patterns for each value.</p>`;
     }
+
 
     
     applyDefaultGestureMappings() {

@@ -186,7 +186,8 @@ export class SettingsManager {
             mappingPianoContainer: document.getElementById('mapping-piano-container'),
         };
         this.tempTheme = null; this.initListeners(); this.populateConfigDropdown(); this.populateThemeDropdown(); this.buildColorGrid(); this.populateVoicePresetDropdown();
-        this.populateMappingUI();
+        this.populatePlaybackSpeedDropdown();
+        this.populateUIScaleDropdown(); this.populateMappingUI();
         this.populateMorseUI();
         if(this.dom.gestureToggle){
             this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
@@ -197,6 +198,34 @@ export class SettingsManager {
             });
         }
     }
+    populatePlaybackSpeedDropdown() {
+        if (!this.dom.playbackSpeed) return;
+        this.dom.playbackSpeed.innerHTML = '';
+        // Range 75% to 150% in 5% increments
+        for (let i = 75; i <= 150; i += 5) {
+            const opt = document.createElement('option');
+            const val = (i / 100).toFixed(2);
+            opt.value = val;
+            opt.textContent = i + '%';
+            this.dom.playbackSpeed.appendChild(opt);
+        }
+        // Set current value
+        this.dom.playbackSpeed.value = (this.appSettings.playbackSpeed || 1.0).toFixed(2);
+    }
+
+    populateUIScaleDropdown() {
+        if (!this.dom.uiScale) return;
+        this.dom.uiScale.innerHTML = '';
+        // Range 50% to 500% in 10% increments
+        for (let i = 50; i <= 500; i += 10) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = i + '%';
+            this.dom.uiScale.appendChild(opt);
+        }
+        this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
+    }
+
     populateVoicePresetDropdown() {
         if (!this.dom.voicePresetSelect) return;
         this.dom.voicePresetSelect.innerHTML = '';
@@ -466,7 +495,7 @@ export class SettingsManager {
         this.dom.promptDisplay.value = promptText;
     }
 
-    updateUIFromSettings() {
+        updateUIFromSettings() {
         const ps = this.appSettings.runtimeSettings;
         if (this.dom.input) this.dom.input.value = ps.currentInput;
         if (this.dom.mode) this.dom.mode.value = ps.currentMode;
@@ -480,9 +509,12 @@ export class SettingsManager {
         if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !this.appSettings.showWelcomeScreen;
         if (this.dom.showWelcome) this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
         if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.isHapticMorseEnabled;
-        if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = this.appSettings.playbackSpeed.toFixed(1) || "1.0";
+        
+        // UPDATED: Matches the new dropdown generation logic (e.g. "1.00")
+        if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = (this.appSettings.playbackSpeed || 1.0).toFixed(2);
+        
         if (this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
-        if (this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000);
+        if (this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000); //
         if (this.dom.voicePitch) this.dom.voicePitch.value = this.appSettings.voicePitch || 1.0;
         if (this.dom.voiceRate) this.dom.voiceRate.value = this.appSettings.voiceRate || 1.0;
         if (this.dom.voiceVolume) this.dom.voiceVolume.value = this.appSettings.voiceVolume || 1.0;
@@ -490,16 +522,17 @@ export class SettingsManager {
         if (this.dom.practiceMode) this.dom.practiceMode.checked = this.appSettings.isPracticeModeEnabled;
         if (this.dom.stealth1KeyToggle) this.dom.stealth1KeyToggle.checked = this.appSettings.isStealth1KeyEnabled;
         if (this.dom.longPressToggle) this.dom.longPressToggle.checked = (typeof this.appSettings.isLongPressAutoplayEnabled === 'undefined') ? true : this.appSettings.isLongPressAutoplayEnabled;
-        if (this.dom.timerToggle) this.dom.timerToggle.checked = !!this.appSettings.showTimer; // NEW
-        if (this.dom.counterToggle) this.dom.counterToggle.checked = !!this.appSettings.showCounter; // NEW
+        if (this.dom.timerToggle) this.dom.timerToggle.checked = !!this.appSettings.showTimer; 
+        if (this.dom.counterToggle) this.dom.counterToggle.checked = !!this.appSettings.showCounter; 
         if (this.dom.calibAudioSlider) this.dom.calibAudioSlider.value = this.appSettings.sensorAudioThresh || -85;
         if (this.dom.calibCamSlider) this.dom.calibCamSlider.value = this.appSettings.sensorCamThresh || 30;
         if (this.dom.haptics) this.dom.haptics.checked = (typeof this.appSettings.isHapticsEnabled === 'undefined') ? true : this.appSettings.isHapticsEnabled;
         if (this.dom.speedDelete) this.dom.speedDelete.checked = (typeof this.appSettings.isSpeedDeletingEnabled === 'undefined') ? true : this.appSettings.isSpeedDeletingEnabled;
-        if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
-        if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
         
-        // --- NEW FONT SIZE UPDATE ---
+        // UPDATED: Matches the new 50-500 range logic
+        if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
+        
+        if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
         if (this.dom.seqFontSize) this.dom.seqFontSize.value = Math.round((this.appSettings.uiFontSizeMultiplier || 1.0) * 100);
 
         if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
@@ -508,13 +541,11 @@ export class SettingsManager {
         if (this.dom.gestureToggle) this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
         if (this.dom.autoInput) this.dom.autoInput.value = this.appSettings.autoInputMode || 'none';
         
-        // Language
         const lang = this.appSettings.generalLanguage || 'en';
         if (this.dom.quickLang) this.dom.quickLang.value = lang;
         if (this.dom.generalLang) this.dom.generalLang.value = lang;
         this.setLanguage(lang);
         
-        // Ensure header visibility matches state on load
         this.updateHeaderVisibility();
     }
 

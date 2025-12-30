@@ -1,5 +1,3 @@
-
-
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
 export const PREMADE_THEMES = {
@@ -173,6 +171,9 @@ export class SettingsManager {
             redeemMinus: document.getElementById('redeem-zoom-out'),
 
             openDonateBtn: document.getElementById('open-donate-btn'),
+
+
+            openDonateBtn: document.getElementById('open-donate-btn'),
             openRedeemSettingsBtn: document.getElementById('open-redeem-btn-settings'),
 
             donateModal: document.getElementById('donate-modal'), closeDonateBtn: document.getElementById('close-donate-btn'),
@@ -186,6 +187,7 @@ export class SettingsManager {
         };
         this.tempTheme = null; this.initListeners(); this.populateConfigDropdown(); this.populateThemeDropdown(); this.buildColorGrid(); this.populateVoicePresetDropdown();
         this.populateMappingUI();
+        this.populateMorseUI();
         if(this.dom.gestureToggle){
             this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
             this.dom.gestureToggle.addEventListener('change', (e) => {
@@ -269,7 +271,6 @@ export class SettingsManager {
         if (this.dom.edSave) this.dom.edSave.onclick = () => { if (this.tempTheme) { const activeId = this.appSettings.activeTheme; if (PREMADE_THEMES[activeId]) { const newId = 'custom_' + Date.now(); this.appSettings.customThemes[newId] = this.tempTheme; this.appSettings.activeTheme = newId; } else { this.appSettings.customThemes[activeId] = this.tempTheme; } this.callbacks.onSave(); this.callbacks.onUpdate(); this.dom.editorModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.editorModal.querySelector('div').classList.add('scale-90'); this.populateThemeDropdown(); } };
         if (this.dom.openEditorBtn) this.dom.openEditorBtn.onclick = () => this.openThemeEditor();
         if (this.dom.edCancel) this.dom.edCancel.onclick = () => { this.dom.editorModal.classList.add('opacity-0', 'pointer-events-none'); };
-
         // Voice Controls
         if (this.dom.voiceTestBtn) this.dom.voiceTestBtn.onclick = () => this.testVoice();
         const updateVoiceLive = () => {
@@ -328,20 +329,6 @@ export class SettingsManager {
         if (this.dom.input) this.dom.input.addEventListener('change', () => this.generatePrompt());
         if (this.dom.machines) this.dom.machines.addEventListener('change', () => this.generatePrompt());
         if (this.dom.seqLength) this.dom.seqLength.addEventListener('change', () => this.generatePrompt());
-                // [PATCH] Populate Speed Dropdown (75% to 150% in 5% increments)
-        if (this.dom.playbackSpeed) {
-            this.dom.playbackSpeed.innerHTML = '';
-            for (let i = 75; i <= 150; i += 5) {
-                const opt = document.createElement('option');
-                const val = i / 100;
-                opt.value = val.toFixed(2);
-                opt.textContent = `${i}%`;
-                this.dom.playbackSpeed.appendChild(opt);
-            }
-            // Set initial value
-            this.dom.playbackSpeed.value = this.appSettings.playbackSpeed.toFixed(2);
-        }
-
         if (this.dom.playbackSpeed) this.dom.playbackSpeed.addEventListener('change', () => this.generatePrompt());
         if (this.dom.delay) this.dom.delay.addEventListener('change', () => this.generatePrompt());
         if (this.dom.chunk) this.dom.chunk.addEventListener('change', () => this.generatePrompt());
@@ -367,7 +354,7 @@ export class SettingsManager {
         if (this.dom.uiScale) this.dom.uiScale.onchange = (e) => { this.appSettings.globalUiScale = parseInt(e.target.value); this.callbacks.onUpdate(); };
         if (this.dom.seqSize) this.dom.seqSize.onchange = (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onUpdate(); };
         
-        // --- NEW FONT SIZE LISTENER ---
+        // --- NEW FONT SIZE UPDATE ---
         if (this.dom.seqFontSize) {
             this.dom.seqFontSize.onchange = (e) => {
                 this.appSettings.uiFontSizeMultiplier = parseInt(e.target.value) / 100.0;
@@ -447,6 +434,9 @@ export class SettingsManager {
         if (this.dom.restoreBtn) this.dom.restoreBtn.onclick = () => { if (confirm("Factory Reset?")) this.callbacks.onReset(); };
         if (this.dom.quickResizeUp) this.dom.quickResizeUp.onclick = () => { this.appSettings.globalUiScale = Math.min(200, this.appSettings.globalUiScale + 10); this.callbacks.onUpdate(); };
         if (this.dom.quickResizeDown) this.dom.quickResizeDown.onclick = () => { this.appSettings.globalUiScale = Math.max(50, this.appSettings.globalUiScale - 10); this.callbacks.onUpdate(); };
+
+        // INIT MORSE UI
+        this.populateMorseUI();
     }
     populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
     populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
@@ -788,8 +778,101 @@ export class SettingsManager {
         buildSection('key12', '12-Key', 'k12_', 12);
         buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
     }
+        populateMorseUI() {
+        const tab = document.getElementById('tab-playback');
+        if (!tab) return;
+        
+        let container = document.getElementById('morse-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'morse-container';
+            container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
+            tab.appendChild(container);
+        }
+
+        // Generate all Morse combinations (1-5 length)
+        const morseOptions = [];
+        const chars = ['.', '-'];
+        const generate = (current) => {
+            if (current.length > 0) morseOptions.push(current);
+            if (current.length >= 5) return;
+            chars.forEach(c => generate(current + c));
+        };
+        generate('');
+        
+        // Sort by length, then alphabet (dots before dashes)
+        morseOptions.sort((a, b) => a.length - b.length || a.localeCompare(b));
+
+        // Labels as requested
+        const labels = ["1", "2", "3", "4", "5", "6 C", "7 D", "8 E", "9 F", "10 G", "11 A", "12 B"];
+
+        let gridHtml = `<div class="grid grid-cols-4 gap-y-3 gap-x-2 items-center">`;
+        
+        labels.forEach((label, index) => {
+            const val = index + 1;
+            
+            // Build the select options
+            const optionsHtml = morseOptions.map(m => `<option value="${m}">${m}</option>`).join('');
+
+            gridHtml += `
+                <div class="text-right text-xs font-bold text-gray-400 pr-1 whitespace-nowrap">${label}</div>
+                <select class="bg-gray-800 text-white text-xs p-1 rounded border border-gray-600 focus:border-primary-app outline-none h-8 w-full font-mono tracking-widest text-center" data-morse-id="${val}">
+                    ${optionsHtml}
+                </select>
+            `;
+        });
+        gridHtml += `</div>`;
+        
+        container.innerHTML = `
+            <h3 class="text-sm font-bold uppercase text-gray-400 mb-3">Haptic Output Mapping</h3>
+            ${gridHtml}
+            <p class="text-[10px] text-gray-500 mt-3 text-center">Custom dot/dash patterns for playback.</p>
+        `;
+
+        // Bind Listeners & Set Defaults
+        const selects = container.querySelectorAll('select');
+        selects.forEach(sel => {
+            const id = sel.dataset.morseId;
+            
+            // Load saved or calculate default
+            if (this.appSettings.morseMappings && this.appSettings.morseMappings[id]) {
+                sel.value = this.appSettings.morseMappings[id];
+            } else {
+                // Default Logic (Standard Morse-like count)
+                let d = "";
+                const n = parseInt(id);
+                if (n <= 3) d = ".".repeat(n);
+                else if (n <= 6) d = "-" + ".".repeat(n-3);
+                else if (n <= 9) d = "--" + ".".repeat(n-6);
+                else d = "---" + ".".repeat(n-10);
+                sel.value = d;
+            }
+
+            sel.onchange = () => {
+                if (!this.appSettings.morseMappings) this.appSettings.morseMappings = {};
+                this.appSettings.morseMappings[id] = sel.value;
+                this.callbacks.onSave();
+
+                // Haptic Preview
+                if (navigator.vibrate) {
+                    const pattern = [];
+                    const speed = this.appSettings.playbackSpeed || 1.0;
+                    const factor = 1.0 / speed; 
+                    const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor;
+                    
+                    for (let char of sel.value) {
+                        if(char === '.') pattern.push(DOT);
+                        if(char === '-') pattern.push(DASH);
+                        pattern.push(GAP);
+                    }
+                    if(pattern.length) navigator.vibrate(pattern);
+                }
+            };
+        });
+    }
 
 
+    
     applyDefaultGestureMappings() {
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
         const defs = {

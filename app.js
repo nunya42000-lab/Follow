@@ -51,6 +51,8 @@ let practiceSequence = [];
 let practiceInputIndex = 0;
 let ignoreNextClick = false;
 
+// New flag for Shake Toggle
+let isGesturePadVisible = true;
 
 // --- NEW GLOBALS FOR TIMER/COUNTER ---
 let simpleTimer = { interval: null, startTime: 0, elapsed: 0, isRunning: false };
@@ -253,18 +255,38 @@ function vibrateMorse(val) {
     }
 }
 
+// FIXED: Now strictly checks input mode to prevent 12-key gestures firing in 9-key mode
 function mapGestureToValue(kind, currentInput) {
     const gm = appSettings.gestureMappings || {};
+    
+    // Piano Check
     if(currentInput === CONFIG.INPUTS.PIANO) {
         for(const k in gm) {
             if(k.startsWith('piano_') && gm[k].gesture === kind) {
-                const id = k.replace('piano_','');
-                return id;
+                return k.replace('piano_','');
             }
         }
+        return null;
     }
-    for(let i=1;i<=12;i++){ const k12 = 'k12_' + i; if(gm[k12] && gm[k12].gesture === kind) return i; }
-    for(let i=1;i<=9;i++){ const k9 = 'k9_' + i; if(gm[k9] && gm[k9].gesture === kind) return i; }
+
+    // 12-Key Strict Check
+    if(currentInput === CONFIG.INPUTS.KEY12) {
+        for(let i=1; i<=12; i++) { 
+            const k = 'k12_' + i; 
+            if(gm[k] && gm[k].gesture === kind) return i; 
+        }
+        return null;
+    }
+
+    // 9-Key Strict Check
+    if(currentInput === CONFIG.INPUTS.KEY9) {
+        for(let i=1; i<=9; i++) { 
+            const k = 'k9_' + i; 
+            if(gm[k] && gm[k].gesture === kind) return i; 
+        }
+        return null;
+    }
+    
     return null;
 }
        
@@ -413,7 +435,11 @@ function renderUI() {
     try {
         const gpWrap = document.getElementById('gesture-pad-wrapper');
         if (gpWrap) {
-            if (appSettings.isGestureInputEnabled) {
+            // Reset to true if setting is off, so it's ready next time
+            if (!appSettings.isGestureInputEnabled) isGesturePadVisible = true;
+
+            // Updated Condition: Setting ON AND Flag ON
+            if (appSettings.isGestureInputEnabled && isGesturePadVisible) {
                 document.body.classList.add('input-gestures-mode'); // Enable full screen mode
                 gpWrap.classList.remove('hidden');
                 if (!window.__gesturePadInited) { initGesturePad(); window.__gesturePadInited = true; }
@@ -456,19 +482,6 @@ function renderUI() {
             };
             container.appendChild(btn);
         }
-                    // [PATCH] Practice Mode Reset Button
-            const resetBtn = document.createElement('button');
-            resetBtn.textContent = "RESET";
-            resetBtn.className = "mt-4 px-6 py-2 bg-red-800 hover:bg-red-700 rounded text-white font-bold uppercase text-xs tracking-wider shadow";
-            resetBtn.onclick = () => {
-                practiceSequence = [];
-                practiceInputIndex = 0;
-                state.currentRound = 1;
-                renderUI();
-                showToast("Practice Reset 🔄");
-            };
-            container.appendChild(resetBtn);
-
         return;
     }
 
@@ -630,16 +643,11 @@ function playDemo() {
             
             const kVal = val; 
             const padId = `pad-${settings.currentInput}`;
-                    // [PATCH] Only flash during playback if enabled
-        if (appSettings.isFlashEnabled) {
-            const padId = `pad-${settings.currentInput}`;
             const btn = document.querySelector(`#${padId} button[data-value="${kVal}"]`);
             if(btn) {
                 btn.classList.add('flash-active');
                 setTimeout(() => btn.classList.remove('flash-active'), 250/speed);
             }
-        }
-
             
             speak(val);
             if(appSettings.isHapticMorseEnabled) vibrateMorse(val);
@@ -736,30 +744,25 @@ const startApp = () => {
         }
     }, null); 
 
-        // Init Sensor Engine
+    // Init Sensor Engine
     modules.sensor = new SensorEngine(
         (val, source) => { 
-            // [PATCH] Handle Camera Cover (Boss Mode)
-            if (val === 'cover') {
-                 if (!blackoutState.isActive) {
-                     blackoutState.isActive = true;
-                     document.body.classList.add('blackout-active');
-                     showToast("Boss Mode Active 🌑");
-                     vibrate();
+            // NEW: Check for Boss Mode trigger from Sensors
+            if (val === 'BOSS_MODE') {
+                 if(appSettings.isBlackoutFeatureEnabled) {
+                     blackoutState.isActive = !blackoutState.isActive;
+                     document.body.classList.toggle('blackout-active', blackoutState.isActive);
+                     showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back");
                  }
                  return;
-            }
+             }
 
              addValue(val); 
-             // Fix Flash: Check setting
-             if (appSettings.isFlashEnabled) {
-                 const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
-                 if(btn) { btn.classList.add('flash-active'); setTimeout(() => btn.classList.remove('flash-active'), 200); }
-             }
+             const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
+             if(btn) { btn.classList.add('flash-active'); setTimeout(() => btn.classList.remove('flash-active'), 200); }
         },
         (status) => { }
     );
-
     modules.settings.sensorEngine = modules.sensor;
 
     updateAllChrome();
@@ -832,51 +835,31 @@ function initGlobalListeners() {
         });
 
         // --- Input Pad Listeners ---
-        // [PATCH] Updated Button Listeners (Fixes Long Press '1' & Flash)
-        document.querySelectorAll('.btn-pad-number').forEach(b => {
-            let lpTimer = null;
-            let lpTriggered = false;
 
-            const handleDown = (e) => {
-                if(e && e.cancelable) { e.preventDefault(); e.stopPropagation(); }
-                if(ignoreNextClick) return;
-                
-                lpTriggered = false;
-                
-                // Special Case: Long Press '1' for Stealth (Inputs Only)
-                if (b.dataset.value === '1' && appSettings.isStealth1KeyEnabled) {
-                    lpTimer = setTimeout(() => {
-                        lpTriggered = true;
+        document.querySelectorAll('.btn-pad-number').forEach(b => {
+            const press = (e) => { 
+                if(e) { e.preventDefault(); e.stopPropagation(); } 
+                if(ignoreNextClick) return; 
+                addValue(b.dataset.value); 
+                b.classList.add('flash-active'); 
+                setTimeout(() => b.classList.remove('flash-active'), 150); 
+            };
+            b.addEventListener('mousedown', press); 
+            b.addEventListener('touchstart', press, { passive: false }); 
+            
+            b.addEventListener('touchstart', (e) => {
+                if(b.dataset.value === '1' && appSettings.isStealth1KeyEnabled) {
+                    timers.stealth = setTimeout(() => {
                         document.body.classList.toggle('hide-controls');
-                        showToast(document.body.classList.contains('hide-controls') ? "Stealth ON" : "Stealth OFF");
-                        vibrate(); // Feedback
+                        showToast("Stealth Toggle");
+                        ignoreNextClick = true;
+                        setTimeout(() => ignoreNextClick = false, 500);
                     }, 1000);
                 }
-            };
-
-            const handleUp = (e) => {
-                if(e) e.preventDefault();
-                clearTimeout(lpTimer);
-                
-                if (lpTriggered) return; // Don't add value if we just did a long press action
-
-                addValue(b.dataset.value);
-                
-                // Fix Flash: Only visually flash if setting is enabled
-                if (appSettings.isFlashEnabled) {
-                    b.classList.add('flash-active');
-                    setTimeout(() => b.classList.remove('flash-active'), 150);
-                }
-            };
-
-            b.addEventListener('mousedown', handleDown);
-            b.addEventListener('touchstart', handleDown, { passive: false });
-            b.addEventListener('mouseup', handleUp);
-            b.addEventListener('touchend', handleUp);
-            b.addEventListener('mouseleave', () => clearTimeout(lpTimer));
+            }, {passive:true});
+            b.addEventListener('touchend', () => clearTimeout(timers.stealth));
         });
 
-        
                 // --- Play/Demo Button ---
         document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
             let wasPlaying = false;
@@ -1004,38 +987,34 @@ function initGlobalListeners() {
         document.body.addEventListener('mouseup', handleResume);
         document.body.addEventListener('touchend', handleResume);
 
-        // --- Blackout ---
+        // --- Shake Listener (Fixed) ---
+        let lastX=0, lastY=0, lastZ=0;
         document.getElementById('close-settings').addEventListener('click', () => {
             if(appSettings.isPracticeModeEnabled) {
                 setTimeout(startPracticeRound, 500);
             }
         });
-        // [PATCH] Shake to Toggle Gesture Input
-        let lastX=0, lastY=0, lastZ=0;
-        let lastShake = 0;
+
         window.addEventListener('devicemotion', (e) => {
+            // UPDATED: Only toggles Gesture Pad now. Boss mode moved to Camera Cover.
+            if(!appSettings.isGestureInputEnabled) return;
+
             const acc = e.accelerationIncludingGravity;
             if(!acc) return;
             const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
             
-            if(delta > 35) { // Slightly harder shake to prevent accidental triggers
+            if(delta > 25) { 
                 const now = Date.now();
-                if(now - lastShake > 1500) {
-                    appSettings.isGestureInputEnabled = !appSettings.isGestureInputEnabled;
-                    // Update Toggle in Settings UI if exists
-                    if(modules.settings && modules.settings.dom.gestureToggle) {
-                        modules.settings.dom.gestureToggle.checked = appSettings.isGestureInputEnabled;
-                    }
-                    saveState();
-                    renderUI();
-                    showToast(appSettings.isGestureInputEnabled ? "Gestures ON 👆" : "Gestures OFF");
-                    vibrate();
-                    lastShake = now;
+                if(now - blackoutState.lastShake > 1000) {
+                    isGesturePadVisible = !isGesturePadVisible;
+                    renderUI(); 
+                    if(isGesturePadVisible) showToast("Gestures Active 👆");
+                    else showToast("Standard Controls 📱");
+                    blackoutState.lastShake = now;
                 }
             }
             lastX = acc.x; lastY = acc.y; lastZ = acc.z;
         });
-
         
         const bl = document.getElementById('blackout-layer');
         if(bl) {

@@ -186,17 +186,20 @@ export class SettingsManager {
             mappingPianoContainer: document.getElementById('mapping-piano-container'),
         };
         this.tempTheme = null; this.initListeners(); this.populateConfigDropdown(); this.populateThemeDropdown(); this.buildColorGrid(); this.populateVoicePresetDropdown();
-        this.populateMappingUI();
+                this.populateMappingUI();
         this.populateMorseUI();
+        
+        // --- FIXED GESTURE TOGGLE LISTENER ---
         if(this.dom.gestureToggle){
             this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
             this.dom.gestureToggle.addEventListener('change', (e) => {
                 this.appSettings.isGestureInputEnabled = !!e.target.checked;
                 this.callbacks.onSave();
-                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+                this.callbacks.onUpdate(); // Use onUpdate to refresh UI immediately
             });
         }
-  this.populateSpeedDropdown();
+        
+        this.populateSpeedDropdown();
     }
 
     populateSpeedDropdown() {
@@ -205,7 +208,7 @@ export class SettingsManager {
         
         // Range: 75% to 150% at 5% intervals
         for (let i = 75; i <= 150; i += 5) {
-            const val = i / 100; // Convert 75 -> 0.75
+            const val = i / 100;
             const option = document.createElement('option');
             option.value = val.toFixed(2);
             option.textContent = `${i}%`;
@@ -216,7 +219,7 @@ export class SettingsManager {
         if (this.appSettings.playbackSpeed) {
             this.dom.playbackSpeed.value = this.appSettings.playbackSpeed.toFixed(2);
         }
-    }  
+    } 
     populateVoicePresetDropdown() {
         if (!this.dom.voicePresetSelect) return;
         this.dom.voicePresetSelect.innerHTML = '';

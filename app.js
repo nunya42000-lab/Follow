@@ -748,16 +748,6 @@ const startApp = () => {
     // Init Sensor Engine
     modules.sensor = new SensorEngine(
         (val, source) => { 
-            // NEW: Check for Boss Mode trigger from Sensors
-            if (val === 'BOSS_MODE') {
-                 if(appSettings.isBlackoutFeatureEnabled) {
-                     blackoutState.isActive = !blackoutState.isActive;
-                     document.body.classList.toggle('blackout-active', blackoutState.isActive);
-                     showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back");
-                 }
-                 return;
-             }
-
              addValue(val); 
              const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
              if(btn) { btn.classList.add('flash-active'); setTimeout(() => btn.classList.remove('flash-active'), 200); }
@@ -833,6 +823,47 @@ function initGlobalListeners() {
                 // Sync settings UI if modal is open
                 if(modules.settings) modules.settings.updateUIFromSettings();
             }
+        });
+        // --- NEW: 4-Finger Pinch for Boss Mode ---
+        let fourFingerStartSpread = 0;
+
+        document.body.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 4) {
+                // Calculate rough "spread" (perimeter size)
+                const t = e.touches;
+                // Measure diagonal distances
+                const d1 = Math.hypot(t[0].clientX - t[3].clientX, t[0].clientY - t[3].clientY);
+                const d2 = Math.hypot(t[1].clientX - t[2].clientX, t[1].clientY - t[2].clientY);
+                fourFingerStartSpread = d1 + d2;
+            }
+        }, { passive: false });
+
+        document.body.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 4 && fourFingerStartSpread > 0) {
+                if(e.cancelable) e.preventDefault(); // Try to block OS gestures
+                
+                const t = e.touches;
+                const d1 = Math.hypot(t[0].clientX - t[3].clientX, t[0].clientY - t[3].clientY);
+                const d2 = Math.hypot(t[1].clientX - t[2].clientX, t[1].clientY - t[2].clientY);
+                const currentSpread = d1 + d2;
+
+                // If spread shrinks to 60% of original size
+                if (currentSpread < fourFingerStartSpread * 0.6) {
+                    fourFingerStartSpread = 0; // Reset to prevent multi-trigger
+                    
+                    // Toggle Boss Mode
+                    if(appSettings.isBlackoutFeatureEnabled) {
+                        blackoutState.isActive = !blackoutState.isActive;
+                        document.body.classList.toggle('blackout-active', blackoutState.isActive);
+                        showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back");
+                        vibrate();
+                    }
+                }
+            }
+        }, { passive: false });
+
+        document.body.addEventListener('touchend', (e) => {
+            if (e.touches.length < 4) fourFingerStartSpread = 0;
         });
 
         // --- Input Pad Listeners ---

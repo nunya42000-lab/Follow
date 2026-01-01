@@ -74,7 +74,7 @@
         </div>
     </div>
 
-        <div id="redeem-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
+    <div id="redeem-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="relative w-full max-w-lg h-[95vh] flex flex-col items-center justify-center p-4">
             <button id="close-redeem-btn" class="absolute top-4 right-4 z-50 bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600">✕</button>
             <div class="absolute top-16 right-4 z-50 flex flex-col gap-3">
@@ -86,7 +86,6 @@
             </div>
         </div>
     </div>
-
 
     <div id="calibration-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[110] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-md w-full border border-custom">
@@ -141,7 +140,7 @@
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh] overflow-hidden border border-custom m-4">
             
-                        <div class="p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
+            <div class="p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
                 <div class="flex items-center">
                     <select id="general-lang-select" class="bg-black bg-opacity-30 text-white text-xs rounded p-1 border border-gray-600"><option value="en">🇺🇸</option><option value="es">🇲🇽</option></select>
                 </div>
@@ -279,9 +278,19 @@
                                 <input type="checkbox" id="timer-toggle" class="h-6 w-6 accent-indigo-500">
                             </div>
                             <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+                                <span class="font-bold text-sm text-blue-300">Auto Timer</span>
+                                <input type="checkbox" id="auto-timer-toggle" class="h-6 w-6 accent-blue-500">
+                            </div>
+
+                            <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
                                 <span class="font-bold text-sm" data-i18n="counter_toggle">Counter #</span>
                                 <input type="checkbox" id="counter-toggle" class="h-6 w-6 accent-indigo-500">
                             </div>
+                            <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+                                <span class="font-bold text-sm text-blue-300">Auto Counter</span>
+                                <input type="checkbox" id="auto-counter-toggle" class="h-6 w-6 accent-blue-500">
+                            </div>
+                            
                             <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
                                 <span class="font-bold text-sm">Haptics 📳</span>
                                 <input type="checkbox" id="haptics-toggle" class="h-6 w-6 accent-indigo-500">
@@ -321,20 +330,36 @@
                                 </div>
                             </div>
 
-                            <div class="p-3 rounded-lg border border-custom settings-input">
-                                <div class="flex justify-between items-center h-full">
+                            <div class="p-3 rounded-lg border border-custom settings-input bg-gray-900 bg-opacity-40">
+                                <div class="flex justify-between items-center mb-2">
                                     <span class="font-bold text-sm">Quick Erase</span>
                                     <input type="checkbox" id="speed-delete-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
+                                <div class="flex justify-between items-center mb-2 pl-2 border-l-2 border-gray-700">
+                                    <span class="font-bold text-xs text-blue-300">Speed Gestures</span>
+                                    <input type="checkbox" id="speed-gestures-toggle" class="h-5 w-5 accent-blue-500">
+                                </div>
+                                <div class="flex justify-between items-center pl-2 border-l-2 border-gray-700">
+                                    <span class="font-bold text-xs text-red-300">Delete Gesture</span>
+                                    <input type="checkbox" id="delete-gesture-toggle" class="h-5 w-5 accent-red-500">
+                                </div>
                             </div>
 
-                            <div class="p-3 rounded-lg border border-custom settings-input">
-                                <div class="flex justify-between items-center h-full">
+                            <div class="p-3 rounded-lg border border-custom settings-input bg-gray-900 bg-opacity-40">
+                                <div class="flex justify-between items-center mb-2">
                                     <span class="font-bold text-sm">AP Shortcut</span>
                                     <input type="checkbox" id="long-press-autoplay-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
+                                <div class="flex justify-between items-center mb-2 pl-2 border-l-2 border-gray-700">
+                                    <span class="font-bold text-xs text-blue-300">Volume Gestures</span>
+                                    <input type="checkbox" id="volume-gestures-toggle" class="h-5 w-5 accent-blue-500">
+                                </div>
+                                <div class="flex justify-between items-center pl-2 border-l-2 border-gray-700">
+                                    <span class="font-bold text-xs text-red-300">Clear Gesture</span>
+                                    <input type="checkbox" id="clear-gesture-toggle" class="h-5 w-5 accent-red-500">
+                                </div>
                             </div>
-                        </div>
+                            </div>
 
                         <div class="grid grid-cols-2 gap-3 pt-2">
                             <div>
@@ -354,7 +379,7 @@
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
-                                                        <div>
+                            <div>
                                 <label class="block text-xs font-bold mb-1 text-muted-custom">Number Size</label>
                                 <select id="seq-font-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
                                     <option value="100">Normal</option>
@@ -473,15 +498,17 @@
                         <div>
                             <h5 class="font-bold text-base text-white border-b border-gray-600 pb-1 mb-2">General Tab</h5>
                             <ul class="space-y-2 text-xs opacity-90">
-                                <li><strong>Theme:</strong> Choose a look or use the Editor to build your own colors.</li>
                                 <li><strong>Timer/Counter:</strong> Adds a stopwatch or tally counter to the top header.</li>
-                                <li><strong>Boss Mode (🌑):</strong> Cover the front camera for one second to turn the screen black. Camera input must be on to work</li>
+                                <li><strong>Auto Timer/Counter:</strong> Starts/Adds automatically when you input the first number of a sequence.</li>
+                                <li><strong>Boss Mode (🌑):</strong> <strong>4-Finger Pinch</strong> to turn the screen black. Pinch again or tap 5 times to restore.</li>
                                 <li><strong>BM Gestures:</strong> Allows touch input while the screen is black (Swipe/Tap).</li>
                                 <li><strong>Inputs Only (🥷):</strong> Hold '1' to hide all buttons except the keypad.</li>
                                 <li><strong>Gesture Input:</strong> Shake device to toggle a full-screen gesture pad.</li>
                                 <li><strong>Quick Erase:</strong> Hold 'Backspace' to delete the entire sequence.</li>
-                                <li><strong>AP Shortcut:</strong> Long-press 'Play' to toggle Autoplay on/off.</li>
-                                <li><strong>Auto Input:</strong> Automatically enables Mic or Camera sensors on launch.</li>
+                                <li><strong>Delete Gesture:</strong> Swipe Left-Right-Left-Right (Zig-Zag) to Backspace.</li>
+                                <li><strong>Clear Gesture:</strong> Swipe L-R-L-R-L-R to Clear All.</li>
+                                <li><strong>Speed Gestures:</strong> 2-Finger Twist (Clockwise/Counter) to adjust speed.</li>
+                                <li><strong>Volume Gestures:</strong> 3-Finger Twist (Clockwise/Counter) to adjust volume.</li>
                             </ul>
                         </div>
 

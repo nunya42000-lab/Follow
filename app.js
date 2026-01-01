@@ -140,11 +140,11 @@ function vibrateMorse(val) {
     else if (num >= 10 && num <= 12) { pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(num-10); i++) { pattern.push(DOT); pattern.push(GAP); } } 
     if(pattern.length > 0) navigator.vibrate(pattern); 
 }
-   function initGesturePad() {
+function initGesturePad() {
     const pad = document.getElementById('gesture-pad');
+    const bl = document.getElementById('blackout-layer');
     const indicator = document.getElementById('gesture-indicator');
-    if(!pad) return;
-
+    
     // State for the new engine
     let state = {
         startX: 0, startY: 0,
@@ -176,89 +176,105 @@ function vibrateMorse(val) {
 
     const getFingerSuffix = (n) => (n >= 3 ? '_3f' : n === 2 ? '_2f' : '');
 
-    pad.addEventListener('touchstart', (ev) => {
-        ev.preventDefault();
-        const t = ev.touches;
-        if(t.length === 0) return;
+    // Common Logic Applicator
+    const attachGestureEvents = (element) => {
+        if (!element) return;
 
-        // If this is a new interaction (starting from 0 fingers or first touch of sequence)
-        if (!state.startTime || (Date.now() - state.startTime > 300 && state.tapCount === 0)) {
-            state.startX = t[0].clientX;
-            state.startY = t[0].clientY;
-            state.startTime = Date.now();
-            state.maxTouches = t.length;
-            state.isLongPressTriggered = false;
-            
-            // Start Long Press Timer
-            clearTimeout(state.longPressTimer);
-            state.longPressTimer = setTimeout(() => {
-                state.isLongPressTriggered = true;
-                const suffix = getFingerSuffix(state.maxTouches);
-                handleGesture(`long_tap${suffix}`);
-            }, 600); // 600ms for long press
-        } else {
-            // Adding fingers to an existing gesture
-            state.maxTouches = Math.max(state.maxTouches, t.length);
-        }
-    }, {passive: false});
+        element.addEventListener('touchstart', (ev) => {
+            // Guard: If on blackout layer, only proceed if BM Gestures are enabled
+            if(element.id === 'blackout-layer' && !appSettings.isBlackoutGesturesEnabled) return;
 
-    pad.addEventListener('touchmove', (ev) => {
-        ev.preventDefault();
-        state.maxTouches = Math.max(state.maxTouches, ev.touches.length);
-        
-        // If moved significantly, cancel long press
-        const t = ev.touches[0];
-        const dx = t.clientX - state.startX;
-        const dy = t.clientY - state.startY;
-        if (Math.sqrt(dx*dx + dy*dy) > 20) {
-            clearTimeout(state.longPressTimer);
-        }
-    }, {passive: false});
+            ev.preventDefault();
+            const t = ev.touches;
+            if(t.length === 0) return;
 
-    pad.addEventListener('touchend', (ev) => {
-        ev.preventDefault();
-        
-        // Wait until ALL fingers lift to process the gesture action
-        if (ev.touches.length > 0) return;
-
-        clearTimeout(state.longPressTimer);
-        
-        // If Long Press already fired, ignore this lift
-        if (state.isLongPressTriggered) return;
-
-        const t = ev.changedTouches[0]; // The finger that just left
-        const dx = t.clientX - state.startX;
-        const dy = t.clientY - state.startY;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        const suffix = getFingerSuffix(state.maxTouches);
-
-        if (dist > 30) {
-            // --- SWIPE LOGIC ---
-            // Swipes execute immediately (no double-swipe logic)
-            state.tapCount = 0; // Reset tap cycle
-            const dir = get8WayDirection(dx, dy);
-            handleGesture(dir + suffix);
-        } else {
-            // --- TAP LOGIC (Single/Double/Triple) ---
-            state.tapCount++;
-            state.lastTapFingers = state.maxTouches;
-
-            clearTimeout(state.tapTimer);
-            
-            // Set a timer to finalize the tap count
-            state.tapTimer = setTimeout(() => {
-                let gesture = 'tap';
-                if (state.tapCount === 2) gesture = 'double_tap';
-                if (state.tapCount >= 3) gesture = 'triple_tap';
+            // If this is a new interaction (starting from 0 fingers or first touch of sequence)
+            if (!state.startTime || (Date.now() - state.startTime > 300 && state.tapCount === 0)) {
+                state.startX = t[0].clientX;
+                state.startY = t[0].clientY;
+                state.startTime = Date.now();
+                state.maxTouches = t.length;
+                state.isLongPressTriggered = false;
                 
-                // Use the finger count from the latest tap sequence
-                handleGesture(gesture + suffix);
+                // Start Long Press Timer
+                clearTimeout(state.longPressTimer);
+                state.longPressTimer = setTimeout(() => {
+                    state.isLongPressTriggered = true;
+                    const suffix = getFingerSuffix(state.maxTouches);
+                    handleGesture(`long_tap${suffix}`);
+                }, 600); // 600ms for long press
+            } else {
+                // Adding fingers to an existing gesture
+                state.maxTouches = Math.max(state.maxTouches, t.length);
+            }
+        }, {passive: false});
+
+        element.addEventListener('touchmove', (ev) => {
+            if(element.id === 'blackout-layer' && !appSettings.isBlackoutGesturesEnabled) return;
+            
+            ev.preventDefault();
+            state.maxTouches = Math.max(state.maxTouches, ev.touches.length);
+            
+            // If moved significantly, cancel long press
+            const t = ev.touches[0];
+            const dx = t.clientX - state.startX;
+            const dy = t.clientY - state.startY;
+            if (Math.sqrt(dx*dx + dy*dy) > 20) {
+                clearTimeout(state.longPressTimer);
+            }
+        }, {passive: false});
+
+        element.addEventListener('touchend', (ev) => {
+            if(element.id === 'blackout-layer' && !appSettings.isBlackoutGesturesEnabled) return;
+
+            ev.preventDefault();
+            
+            // Wait until ALL fingers lift to process the gesture action
+            if (ev.touches.length > 0) return;
+
+            clearTimeout(state.longPressTimer);
+            
+            // If Long Press already fired, ignore this lift
+            if (state.isLongPressTriggered) return;
+
+            const t = ev.changedTouches[0]; // The finger that just left
+            const dx = t.clientX - state.startX;
+            const dy = t.clientY - state.startY;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            const suffix = getFingerSuffix(state.maxTouches);
+
+            if (dist > 30) {
+                // --- SWIPE LOGIC ---
+                // Swipes execute immediately (no double-swipe logic)
+                state.tapCount = 0; // Reset tap cycle
+                const dir = get8WayDirection(dx, dy);
+                handleGesture(dir + suffix);
+            } else {
+                // --- TAP LOGIC (Single/Double/Triple) ---
+                state.tapCount++;
+                state.lastTapFingers = state.maxTouches;
+
+                clearTimeout(state.tapTimer);
                 
-                // Reset
-                state.tapCount = 0;
-            }, 300); // 300ms window for multi-taps
-        }
-    }, {passive: false});
+                // Set a timer to finalize the tap count
+                state.tapTimer = setTimeout(() => {
+                    let gesture = 'tap';
+                    if (state.tapCount === 2) gesture = 'double_tap';
+                    if (state.tapCount >= 3) gesture = 'triple_tap';
+                    
+                    // Use the finger count from the latest tap sequence
+                    handleGesture(gesture + suffix);
+                    
+                    // Reset
+                    state.tapCount = 0;
+                }, 300); // 300ms window for multi-taps
+            }
+        }, {passive: false});
+    };
+
+    // Attach to both the standard pad and the blackout layer
+    attachGestureEvents(pad);
+    attachGestureEvents(bl);
 
     function handleGesture(kind) {
         if(indicator) {
@@ -273,6 +289,8 @@ function vibrateMorse(val) {
         if(mapResult !== null) addValue(mapResult);
     }
 }
+
+
 
 // FIXED: Now strictly checks input mode to prevent 12-key gestures firing in 9-key mode
 function mapGestureToValue(kind, currentInput) {

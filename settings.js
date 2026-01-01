@@ -145,7 +145,8 @@ export class SettingsManager {
             timerToggle: document.getElementById('timer-toggle'),
             counterToggle: document.getElementById('counter-toggle'),
             gestureToggle: document.getElementById('gesture-input-toggle'),
-
+            speedGesturesToggle: document.getElementById('speed-gestures-toggle'),
+            volumeGesturesToggle: document.getElementById('volume-gestures-toggle'),
             uiScale: document.getElementById('ui-scale-select'), 
             seqSize: document.getElementById('seq-size-select'), 
             seqFontSize: document.getElementById('seq-font-size-select'), // <--- NEW FONT SIZE
@@ -379,6 +380,8 @@ export class SettingsManager {
         bind(this.dom.haptics, 'isHapticsEnabled', true); bind(this.dom.speedDelete, 'isSpeedDeletingEnabled', true); bind(this.dom.stealth1KeyToggle, 'isStealth1KeyEnabled', true);
         bind(this.dom.blackoutToggle, 'isBlackoutFeatureEnabled', true); 
         bind(this.dom.blackoutGesturesToggle, 'isBlackoutGesturesEnabled', true);
+        bind(this.dom.speedGesturesToggle, 'isSpeedGesturesEnabled', true);
+        bind(this.dom.volumeGesturesToggle, 'isVolumeGesturesEnabled', true);
         bind(this.dom.practiceMode, 'isPracticeModeEnabled', true);
         if (this.dom.uiScale) this.dom.uiScale.onchange = (e) => { this.appSettings.globalUiScale = parseInt(e.target.value); this.callbacks.onUpdate(); };
         if (this.dom.seqSize) this.dom.seqSize.onchange = (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onUpdate(); };
@@ -528,7 +531,9 @@ export class SettingsManager {
         if (this.dom.calibCamSlider) this.dom.calibCamSlider.value = this.appSettings.sensorCamThresh || 30;
         if (this.dom.haptics) this.dom.haptics.checked = (typeof this.appSettings.isHapticsEnabled === 'undefined') ? true : this.appSettings.isHapticsEnabled;
         if (this.dom.speedDelete) this.dom.speedDelete.checked = (typeof this.appSettings.isSpeedDeletingEnabled === 'undefined') ? true : this.appSettings.isSpeedDeletingEnabled;
-        
+        if (this.dom.speedGesturesToggle) this.dom.speedGesturesToggle.checked = !!this.appSettings.isSpeedGesturesEnabled;
+        if (this.dom.volumeGesturesToggle) this.dom.volumeGesturesToggle.checked = !!this.appSettings.isVolumeGesturesEnabled;
+            
         // UPDATED: Matches the new 50-500 range logic
         if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
         

@@ -444,7 +444,7 @@
             <div class="p-4 border-t border-custom flex justify-between items-center bg-opacity-20 bg-black"><button data-action="restore-defaults" class="px-5 py-2 bg-red-800 hover:bg-red-700 text-white rounded text-sm font-bold transition shadow">Reset</button><button id="close-settings" class="px-8 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold transition shadow">Exit</button></div>
         </div>
     </div>
-
+   
     <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
             <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center"><h3 class="text-2xl font-bold">Manual 📘</h3><button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button></div>
@@ -512,21 +512,24 @@
                         <div>
                             <h5 class="font-bold text-base text-white border-b border-gray-600 pb-1 mb-2">General Tab</h5>
                             <ul class="space-y-2 text-xs opacity-90">
-                                <li><strong>Theme:</strong> Choose a look or use the Editor to build your own colors.</li>
                                 <li><strong>Timer/Counter:</strong> Adds a stopwatch or tally counter to the top header.</li>
-                                <li><strong>Boss Mode (🌑):</strong> Cover the front camera to turn the screen black. Uncover to restore.</li>
-                                <li><strong>BM Gestures:</strong> Allows touch input while the screen is black (Swipe/Tap).</li>
+                                <li><strong>Auto Timer/Counter:</strong> Automatically starts/increments when you add the first number of a sequence. Timer stops when fully deleted.</li>
+                                <li><strong>Boss Mode (🌑):</strong> Turns screen black. <strong>Input Grid</strong> remains active (Top-Left = 1, Bottom-Right = Max). <strong>Pinch 4 Fingers</strong> to exit.</li>
+                                <li><strong>BM Gestures:</strong> If enabled, Boss Mode ignores the Grid and uses Swipe gestures instead.</li>
                                 <li><strong>Inputs Only (🥷):</strong> Hold '1' to hide all buttons except the keypad.</li>
                                 <li><strong>Gesture Input:</strong> Shake device to toggle a full-screen gesture pad.</li>
                                 <li><strong>Quick Erase:</strong> Hold 'Backspace' to delete the entire sequence.</li>
                                 <li><strong>AP Shortcut:</strong> Long-press 'Play' to toggle Autoplay on/off.</li>
-                                <li><strong>Auto Input:</strong> Automatically enables Mic or Camera sensors on launch.</li>
+                                <li><strong>Speed Gestures ⚡:</strong> Twist <strong>2 fingers</strong> like a dial to adjust playback speed.</li>
+                                <li><strong>Vol. Gestures 🔊:</strong> Twist <strong>3 fingers</strong> like a jar lid to adjust volume.</li>
+                                <li><strong>Delete Gesture 🧹:</strong> Squiggle (shake finger Left-Right) to backspace.</li>
+                                <li><strong>Clear Gesture 💥:</strong> Long Squiggle (shake finger longer) to clear everything.</li>
                             </ul>
                         </div>
 
                         <div>
                             <h5 class="font-bold text-base text-white border-b border-gray-600 pb-1 mb-2">Mapping Tab</h5>
-                            <p class="text-xs opacity-90 mb-2">Configures gestures for "Gesture Input" and "Boss Mode".</p>
+                            <p class="text-xs opacity-90 mb-2">Configures gestures for "Gesture Input" and "BM Gestures".</p>
                             <ul class="space-y-2 text-xs opacity-90">
                                 <li><strong>Profiles:</strong> Presets like "Directional Swipes" (Faster) or "Standard Taps" (Easier).</li>
                                 <li><strong>Mapping Lists:</strong> Assign specific swipes (Up, Down, Left, Right) or taps to specific numbers.</li>

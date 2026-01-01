@@ -14,18 +14,26 @@ const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 2
 // UPDATED DEFAULTS: Chunk=40 (Full), Delay=0
 const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 40, simonInterSequenceDelay: 0 };
 const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 40, simonInterSequenceDelay: 0 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
-
 // UPDATED DEFAULTS: Flash=True, Audio=False, PlaybackSpeed=1.0
 const DEFAULT_APP = { 
     globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, 
     isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, 
-    isAudioEnabled: false, // UPDATED
+    isAudioEnabled: false, 
     isHapticsEnabled: true, 
-    isFlashEnabled: true,  // UPDATED
+    isFlashEnabled: true,  
     pauseSetting: 'none',
-    isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, 
-    isSpeedGesturesEnabled: false, // NEW
-    isVolumeGesturesEnabled: false, // NEW
+    isSpeedDeletingEnabled: true, 
+    isSpeedGesturesEnabled: false, 
+    isVolumeGesturesEnabled: false,
+    
+    // --- NEW TOGGLES ---
+    isDeleteGestureEnabled: false, 
+    isClearGestureEnabled: false,
+    isAutoTimerEnabled: false,
+    isAutoCounterEnabled: false,
+    // -------------------
+
+    isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, 
     activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, 
     isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, 
     showMicBtn: false, showCamBtn: false, autoInputMode: 'none', 
@@ -64,6 +72,11 @@ let isGesturePadVisible = true;
 let simpleTimer = { interval: null, startTime: 0, elapsed: 0, isRunning: false };
 let simpleCounter = 0;
 
+// --- GLOBAL HELPERS FOR AUTO-LOGIC ---
+// We define these globally so addValue() can access them
+let globalTimerActions = { start: null, stop: null, reset: null };
+let globalCounterActions = { increment: null, reset: null };
+
 const getProfileSettings = () => appSettings.runtimeSettings;
 const getState = () => appState['current_session'] || (appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 });
 function saveState() { localStorage.setItem(CONFIG.STORAGE_KEY_SETTINGS, JSON.stringify(appSettings)); localStorage.setItem(CONFIG.STORAGE_KEY_STATE, JSON.stringify(appState)); }
@@ -74,8 +87,10 @@ function loadState() {
         const st = localStorage.getItem(CONFIG.STORAGE_KEY_STATE); 
         if(s) { 
             const loaded = JSON.parse(s); 
+            // Merge loaded settings with default structure to ensure new keys exist
             appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } }; 
             
+            // Safety checks for undefined booleans
             if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
             if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
             if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
@@ -104,6 +119,7 @@ function loadState() {
         saveState(); 
     } 
 }
+
 
 function vibrate() { if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10); }
 
@@ -380,7 +396,6 @@ function playPracticeSequence() {
     } 
     next();
 }
-
 function addValue(value) {
     vibrate(); 
     const state = getState(); 
@@ -415,6 +430,24 @@ function addValue(value) {
         return;
     }
 
+    // --- NEW: AUTO TIMER & COUNTER LOGIC ---
+    // Check if this is the very first input of the session (all sequences empty)
+    let isFirstInput = true;
+    state.sequences.forEach(s => { if(s.length > 0) isFirstInput = false; });
+
+    if (isFirstInput) {
+        // Auto Timer
+        if (appSettings.isAutoTimerEnabled && appSettings.showTimer && globalTimerActions.reset && globalTimerActions.start) {
+            globalTimerActions.reset();
+            globalTimerActions.start();
+        }
+        // Auto Counter
+        if (appSettings.isAutoCounterEnabled && appSettings.showCounter && globalCounterActions.increment) {
+            globalCounterActions.increment();
+        }
+    }
+    // ---------------------------------------
+
     if(!state.sequences[targetIndex]) state.sequences[targetIndex] = [];
     state.sequences[targetIndex].push(value); 
     state.nextSequenceIndex++; 
@@ -431,6 +464,38 @@ function addValue(value) {
             } else { setTimeout(playDemo, 250); }
         }
     }
+}
+
+function handleBackspace(e) { 
+    if(e) { e.preventDefault(); e.stopPropagation(); } 
+    vibrate(); 
+    const state = getState(); 
+    const settings = getProfileSettings(); 
+    if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
+         if(state.sequences[0].length > 0) { state.sequences[0].pop(); state.nextSequenceIndex--; }
+    } else {
+        // Simon Logic: Remove last entered across all machines
+        let target = (state.nextSequenceIndex - 1) % settings.machineCount;
+        if (target < 0) target = settings.machineCount - 1; 
+        
+        if(state.sequences[target] && state.sequences[target].length > 0) {
+             state.sequences[target].pop();
+             state.nextSequenceIndex--;
+        }
+    }
+    
+    // --- NEW: AUTO STOP TIMER ---
+    // If we just deleted the last item and everything is empty, stop timer
+    let isEmpty = true;
+    state.sequences.forEach(s => { if(s.length > 0) isEmpty = false; });
+    
+    if (isEmpty && appSettings.isAutoTimerEnabled && appSettings.showTimer && globalTimerActions.stop) {
+        globalTimerActions.stop();
+    }
+    // ----------------------------
+
+    renderUI(); 
+    saveState(); 
 }
 
 function renderUI() {
@@ -663,28 +728,6 @@ function playDemo() {
     nextChunk();
 }
 
-
-function handleBackspace(e) { 
-    if(e) { e.preventDefault(); e.stopPropagation(); } 
-    vibrate(); 
-    const state = getState(); 
-    const settings = getProfileSettings(); 
-    if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
-         if(state.sequences[0].length > 0) { state.sequences[0].pop(); state.nextSequenceIndex--; }
-    } else {
-        // Simon Logic: Remove last entered across all machines
-        // We find the last modified machine sequence
-        let target = (state.nextSequenceIndex - 1) % settings.machineCount;
-        if (target < 0) target = settings.machineCount - 1; 
-        
-        if(state.sequences[target] && state.sequences[target].length > 0) {
-             state.sequences[target].pop();
-             state.nextSequenceIndex--;
-        }
-    }
-    renderUI(); 
-    saveState(); 
-}
 
 const startApp = () => {
     loadState();

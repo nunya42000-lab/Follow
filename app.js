@@ -1048,19 +1048,72 @@ function initGlobalListeners() {
             lastX = acc.x; lastY = acc.y; lastZ = acc.z;
         });
         
-        const bl = document.getElementById('blackout-layer');
+                const bl = document.getElementById('blackout-layer');
         if(bl) {
-             let taps = 0;
              bl.addEventListener('touchstart', (e) => {
-                 taps++;
-                 if(taps > 4) {
-                     blackoutState.isActive = false;
-                     document.body.classList.remove('blackout-active');
-                     taps = 0;
+                 // 1. If BM Gestures are ON, do not use the grid (ignore)
+                 if (appSettings.isBlackoutGesturesEnabled) return;
+
+                 // 2. Only handle single finger taps (Multi-touch reserved for Pinch exit)
+                 if (e.touches.length === 1) {
+                     e.preventDefault(); 
+                     const t = e.touches[0];
+                     const w = window.innerWidth;
+                     const h = window.innerHeight;
+                     
+                     // Calculate Columns (Always 3 cols)
+                     // 0 = Left, 1 = Center, 2 = Right
+                     let col = Math.floor(t.clientX / (w / 3)); 
+                     if (col > 2) col = 2; // Safety clamp
+
+                     const settings = getProfileSettings();
+                     const inputMode = settings.currentInput; // 'key9', 'key12', 'piano'
+                     
+                     let row = 0;
+                     let val = null;
+
+                     if (inputMode === 'key9') {
+                         // --- 9-KEY (3x3) ---
+                         // Row: 0, 1, 2
+                         row = Math.floor(t.clientY / (h / 3)); 
+                         if (row > 2) row = 2;
+                         
+                         // Formula: Row * 3 + Col + 1
+                         // Example: Bottom Right (2,2) -> 2*3 + 2 + 1 = 9
+                         val = (row * 3) + col + 1;
+                         
+                     } else {
+                         // --- 12-KEY & PIANO (3x4) ---
+                         // Row: 0, 1, 2, 3
+                         row = Math.floor(t.clientY / (h / 4)); 
+                         if (row > 3) row = 3;
+                         
+                         const index = (row * 3) + col; // 0 to 11
+                         
+                         if (inputMode === 'piano') {
+                             // Custom Map: 1,2,3 | 4,5,C | D,E,F | G,A,B
+                             const map = [
+                                 '1', '2', '3', 
+                                 '4', '5', 'C', 
+                                 'D', 'E', 'F', 
+                                 'G', 'A', 'B'
+                             ];
+                             val = map[index];
+                         } else {
+                             // 12-Key: 1 to 12
+                             val = index + 1;
+                         }
+                     }
+
+                     if (val !== null) {
+                         addValue(val.toString());
+                         // Subtle haptic feedback to confirm register since screen is black
+                         if(navigator.vibrate) navigator.vibrate(20); 
+                     }
                  }
-                 setTimeout(()=>taps=0, 1000);
-             });
+             }, { passive: false });
         }
+
         
         // ============================================
         // NEW TIMER & COUNTER LOGIC

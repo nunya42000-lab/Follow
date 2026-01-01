@@ -828,20 +828,27 @@ function initGlobalListeners() {
         let rotAccumulator = 0;
         let rotLastUpdate = 0;
 
-        // --- 2. Squiggle Helper (For Delete/Clear Gestures) ---
-        // We track "direction flips" on the X axis during a continuous move
+        // --- 2. Squiggle Helper (1 Finger - Delete) ---
         let squiggleState = {
             isTracking: false,
             startX: 0,
             lastX: 0,
-            direction: 0, // -1 Left, 1 Right
-            flips: 0,     // Count of reversals (L->R or R->L)
+            direction: 0, 
+            flips: 0,     
             hasTriggered: false
         };
 
-        // --- 3. Pinch Helper (For Boss Mode) ---
+        // --- 3. Squiggle Helper (2 Fingers - Clear) ---
+        let squiggleState2F = {
+            isTracking: false,
+            lastX: 0,
+            direction: 0,
+            flips: 0,
+            hasTriggered: false
+        };
+
+        // --- 4. Pinch Helper (For Boss Mode & UI) ---
         let fourFingerStartSpread = 0;
-        // (UI Resize pinch vars are global above)
         let pinchStartDist = 0;
         let pinchStartGlobal = 100;
         let pinchStartSeq = 1.0;
@@ -854,7 +861,7 @@ function initGlobalListeners() {
         document.body.addEventListener('touchstart', (e) => {
             const t = e.touches;
 
-            // A. SQUIGGLE START (1 Finger only)
+            // A. SQUIGGLE START (1 Finger) - DELETE
             if (t.length === 1) {
                 squiggleState.isTracking = true;
                 squiggleState.startX = t[0].clientX;
@@ -863,25 +870,31 @@ function initGlobalListeners() {
                 squiggleState.flips = 0;
                 squiggleState.hasTriggered = false;
             } else {
-                squiggleState.isTracking = false; // Cancel if multi-touch
+                squiggleState.isTracking = false; 
             }
 
-            // B. ROTATION START (2 or 3 Fingers)
-            if (t.length >= 2) {
+            // B. 2-FINGER START (Rotation, Resize, OR 2-Finger Squiggle)
+            if (t.length === 2) {
+                // Rotation/Resize Init
                 rotStartAngle = getRotationAngle(t[0], t[1]);
                 rotAccumulator = 0;
-            }
-
-            // C. PINCH RESIZE START (2 Fingers)
-            if (t.length === 2) {
                 const dx = t[0].clientX - t[1].clientX;
                 const dy = t[0].clientY - t[1].clientY;
                 pinchStartDist = Math.sqrt(dx * dx + dy * dy);
                 pinchStartGlobal = appSettings.globalUiScale || 100;
                 pinchStartSeq = appSettings.uiScaleMultiplier || 1.0;
+
+                // 2-Finger Squiggle Init (Clear)
+                squiggleState2F.isTracking = true;
+                squiggleState2F.lastX = (t[0].clientX + t[1].clientX) / 2; // Average X of both fingers
+                squiggleState2F.direction = 0;
+                squiggleState2F.flips = 0;
+                squiggleState2F.hasTriggered = false;
+            } else {
+                squiggleState2F.isTracking = false;
             }
 
-            // D. BOSS MODE PINCH START (4 Fingers)
+            // C. BOSS MODE PINCH START (4 Fingers)
             if (t.length === 4) {
                 const d1 = Math.hypot(t[0].clientX - t[3].clientX, t[0].clientY - t[3].clientY);
                 const d2 = Math.hypot(t[1].clientX - t[2].clientX, t[1].clientY - t[2].clientY);
@@ -895,43 +908,52 @@ function initGlobalListeners() {
             const t = e.touches;
             const now = Date.now();
 
-            // A. SQUIGGLE MOVE (1 Finger)
+            // A. SQUIGGLE MOVE (1 Finger) - DELETE ONLY
             if (t.length === 1 && squiggleState.isTracking && !squiggleState.hasTriggered) {
-                // Only process if either Delete or Clear gesture is enabled
-                if (appSettings.isDeleteGestureEnabled || appSettings.isClearGestureEnabled) {
+                if (appSettings.isDeleteGestureEnabled) {
                     const x = t[0].clientX;
                     const dx = x - squiggleState.lastX;
                     
-                    // Threshold for "movement" (ignore micro-jitters)
                     if (Math.abs(dx) > 5) {
                         const newDir = dx > 0 ? 1 : -1;
-                        // If direction changed (and wasn't 0)
                         if (squiggleState.direction !== 0 && newDir !== squiggleState.direction) {
                             squiggleState.flips++;
                         }
                         squiggleState.direction = newDir;
                         squiggleState.lastX = x;
 
-                        // CHECK TRIGGERS
-                        // Delete: 4 flips (L-R-L-R)
-                        if (appSettings.isDeleteGestureEnabled && squiggleState.flips >= 4 && squiggleState.flips < 6) {
-                            handleBackspace(null); // Delete 1
-                            squiggleState.hasTriggered = true; // Stop
-                            
-                            // Visual feedback?
+                        // Trigger Delete at 4 flips (L-R-L-R)
+                        if (squiggleState.flips >= 4) {
+                            handleBackspace(null); 
+                            squiggleState.hasTriggered = true; 
                             showToast("Deleted ⌫");
-                            
-                            // If they keep going, we enter "Clear" territory, so maybe don't stop yet?
-                            // User request: "Once it reaches deleting it should speed delete if you keep going"
-                            // Implementation: Reset trigger to allow next delete in 2 flips
-                            squiggleState.flips = 2; // Reset count slightly so continuous wave deletes more
-                            squiggleState.hasTriggered = false; // Allow re-trigger
+                            // Allow continuous delete if they keep going
+                            squiggleState.flips = 2; 
+                            squiggleState.hasTriggered = false; 
                         }
-                        
-                        // Clear: 8 flips (Longer squiggle)
-                        // Note: If Delete is ON, it might trigger deletions before reaching Clear.
-                        // Ideally user enables one or the other, or accepts the deletion happening first.
-                        if (appSettings.isClearGestureEnabled && squiggleState.flips >= 10) {
+                    }
+                }
+            }
+
+
+            // B. 2-FINGER MOVES (Rotation, Resize, OR Squiggle)
+            if (t.length === 2) {
+                
+                // --- 1. 2-Finger Squiggle (CLEAR) ---
+                if (appSettings.isClearGestureEnabled && squiggleState2F.isTracking && !squiggleState2F.hasTriggered) {
+                    const currentAvgX = (t[0].clientX + t[1].clientX) / 2;
+                    const dx = currentAvgX - squiggleState2F.lastX;
+                    
+                    if (Math.abs(dx) > 5) {
+                        const newDir = dx > 0 ? 1 : -1;
+                        if (squiggleState2F.direction !== 0 && newDir !== squiggleState2F.direction) {
+                            squiggleState2F.flips++;
+                        }
+                        squiggleState2F.direction = newDir;
+                        squiggleState2F.lastX = currentAvgX;
+
+                        // Trigger Clear at 3 flips (Short: L-R-L-R)
+                        if (squiggleState2F.flips >= 3) {
                              const s = getState();
                              s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []);
                              s.nextSequenceIndex = 0;
@@ -939,78 +961,81 @@ function initGlobalListeners() {
                              saveState();
                              showToast("CLEARED 💥");
                              vibrate();
-                             squiggleState.hasTriggered = true; // Hard stop
+                             squiggleState2F.hasTriggered = true; // Hard stop
+                        }
+                    }
+                }
+
+                // --- 2. Rotation / Speed / Volume / Resize ---
+                // Only run this if we haven't just triggered a Clear (avoids conflict)
+                if (!squiggleState2F.hasTriggered && (now - rotLastUpdate > 50)) {
+                    
+                    // Speed (2 Fingers Rotation)
+                    if (appSettings.isSpeedGesturesEnabled) {
+                        if(e.cancelable) e.preventDefault();
+                        const currentAngle = getRotationAngle(t[0], t[1]);
+                        let delta = currentAngle - rotStartAngle;
+                        if (delta > 180) delta -= 360; if (delta < -180) delta += 360;
+                        rotAccumulator += delta;
+                        rotStartAngle = currentAngle;
+                        
+                        if (Math.abs(rotAccumulator) > 15) {
+                            let newSpeed = appSettings.playbackSpeed || 1.0;
+                            if (rotAccumulator > 0) { newSpeed += 0.05; showToast(`Speed: ${(newSpeed * 100).toFixed(0)}% 🐇`); } 
+                            else { newSpeed -= 0.05; showToast(`Speed: ${(newSpeed * 100).toFixed(0)}% 🐢`); }
+                            appSettings.playbackSpeed = Math.min(2.0, Math.max(0.5, newSpeed));
+                            saveState();
+                            rotAccumulator = 0;
+                            rotLastUpdate = now;
+                        }
+                    }
+
+                    // Resize (2 Fingers Pinch)
+                    // If moving laterally (squiggle), don't resize. Check change in dist.
+                    if (pinchStartDist > 0) {
+                        const dx = t[0].clientX - t[1].clientX;
+                        const dy = t[0].clientY - t[1].clientY;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        
+                        // Only resize if distance changed significantly (prevents accidental resize during squiggle)
+                        if (Math.abs(dist - pinchStartDist) > 20) {
+                            const ratio = dist / pinchStartDist;
+                            const mode = appSettings.gestureResizeMode || 'global';
+                            if (mode === 'sequence') {
+                                let newScale = pinchStartSeq * ratio;
+                                appSettings.uiScaleMultiplier = Math.min(2.5, Math.max(0.5, newScale));
+                                renderUI();
+                            } else {
+                                let newScale = pinchStartGlobal * ratio;
+                                appSettings.globalUiScale = Math.min(200, Math.max(50, newScale));
+                                updateAllChrome();
+                            }
                         }
                     }
                 }
             }
 
-
-            // B. ROTATION & RESIZE (Multi-touch)
-            // Debounce
-            if (now - rotLastUpdate > 50) {
+            // C. VOLUME (3 Fingers Rotation)
+            if (t.length === 3 && appSettings.isVolumeGesturesEnabled && (now - rotLastUpdate > 50)) {
+                if(e.cancelable) e.preventDefault();
+                const currentAngle = getRotationAngle(t[0], t[1]);
+                let delta = currentAngle - rotStartAngle;
+                if (delta > 180) delta -= 360; if (delta < -180) delta += 360;
+                rotAccumulator += delta;
+                rotStartAngle = currentAngle;
                 
-                // 1. SPEED (2 Fingers)
-                if (t.length === 2 && appSettings.isSpeedGesturesEnabled) {
-                    if(e.cancelable) e.preventDefault();
-                    const currentAngle = getRotationAngle(t[0], t[1]);
-                    let delta = currentAngle - rotStartAngle;
-                    if (delta > 180) delta -= 360; if (delta < -180) delta += 360;
-                    rotAccumulator += delta;
-                    rotStartAngle = currentAngle;
-                    if (Math.abs(rotAccumulator) > 15) {
-                        let newSpeed = appSettings.playbackSpeed || 1.0;
-                        if (rotAccumulator > 0) { newSpeed += 0.05; showToast(`Speed: ${(newSpeed * 100).toFixed(0)}% 🐇`); } 
-                        else { newSpeed -= 0.05; showToast(`Speed: ${(newSpeed * 100).toFixed(0)}% 🐢`); }
-                        appSettings.playbackSpeed = Math.min(2.0, Math.max(0.5, newSpeed));
-                        saveState();
-                        rotAccumulator = 0;
-                        rotLastUpdate = now;
-                    }
-                }
-
-                // 2. RESIZE (2 Fingers) - Priority Logic?
-                // If Volume/Speed gestures are OFF, or if movement is purely radial (pinch) vs rotational.
-                // For now, we allow both, but rotation usually overrides pinch if enabled.
-                if (t.length === 2 && pinchStartDist > 0) {
-                     // Existing Pinch Logic...
-                    const dx = t[0].clientX - t[1].clientX;
-                    const dy = t[0].clientY - t[1].clientY;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    const ratio = dist / pinchStartDist;
-                    const mode = appSettings.gestureResizeMode || 'global';
-                    if (mode === 'sequence') {
-                        let newScale = pinchStartSeq * ratio;
-                        appSettings.uiScaleMultiplier = Math.min(2.5, Math.max(0.5, newScale));
-                        renderUI();
-                    } else {
-                        let newScale = pinchStartGlobal * ratio;
-                        appSettings.globalUiScale = Math.min(200, Math.max(50, newScale));
-                        updateAllChrome();
-                    }
-                }
-
-                // 3. VOLUME (3 Fingers)
-                if (t.length === 3 && appSettings.isVolumeGesturesEnabled) {
-                    if(e.cancelable) e.preventDefault();
-                    const currentAngle = getRotationAngle(t[0], t[1]);
-                    let delta = currentAngle - rotStartAngle;
-                    if (delta > 180) delta -= 360; if (delta < -180) delta += 360;
-                    rotAccumulator += delta;
-                    rotStartAngle = currentAngle;
-                    if (Math.abs(rotAccumulator) > 15) {
-                        let newVol = appSettings.voiceVolume || 1.0;
-                        if (rotAccumulator > 0) { newVol += 0.05; showToast(`Volume: ${(newVol * 100).toFixed(0)}% 🔊`); } 
-                        else { newVol -= 0.05; showToast(`Volume: ${(newVol * 100).toFixed(0)}% 🔉`); }
-                        appSettings.voiceVolume = Math.min(1.0, Math.max(0.0, newVol));
-                        saveState();
-                        rotAccumulator = 0;
-                        rotLastUpdate = now;
-                    }
+                if (Math.abs(rotAccumulator) > 15) {
+                    let newVol = appSettings.voiceVolume || 1.0;
+                    if (rotAccumulator > 0) { newVol += 0.05; showToast(`Volume: ${(newVol * 100).toFixed(0)}% 🔊`); } 
+                    else { newVol -= 0.05; showToast(`Volume: ${(newVol * 100).toFixed(0)}% 🔉`); }
+                    appSettings.voiceVolume = Math.min(1.0, Math.max(0.0, newVol));
+                    saveState();
+                    rotAccumulator = 0;
+                    rotLastUpdate = now;
                 }
             }
             
-            // C. BOSS MODE (4 Fingers)
+            // D. BOSS MODE (4 Fingers)
             if (t.length === 4 && fourFingerStartSpread > 0) {
                 if(e.cancelable) e.preventDefault();
                 const d1 = Math.hypot(t[0].clientX - t[3].clientX, t[0].clientY - t[3].clientY);
@@ -1030,9 +1055,16 @@ function initGlobalListeners() {
         }, { passive: false });
 
         document.body.addEventListener('touchend', (e) => {
-            if (e.touches.length < 2) { pinchStartDist = 0; saveState(); if(modules.settings) modules.settings.updateUIFromSettings(); }
+            if (e.touches.length < 2) { 
+                pinchStartDist = 0; 
+                squiggleState2F.isTracking = false;
+                saveState(); 
+                if(modules.settings) modules.settings.updateUIFromSettings(); 
+            }
             if (e.touches.length < 4) fourFingerStartSpread = 0;
-            if (e.touches.length === 0) { squiggleState.isTracking = false; }
+            if (e.touches.length === 0) { 
+                squiggleState.isTracking = false; 
+            }
         });
 
 
@@ -1189,7 +1221,6 @@ function initGlobalListeners() {
                 headerTimer.textContent = formatTime(diff);
             };
             
-            // Expose for Global Auto-Logic
             globalTimerActions.start = () => {
                 if(!simpleTimer.isRunning) {
                     simpleTimer.startTime = Date.now();
@@ -1247,8 +1278,6 @@ function initGlobalListeners() {
 
     } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }
 }
-
-        
 function getRotationAngle(touch1, touch2) {
     const dy = touch2.clientY - touch1.clientY;
     const dx = touch2.clientX - touch1.clientX;

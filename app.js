@@ -140,77 +140,8 @@ function vibrateMorse(val) {
     else if (num >= 10 && num <= 12) { pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(num-10); i++) { pattern.push(DOT); pattern.push(GAP); } } 
     if(pattern.length > 0) navigator.vibrate(pattern); 
 }
-function initGesturePad() {
-    const pad = document.getElementById('gesture-pad');
-    const bl = document.getElementById('blackout-layer');
-    const indicator = document.getElementById('gesture-indicator');
+
     
-    // State for the new engine
-    let state = {
-        startX: 0, startY: 0,
-        startTime: 0,
-        maxTouches: 0,
-        isLongPressTriggered: false,
-        longPressTimer: null,
-        tapCount: 0,
-        tapTimer: null,
-        lastTapFingers: 0
-    };
-
-    // Helper: Determine 8-way direction from X/Y deltas
-    const get8WayDirection = (dx, dy) => {
-        const angle = Math.atan2(dy, dx) * 180 / Math.PI; // Result is -180 to 180
-        
-        // 8 Slices (45 degrees each), offset by 22.5 to center the cardinal directions
-        if (angle > -22.5 && angle <= 22.5) return 'swipe_right';
-        if (angle > 22.5 && angle <= 67.5) return 'swipe_se';
-        if (angle > 67.5 && angle <= 112.5) return 'swipe_down';
-        if (angle > 112.5 && angle <= 157.5) return 'swipe_sw';
-        if (angle > 157.5 || angle <= -157.5) return 'swipe_left';
-        if (angle > -157.5 && angle <= -112.5) return 'swipe_nw';
-        if (angle > -112.5 && angle <= -67.5) return 'swipe_up';
-        if (angle > -67.5 && angle <= -22.5) return 'swipe_ne';
-        
-        return 'swipe_right'; // Fallback
-    };
-
-    const getFingerSuffix = (n) => (n >= 3 ? '_3f' : n === 2 ? '_2f' : '');
-
-    // Common Logic Applicator
-    const attachGestureEvents = (element) => {
-        if (!element) return;
-
-        element.addEventListener('touchstart', (ev) => {
-            // Guard: If on blackout layer, only proceed if BM Gestures are enabled
-            if(element.id === 'blackout-layer' && !appSettings.isBlackoutGesturesEnabled) return;
-
-            ev.preventDefault();
-            const t = ev.touches;
-            if(t.length === 0) return;
-
-            // If this is a new interaction (starting from 0 fingers or first touch of sequence)
-            if (!state.startTime || (Date.now() - state.startTime > 300 && state.tapCount === 0)) {
-                state.startX = t[0].clientX;
-                state.startY = t[0].clientY;
-                state.startTime = Date.now();
-                state.maxTouches = t.length;
-                state.isLongPressTriggered = false;
-                
-                // Start Long Press Timer
-                clearTimeout(state.longPressTimer);
-                state.longPressTimer = setTimeout(() => {
-                    state.isLongPressTriggered = true;
-                    const suffix = getFingerSuffix(state.maxTouches);
-                    handleGesture(`long_tap${suffix}`);
-                }, 600); // 600ms for long press
-            } else {
-                // Adding fingers to an existing gesture
-                state.maxTouches = Math.max(state.maxTouches, t.length);
-            }
-        }, {passive: false});
-
-        element.addEventListener('touchmove', (ev) => {
-            if(element.id === 'blackout-layer' && !appSettings.isBlackoutGesturesEnabled) return;
 
         function initGesturePad() {
     const pad = document.getElementById('gesture-pad');

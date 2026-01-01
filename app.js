@@ -211,6 +211,78 @@ function initGesturePad() {
 
         element.addEventListener('touchmove', (ev) => {
             if(element.id === 'blackout-layer' && !appSettings.isBlackoutGesturesEnabled) return;
+
+        function initGesturePad() {
+    const pad = document.getElementById('gesture-pad');
+    const bl = document.getElementById('blackout-layer');
+    const indicator = document.getElementById('gesture-indicator');
+
+    // State for the new engine
+    let state = {
+        startX: 0, startY: 0,
+        startTime: 0,
+        maxTouches: 0,
+        isLongPressTriggered: false,
+        longPressTimer: null,
+        tapCount: 0,
+        tapTimer: null,
+        lastTapFingers: 0
+    };
+
+    // Helper: Determine 8-way direction from X/Y deltas
+    const get8WayDirection = (dx, dy) => {
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI; // Result is -180 to 180
+        
+        // 8 Slices (45 degrees each), offset by 22.5 to center the cardinal directions
+        if (angle > -22.5 && angle <= 22.5) return 'swipe_right';
+        if (angle > 22.5 && angle <= 67.5) return 'swipe_se';
+        if (angle > 67.5 && angle <= 112.5) return 'swipe_down';
+        if (angle > 112.5 && angle <= 157.5) return 'swipe_sw';
+        if (angle > 157.5 || angle <= -157.5) return 'swipe_left';
+        if (angle > -157.5 && angle <= -112.5) return 'swipe_nw';
+        if (angle > -112.5 && angle <= -67.5) return 'swipe_up';
+        if (angle > -67.5 && angle <= -22.5) return 'swipe_ne';
+        
+        return 'swipe_right'; // Fallback
+    };
+
+    const getFingerSuffix = (n) => (n >= 3 ? '_3f' : n === 2 ? '_2f' : '');
+
+    // Common Logic Applicator for both Pad and Blackout Layer
+    const attachGestureEvents = (element) => {
+        if (!element) return;
+
+        element.addEventListener('touchstart', (ev) => {
+            // Guard: If on blackout layer, only proceed if BM Gestures are enabled
+            if(element.id === 'blackout-layer' && !appSettings.isBlackoutGesturesEnabled) return;
+
+            ev.preventDefault();
+            const t = ev.touches;
+            if(t.length === 0) return;
+
+            // If this is a new interaction (starting from 0 fingers or first touch of sequence)
+            if (!state.startTime || (Date.now() - state.startTime > 300 && state.tapCount === 0)) {
+                state.startX = t[0].clientX;
+                state.startY = t[0].clientY;
+                state.startTime = Date.now();
+                state.maxTouches = t.length;
+                state.isLongPressTriggered = false;
+                
+                // Start Long Press Timer
+                clearTimeout(state.longPressTimer);
+                state.longPressTimer = setTimeout(() => {
+                    state.isLongPressTriggered = true;
+                    const suffix = getFingerSuffix(state.maxTouches);
+                    handleGesture(`long_tap${suffix}`);
+                }, 600); // 600ms for long press
+            } else {
+                // Adding fingers to an existing gesture
+                state.maxTouches = Math.max(state.maxTouches, t.length);
+            }
+        }, {passive: false});
+
+        element.addEventListener('touchmove', (ev) => {
+            if(element.id === 'blackout-layer' && !appSettings.isBlackoutGesturesEnabled) return;
             
             ev.preventDefault();
             state.maxTouches = Math.max(state.maxTouches, ev.touches.length);
@@ -289,6 +361,7 @@ function initGesturePad() {
         if(mapResult !== null) addValue(mapResult);
     }
 }
+
 
 
 
@@ -524,14 +597,22 @@ function renderUI() {
             // Reset to true if setting is off, so it's ready next time
             if (!appSettings.isGestureInputEnabled) isGesturePadVisible = true;
 
-            // Updated Condition: Setting ON AND Flag ON
+            // 1. VISUAL GESTURE PAD (The transparent overlay for normal usage)
+            // Only show this if the main "Gesture Input" setting is ON
             if (appSettings.isGestureInputEnabled && isGesturePadVisible) {
-                document.body.classList.add('input-gestures-mode'); // Enable full screen mode
+                document.body.classList.add('input-gestures-mode'); 
                 gpWrap.classList.remove('hidden');
-                if (!window.__gesturePadInited) { initGesturePad(); window.__gesturePadInited = true; }
             } else { 
-                document.body.classList.remove('input-gestures-mode'); // Disable full screen mode
+                document.body.classList.remove('input-gestures-mode'); 
                 gpWrap.classList.add('hidden'); 
+            }
+
+            // 2. ENGINE INITIALIZATION
+            // We must init the engine if EITHER "Gesture Input" OR "BM Gestures" is enabled.
+            // Previously this only ran if isGestureInputEnabled was true.
+            if ((appSettings.isGestureInputEnabled || appSettings.isBlackoutGesturesEnabled) && !window.__gesturePadInited) { 
+                initGesturePad(); 
+                window.__gesturePadInited = true; 
             }
         }
     } catch(e) { console.error('Gesture UI error', e); }
@@ -600,8 +681,6 @@ function renderUI() {
             span.style.height = boxSize + 'px'; 
             
             // Font Size Logic
-            // Base font is proportional to box size (approx 0.5 of box). 
-            // Multiplier scales it up from there.
             const fontMult = appSettings.uiFontSizeMultiplier || 1.0;
             const fontSizePx = (boxSize * 0.5) * fontMult;
             span.style.fontSize = fontSizePx + 'px'; 
@@ -621,6 +700,8 @@ function renderUI() {
     
     document.querySelectorAll('.reset-button').forEach(b => { b.style.display = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 'block' : 'none'; });
 }
+
+
 
 function disableInput(disabled) {
     const footer = document.getElementById('input-footer');

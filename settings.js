@@ -132,7 +132,12 @@ export class SettingsManager {
             input: document.getElementById('input-select'), mode: document.getElementById('mode-select'), practiceMode: document.getElementById('practice-mode-toggle'), machines: document.getElementById('machines-select'), seqLength: document.getElementById('seq-length-select'),
             autoClear: document.getElementById('autoclear-toggle'), autoplay: document.getElementById('autoplay-toggle'), flash: document.getElementById('flash-toggle'),
             pause: document.getElementById('pause-select'), audio: document.getElementById('audio-toggle'), hapticMorse: document.getElementById('haptic-morse-toggle'), playbackSpeed: document.getElementById('playback-speed-select'), chunk: document.getElementById('chunk-select'), delay: document.getElementById('delay-select'), haptics: document.getElementById('haptics-toggle'), 
-            
+            speedGesturesToggle: document.getElementById('speed-gestures-toggle'),
+            volumeGesturesToggle: document.getElementById('volume-gestures-toggle'),
+            deleteGestureToggle: document.getElementById('delete-gesture-toggle'),
+            clearGestureToggle: document.getElementById('clear-gesture-toggle'),
+            autoTimerToggle: document.getElementById('auto-timer-toggle'),
+            autoCounterToggle: document.getElementById('auto-counter-toggle'),
             // RENAMED ITEMS BINDINGS
             speedDelete: document.getElementById('speed-delete-toggle'), // "Quick Erase"
             showWelcome: document.getElementById('show-welcome-toggle'), 
@@ -145,8 +150,6 @@ export class SettingsManager {
             timerToggle: document.getElementById('timer-toggle'),
             counterToggle: document.getElementById('counter-toggle'),
             gestureToggle: document.getElementById('gesture-input-toggle'),
-            speedGesturesToggle: document.getElementById('speed-gestures-toggle'),
-            volumeGesturesToggle: document.getElementById('volume-gestures-toggle'),
             uiScale: document.getElementById('ui-scale-select'), 
             seqSize: document.getElementById('seq-size-select'), 
             seqFontSize: document.getElementById('seq-font-size-select'), // <--- NEW FONT SIZE
@@ -382,6 +385,10 @@ export class SettingsManager {
         bind(this.dom.blackoutGesturesToggle, 'isBlackoutGesturesEnabled', true);
         bind(this.dom.speedGesturesToggle, 'isSpeedGesturesEnabled', true);
         bind(this.dom.volumeGesturesToggle, 'isVolumeGesturesEnabled', true);
+        bind(this.dom.deleteGestureToggle, 'isDeleteGestureEnabled', true);
+        bind(this.dom.clearGestureToggle, 'isClearGestureEnabled', true);
+        bind(this.dom.autoTimerToggle, 'isAutoTimerEnabled', true);
+        bind(this.dom.autoCounterToggle, 'isAutoCounterEnabled', true);
         bind(this.dom.practiceMode, 'isPracticeModeEnabled', true);
         if (this.dom.uiScale) this.dom.uiScale.onchange = (e) => { this.appSettings.globalUiScale = parseInt(e.target.value); this.callbacks.onUpdate(); };
         if (this.dom.seqSize) this.dom.seqSize.onchange = (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onUpdate(); };
@@ -533,7 +540,10 @@ export class SettingsManager {
         if (this.dom.speedDelete) this.dom.speedDelete.checked = (typeof this.appSettings.isSpeedDeletingEnabled === 'undefined') ? true : this.appSettings.isSpeedDeletingEnabled;
         if (this.dom.speedGesturesToggle) this.dom.speedGesturesToggle.checked = !!this.appSettings.isSpeedGesturesEnabled;
         if (this.dom.volumeGesturesToggle) this.dom.volumeGesturesToggle.checked = !!this.appSettings.isVolumeGesturesEnabled;
-            
+        if (this.dom.deleteGestureToggle) this.dom.deleteGestureToggle.checked = !!this.appSettings.isDeleteGestureEnabled;
+        if (this.dom.clearGestureToggle) this.dom.clearGestureToggle.checked = !!this.appSettings.isClearGestureEnabled;
+        if (this.dom.autoTimerToggle) this.dom.autoTimerToggle.checked = !!this.appSettings.isAutoTimerEnabled;
+        if (this.dom.autoCounterToggle) this.dom.autoCounterToggle.checked = !!this.appSettings.isAutoCounterEnabled;    
         // UPDATED: Matches the new 50-500 range logic
         if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
         

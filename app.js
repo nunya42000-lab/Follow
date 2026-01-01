@@ -24,6 +24,8 @@ const DEFAULT_APP = {
     isFlashEnabled: true,  // UPDATED
     pauseSetting: 'none',
     isSpeedDeletingEnabled: true, isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, 
+    isSpeedGesturesEnabled: false, // NEW
+    isVolumeGesturesEnabled: false, // NEW
     activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, 
     isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, 
     showMicBtn: false, showCamBtn: false, autoInputMode: 'none', 
@@ -773,6 +775,101 @@ const startApp = () => {
 
 function initGlobalListeners() {
     try {
+
+                // --- NEW: Rotation Gestures (Speed & Volume) ---
+        let rotStartAngle = 0;
+        let rotAccumulator = 0;
+        let rotLastUpdate = 0;
+
+        document.body.addEventListener('touchstart', (e) => {
+            // We need at least 2 fingers for any rotation
+            if (e.touches.length >= 2) {
+                // Track angle between first two fingers
+                rotStartAngle = getRotationAngle(e.touches[0], e.touches[1]);
+                rotAccumulator = 0;
+            }
+        }, { passive: false });
+
+        document.body.addEventListener('touchmove', (e) => {
+            const now = Date.now();
+            // Debounce slightly to prevent UI thrashing
+            if (now - rotLastUpdate < 50) return;
+
+            // 1. SPEED GESTURE (2 Fingers)
+            if (e.touches.length === 2 && appSettings.isSpeedGesturesEnabled) {
+                // Prevent scrolling while twisting
+                if(e.cancelable) e.preventDefault();
+
+                const currentAngle = getRotationAngle(e.touches[0], e.touches[1]);
+                let delta = currentAngle - rotStartAngle;
+                
+                // Fix angle wrap-around (e.g., crossing from 179 to -179)
+                if (delta > 180) delta -= 360;
+                if (delta < -180) delta += 360;
+
+                rotAccumulator += delta;
+                rotStartAngle = currentAngle; // Reset anchor for continuous tracking
+
+                // Threshold: 15 degrees twist
+                if (Math.abs(rotAccumulator) > 15) {
+                    let newSpeed = appSettings.playbackSpeed || 1.0;
+                    
+                    if (rotAccumulator > 0) {
+                        // Clockwise -> Dial Up
+                        newSpeed += 0.05;
+                        showToast(`Speed: ${(newSpeed * 100).toFixed(0)}% 🐇`);
+                    } else {
+                        // Counter-Clockwise -> Dial Down
+                        newSpeed -= 0.05;
+                        showToast(`Speed: ${(newSpeed * 100).toFixed(0)}% 🐢`);
+                    }
+                    
+                    // Clamp and Save
+                    newSpeed = Math.min(2.0, Math.max(0.5, newSpeed));
+                    appSettings.playbackSpeed = newSpeed;
+                    saveState();
+                    rotAccumulator = 0; // Reset accumulator
+                    rotLastUpdate = now;
+                }
+            }
+
+            // 2. VOLUME GESTURE (3 Fingers)
+            if (e.touches.length === 3 && appSettings.isVolumeGesturesEnabled) {
+                if(e.cancelable) e.preventDefault();
+
+                // Track angle between first two fingers (representative of hand rotation)
+                const currentAngle = getRotationAngle(e.touches[0], e.touches[1]);
+                let delta = currentAngle - rotStartAngle;
+
+                if (delta > 180) delta -= 360;
+                if (delta < -180) delta += 360;
+
+                rotAccumulator += delta;
+                rotStartAngle = currentAngle;
+
+                // Threshold: 15 degrees twist
+                if (Math.abs(rotAccumulator) > 15) {
+                    let newVol = appSettings.voiceVolume || 1.0;
+                    
+                    if (rotAccumulator > 0) {
+                        // Clockwise -> Jar Close (Tighten) -> INCREASE (User requested)
+                        newVol += 0.05;
+                        showToast(`Volume: ${(newVol * 100).toFixed(0)}% 🔊`);
+                    } else {
+                        // Counter-Clockwise -> Jar Open (Loosen) -> DECREASE
+                        newVol -= 0.05;
+                        showToast(`Volume: ${(newVol * 100).toFixed(0)}% 🔉`);
+                    }
+
+                    // Clamp and Save
+                    newVol = Math.min(1.0, Math.max(0.0, newVol));
+                    appSettings.voiceVolume = newVol;
+                    saveState();
+                    rotAccumulator = 0;
+                    rotLastUpdate = now;
+                }
+            }
+        }, { passive: false });
         // --- Pinch-to-Resize Gesture ---
         let pinchStartDist = 0;
         let pinchStartGlobal = 100;
@@ -1255,6 +1352,11 @@ function initGlobalListeners() {
         }
 
     } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }
+}
+function getRotationAngle(touch1, touch2) {
+    const dy = touch2.clientY - touch1.clientY;
+    const dx = touch2.clientX - touch1.clientX;
+    return Math.atan2(dy, dx) * 180 / Math.PI;
 }
 
 // Start

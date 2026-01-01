@@ -256,7 +256,7 @@
                     </div>
                 </div>
 
-                <div id="tab-general" class="tab-content">
+                                <div id="tab-general" class="tab-content">
                     <div class="space-y-4">
                         
                         <div class="p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
@@ -279,9 +279,19 @@
                                 <input type="checkbox" id="timer-toggle" class="h-6 w-6 accent-indigo-500">
                             </div>
                             <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+                                <span class="font-bold text-sm text-muted-custom">Auto Timer 🚀</span>
+                                <input type="checkbox" id="auto-timer-toggle" class="h-6 w-6 accent-indigo-500">
+                            </div>
+
+                            <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
                                 <span class="font-bold text-sm" data-i18n="counter_toggle">Counter #</span>
                                 <input type="checkbox" id="counter-toggle" class="h-6 w-6 accent-indigo-500">
                             </div>
+                            <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+                                <span class="font-bold text-sm text-muted-custom">Auto Counter ➕</span>
+                                <input type="checkbox" id="auto-counter-toggle" class="h-6 w-6 accent-indigo-500">
+                            </div>
+
                             <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
                                 <span class="font-bold text-sm">Haptics 📳</span>
                                 <input type="checkbox" id="haptics-toggle" class="h-6 w-6 accent-indigo-500">
@@ -328,28 +338,42 @@
                                 </div>
                             </div>
 
-                           <div class="p-3 rounded-lg border border-custom settings-input">
+                            <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
                                     <span class="font-bold text-sm">Speed Gestures ⚡</span>
                                     <input type="checkbox" id="speed-gestures-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
-                           </div>
-                            
+                            </div>
+
+                            <div class="p-3 rounded-lg border border-custom settings-input">
+                                <div class="flex justify-between items-center h-full">
+                                    <span class="font-bold text-sm">Delete Gesture 🧹</span>
+                                    <input type="checkbox" id="delete-gesture-toggle" class="h-5 w-5 accent-indigo-500">
+                                </div>
+                            </div>
+
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
                                     <span class="font-bold text-sm">AP Shortcut</span>
                                     <input type="checkbox" id="long-press-autoplay-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="p-3 rounded-lg border border-custom settings-input">
+
+                            <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
                                     <span class="font-bold text-sm">Vol. Gestures 🔊</span>
                                     <input type="checkbox" id="volume-gestures-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
-                        
+
+                            <div class="p-3 rounded-lg border border-custom settings-input">
+                                <div class="flex justify-between items-center h-full">
+                                    <span class="font-bold text-sm">Clear Gesture 💥</span>
+                                    <input type="checkbox" id="clear-gesture-toggle" class="h-5 w-5 accent-indigo-500">
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-2 gap-3 pt-2">
                             <div>
                                 <label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
@@ -368,7 +392,7 @@
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
-                                                        <div>
+                            <div>
                                 <label class="block text-xs font-bold mb-1 text-muted-custom">Number Size</label>
                                 <select id="seq-font-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
                                     <option value="100">Normal</option>
@@ -390,6 +414,7 @@
                         <div class="mt-2"><label class="block text-xs font-bold mb-1 text-muted-custom">Auto Input</label><select id="auto-input-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm mb-2"><option value="none">None</option><option value="mic">Mic Only</option><option value="cam">Cam Only</option><option value="both">Both</option></select><button id="open-calibration-btn" class="w-full py-2 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs font-bold">Calibrate Sensors 🎛️</button></div>
                     </div>
                 </div>
+ 
 
                 <div id="tab-mapping" class="tab-content">
                     <h3 class="text-lg font-bold mb-3">Mapping — Gestures & Morse</h3>

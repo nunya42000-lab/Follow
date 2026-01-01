@@ -68,12 +68,9 @@ let ignoreNextClick = false;
 // New flag for Shake Toggle
 let isGesturePadVisible = true;
 
-// --- NEW GLOBALS FOR TIMER/COUNTER ---
+// --- NEW GLOBALS FOR AUTO-LOGIC ---
 let simpleTimer = { interval: null, startTime: 0, elapsed: 0, isRunning: false };
 let simpleCounter = 0;
-
-// --- GLOBAL HELPERS FOR AUTO-LOGIC ---
-// We define these globally so addValue() can access them
 let globalTimerActions = { start: null, stop: null, reset: null };
 let globalCounterActions = { increment: null, reset: null };
 
@@ -87,10 +84,8 @@ function loadState() {
         const st = localStorage.getItem(CONFIG.STORAGE_KEY_STATE); 
         if(s) { 
             const loaded = JSON.parse(s); 
-            // Merge loaded settings with default structure to ensure new keys exist
             appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } }; 
             
-            // Safety checks for undefined booleans
             if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
             if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
             if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
@@ -145,23 +140,14 @@ function vibrateMorse(val) {
     const indicator = document.getElementById('gesture-indicator');
     if(!pad) return;
 
-    // State for the new engine
     let state = {
-        startX: 0, startY: 0,
-        startTime: 0,
-        maxTouches: 0,
-        isLongPressTriggered: false,
-        longPressTimer: null,
-        tapCount: 0,
-        tapTimer: null,
-        lastTapFingers: 0
+        startX: 0, startY: 0, startTime: 0, maxTouches: 0,
+        isLongPressTriggered: false, longPressTimer: null,
+        tapCount: 0, tapTimer: null, lastTapFingers: 0
     };
 
-    // Helper: Determine 8-way direction from X/Y deltas
     const get8WayDirection = (dx, dy) => {
-        const angle = Math.atan2(dy, dx) * 180 / Math.PI; // Result is -180 to 180
-        
-        // 8 Slices (45 degrees each), offset by 22.5 to center the cardinal directions
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
         if (angle > -22.5 && angle <= 22.5) return 'swipe_right';
         if (angle > 22.5 && angle <= 67.5) return 'swipe_se';
         if (angle > 67.5 && angle <= 112.5) return 'swipe_down';
@@ -170,8 +156,7 @@ function vibrateMorse(val) {
         if (angle > -157.5 && angle <= -112.5) return 'swipe_nw';
         if (angle > -112.5 && angle <= -67.5) return 'swipe_up';
         if (angle > -67.5 && angle <= -22.5) return 'swipe_ne';
-        
-        return 'swipe_right'; // Fallback
+        return 'swipe_right';
     };
 
     const getFingerSuffix = (n) => (n >= 3 ? '_3f' : n === 2 ? '_2f' : '');
@@ -181,7 +166,6 @@ function vibrateMorse(val) {
         const t = ev.touches;
         if(t.length === 0) return;
 
-        // If this is a new interaction (starting from 0 fingers or first touch of sequence)
         if (!state.startTime || (Date.now() - state.startTime > 300 && state.tapCount === 0)) {
             state.startX = t[0].clientX;
             state.startY = t[0].clientY;
@@ -189,15 +173,13 @@ function vibrateMorse(val) {
             state.maxTouches = t.length;
             state.isLongPressTriggered = false;
             
-            // Start Long Press Timer
             clearTimeout(state.longPressTimer);
             state.longPressTimer = setTimeout(() => {
                 state.isLongPressTriggered = true;
                 const suffix = getFingerSuffix(state.maxTouches);
                 handleGesture(`long_tap${suffix}`);
-            }, 600); // 600ms for long press
+            }, 600);
         } else {
-            // Adding fingers to an existing gesture
             state.maxTouches = Math.max(state.maxTouches, t.length);
         }
     }, {passive: false});
@@ -205,8 +187,6 @@ function vibrateMorse(val) {
     pad.addEventListener('touchmove', (ev) => {
         ev.preventDefault();
         state.maxTouches = Math.max(state.maxTouches, ev.touches.length);
-        
-        // If moved significantly, cancel long press
         const t = ev.touches[0];
         const dx = t.clientX - state.startX;
         const dy = t.clientY - state.startY;
@@ -217,46 +197,32 @@ function vibrateMorse(val) {
 
     pad.addEventListener('touchend', (ev) => {
         ev.preventDefault();
-        
-        // Wait until ALL fingers lift to process the gesture action
         if (ev.touches.length > 0) return;
 
         clearTimeout(state.longPressTimer);
-        
-        // If Long Press already fired, ignore this lift
         if (state.isLongPressTriggered) return;
 
-        const t = ev.changedTouches[0]; // The finger that just left
+        const t = ev.changedTouches[0];
         const dx = t.clientX - state.startX;
         const dy = t.clientY - state.startY;
         const dist = Math.sqrt(dx*dx + dy*dy);
         const suffix = getFingerSuffix(state.maxTouches);
 
         if (dist > 30) {
-            // --- SWIPE LOGIC ---
-            // Swipes execute immediately (no double-swipe logic)
-            state.tapCount = 0; // Reset tap cycle
+            state.tapCount = 0;
             const dir = get8WayDirection(dx, dy);
             handleGesture(dir + suffix);
         } else {
-            // --- TAP LOGIC (Single/Double/Triple) ---
             state.tapCount++;
             state.lastTapFingers = state.maxTouches;
-
             clearTimeout(state.tapTimer);
-            
-            // Set a timer to finalize the tap count
             state.tapTimer = setTimeout(() => {
                 let gesture = 'tap';
                 if (state.tapCount === 2) gesture = 'double_tap';
                 if (state.tapCount >= 3) gesture = 'triple_tap';
-                
-                // Use the finger count from the latest tap sequence
                 handleGesture(gesture + suffix);
-                
-                // Reset
                 state.tapCount = 0;
-            }, 300); // 300ms window for multi-taps
+            }, 300);
         }
     }, {passive: false});
 
@@ -266,19 +232,14 @@ function vibrateMorse(val) {
             indicator.style.opacity = '1';
             setTimeout(()=> { indicator.style.opacity = '0.3'; indicator.textContent = 'Area Active'; }, 1000);
         }
-        
-        // Map to Value
         const settings = getProfileSettings();
         const mapResult = mapGestureToValue(kind, settings.currentInput);
         if(mapResult !== null) addValue(mapResult);
     }
 }
 
-// FIXED: Now strictly checks input mode to prevent 12-key gestures firing in 9-key mode
 function mapGestureToValue(kind, currentInput) {
     const gm = appSettings.gestureMappings || {};
-    
-    // Piano Check
     if(currentInput === CONFIG.INPUTS.PIANO) {
         for(const k in gm) {
             if(k.startsWith('piano_') && gm[k].gesture === kind) {
@@ -287,8 +248,6 @@ function mapGestureToValue(kind, currentInput) {
         }
         return null;
     }
-
-    // 12-Key Strict Check
     if(currentInput === CONFIG.INPUTS.KEY12) {
         for(let i=1; i<=12; i++) { 
             const k = 'k12_' + i; 
@@ -296,8 +255,6 @@ function mapGestureToValue(kind, currentInput) {
         }
         return null;
     }
-
-    // 9-Key Strict Check
     if(currentInput === CONFIG.INPUTS.KEY9) {
         for(let i=1; i<=9; i++) { 
             const k = 'k9_' + i; 
@@ -305,7 +262,6 @@ function mapGestureToValue(kind, currentInput) {
         }
         return null;
     }
-    
     return null;
 }
        
@@ -430,23 +386,18 @@ function addValue(value) {
         return;
     }
 
-    // --- NEW: AUTO TIMER & COUNTER LOGIC ---
-    // Check if this is the very first input of the session (all sequences empty)
     let isFirstInput = true;
     state.sequences.forEach(s => { if(s.length > 0) isFirstInput = false; });
 
     if (isFirstInput) {
-        // Auto Timer
         if (appSettings.isAutoTimerEnabled && appSettings.showTimer && globalTimerActions.reset && globalTimerActions.start) {
             globalTimerActions.reset();
             globalTimerActions.start();
         }
-        // Auto Counter
         if (appSettings.isAutoCounterEnabled && appSettings.showCounter && globalCounterActions.increment) {
             globalCounterActions.increment();
         }
     }
-    // ---------------------------------------
 
     if(!state.sequences[targetIndex]) state.sequences[targetIndex] = [];
     state.sequences[targetIndex].push(value); 
@@ -465,7 +416,6 @@ function addValue(value) {
         }
     }
 }
-
 function handleBackspace(e) { 
     if(e) { e.preventDefault(); e.stopPropagation(); } 
     vibrate(); 
@@ -474,7 +424,6 @@ function handleBackspace(e) {
     if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
          if(state.sequences[0].length > 0) { state.sequences[0].pop(); state.nextSequenceIndex--; }
     } else {
-        // Simon Logic: Remove last entered across all machines
         let target = (state.nextSequenceIndex - 1) % settings.machineCount;
         if (target < 0) target = settings.machineCount - 1; 
         
@@ -484,15 +433,12 @@ function handleBackspace(e) {
         }
     }
     
-    // --- NEW: AUTO STOP TIMER ---
-    // If we just deleted the last item and everything is empty, stop timer
     let isEmpty = true;
     state.sequences.forEach(s => { if(s.length > 0) isEmpty = false; });
     
     if (isEmpty && appSettings.isAutoTimerEnabled && appSettings.showTimer && globalTimerActions.stop) {
         globalTimerActions.stop();
     }
-    // ----------------------------
 
     renderUI(); 
     saveState(); 
@@ -502,18 +448,38 @@ function renderUI() {
     const container = document.getElementById('sequence-container'); 
     try {
         const gpWrap = document.getElementById('gesture-pad-wrapper');
+        const pad = document.getElementById('gesture-pad');
         if (gpWrap) {
-            // Reset to true if setting is off, so it's ready next time
             if (!appSettings.isGestureInputEnabled) isGesturePadVisible = true;
 
-            // Updated Condition: Setting ON AND Flag ON
-            if (appSettings.isGestureInputEnabled && isGesturePadVisible) {
-                document.body.classList.add('input-gestures-mode'); // Enable full screen mode
+            // --- FIXED LOGIC: Boss Mode Gestures OR Global Gestures ---
+            const isGlobalGestureOn = appSettings.isGestureInputEnabled && isGesturePadVisible;
+            const isBossGestureOn = appSettings.isBlackoutFeatureEnabled && appSettings.isBlackoutGesturesEnabled && blackoutState.isActive;
+
+            if (isGlobalGestureOn || isBossGestureOn) {
+                document.body.classList.add('input-gestures-mode');
                 gpWrap.classList.remove('hidden');
+                
+                // --- FIXED Z-INDEX: Ensure Pad sits ON TOP of Blackout Layer ---
+                if (isBossGestureOn) {
+                    gpWrap.style.zIndex = '10001'; // Higher than blackout (9999)
+                    if(pad) {
+                        pad.style.opacity = '0.05'; // Almost invisible to maintain "Blackout" feel
+                        pad.style.borderColor = 'transparent';
+                    }
+                } else {
+                    gpWrap.style.zIndex = ''; // Reset to CSS default (30)
+                    if(pad) {
+                        pad.style.opacity = '1';
+                        pad.style.borderColor = '';
+                    }
+                }
+
                 if (!window.__gesturePadInited) { initGesturePad(); window.__gesturePadInited = true; }
             } else { 
-                document.body.classList.remove('input-gestures-mode'); // Disable full screen mode
+                document.body.classList.remove('input-gestures-mode');
                 gpWrap.classList.add('hidden'); 
+                gpWrap.style.zIndex = ''; // Reset
             }
         }
     } catch(e) { console.error('Gesture UI error', e); }
@@ -528,16 +494,13 @@ function renderUI() {
     });
     
 
-    // --- PRACTICE MODE UI ---
     if(appSettings.isPracticeModeEnabled) {
-        // Create Header
         const header = document.createElement('h2');
         header.className = "text-2xl font-bold text-center w-full mt-10 mb-8";
         header.style.color = "var(--text-main)";
         header.innerHTML = `Practice Mode (${settings.currentMode === CONFIG.MODES.SIMON ? 'Simon' : 'Unique'})<br><span class=\"text-sm opacity-70\">Round ${state.currentRound}</span>`;
         container.appendChild(header);
 
-        // If sequence is empty, we are waiting to start -> Show Big Button
         if(practiceSequence.length === 0) { 
             state.currentRound = 1; 
             
@@ -545,15 +508,14 @@ function renderUI() {
             btn.textContent = "START";
             btn.className = "w-48 h-48 rounded-full bg-green-600 hover:bg-green-500 text-white text-3xl font-bold shadow-[0_0_40px_rgba(22,163,74,0.5)] transition-all transform hover:scale-105 active:scale-95 animate-pulse";
             btn.onclick = () => {
-                btn.style.display = 'none'; // Disappear
-                startPracticeRound();       // Start Game
+                btn.style.display = 'none'; 
+                startPracticeRound();       
             };
             container.appendChild(btn);
         }
         return;
     }
 
-    // --- STANDARD GAME UI ---
     const activeSeqs = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);
     if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
         const roundNum = parseInt(state.currentRound) || 1;
@@ -575,15 +537,11 @@ function renderUI() {
             const span = document.createElement('span'); 
             span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold"; 
             
-            // Dimensions
             const scale = appSettings.uiScaleMultiplier || 1.0; 
             const boxSize = 40 * scale;
             span.style.width = boxSize + 'px'; 
             span.style.height = boxSize + 'px'; 
             
-            // Font Size Logic
-            // Base font is proportional to box size (approx 0.5 of box). 
-            // Multiplier scales it up from there.
             const fontMult = appSettings.uiFontSizeMultiplier || 1.0;
             const fontSizePx = (boxSize * 0.5) * fontMult;
             span.style.fontSize = fontSizePx + 'px'; 
@@ -651,7 +609,6 @@ function playDemo() {
     let cIdx = 0;
     let totalCount = 0; 
 
-    // Helper to handle pauses
     const schedule = (fn, delay) => {
         setTimeout(() => {
             if(!isDemoPlaying) return; 
@@ -732,7 +689,6 @@ function playDemo() {
 const startApp = () => {
     loadState();
     
-    // Init Settings Manager
     modules.settings = new SettingsManager(appSettings, {
         onSave: saveState,
         onUpdate: (type) => { 
@@ -790,7 +746,6 @@ const startApp = () => {
         }
     }, null); 
 
-    // Init Sensor Engine
     modules.sensor = new SensorEngine(
         (val, source) => { 
              addValue(val); 
@@ -817,7 +772,6 @@ const startApp = () => {
 };
 function initGlobalListeners() {
     try {
-        // --- 1. Rotation Helper (For Speed/Vol Gestures) ---
         function getRotationAngle(touch1, touch2) {
             const dy = touch2.clientY - touch1.clientY;
             const dx = touch2.clientX - touch1.clientX;
@@ -828,40 +782,18 @@ function initGlobalListeners() {
         let rotAccumulator = 0;
         let rotLastUpdate = 0;
 
-        // --- 2. Squiggle Helper (1 Finger - Delete) ---
-        let squiggleState = {
-            isTracking: false,
-            startX: 0,
-            lastX: 0,
-            direction: 0, 
-            flips: 0,     
-            hasTriggered: false
-        };
+        let squiggleState = { isTracking: false, startX: 0, lastX: 0, direction: 0, flips: 0, hasTriggered: false };
+        let squiggleState2F = { isTracking: false, lastX: 0, direction: 0, flips: 0, hasTriggered: false };
 
-        // --- 3. Squiggle Helper (2 Fingers - Clear) ---
-        let squiggleState2F = {
-            isTracking: false,
-            lastX: 0,
-            direction: 0,
-            flips: 0,
-            hasTriggered: false
-        };
-
-        // --- 4. Pinch Helper (For Boss Mode & UI) ---
         let fourFingerStartSpread = 0;
         let pinchStartDist = 0;
         let pinchStartGlobal = 100;
         let pinchStartSeq = 1.0;
 
 
-        // ============================================
-        // GLOBAL TOUCH HANDLERS
-        // ============================================
-
         document.body.addEventListener('touchstart', (e) => {
             const t = e.touches;
 
-            // A. SQUIGGLE START (1 Finger) - DELETE
             if (t.length === 1) {
                 squiggleState.isTracking = true;
                 squiggleState.startX = t[0].clientX;
@@ -873,9 +805,7 @@ function initGlobalListeners() {
                 squiggleState.isTracking = false; 
             }
 
-            // B. 2-FINGER START (Rotation, Resize, OR 2-Finger Squiggle)
             if (t.length === 2) {
-                // Rotation/Resize Init
                 rotStartAngle = getRotationAngle(t[0], t[1]);
                 rotAccumulator = 0;
                 const dx = t[0].clientX - t[1].clientX;
@@ -884,9 +814,8 @@ function initGlobalListeners() {
                 pinchStartGlobal = appSettings.globalUiScale || 100;
                 pinchStartSeq = appSettings.uiScaleMultiplier || 1.0;
 
-                // 2-Finger Squiggle Init (Clear)
                 squiggleState2F.isTracking = true;
-                squiggleState2F.lastX = (t[0].clientX + t[1].clientX) / 2; // Average X of both fingers
+                squiggleState2F.lastX = (t[0].clientX + t[1].clientX) / 2;
                 squiggleState2F.direction = 0;
                 squiggleState2F.flips = 0;
                 squiggleState2F.hasTriggered = false;
@@ -894,7 +823,6 @@ function initGlobalListeners() {
                 squiggleState2F.isTracking = false;
             }
 
-            // C. BOSS MODE PINCH START (4 Fingers)
             if (t.length === 4) {
                 const d1 = Math.hypot(t[0].clientX - t[3].clientX, t[0].clientY - t[3].clientY);
                 const d2 = Math.hypot(t[1].clientX - t[2].clientX, t[1].clientY - t[2].clientY);
@@ -908,7 +836,6 @@ function initGlobalListeners() {
             const t = e.touches;
             const now = Date.now();
 
-            // A. SQUIGGLE MOVE (1 Finger) - DELETE ONLY
             if (t.length === 1 && squiggleState.isTracking && !squiggleState.hasTriggered) {
                 if (appSettings.isDeleteGestureEnabled) {
                     const x = t[0].clientX;
@@ -922,12 +849,10 @@ function initGlobalListeners() {
                         squiggleState.direction = newDir;
                         squiggleState.lastX = x;
 
-                        // Trigger Delete at 4 flips (L-R-L-R)
                         if (squiggleState.flips >= 4) {
                             handleBackspace(null); 
                             squiggleState.hasTriggered = true; 
                             showToast("Deleted ⌫");
-                            // Allow continuous delete if they keep going
                             squiggleState.flips = 2; 
                             squiggleState.hasTriggered = false; 
                         }
@@ -936,10 +861,8 @@ function initGlobalListeners() {
             }
 
 
-            // B. 2-FINGER MOVES (Rotation, Resize, OR Squiggle)
             if (t.length === 2) {
                 
-                // --- 1. 2-Finger Squiggle (CLEAR) ---
                 if (appSettings.isClearGestureEnabled && squiggleState2F.isTracking && !squiggleState2F.hasTriggered) {
                     const currentAvgX = (t[0].clientX + t[1].clientX) / 2;
                     const dx = currentAvgX - squiggleState2F.lastX;
@@ -952,7 +875,6 @@ function initGlobalListeners() {
                         squiggleState2F.direction = newDir;
                         squiggleState2F.lastX = currentAvgX;
 
-                        // Trigger Clear at 3 flips (Short: L-R-L-R)
                         if (squiggleState2F.flips >= 3) {
                              const s = getState();
                              s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []);
@@ -961,16 +883,13 @@ function initGlobalListeners() {
                              saveState();
                              showToast("CLEARED 💥");
                              vibrate();
-                             squiggleState2F.hasTriggered = true; // Hard stop
+                             squiggleState2F.hasTriggered = true; 
                         }
                     }
                 }
 
-                // --- 2. Rotation / Speed / Volume / Resize ---
-                // Only run this if we haven't just triggered a Clear (avoids conflict)
                 if (!squiggleState2F.hasTriggered && (now - rotLastUpdate > 50)) {
                     
-                    // Speed (2 Fingers Rotation)
                     if (appSettings.isSpeedGesturesEnabled) {
                         if(e.cancelable) e.preventDefault();
                         const currentAngle = getRotationAngle(t[0], t[1]);
@@ -990,14 +909,11 @@ function initGlobalListeners() {
                         }
                     }
 
-                    // Resize (2 Fingers Pinch)
-                    // If moving laterally (squiggle), don't resize. Check change in dist.
                     if (pinchStartDist > 0) {
                         const dx = t[0].clientX - t[1].clientX;
                         const dy = t[0].clientY - t[1].clientY;
                         const dist = Math.sqrt(dx * dx + dy * dy);
                         
-                        // Only resize if distance changed significantly (prevents accidental resize during squiggle)
                         if (Math.abs(dist - pinchStartDist) > 20) {
                             const ratio = dist / pinchStartDist;
                             const mode = appSettings.gestureResizeMode || 'global';
@@ -1015,7 +931,6 @@ function initGlobalListeners() {
                 }
             }
 
-            // C. VOLUME (3 Fingers Rotation)
             if (t.length === 3 && appSettings.isVolumeGesturesEnabled && (now - rotLastUpdate > 50)) {
                 if(e.cancelable) e.preventDefault();
                 const currentAngle = getRotationAngle(t[0], t[1]);
@@ -1035,7 +950,6 @@ function initGlobalListeners() {
                 }
             }
             
-            // D. BOSS MODE (4 Fingers)
             if (t.length === 4 && fourFingerStartSpread > 0) {
                 if(e.cancelable) e.preventDefault();
                 const d1 = Math.hypot(t[0].clientX - t[3].clientX, t[0].clientY - t[3].clientY);
@@ -1048,6 +962,7 @@ function initGlobalListeners() {
                         document.body.classList.toggle('blackout-active', blackoutState.isActive);
                         showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back");
                         vibrate();
+                        renderUI(); // Re-render to update Z-indexes
                     }
                 }
             }
@@ -1068,10 +983,6 @@ function initGlobalListeners() {
         });
 
 
-        // ============================================
-        // STANDARD UI LISTENERS
-        // ============================================
-
         document.querySelectorAll('.btn-pad-number').forEach(b => {
             const press = (e) => { 
                 if(e) { e.preventDefault(); e.stopPropagation(); } 
@@ -1083,7 +994,6 @@ function initGlobalListeners() {
             b.addEventListener('mousedown', press); 
             b.addEventListener('touchstart', press, { passive: false }); 
             
-            // 1-Key Stealth Toggle
             b.addEventListener('touchstart', (e) => {
                 if(b.dataset.value === '1' && appSettings.isStealth1KeyEnabled) {
                     timers.stealth = setTimeout(() => {
@@ -1097,7 +1007,6 @@ function initGlobalListeners() {
             b.addEventListener('touchend', () => clearTimeout(timers.stealth));
         });
 
-        // Play/Demo Button
         document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
             let wasPlaying = false; let lpTriggered = false;
             const handleDown = (e) => { 
@@ -1123,7 +1032,6 @@ function initGlobalListeners() {
             b.addEventListener('mouseup', handleUp); b.addEventListener('touchend', handleUp); b.addEventListener('mouseleave', () => clearTimeout(timers.longPress));
         });
 
-        // Reset & Settings Buttons
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => {
             b.addEventListener('click', () => { if(confirm("Reset Round Counter to 1?")) { const s = getState(); s.currentRound = 1; s.sequences[0] = []; s.nextSequenceIndex = 0; renderUI(); saveState(); showToast("Reset to Round 1"); } });
         });
@@ -1134,7 +1042,6 @@ function initGlobalListeners() {
             b.addEventListener('touchstart', start, {passive:true}); b.addEventListener('touchend', end); b.addEventListener('mousedown', start); b.addEventListener('mouseup', end);
         });
 
-        // Backspace
         document.querySelectorAll('button[data-action="backspace"]').forEach(b => {
             const startDelete = (e) => { 
                 if(e) { e.preventDefault(); e.stopPropagation(); } 
@@ -1149,7 +1056,6 @@ function initGlobalListeners() {
 
         if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
         
-        // Pause/Resume & Shake
         const handlePause = (e) => { if(isDemoPlaying) { isPlaybackPaused = true; showToast("Paused ⏸️"); } };
         const handleResume = (e) => { if(isPlaybackPaused) { isPlaybackPaused = false; showToast("Resumed ▶️"); if(playbackResumeCallback) { const fn = playbackResumeCallback; playbackResumeCallback = null; fn(); } } };
         document.body.addEventListener('mousedown', handlePause); document.body.addEventListener('touchstart', handlePause, {passive:true});
@@ -1173,7 +1079,6 @@ function initGlobalListeners() {
             lastX = acc.x; lastY = acc.y; lastZ = acc.z;
         });
         
-        // Boss Mode Grid Logic
         const bl = document.getElementById('blackout-layer');
         if(bl) {
              bl.addEventListener('touchstart', (e) => {
@@ -1199,16 +1104,11 @@ function initGlobalListeners() {
              }, { passive: false });
         }
         
-        // ============================================
-        // TIMER & COUNTER LOGIC
-        // ============================================
-
         const headerTimer = document.getElementById('header-timer-btn');
         const headerCounter = document.getElementById('header-counter-btn');
         const headerMic = document.getElementById('header-mic-btn');
         const headerCam = document.getElementById('header-cam-btn');
         
-        // --- TIMER ---
         if(headerTimer) {
             headerTimer.textContent = "00:00"; 
             headerTimer.style.fontSize = "0.75rem"; 
@@ -1255,7 +1155,6 @@ function initGlobalListeners() {
             headerTimer.addEventListener('mouseup', endT); headerTimer.addEventListener('touchend', endT); headerTimer.addEventListener('mouseleave', () => clearTimeout(tTimer));
         }
 
-        // --- COUNTER ---
         if(headerCounter) {
             headerCounter.textContent = simpleCounter.toString(); headerCounter.style.fontSize = "1.2rem";
             const updateCounter = () => { headerCounter.textContent = simpleCounter; };
@@ -1278,11 +1177,5 @@ function initGlobalListeners() {
 
     } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }
 }
-function getRotationAngle(touch1, touch2) {
-    const dy = touch2.clientY - touch1.clientY;
-    const dx = touch2.clientX - touch1.clientX;
-    return Math.atan2(dy, dx) * 180 / Math.PI;
-}
 
-// Start
 document.addEventListener('DOMContentLoaded', startApp);

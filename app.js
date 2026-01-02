@@ -447,16 +447,18 @@ function handleBackspace(e) {
     saveState(); 
 }
 
+
 function renderUI() {
     const container = document.getElementById('sequence-container'); 
     try {
         const gpWrap = document.getElementById('gesture-pad-wrapper');
         const pad = document.getElementById('gesture-pad');
         if (gpWrap) {
-            if (!appSettings.isGestureInputEnabled) isGesturePadVisible = true;
-
+            // Note: The visibility logic here is now controlled by the header toggle
+            // We just check the setting directly
+            
             // --- FIXED LOGIC: Boss Mode Gestures OR Global Gestures ---
-            const isGlobalGestureOn = appSettings.isGestureInputEnabled && isGesturePadVisible;
+            const isGlobalGestureOn = appSettings.isGestureInputEnabled; // Logic moved to explicit toggle
             const isBossGestureOn = appSettings.isBlackoutFeatureEnabled && appSettings.isBlackoutGesturesEnabled && blackoutState.isActive;
 
             if (isGlobalGestureOn || isBossGestureOn) {
@@ -587,10 +589,12 @@ function renderUI() {
     
     const hMic = document.getElementById('header-mic-btn');
     const hCam = document.getElementById('header-cam-btn');
-    
+    const hGest = document.getElementById('header-gesture-btn'); // ADDED
+
     if(hMic) hMic.classList.toggle('header-btn-active', modules.sensor && modules.sensor.mode.audio);
-    if(hCam) hCam.classList.toggle('header-btn-active', modules.sensor && modules.sensor.mode.camera);
-    
+    if(hCam) hCam.classList.toggle('header-btn-active', document.body.classList.contains('ar-active'));
+    if(hGest) hGest.classList.toggle('header-btn-active', !!appSettings.isGestureInputEnabled); // ADDED
+
     document.querySelectorAll('.reset-button').forEach(b => { b.style.display = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 'block' : 'none'; });
 }
 
@@ -1119,23 +1123,6 @@ function initGlobalListeners() {
                 }
             }
             
-            if (t.length === 4 && fourFingerStartSpread > 0) {
-                if(e.cancelable) e.preventDefault();
-                const d1 = Math.hypot(t[0].clientX - t[3].clientX, t[0].clientY - t[3].clientY);
-                const d2 = Math.hypot(t[1].clientX - t[2].clientX, t[1].clientY - t[2].clientY);
-                const currentSpread = d1 + d2;
-                if (currentSpread < fourFingerStartSpread * 0.6) {
-                    fourFingerStartSpread = 0;
-                    if(appSettings.isBlackoutFeatureEnabled) {
-                        blackoutState.isActive = !blackoutState.isActive;
-                        document.body.classList.toggle('blackout-active', blackoutState.isActive);
-                        showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back");
-                        vibrate();
-                        renderUI(); // Re-render to update Z-indexes
-                    }
-                }
-            }
-
         }, { passive: false });
 
         document.body.addEventListener('touchend', (e) => {
@@ -1232,22 +1219,33 @@ function initGlobalListeners() {
         
         document.getElementById('close-settings').addEventListener('click', () => { if(appSettings.isPracticeModeEnabled) { setTimeout(startPracticeRound, 500); } });
 
-        let lastX=0, lastY=0, lastZ=0;
+                        let lastX=0, lastY=0, lastZ=0;
         window.addEventListener('devicemotion', (e) => {
-            if(!appSettings.isGestureInputEnabled) return;
+            // New Logic: Shake always triggers Boss Mode (Blackout)
+            // if(!appSettings.isGestureInputEnabled) return; // Removed this check so shake works globally
             const acc = e.accelerationIncludingGravity; if(!acc) return;
             const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
-            if(delta > 25) { 
+            
+            if(delta > 25) { // Sensitivity
                 const now = Date.now();
                 if(now - blackoutState.lastShake > 1000) {
-                    isGesturePadVisible = !isGesturePadVisible; renderUI(); 
-                    if(isGesturePadVisible) showToast("Gestures Active 👆"); else showToast("Standard Controls 📱");
+                    // Toggle Boss Mode
+                    blackoutState.isActive = !blackoutState.isActive;
+                    document.body.classList.toggle('blackout-active', blackoutState.isActive);
+                    
+                    // Visual/Audio Feedback
+                    if(blackoutState.isActive) showToast("Boss Mode 🌑"); 
+                    else showToast("Welcome Back ☀️");
+                    
+                    vibrate();
+                    renderUI(); // Re-render to update Z-indexes for gestures
+                    
                     blackoutState.lastShake = now;
                 }
             }
             lastX = acc.x; lastY = acc.y; lastZ = acc.z;
         });
-        
+                                                                                   
         const bl = document.getElementById('blackout-layer');
         if(bl) {
              bl.addEventListener('touchstart', (e) => {
@@ -1277,7 +1275,8 @@ function initGlobalListeners() {
         const headerCounter = document.getElementById('header-counter-btn');
         const headerMic = document.getElementById('header-mic-btn');
         const headerCam = document.getElementById('header-cam-btn');
-        
+        const headerGestureBtn = document.getElementById('header-gesture-btn'); // ADDED
+
         if(headerTimer) {
             headerTimer.textContent = "00:00"; 
             headerTimer.style.fontSize = "0.75rem"; 
@@ -1349,7 +1348,28 @@ function initGlobalListeners() {
                 headerMic.classList.toggle('header-btn-active', isActive);
             }; 
         }
-        
+
+        // ADDED GESTURE BUTTON LOGIC
+        if(headerGestureBtn) {
+            headerGestureBtn.onclick = () => {
+                // Toggle the setting
+                appSettings.isGestureInputEnabled = !appSettings.isGestureInputEnabled;
+                
+                // Update UI state
+                headerGestureBtn.classList.toggle('header-btn-active', appSettings.isGestureInputEnabled);
+                
+                // Feedback
+                if(appSettings.isGestureInputEnabled) showToast("Gestures Active 🗒️");
+                else showToast("Gestures Off");
+                
+                // Save and Render
+                saveState();
+                renderUI();
+                
+                if(modules.settings) modules.settings.updateUIFromSettings();
+            };
+        }
+
         if(headerCam) { 
             headerCam.onclick = () => {
                 const isArActive = document.body.classList.contains('ar-active');

@@ -941,4 +941,35 @@ export class SettingsManager {
         };
         this.appSettings.gestureMappings = Object.assign({}, defs, this.appSettings.gestureMappings || {});
     }
+    // PASTE THIS INTO settings.js inside the SettingsManager class
+    updateHeaderVisibility() {
+        const header = document.getElementById('aux-control-header');
+        if (!header) return;
+
+        const btns = {
+            timer: document.getElementById('header-timer-btn'),
+            counter: document.getElementById('header-counter-btn'),
+            mic: document.getElementById('header-mic-btn'),
+            cam: document.getElementById('header-cam-btn'),
+            gesture: document.getElementById('header-gesture-btn')
+        };
+
+        const s = this.appSettings;
+        const visible = {
+            timer: !!s.showTimer,
+            counter: !!s.showCounter,
+            mic: (s.autoInputMode === 'mic' || s.autoInputMode === 'both') || !!s.isVoiceInputEnabled,
+            cam: (s.autoInputMode === 'cam' || s.autoInputMode === 'both') || !!s.isArModeEnabled,
+            gesture: !!s.isGestureInputEnabled
+        };
+
+        Object.keys(btns).forEach(k => {
+            if(btns[k]) btns[k].classList.toggle('hidden', !visible[k]);
+        });
+
+        const anyVisible = Object.values(visible).some(v => v);
+        if (!anyVisible) header.classList.add('header-hidden');
+        else header.classList.remove('header-hidden');
+    }
+
 }

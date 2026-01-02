@@ -447,7 +447,6 @@ function handleBackspace(e) {
     saveState(); 
 }
 
-
 function renderUI() {
     const container = document.getElementById('sequence-container'); 
     try {
@@ -457,11 +456,12 @@ function renderUI() {
             // Note: The visibility logic here is now controlled by the header toggle
             // We just check the setting directly
             
-            // --- FIXED LOGIC: Boss Mode Gestures OR Global Gestures ---
-            const isGlobalGestureOn = appSettings.isGestureInputEnabled; // Logic moved to explicit toggle
+            // --- FIXED LOGIC: Boss Mode Gestures OR (Global Gestures AND Toggle is ON) ---
+            const isGlobalGestureOn = appSettings.isGestureInputEnabled; 
             const isBossGestureOn = appSettings.isBlackoutFeatureEnabled && appSettings.isBlackoutGesturesEnabled && blackoutState.isActive;
 
-            if (isGlobalGestureOn || isBossGestureOn) {
+            // CHANGE: Added check for 'isGesturePadVisible' global flag
+            if ((isGlobalGestureOn && isGesturePadVisible) || isBossGestureOn) {
                 document.body.classList.add('input-gestures-mode');
                 gpWrap.classList.remove('hidden');
                 
@@ -593,7 +593,8 @@ function renderUI() {
 
     if(hMic) hMic.classList.toggle('header-btn-active', modules.sensor && modules.sensor.mode.audio);
     if(hCam) hCam.classList.toggle('header-btn-active', document.body.classList.contains('ar-active'));
-    if(hGest) hGest.classList.toggle('header-btn-active', !!appSettings.isGestureInputEnabled); // ADDED
+    // CHANGE: Update header button state based on the visibility flag, not just the setting
+    if(hGest) hGest.classList.toggle('header-btn-active', isGesturePadVisible); 
 
     document.querySelectorAll('.reset-button').forEach(b => { b.style.display = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 'block' : 'none'; });
 }

@@ -817,51 +817,120 @@ class VoiceCommander {
 
 const startApp = () => {
     loadState();
-        // --- VOICE INIT START ---
-    voiceModule = new VoiceCommander({
-        onStatus: (msg) => showToast(msg),
-        onInput: (val) => {
-            const settings = getProfileSettings();
-            let isValid = false;
-            
-            // Validation: Only allow inputs that fit the current keypad
-            if (settings.currentInput === 'key9' && parseInt(val) >= 1 && parseInt(val) <= 9) isValid = true;
-            else if (settings.currentInput === 'key12' && parseInt(val) >= 1 && parseInt(val) <= 12) isValid = true;
-            else if (settings.currentInput === 'piano') isValid = true; // Piano accepts everything (1-5, A-G)
+        /* --- UPDATED VOICE COMMANDER CLASS (Prefix Mode) --- */
+class VoiceCommander {
+    constructor(callbacks) {
+        this.callbacks = callbacks;
+        this.recognition = null;
+        this.isListening = false;
+        this.restartTimer = null;
+        
+        // Trigger words that must precede a number
+        this.prefixes = ['add', 'plus', 'press', 'enter', 'push', 'input'];
 
-            if (isValid) {
-                addValue(val);
-                // Flash the button visually
-                const btn = document.querySelector(`#pad-${settings.currentInput} button[data-value="${val}"]`);
-                if(btn) { 
-                    btn.classList.add('flash-active'); 
-                    setTimeout(() => btn.classList.remove('flash-active'), 200); 
+        this.vocab = {
+            // Digits (Handle both words and numbers)
+            '1': '1', 'one': '1', 'won': '1',
+            '2': '2', 'two': '2', 'to': '2', 'too': '2',
+            '3': '3', 'three': '3', 'tree': '3',
+            '4': '4', 'four': '4', 'for': '4', 'fore': '4',
+            '5': '5', 'five': '5',
+            '6': '6', 'six': '6',
+            '7': '7', 'seven': '7',
+            '8': '8', 'eight': '8', 'ate': '8',
+            '9': '9', 'nine': '9',
+            '10': '10', 'ten': '10', 'tin': '10',
+            '11': '11', 'eleven': '11',
+            '12': '12', 'twelve': '12',
+
+            // Letters A-G (Piano Mode)
+            'a': 'A', 'hey': 'A',
+            'b': 'B', 'bee': 'B', 'be': 'B',
+            'c': 'C', 'see': 'C', 'sea': 'C',
+            'd': 'D', 'dee': 'D',
+            'e': 'E',
+            'f': 'F',
+            'g': 'G', 'jee': 'G',
+
+            // Global Commands (No prefix needed)
+            'play': 'CMD_PLAY', 'start': 'CMD_PLAY', 'go': 'CMD_PLAY', 'read': 'CMD_PLAY',
+            'stop': 'CMD_STOP', 'pause': 'CMD_STOP', 'halt': 'CMD_STOP',
+            'delete': 'CMD_DELETE', 'back': 'CMD_DELETE', 'undo': 'CMD_DELETE',
+            'clear': 'CMD_CLEAR', 'reset': 'CMD_CLEAR',
+            'settings': 'CMD_SETTINGS', 'menu': 'CMD_SETTINGS', 'options': 'CMD_SETTINGS'
+        };
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            this.recognition = new SpeechRecognition();
+            this.recognition.continuous = false; 
+            this.recognition.lang = 'en-US';
+            this.recognition.interimResults = false;
+            this.recognition.maxAlternatives = 1;
+
+            this.recognition.onresult = (event) => this.handleResult(event);
+            this.recognition.onend = () => this.handleEnd();
+            this.recognition.onerror = (e) => console.log('Voice Error:', e.error);
+        } else {
+            console.warn("Voice Control not supported.");
+        }
+    }
+
+    toggle(active) {
+        if (!this.recognition) return;
+        if (active) {
+            this.isListening = true;
+            try { this.recognition.start(); } catch(e) {}
+            this.callbacks.onStatus("Voice Active (Say 'Add...') 🎙️");
+        } else {
+            this.isListening = false;
+            try { this.recognition.stop(); } catch(e) {}
+            clearTimeout(this.restartTimer);
+            this.callbacks.onStatus("Voice Off 🔇");
+        }
+    }
+
+    handleResult(event) {
+        const last = event.results.length - 1;
+        const transcript = event.results[last][0].transcript.trim().toLowerCase();
+        console.log("Heard:", transcript);
+
+        const words = transcript.split(' ');
+        
+        for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+            
+            // 1. Check for Global Commands (play, stop, clear)
+            // These work INSTANTLY without a prefix
+            if (this.vocab[word] && this.vocab[word].startsWith('CMD_')) {
+                this.callbacks.onCommand(this.vocab[word]);
+                continue;
+            }
+
+            // 2. Check for Prefix (add, plus, press)
+            if (this.prefixes.includes(word)) {
+                // If we found a prefix, look at the VERY NEXT word
+                const nextWord = words[i + 1];
+                if (nextWord) {
+                    const mapped = this.vocab[nextWord];
+                    // If the next word is a valid input (number/letter)
+                    if (mapped && !mapped.startsWith('CMD_')) {
+                        this.callbacks.onInput(mapped);
+                        i++; // Skip the number so we don't process it twice
+                    }
                 }
             }
-        },
-        onCommand: (cmd) => {
-            if (cmd === 'CMD_PLAY') playDemo();
-            if (cmd === 'CMD_STOP') {
-                isDemoPlaying = false; 
-                const pb = document.querySelector('button[data-action="play-demo"]');
-                if(pb) pb.textContent = "▶";
-                showToast("Playback Stopped 🛑");
-            }
-            if (cmd === 'CMD_DELETE') handleBackspace(null);
-            if (cmd === 'CMD_CLEAR') {
-                 // Trigger Clear Logic
-                 const s = getState();
-                 s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []);
-                 s.nextSequenceIndex = 0;
-                 renderUI();
-                 saveState();
-                 showToast("CLEARED 💥");
-                 vibrate();
-            }
-            if (cmd === 'CMD_SETTINGS') modules.settings.openSettings();
         }
-    });
-    // --- VOICE INIT END ---
+    }
+
+    handleEnd() {
+        if (this.isListening) {
+            this.restartTimer = setTimeout(() => {
+                try { this.recognition.start(); } catch(e) {}
+            }, 100);
+        }
+    }
+}
 
     modules.settings = new SettingsManager(appSettings, {
         onSave: saveState,

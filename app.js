@@ -494,10 +494,9 @@ function renderUI() {
         if(el) el.style.display = (settings.currentInput === k) ? 'block' : 'none'; 
     });
     
-
     if(appSettings.isPracticeModeEnabled) {
         const header = document.createElement('h2');
-        header.className = "text-2xl font-bold text-center w-full mt-10 mb-8";
+        header.className = "text-2xl font-bold text-center w-full mt-4 mb-4"; // Reduced top margin
         header.style.color = "var(--text-main)";
         header.innerHTML = `Practice Mode (${settings.currentMode === CONFIG.MODES.SIMON ? 'Simon' : 'Unique'})<br><span class=\"text-sm opacity-70\">Round ${state.currentRound}</span>`;
         container.appendChild(header);
@@ -507,16 +506,46 @@ function renderUI() {
             
             const btn = document.createElement('button');
             btn.textContent = "START";
-            btn.className = "w-48 h-48 rounded-full bg-green-600 hover:bg-green-500 text-white text-3xl font-bold shadow-[0_0_40px_rgba(22,163,74,0.5)] transition-all transform hover:scale-105 active:scale-95 animate-pulse";
+            btn.className = "w-48 h-48 rounded-full bg-green-600 hover:bg-green-500 text-white text-3xl font-bold shadow-[0_0_40px_rgba(22,163,74,0.5)] transition-all transform hover:scale-105 active:scale-95 animate-pulse mx-auto block"; // Added mx-auto block
             btn.onclick = () => {
                 btn.style.display = 'none'; 
                 startPracticeRound();       
             };
             container.appendChild(btn);
+        } else {
+            // --- NEW RESET CONTROLS ---
+            const controlsDiv = document.createElement('div');
+            controlsDiv.className = "flex flex-col items-center gap-3 w-full";
+
+            // 1. REPLAY BUTTON (The main request)
+            const replayBtn = document.createElement('button');
+            replayBtn.innerHTML = "↻ REPLAY ROUND";
+            replayBtn.className = "w-64 py-4 bg-yellow-600 hover:bg-yellow-500 text-white font-bold rounded-xl shadow-lg text-xl active:scale-95 transition-transform";
+            replayBtn.onclick = () => {
+                practiceInputIndex = 0; // Reset your input progress
+                showToast("Replaying... 👂");
+                playPracticeSequence(); // Play the audio again
+            };
+
+            // 2. HARD RESET (Back to Round 1)
+            const resetLvlBtn = document.createElement('button');
+            resetLvlBtn.innerHTML = "⚠️ Reset to Level 1";
+            resetLvlBtn.className = "text-xs text-red-400 hover:text-red-300 underline py-2";
+            resetLvlBtn.onclick = () => {
+                if(confirm("Restart practice from Level 1?")) {
+                    practiceSequence = [];
+                    state.currentRound = 1;
+                    renderUI();
+                }
+            };
+
+            controlsDiv.appendChild(replayBtn);
+            controlsDiv.appendChild(resetLvlBtn);
+            container.appendChild(controlsDiv);
         }
         return;
     }
-
+    
     const activeSeqs = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);
     if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
         const roundNum = parseInt(state.currentRound) || 1;

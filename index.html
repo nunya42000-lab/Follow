@@ -309,6 +309,7 @@
                                     <input type="checkbox" id="blackout-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
+                            </div>
                             
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
@@ -323,6 +324,11 @@
                                     <input type="checkbox" id="stealth-1key-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
+                        <div class="p-3 rounded-lg border border-custom settings-input mt-2">
+    <div class="flex justify-between items-center h-full">
+        <span class="font-bold text-sm">AR Mode 📸</span>
+        <input type="checkbox" id="ar-mode-toggle" class="h-5 w-5 accent-indigo-500">
+    </div>
 
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
@@ -331,7 +337,15 @@
                                 </div>
                             </div>
                         </div>
-<div class="grid grid-cols-2 gap-3">
+                        <div class="p-3 rounded-lg border border-custom settings-input">
+    <div class="flex justify-between items-center h-full">
+        <span class="font-bold text-sm">Voice Input 🎤</span>
+        <input type="checkbox" id="voice-input-toggle" class="h-5 w-5 accent-indigo-500">
+    </div>
+</div>
+
+
+                        <div class="grid grid-cols-2 gap-3">
     <div class="p-3 rounded-lg border border-custom settings-input">
         <div class="flex justify-between items-center h-full">
             <span class="font-bold text-sm">Quick Erase</span>
@@ -409,8 +423,6 @@
                                 </select>
                             </div>
                         </div>
-
-                        <div class="mt-2"><label class="block text-xs font-bold mb-1 text-muted-custom">Auto Input</label><select id="auto-input-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm mb-2"><option value="none">None</option><option value="mic">Mic Only</option><option value="cam">Cam Only</option><option value="both">Both</option></select><button id="open-calibration-btn" class="w-full py-2 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs font-bold">Calibrate Sensors 🎛️</button></div>
                     </div>
                 </div>
  
@@ -520,6 +532,8 @@
                                 <li><strong>BM Gestures:</strong> If enabled, Boss Mode ignores the Grid and uses Swipe gestures instead.</li>
                                 <li><strong>Inputs Only (🥷):</strong> Hold '1' to hide all buttons except the keypad.</li>
                                 <li><strong>Gesture Input:</strong> Shake device to toggle a full-screen gesture pad.</li>
+                                <li><strong>AR Mode 📸:</strong> Uses your camera as a transparent background so you can see the machine <em>through</em> the buttons. Toggle with the Cam icon.</li>
+                                <li><strong>Voice Input 🎤:</strong> Toggle with the Mic icon. Say "Add One", "Plus Two" etc. Commands: "Play", "Stop", "Clear".</li>
                                 <li><strong>Quick Erase:</strong> Hold 'Backspace' to delete the entire sequence.</li>
                                 <li><strong>AP Shortcut:</strong> Long-press 'Play' to toggle Autoplay on/off.</li>
                                 <li><strong>Speed Gestures ⚡:</strong> Twist <strong>2 fingers</strong> like a dial to adjust playback speed.</li>

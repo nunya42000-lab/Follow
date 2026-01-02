@@ -1218,41 +1218,29 @@ function initGlobalListeners() {
         document.body.addEventListener('mouseup', handleResume); document.body.addEventListener('touchend', handleResume);
         
         document.getElementById('close-settings').addEventListener('click', () => { if(appSettings.isPracticeModeEnabled) { setTimeout(startPracticeRound, 500); } });
-
-                                let lastX=0, lastY=0, lastZ=0;
+   let lastX=0, lastY=0, lastZ=0;
         window.addEventListener('devicemotion', (e) => {
-            // 1. Check if Boss Mode feature is actually enabled in Settings
-            if (!appSettings.isBlackoutFeatureEnabled) return;
+            // CHANGED: Only run if Boss Mode is enabled
+            if(!appSettings.isBlackoutFeatureEnabled) return; 
 
-            const acc = e.accelerationIncludingGravity; 
-            if(!acc) return;
-            
-            // Calculate Shake Delta
+            const acc = e.accelerationIncludingGravity; if(!acc) return;
             const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
             
-            if(delta > 25) { // Sensitivity Threshold
+            if(delta > 25) { 
                 const now = Date.now();
-                // 1 Second Cooldown to prevent double-toggles
                 if(now - blackoutState.lastShake > 1000) {
-                    
-                    // 2. Toggle State
+                    // CHANGED: Toggle Blackout State instead of Gesture Pad
                     blackoutState.isActive = !blackoutState.isActive;
                     document.body.classList.toggle('blackout-active', blackoutState.isActive);
-                    
-                    // 3. Feedback
-                    if(blackoutState.isActive) showToast("Boss Mode 🌑"); 
-                    else showToast("Welcome Back ☀️");
-                    
+                    showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back");
                     vibrate();
-                    renderUI(); // Re-render to ensure any Z-index changes apply
-                    
+                    renderUI(); // Re-render to update Z-indexes if gestures are active
                     blackoutState.lastShake = now;
                 }
             }
             lastX = acc.x; lastY = acc.y; lastZ = acc.z;
         });
-
-                                                                                   
+                                                                                                                   
         const bl = document.getElementById('blackout-layer');
         if(bl) {
              bl.addEventListener('touchstart', (e) => {
@@ -1357,26 +1345,32 @@ function initGlobalListeners() {
         }
 
         // ADDED GESTURE BUTTON LOGIC
-        if(headerGestureBtn) {
-            headerGestureBtn.onclick = () => {
-                // Toggle the setting
-                appSettings.isGestureInputEnabled = !appSettings.isGestureInputEnabled;
+               const headerGesture = document.getElementById('header-gesture-btn'); // Get element
+
+        if(headerGesture) {
+            headerGesture.onclick = () => {
+                // Toggle the global visibility flag
+                isGesturePadVisible = !isGesturePadVisible;
                 
-                // Update UI state
-                headerGestureBtn.classList.toggle('header-btn-active', appSettings.isGestureInputEnabled);
+                // Visual feedback on the button
+                headerGesture.classList.toggle('header-btn-active', isGesturePadVisible);
                 
-                // Feedback
-                if(appSettings.isGestureInputEnabled) showToast("Gestures Active 🗒️");
-                else showToast("Gestures Off");
+                // Show/Hide the actual pad wrapper
+                const gpWrap = document.getElementById('gesture-pad-wrapper');
+                if(gpWrap) {
+                    if(isGesturePadVisible) {
+                        gpWrap.classList.remove('hidden');
+                        showToast("Pad Visible 🗒️");
+                    } else {
+                        gpWrap.classList.add('hidden');
+                        showToast("Pad Hidden");
+                    }
+                }
                 
-                // Save and Render
-                saveState();
+                // Optional: Force a re-render to ensure classes stick
                 renderUI();
-                
-                if(modules.settings) modules.settings.updateUIFromSettings();
             };
         }
-
         if(headerCam) { 
             headerCam.onclick = () => {
                 const isArActive = document.body.classList.contains('ar-active');

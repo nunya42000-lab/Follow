@@ -139,7 +139,7 @@ export class SettingsManager {
             autoTimerToggle: document.getElementById('auto-timer-toggle'),
             autoCounterToggle: document.getElementById('auto-counter-toggle'),
             arModeToggle: document.getElementById('ar-mode-toggle'),
-            voiceinputToggle: document.getElementById('voice-input-toggle'),
+            voiceInputToggle: document.getElementById('voice-input-toggle'),
             // RENAMED ITEMS BINDINGS
             speedDelete: document.getElementById('speed-delete-toggle'), // "Quick Erase"
             showWelcome: document.getElementById('show-welcome-toggle'), 
@@ -359,8 +359,8 @@ export class SettingsManager {
         // NEW HEADER TOGGLE LISTENERS
         bind(this.dom.timerToggle, 'showTimer', true);
         bind(this.dom.counterToggle, 'showCounter', true);
-        bind(this.dom.arModeToggle, 'isArModeEnabled', true);
-        bind(this.dom.voiceInputToggle, 'isVoiceInputEnabled', true);
+        bind(this.dom.ArModeToggle, 'isArModeEnabled', true);
+        bind(this.dom.voiceInputToggle, 'isvoiceInputEnabled', true);
         if (this.dom.mode) { this.dom.mode.onchange = () => { this.appSettings.runtimeSettings.currentMode = this.dom.mode.value; this.callbacks.onSave(); this.callbacks.onUpdate('mode_switch'); this.generatePrompt(); }; }
         if (this.dom.input) this.dom.input.addEventListener('change', () => this.generatePrompt());
         if (this.dom.machines) this.dom.machines.addEventListener('change', () => this.generatePrompt());
@@ -528,6 +528,8 @@ export class SettingsManager {
         if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
         if (this.dom.practiceMode) this.dom.practiceMode.checked = this.appSettings.isPracticeModeEnabled;
         if (this.dom.stealth1KeyToggle) this.dom.stealth1KeyToggle.checked = this.appSettings.isStealth1KeyEnabled;
+        if (this.dom.arModeToggle) this.dom.arModeToggle.checked = !!this.appSettings.isArModeEnabled;
+        if (this.dom.voiceInputToggle) this.dom.voiceInputToggle.checked = !!this.appSettings.isVoiceInputEnabled;    
         if (this.dom.longPressToggle) this.dom.longPressToggle.checked = (typeof this.appSettings.isLongPressAutoplayEnabled === 'undefined') ? true : this.appSettings.isLongPressAutoplayEnabled;
         if (this.dom.timerToggle) this.dom.timerToggle.checked = !!this.appSettings.showTimer; 
         if (this.dom.counterToggle) this.dom.counterToggle.checked = !!this.appSettings.showCounter; 

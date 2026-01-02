@@ -69,7 +69,7 @@ let ignoreNextClick = false;
 let voiceModule = null
 
 // New flag for Shake Toggle
-let isGesturePadVisible = true;
+let isGesturePadVisible = false; // Ensure this defaults to false
 
 // --- NEW GLOBALS FOR AUTO-LOGIC ---
 let simpleTimer = { interval: null, startTime: 0, elapsed: 0, isRunning: false };

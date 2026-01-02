@@ -359,7 +359,7 @@ export class SettingsManager {
         // NEW HEADER TOGGLE LISTENERS
         bind(this.dom.timerToggle, 'showTimer', true);
         bind(this.dom.counterToggle, 'showCounter', true);
-        bind(this.dom.ArModeToggle, 'isArModeEnabled', true);
+        bind(this.dom.arModeToggle, 'isarModeEnabled', true);
         bind(this.dom.VoiceInputToggle, 'isVoiceInputEnabled', true);
         if (this.dom.mode) { this.dom.mode.onchange = () => { this.appSettings.runtimeSettings.currentMode = this.dom.mode.value; this.callbacks.onSave(); this.callbacks.onUpdate('mode_switch'); this.generatePrompt(); }; }
         if (this.dom.input) this.dom.input.addEventListener('change', () => this.generatePrompt());

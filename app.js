@@ -25,6 +25,8 @@ const DEFAULT_APP = {
     isSpeedDeletingEnabled: true, 
     isSpeedGesturesEnabled: false, 
     isVolumeGesturesEnabled: false,
+    isArModeEnabled: false, 
+    isVoiceInputEnabled: false, 
     
     // --- NEW TOGGLES ---
     isDeleteGestureEnabled: false, 

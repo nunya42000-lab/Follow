@@ -1,4 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+.import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { SensorEngine } from './sensors.js';
 import { SettingsManager, PREMADE_THEMES, PREMADE_VOICE_PRESETS } from './settings.js';
@@ -1417,27 +1417,49 @@ function initGlobalListeners() {
             headerCounter.addEventListener('mouseup', endC); headerCounter.addEventListener('touchend', endC); headerCounter.addEventListener('mouseleave', () => clearTimeout(cTimer));
         }
 
-                if(headerMic) { 
+                        if(headerMic) { 
             headerMic.onclick = () => { 
                 if(!voiceModule) return;
-                
-                // Toggle Voice Command State
                 const isActive = !voiceModule.isListening;
                 voiceModule.toggle(isActive);
-                
-                // Visual Update
                 headerMic.classList.toggle('header-btn-active', isActive);
-                
-                // Important: Turn off the old 'tone' sensor if we are using voice commands to avoid conflict
-                if(isActive && modules.sensor) {
-                    modules.sensor.toggleAudio(false); 
+            }; 
+                        }
+        
+        if(headerCam) { 
+            headerCam.onclick = () => {
+                const isArActive = document.body.classList.contains('ar-active');
+                const newState = !isArActive;
+
+                if (newState) {
+                    // Turn AR ON
+                    document.body.classList.add('ar-active');
+                    headerCam.classList.add('header-btn-active');
+                    
+                    if (modules.sensor) {
+                        modules.sensor.toggleCamera(true); // Start stream
+                        if (modules.sensor.videoEl) {
+                            modules.sensor.videoEl.style.display = 'block';
+                            modules.sensor.videoEl.className = 'ar-background-video';
+                        }
+                    }
+                    showToast("AR Mode ON 📸");
+                } else {
+                    // Turn AR OFF
+                    document.body.classList.remove('ar-active');
+                    headerCam.classList.remove('header-btn-active');
+                    
+                    if (modules.sensor) {
+                        modules.sensor.toggleCamera(false); // Stop stream
+                        if (modules.sensor.videoEl) {
+                            modules.sensor.videoEl.style.display = 'none';
+                        }
+                    }
+                    showToast("AR Mode OFF");
                 }
             }; 
         }
-
-        if(headerCam) { headerCam.onclick = () => { if(!modules.sensor) return; modules.sensor.toggleCamera(!modules.sensor.mode.camera); renderUI(); showToast(modules.sensor.mode.camera ? "Camera Input ON 📷" : "Camera Input OFF 🚫"); }; }
-
-    } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }
-}
+        
+        
 
 document.addEventListener('DOMContentLoaded', startApp);

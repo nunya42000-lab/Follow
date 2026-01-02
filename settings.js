@@ -570,37 +570,38 @@ export class SettingsManager {
 
     // NEW METHOD: Manages the Auto-Hiding Header Bar
     
-    updateHeaderVisibility() {
-    const header = document.getElementById('aux-control-header');
-    const timerBtn = document.getElementById('header-timer-btn');
-    const counterBtn = document.getElementById('header-counter-btn');
-    const micBtn = document.getElementById('header-mic-btn');
-    const camBtn = document.getElementById('header-cam-btn'); 
-    const gestureBtn = document.getElementById('header-gesture-btn'); // New reference
+        updateHeaderVisibility() {
+        const header = document.getElementById('aux-control-header');
+        if (!header) return;
 
-    if (!header) return;
+        const btns = {
+            timer: document.getElementById('header-timer-btn'),
+            counter: document.getElementById('header-counter-btn'),
+            mic: document.getElementById('header-mic-btn'),
+            cam: document.getElementById('header-cam-btn'),
+            gesture: document.getElementById('header-gesture-btn')
+        };
 
-    const showTimer = !!this.appSettings.showTimer;
-    const showCounter = !!this.appSettings.showCounter;
-    const showMic = (this.appSettings.autoInputMode === 'mic' || this.appSettings.autoInputMode === 'both') || !!this.appSettings.isVoiceInputEnabled;
-    const showCam = (this.appSettings.autoInputMode === 'cam' || this.appSettings.autoInputMode === 'both') || !!this.appSettings.isArModeEnabled;
-    
-    // THE FIX: Only show the button if the feature is enabled in Settings
-    const showGesture = !!this.appSettings.isGestureInputEnabled;
+        const s = this.appSettings;
+        const visible = {
+            timer: !!s.showTimer,
+            counter: !!s.showCounter,
+            mic: (s.autoInputMode === 'mic' || s.autoInputMode === 'both') || !!s.isVoiceInputEnabled,
+            cam: (s.autoInputMode === 'cam' || s.autoInputMode === 'both') || !!s.isArModeEnabled,
+            gesture: !!s.isGestureInputEnabled
+        };
 
-    if(timerBtn) timerBtn.classList.toggle('hidden', !showTimer);
-    if(counterBtn) counterBtn.classList.toggle('hidden', !showCounter);
-    if(micBtn) micBtn.classList.toggle('hidden', !showMic);
-    if(camBtn) camBtn.classList.toggle('hidden', !showCam);
-    if(gestureBtn) gestureBtn.classList.toggle('hidden', !showGesture);
+        // 1. Hide/Show individual buttons
+        Object.keys(btns).forEach(k => {
+            if(btns[k]) btns[k].classList.toggle('hidden', !visible[k]);
+        });
 
-    // Hide entire header if nothing is active to save space
-    if (!showTimer && !showCounter && !showMic && !showCam && !showGesture) {
-        header.classList.add('header-hidden');
-    } else {
+        // 2. STOP THE HEADER FROM HIDING
+        // We removed the logic that adds 'header-hidden'. 
+        // This keeps the bar stable at the top of the screen.
         header.classList.remove('header-hidden');
-    }
-}
+        }
+    
     hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
     populateMappingUI() {

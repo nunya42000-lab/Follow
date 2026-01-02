@@ -64,6 +64,7 @@ let playbackResumeCallback = null;
 let practiceSequence = [];
 let practiceInputIndex = 0;
 let ignoreNextClick = false;
+let voiceModule = null
 
 // New flag for Shake Toggle
 let isGesturePadVisible = true;
@@ -684,11 +685,155 @@ function playDemo() {
     }
     nextChunk();
 }
+/* --- NEW VOICE COMMANDER CLASS --- */
+class VoiceCommander {
+    constructor(callbacks) {
+        this.callbacks = callbacks;
+        this.recognition = null;
+        this.isListening = false;
+        this.restartTimer = null;
+        
+        // Helper to handle similar sounding words
+        this.vocab = {
+            // Numbers 1-12
+            'one': '1', 'won': '1',
+            'two': '2', 'to': '2', 'too': '2',
+            'three': '3', 'tree': '3',
+            'four': '4', 'for': '4', 'fore': '4',
+            'five': '5',
+            'six': '6', 'sex': '6',
+            'seven': '7',
+            'eight': '8', 'ate': '8',
+            'nine': '9',
+            'ten': '10', 'tin': '10',
+            'eleven': '11',
+            'twelve': '12',
 
+            // Letters A-G (for Piano)
+            'a': 'A', 'hey': 'A',
+            'b': 'B', 'bee': 'B', 'be': 'B',
+            'c': 'C', 'see': 'C', 'sea': 'C',
+            'd': 'D', 'dee': 'D',
+            'e': 'E',
+            'f': 'F',
+            'g': 'G', 'jee': 'G',
+
+            // Commands
+            'play': 'CMD_PLAY', 'start': 'CMD_PLAY', 'go': 'CMD_PLAY',
+            'stop': 'CMD_STOP', 'pause': 'CMD_STOP', 'halt': 'CMD_STOP',
+            'delete': 'CMD_DELETE', 'back': 'CMD_DELETE', 'undo': 'CMD_DELETE',
+            'clear': 'CMD_CLEAR', 'reset': 'CMD_CLEAR',
+            'settings': 'CMD_SETTINGS', 'menu': 'CMD_SETTINGS', 'options': 'CMD_SETTINGS'
+        };
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            this.recognition = new SpeechRecognition();
+            this.recognition.continuous = false; // We restart manually for better stability
+            this.recognition.lang = 'en-US';
+            this.recognition.interimResults = false;
+            this.recognition.maxAlternatives = 1;
+
+            this.recognition.onresult = (event) => this.handleResult(event);
+            this.recognition.onend = () => this.handleEnd();
+            this.recognition.onerror = (e) => console.log('Voice Error:', e.error);
+        } else {
+            console.warn("Voice Control not supported in this browser.");
+        }
+    }
+
+    toggle(active) {
+        if (!this.recognition) return;
+        if (active) {
+            this.isListening = true;
+            try { this.recognition.start(); } catch(e) {}
+            this.callbacks.onStatus("Voice Active 🎙️");
+        } else {
+            this.isListening = false;
+            try { this.recognition.stop(); } catch(e) {}
+            clearTimeout(this.restartTimer);
+            this.callbacks.onStatus("Voice Off 🔇");
+        }
+    }
+
+    handleResult(event) {
+        const last = event.results.length - 1;
+        const transcript = event.results[last][0].transcript.trim().toLowerCase();
+        console.log("Heard:", transcript);
+
+        // Split multiple words (e.g., "one two play")
+        const words = transcript.split(' ');
+        
+        words.forEach(word => {
+            const mapped = this.vocab[word];
+            if (mapped) {
+                if (mapped.startsWith('CMD_')) {
+                    this.callbacks.onCommand(mapped);
+                } else {
+                    this.callbacks.onInput(mapped);
+                }
+            }
+        });
+    }
+
+    handleEnd() {
+        if (this.isListening) {
+            // Restart immediately to keep listening
+            this.restartTimer = setTimeout(() => {
+                try { this.recognition.start(); } catch(e) {}
+            }, 100);
+        }
+    }
+}
 
 const startApp = () => {
     loadState();
-    
+        // --- VOICE INIT START ---
+    voiceModule = new VoiceCommander({
+        onStatus: (msg) => showToast(msg),
+        onInput: (val) => {
+            const settings = getProfileSettings();
+            let isValid = false;
+            
+            // Validation: Only allow inputs that fit the current keypad
+            if (settings.currentInput === 'key9' && parseInt(val) >= 1 && parseInt(val) <= 9) isValid = true;
+            else if (settings.currentInput === 'key12' && parseInt(val) >= 1 && parseInt(val) <= 12) isValid = true;
+            else if (settings.currentInput === 'piano') isValid = true; // Piano accepts everything (1-5, A-G)
+
+            if (isValid) {
+                addValue(val);
+                // Flash the button visually
+                const btn = document.querySelector(`#pad-${settings.currentInput} button[data-value="${val}"]`);
+                if(btn) { 
+                    btn.classList.add('flash-active'); 
+                    setTimeout(() => btn.classList.remove('flash-active'), 200); 
+                }
+            }
+        },
+        onCommand: (cmd) => {
+            if (cmd === 'CMD_PLAY') playDemo();
+            if (cmd === 'CMD_STOP') {
+                isDemoPlaying = false; 
+                const pb = document.querySelector('button[data-action="play-demo"]');
+                if(pb) pb.textContent = "▶";
+                showToast("Playback Stopped 🛑");
+            }
+            if (cmd === 'CMD_DELETE') handleBackspace(null);
+            if (cmd === 'CMD_CLEAR') {
+                 // Trigger Clear Logic
+                 const s = getState();
+                 s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []);
+                 s.nextSequenceIndex = 0;
+                 renderUI();
+                 saveState();
+                 showToast("CLEARED 💥");
+                 vibrate();
+            }
+            if (cmd === 'CMD_SETTINGS') modules.settings.openSettings();
+        }
+    });
+    // --- VOICE INIT END ---
+
     modules.settings = new SettingsManager(appSettings, {
         onSave: saveState,
         onUpdate: (type) => { 
@@ -1172,7 +1317,24 @@ function initGlobalListeners() {
             headerCounter.addEventListener('mouseup', endC); headerCounter.addEventListener('touchend', endC); headerCounter.addEventListener('mouseleave', () => clearTimeout(cTimer));
         }
 
-        if(headerMic) { headerMic.onclick = () => { if(!modules.sensor) return; modules.sensor.toggleAudio(!modules.sensor.mode.audio); renderUI(); showToast(modules.sensor.mode.audio ? "Mic Input ON 🎤" : "Mic Input OFF 🔇"); }; }
+                if(headerMic) { 
+            headerMic.onclick = () => { 
+                if(!voiceModule) return;
+                
+                // Toggle Voice Command State
+                const isActive = !voiceModule.isListening;
+                voiceModule.toggle(isActive);
+                
+                // Visual Update
+                headerMic.classList.toggle('header-btn-active', isActive);
+                
+                // Important: Turn off the old 'tone' sensor if we are using voice commands to avoid conflict
+                if(isActive && modules.sensor) {
+                    modules.sensor.toggleAudio(false); 
+                }
+            }; 
+        }
+
         if(headerCam) { headerCam.onclick = () => { if(!modules.sensor) return; modules.sensor.toggleCamera(!modules.sensor.mode.camera); renderUI(); showToast(modules.sensor.mode.camera ? "Camera Input ON 📷" : "Camera Input OFF 🚫"); }; }
 
     } catch (error) { console.error("CRITICAL ERROR:", error); alert("App crashed: " + error.message); }

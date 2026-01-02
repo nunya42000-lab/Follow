@@ -1219,32 +1219,39 @@ function initGlobalListeners() {
         
         document.getElementById('close-settings').addEventListener('click', () => { if(appSettings.isPracticeModeEnabled) { setTimeout(startPracticeRound, 500); } });
 
-                        let lastX=0, lastY=0, lastZ=0;
+                                let lastX=0, lastY=0, lastZ=0;
         window.addEventListener('devicemotion', (e) => {
-            // New Logic: Shake always triggers Boss Mode (Blackout)
-            // if(!appSettings.isGestureInputEnabled) return; // Removed this check so shake works globally
-            const acc = e.accelerationIncludingGravity; if(!acc) return;
+            // 1. Check if Boss Mode feature is actually enabled in Settings
+            if (!appSettings.isBlackoutFeatureEnabled) return;
+
+            const acc = e.accelerationIncludingGravity; 
+            if(!acc) return;
+            
+            // Calculate Shake Delta
             const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
             
-            if(delta > 25) { // Sensitivity
+            if(delta > 25) { // Sensitivity Threshold
                 const now = Date.now();
+                // 1 Second Cooldown to prevent double-toggles
                 if(now - blackoutState.lastShake > 1000) {
-                    // Toggle Boss Mode
+                    
+                    // 2. Toggle State
                     blackoutState.isActive = !blackoutState.isActive;
                     document.body.classList.toggle('blackout-active', blackoutState.isActive);
                     
-                    // Visual/Audio Feedback
+                    // 3. Feedback
                     if(blackoutState.isActive) showToast("Boss Mode 🌑"); 
                     else showToast("Welcome Back ☀️");
                     
                     vibrate();
-                    renderUI(); // Re-render to update Z-indexes for gestures
+                    renderUI(); // Re-render to ensure any Z-index changes apply
                     
                     blackoutState.lastShake = now;
                 }
             }
             lastX = acc.x; lastY = acc.y; lastZ = acc.z;
         });
+
                                                                                    
         const bl = document.getElementById('blackout-layer');
         if(bl) {

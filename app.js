@@ -449,40 +449,52 @@ function handleBackspace(e) {
 
 function renderUI() {
     const container = document.getElementById('sequence-container'); 
+    
+    // --- GESTURE PAD VISIBILITY LOGIC ---
     try {
         const gpWrap = document.getElementById('gesture-pad-wrapper');
-        const pad = document.getElementById('gesture-pad');
+        const hGest = document.getElementById('header-gesture-btn');
+        
+        // 1. Check if the FEATURE is enabled in settings
+        const isFeatureEnabled = appSettings.isGestureInputEnabled;
+        
+        // 2. If feature is disabled, force pad closed and button hidden
+        if (!isFeatureEnabled) {
+            isGesturePadVisible = false;
+        }
+
+        // 3. Update Button State (Color) based on if Pad is OPEN
+        if(hGest) {
+            // Ensure visibility is handled by settings.js, but active color is handled here
+            hGest.classList.toggle('header-btn-active', isGesturePadVisible);
+        }
+
+        // 4. Handle Boss Mode override
+        const isBossGestureOn = appSettings.isBlackoutFeatureEnabled && appSettings.isBlackoutGesturesEnabled && blackoutState.isActive;
+
+        // 5. Show/Hide Logic
         if (gpWrap) {
-            if (!appSettings.isGestureInputEnabled) isGesturePadVisible = true;
+            const showPad = (isFeatureEnabled && isGesturePadVisible) || isBossGestureOn;
 
-            // --- FIXED LOGIC: Boss Mode Gestures OR Global Gestures ---
-            const isGlobalGestureOn = appSettings.isGestureInputEnabled && isGesturePadVisible;
-            const isBossGestureOn = appSettings.isBlackoutFeatureEnabled && appSettings.isBlackoutGesturesEnabled && blackoutState.isActive;
-
-            if (isGlobalGestureOn || isBossGestureOn) {
+            if (showPad) {
                 document.body.classList.add('input-gestures-mode');
                 gpWrap.classList.remove('hidden');
                 
-                // --- FIXED Z-INDEX: Ensure Pad sits ON TOP of Blackout Layer ---
+                // Boss Mode Z-Index fix
                 if (isBossGestureOn) {
-                    gpWrap.style.zIndex = '10001'; // Higher than blackout (9999)
-                    if(pad) {
-                        pad.style.opacity = '0.05'; // Almost invisible to maintain "Blackout" feel
-                        pad.style.borderColor = 'transparent';
-                    }
+                    gpWrap.style.zIndex = '10001'; 
+                    const pad = document.getElementById('gesture-pad');
+                    if(pad) { pad.style.opacity = '0.05'; pad.style.borderColor = 'transparent'; }
                 } else {
-                    gpWrap.style.zIndex = ''; // Reset to CSS default (30)
-                    if(pad) {
-                        pad.style.opacity = '1';
-                        pad.style.borderColor = '';
-                    }
+                    gpWrap.style.zIndex = ''; 
+                    const pad = document.getElementById('gesture-pad');
+                    if(pad) { pad.style.opacity = '1'; pad.style.borderColor = ''; }
                 }
 
                 if (!window.__gesturePadInited) { initGesturePad(); window.__gesturePadInited = true; }
             } else { 
                 document.body.classList.remove('input-gestures-mode');
                 gpWrap.classList.add('hidden'); 
-                gpWrap.style.zIndex = ''; // Reset
             }
         }
     } catch(e) { console.error('Gesture UI error', e); }
@@ -1347,22 +1359,21 @@ function initGlobalListeners() {
             }; 
         }
         if(headerGestureBtn) {
-            headerGestureBtn.onclick = () => {
-                // Toggle the setting
-                appSettings.isGestureInputEnabled = !appSettings.isGestureInputEnabled;
-                
-                // Update UI state
-                headerGestureBtn.classList.toggle('header-btn-active', appSettings.isGestureInputEnabled);
-                
-                // Feedback
-                if(appSettings.isGestureInputEnabled) showToast("Gestures Active 🗒️");
-                else showToast("Gestures Off");
-                
-                // Save and Render
-                saveState();
-                renderUI();
-                if(modules.settings) modules.settings.updateUIFromSettings();
-            };
+    headerGestureBtn.onclick = () => {
+        // FIX: This now toggles the PAD VISIBILITY, not the setting.
+        // We use a global variable to track if the pad is open.
+        isGesturePadVisible = !isGesturePadVisible;
+        
+        // Update the button look (Active/Inactive color)
+        headerGestureBtn.classList.toggle('header-btn-active', isGesturePadVisible);
+        
+        // Visual Feedback
+        if(isGesturePadVisible) showToast("Pad Active 🗒️");
+        else showToast("Pad Closed");
+        
+        // Re-render UI to actually show/hide the layer
+        renderUI();
+    };
         }
         if(headerCam) { 
             headerCam.onclick = () => {

@@ -330,7 +330,7 @@ export class SettingsManager {
         if (this.dom.configSelect) this.dom.configSelect.onchange = (e) => handleProfileSwitch(e.target.value);
         if (this.dom.quickConfigSelect) this.dom.quickConfigSelect.onchange = (e) => handleProfileSwitch(e.target.value);
 
-        const bind = (el, prop, isGlobal, isInt = false, isFloat = false) => {
+                const bind = (el, prop, isGlobal, isInt = false, isFloat = false) => {
             if (!el) return;
             el.onchange = () => {
                 let val = (el.type === 'checkbox') ? el.checked : el.value;
@@ -346,8 +346,8 @@ export class SettingsManager {
                 this.callbacks.onSave();
                 this.generatePrompt();
                 
-                // NEW: Trigger Header update on change of relevant settings
-                if (['showTimer', 'showCounter', 'autoInputMode'].includes(prop)) {
+                // --- FIXED: ADDED VOICE & AR TO THE TRIGGER LIST ---
+                if (['showTimer', 'showCounter', 'autoInputMode', 'isVoiceInputEnabled', 'isArModeEnabled'].includes(prop)) {
                     this.updateHeaderVisibility();
                 }
             };

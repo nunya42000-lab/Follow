@@ -477,6 +477,24 @@ gestureSwipeVal: document.getElementById('gesture-swipe-val'),
 
         // INIT MORSE UI
         this.populateMorseUI();
+    // NEW: Sensitivity Listeners
+if (this.dom.gestureTapSlider) {
+    this.dom.gestureTapSlider.oninput = (e) => {
+        const val = parseInt(e.target.value);
+        this.appSettings.gestureTapDelay = val;
+        this.dom.gestureTapVal.textContent = val + 'ms';
+        this.callbacks.onSave();
+    };
+}
+if (this.dom.gestureSwipeSlider) {
+    this.dom.gestureSwipeSlider.oninput = (e) => {
+        const val = parseInt(e.target.value);
+        this.appSettings.gestureSwipeDist = val;
+        this.dom.gestureSwipeVal.textContent = val + 'px';
+        this.callbacks.onSave();
+    };
+            }
+        
     }
     populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
     populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }

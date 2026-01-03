@@ -190,6 +190,10 @@ export class SettingsManager {
             mapping9Container: document.getElementById('mapping-9-container'),
             mapping12Container: document.getElementById('mapping-12-container'),
             mappingPianoContainer: document.getElementById('mapping-piano-container'),
+        gestureTapSlider: document.getElementById('gesture-tap-slider'),
+gestureSwipeSlider: document.getElementById('gesture-swipe-slider'),
+gestureTapVal: document.getElementById('gesture-tap-val'),
+gestureSwipeVal: document.getElementById('gesture-swipe-val'),
         };
         this.tempTheme = null; this.initListeners(); this.populateConfigDropdown(); this.populateThemeDropdown(); this.buildColorGrid(); this.populateVoicePresetDropdown();
         this.populatePlaybackSpeedDropdown();

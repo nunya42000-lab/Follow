@@ -801,71 +801,41 @@ class VoiceCommander {
     }
 
     handleResult(event) {
-    const last = event.results.length - 1;
-    const transcript = event.results[last][0].transcript.trim().toLowerCase();
-    console.log("Heard:", transcript);
-    
-    let processed = false; // Track if we did something
-
-    const words = transcript.split(' ');
-    
-    for (let i = 0; i < words.length; i++) {
-        const word = words[i];
+        const last = event.results.length - 1;
+        const transcript = event.results[last][0].transcript.trim().toLowerCase();
+        console.log("Heard:", transcript);
         
-        if (this.vocab[word] && this.vocab[word].startsWith('CMD_')) {
-            this.callbacks.onCommand(this.vocab[word]);
-            processed = true;
-            continue;
-        }
+        let processed = false; // Track if we did something
 
-        if (this.prefixes.includes(word)) {
-            const nextWord = words[i + 1];
-            if (nextWord) {
-                const mapped = this.vocab[nextWord];
-                if (mapped && !mapped.startsWith('CMD_')) {
-                    this.callbacks.onInput(mapped);
-                    processed = true;
-                    i++; 
-                }
-            }
-        }
-    }
-
-    // NEW: If we processed a command, force a restart of the mic.
-    // This solves the issue of it ignoring subsequent inputs.
-    if (processed && this.isListening) {
-        try {
-            this.recognition.stop(); 
-            // The 'onend' handler will automatically restart it because
-            // this.isListening is still true.
-        } catch(e) {}
-    }
-    }
-    
         const words = transcript.split(' ');
         
         for (let i = 0; i < words.length; i++) {
             const word = words[i];
             
-            // 1. Check for Global Commands (play, stop, clear)
             if (this.vocab[word] && this.vocab[word].startsWith('CMD_')) {
                 this.callbacks.onCommand(this.vocab[word]);
+                processed = true;
                 continue;
             }
 
-            // 2. Check for Prefix (add, plus, press)
             if (this.prefixes.includes(word)) {
-                // If we found a prefix, look at the VERY NEXT word
                 const nextWord = words[i + 1];
                 if (nextWord) {
                     const mapped = this.vocab[nextWord];
-                    // If the next word is a valid input (number/letter)
                     if (mapped && !mapped.startsWith('CMD_')) {
                         this.callbacks.onInput(mapped);
-                        i++; // Skip the number so we don't process it twice
+                        processed = true;
+                        i++; 
                     }
                 }
             }
+        }
+
+        // Force restart if command processed to prevent mic lock-up
+        if (processed && this.isListening) {
+            try {
+                this.recognition.stop(); 
+            } catch(e) {}
         }
     }
 
@@ -877,6 +847,10 @@ class VoiceCommander {
         }
     }
 }
+
+
+        
+
 
 const startApp = () => {
     loadState();

@@ -208,25 +208,30 @@ function vibrateMorse(val) {
         const t = ev.changedTouches[0];
         const dx = t.clientX - state.startX;
         const dy = t.clientY - state.startY;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        const suffix = getFingerSuffix(state.maxTouches);
+         const dist = Math.sqrt(dx*dx + dy*dy);
+const suffix = getFingerSuffix(state.maxTouches);
 
-        if (dist > 30) {
-            state.tapCount = 0;
-            const dir = get8WayDirection(dx, dy);
-            handleGesture(dir + suffix);
-        } else {
-            state.tapCount++;
-            state.lastTapFingers = state.maxTouches;
-            clearTimeout(state.tapTimer);
-            state.tapTimer = setTimeout(() => {
-                let gesture = 'tap';
-                if (state.tapCount === 2) gesture = 'double_tap';
-                if (state.tapCount >= 3) gesture = 'triple_tap';
-                handleGesture(gesture + suffix);
-                state.tapCount = 0;
-            }, 300);
-        }
+// NEW: Use dynamic settings (Default 30px / 300ms)
+const swipeThresh = appSettings.gestureSwipeDist || 30;
+const tapDelay = appSettings.gestureTapDelay || 300;
+
+if (dist > swipeThresh) {
+    state.tapCount = 0;
+    const dir = get8WayDirection(dx, dy);
+    handleGesture(dir + suffix);
+} else {
+    state.tapCount++;
+    state.lastTapFingers = state.maxTouches;
+    clearTimeout(state.tapTimer);
+    state.tapTimer = setTimeout(() => {
+        let gesture = 'tap';
+        if (state.tapCount === 2) gesture = 'double_tap';
+        if (state.tapCount >= 3) gesture = 'triple_tap';
+        handleGesture(gesture + suffix);
+        state.tapCount = 0;
+    }, tapDelay); // Use dynamic delay
+}
+        
     }, {passive: false});
 
     function handleGesture(kind) {
@@ -796,10 +801,47 @@ class VoiceCommander {
     }
 
     handleResult(event) {
-        const last = event.results.length - 1;
-        const transcript = event.results[last][0].transcript.trim().toLowerCase();
-        console.log("Heard:", transcript);
+    const last = event.results.length - 1;
+    const transcript = event.results[last][0].transcript.trim().toLowerCase();
+    console.log("Heard:", transcript);
+    
+    let processed = false; // Track if we did something
 
+    const words = transcript.split(' ');
+    
+    for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        
+        if (this.vocab[word] && this.vocab[word].startsWith('CMD_')) {
+            this.callbacks.onCommand(this.vocab[word]);
+            processed = true;
+            continue;
+        }
+
+        if (this.prefixes.includes(word)) {
+            const nextWord = words[i + 1];
+            if (nextWord) {
+                const mapped = this.vocab[nextWord];
+                if (mapped && !mapped.startsWith('CMD_')) {
+                    this.callbacks.onInput(mapped);
+                    processed = true;
+                    i++; 
+                }
+            }
+        }
+    }
+
+    // NEW: If we processed a command, force a restart of the mic.
+    // This solves the issue of it ignoring subsequent inputs.
+    if (processed && this.isListening) {
+        try {
+            this.recognition.stop(); 
+            // The 'onend' handler will automatically restart it because
+            // this.isListening is still true.
+        } catch(e) {}
+    }
+    }
+    
         const words = transcript.split(' ');
         
         for (let i = 0; i < words.length; i++) {

@@ -570,7 +570,18 @@ if (this.dom.gestureSwipeSlider) {
         
         if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
         if (this.dom.seqFontSize) this.dom.seqFontSize.value = Math.round((this.appSettings.uiFontSizeMultiplier || 1.0) * 100);
-
+        // NEW: Load Sensitivity
+if (this.dom.gestureTapSlider) {
+    const tapVal = this.appSettings.gestureTapDelay || 300;
+    this.dom.gestureTapSlider.value = tapVal;
+    this.dom.gestureTapVal.textContent = tapVal + 'ms';
+}
+if (this.dom.gestureSwipeSlider) {
+    const swipeVal = this.appSettings.gestureSwipeDist || 30;
+    this.dom.gestureSwipeSlider.value = swipeVal;
+    this.dom.gestureSwipeVal.textContent = swipeVal + 'px';
+}
+            
         if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
         if (this.dom.blackoutToggle) this.dom.blackoutToggle.checked = this.appSettings.isBlackoutFeatureEnabled;
         if (this.dom.blackoutGesturesToggle) this.dom.blackoutGesturesToggle.checked = this.appSettings.isBlackoutGesturesEnabled;

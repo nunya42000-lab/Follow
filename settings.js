@@ -645,7 +645,6 @@ if (this.dom.gestureSwipeSlider) {
             
             // --- NEW: Inject the Sensitivity Controls Programmatically ---
             tabRoot.innerHTML = `
-                <h3 class="text-lg font-bold mb-3">Mapping — Gestures & Morse</h3>
                 <div class="p-3 mb-4 rounded-lg border border-custom bg-black bg-opacity-30">
                     <h4 class="font-bold text-sm mb-3 text-primary-app">Gesture Sensitivity 🎛️</h4>
                     <div class="mb-4">

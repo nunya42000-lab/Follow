@@ -627,25 +627,71 @@ if (this.dom.gestureSwipeSlider) {
     
     hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
-    populateMappingUI() {
+        populateMappingUI() {
         if (!this.dom) return;
         if (!this.appSettings) return;
         
-        // FIX: Apply defaults BEFORE building the UI so the dropdowns have data
+        // FIX: Apply defaults BEFORE building the UI
         if (!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
             this.applyDefaultGestureMappings();
         }
         
         if (!this.appSettings.gestureProfiles) this.appSettings.gestureProfiles = {};
 
-        // 1. CLEAN SLATE
+        // 1. CLEAN SLATE & REBUILD SENSITIVITY CONTROLS
         const tabRoot = document.getElementById('tab-mapping');
         if (tabRoot) {
-            tabRoot.innerHTML = ''; 
             tabRoot.className = "tab-content p-1 space-y-4";
+            
+            // --- NEW: Inject the Sensitivity Controls Programmatically ---
+            tabRoot.innerHTML = `
+                <h3 class="text-lg font-bold mb-3">Mapping — Gestures & Morse</h3>
+                <div class="p-3 mb-4 rounded-lg border border-custom bg-black bg-opacity-30">
+                    <h4 class="font-bold text-sm mb-3 text-primary-app">Gesture Sensitivity 🎛️</h4>
+                    <div class="mb-4">
+                        <div class="flex justify-between mb-1">
+                            <label class="text-xs font-bold">Tap Speed (ms)</label>
+                            <span id="gesture-tap-val" class="text-xs font-mono">${this.appSettings.gestureTapDelay || 300}ms</span>
+                        </div>
+                        <input type="range" id="gesture-tap-slider" min="100" max="800" step="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer" value="${this.appSettings.gestureTapDelay || 300}">
+                        <p class="text-[10px] text-gray-400 mt-1">Faster time = harder to tap, easier to swipe. Slower time = easier to tap.</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-xs font-bold">Swipe Distance (px)</label>
+                            <span id="gesture-swipe-val" class="text-xs font-mono">${this.appSettings.gestureSwipeDist || 30}px</span>
+                        </div>
+                        <input type="range" id="gesture-swipe-slider" min="10" max="100" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer" value="${this.appSettings.gestureSwipeDist || 30}">
+                        <p class="text-[10px] text-gray-400 mt-1">Higher distance = fewer accidental swipes.</p>
+                    </div>
+                </div>
+            `;
+            
+            // --- NEW: Re-bind the listeners immediately ---
+            const tapSlider = document.getElementById('gesture-tap-slider');
+            const swipeSlider = document.getElementById('gesture-swipe-slider');
+            const tapVal = document.getElementById('gesture-tap-val');
+            const swipeVal = document.getElementById('gesture-swipe-val');
+
+            if(tapSlider) {
+                tapSlider.oninput = (e) => {
+                    const val = parseInt(e.target.value);
+                    this.appSettings.gestureTapDelay = val;
+                    if(tapVal) tapVal.textContent = val + 'ms';
+                    this.callbacks.onSave();
+                };
+            }
+            if(swipeSlider) {
+                swipeSlider.oninput = (e) => {
+                    const val = parseInt(e.target.value);
+                    this.appSettings.gestureSwipeDist = val;
+                    if(swipeVal) swipeVal.textContent = val + 'px';
+                    this.callbacks.onSave();
+                };
+            }
         }
 
-        // 2. Readable Labels
+        // 2. Readable Labels Helper
         const getLabel = (techName) => {
             let fingers = "";
             if (techName.includes('_3f')) fingers = " (3 Finger)";
@@ -693,7 +739,6 @@ if (this.dom.gestureSwipeSlider) {
             
             const populateSelect = () => {
                 select.innerHTML = '';
-                // Default Option to show current state if not strictly matching a profile
                 const def = document.createElement('option');
                 def.textContent = "-- Select Preset --";
                 def.value = "";
@@ -831,7 +876,6 @@ if (this.dom.gestureSwipeSlider) {
 
             renderMappings();
 
-            // Select Change Event
             select.onchange = () => {
                  const val = select.value;
                  if(!val) return;
@@ -849,11 +893,12 @@ if (this.dom.gestureSwipeSlider) {
             if(tabRoot) tabRoot.appendChild(wrapper);
         };
 
-        // 4. Build Sections
         buildSection('key9', '9-Key', 'k9_', 9);
         buildSection('key12', '12-Key', 'k12_', 12);
         buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
-    }
+                              }
+    
+
         populateMorseUI() {
         const tab = document.getElementById('tab-playback');
         if (!tab) return;

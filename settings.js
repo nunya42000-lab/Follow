@@ -36,66 +36,7 @@ export const PREMADE_VOICE_PRESETS = {
     'whisper': { name: "Quiet", pitch: 1.2, rate: 0.8, volume: 0.4 }
 };
 const GESTURE_PRESETS = {
-    // --- 9-KEY PROFILES ---
-    '9_taps': {
-        name: "Taps (Default)",
-        type: 'key9',
-        map: {
-            'k9_1': 'tap', 
-            'k9_2': 'double_tap', 
-            'k9_3': 'triple_tap',
-            'k9_4': 'tap_2f_horizontal', 
-            'k9_5': 'double_tap_2f_horizontal', 
-            'k9_6': 'triple_tap_2f_horizontal',
-            'k9_7': 'tap_3f_horizontal', 
-            'k9_8': 'double_tap_3f_horizontal', 
-            'k9_9': 'triple_tap_3f_horizontal'
-        }
-    },
-    '9_swipes': {
-        name: "Swipes",
-        type: 'key9',
-        map: {
-            'k9_1': 'swipe_nw', 'k9_2': 'swipe_up', 'k9_3': 'swipe_ne',
-            'k9_4': 'swipe_left', 'k9_5': 'tap', 'k9_6': 'swipe_right',
-            'k9_7': 'swipe_sw', 'k9_8': 'swipe_down', 'k9_9': 'swipe_se'
-        }
-    },
-    '9_motion': {
-        name: "Motion Taps",
-        type: 'key9',
-        map: {
-            'k9_1': 'motion_tap_spatial_nw', 'k9_2': 'motion_tap_spatial_up', 'k9_3': 'motion_tap_spatial_ne',
-            'k9_4': 'motion_tap_spatial_left', 'k9_5': 'double_tap', 'k9_6': 'motion_tap_spatial_right',
-            'k9_7': 'motion_tap_spatial_sw', 'k9_8': 'motion_tap_spatial_down', 'k9_9': 'motion_tap_spatial_se'
-        }
-    },
-
-    // --- 12-KEY PROFILES ---
-    '12_taps': {
-        name: "Taps (Default)",
-        type: 'key12',
-        map: {
-            'k12_1': 'tap', 
-            'k12_2': 'double_tap', 
-            'k12_3': 'triple_tap', 
-            'k12_4': 'long_tap',
-            'k12_5': 'tap_2f_horizontal', 
-            'k12_6': 'double_tap_2f_horizontal', 
-            'k12_7': 'triple_tap_2f_horizontal', 
-            'k12_8': 'long_tap_2f_horizontal',
-            'k12_9': 'tap_3f_horizontal', 
-            'k12_10': 'double_tap_3f_horizontal', 
-            'k12_11': 'triple_tap_3f_horizontal', 
-            'k12_12': 'long_tap_3f_horizontal'
-        }
-    },
-    '12_swipes': {
-        name: "Swipes",
-        type: 'key12',
-        map: {
-const GESTURE_PRESETS = {
-    // --- 9-KEY PROFILES ---
+    // ================= 9-KEY PROFILES =================
     '9_taps': {
         name: "Taps (Default)",
         type: 'key9',
@@ -112,7 +53,7 @@ const GESTURE_PRESETS = {
         }
     },
     '9_swipes': {
-        name: "Swipes",
+        name: "Swipes (Directional)",
         type: 'key9',
         map: {
             'k9_1': 'swipe_nw', 'k9_2': 'swipe_up', 'k9_3': 'swipe_ne',
@@ -121,16 +62,17 @@ const GESTURE_PRESETS = {
         }
     },
     '9_motion': {
-        name: "Motion Taps",
+        name: "Motion Taps (Fast)",
         type: 'key9',
         map: {
+            // Tapping while moving slightly in a direction
             'k9_1': 'motion_tap_spatial_nw', 'k9_2': 'motion_tap_spatial_up', 'k9_3': 'motion_tap_spatial_ne',
             'k9_4': 'motion_tap_spatial_left', 'k9_5': 'double_tap', 'k9_6': 'motion_tap_spatial_right',
             'k9_7': 'motion_tap_spatial_sw', 'k9_8': 'motion_tap_spatial_down', 'k9_9': 'motion_tap_spatial_se'
         }
     },
 
-    // --- 12-KEY PROFILES ---
+    // ================= 12-KEY PROFILES =================
     '12_taps': {
         name: "Taps (Default)",
         type: 'key12',
@@ -150,7 +92,7 @@ const GESTURE_PRESETS = {
         }
     },
     '12_swipes': {
-        name: "Swipes",
+        name: "Swipes (Directional)",
         type: 'key12',
         map: {
             'k12_1': 'swipe_left', 'k12_2': 'swipe_up', 'k12_3': 'swipe_down', 'k12_4': 'swipe_right',
@@ -158,8 +100,20 @@ const GESTURE_PRESETS = {
             'k12_9': 'swipe_left_3f', 'k12_10': 'swipe_up_3f', 'k12_11': 'swipe_down_3f', 'k12_12': 'swipe_right_3f'
         }
     },
+    '12_hybrid': {
+        name: "Hybrid (Mix)",
+        type: 'key12',
+        map: {
+            // 1-4 are Taps (Fastest for common numbers)
+            'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
+            // 5-8 are 1-Finger Swipes
+            'k12_5': 'swipe_left', 'k12_6': 'swipe_up', 'k12_7': 'swipe_down', 'k12_8': 'swipe_right',
+            // 9-12 are 2-Finger Swipes
+            'k12_9': 'swipe_left_2f', 'k12_10': 'swipe_up_2f', 'k12_11': 'swipe_down_2f', 'k12_12': 'swipe_right_2f'
+        }
+    },
 
-    // --- PIANO PROFILE ---
+    // ================= PIANO PROFILES =================
     'piano_swipes': {
         name: "Swipes (Default)",
         type: 'piano',
@@ -169,6 +123,27 @@ const GESTURE_PRESETS = {
             'piano_A': 'swipe_right', 'piano_B': 'swipe_ne',
             'piano_1': 'swipe_left_2f', 'piano_2': 'swipe_nw_2f', 'piano_3': 'swipe_up_2f', 
             'piano_4': 'swipe_ne_2f', 'piano_5': 'swipe_right_2f'
+        }
+    },
+    'piano_taps': {
+        name: "Taps Only",
+        type: 'piano',
+        map: {
+            // White Keys (C-B) -> Single Finger variations
+            'piano_C': 'tap', 
+            'piano_D': 'double_tap', 
+            'piano_E': 'triple_tap',
+            'piano_F': 'long_tap',
+            'piano_G': 'tap_2f',
+            'piano_A': 'double_tap_2f',
+            'piano_B': 'triple_tap_2f',
+            
+            // Black Keys (1-5) -> 3 Finger variations (Harder to hit accidentally)
+            'piano_1': 'tap_3f',
+            'piano_2': 'double_tap_3f',
+            'piano_3': 'triple_tap_3f',
+            'piano_4': 'long_tap_2f', // 2F Long Press
+            'piano_5': 'long_tap_3f'  // 3F Long Press
         }
     }
 };

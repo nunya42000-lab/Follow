@@ -1168,6 +1168,4 @@ if (this.dom.gestureSwipeSlider) {
 
         this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
             }
-    
-
-    
+}

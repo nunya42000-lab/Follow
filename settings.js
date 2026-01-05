@@ -41,8 +41,9 @@ const GESTURE_PRESETS = {
         type: 'key9',
         map: {
             'k9_1': 'tap', 'k9_2': 'double_tap', 'k9_3': 'triple_tap',
-            'k9_4': 'tap_2f', 'k9_5': 'double_tap_2f', 'k9_6': 'triple_tap_2f',
-            'k9_7': 'tap_3f', 'k9_8': 'double_tap_3f', 'k9_9': 'triple_tap_3f'
+            // UPDATED: Strictly horizontal alignment
+            'k9_4': 'tap_2f_horizontal', 'k9_5': 'double_tap_2f_horizontal', 'k9_6': 'triple_tap_2f_horizontal',
+            'k9_7': 'tap_3f_horizontal', 'k9_8': 'double_tap_3f_horizontal', 'k9_9': 'triple_tap_3f_horizontal'
         }
     },
     '9_swipes': {
@@ -59,8 +60,9 @@ const GESTURE_PRESETS = {
         type: 'key12',
         map: {
             'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
-            'k12_5': 'tap_2f', 'k12_6': 'double_tap_2f', 'k12_7': 'triple_tap_2f', 'k12_8': 'long_tap_2f',
-            'k12_9': 'tap_3f', 'k12_10': 'double_tap_3f', 'k12_11': 'triple_tap_3f', 'k12_12': 'long_tap_3f'
+            // UPDATED: Strictly horizontal alignment
+            'k12_5': 'tap_2f_horizontal', 'k12_6': 'double_tap_2f_horizontal', 'k12_7': 'triple_tap_2f_horizontal', 'k12_8': 'long_tap_2f',
+            'k12_9': 'tap_3f_horizontal', 'k12_10': 'double_tap_3f_horizontal', 'k12_11': 'triple_tap_3f_horizontal', 'k12_12': 'long_tap_3f'
         }
     },
     '12_swipes': {
@@ -81,7 +83,8 @@ const GESTURE_PRESETS = {
             'piano_G': 'swipe_se', 'piano_A': 'swipe_right', 'piano_B': 'swipe_ne'
         }
     }
-}; 
+};
+        
 const CRAYONS = ["#000000", "#1F75FE", "#1CA9C9", "#0D98BA", "#FFFFFF", "#C5D0E6", "#B0B7C6", "#AF4035", "#F5F5F5", "#FEFEFA", "#FFFAFA", "#F0F8FF", "#F8F8FF", "#F5F5DC", "#FFFACD", "#FAFAD2", "#FFFFE0", "#FFFFF0", "#FFFF00", "#FFEFD5", "#FFE4B5", "#FFDAB9", "#EEE8AA", "#F0E68C", "#BDB76B", "#E6E6FA", "#D8BFD8", "#DDA0DD", "#EE82EE", "#DA70D6", "#FF00FF", "#BA55D3", "#9370DB", "#8A2BE2", "#9400D3", "#9932CC", "#8B008B", "#800000", "#4B0082", "#483D8B", "#6A5ACD", "#7B68EE", "#ADFF2F", "#7FFF00", "#7CFC00", "#00FF00", "#32CD32", "#98FB98", "#90EE90", "#00FA9A", "#00FF7F", "#3CB371", "#2E8B57", "#228B22", "#008000", "#006400", "#9ACD32", "#6B8E23", "#808000", "#556B2F", "#66CDAA", "#8FBC8F", "#20B2AA", "#008B8B", "#008080", "#00FFFF", "#00CED1", "#40E0D0", "#48D1CC", "#AFEEEE", "#7FFFD4", "#B0E0E6", "#5F9EA0", "#4682B4", "#6495ED", "#00BFFF", "#1E90FF", "#ADD8E6", "#87CEEB", "#87CEFA", "#191970", "#000080", "#0000FF", "#0000CD", "#4169E1", "#8A2BE2", "#4B0082", "#FFE4C4", "#FFEBCD", "#F5DEB3", "#DEB887", "#D2B48C", "#BC8F8F", "#F4A460", "#DAA520", "#B8860B", "#CD853F", "#D2691E", "#8B4513", "#A0522D", "#A52A2A", "#800000", "#FFA07A", "#FA8072", "#E9967A", "#F08080", "#CD5C5C", "#DC143C", "#B22222", "#FF0000", "#FF4500", "#FF6347", "#FF7F50", "#FF8C00", "#FFA500", "#FFD700", "#FFFF00", "#808000", "#556B2F", "#6B8E23", "#999999", "#808080", "#666666", "#333333", "#222222", "#111111", "#0A0A0A", "#000000"];
 
 const LANG = {

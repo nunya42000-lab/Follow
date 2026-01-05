@@ -458,15 +458,11 @@ function renderUI() {
     try {
         const gpWrap = document.getElementById('gesture-pad-wrapper');
         const pad = document.getElementById('gesture-pad');
-        if (gpWrap) {
-            // Note: The visibility logic here is now controlled by the header toggle
-            // We just check the setting directly
-            
-            // --- FIXED LOGIC: Boss Mode Gestures OR (Global Gestures AND Toggle is ON) ---
+                if (gpWrap) {
+            // Check if we should show the gesture pad (Global OR Boss Mode)
             const isGlobalGestureOn = appSettings.isGestureInputEnabled; 
             const isBossGestureOn = appSettings.isBlackoutFeatureEnabled && appSettings.isBlackoutGesturesEnabled && blackoutState.isActive;
 
-            // CHANGE: Added check for 'isGesturePadVisible' global flag
             if ((isGlobalGestureOn && isGesturePadVisible) || isBossGestureOn) {
                 document.body.classList.add('input-gestures-mode');
                 gpWrap.classList.remove('hidden');
@@ -485,9 +481,10 @@ function renderUI() {
                         pad.style.borderColor = '';
                     }
                 }
+                // DELETED: initGesturePad() call is gone.
 
-                if (!window.__gesturePadInited) { initGesturePad(); window.__gesturePadInited = true; }
             } else { 
+                // THIS ELSE BLOCK IS CRITICAL - IT HIDES THE PAD
                 document.body.classList.remove('input-gestures-mode');
                 gpWrap.classList.add('hidden'); 
                 gpWrap.style.zIndex = ''; // Reset
@@ -963,200 +960,115 @@ const startApp = () => {
 
 function initGlobalListeners() {
     try {
-        function getRotationAngle(touch1, touch2) {
-            const dy = touch2.clientY - touch1.clientY;
-            const dx = touch2.clientX - touch1.clientX;
-            return Math.atan2(dy, dx) * 180 / Math.PI;
-        }
-
-        let rotStartAngle = 0;
-        let rotAccumulator = 0;
-        let rotLastUpdate = 0;
-
-        let squiggleState = { isTracking: false, startX: 0, lastX: 0, direction: 0, flips: 0, hasTriggered: false };
-        let squiggleState2F = { isTracking: false, lastX: 0, direction: 0, flips: 0, hasTriggered: false };
-
-        let fourFingerStartSpread = 0;
-        let pinchStartDist = 0;
-        let pinchStartGlobal = 100;
-        let pinchStartSeq = 1.0;
-
-
-        document.body.addEventListener('touchstart', (e) => {
-            const t = e.touches;
-
-            if (t.length === 1) {
-                squiggleState.isTracking = true;
-                squiggleState.startX = t[0].clientX;
-                squiggleState.lastX = t[0].clientX;
-                squiggleState.direction = 0;
-                squiggleState.flips = 0;
-                squiggleState.hasTriggered = false;
-            } else {
-                squiggleState.isTracking = false; 
-            }
-
-            if (t.length === 2) {
-                rotStartAngle = getRotationAngle(t[0], t[1]);
-                rotAccumulator = 0;
-                const dx = t[0].clientX - t[1].clientX;
-                const dy = t[0].clientY - t[1].clientY;
-                pinchStartDist = Math.sqrt(dx * dx + dy * dy);
-                pinchStartGlobal = appSettings.globalUiScale || 100;
-                pinchStartSeq = appSettings.uiScaleMultiplier || 1.0;
-
-                squiggleState2F.isTracking = true;
-                squiggleState2F.lastX = (t[0].clientX + t[1].clientX) / 2;
-                squiggleState2F.direction = 0;
-                squiggleState2F.flips = 0;
-                squiggleState2F.hasTriggered = false;
-            } else {
-                squiggleState2F.isTracking = false;
-            }
-
-            if (t.length === 4) {
-                const d1 = Math.hypot(t[0].clientX - t[3].clientX, t[0].clientY - t[3].clientY);
-                const d2 = Math.hypot(t[1].clientX - t[2].clientX, t[1].clientY - t[2].clientY);
-                fourFingerStartSpread = d1 + d2;
-            }
-
-        }, { passive: false });
-
-
-        document.body.addEventListener('touchmove', (e) => {
-            const t = e.touches;
-            const now = Date.now();
-
-            if (t.length === 1 && squiggleState.isTracking && !squiggleState.hasTriggered) {
-                if (appSettings.isDeleteGestureEnabled) {
-                    const x = t[0].clientX;
-                    const dx = x - squiggleState.lastX;
-                    
-                    if (Math.abs(dx) > 5) {
-                        const newDir = dx > 0 ? 1 : -1;
-                        if (squiggleState.direction !== 0 && newDir !== squiggleState.direction) {
-                            squiggleState.flips++;
-                        }
-                        squiggleState.direction = newDir;
-                        squiggleState.lastX = x;
-
-                        if (squiggleState.flips >= 4) {
-                            handleBackspace(null); 
-                            squiggleState.hasTriggered = true; 
-                            showToast("Deleted ⌫");
-                            squiggleState.flips = 2; 
-                            squiggleState.hasTriggered = false; 
-                        }
-                    }
-                }
-            }
-
-
-            if (t.length === 2) {
+        // --- INITIALIZE GESTURE ENGINE ---
+        // This handles all Swipes, Taps, Twists, Pinches, Squiggles
+        const engine = new GestureEngine(document.body, {
+            tapDelay: appSettings.gestureTapDelay || 300,
+            swipeThreshold: appSettings.gestureSwipeDist || 30
+        }, {
+            // 1. DISCRETE GESTURES (Completed actions)
+            onGesture: (data) => {
+                // data.id example: 'tap_2f_horizontal' or 'swipe_up'
                 
-                if (appSettings.isClearGestureEnabled && squiggleState2F.isTracking && !squiggleState2F.hasTriggered) {
-                    const currentAvgX = (t[0].clientX + t[1].clientX) / 2;
-                    const dx = currentAvgX - squiggleState2F.lastX;
-                    
-                    if (Math.abs(dx) > 5) {
-                        const newDir = dx > 0 ? 1 : -1;
-                        if (squiggleState2F.direction !== 0 && newDir !== squiggleState2F.direction) {
-                            squiggleState2F.flips++;
-                        }
-                        squiggleState2F.direction = newDir;
-                        squiggleState2F.lastX = currentAvgX;
-
-                        if (squiggleState2F.flips >= 3) {
-                             const s = getState();
-                             s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []);
-                             s.nextSequenceIndex = 0;
-                             renderUI();
-                             saveState();
-                             showToast("CLEARED 💥");
-                             vibrate();
-                             squiggleState2F.hasTriggered = true; 
-                        }
-                    }
+                // Debugging / Toast
+                if(appSettings.isGestureInputEnabled) {
+                     // Update the gesture pad text if visible
+                     const indicator = document.getElementById('gesture-indicator');
+                     if(indicator && document.body.classList.contains('input-gestures-mode')) {
+                         indicator.textContent = `Gesture: ${data.name}`;
+                         indicator.style.opacity = '1';
+                         setTimeout(()=> { indicator.style.opacity = '0.3'; indicator.textContent = 'Area Active'; }, 1000);
+                     }
                 }
 
-                if (!squiggleState2F.hasTriggered && (now - rotLastUpdate > 50)) {
-                    
-                    if (appSettings.isSpeedGesturesEnabled) {
-                        if(e.cancelable) e.preventDefault();
-                        const currentAngle = getRotationAngle(t[0], t[1]);
-                        let delta = currentAngle - rotStartAngle;
-                        if (delta > 180) delta -= 360; if (delta < -180) delta += 360;
-                        rotAccumulator += delta;
-                        rotStartAngle = currentAngle;
-                        
-                        if (Math.abs(rotAccumulator) > 15) {
-                            let newSpeed = appSettings.playbackSpeed || 1.0;
-                            if (rotAccumulator > 0) { newSpeed += 0.05; showToast(`Speed: ${(newSpeed * 100).toFixed(0)}% 🐇`); } 
-                            else { newSpeed -= 0.05; showToast(`Speed: ${(newSpeed * 100).toFixed(0)}% 🐢`); }
-                            appSettings.playbackSpeed = Math.min(2.0, Math.max(0.5, newSpeed));
-                            saveState();
-                            rotAccumulator = 0;
-                            rotLastUpdate = now;
-                        }
-                    }
-
-                    if (pinchStartDist > 0) {
-                        const dx = t[0].clientX - t[1].clientX;
-                        const dy = t[0].clientY - t[1].clientY;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-                        
-                        if (Math.abs(dist - pinchStartDist) > 20) {
-                            const ratio = dist / pinchStartDist;
-                            const mode = appSettings.gestureResizeMode || 'global';
-                            if (mode === 'sequence') {
-                                let newScale = pinchStartSeq * ratio;
-                                appSettings.uiScaleMultiplier = Math.min(2.5, Math.max(0.5, newScale));
-                                renderUI();
-                            } else {
-                                let newScale = pinchStartGlobal * ratio;
-                                appSettings.globalUiScale = Math.min(200, Math.max(50, newScale));
-                                updateAllChrome();
-                            }
-                        }
-                    }
+                // A. Motion Taps (Spatial)
+                if (data.base === 'motion_tap') {
+                     // Handle specific motion tap logic if needed, otherwise map it
                 }
-            }
 
-            if (t.length === 3 && appSettings.isVolumeGesturesEnabled && (now - rotLastUpdate > 50)) {
-                if(e.cancelable) e.preventDefault();
-                const currentAngle = getRotationAngle(t[0], t[1]);
-                let delta = currentAngle - rotStartAngle;
-                if (delta > 180) delta -= 360; if (delta < -180) delta += 360;
-                rotAccumulator += delta;
-                rotStartAngle = currentAngle;
+                // B. Map to Input Value
+                // Only map if gesture input is enabled OR Boss Mode Gestures are active
+                const isGlobal = appSettings.isGestureInputEnabled && isGesturePadVisible;
+                const isBoss = appSettings.isBlackoutFeatureEnabled && appSettings.isBlackoutGesturesEnabled && blackoutState.isActive;
                 
-                if (Math.abs(rotAccumulator) > 15) {
+                if (isGlobal || isBoss) {
+                    const mappedValue = mapGestureToValue(data.id, getProfileSettings().currentInput);
+                    if (mappedValue) {
+                        addValue(mappedValue);
+                        return; // Don't do other actions if we found a value
+                    }
+                }
+            },
+
+            // 2. CONTINUOUS GESTURES (While moving)
+            onContinuous: (data) => {
+                const fingers = data.fingers;
+
+                // A. DELETE (Squiggle 1F)
+                if (data.type === 'squiggle' && fingers === 1 && appSettings.isDeleteGestureEnabled) {
+                    handleBackspace(null);
+                    showToast("Deleted ⌫");
+                    vibrate();
+                }
+
+                // B. CLEAR (Squiggle 2F)
+                if (data.type === 'squiggle' && fingers === 2 && appSettings.isClearGestureEnabled) {
+                     const s = getState();
+                     s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []);
+                     s.nextSequenceIndex = 0;
+                     renderUI();
+                     saveState();
+                     showToast("CLEARED 💥");
+                     vibrate();
+                }
+
+                // C. SPEED (Twist 2F)
+                if (data.type === 'twist' && fingers === 2 && appSettings.isSpeedGesturesEnabled) {
+                    let newSpeed = appSettings.playbackSpeed || 1.0;
+                    if (data.value > 0) { newSpeed += 0.05; } // CW
+                    else { newSpeed -= 0.05; } // CCW
+                    
+                    appSettings.playbackSpeed = Math.min(2.0, Math.max(0.5, newSpeed));
+                    saveState();
+                    showToast(`Speed: ${(appSettings.playbackSpeed * 100).toFixed(0)}% ${data.value > 0 ? '🐇' : '🐢'}`);
+                }
+
+                // D. VOLUME (Twist 3F)
+                if (data.type === 'twist' && fingers === 3 && appSettings.isVolumeGesturesEnabled) {
                     let newVol = appSettings.voiceVolume || 1.0;
-                    if (rotAccumulator > 0) { newVol += 0.05; showToast(`Volume: ${(newVol * 100).toFixed(0)}% 🔊`); } 
-                    else { newVol -= 0.05; showToast(`Volume: ${(newVol * 100).toFixed(0)}% 🔉`); }
+                    if (data.value > 0) { newVol += 0.05; } 
+                    else { newVol -= 0.05; }
+                    
                     appSettings.voiceVolume = Math.min(1.0, Math.max(0.0, newVol));
                     saveState();
-                    rotAccumulator = 0;
-                    rotLastUpdate = now;
+                    showToast(`Volume: ${(appSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
                 }
-            }
-            
-        }, { passive: false });
 
-        document.body.addEventListener('touchend', (e) => {
-            if (e.touches.length < 2) { 
-                pinchStartDist = 0; 
-                squiggleState2F.isTracking = false;
-                saveState(); 
-                if(modules.settings) modules.settings.updateUIFromSettings(); 
-            }
-            if (e.touches.length < 4) fourFingerStartSpread = 0;
-            if (e.touches.length === 0) { 
-                squiggleState.isTracking = false; 
+                // E. RESIZE (Pinch 2F)
+                if (data.type === 'pinch') {
+                    // data.scale is the ratio from start
+                    // We need to know the start scale to apply ratio
+                    // In real-time, this might be jumpy if we don't store "startScale" in the engine
+                    // But for now, we just apply relative changes
+                    const mode = appSettings.gestureResizeMode || 'global';
+                    
+                    if (mode === 'sequence') {
+                        let current = appSettings.uiScaleMultiplier || 1.0;
+                        // Apply small increments based on scale direction
+                        let change = data.scale > 1 ? 1.02 : 0.98;
+                        appSettings.uiScaleMultiplier = Math.min(2.5, Math.max(0.5, current * change));
+                        renderUI();
+                    } else {
+                        let current = appSettings.globalUiScale || 100;
+                        let change = data.scale > 1 ? 1.02 : 0.98;
+                        appSettings.globalUiScale = Math.min(200, Math.max(50, current * change));
+                        updateAllChrome();
+                    }
+                }
             }
         });
 
-
+        // --- BUTTON LISTENERS (Keep existing logic) ---
         document.querySelectorAll('.btn-pad-number').forEach(b => {
             const press = (e) => { 
                 if(e) { e.preventDefault(); e.stopPropagation(); } 
@@ -1236,23 +1148,21 @@ function initGlobalListeners() {
         document.body.addEventListener('mouseup', handleResume); document.body.addEventListener('touchend', handleResume);
         
         document.getElementById('close-settings').addEventListener('click', () => { if(appSettings.isPracticeModeEnabled) { setTimeout(startPracticeRound, 500); } });
-   let lastX=0, lastY=0, lastZ=0;
+        
+        let lastX=0, lastY=0, lastZ=0;
         window.addEventListener('devicemotion', (e) => {
-            // CHANGED: Only run if Boss Mode is enabled
             if(!appSettings.isBlackoutFeatureEnabled) return; 
-
             const acc = e.accelerationIncludingGravity; if(!acc) return;
             const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
             
             if(delta > 25) { 
                 const now = Date.now();
                 if(now - blackoutState.lastShake > 1000) {
-                    // CHANGED: Toggle Blackout State instead of Gesture Pad
                     blackoutState.isActive = !blackoutState.isActive;
                     document.body.classList.toggle('blackout-active', blackoutState.isActive);
                     showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back");
                     vibrate();
-                    renderUI(); // Re-render to update Z-indexes if gestures are active
+                    renderUI(); 
                     blackoutState.lastShake = now;
                 }
             }
@@ -1284,11 +1194,12 @@ function initGlobalListeners() {
              }, { passive: false });
         }
         
+        // Header listeners (Timer, Counter, Mic, Cam) remain unchanged...
         const headerTimer = document.getElementById('header-timer-btn');
         const headerCounter = document.getElementById('header-counter-btn');
         const headerMic = document.getElementById('header-mic-btn');
         const headerCam = document.getElementById('header-cam-btn');
-        const headerGestureBtn = document.getElementById('header-gesture-btn'); // ADDED
+        const headerGesture = document.getElementById('header-gesture-btn');
 
         if(headerTimer) {
             headerTimer.textContent = "00:00"; 
@@ -1301,7 +1212,6 @@ function initGlobalListeners() {
                 const now = Date.now(); const diff = now - simpleTimer.startTime + simpleTimer.elapsed;
                 headerTimer.textContent = formatTime(diff);
             };
-            
             globalTimerActions.start = () => {
                 if(!simpleTimer.isRunning) {
                     simpleTimer.startTime = Date.now();
@@ -1322,13 +1232,11 @@ function initGlobalListeners() {
                 simpleTimer.elapsed = 0;
                 headerTimer.textContent = "00:00";
             };
-
             const toggleTimer = () => {
                 if(simpleTimer.isRunning) globalTimerActions.stop(); else globalTimerActions.start();
                 vibrate();
             };
             const resetTimer = () => { globalTimerActions.reset(); showToast("Timer Reset"); vibrate(); };
-
             let tTimer; let tIsLong = false;
             const startT = (e) => { if(e.type === 'mousedown' && e.button !== 0) return; tIsLong = false; tTimer = setTimeout(() => { tIsLong = true; resetTimer(); }, 600); };
             const endT = (e) => { if(e) e.preventDefault(); clearTimeout(tTimer); if(!tIsLong) toggleTimer(); };
@@ -1339,13 +1247,10 @@ function initGlobalListeners() {
         if(headerCounter) {
             headerCounter.textContent = simpleCounter.toString(); headerCounter.style.fontSize = "1.2rem";
             const updateCounter = () => { headerCounter.textContent = simpleCounter; };
-            
             globalCounterActions.increment = () => { simpleCounter++; updateCounter(); };
             globalCounterActions.reset = () => { simpleCounter = 0; updateCounter(); };
-
             const increment = () => { globalCounterActions.increment(); vibrate(); };
             const resetCounter = () => { globalCounterActions.reset(); showToast("Counter Reset"); vibrate(); };
-
             let cTimer; let cIsLong = false;
             const startC = (e) => { if(e.type === 'mousedown' && e.button !== 0) return; cIsLong = false; cTimer = setTimeout(() => { cIsLong = true; resetCounter(); }, 600); };
             const endC = (e) => { if(e) e.preventDefault(); clearTimeout(cTimer); if(!cIsLong) increment(); };
@@ -1362,18 +1267,10 @@ function initGlobalListeners() {
             }; 
         }
 
-        // ADDED GESTURE BUTTON LOGIC
-               const headerGesture = document.getElementById('header-gesture-btn'); // Get element
-
         if(headerGesture) {
             headerGesture.onclick = () => {
-                // Toggle the global visibility flag
                 isGesturePadVisible = !isGesturePadVisible;
-                
-                // Visual feedback on the button
                 headerGesture.classList.toggle('header-btn-active', isGesturePadVisible);
-                
-                // Show/Hide the actual pad wrapper
                 const gpWrap = document.getElementById('gesture-pad-wrapper');
                 if(gpWrap) {
                     if(isGesturePadVisible) {
@@ -1384,23 +1281,19 @@ function initGlobalListeners() {
                         showToast("Pad Hidden");
                     }
                 }
-                
-                // Optional: Force a re-render to ensure classes stick
                 renderUI();
             };
         }
+        
         if(headerCam) { 
             headerCam.onclick = () => {
                 const isArActive = document.body.classList.contains('ar-active');
                 const newState = !isArActive;
-
                 if (newState) {
-                    // Turn AR ON
                     document.body.classList.add('ar-active');
                     headerCam.classList.add('header-btn-active');
-                    
                     if (modules.sensor) {
-                        modules.sensor.toggleCamera(true); // Start stream
+                        modules.sensor.toggleCamera(true);
                         if (modules.sensor.videoEl) {
                             modules.sensor.videoEl.style.display = 'block';
                             modules.sensor.videoEl.className = 'ar-background-video';
@@ -1408,12 +1301,10 @@ function initGlobalListeners() {
                     }
                     showToast("AR Mode ON 📸");
                 } else {
-                    // Turn AR OFF
                     document.body.classList.remove('ar-active');
                     headerCam.classList.remove('header-btn-active');
-                    
                     if (modules.sensor) {
-                        modules.sensor.toggleCamera(false); // Stop stream
+                        modules.sensor.toggleCamera(false);
                         if (modules.sensor.videoEl) {
                             modules.sensor.videoEl.style.display = 'none';
                         }
@@ -1426,5 +1317,6 @@ function initGlobalListeners() {
         console.error("Listener Error:", e);
     }
 }
-        
+
+            
 document.addEventListener('DOMContentLoaded', startApp);

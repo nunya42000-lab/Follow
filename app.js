@@ -156,9 +156,21 @@ function vibrateMorse(val) {
 
 function mapGestureToValue(kind, currentInput) {
     const gm = appSettings.gestureMappings || {};
+
+    // Helper: Returns true if the saved setting matches the incoming gesture
+    // e.g., Saved: 'tap_2f' matches Incoming: 'tap_2f_horizontal'
+    const matches = (savedGesture, incomingGesture) => {
+        if (!savedGesture) return false;
+        if (savedGesture === incomingGesture) return true;
+        // Check if incoming is a specific version of the saved generic gesture
+        // e.g. "tap_2f" should match "tap_2f_horizontal"
+        if (incomingGesture.startsWith(savedGesture + '_')) return true;
+        return false;
+    };
+
     if(currentInput === CONFIG.INPUTS.PIANO) {
         for(const k in gm) {
-            if(k.startsWith('piano_') && gm[k].gesture === kind) {
+            if(k.startsWith('piano_') && matches(gm[k].gesture, kind)) {
                 return k.replace('piano_','');
             }
         }
@@ -167,20 +179,20 @@ function mapGestureToValue(kind, currentInput) {
     if(currentInput === CONFIG.INPUTS.KEY12) {
         for(let i=1; i<=12; i++) { 
             const k = 'k12_' + i; 
-            if(gm[k] && gm[k].gesture === kind) return i; 
+            if(gm[k] && matches(gm[k].gesture, kind)) return i; 
         }
         return null;
     }
     if(currentInput === CONFIG.INPUTS.KEY9) {
         for(let i=1; i<=9; i++) { 
             const k = 'k9_' + i; 
-            if(gm[k] && gm[k].gesture === kind) return i; 
+            if(gm[k] && matches(gm[k].gesture, kind)) return i; 
         }
         return null;
     }
     return null;
-}
-       
+            }
+
 function speak(text) { 
     if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; 
     window.speechSynthesis.cancel(); 

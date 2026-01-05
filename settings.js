@@ -94,6 +94,65 @@ const GESTURE_PRESETS = {
         name: "Swipes",
         type: 'key12',
         map: {
+const GESTURE_PRESETS = {
+    // --- 9-KEY PROFILES ---
+    '9_taps': {
+        name: "Taps (Default)",
+        type: 'key9',
+        map: {
+            'k9_1': 'tap', 
+            'k9_2': 'double_tap', 
+            'k9_3': 'triple_tap',
+            'k9_4': 'tap_2f', 
+            'k9_5': 'double_tap_2f', 
+            'k9_6': 'triple_tap_2f',
+            'k9_7': 'tap_3f', 
+            'k9_8': 'double_tap_3f', 
+            'k9_9': 'triple_tap_3f'
+        }
+    },
+    '9_swipes': {
+        name: "Swipes",
+        type: 'key9',
+        map: {
+            'k9_1': 'swipe_nw', 'k9_2': 'swipe_up', 'k9_3': 'swipe_ne',
+            'k9_4': 'swipe_left', 'k9_5': 'tap', 'k9_6': 'swipe_right',
+            'k9_7': 'swipe_sw', 'k9_8': 'swipe_down', 'k9_9': 'swipe_se'
+        }
+    },
+    '9_motion': {
+        name: "Motion Taps",
+        type: 'key9',
+        map: {
+            'k9_1': 'motion_tap_spatial_nw', 'k9_2': 'motion_tap_spatial_up', 'k9_3': 'motion_tap_spatial_ne',
+            'k9_4': 'motion_tap_spatial_left', 'k9_5': 'double_tap', 'k9_6': 'motion_tap_spatial_right',
+            'k9_7': 'motion_tap_spatial_sw', 'k9_8': 'motion_tap_spatial_down', 'k9_9': 'motion_tap_spatial_se'
+        }
+    },
+
+    // --- 12-KEY PROFILES ---
+    '12_taps': {
+        name: "Taps (Default)",
+        type: 'key12',
+        map: {
+            'k12_1': 'tap', 
+            'k12_2': 'double_tap', 
+            'k12_3': 'triple_tap', 
+            'k12_4': 'long_tap',
+            'k12_5': 'tap_2f', 
+            'k12_6': 'double_tap_2f', 
+            'k12_7': 'triple_tap_2f', 
+            'k12_8': 'long_tap_2f',
+            'k12_9': 'tap_3f', 
+            'k12_10': 'double_tap_3f', 
+            'k12_11': 'triple_tap_3f', 
+            'k12_12': 'long_tap_3f'
+        }
+    },
+    '12_swipes': {
+        name: "Swipes",
+        type: 'key12',
+        map: {
             'k12_1': 'swipe_left', 'k12_2': 'swipe_up', 'k12_3': 'swipe_down', 'k12_4': 'swipe_right',
             'k12_5': 'swipe_left_2f', 'k12_6': 'swipe_up_2f', 'k12_7': 'swipe_down_2f', 'k12_8': 'swipe_right_2f',
             'k12_9': 'swipe_left_3f', 'k12_10': 'swipe_up_3f', 'k12_11': 'swipe_down_3f', 'k12_12': 'swipe_right_3f'
@@ -113,6 +172,7 @@ const GESTURE_PRESETS = {
         }
     }
 };
+            
 const CRAYONS = ["#000000", "#1F75FE", "#1CA9C9", "#0D98BA", "#FFFFFF", "#C5D0E6", "#B0B7C6", "#AF4035", "#F5F5F5", "#FEFEFA", "#FFFAFA", "#F0F8FF", "#F8F8FF", "#F5F5DC", "#FFFACD", "#FAFAD2", "#FFFFE0", "#FFFFF0", "#FFFF00", "#FFEFD5", "#FFE4B5", "#FFDAB9", "#EEE8AA", "#F0E68C", "#BDB76B", "#E6E6FA", "#D8BFD8", "#DDA0DD", "#EE82EE", "#DA70D6", "#FF00FF", "#BA55D3", "#9370DB", "#8A2BE2", "#9400D3", "#9932CC", "#8B008B", "#800000", "#4B0082", "#483D8B", "#6A5ACD", "#7B68EE", "#ADFF2F", "#7FFF00", "#7CFC00", "#00FF00", "#32CD32", "#98FB98", "#90EE90", "#00FA9A", "#00FF7F", "#3CB371", "#2E8B57", "#228B22", "#008000", "#006400", "#9ACD32", "#6B8E23", "#808000", "#556B2F", "#66CDAA", "#8FBC8F", "#20B2AA", "#008B8B", "#008080", "#00FFFF", "#00CED1", "#40E0D0", "#48D1CC", "#AFEEEE", "#7FFFD4", "#B0E0E6", "#5F9EA0", "#4682B4", "#6495ED", "#00BFFF", "#1E90FF", "#ADD8E6", "#87CEEB", "#87CEFA", "#191970", "#000080", "#0000FF", "#0000CD", "#4169E1", "#8A2BE2", "#4B0082", "#FFE4C4", "#FFEBCD", "#F5DEB3", "#DEB887", "#D2B48C", "#BC8F8F", "#F4A460", "#DAA520", "#B8860B", "#CD853F", "#D2691E", "#8B4513", "#A0522D", "#A52A2A", "#800000", "#FFA07A", "#FA8072", "#E9967A", "#F08080", "#CD5C5C", "#DC143C", "#B22222", "#FF0000", "#FF4500", "#FF6347", "#FF7F50", "#FF8C00", "#FFA500", "#FFD700", "#FFFF00", "#808000", "#556B2F", "#6B8E23", "#999999", "#808080", "#666666", "#333333", "#222222", "#111111", "#0A0A0A", "#000000"];
 
 const LANG = {
@@ -1091,30 +1151,30 @@ if (this.dom.gestureSwipeSlider) {
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
         
         const defaults = {
-            // 9-KEY DEFAULT: TAPS
+            // 9-KEY DEFAULT: TAPS (Generic)
             'k9_1': { gesture: 'tap', morse: '.' }, 
             'k9_2': { gesture: 'double_tap', morse: '..' }, 
             'k9_3': { gesture: 'triple_tap', morse: '...' }, 
-            'k9_4': { gesture: 'tap_2f_horizontal', morse: '-' }, 
-            'k9_5': { gesture: 'double_tap_2f_horizontal', morse: '-.' }, 
-            'k9_6': { gesture: 'triple_tap_2f_horizontal', morse: '-..' }, 
-            'k9_7': { gesture: 'tap_3f_horizontal', morse: '--' }, 
-            'k9_8': { gesture: 'double_tap_3f_horizontal', morse: '--.' }, 
-            'k9_9': { gesture: 'triple_tap_3f_horizontal', morse: '---' },
+            'k9_4': { gesture: 'tap_2f', morse: '-' }, 
+            'k9_5': { gesture: 'double_tap_2f', morse: '-.' }, 
+            'k9_6': { gesture: 'triple_tap_2f', morse: '-..' }, 
+            'k9_7': { gesture: 'tap_3f', morse: '--' }, 
+            'k9_8': { gesture: 'double_tap_3f', morse: '--.' }, 
+            'k9_9': { gesture: 'triple_tap_3f', morse: '---' },
 
-            // 12-KEY DEFAULT: TAPS
+            // 12-KEY DEFAULT: TAPS (Generic)
             'k12_1': { gesture: 'tap', morse: '.' }, 
             'k12_2': { gesture: 'double_tap', morse: '..' }, 
             'k12_3': { gesture: 'triple_tap', morse: '...' }, 
             'k12_4': { gesture: 'long_tap', morse: '...-' }, 
-            'k12_5': { gesture: 'tap_2f_horizontal', morse: '-' }, 
-            'k12_6': { gesture: 'double_tap_2f_horizontal', morse: '-.' }, 
-            'k12_7': { gesture: 'triple_tap_2f_horizontal', morse: '-..' }, 
-            'k12_8': { gesture: 'long_tap_2f_horizontal', morse: '-.-' }, 
-            'k12_9': { gesture: 'tap_3f_horizontal', morse: '--' }, 
-            'k12_10': { gesture: 'double_tap_3f_horizontal', morse: '--.' }, 
-            'k12_11': { gesture: 'triple_tap_3f_horizontal', morse: '--..' }, 
-            'k12_12': { gesture: 'long_tap_3f_horizontal', morse: '---' },
+            'k12_5': { gesture: 'tap_2f', morse: '-' }, 
+            'k12_6': { gesture: 'double_tap_2f', morse: '-.' }, 
+            'k12_7': { gesture: 'triple_tap_2f', morse: '-..' }, 
+            'k12_8': { gesture: 'long_tap_2f', morse: '-.-' }, 
+            'k12_9': { gesture: 'tap_3f', morse: '--' }, 
+            'k12_10': { gesture: 'double_tap_3f', morse: '--.' }, 
+            'k12_11': { gesture: 'triple_tap_3f', morse: '--..' }, 
+            'k12_12': { gesture: 'long_tap_3f', morse: '---' },
 
             // PIANO DEFAULT: SWIPES
             'piano_C': { gesture: 'swipe_nw', morse: '.' }, 
@@ -1132,8 +1192,8 @@ if (this.dom.gestureSwipeSlider) {
         };
 
         this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
-                     }
-            
+            }
+    
 
         // Merge defaults, keeping existing custom settings if they exist
         this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});

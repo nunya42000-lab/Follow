@@ -142,6 +142,7 @@ function vibrateMorse(val) {
    
 
     function handleGesture(kind) {
+       const indicator = document.getElementById('gesture-indicator');
         if(indicator) {
             indicator.textContent = `Gesture: ${kind.replace(/_/g, ' ')}`;
             indicator.style.opacity = '1';
@@ -151,7 +152,7 @@ function vibrateMorse(val) {
         const mapResult = mapGestureToValue(kind, settings.currentInput);
         if(mapResult !== null) addValue(mapResult);
     }
-}
+
 
 function mapGestureToValue(kind, currentInput) {
     const gm = appSettings.gestureMappings || {};

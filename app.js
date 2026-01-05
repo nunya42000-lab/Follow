@@ -1222,7 +1222,7 @@ function initGlobalListeners() {
     } catch(e) {
         console.error("Listener Error:", e);
     }
-}
+
 
             
 document.addEventListener('DOMContentLoaded', startApp);

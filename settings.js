@@ -752,13 +752,22 @@ if (this.dom.gestureSwipeSlider) {
             gestureList.push(`expand_swipe_${d}_2f`);  // A-Shape
         });
 
-        // 5. Shapes (1F) - Corners, Triangles, Squares, U-Shapes
-        dirs.forEach(d => {
-            gestureList.push(`corner_${d}`);
-            gestureList.push(`triangle_${d}`);
-            gestureList.push(`square_${d}`);
-            gestureList.push(`u_shape_${d}`);
+                // 5. Shapes (1F) - Corners, Triangles, Squares, U-Shapes
+        // Generates: square_cw, square_ccw, square_up_cw, square_up_ccw, etc.
+        const shapes = ['corner', 'triangle', 'square', 'u_shape'];
+        
+        shapes.forEach(shape => {
+            // Generic (Any Direction)
+            gestureList.push(`${shape}_cw`);
+            gestureList.push(`${shape}_ccw`);
+            
+            // Specific Directions
+            dirs.forEach(d => {
+                gestureList.push(`${shape}_${d}_cw`);
+                gestureList.push(`${shape}_${d}_ccw`);
+            });
         });
+
 
         // 6. Motion Taps (1F)
         // Format: motion_tap_[subMode]_[dir]

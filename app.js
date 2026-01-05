@@ -1,3 +1,4 @@
+import { GestureEngine } from './gestures.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { SensorEngine } from './sensors.js';
@@ -138,101 +139,7 @@ function vibrateMorse(val) {
     else if (num >= 10 && num <= 12) { pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); pattern.push(DASH); pattern.push(GAP); for(let i=0; i<(num-10); i++) { pattern.push(DOT); pattern.push(GAP); } } 
     if(pattern.length > 0) navigator.vibrate(pattern); 
 }
-   function initGesturePad() {
-    const pad = document.getElementById('gesture-pad');
-    const indicator = document.getElementById('gesture-indicator');
-    if(!pad) return;
-
-    let state = {
-        startX: 0, startY: 0, startTime: 0, maxTouches: 0,
-        isLongPressTriggered: false, longPressTimer: null,
-        tapCount: 0, tapTimer: null, lastTapFingers: 0
-    };
-
-    const get8WayDirection = (dx, dy) => {
-        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-        if (angle > -22.5 && angle <= 22.5) return 'swipe_right';
-        if (angle > 22.5 && angle <= 67.5) return 'swipe_se';
-        if (angle > 67.5 && angle <= 112.5) return 'swipe_down';
-        if (angle > 112.5 && angle <= 157.5) return 'swipe_sw';
-        if (angle > 157.5 || angle <= -157.5) return 'swipe_left';
-        if (angle > -157.5 && angle <= -112.5) return 'swipe_nw';
-        if (angle > -112.5 && angle <= -67.5) return 'swipe_up';
-        if (angle > -67.5 && angle <= -22.5) return 'swipe_ne';
-        return 'swipe_right';
-    };
-
-    const getFingerSuffix = (n) => (n >= 3 ? '_3f' : n === 2 ? '_2f' : '');
-
-    pad.addEventListener('touchstart', (ev) => {
-        ev.preventDefault();
-        const t = ev.touches;
-        if(t.length === 0) return;
-
-        if (!state.startTime || (Date.now() - state.startTime > 300 && state.tapCount === 0)) {
-            state.startX = t[0].clientX;
-            state.startY = t[0].clientY;
-            state.startTime = Date.now();
-            state.maxTouches = t.length;
-            state.isLongPressTriggered = false;
-            
-            clearTimeout(state.longPressTimer);
-            state.longPressTimer = setTimeout(() => {
-                state.isLongPressTriggered = true;
-                const suffix = getFingerSuffix(state.maxTouches);
-                handleGesture(`long_tap${suffix}`);
-            }, 600);
-        } else {
-            state.maxTouches = Math.max(state.maxTouches, t.length);
-        }
-    }, {passive: false});
-
-    pad.addEventListener('touchmove', (ev) => {
-        ev.preventDefault();
-        state.maxTouches = Math.max(state.maxTouches, ev.touches.length);
-        const t = ev.touches[0];
-        const dx = t.clientX - state.startX;
-        const dy = t.clientY - state.startY;
-        if (Math.sqrt(dx*dx + dy*dy) > 20) {
-            clearTimeout(state.longPressTimer);
-        }
-    }, {passive: false});
-
-    pad.addEventListener('touchend', (ev) => {
-        ev.preventDefault();
-        if (ev.touches.length > 0) return;
-
-        clearTimeout(state.longPressTimer);
-        if (state.isLongPressTriggered) return;
-
-        const t = ev.changedTouches[0];
-        const dx = t.clientX - state.startX;
-        const dy = t.clientY - state.startY;
-         const dist = Math.sqrt(dx*dx + dy*dy);
-const suffix = getFingerSuffix(state.maxTouches);
-
-// NEW: Use dynamic settings (Default 30px / 300ms)
-const swipeThresh = appSettings.gestureSwipeDist || 30;
-const tapDelay = appSettings.gestureTapDelay || 300;
-
-if (dist > swipeThresh) {
-    state.tapCount = 0;
-    const dir = get8WayDirection(dx, dy);
-    handleGesture(dir + suffix);
-} else {
-    state.tapCount++;
-    state.lastTapFingers = state.maxTouches;
-    clearTimeout(state.tapTimer);
-    state.tapTimer = setTimeout(() => {
-        let gesture = 'tap';
-        if (state.tapCount === 2) gesture = 'double_tap';
-        if (state.tapCount >= 3) gesture = 'triple_tap';
-        handleGesture(gesture + suffix);
-        state.tapCount = 0;
-    }, tapDelay); // Use dynamic delay
-}
-        
-    }, {passive: false});
+   
 
     function handleGesture(kind) {
         if(indicator) {
@@ -485,7 +392,6 @@ function renderUI() {
                     }
                 }
 
-                if (!window.__gesturePadInited) { initGesturePad(); window.__gesturePadInited = true; }
             } else { 
                 document.body.classList.remove('input-gestures-mode');
                 gpWrap.classList.add('hidden'); 
@@ -948,7 +854,9 @@ const startApp = () => {
     updateAllChrome();
     initComments(db);
     modules.settings.updateHeaderVisibility();
-    initGlobalListeners();
+    // Init the new engine (replaces initGlobalListeners and initGesturePad)
+initGestureEngine(); 
+    
     
     if (appSettings.autoInputMode === 'mic' || appSettings.autoInputMode === 'both') {
         modules.sensor.toggleAudio(true);
@@ -959,471 +867,105 @@ const startApp = () => {
     
     renderUI();
 };
-
-function initGlobalListeners() {
-    try {
-        function getRotationAngle(touch1, touch2) {
-            const dy = touch2.clientY - touch1.clientY;
-            const dx = touch2.clientX - touch1.clientX;
-            return Math.atan2(dy, dx) * 180 / Math.PI;
-        }
-
-        let rotStartAngle = 0;
-        let rotAccumulator = 0;
-        let rotLastUpdate = 0;
-
-        let squiggleState = { isTracking: false, startX: 0, lastX: 0, direction: 0, flips: 0, hasTriggered: false };
-        let squiggleState2F = { isTracking: false, lastX: 0, direction: 0, flips: 0, hasTriggered: false };
-
-        let fourFingerStartSpread = 0;
-        let pinchStartDist = 0;
-        let pinchStartGlobal = 100;
-        let pinchStartSeq = 1.0;
-
-
-        document.body.addEventListener('touchstart', (e) => {
-            const t = e.touches;
-
-            if (t.length === 1) {
-                squiggleState.isTracking = true;
-                squiggleState.startX = t[0].clientX;
-                squiggleState.lastX = t[0].clientX;
-                squiggleState.direction = 0;
-                squiggleState.flips = 0;
-                squiggleState.hasTriggered = false;
-            } else {
-                squiggleState.isTracking = false; 
-            }
-
-            if (t.length === 2) {
-                rotStartAngle = getRotationAngle(t[0], t[1]);
-                rotAccumulator = 0;
-                const dx = t[0].clientX - t[1].clientX;
-                const dy = t[0].clientY - t[1].clientY;
-                pinchStartDist = Math.sqrt(dx * dx + dy * dy);
-                pinchStartGlobal = appSettings.globalUiScale || 100;
-                pinchStartSeq = appSettings.uiScaleMultiplier || 1.0;
-
-                squiggleState2F.isTracking = true;
-                squiggleState2F.lastX = (t[0].clientX + t[1].clientX) / 2;
-                squiggleState2F.direction = 0;
-                squiggleState2F.flips = 0;
-                squiggleState2F.hasTriggered = false;
-            } else {
-                squiggleState2F.isTracking = false;
-            }
-
-            if (t.length === 4) {
-                const d1 = Math.hypot(t[0].clientX - t[3].clientX, t[0].clientY - t[3].clientY);
-                const d2 = Math.hypot(t[1].clientX - t[2].clientX, t[1].clientY - t[2].clientY);
-                fourFingerStartSpread = d1 + d2;
-            }
-
-        }, { passive: false });
-
-
-        document.body.addEventListener('touchmove', (e) => {
-            const t = e.touches;
-            const now = Date.now();
-
-            if (t.length === 1 && squiggleState.isTracking && !squiggleState.hasTriggered) {
-                if (appSettings.isDeleteGestureEnabled) {
-                    const x = t[0].clientX;
-                    const dx = x - squiggleState.lastX;
-                    
-                    if (Math.abs(dx) > 5) {
-                        const newDir = dx > 0 ? 1 : -1;
-                        if (squiggleState.direction !== 0 && newDir !== squiggleState.direction) {
-                            squiggleState.flips++;
-                        }
-                        squiggleState.direction = newDir;
-                        squiggleState.lastX = x;
-
-                        if (squiggleState.flips >= 4) {
-                            handleBackspace(null); 
-                            squiggleState.hasTriggered = true; 
-                            showToast("Deleted ⌫");
-                            squiggleState.flips = 2; 
-                            squiggleState.hasTriggered = false; 
-                        }
-                    }
+// --- NEW GESTURE ENGINE INTEGRATION ---
+function initGestureEngine() {
+    // We attach to body to handle global actions (Twist/Pinch) 
+    // AND input actions when in "Gesture Mode"
+    const engine = new GestureEngine(document.body, {
+        tapDelay: appSettings.gestureTapDelay || 300,
+        swipeThreshold: appSettings.gestureSwipeDist || 30,
+        debug: false
+    }, {
+        // 1. DISCRETE GESTURES (Taps, Swipes, Shapes)
+        onGesture: (data) => {
+            // Check for Delete / Clear Shortcuts (Double Boomerang)
+            if (data.base === 'double_boomerang') {
+                if (data.fingers === 1 && appSettings.isDeleteGestureEnabled) {
+                    handleBackspace();
+                    showToast("Deleted ⌫");
+                    return;
                 }
-            }
-
-
-            if (t.length === 2) {
-                
-                if (appSettings.isClearGestureEnabled && squiggleState2F.isTracking && !squiggleState2F.hasTriggered) {
-                    const currentAvgX = (t[0].clientX + t[1].clientX) / 2;
-                    const dx = currentAvgX - squiggleState2F.lastX;
-                    
-                    if (Math.abs(dx) > 5) {
-                        const newDir = dx > 0 ? 1 : -1;
-                        if (squiggleState2F.direction !== 0 && newDir !== squiggleState2F.direction) {
-                            squiggleState2F.flips++;
-                        }
-                        squiggleState2F.direction = newDir;
-                        squiggleState2F.lastX = currentAvgX;
-
-                        if (squiggleState2F.flips >= 3) {
-                             const s = getState();
-                             s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []);
-                             s.nextSequenceIndex = 0;
-                             renderUI();
-                             saveState();
-                             showToast("CLEARED 💥");
-                             vibrate();
-                             squiggleState2F.hasTriggered = true; 
-                        }
-                    }
-                }
-
-                if (!squiggleState2F.hasTriggered && (now - rotLastUpdate > 50)) {
-                    
-                    if (appSettings.isSpeedGesturesEnabled) {
-                        if(e.cancelable) e.preventDefault();
-                        const currentAngle = getRotationAngle(t[0], t[1]);
-                        let delta = currentAngle - rotStartAngle;
-                        if (delta > 180) delta -= 360; if (delta < -180) delta += 360;
-                        rotAccumulator += delta;
-                        rotStartAngle = currentAngle;
-                        
-                        if (Math.abs(rotAccumulator) > 15) {
-                            let newSpeed = appSettings.playbackSpeed || 1.0;
-                            if (rotAccumulator > 0) { newSpeed += 0.05; showToast(`Speed: ${(newSpeed * 100).toFixed(0)}% 🐇`); } 
-                            else { newSpeed -= 0.05; showToast(`Speed: ${(newSpeed * 100).toFixed(0)}% 🐢`); }
-                            appSettings.playbackSpeed = Math.min(2.0, Math.max(0.5, newSpeed));
-                            saveState();
-                            rotAccumulator = 0;
-                            rotLastUpdate = now;
-                        }
-                    }
-
-                    if (pinchStartDist > 0) {
-                        const dx = t[0].clientX - t[1].clientX;
-                        const dy = t[0].clientY - t[1].clientY;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-                        
-                        if (Math.abs(dist - pinchStartDist) > 20) {
-                            const ratio = dist / pinchStartDist;
-                            const mode = appSettings.gestureResizeMode || 'global';
-                            if (mode === 'sequence') {
-                                let newScale = pinchStartSeq * ratio;
-                                appSettings.uiScaleMultiplier = Math.min(2.5, Math.max(0.5, newScale));
-                                renderUI();
-                            } else {
-                                let newScale = pinchStartGlobal * ratio;
-                                appSettings.globalUiScale = Math.min(200, Math.max(50, newScale));
-                                updateAllChrome();
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (t.length === 3 && appSettings.isVolumeGesturesEnabled && (now - rotLastUpdate > 50)) {
-                if(e.cancelable) e.preventDefault();
-                const currentAngle = getRotationAngle(t[0], t[1]);
-                let delta = currentAngle - rotStartAngle;
-                if (delta > 180) delta -= 360; if (delta < -180) delta += 360;
-                rotAccumulator += delta;
-                rotStartAngle = currentAngle;
-                
-                if (Math.abs(rotAccumulator) > 15) {
-                    let newVol = appSettings.voiceVolume || 1.0;
-                    if (rotAccumulator > 0) { newVol += 0.05; showToast(`Volume: ${(newVol * 100).toFixed(0)}% 🔊`); } 
-                    else { newVol -= 0.05; showToast(`Volume: ${(newVol * 100).toFixed(0)}% 🔉`); }
-                    appSettings.voiceVolume = Math.min(1.0, Math.max(0.0, newVol));
+                if (data.fingers === 2 && appSettings.isClearGestureEnabled) {
+                    const s = getState();
+                    s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []);
+                    s.nextSequenceIndex = 0;
+                    renderUI();
                     saveState();
-                    rotAccumulator = 0;
-                    rotLastUpdate = now;
-                }
-            }
-            
-        }, { passive: false });
-
-        document.body.addEventListener('touchend', (e) => {
-            if (e.touches.length < 2) { 
-                pinchStartDist = 0; 
-                squiggleState2F.isTracking = false;
-                saveState(); 
-                if(modules.settings) modules.settings.updateUIFromSettings(); 
-            }
-            if (e.touches.length < 4) fourFingerStartSpread = 0;
-            if (e.touches.length === 0) { 
-                squiggleState.isTracking = false; 
-            }
-        });
-
-
-        document.querySelectorAll('.btn-pad-number').forEach(b => {
-            const press = (e) => { 
-                if(e) { e.preventDefault(); e.stopPropagation(); } 
-                if(ignoreNextClick) return; 
-                addValue(b.dataset.value); 
-                b.classList.add('flash-active'); 
-                setTimeout(() => b.classList.remove('flash-active'), 150); 
-            };
-            b.addEventListener('mousedown', press); 
-            b.addEventListener('touchstart', press, { passive: false }); 
-            
-            b.addEventListener('touchstart', (e) => {
-                if(b.dataset.value === '1' && appSettings.isStealth1KeyEnabled) {
-                    timers.stealth = setTimeout(() => {
-                        document.body.classList.toggle('hide-controls');
-                        showToast("Stealth Toggle");
-                        ignoreNextClick = true;
-                        setTimeout(() => ignoreNextClick = false, 500);
-                    }, 1000);
-                }
-            }, {passive:true});
-            b.addEventListener('touchend', () => clearTimeout(timers.stealth));
-        });
-
-        document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
-            let wasPlaying = false; let lpTriggered = false;
-            const handleDown = (e) => { 
-                if(e && e.cancelable) { e.preventDefault(); e.stopPropagation(); } 
-                wasPlaying = isDemoPlaying; lpTriggered = false;
-                if(wasPlaying) { isDemoPlaying = false; b.textContent = "▶"; showToast("Playback Stopped 🛑"); return; }
-                if (appSettings.isLongPressAutoplayEnabled) {
-                    timers.longPress = setTimeout(() => {
-                        lpTriggered = true;
-                        appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled;
-                        modules.settings.updateUIFromSettings();
-                        showToast(`Autoplay: ${appSettings.isAutoplayEnabled ? "ON" : "OFF"}`);
-                        ignoreNextClick = true; setTimeout(() => ignoreNextClick = false, 500);
-                    }, 800);
-                }
-            };
-            const handleUp = (e) => {
-                if(e && e.cancelable) { e.preventDefault(); e.stopPropagation(); } 
-                clearTimeout(timers.longPress);
-                if (!wasPlaying && !lpTriggered) { playDemo(); }
-            };
-            b.addEventListener('mousedown', handleDown); b.addEventListener('touchstart', handleDown, { passive: false });
-            b.addEventListener('mouseup', handleUp); b.addEventListener('touchend', handleUp); b.addEventListener('mouseleave', () => clearTimeout(timers.longPress));
-        });
-
-        document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => {
-            b.addEventListener('click', () => { if(confirm("Reset Round Counter to 1?")) { const s = getState(); s.currentRound = 1; s.sequences[0] = []; s.nextSequenceIndex = 0; renderUI(); saveState(); showToast("Reset to Round 1"); } });
-        });
-        document.querySelectorAll('button[data-action="open-settings"]').forEach(b => {
-            b.addEventListener('click', () => { if(isDemoPlaying) { isDemoPlaying = false; const pb = document.querySelector('button[data-action="play-demo"]'); if(pb) pb.textContent = "▶"; showToast("Playback Stopped 🛑"); return; } modules.settings.openSettings(); });
-            const start = () => { timers.settingsLongPress = setTimeout(() => { modules.settings.toggleRedeem(true); ignoreNextClick = true; setTimeout(() => ignoreNextClick = false, 500); }, 1000); };
-            const end = () => clearTimeout(timers.settingsLongPress);
-            b.addEventListener('touchstart', start, {passive:true}); b.addEventListener('touchend', end); b.addEventListener('mousedown', start); b.addEventListener('mouseup', end);
-        });
-
-        document.querySelectorAll('button[data-action="backspace"]').forEach(b => {
-            const startDelete = (e) => { 
-                if(e) { e.preventDefault(); e.stopPropagation(); } 
-                handleBackspace(null); 
-                if(!appSettings.isSpeedDeletingEnabled) return; 
-                isDeleting = false; 
-                timers.initialDelay = setTimeout(() => { isDeleting = true; timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL); }, CONFIG.SPEED_DELETE_DELAY); 
-            }; 
-            const stopDelete = () => { clearTimeout(timers.initialDelay); clearInterval(timers.speedDelete); setTimeout(() => isDeleting = false, 50); }; 
-            b.addEventListener('mousedown', startDelete); b.addEventListener('touchstart', startDelete, { passive: false }); b.addEventListener('mouseup', stopDelete); b.addEventListener('mouseleave', stopDelete); b.addEventListener('touchend', stopDelete); b.addEventListener('touchcancel', stopDelete); 
-        });
-
-        if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
-        
-        const handlePause = (e) => { if(isDemoPlaying) { isPlaybackPaused = true; showToast("Paused ⏸️"); } };
-        const handleResume = (e) => { if(isPlaybackPaused) { isPlaybackPaused = false; showToast("Resumed ▶️"); if(playbackResumeCallback) { const fn = playbackResumeCallback; playbackResumeCallback = null; fn(); } } };
-        document.body.addEventListener('mousedown', handlePause); document.body.addEventListener('touchstart', handlePause, {passive:true});
-        document.body.addEventListener('mouseup', handleResume); document.body.addEventListener('touchend', handleResume);
-        
-        document.getElementById('close-settings').addEventListener('click', () => { if(appSettings.isPracticeModeEnabled) { setTimeout(startPracticeRound, 500); } });
-   let lastX=0, lastY=0, lastZ=0;
-        window.addEventListener('devicemotion', (e) => {
-            // CHANGED: Only run if Boss Mode is enabled
-            if(!appSettings.isBlackoutFeatureEnabled) return; 
-
-            const acc = e.accelerationIncludingGravity; if(!acc) return;
-            const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
-            
-            if(delta > 25) { 
-                const now = Date.now();
-                if(now - blackoutState.lastShake > 1000) {
-                    // CHANGED: Toggle Blackout State instead of Gesture Pad
-                    blackoutState.isActive = !blackoutState.isActive;
-                    document.body.classList.toggle('blackout-active', blackoutState.isActive);
-                    showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back");
+                    showToast("CLEARED 💥");
                     vibrate();
-                    renderUI(); // Re-render to update Z-indexes if gestures are active
-                    blackoutState.lastShake = now;
+                    return;
                 }
             }
-            lastX = acc.x; lastY = acc.y; lastZ = acc.z;
-        });
-                                                                                                                   
-        const bl = document.getElementById('blackout-layer');
-        if(bl) {
-             bl.addEventListener('touchstart', (e) => {
-                 if (appSettings.isBlackoutGesturesEnabled) return;
-                 if (e.touches.length === 1) {
-                     e.preventDefault(); 
-                     const t = e.touches[0]; const w = window.innerWidth; const h = window.innerHeight;
-                     let col = Math.floor(t.clientX / (w / 3)); if (col > 2) col = 2;
-                     const settings = getProfileSettings();
-                     let val = null;
-                     if (settings.currentInput === 'key9') {
-                         let row = Math.floor(t.clientY / (h / 3)); if (row > 2) row = 2;
-                         val = (row * 3) + col + 1;
-                     } else {
-                         let row = Math.floor(t.clientY / (h / 4)); if (row > 3) row = 3;
-                         const index = (row * 3) + col; 
-                         if (settings.currentInput === 'piano') {
-                             const map = ['1','2','3', '4','5','C', 'D','E','F', 'G','A','B']; val = map[index];
-                         } else { val = index + 1; }
-                     }
-                     if (val !== null) { addValue(val.toString()); if(navigator.vibrate) navigator.vibrate(20); }
-                 }
-             }, { passive: false });
-        }
-        
-        const headerTimer = document.getElementById('header-timer-btn');
-        const headerCounter = document.getElementById('header-counter-btn');
-        const headerMic = document.getElementById('header-mic-btn');
-        const headerCam = document.getElementById('header-cam-btn');
-        const headerGestureBtn = document.getElementById('header-gesture-btn'); // ADDED
 
-        if(headerTimer) {
-            headerTimer.textContent = "00:00"; 
-            headerTimer.style.fontSize = "0.75rem"; 
-            const formatTime = (ms) => {
-                const totalSec = Math.floor(ms / 1000); const m = Math.floor(totalSec / 60); const s = totalSec % 60;
-                return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-            };
-            const updateTimer = () => {
-                const now = Date.now(); const diff = now - simpleTimer.startTime + simpleTimer.elapsed;
-                headerTimer.textContent = formatTime(diff);
-            };
-            
-            globalTimerActions.start = () => {
-                if(!simpleTimer.isRunning) {
-                    simpleTimer.startTime = Date.now();
-                    simpleTimer.interval = setInterval(updateTimer, 100);
-                    simpleTimer.isRunning = true;
-                }
-            };
-            globalTimerActions.stop = () => {
-                if(simpleTimer.isRunning) {
-                    clearInterval(simpleTimer.interval);
-                    simpleTimer.elapsed += Date.now() - simpleTimer.startTime;
-                    simpleTimer.isRunning = false;
-                }
-            };
-            globalTimerActions.reset = () => {
-                clearInterval(simpleTimer.interval);
-                simpleTimer.isRunning = false;
-                simpleTimer.elapsed = 0;
-                headerTimer.textContent = "00:00";
-            };
-
-            const toggleTimer = () => {
-                if(simpleTimer.isRunning) globalTimerActions.stop(); else globalTimerActions.start();
-                vibrate();
-            };
-            const resetTimer = () => { globalTimerActions.reset(); showToast("Timer Reset"); vibrate(); };
-
-            let tTimer; let tIsLong = false;
-            const startT = (e) => { if(e.type === 'mousedown' && e.button !== 0) return; tIsLong = false; tTimer = setTimeout(() => { tIsLong = true; resetTimer(); }, 600); };
-            const endT = (e) => { if(e) e.preventDefault(); clearTimeout(tTimer); if(!tIsLong) toggleTimer(); };
-            headerTimer.addEventListener('mousedown', startT); headerTimer.addEventListener('touchstart', startT, {passive:true});
-            headerTimer.addEventListener('mouseup', endT); headerTimer.addEventListener('touchend', endT); headerTimer.addEventListener('mouseleave', () => clearTimeout(tTimer));
-        }
-
-        if(headerCounter) {
-            headerCounter.textContent = simpleCounter.toString(); headerCounter.style.fontSize = "1.2rem";
-            const updateCounter = () => { headerCounter.textContent = simpleCounter; };
-            
-            globalCounterActions.increment = () => { simpleCounter++; updateCounter(); };
-            globalCounterActions.reset = () => { simpleCounter = 0; updateCounter(); };
-
-            const increment = () => { globalCounterActions.increment(); vibrate(); };
-            const resetCounter = () => { globalCounterActions.reset(); showToast("Counter Reset"); vibrate(); };
-
-            let cTimer; let cIsLong = false;
-            const startC = (e) => { if(e.type === 'mousedown' && e.button !== 0) return; cIsLong = false; cTimer = setTimeout(() => { cIsLong = true; resetCounter(); }, 600); };
-            const endC = (e) => { if(e) e.preventDefault(); clearTimeout(cTimer); if(!cIsLong) increment(); };
-            headerCounter.addEventListener('mousedown', startC); headerCounter.addEventListener('touchstart', startC, {passive:true});
-            headerCounter.addEventListener('mouseup', endC); headerCounter.addEventListener('touchend', endC); headerCounter.addEventListener('mouseleave', () => clearTimeout(cTimer));
-        }
-
-        if(headerMic) { 
-            headerMic.onclick = () => { 
-                if(!voiceModule) return;
-                const isActive = !voiceModule.isListening;
-                voiceModule.toggle(isActive);
-                headerMic.classList.toggle('header-btn-active', isActive);
-            }; 
-        }
-
-        // ADDED GESTURE BUTTON LOGIC
-               const headerGesture = document.getElementById('header-gesture-btn'); // Get element
-
-        if(headerGesture) {
-            headerGesture.onclick = () => {
-                // Toggle the global visibility flag
-                isGesturePadVisible = !isGesturePadVisible;
+            // Mapped Inputs (Only if Gesture Pad is visible/active)
+            // We check the specific class we toggle in renderUI
+            const isGestureMode = document.body.classList.contains('input-gestures-mode');
+            if (isGestureMode) {
+                const settings = getProfileSettings();
+                // mapGestureToValue needs the full ID (e.g., 'tap_2f_horizontal')
+                const mapResult = mapGestureToValue(data.id, settings.currentInput);
                 
-                // Visual feedback on the button
-                headerGesture.classList.toggle('header-btn-active', isGesturePadVisible);
-                
-                // Show/Hide the actual pad wrapper
-                const gpWrap = document.getElementById('gesture-pad-wrapper');
-                if(gpWrap) {
-                    if(isGesturePadVisible) {
-                        gpWrap.classList.remove('hidden');
-                        showToast("Pad Visible 🗒️");
-                    } else {
-                        gpWrap.classList.add('hidden');
-                        showToast("Pad Hidden");
-                    }
-                }
-                
-                // Optional: Force a re-render to ensure classes stick
-                renderUI();
-            };
-        }
-        if(headerCam) { 
-            headerCam.onclick = () => {
-                const isArActive = document.body.classList.contains('ar-active');
-                const newState = !isArActive;
-
-                if (newState) {
-                    // Turn AR ON
-                    document.body.classList.add('ar-active');
-                    headerCam.classList.add('header-btn-active');
+                if (mapResult !== null) {
+                    addValue(mapResult);
                     
-                    if (modules.sensor) {
-                        modules.sensor.toggleCamera(true); // Start stream
-                        if (modules.sensor.videoEl) {
-                            modules.sensor.videoEl.style.display = 'block';
-                            modules.sensor.videoEl.className = 'ar-background-video';
-                        }
+                    // Visual feedback on the pad if it exists
+                    const indicator = document.getElementById('gesture-indicator');
+                    if(indicator) {
+                        indicator.textContent = data.name;
+                        indicator.style.opacity = '1';
+                        setTimeout(() => indicator.style.opacity = '0.3', 500);
                     }
-                    showToast("AR Mode ON 📸");
+                }
+            }
+        },
+
+        // 2. CONTINUOUS GESTURES (Twist, Pinch)
+        onContinuous: (data) => {
+            // Volume Control (3 Finger Twist)
+            if (data.type === 'twist' && data.fingers === 3 && appSettings.isVolumeGesturesEnabled) {
+                let newVol = appSettings.voiceVolume || 1.0;
+                // data.value is 1 (CW) or -1 (CCW)
+                newVol += (data.value * 0.05); 
+                appSettings.voiceVolume = Math.min(1.0, Math.max(0.0, newVol));
+                saveState();
+                showToast(`Volume: ${(appSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
+            }
+
+            // Speed Control (2 Finger Twist)
+            if (data.type === 'twist' && data.fingers === 2 && appSettings.isSpeedGesturesEnabled) {
+                let newSpeed = appSettings.playbackSpeed || 1.0;
+                newSpeed += (data.value * 0.05);
+                appSettings.playbackSpeed = Math.min(2.0, Math.max(0.5, newSpeed));
+                saveState();
+                showToast(`Speed: ${(appSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
+            }
+
+            // Resize UI (2 Finger Pinch)
+            if (data.type === 'pinch') {
+                // data.scale is the ratio relative to start (e.g. 1.01, 0.99)
+                // We apply a small multiplier to sensitivity
+                const delta = (data.scale - 1) * 2; 
+
+                const mode = appSettings.gestureResizeMode || 'global';
+                if (mode === 'sequence') {
+                    let current = appSettings.uiScaleMultiplier || 1.0;
+                    let newScale = current + delta;
+                    appSettings.uiScaleMultiplier = Math.min(2.5, Math.max(0.5, newScale));
+                    renderUI(); // Re-render cards
                 } else {
-                    // Turn AR OFF
-                    document.body.classList.remove('ar-active');
-                    headerCam.classList.remove('header-btn-active');
-                    
-                    if (modules.sensor) {
-                        modules.sensor.toggleCamera(false); // Stop stream
-                        if (modules.sensor.videoEl) {
-                            modules.sensor.videoEl.style.display = 'none';
-                        }
-                    }
-                    showToast("AR Mode OFF");
+                    let current = appSettings.globalUiScale || 100;
+                    let newScale = current + (delta * 10);
+                    appSettings.globalUiScale = Math.min(200, Math.max(50, newScale));
+                    updateAllChrome(); // Update CSS variable
                 }
-            }; 
+            }
         }
-    } catch(e) {
-        console.error("Listener Error:", e);
-    }
+    });
+
+    // Store engine in modules if we need to access it later
+    modules.gestureEngine = engine;
 }
+
+
         
 document.addEventListener('DOMContentLoaded', startApp);

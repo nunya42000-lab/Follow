@@ -714,15 +714,69 @@ if (this.dom.gestureSwipeSlider) {
             if (name.includes("Piano Swipes")) return "Swipes";
             return name;
         };
-
-        const gestureList = [
+        // Helper arrays
+        const dirs = ['up', 'down', 'left', 'right', 'nw', 'ne', 'sw', 'se'];
+        const card_dirs = ['up', 'down', 'left', 'right']; // Cardinal only
+        
+        // 1. Taps & Holds
+        let gestureList = [
             'tap', 'double_tap', 'triple_tap', 'long_tap',
             'tap_2f', 'double_tap_2f', 'triple_tap_2f', 'long_tap_2f',
-            'tap_3f', 'double_tap_3f', 'triple_tap_3f', 'long_tap_3f',
-            'swipe_up', 'swipe_nw', 'swipe_left', 'swipe_sw', 'swipe_down', 'swipe_se', 'swipe_right', 'swipe_ne',
-            'swipe_up_2f', 'swipe_nw_2f', 'swipe_left_2f', 'swipe_sw_2f', 'swipe_down_2f', 'swipe_se_2f', 'swipe_right_2f', 'swipe_ne_2f',
-            'swipe_up_3f', 'swipe_nw_3f', 'swipe_left_3f', 'swipe_sw_3f', 'swipe_down_3f', 'swipe_se_3f', 'swipe_right_3f', 'swipe_ne_3f'
+            'tap_3f', 'double_tap_3f', 'triple_tap_3f', 'long_tap_3f'
         ];
+
+        // 2. Aligned Taps (2F & 3F)
+        ['2f', '3f'].forEach(f => {
+            ['vertical', 'horizontal', 'diagonal_se', 'diagonal_sw'].forEach(a => {
+                gestureList.push(`tap_${f}_${a}`);
+                gestureList.push(`double_tap_${f}_${a}`);
+                gestureList.push(`triple_tap_${f}_${a}`);
+                gestureList.push(`long_tap_${f}_${a}`);
+            });
+        });
+
+        // 3. Swipes (1F, 2F, 3F) + Long Swipes (1F)
+        dirs.forEach(d => {
+            gestureList.push(`swipe_${d}`);          // 1F Short
+            gestureList.push(`swipe_${d}_long`);     // 1F Long
+            gestureList.push(`swipe_${d}_2f`);       // 2F
+            gestureList.push(`swipe_${d}_3f`);       // 3F
+            gestureList.push(`boomerang_${d}`);      // 1F Boomerang
+            gestureList.push(`boomerang_${d}_2f`);   // 2F Boomerang
+            gestureList.push(`boomerang_${d}_3f`);   // 3F Boomerang
+        });
+
+        // 4. Hybrid Swipes (2F)
+        card_dirs.forEach(d => {
+            gestureList.push(`pinch_swipe_${d}_2f`);   // V-Shape
+            gestureList.push(`expand_swipe_${d}_2f`);  // A-Shape
+        });
+
+        // 5. Shapes (1F) - Corners, Triangles, Squares, U-Shapes
+        dirs.forEach(d => {
+            gestureList.push(`corner_${d}`);
+            gestureList.push(`triangle_${d}`);
+            gestureList.push(`square_${d}`);
+            gestureList.push(`u_shape_${d}`);
+        });
+
+        // 6. Motion Taps (1F)
+        // Format: motion_tap_[subMode]_[dir]
+        const motionModes = ['spatial', 'swipe', 'swipe_long', 'boomerang', 'boomerang_long'];
+        
+        motionModes.forEach(mode => {
+            dirs.forEach(d => {
+                gestureList.push(`motion_tap_${mode}_${d}`);
+            });
+        });
+
+        // Motion Taps (Shapes)
+        ['corner', 'triangle', 'square', 'u_shape'].forEach(shape => {
+            dirs.forEach(d => {
+                gestureList.push(`motion_tap_${shape}_${d}`);
+            });
+        });
+    
 
         // 3. Section Builder
         const buildSection = (type, title, keyPrefix, count, customKeys = null) => {

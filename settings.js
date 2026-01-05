@@ -1170,7 +1170,4 @@ if (this.dom.gestureSwipeSlider) {
             }
     
 
-        // Merge defaults, keeping existing custom settings if they exist
-        this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
-                }
-        
+    

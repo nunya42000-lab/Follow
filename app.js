@@ -152,7 +152,6 @@ function vibrateMorse(val) {
         const mapResult = mapGestureToValue(kind, settings.currentInput);
         if(mapResult !== null) addValue(mapResult);
     }
-}
 
 function mapGestureToValue(kind, currentInput) {
     const gm = appSettings.gestureMappings || {};

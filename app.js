@@ -942,27 +942,48 @@ function initGestureEngine() {
                 saveState();
                 showToast(`Speed: ${(appSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
             }
-
             // Resize UI (2 Finger Pinch)
             if (data.type === 'pinch') {
-                // data.scale is the ratio relative to start (e.g. 1.01, 0.99)
-                // We apply a small multiplier to sensitivity
-                const delta = (data.scale - 1) * 2; 
+                // Initialize start snapshot if this is a new gesture sequence
+                if (!gestureState.isPinching) {
+                    gestureState.isPinching = true;
+                    gestureState.startGlobal = appSettings.globalUiScale;
+                    gestureState.startSeq = appSettings.uiScaleMultiplier;
+                }
+
+                // Debounce the reset so we don't lose our "Start" reference during the move
+                clearTimeout(gestureState.resetTimer);
+                gestureState.resetTimer = setTimeout(() => { 
+                    gestureState.isPinching = false; 
+                }, 250);
 
                 const mode = appSettings.gestureResizeMode || 'global';
+                
                 if (mode === 'sequence') {
-                    let current = appSettings.uiScaleMultiplier || 1.0;
-                    let newScale = current + delta;
-                    appSettings.uiScaleMultiplier = Math.min(2.5, Math.max(0.5, newScale));
-                    renderUI(); // Re-render cards
+                    // Calculate raw target based on start value
+                    let raw = gestureState.startSeq * data.scale;
+                    // Snap to nearest 0.1 (10%)
+                    let newScale = Math.round(raw * 10) / 10;
+                    
+                    // Only update if changed
+                    if (newScale !== appSettings.uiScaleMultiplier) {
+                        appSettings.uiScaleMultiplier = Math.min(2.5, Math.max(0.5, newScale));
+                        renderUI(); 
+                        showToast(`Cards: ${(appSettings.uiScaleMultiplier * 100).toFixed(0)}% 🔍`);
+                    }
                 } else {
-                    let current = appSettings.globalUiScale || 100;
-                    let newScale = current + (delta * 10);
-                    appSettings.globalUiScale = Math.min(200, Math.max(50, newScale));
-                    updateAllChrome(); // Update CSS variable
+                    // Calculate raw target
+                    let raw = gestureState.startGlobal * data.scale;
+                    // Snap to nearest 10%
+                    let newScale = Math.round(raw / 10) * 10;
+
+                    if (newScale !== appSettings.globalUiScale) {
+                        appSettings.globalUiScale = Math.min(200, Math.max(50, newScale));
+                        updateAllChrome(); 
+                        showToast(`UI: ${appSettings.globalUiScale}% 🔍`);
+                    }
                 }
             }
-        }
     });
 
     // Store engine in modules if we need to access it later

@@ -417,33 +417,37 @@ export class GestureEngine {
         this.tapStack = { active: false, count: 0, fingers: 0, timer: null };
     }
 
-        _emitGesture(baseType, fingers, meta) {
+            _emitGesture(baseType, fingers, meta) {
         let id = baseType;
         
-        // 1. Append SubMode (Critical for Motion Taps: 'spatial', 'boomerang', etc.)
+        // 1. Append SubMode (Critical for Motion Taps)
         if (meta && meta.subMode) {
             id += '_' + meta.subMode;
         }
 
         // 2. Append Direction
-        if (meta && meta.dir) {
+        if (meta && meta.dir && meta.dir !== 'Any') {
             id += '_' + meta.dir.toLowerCase(); 
         }
 
-        // 3. Append Length (Critical for "Long" swipes)
+        // 3. Append Winding (NEW: Needed for Shapes like Square CW vs CCW)
+        if (meta && meta.winding) {
+            id += '_' + meta.winding; 
+        }
+
+        // 4. Append Length (For Long Swipes)
         if (meta && meta.len) {
             id += '_' + meta.len;
         }
 
-        // 4. Append Finger Count suffix (if > 1)
+        // 5. Append Finger Count suffix (if > 1)
         if (fingers > 1) id += '_' + fingers + 'f';
 
-        // 5. Append Alignment
-        if (meta && meta.align) {
+        // 6. Append Alignment
+        if (meta && meta.align && meta.align !== 'Any') {
             if (meta.align === 'Horizontal') id += '_horizontal';
             if (meta.align === 'Vertical') id += '_vertical';
             if (meta.align.includes('Diagonal')) {
-                // Convert "Diagonal SE" -> "diagonal_se"
                 id += '_' + meta.align.toLowerCase().replace(' ', '_');
             }
         }
@@ -458,9 +462,8 @@ export class GestureEngine {
             meta: meta,
             name: name
         });
-        }
+            }
     
-
     // --- UTILS (Ported from gestures.html) ---
     
     _getRotationAngle(p1, p2) {

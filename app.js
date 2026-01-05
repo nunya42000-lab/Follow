@@ -515,7 +515,11 @@ function renderUI() {
     const hCam = document.getElementById('header-cam-btn');
     const hGest = document.getElementById('header-gesture-btn'); // ADDED
 
-    if(hMic) hMic.classList.toggle('header-btn-active', modules.sensor && modules.sensor.mode.audio);
+    if(hMic) {
+    const isSensorActive = modules.sensor && modules.sensor.mode.audio;
+    const isVoiceActive = voiceModule && voiceModule.isListening;
+    hMic.classList.toggle('header-btn-active', isSensorActive || isVoiceActive);
+    }
     if(hCam) hCam.classList.toggle('header-btn-active', document.body.classList.contains('ar-active'));
     // CHANGE: Update header button state based on the visibility flag, not just the setting
     if(hGest) hGest.classList.toggle('header-btn-active', isGesturePadVisible); 

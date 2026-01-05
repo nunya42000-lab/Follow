@@ -996,9 +996,7 @@ if (this.dom.gestureSwipeSlider) {
 
 
     
-    applyDefaultGestureMappings() {
-        this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
-       applyDefaultGestureMappings() {
+ applyDefaultGestureMappings() {
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
         const defs = {
             'k9_1': { gesture: 'tap', morse: '.' }, 'k9_2': { gesture: 'double_tap', morse: '..' }, 'k9_3': { gesture: 'triple_tap', morse: '...' }, 
@@ -1014,4 +1012,4 @@ if (this.dom.gestureSwipeSlider) {
         };
         this.appSettings.gestureMappings = Object.assign({}, defs, this.appSettings.gestureMappings || {});
     } 
-}
+

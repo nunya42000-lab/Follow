@@ -417,31 +417,38 @@ export class GestureEngine {
         this.tapStack = { active: false, count: 0, fingers: 0, timer: null };
     }
 
-    _emitGesture(baseType, fingers, meta) {
-        // Construct the composite ID used by mapping settings
-        // E.g., 'tap', 'swipe_up_2f', 'tap_2f_horizontal'
-        
+        _emitGesture(baseType, fingers, meta) {
         let id = baseType;
         
-        // Append Direction for swipes/shapes
+        // 1. Append SubMode (Critical for Motion Taps: 'spatial', 'boomerang', etc.)
+        if (meta && meta.subMode) {
+            id += '_' + meta.subMode;
+        }
+
+        // 2. Append Direction
         if (meta && meta.dir) {
-            // Convert 'Right' to 'right', 'NE' to 'ne'
             id += '_' + meta.dir.toLowerCase(); 
         }
 
-        // Append Finger Count suffix (if > 1)
-        if (fingers === 2) id += '_2f';
-        if (fingers === 3) id += '_3f';
-        if (fingers === 4) id += '_4f';
-
-        // Append Alignment (Crucial for the "Horizontal Taps" requirement)
-        if (meta && meta.align) {
-            // meta.align is 'Horizontal', 'Vertical', 'Diagonal SE', etc.
-            if (meta.align === 'Horizontal') id += '_horizontal';
-            if (meta.align === 'Vertical') id += '_vertical';
+        // 3. Append Length (Critical for "Long" swipes)
+        if (meta && meta.len) {
+            id += '_' + meta.len;
         }
 
-        // Construct clean human-readable name for debug/toast
+        // 4. Append Finger Count suffix (if > 1)
+        if (fingers > 1) id += '_' + fingers + 'f';
+
+        // 5. Append Alignment
+        if (meta && meta.align) {
+            if (meta.align === 'Horizontal') id += '_horizontal';
+            if (meta.align === 'Vertical') id += '_vertical';
+            if (meta.align.includes('Diagonal')) {
+                // Convert "Diagonal SE" -> "diagonal_se"
+                id += '_' + meta.align.toLowerCase().replace(' ', '_');
+            }
+        }
+
+        // Clean human-readable name
         let name = id.replace(/_/g, ' ').toUpperCase();
 
         this.callbacks.onGesture({
@@ -451,7 +458,8 @@ export class GestureEngine {
             meta: meta,
             name: name
         });
-    }
+        }
+    
 
     // --- UTILS (Ported from gestures.html) ---
     

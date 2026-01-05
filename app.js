@@ -984,6 +984,7 @@ function initGestureEngine() {
                     }
                 }
             }
+        }
     });
 
     // Store engine in modules if we need to access it later

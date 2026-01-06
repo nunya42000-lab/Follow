@@ -1062,8 +1062,21 @@ if (this.dom.gestureSwipeSlider) {
         labels.forEach((label, index) => {
             const val = index + 1;
             
-            // Build the select options
-            const optionsHtml = morseOptions.map(m => `<option value="${m}">${m}</option>`).join('');
+                        // Build the select options
+            let optionsHtml = `<optgroup label="Tactile Textures">
+                <option value="__TICK__">🔹 Tick (Sharp)</option>
+                <option value="__THUD__">⬛ Thud (Heavy)</option>
+                <option value="__BUZZ__">🐝 Buzz (Long)</option>
+                <option value="__DBL__">✌️ Double Click</option>
+                <option value="__TRPL__">⚡ Triple Click</option>
+                <option value="__HBEAT__">❤️ Heartbeat</option>
+                <option value="__RAMP__">📈 Ramp Up</option>
+            </optgroup>
+            <optgroup label="Morse Patterns">`;
+            
+            optionsHtml += morseOptions.map(m => `<option value="${m}">${m}</option>`).join('');
+            optionsHtml += `</optgroup>`;
+            
 
             gridHtml += `
                 <div class="text-right text-xs font-bold text-gray-400 pr-1 whitespace-nowrap">${label}</div>

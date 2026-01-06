@@ -1,88 +1,95 @@
 // sw.js
-// Version: v63 - Mobile Offline Optimized
-const CACHE_NAME = 'follow-me-v63-mobile-offline';
+// Version: v64 - Fault Tolerant Offline
+const CACHE_NAME = 'follow-me-v64-robust';
 
-// 1. App Shell: Files we MUST have immediately
-const FILES_TO_CACHE = [
+// 1. CRITICAL: These MUST exist for the app to run.
+// If any of these are missing, the offline mode will fail.
+const CRITICAL_ASSETS = [
     './',
     './index.html',
     './styles.css',
     './app.js',
     './settings.js',
     './sensors.js',
-    './gestures.js', 
+    './gestures.js',
     './comments.js',
-    './manifest.json',
+    './manifest.json'
+];
+
+// 2. OPTIONAL: Images & External Links.
+// We will TRY to cache these. If they fail (404 missing, network error), 
+// we simply skip them so the app still installs successfully.
+const OPTIONAL_ASSETS = [
     './icon-192.png',
     './icon-512.png',
     './qr.jpg',
     './redeem.jpg',
-    // External dependencies (Tailwind, Fonts, Firebase)
     'https://cdn.tailwindcss.com',
     'https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap',
     'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js',
     'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js'
 ];
 
-// Install: Cache the "App Shell" immediately
 self.addEventListener('install', event => {
-    // Force this SW to become the active one immediately
     self.skipWaiting();
     event.waitUntil(
-        caches.open(CACHE_NAME).then(cache => {
-            console.log('[SW] Pre-caching App Shell');
-            return cache.addAll(FILES_TO_CACHE);
+        caches.open(CACHE_NAME).then(async cache => {
+            console.log('[SW] Installing...');
+            
+            // A. Cache Critical Files (Fail if missing)
+            try {
+                await cache.addAll(CRITICAL_ASSETS);
+                console.log('[SW] Critical assets cached');
+            } catch (err) {
+                console.error('[SW] Critical install failed. Check file paths:', err);
+            }
+
+            // B. Cache Optional Files (Ignore errors)
+            await Promise.all(OPTIONAL_ASSETS.map(async url => {
+                try {
+                    const res = await fetch(url);
+                    if (res.ok) {
+                        await cache.put(url, res);
+                    } else {
+                        console.warn(`[SW] Could not cache optional: ${url} (${res.status})`);
+                    }
+                } catch (e) {
+                    console.warn(`[SW] Network error for optional: ${url}`);
+                }
+            }));
         })
     );
 });
 
-// Activate: Clean up old caches (v61, v62, etc.)
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(cacheNames => Promise.all(
             cacheNames.map(cacheName => {
-                if (cacheName !== CACHE_NAME) {
-                    console.log('[SW] Clearing Old Cache:', cacheName);
-                    return caches.delete(cacheName);
-                }
+                if (cacheName !== CACHE_NAME) return caches.delete(cacheName);
             })
         ))
     ).then(() => self.clients.claim());
 });
 
-// Fetch: Hybrid Strategy (Cache First for speed, Network fallback for new stuff)
 self.addEventListener('fetch', event => {
-    // Only handle GET requests
     if (event.request.method !== 'GET') return;
-
+    
     event.respondWith(
-        caches.match(event.request).then(cachedResponse => {
-            // 1. If it's in the cache, return it immediately (Offline support)
-            if (cachedResponse) {
-                return cachedResponse;
-            }
+        caches.match(event.request).then(cached => {
+            // Return cached content if available
+            if (cached) return cached;
 
-            // 2. If not, fetch it from the internet
-            return fetch(event.request)
-                .then(networkResponse => {
-                    // Check if the response is valid
-                    if (!networkResponse || networkResponse.status !== 200 || networkResponse.type === 'error') {
-                        return networkResponse;
-                    }
-
-                    // 3. IMPORTANT: Clone and Cache it for next time
-                    // This grabs any extra files (like Font woff2 files) automatically
-                    const responseToCache = networkResponse.clone();
-                    caches.open(CACHE_NAME).then(cache => {
-                        cache.put(event.request, responseToCache);
-                    });
-
+            // Otherwise fetch from network and cache it for next time
+            return fetch(event.request).then(networkResponse => {
+                if (!networkResponse || networkResponse.status !== 200 || networkResponse.type === 'error') {
                     return networkResponse;
-                })
-                .catch(() => {
-                    // Offline fallback (optional)
-                    console.log('[SW] Offline and item not in cache:', event.request.url);
-                });
+                }
+                const responseToCache = networkResponse.clone();
+                caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
+                return networkResponse;
+            }).catch(() => {
+                console.log('[SW] Offline & not found:', event.request.url);
+            });
         })
     );
 });

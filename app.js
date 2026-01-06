@@ -848,14 +848,32 @@ const startApp = () => {
     // --- FIX: INITIALIZE VOICE MODULE ---
     voiceModule = new VoiceCommander({
         onStatus: (msg) => showToast(msg),
-        onInput: (val) => {
-            addValue(val);
-            const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
-            if(btn) { 
-                btn.classList.add('flash-active'); 
-                setTimeout(() => btn.classList.remove('flash-active'), 200); 
-            }
-        },
+            onInput: (val) => {
+        addValue(val);
+
+        // --- NEW: Blink the Mic Button ---
+        const hMic = document.getElementById('header-mic-btn');
+        if(hMic) {
+            // 1. Force the visual state OFF
+            hMic.classList.remove('header-btn-active');
+            
+            // 2. Wait 300ms (approx time for speech engine to reset) then turn ON
+            setTimeout(() => {
+                // Only turn back on if the user hasn't manually stopped it
+                if(voiceModule && voiceModule.isListening) {
+                    hMic.classList.add('header-btn-active');
+                }
+            }, 300);
+        }
+        // ---------------------------------
+
+        const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
+        if(btn) { 
+            btn.classList.add('flash-active'); 
+            setTimeout(() => btn.classList.remove('flash-active'), 200); 
+        }
+    },
+        
         onCommand: (cmd) => {
             if(cmd === 'CMD_PLAY') playDemo();
             if(cmd === 'CMD_STOP') { isDemoPlaying = false; showToast("Stopped"); }

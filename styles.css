@@ -229,7 +229,7 @@ textarea,
     background: #000;
     position: absolute;
     top: 0;
-    z-index: 2;
+    z-index: 20;
     color: #fff;
     display: flex;
     align-items: flex-end;
@@ -244,6 +244,7 @@ textarea,
     background-color: #fbbf24 !important;
     color: #000 !important;
     transform: none;
+    z-index: 30
 }
 
 .black-1 {

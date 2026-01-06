@@ -265,14 +265,16 @@ gestureSwipeVal: document.getElementById('gesture-swipe-val'),
         this.populatePlaybackSpeedDropdown();
         this.populateUIScaleDropdown(); this.populateMappingUI();
         this.populateMorseUI();
-        if(this.dom.gestureToggle){
+                if(this.dom.gestureToggle){
             this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
             this.dom.gestureToggle.addEventListener('change', (e) => {
                 this.appSettings.isGestureInputEnabled = !!e.target.checked;
                 this.callbacks.onSave();
+                this.updateHeaderVisibility(); // <--- THIS FIXES IT
                 this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
             });
-        }
+                }
+        
     }
     populatePlaybackSpeedDropdown() {
         if (!this.dom.playbackSpeed) return;

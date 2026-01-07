@@ -691,7 +691,8 @@ if (this.dom.gestureSwipeSlider) {
     hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
 
-        populateMappingUI() {
+        
+    populateMappingUI() {
         if (!this.dom) return;
         if (!this.appSettings) return;
         
@@ -751,189 +752,161 @@ if (this.dom.gestureSwipeSlider) {
             }
         }
 
-        // 2. CONSTRUCT GESTURE LIST
-        const gestureList = [];
-
-        const compass = ['up', 'down', 'left', 'right', 'nw', 'ne', 'sw', 'se'];
-        const compassWithAny = ['any', ...compass];
-        
-        // 1F Taps
-        gestureList.push('tap', 'double_tap', 'triple_tap', 'long_tap');
-        
-        // Spatial Taps
-        compass.forEach(d => gestureList.push(`motion_tap_spatial_${d}`));
-
-        // Multi-Finger Taps
-        [2, 3].forEach(f => {
-            const suffix = `_${f}f`;
-            // Any
-            gestureList.push(`tap${suffix}`, `double_tap${suffix}`, `triple_tap${suffix}`, `long_tap${suffix}`);
-            // Alignments
-            ['vertical', 'horizontal', 'diagonal_se', 'diagonal_sw'].forEach(align => {
-                gestureList.push(`tap${suffix}_${align}`, `double_tap${suffix}_${align}`, `triple_tap${suffix}_${align}`, `long_tap${suffix}_${align}`);
-            });
-        });
-
-        // Swipes 1F
-        compassWithAny.forEach(d => gestureList.push(d === 'any' ? 'swipe_any' : `swipe_${d}`));
-        // Long Swipes 1F
-        compassWithAny.forEach(d => gestureList.push(d === 'any' ? 'swipe_any_long' : `swipe_${d}_long`));
-        // Swipes 2F
-        compassWithAny.forEach(d => gestureList.push(d === 'any' ? 'swipe_any_2f' : `swipe_${d}_2f`));
-        
-        // Pinch/Expand 2F (Cardinal + Any)
-        const cardWithAny = ['any', 'up', 'down', 'left', 'right'];
-        cardWithAny.forEach(d => gestureList.push(d === 'any' ? 'pinch_swipe_any_2f' : `pinch_swipe_${d}_2f`));
-        cardWithAny.forEach(d => gestureList.push(d === 'any' ? 'expand_swipe_any_2f' : `expand_swipe_${d}_2f`));
-        
-        // Swipes 3F
-        compassWithAny.forEach(d => gestureList.push(d === 'any' ? 'swipe_any_3f' : `swipe_${d}_3f`));
-
-        // Boomerangs 1F, 2F, 3F
-        compassWithAny.forEach(d => gestureList.push(d === 'any' ? 'boomerang_any' : `boomerang_${d}`));
-        compassWithAny.forEach(d => gestureList.push(d === 'any' ? 'boomerang_any_2f' : `boomerang_${d}_2f`));
-        compassWithAny.forEach(d => gestureList.push(d === 'any' ? 'boomerang_any_3f' : `boomerang_${d}_3f`));
-
-        // Zig Zags (Renamed from Long Boomerang)
-        compassWithAny.forEach(d => gestureList.push(d === 'any' ? 'zigzag_any' : `zigzag_${d}`));
-
-        // Shapes (Corner, Triangle, U-Shape, Square)
+        // 2. DEFINE SHAPES (Used for Label Generation)
         const shapeDefs = [
             { id: 'corner', label: 'Corner', cw: [ 'Up Right', 'Right Down', 'Down Left', 'Left Up' ], ccw: [ 'Up Left', 'Left Down', 'Down Right', 'Right Up' ] },
             { id: 'triangle', label: 'Triangle', cw: [ 'Up Right', 'Right Down', 'Down Left', 'Left Up' ], ccw: [ 'Up Left', 'Left Down', 'Down Right', 'Right Up' ] },
             { id: 'u_shape', label: 'U-Shape', cw: [ 'Up Right Down', 'Right Down Left', 'Down Left Up', 'Left Up Right' ], ccw: [ 'Up Left Down', 'Left Down Right', 'Down Right Up', 'Right Up Left' ] },
             { id: 'square', label: 'Square', cw: [ 'Up CW', 'Right CW', 'Down CW', 'Left CW' ], ccw: [ 'Up CCW', 'Right CCW', 'Down CCW', 'Left CCW' ] }
         ];
-
-        // CW/CCW Sequence matches cardinal order: Up, Right, Down, Left
         const shapeDirs = ['up', 'right', 'down', 'left'];
 
+        // 3. GENERATE LIST (In exact requested order)
+        const gestureList = [];
+        const compass = ['up', 'down', 'left', 'right', 'nw', 'ne', 'sw', 'se'];
+        const compassWithAny = ['any', ...compass];
+
+        // A. Taps (1F)
+        gestureList.push('tap', 'double_tap', 'triple_tap', 'long_tap');
+
+        // B. Spatial Taps
+        compass.forEach(d => gestureList.push(`motion_tap_spatial_${d}`));
+
+        // C. Multi-Finger Taps (2F then 3F)
+        [2, 3].forEach(f => {
+            const suffix = `_${f}f`;
+            const types = ['tap', 'double_tap', 'triple_tap', 'long_tap'];
+            
+            // Base (Any Direction) -> "Tap 2 Finger"
+            types.forEach(t => gestureList.push(`${t}${suffix}`));
+            // Vertical -> "Tap 2 Finger Vertical"
+            types.forEach(t => gestureList.push(`${t}${suffix}_vertical`));
+            // Horizontal -> "Tap 2 Finger Horizontal"
+            types.forEach(t => gestureList.push(`${t}${suffix}_horizontal`));
+            // NW/SE (Mapped from diagonal_se) -> "Tap 2 Finger NW/SE"
+            types.forEach(t => gestureList.push(`${t}${suffix}_diagonal_se`));
+            // NE/SW (Mapped from diagonal_sw) -> "Tap 2 Finger NE/SW"
+            types.forEach(t => gestureList.push(`${t}${suffix}_diagonal_sw`));
+        });
+
+        // D. Swipe (1F)
+        compassWithAny.forEach(d => gestureList.push(d === 'any' ? 'swipe_any' : `swipe_${d}`));
+
+        // E. Long Swipe (1F)
+        compassWithAny.forEach(d => gestureList.push(d === 'any' ? 'swipe_long_any' : `swipe_long_${d}`));
+
+        // F. Swipe 2 Finger
+        compassWithAny.forEach(d => gestureList.push(d === 'any' ? 'swipe_any_2f' : `swipe_${d}_2f`));
+
+        // G. Pinch/Expand Swipe
+        const cardWithAny = ['any', 'up', 'down', 'left', 'right'];
+        cardWithAny.forEach(d => gestureList.push(d === 'any' ? 'pinch_swipe_any_2f' : `pinch_swipe_${d}_2f`));
+        cardWithAny.forEach(d => gestureList.push(d === 'any' ? 'expand_swipe_any_2f' : `expand_swipe_${d}_2f`));
+
+        // H. Swipe 3 Finger
+        compassWithAny.forEach(d => gestureList.push(d === 'any' ? 'swipe_any_3f' : `swipe_${d}_3f`));
+
+        // I. Boomerang (1F, 2F, 3F)
+        [1, 2, 3].forEach(f => {
+            const suffix = f === 1 ? '' : `_${f}f`;
+            compassWithAny.forEach(d => gestureList.push(d === 'any' ? `boomerang_any${suffix}` : `boomerang_${d}${suffix}`));
+        });
+
+        // J. Zig Zag
+        compassWithAny.forEach(d => gestureList.push(d === 'any' ? 'zigzag_any' : `zigzag_${d}`));
+
+        // K. Shapes (Corner, Triangle, U-Shape, Square)
         shapeDefs.forEach(s => {
             gestureList.push(`${s.id}_any`);
             gestureList.push(`${s.id}_cw`);
             gestureList.push(`${s.id}_ccw`);
-            
-            // CW Variants
+            // Specifics
             s.cw.forEach((l, i) => gestureList.push(`${s.id}_${shapeDirs[i]}_cw`));
-            // CCW Variants
             s.ccw.forEach((l, i) => gestureList.push(`${s.id}_${shapeDirs[i]}_ccw`));
         });
 
-        // Motion Taps (Swipe, Long Swipe, Boomerang, Corner)
+        // L. Motion Taps
         const mtTypes = ['swipe', 'swipe_long', 'boomerang'];
         mtTypes.forEach(t => {
             compassWithAny.forEach(d => gestureList.push(d === 'any' ? `motion_tap_${t}_any` : `motion_tap_${t}_${d}`));
         });
-        
-        // Motion Tap Corner (Same structure as basic Corner)
+
+        // M. Motion Tap Corner
         gestureList.push('motion_tap_corner_any', 'motion_tap_corner_cw', 'motion_tap_corner_ccw');
         shapeDefs[0].cw.forEach((l, i) => gestureList.push(`motion_tap_corner_${shapeDirs[i]}_cw`));
         shapeDefs[0].ccw.forEach((l, i) => gestureList.push(`motion_tap_corner_${shapeDirs[i]}_ccw`));
 
 
-        // 3. LABEL GENERATOR
+        // 4. LABEL GENERATOR (Match Requested Names Exactly)
         const getLabel = (id) => {
-            // Helper to format Proper Case
-            const fmt = (s) => s.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-            
-            // Map shape IDs to specific strings
+            // A. Handle Shapes using Definitions
             if (id.includes('corner') || id.includes('triangle') || id.includes('u_shape') || id.includes('square')) {
-                // Parse Shape ID: [motion_tap_] [shape] [_dir] [_winding]
                 let isMotion = id.startsWith('motion_tap_');
                 let baseId = isMotion ? id.replace('motion_tap_', '') : id;
                 let parts = baseId.split('_');
-                let shape = parts[0] === 'u' ? 'u_shape' : parts[0]; // handle u_shape split
-                
-                // Identify Shape Object
+                let shape = parts[0] === 'u' ? 'u_shape' : parts[0];
                 let sObj = shapeDefs.find(s => s.id === shape);
-                if (!sObj) return fmt(id);
-
-                let prefix = isMotion ? "Motion Tap " : "";
                 
-                if (baseId.endsWith('_any')) return prefix + sObj.label;
-                if (baseId.endsWith('_cw') && !shapeDirs.some(d => baseId.includes(d))) return prefix + sObj.label + " CW";
-                if (baseId.endsWith('_ccw') && !shapeDirs.some(d => baseId.includes(d))) return prefix + sObj.label + " CCW";
-
-                // Specific Directions
-                let winding = baseId.endsWith('_cw') ? 'cw' : 'ccw';
-                let dir = shapeDirs.find(d => baseId.includes(`_${d}_`));
-                if (dir && winding) {
-                    let idx = shapeDirs.indexOf(dir);
-                    let specificLabel = sObj[winding][idx];
-                    return prefix + sObj.label + " " + specificLabel.replace('CW', 'CW').replace('CCW', 'CCW'); // Maintain Case
+                if (sObj) {
+                    let prefix = isMotion ? "Motion Tap " : "";
+                    
+                    // Specific Directions (e.g., corner_up_cw)
+                    let winding = baseId.endsWith('_cw') ? 'cw' : (baseId.endsWith('_ccw') ? 'ccw' : null);
+                    let dir = shapeDirs.find(d => baseId.includes(`_${d}_`));
+                    
+                    if (dir && winding) {
+                        let idx = shapeDirs.indexOf(dir);
+                        return prefix + sObj.label + " " + sObj[winding][idx];
+                    }
+                    // Generics
+                    if (baseId.endsWith('_any')) return prefix + sObj.label;
+                    if (baseId.endsWith('_cw')) return prefix + sObj.label + " CW";
+                    if (baseId.endsWith('_ccw')) return prefix + sObj.label + " CCW";
                 }
             }
 
             let label = id;
+
+            // B. Replace Technical Terms with User Terms
+            // 1. Prefixes
+            if (label.startsWith('motion_tap_spatial')) label = label.replace('motion_tap_spatial', 'Spatial Tap');
+            else if (label.startsWith('motion_tap_swipe_long')) label = label.replace('motion_tap_swipe_long', 'Motion Tap Long Swipe'); // Fix Order
+            else if (label.startsWith('motion_tap_')) label = label.replace('motion_tap_', 'Motion Tap ');
             
-            // Replace Bases
-            label = label.replace('motion_tap_spatial', 'Spatial Tap');
-            label = label.replace('motion_tap_', 'Motion Tap ');
-            label = label.replace('zigzag', 'Zig Zag');
-            label = label.replace('pinch_swipe', 'Pinch Swipe');
-            label = label.replace('expand_swipe', 'Expand Swipe');
+            else if (label.startsWith('zigzag')) label = label.replace('zigzag', 'Zig Zag');
+            else if (label.startsWith('pinch_swipe')) label = label.replace('pinch_swipe', 'Pinch Swipe');
+            else if (label.startsWith('expand_swipe')) label = label.replace('expand_swipe', 'Expand Swipe');
+            else if (label.startsWith('swipe_long')) label = label.replace('swipe_long', 'Long Swipe');
+            
+            // 2. Suffixes & Fingers
+            label = label.replace('_diagonal_se', ' NW/SE'); 
+            label = label.replace('_diagonal_sw', ' NE/SW');
+            label = label.replace('_any', ''); // "Any" is hidden in final list
             label = label.replace('long_tap', 'Long Tap');
-            label = label.replace('double_tap', 'Double Tap');
-            label = label.replace('triple_tap', 'Triple Tap');
-            
-            // Handle Taps (ensure Tap 1 Finger is just "Tap")
-            if (label === 'tap') return "Tap";
-            if (label === 'Double Tap') return "Double Tap";
-            if (label === 'Triple Tap') return "Triple Tap";
-            if (label === 'Long Tap') return "Long Tap";
 
-            // Add Finger Counts and Format Directions
-            if (label.includes('_2f')) {
-                label = label.replace('_2f', '');
-                label = fmt(label) + " 2 Finger";
-                
-                // Remove "Any Direction" from 2F/3F Taps
-                if (label.includes('Any')) label = label.replace(' Any', ''); // "Tap 2 Finger Any" -> "Tap 2 Finger"
-                else if (!label.includes('Swipe') && !label.includes('Boomerang')) {
-                    // It's a tap alignment, don't add "Any" back
-                } else if (label.includes('Any')) {
-                     label = label.replace('Any', 'Any Direction');
-                }
-            } else if (label.includes('_3f')) {
-                label = label.replace('_3f', '');
-                label = fmt(label) + " 3 Finger";
-                if (label.includes('Any')) label = label.replace(' Any', '');
-                else if (label.includes('Any')) label = label.replace('Any', 'Any Direction');
-            } else {
-                // 1 Finger (Implicit)
-                if (label.includes('_any')) label = label.replace('_any', ' Any Direction');
-                label = fmt(label);
-            }
+            // C. Formatting
+            let parts = label.split('_');
+            parts = parts.map(p => {
+                // Keep pre-formatted parts
+                if (p.includes(' ') || p.includes('/')) return p;
+                // Format Directions
+                if (['nw', 'ne', 'sw', 'se', 'cw', 'ccw'].includes(p)) return p.toUpperCase();
+                // Format Fingers
+                if (p === '2f') return '2 Finger';
+                if (p === '3f') return '3 Finger';
+                // Title Case
+                return p.charAt(0).toUpperCase() + p.slice(1);
+            });
 
-            // Cleanups
-            label = label.replace('Tap Tap', 'Tap'); // Fix double replacement
-            label = label.replace('Swipe Long', 'Long Swipe');
-            label = label.replace('Boomerang Long', 'Zig Zag'); // Fallback if missed
-            
-            // Alignments
-            label = label.replace('Diagonal Se', 'NW/SE');
-            label = label.replace('Diagonal Sw', 'NE/SW');
-            label = label.replace('Vertical', 'Vertical');
-            label = label.replace('Horizontal', 'Horizontal');
-            
-            // Directions
-            label = label.replace('Nw', 'NW');
-            label = label.replace('Ne', 'NE');
-            label = label.replace('Sw', 'SW');
-            label = label.replace('Se', 'SE');
-            
-            return label;
+            return parts.join(' ').trim().replace(/\s+/g, ' ');
         };
 
-        // 4. BUILD UI SECTIONS
+        // 5. BUILD UI
         const buildSection = (type, title, keyPrefix, count, customKeys = null) => {
             const wrapper = document.createElement('div');
             wrapper.className = "p-3 rounded-lg border border-custom settings-input bg-opacity-50 mb-4";
-
-            const header = document.createElement('div');
-            header.className = "mb-2";
-            header.innerHTML = `<label class="text-xs font-bold uppercase text-muted-custom block">${title} PROFILE</label>`;
-            wrapper.appendChild(header);
+            
+            wrapper.innerHTML = `<div class="mb-2"><label class="text-xs font-bold uppercase text-muted-custom block">${title} PROFILE</label></div>`;
 
             const select = document.createElement('select');
             select.className = "settings-input w-full p-2 rounded mb-3 font-bold";
@@ -972,7 +945,6 @@ if (this.dom.gestureSwipeSlider) {
 
             const btnGrid = document.createElement('div');
             btnGrid.className = "grid grid-cols-2 gap-2 mb-4"; 
-
             const createBtn = (txt, color, onClick) => {
                 const b = document.createElement('button');
                 b.textContent = txt;
@@ -1093,7 +1065,7 @@ if (this.dom.gestureSwipeSlider) {
         buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
     }
 
-    
+
 
         populateMorseUI() {
         const tab = document.getElementById('tab-playback');

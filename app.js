@@ -1081,10 +1081,7 @@ function initGlobalListeners() {
             };
             b.addEventListener('mousedown', press); 
             b.addEventListener('touchstart', press, { passive: false }); 
-            
-            b.addEventListener('touchstart', (e) => {
-                
-        });
+        }); // <--- Fixed closing brace/paren
 
         document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
             let wasPlaying = false; let lpTriggered = false;

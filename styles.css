@@ -425,3 +425,51 @@ body.ar-active .settings-modal-bg {
 body.ar-active header {
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 100%);
 }
+/* --- INPUTS ONLY (STEALTH) MODE STYLES --- */
+
+/* 1. Base Stealth Mode (Portrait) */
+body.hide-controls .control-row {
+    display: none !important;
+}
+
+body.hide-controls #pad-key9 .btn-pad-number,
+body.hide-controls #pad-key12 .btn-pad-number {
+    height: 85px;             /* Bigger targets */
+    font-size: 2.2rem;        /* Bigger text */
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.4);
+}
+
+body.hide-controls #piano-keys {
+    height: 300px;
+    transition: height 0.3s ease;
+}
+
+/* 2. LANDSCAPE OVERRIDES ("Really Big") */
+@media (orientation: landscape) {
+    
+    /* Remove the width limits so buttons stretch edge-to-edge */
+    body.hide-controls #input-footer .max-w-md,
+    body.hide-controls #input-footer .max-w-lg,
+    body.hide-controls #input-footer .max-w-2xl {
+        max-width: 95vw !important; /* Use 95% of screen width */
+    }
+
+    /* Make buttons huge but fit on screen vertically */
+    body.hide-controls #pad-key9 .btn-pad-number,
+    body.hide-controls #pad-key12 .btn-pad-number {
+        height: 18vh;         /* Responsive height (approx 1/5th screen height) */
+        font-size: 2.5rem;    /* Huge text */
+        width: 100%;          /* Force full width stretch */
+    }
+    
+    /* Ensure footer doesn't have extra padding wasting space */
+    body.hide-controls #input-footer {
+        padding: 5px !important;
+    }
+    
+    /* Adjust piano for wide screens */
+    body.hide-controls #piano-keys {
+        height: 50vh !important; /* Use half the screen height */
+    }
+}

@@ -414,7 +414,7 @@ gestureSwipeVal: document.getElementById('gesture-swipe-val'),
                 this.generatePrompt();
                 
                 // --- FIXED: ADDED VOICE & AR TO THE TRIGGER LIST ---
-                if (['showTimer', 'showCounter', 'autoInputMode', 'isVoiceInputEnabled', 'isArModeEnabled'].includes(prop)) {
+                if (['showTimer', 'showCounter', 'autoInputMode', 'isVoiceInputEnabled', 'isArModeEnabled'. 'isStealth1KeyEnabled'].includes(prop)) {
                     this.updateHeaderVisibility();
                 }
             };
@@ -659,33 +659,38 @@ if (this.dom.gestureSwipeSlider) {
 
     // NEW METHOD: Manages the Auto-Hiding Header Bar
          updateHeaderVisibility() {
-        const header = document.getElementById('aux-control-header');
-        const timerBtn = document.getElementById('header-timer-btn');
-        const counterBtn = document.getElementById('header-counter-btn');
-        const micBtn = document.getElementById('header-mic-btn');
-        const camBtn = document.getElementById('header-cam-btn');
-        const gestureBtn = document.getElementById('header-gesture-btn'); // 1. Get the new button
+    const header = document.getElementById('aux-control-header');
+    const timerBtn = document.getElementById('header-timer-btn');
+    const counterBtn = document.getElementById('header-counter-btn');
+    const micBtn = document.getElementById('header-mic-btn');
+    const camBtn = document.getElementById('header-cam-btn');
+    const gestureBtn = document.getElementById('header-gesture-btn');
+    const stealthBtn = document.getElementById('header-stealth-btn'); // NEW
 
-        if (!header) return;
+    if (!header) return;
 
-        const showTimer = !!this.appSettings.showTimer;
-        const showCounter = !!this.appSettings.showCounter;
-        const showMic = !!this.appSettings.isVoiceInputEnabled;
-        const showCam = !!this.appSettings.isArModeEnabled;
-        const showGesture = !!this.appSettings.isGestureInputEnabled; // 2. Check the setting
+    // Get all settings
+    const showTimer = !!this.appSettings.showTimer;
+    const showCounter = !!this.appSettings.showCounter;
+    const showMic = !!this.appSettings.isVoiceInputEnabled;
+    const showCam = !!this.appSettings.isArModeEnabled;
+    const showGesture = !!this.appSettings.isGestureInputEnabled;
+    const showStealth = !!this.appSettings.isStealth1KeyEnabled; // NEW
 
-        if(timerBtn) timerBtn.classList.toggle('hidden', !showTimer);
-        if(counterBtn) counterBtn.classList.toggle('hidden', !showCounter);
-        if(micBtn) micBtn.classList.toggle('hidden', !showMic);
-        if(camBtn) camBtn.classList.toggle('hidden', !showCam);
-        if(gestureBtn) gestureBtn.classList.toggle('hidden', !showGesture); // 3. Toggle visibility
+    // Toggle visibility
+    if(timerBtn) timerBtn.classList.toggle('hidden', !showTimer);
+    if(counterBtn) counterBtn.classList.toggle('hidden', !showCounter);
+    if(micBtn) micBtn.classList.toggle('hidden', !showMic);
+    if(camBtn) camBtn.classList.toggle('hidden', !showCam);
+    if(gestureBtn) gestureBtn.classList.toggle('hidden', !showGesture);
+    if(stealthBtn) stealthBtn.classList.toggle('hidden', !showStealth); // NEW
 
-        // 4. Update the "Hide Header" check to include showGesture
-        if (!showTimer && !showCounter && !showMic && !showCam && !showGesture) {
-            header.classList.add('header-hidden');
-        } else {
-            header.classList.remove('header-hidden');
-        }
+    // Check if header should be hidden entirely
+    if (!showTimer && !showCounter && !showMic && !showCam && !showGesture && !showStealth) {
+        header.classList.add('header-hidden');
+    } else {
+        header.classList.remove('header-hidden');
+    }
          }
     
     hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }

@@ -556,7 +556,9 @@ function renderUI() {
     const hMic = document.getElementById('header-mic-btn');
     const hCam = document.getElementById('header-cam-btn');
     const hGest = document.getElementById('header-gesture-btn'); // ADDED
-
+const hStealth = document.getElementById('header-stealth-btn');
+if(hStealth) hStealth.classList.toggle('header-btn-active', document.body.classList.contains('hide-controls'));
+    
     if(hMic) {
     const isSensorActive = modules.sensor && modules.sensor.mode.audio;
     const isVoiceActive = voiceModule && voiceModule.isListening;
@@ -1081,16 +1083,7 @@ function initGlobalListeners() {
             b.addEventListener('touchstart', press, { passive: false }); 
             
             b.addEventListener('touchstart', (e) => {
-                if(b.dataset.value === '1' && appSettings.isStealth1KeyEnabled) {
-                    timers.stealth = setTimeout(() => {
-                        document.body.classList.toggle('hide-controls');
-                        showToast("Stealth Toggle");
-                        ignoreNextClick = true;
-                        setTimeout(() => ignoreNextClick = false, 500);
-                    }, 1000);
-                }
-            }, {passive:true});
-            b.addEventListener('touchend', () => clearTimeout(timers.stealth));
+                
         });
 
         document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
@@ -1285,7 +1278,17 @@ function initGlobalListeners() {
                 renderUI();
             };
         }
-        
+        const headerStealth = document.getElementById('header-stealth-btn');
+
+if(headerStealth) {
+    headerStealth.onclick = () => {
+        document.body.classList.toggle('hide-controls');
+        const isActive = document.body.classList.contains('hide-controls');
+        headerStealth.classList.toggle('header-btn-active', isActive);
+        showToast(isActive ? "Inputs Only Active" : "Controls Visible");
+    };
+}
+            
         if(headerCam) { 
             headerCam.onclick = () => {
                 const isArActive = document.body.classList.contains('ar-active');

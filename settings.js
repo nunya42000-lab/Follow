@@ -414,7 +414,7 @@ gestureSwipeVal: document.getElementById('gesture-swipe-val'),
                 this.generatePrompt();
                 
                 // --- FIXED: ADDED VOICE & AR TO THE TRIGGER LIST ---
-                if (['showTimer', 'showCounter', 'autoInputMode', 'isVoiceInputEnabled', 'isArModeEnabled'. 'isStealth1KeyEnabled'].includes(prop)) {
+                if (['showTimer', 'showCounter', 'autoInputMode', 'isVoiceInputEnabled', 'isArModeEnabled', 'isStealth1KeyEnabled'].includes(prop)) {
                     this.updateHeaderVisibility();
                 }
             };

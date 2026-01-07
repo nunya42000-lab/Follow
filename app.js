@@ -1078,18 +1078,7 @@ function initGlobalListeners() {
                 setTimeout(() => b.classList.remove('flash-active'), 150); 
             };
             b.addEventListener('mousedown', press); 
-            b.addEventListener('touchstart', press, { passive: false }); 
-            
-            b.addEventListener('touchstart', (e) => {
-                if(b.dataset.value === '1' && appSettings.isStealth1KeyEnabled) {
-                    timers.stealth = setTimeout(() => {
-                        document.body.classList.toggle('hide-controls');
-                        showToast("Stealth Toggle");
-                        ignoreNextClick = true;
-                        setTimeout(() => ignoreNextClick = false, 500);
-                    }, 1000);
-                }
-            }, {passive:true});
+            b.addEventListener('touchstart', press, { passive: false });
             b.addEventListener('touchend', () => clearTimeout(timers.stealth));
         });
 
@@ -1201,7 +1190,19 @@ function initGlobalListeners() {
         const headerMic = document.getElementById('header-mic-btn');
         const headerCam = document.getElementById('header-cam-btn');
         const headerGesture = document.getElementById('header-gesture-btn'); 
-
+const headerStealth = document.getElementById('header-stealth-btn');
+if(headerStealth) {
+    headerStealth.onclick = () => {
+        document.body.classList.toggle('hide-controls');
+        const isActive = document.body.classList.contains('hide-controls');
+        headerStealth.classList.toggle('header-btn-active', isActive);
+        showToast(isActive ? "Inputs Only Active" : "Controls Visible");
+        
+        // Force layout recalculation for the new huge buttons
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+    };
+}
+        
         if(headerTimer) {
             headerTimer.textContent = "00:00"; 
             headerTimer.style.fontSize = "0.75rem"; 

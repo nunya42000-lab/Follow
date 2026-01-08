@@ -1352,3 +1352,153 @@ requestWakeLock();
 }
 
 document.addEventListener('DOMContentLoaded', startApp);
+// --- PASTE THIS AT THE VERY BOTTOM OF app.js ---
+
+window.initGestureEngine = function() {
+    console.log("Starting Gesture Engine...");
+
+    // 1. Safety: Find settings wherever they are
+    const getSettings = () => {
+        if (window.modules && window.modules.settings && window.modules.settings.appSettings) {
+            return window.modules.settings.appSettings;
+        }
+        // Fallback for scope
+        if (typeof appSettings !== 'undefined') return appSettings; 
+        return {}; 
+    };
+
+    try {
+        const settings = getSettings();
+        
+        // 2. Safety: Ensure GestureEngine class loaded
+        if (typeof GestureEngine === 'undefined') {
+            console.error("GestureEngine class missing. Check imports.");
+            return;
+        }
+
+        const engine = new GestureEngine(document.body, {
+            tapDelay: settings.gestureTapDelay || 300,
+            swipeThreshold: settings.gestureSwipeDist || 30,
+            spatialThreshold: 10, // Enables Micro-Swipes
+            tapPrecision: 30,
+            debug: false
+        }, {
+            onGesture: (data) => {
+                try {
+                    const s = getSettings();
+
+                    // A. DELETE (1 Finger Shake)
+                    if (data.name === 'DELETE') {
+                        if (s.isDeleteGestureEnabled) {
+                            if (typeof handleBackspace === 'function') handleBackspace();
+                            else if (window.handleBackspace) window.handleBackspace();
+                            
+                            showToast("Deleted ⌫");
+                            if (navigator.vibrate) navigator.vibrate(50);
+                        }
+                        return;
+                    }
+
+                    // B. CLEAR (2 Finger Shake)
+                    if (data.name === 'CLEAR') {
+                        if (s.isClearGestureEnabled) {
+                            // Try to reset state safely
+                            if (typeof getState === 'function') {
+                                const state = getState();
+                                state.sequences = state.sequences.map(() => []);
+                                state.nextSequenceIndex = 0;
+                                if (typeof renderUI === 'function') renderUI();
+                                if (typeof saveState === 'function') saveState();
+                                showToast("CLEARED 💥");
+                                if (navigator.vibrate) navigator.vibrate(50);
+                            }
+                        }
+                        return;
+                    }
+
+                    // C. INPUTS
+                    if (document.body.classList.contains('input-gestures-mode')) {
+                        // Detect Input Mode
+                        let mode = 'key9';
+                        const p12 = document.getElementById('pad-key12');
+                        const piano = document.getElementById('piano-keys');
+                        
+                        if (p12 && !p12.classList.contains('hidden')) mode = 'key12';
+                        if (piano && !piano.classList.contains('hidden')) mode = 'piano';
+
+                        // Map Gesture
+                        const val = window.mapGestureToValue(data.id, mode);
+                        
+                        if (val) {
+                            if (typeof addValue === 'function') addValue(val);
+                            else if (window.addValue) window.addValue(val);
+                            
+                            // Visual Indicator
+                            const ind = document.getElementById('gesture-indicator');
+                            if (ind) {
+                                ind.textContent = data.id.replace(/_/g, " ");
+                                ind.style.opacity = '1';
+                                setTimeout(() => ind.style.opacity = '0.3', 500);
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.error("Gesture Error:", err);
+                }
+            },
+            onContinuous: (data) => {
+                // Simplified Continuous Handler
+                const s = getSettings();
+                if (data.type === 'twist' && data.fingers === 3 && s.isVolumeGesturesEnabled) {
+                    let v = s.voiceVolume || 1.0;
+                    v += (data.value * 0.05);
+                    s.voiceVolume = Math.min(1.0, Math.max(0.0, v));
+                    if(typeof saveState === 'function') saveState();
+                    showToast(`Volume: ${(s.voiceVolume*100).toFixed(0)}%`);
+                }
+                if (data.type === 'pinch') {
+                    // Simple global resize fallback
+                    if (typeof updateAllChrome === 'function') {
+                         let current = s.globalUiScale || 100;
+                         let n = current * data.scale; // rough approx
+                         if(Math.abs(n - current) > 5) showToast("Resizing...");
+                    }
+                }
+            }
+        });
+
+        // Attach to modules global if exists
+        if (window.modules) window.modules.gestureEngine = engine;
+
+    } catch (e) {
+        console.error("Init Engine Failed:", e);
+    }
+};
+
+window.mapGestureToValue = function(kind, mode) {
+    // 1. Get Mappings Safely
+    let map = {};
+    if (window.modules && window.modules.settings && window.modules.settings.appSettings) {
+        map = window.modules.settings.appSettings.gestureMappings || {};
+    } else if (typeof appSettings !== 'undefined') {
+        map = appSettings.gestureMappings || {};
+    }
+
+    // 2. Match Logic
+    const matches = (saved, incoming) => {
+        if (!saved) return false;
+        if (saved === incoming) return true;
+        if (saved.endsWith('_any') && incoming.startsWith(saved.replace('_any',''))) return true;
+        if (incoming.startsWith(saved + '_')) return true;
+        return false;
+    };
+
+    if (mode === 'piano') {
+        for (let k in map) { if (k.startsWith('piano_') && matches(map[k].gesture, kind)) return k.replace('piano_',''); }
+    } else if (mode === 'key12') {
+        for (let i=1; i<=12; i++) { if (map['k12_'+i] && matches(map['k12_'+i].gesture, kind)) return i; }
+    } else {
+        for (let i=1; i<=9; i++) { if (map['k9_'+i] && matches(map['k9_'+i].gesture, kind)) return i; }
+    }
+    return null;
+};

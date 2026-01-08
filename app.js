@@ -947,6 +947,8 @@ const startApp = () => {
 };
 
 // --- NEW GESTURE ENGINE INTEGRATION ---
+// REPLACE THE initGestureEngine FUNCTION IN app.js WITH THIS:
+
 function initGestureEngine() {
     // We attach to body to handle global actions (Twist/Pinch) 
     // AND input actions when in "Gesture Mode"
@@ -955,36 +957,40 @@ function initGestureEngine() {
         swipeThreshold: appSettings.gestureSwipeDist || 30,
         debug: false
     }, {
-        // 1. DISCRETE GESTURES (Taps, Swipes, Shapes)
+        // 1. DISCRETE GESTURES (Taps, Swipes, Shapes, SHAKES)
         onGesture: (data) => {
-            // Check for Delete / Clear Shortcuts
-if (data.base === 'double_boomerang') { // <--- ENSURE THIS MATCHES
-    // 1-Finger M-Shape = Delete
-    if (data.fingers === 1 && appSettings.isDeleteGestureEnabled) {
-        handleBackspace();
-        showToast("Deleted ⌫");
-        return;
-    }
-    // 2-Finger M-Shape = Clear All
-    if (data.fingers === 2 && appSettings.isClearGestureEnabled) {
-        const s = getState();
-        s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []);
-        s.nextSequenceIndex = 0;
-        renderUI();
-        saveState();
-        showToast("CLEARED 💥");
-        vibrate();
-        return;
-    }
-}
-
+            
+            // --- FIX START: Handle Delete/Clear Correctly ---
+            
+            // 1-Finger Shake = Delete
+            if ((data.name === 'DELETE' || data.base === 'squiggle') && data.fingers === 1) {
+                if (appSettings.isDeleteGestureEnabled) {
+                    handleBackspace();
+                    showToast("Deleted ⌫");
+                    vibrate();
+                    return;
+                }
+            }
+            
+            // 2-Finger Shake = Clear All
+            if ((data.name === 'CLEAR' || data.base === 'squiggle') && data.fingers === 2) {
+                if (appSettings.isClearGestureEnabled) {
+                    const s = getState();
+                    s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []);
+                    s.nextSequenceIndex = 0;
+                    renderUI();
+                    saveState();
+                    showToast("CLEARED 💥");
+                    vibrate();
+                    return;
+                }
+            }
+            // --- FIX END ---
 
             // Mapped Inputs (Only if Gesture Pad is visible/active)
-            // We check the specific class we toggle in renderUI
             const isGestureMode = document.body.classList.contains('input-gestures-mode');
             if (isGestureMode) {
                 const settings = getProfileSettings();
-                // mapGestureToValue needs the full ID (e.g., 'tap_2f_horizontal')
                 const mapResult = mapGestureToValue(data.id, settings.currentInput);
                 
                 if (mapResult !== null) {
@@ -1006,7 +1012,6 @@ if (data.base === 'double_boomerang') { // <--- ENSURE THIS MATCHES
             // Volume Control (3 Finger Twist)
             if (data.type === 'twist' && data.fingers === 3 && appSettings.isVolumeGesturesEnabled) {
                 let newVol = appSettings.voiceVolume || 1.0;
-                // data.value is 1 (CW) or -1 (CCW)
                 newVol += (data.value * 0.05); 
                 appSettings.voiceVolume = Math.min(1.0, Math.max(0.0, newVol));
                 saveState();
@@ -1021,16 +1026,15 @@ if (data.base === 'double_boomerang') { // <--- ENSURE THIS MATCHES
                 saveState();
                 showToast(`Speed: ${(appSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
             }
+            
             // Resize UI (2 Finger Pinch)
             if (data.type === 'pinch') {
-                // Initialize start snapshot if this is a new gesture sequence
                 if (!gestureState.isPinching) {
                     gestureState.isPinching = true;
                     gestureState.startGlobal = appSettings.globalUiScale;
                     gestureState.startSeq = appSettings.uiScaleMultiplier;
                 }
 
-                // Debounce the reset so we don't lose our "Start" reference during the move
                 clearTimeout(gestureState.resetTimer);
                 gestureState.resetTimer = setTimeout(() => { 
                     gestureState.isPinching = false; 
@@ -1039,23 +1043,16 @@ if (data.base === 'double_boomerang') { // <--- ENSURE THIS MATCHES
                 const mode = appSettings.gestureResizeMode || 'global';
                 
                 if (mode === 'sequence') {
-                    // Calculate raw target based on start value
                     let raw = gestureState.startSeq * data.scale;
-                    // Snap to nearest 0.1 (10%)
                     let newScale = Math.round(raw * 10) / 10;
-                    
-                    // Only update if changed
                     if (newScale !== appSettings.uiScaleMultiplier) {
                         appSettings.uiScaleMultiplier = Math.min(2.5, Math.max(0.5, newScale));
                         renderUI(); 
                         showToast(`Cards: ${(appSettings.uiScaleMultiplier * 100).toFixed(0)}% 🔍`);
                     }
                 } else {
-                    // Calculate raw target
                     let raw = gestureState.startGlobal * data.scale;
-                    // Snap to nearest 10%
                     let newScale = Math.round(raw / 10) * 10;
-
                     if (newScale !== appSettings.globalUiScale) {
                         appSettings.globalUiScale = Math.min(200, Math.max(50, newScale));
                         updateAllChrome(); 
@@ -1066,9 +1063,10 @@ if (data.base === 'double_boomerang') { // <--- ENSURE THIS MATCHES
         }
     });
 
-    // Store engine in modules if we need to access it later
     modules.gestureEngine = engine;
-}
+            }
+                             
+
 function initGlobalListeners() {
     try {
         // --- BUTTON LISTENERS ---

@@ -589,72 +589,66 @@
 
 <div class="space-y-4 text-xs opacity-90">
     <div>
-        <strong class="text-white block mb-1 border-b border-gray-700 pb-1">Regular Taps</strong>
+        <strong class="text-white block mb-1 border-b border-gray-700 pb-1">Taps (1 Finger)</strong>
         <ul class="list-disc pl-4 space-y-1">
-            <li><strong>Tap:</strong> A standard single touch.</li>
-            <li><strong>Double Tap:</strong> Two quick taps in succession.</li>
-            <li><strong>Triple Tap:</strong> Three quick taps in succession.</li>
-            <li><strong>Long Tap:</strong> Press and hold for 1 second.</li>
+            <li><strong>Tap:</strong> Standard single touch.</li>
+            <li><strong>Double Tap:</strong> Two quick taps in the same spot.</li>
+            <li><strong>Triple Tap:</strong> Three quick taps in the same spot.</li>
+            <li><strong>Long Tap:</strong> Press and hold for >600ms.</li>
         </ul>
     </div>
 
     <div>
-        <strong class="text-white block mb-1 border-b border-gray-700 pb-1">Special Taps</strong>
+        <strong class="text-white block mb-1 border-b border-gray-700 pb-1">Spatial & Directional Taps</strong>
         <ul class="list-disc pl-4 space-y-1">
             <li>
-                <strong>Spatial Tap (Double):</strong> A split double-tap. Tap once, move your finger to a new location, and tap again.
-                <br><span class="italic text-gray-400">Direction is determined by where the second tap lands relative to the first.</span>
+                <strong>Spatial Tap (Micro-Swipe):</strong> A very short drag (10px–30px). 
+                <br><span class="italic text-gray-400">Like flicking a crumb off the screen.</span>
             </li>
             <li>
-                <strong>Alignment Taps:</strong> Multi-finger taps where the arrangement of fingers matters.
-                <br><span class="italic text-gray-400">Example: 2 fingers side-by-side = Horizontal. 2 fingers one-above-other = Vertical.</span>
-            </li>
-        </ul>
-    </div>
-
-    <div>
-        <strong class="text-white block mb-1 border-b border-gray-700 pb-1">Swipes</strong>
-        <ul class="list-disc pl-4 space-y-1">
-            <li>
-                <strong>Standard Swipes:</strong> Quick slide in any of the 8 compass directions (N, S, E, W, NE, NW, SE, SW).
+                <strong>Directional Double Tap:</strong> Tap once, then Tap again in a specific direction.
+                <br><span class="italic text-gray-400">Example: Tap center, then Tap Top = Double Tap Up.</span>
             </li>
             <li>
-                <strong>Long Swipes:</strong> A standard swipe that travels a significantly longer distance across the screen.
-            </li>
-            <li>
-                <strong>Pinch Swipe:</strong> Pinch fingers <em>together</em> while swiping (2 Fingers).
-            </li>
-            <li>
-                <strong>Expand Swipe:</strong> Spread fingers <em>apart</em> while swiping (2 Fingers).
-            </li>
-            <li>
-                <strong>Boomerang 🪃:</strong> Swipe out and return to the start point without lifting.
-                <br><span class="italic text-gray-400">Example: Swipe Up then Down in one motion.</span>
-            </li>
-            <li>
-                <strong>Zig Zag:</strong> (Formerly Long Boomerang) Swipe Up-Down-Up (or any direction back-and-forth) quickly.
+                <strong>Directional Triple Tap:</strong>
+                <ul class="list-disc pl-4 mt-1">
+                    <li><strong>Long:</strong> 3 taps in a straight line (e.g. Bottom -> Center -> Top).</li>
+                    <li><strong>Boomerang:</strong> Tap A, Tap B (away), Tap A (back).</li>
+                    <li><strong>Corner:</strong> 3 taps forming a 90° angle (e.g. Bottom -> Center -> Right).</li>
+                </ul>
             </li>
         </ul>
     </div>
 
     <div>
-        <strong class="text-white block mb-1 border-b border-gray-700 pb-1">Shapes (1 Finger)</strong>
+        <strong class="text-white block mb-1 border-b border-gray-700 pb-1">Multi-Finger Taps</strong>
         <ul class="list-disc pl-4 space-y-1">
-            <li><strong>Corner:</strong> Draw an 'L' shape.</li>
-            <li><strong>Triangle:</strong> Draw a triangle.</li>
-            <li><strong>U-Shape:</strong> Draw a 'U' shape (Down-Right-Up).</li>
-            <li><strong>Square:</strong> Draw a box.</li>
+            <li><strong>2-Finger Tap:</strong> Tap with 2 fingers simultaneously.</li>
+            <li><strong>3-Finger Tap:</strong> Tap with 3 fingers simultaneously.</li>
+            <li>
+                <strong>Alignment:</strong> The engine detects how your fingers are lined up.
+                <br><span class="italic text-gray-400">Vertical (one above other), Horizontal (side-by-side), or Diagonal.</span>
+            </li>
         </ul>
-        <span class="italic text-gray-400 block mt-1">(CW = Clockwise, CCW = Counter-Clockwise)</span>
+    </div>
+
+    <div>
+        <strong class="text-white block mb-1 border-b border-gray-700 pb-1">Swipes (1, 2, or 3 Fingers)</strong>
+        <ul class="list-disc pl-4 space-y-1">
+            <li><strong>Standard:</strong> Slide >30px in any compass direction.</li>
+            <li><strong>Long Swipe:</strong> Slide >150px across the screen.</li>
+            <li><strong>Pinch/Expand:</strong> 2 fingers pinching in or pushing out while swiping.</li>
+            <li><strong>Boomerang:</strong> Swipe out and return without lifting.</li>
+            <li><strong>Zig Zag:</strong> Quick back-and-forth motion (3 segments).</li>
+        </ul>
     </div>
 
     <div>
         <strong class="text-white block mb-1 border-b border-gray-700 pb-1">Motion Tap (Tap & Go)</strong>
-        <p>Tap, release, then immediately <strong>Swipe</strong> or draw a <strong>Shape</strong>.</p>
-        <span class="italic text-gray-400">Allows you to trigger swipes without accidentally triggering them during normal use.</span>
+        <p>Tap, release, then immediately <strong>Swipe</strong>.</p>
+        <span class="italic text-gray-400">Used to trigger complex swipes without accidental triggers.</span>
     </div>
 </div>
-
                         
                     </div>
                 </div>

@@ -239,10 +239,6 @@ export class SettingsManager {
             redeemImg: document.getElementById('redeem-img'),
             redeemPlus: document.getElementById('redeem-zoom-in'),
             redeemMinus: document.getElementById('redeem-zoom-out'),
-
-            openDonateBtn: document.getElementById('open-donate-btn'),
-
-
             openDonateBtn: document.getElementById('open-donate-btn'),
             openRedeemSettingsBtn: document.getElementById('open-redeem-btn-settings'),
 

@@ -949,20 +949,19 @@ const startApp = () => {
 // --- NEW GESTURE ENGINE INTEGRATION ---
 // REPLACE THE initGestureEngine FUNCTION IN app.js WITH THIS:
 
+// REPLACE initGestureEngine IN app.js
+
 function initGestureEngine() {
-    // We attach to body to handle global actions (Twist/Pinch) 
-    // AND input actions when in "Gesture Mode"
     const engine = new GestureEngine(document.body, {
         tapDelay: appSettings.gestureTapDelay || 300,
         swipeThreshold: appSettings.gestureSwipeDist || 30,
         debug: false
     }, {
-        // 1. DISCRETE GESTURES (Taps, Swipes, Shapes, SHAKES)
         onGesture: (data) => {
             
-            // --- FIX START: Handle Delete/Clear Correctly ---
+            // --- FIXED: Delete & Clear Handling ---
             
-            // 1-Finger Shake = Delete
+            // 1-Finger Shake = DELETE
             if ((data.name === 'DELETE' || data.base === 'squiggle') && data.fingers === 1) {
                 if (appSettings.isDeleteGestureEnabled) {
                     handleBackspace();
@@ -972,7 +971,7 @@ function initGestureEngine() {
                 }
             }
             
-            // 2-Finger Shake = Clear All
+            // 2-Finger Shake = CLEAR
             if ((data.name === 'CLEAR' || data.base === 'squiggle') && data.fingers === 2) {
                 if (appSettings.isClearGestureEnabled) {
                     const s = getState();
@@ -985,9 +984,8 @@ function initGestureEngine() {
                     return;
                 }
             }
-            // --- FIX END ---
 
-            // Mapped Inputs (Only if Gesture Pad is visible/active)
+            // Mapped Inputs (Spatial Taps, Swipes, etc.)
             const isGestureMode = document.body.classList.contains('input-gestures-mode');
             if (isGestureMode) {
                 const settings = getProfileSettings();
@@ -996,7 +994,6 @@ function initGestureEngine() {
                 if (mapResult !== null) {
                     addValue(mapResult);
                     
-                    // Visual feedback on the pad if it exists
                     const indicator = document.getElementById('gesture-indicator');
                     if(indicator) {
                         indicator.textContent = data.name;
@@ -1007,9 +1004,9 @@ function initGestureEngine() {
             }
         },
 
-        // 2. CONTINUOUS GESTURES (Twist, Pinch)
+        // Continuous Gestures (Volume/Speed/Resize)
         onContinuous: (data) => {
-            // Volume Control (3 Finger Twist)
+            // Volume
             if (data.type === 'twist' && data.fingers === 3 && appSettings.isVolumeGesturesEnabled) {
                 let newVol = appSettings.voiceVolume || 1.0;
                 newVol += (data.value * 0.05); 
@@ -1017,8 +1014,7 @@ function initGestureEngine() {
                 saveState();
                 showToast(`Volume: ${(appSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
             }
-
-            // Speed Control (2 Finger Twist)
+            // Speed
             if (data.type === 'twist' && data.fingers === 2 && appSettings.isSpeedGesturesEnabled) {
                 let newSpeed = appSettings.playbackSpeed || 1.0;
                 newSpeed += (data.value * 0.05);
@@ -1026,22 +1022,17 @@ function initGestureEngine() {
                 saveState();
                 showToast(`Speed: ${(appSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
             }
-            
-            // Resize UI (2 Finger Pinch)
+            // Resize (Pinch)
             if (data.type === 'pinch') {
                 if (!gestureState.isPinching) {
                     gestureState.isPinching = true;
                     gestureState.startGlobal = appSettings.globalUiScale;
                     gestureState.startSeq = appSettings.uiScaleMultiplier;
                 }
-
                 clearTimeout(gestureState.resetTimer);
-                gestureState.resetTimer = setTimeout(() => { 
-                    gestureState.isPinching = false; 
-                }, 250);
+                gestureState.resetTimer = setTimeout(() => { gestureState.isPinching = false; }, 250);
 
                 const mode = appSettings.gestureResizeMode || 'global';
-                
                 if (mode === 'sequence') {
                     let raw = gestureState.startSeq * data.scale;
                     let newScale = Math.round(raw * 10) / 10;
@@ -1062,9 +1053,8 @@ function initGestureEngine() {
             }
         }
     });
-
     modules.gestureEngine = engine;
-            }
+}
                              
 
 function initGlobalListeners() {

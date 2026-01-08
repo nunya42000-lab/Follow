@@ -114,7 +114,7 @@ export class GestureEngine {
                 this.contState.squiggle.lastX = x;
                 
                 // Trigger DELETE
-                if (this.contState.squiggle.flips >= 4) {
+                if (this.contState.squiggle.flips >= 3) {
                     this.contState.squiggle.hasTriggered = true;
                     this.callbacks.onGesture({ 
                         id: 'delete', 

@@ -1360,7 +1360,4 @@ async function requestWakeLock() {
 requestWakeLock();
         
 }
-
-
-        
 document.addEventListener('DOMContentLoaded', startApp);

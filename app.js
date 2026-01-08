@@ -1365,3 +1365,4 @@ requestWakeLock();
 document.addEventListener('DOMContentLoaded', startApp);
 
 // DELETE THE EXTRA '}' THAT WAS HERE
+}

@@ -323,7 +323,7 @@ export class GestureEngine {
                 type = 'motion_tap_' + type;
             }
         }
-
+)
         // 3. Multi-Finger Swipes
         if (fingers > 1 && type === 'tap' && netDist > 30) {
             type = 'swipe';

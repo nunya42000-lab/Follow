@@ -1,14 +1,14 @@
 // gestures.js
-// Version: v65 - Complete Motion & Shape Engine - Corrected
+// Version: v67 - Fixed Delete/Clear & Structural Errors
 
 export class GestureEngine {
     constructor(targetElement, config, callbacks) {
         this.target = targetElement || document.body;
         this.config = Object.assign({
-            tapDelay: 300,        // Max time between taps for multi-taps
-            swipeThreshold: 30,   // Min distance for a "Swipe" vs "Motion Tap"
-            motionTapLimit: 80,   // Max distance for a "Motion Tap"
-            holdDelay: 600,       // Time for long press
+            tapDelay: 300,        
+            swipeThreshold: 30,   
+            motionTapLimit: 80,   
+            holdDelay: 600,       
             debug: false
         }, config || {});
 
@@ -39,6 +39,7 @@ export class GestureEngine {
 
     _bindHandlers() {
         const t = this.target;
+        // passive: false allows us to block browser scrolling for gestures like Delete
         t.addEventListener('pointerdown', e => this._handleDown(e), { passive: false });
         t.addEventListener('pointermove', e => this._handleMove(e), { passive: false });
         t.addEventListener('pointerup', e => this._handleUp(e), { passive: false });
@@ -47,7 +48,6 @@ export class GestureEngine {
     }
 
     _handleDown(e) {
-        // Allow normal button clicks unless in gesture mode
         if (e.target.tagName === 'BUTTON' && !document.body.classList.contains('input-gestures-mode')) return;
         
         this.activePointers[e.pointerId] = {
@@ -85,19 +85,16 @@ export class GestureEngine {
                 isTracking: true, lastX: (p1.x + p2.x) / 2, direction: 0, flips: 0, hasTriggered: false
             };
         }
-
-        // 3. Twist - 3 Fingers
-        if (count === 3) {
-            const p1 = pointers[0].pts[0];
-            const p2 = pointers[1].pts[0];
-            this.contState.rotStartAngle = this._getRotationAngle(p1, p2);
-            this.contState.rotAccumulator = 0;
-            this.contState.rotLastUpdate = Date.now();
-        }
     }
 
     _handleMove(e) {
         if (!this.activePointers[e.pointerId]) return;
+
+        // Prevent browser back/scroll if we are tracking a potential delete/clear
+        if (this.contState.squiggle.isTracking || this.contState.squiggle2F.isTracking) {
+             if (e.cancelable) e.preventDefault();
+        }
+
         this.activePointers[e.pointerId].pts.push({ x: e.clientX, y: e.clientY });
 
         const pointers = Object.values(this.activePointers);
@@ -115,9 +112,18 @@ export class GestureEngine {
                 }
                 this.contState.squiggle.direction = newDir;
                 this.contState.squiggle.lastX = x;
+                
+                // Trigger DELETE
                 if (this.contState.squiggle.flips >= 4) {
-                    this.callbacks.onContinuous({ type: 'squiggle', fingers: 1 });
                     this.contState.squiggle.hasTriggered = true;
+                    this.callbacks.onGesture({ 
+                        id: 'delete', 
+                        base: 'squiggle', 
+                        fingers: 1, 
+                        meta: {}, 
+                        name: 'DELETE' // Explicit Name
+                    });
+                    this.callbacks.onContinuous({ type: 'squiggle', fingers: 1 });
                 }
             }
         }
@@ -133,9 +139,18 @@ export class GestureEngine {
                 }
                 this.contState.squiggle2F.direction = newDir;
                 this.contState.squiggle2F.lastX = currentAvgX;
+                
+                // Trigger CLEAR
                 if (this.contState.squiggle2F.flips >= 3) {
-                    this.callbacks.onContinuous({ type: 'squiggle', fingers: 2 });
                     this.contState.squiggle2F.hasTriggered = true;
+                    this.callbacks.onGesture({ 
+                        id: 'clear', 
+                        base: 'squiggle', 
+                        fingers: 2, 
+                        meta: {}, 
+                        name: 'CLEAR' // Explicit Name
+                    });
+                    this.callbacks.onContinuous({ type: 'squiggle', fingers: 2 });
                 }
             }
         }
@@ -183,6 +198,13 @@ export class GestureEngine {
             this.contState.squiggle.isTracking = false;
             this.contState.squiggle2F.isTracking = false;
             clearTimeout(this.debounceTimer);
+            
+            // If we triggered a delete/clear, do NOT process as a swipe/tap
+            if (this.contState.squiggle.hasTriggered || this.contState.squiggle2F.hasTriggered) {
+                this.history = []; 
+                return;
+            }
+            
             this.debounceTimer = setTimeout(() => this._analyze(), 100);
         }
     }
@@ -250,7 +272,6 @@ export class GestureEngine {
             // A. Shapes (Closed or Multi-Segment)
             if (pathLen > this.config.swipeThreshold) {
                 
-                // --- FIX START: PRIORITIZE DOUBLE BOOMERANG ---
                 let shapeDetected = false;
 
                 if (segments.length === 4) {
@@ -258,7 +279,6 @@ export class GestureEngine {
                     const a2 = this._getAngleDiff(segments[1].vec, segments[2].vec);
                     const a3 = this._getAngleDiff(segments[2].vec, segments[3].vec);
                     
-                    // Check for sharp reversals (> 100 degrees)
                     if (Math.abs(a1) > 100 && Math.abs(a2) > 100 && Math.abs(a3) > 100) {
                          type = 'double_boomerang';
                          shapeDetected = true;
@@ -271,9 +291,7 @@ export class GestureEngine {
                     } else if (segments.length === 3 && isClosed) {
                         type = 'triangle';
                     } else if (segments.length === 3 && !isClosed) {
-                        // Check for U-Shape (3 segments, roughly 90 deg turns)
                         type = 'u_shape';
-                        // Check for Zig Zag (3 segments, alternating directions)
                         const angle1 = this._getAngleDiff(segments[0].vec, segments[1].vec);
                         const angle2 = this._getAngleDiff(segments[1].vec, segments[2].vec);
                         if (Math.abs(angle1) > 120 && Math.abs(angle2) > 120) {
@@ -282,15 +300,12 @@ export class GestureEngine {
                     } else if (segments.length === 2) {
                         const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
                         if (Math.abs(angle) > 150) { 
-                            // Out and Back -> Boomerang
                             type = 'boomerang'; 
-                            // Check for Long Boomerang (Zig Zag)
                             if (pathLen > 250) type = 'zigzag';
                         } else {
                             type = 'corner';
                         }
                     } else if (segments.length === 1 || (netDist > pathLen * 0.8)) {
-                        // Straight Line
                         if (netDist > 150) {
                             type = 'swipe_long';
                             meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
@@ -298,30 +313,25 @@ export class GestureEngine {
                              type = 'swipe';
                              meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
                         } else if (netDist > 15) {
-                            // Very short travel -> Motion Tap (Spatial)
                             type = 'motion_tap_spatial';
                             meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
                         }
                     }
                 } 
-            } // <--- ADDED CLOSING BRACE 1
+            } // FIXED: Added closing brace for pathLen check
             else if (netDist > 10 && netDist <= this.config.swipeThreshold) {
-                // Micro movement -> Spatial Tap
                 type = 'motion_tap_spatial';
                 meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
             }
 
-            // B. Motion Tap Prefix Logic
-            // If we detected a shape/swipe but it was very small/fast, we might call it a "Motion Tap [Shape]"
             if (['corner', 'boomerang', 'square', 'triangle'].includes(type) && pathLen < 150) {
                 type = 'motion_tap_' + type;
             }
-        } // <--- ADDED CLOSING BRACE 2
+        } // FIXED: Added closing brace for 1-finger block
 
         // 3. Multi-Finger Swipes
         if (fingers > 1 && type === 'tap' && netDist > 30) {
             type = 'swipe';
-            // Check for Boomerang 2F/3F
             if (segments.length >= 2) {
                  const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
                  if (Math.abs(angle) > 150) type = 'boomerang';
@@ -377,16 +387,14 @@ export class GestureEngine {
         // 1. Direction Handling
         if (meta && meta.dir && meta.dir !== 'none') {
             const dir = meta.dir.toLowerCase();
-            // Shapes put dir in middle: square_up_cw
             if (['square', 'triangle', 'u_shape', 'corner', 'motion_tap_corner'].includes(baseType)) {
                  id += `_${dir}`;
             } 
-            // Swipes/Motion Taps put dir at end: swipe_up
             else if (!baseType.includes(dir)) {
                  id += `_${dir}`;
             }
         } else if (['swipe', 'swipe_long', 'boomerang', 'zigzag'].includes(baseType)) {
-             id += '_any'; // Fallback if no specific direction
+             id += '_any'; 
         }
 
         // 2. Winding Handling (Shapes)
@@ -401,13 +409,6 @@ export class GestureEngine {
         if (meta && meta.align) {
             const map = { 'Vertical': 'vertical', 'Horizontal': 'horizontal', 'Diagonal SE': 'diagonal_se', 'Diagonal SW': 'diagonal_sw' };
             if (map[meta.align]) id += `_${map[meta.align]}`;
-        }
-
-        // Clean up and Emit
-        // Ensure "Motion Tap Swipe" naming convention matches settings
-        if (id.startsWith('motion_tap_spatial')) {
-             // User calls this "Spatial Tap" -> Settings expects motion_tap_spatial_up
-             // Logic is already correct.
         }
 
         // Construct Human Name

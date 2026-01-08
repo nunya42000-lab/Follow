@@ -957,24 +957,27 @@ function initGestureEngine() {
     }, {
         // 1. DISCRETE GESTURES (Taps, Swipes, Shapes)
         onGesture: (data) => {
-            // Check for Delete / Clear Shortcuts (Double Boomerang)
-            if (data.base === 'double_boomerang') {
-                if (data.fingers === 1 && appSettings.isDeleteGestureEnabled) {
-                    handleBackspace();
-                    showToast("Deleted ⌫");
-                    return;
-                }
-                if (data.fingers === 2 && appSettings.isClearGestureEnabled) {
-                    const s = getState();
-                    s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []);
-                    s.nextSequenceIndex = 0;
-                    renderUI();
-                    saveState();
-                    showToast("CLEARED 💥");
-                    vibrate();
-                    return;
-                }
-            }
+            // Check for Delete / Clear Shortcuts
+if (data.base === 'double_boomerang') { // <--- ENSURE THIS MATCHES
+    // 1-Finger M-Shape = Delete
+    if (data.fingers === 1 && appSettings.isDeleteGestureEnabled) {
+        handleBackspace();
+        showToast("Deleted ⌫");
+        return;
+    }
+    // 2-Finger M-Shape = Clear All
+    if (data.fingers === 2 && appSettings.isClearGestureEnabled) {
+        const s = getState();
+        s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []);
+        s.nextSequenceIndex = 0;
+        renderUI();
+        saveState();
+        showToast("CLEARED 💥");
+        vibrate();
+        return;
+    }
+}
+
 
             // Mapped Inputs (Only if Gesture Pad is visible/active)
             // We check the specific class we toggle in renderUI

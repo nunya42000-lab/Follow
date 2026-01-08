@@ -1,5 +1,5 @@
 // gestures.js
-// Version: v65 - Complete Motion & Shape Engine
+// Version: v65 - Complete Motion & Shape Engine - Corrected
 
 export class GestureEngine {
     constructor(targetElement, config, callbacks) {
@@ -251,10 +251,6 @@ export class GestureEngine {
             if (pathLen > this.config.swipeThreshold) {
                 
                 // --- FIX START: PRIORITIZE DOUBLE BOOMERANG ---
-                // We check this first because it relies on specific angles (reversals),
-                // whereas Square simply checks if the shape is closed.
-                // A Double Boomerang (Up-Down-Up-Down) IS closed (returns to start),
-                // so it was incorrectly being caught as a Square.
                 let shapeDetected = false;
 
                 if (segments.length === 4) {
@@ -307,8 +303,9 @@ export class GestureEngine {
                             meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
                         }
                     }
-                }
-                else if (netDist > 10 && netDist <= this.config.swipeThreshold) {
+                } 
+            } // <--- ADDED CLOSING BRACE 1
+            else if (netDist > 10 && netDist <= this.config.swipeThreshold) {
                 // Micro movement -> Spatial Tap
                 type = 'motion_tap_spatial';
                 meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
@@ -316,14 +313,11 @@ export class GestureEngine {
 
             // B. Motion Tap Prefix Logic
             // If we detected a shape/swipe but it was very small/fast, we might call it a "Motion Tap [Shape]"
-            // But based on user requirements, "Motion Tap Swipe" is a distinct category.
-            // Let's rely on the Distance thresholds above for Swipe vs Spatial.
-            // For Shapes, if they are tiny (<80px total path), convert to Motion Tap Shape.
             if (['corner', 'boomerang', 'square', 'triangle'].includes(type) && pathLen < 150) {
                 type = 'motion_tap_' + type;
             }
-        }
-)
+        } // <--- ADDED CLOSING BRACE 2
+
         // 3. Multi-Finger Swipes
         if (fingers > 1 && type === 'tap' && netDist > 30) {
             type = 'swipe';

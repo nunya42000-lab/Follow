@@ -1340,6 +1340,7 @@ if(headerStealth) {
         console.error("Listener Error:", e);
     }
 // Keep screen awake
+// ... existing code ...
 async function requestWakeLock() {
     try {
         if ('wakeLock' in navigator) {
@@ -1360,4 +1361,7 @@ async function requestWakeLock() {
 requestWakeLock();
         
 }
+
 document.addEventListener('DOMContentLoaded', startApp);
+
+// DELETE THE EXTRA '}' THAT WAS HERE

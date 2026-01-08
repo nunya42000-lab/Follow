@@ -263,6 +263,24 @@ export class GestureEngine {
                     if (Math.abs(angle1) > 120 && Math.abs(angle2) > 120) {
                          type = 'zigzag';
                     }
+                    // ... existing logic for 3 segments (triangle/zigzag) ...
+
+} else if (segments.length === 4 && !isClosed) {
+    // NEW: Check for "M" or "W" shape (Up-Down-Up-Down)
+    // We check if all 3 turns are sharp (> 120 degrees)
+    const a1 = this._getAngleDiff(segments[0].vec, segments[1].vec);
+    const a2 = this._getAngleDiff(segments[1].vec, segments[2].vec);
+    const a3 = this._getAngleDiff(segments[2].vec, segments[3].vec);
+    
+    if (Math.abs(a1) > 100 && Math.abs(a2) > 100 && Math.abs(a3) > 100) {
+         type = 'double_boomerang';
+    } else {
+         // Fallback if angles aren't sharp enough
+         type = 'square'; 
+    }
+
+// ... existing logic for 2 segments ...
+                                  
                 } else if (segments.length === 2) {
                     const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
                     if (Math.abs(angle) > 150) { 

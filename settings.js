@@ -1,4 +1,3 @@
-
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
 export const PREMADE_THEMES = {
@@ -1082,9 +1081,7 @@ if (this.dom.gestureSwipeSlider) {
             };
         });
     }
-
-
-        applyDefaultGestureMappings() {
+    applyDefaultGestureMappings() {
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
         
         const defaults = {
@@ -1128,8 +1125,8 @@ if (this.dom.gestureSwipeSlider) {
             'piano_5': { gesture: 'swipe_right_2f' }
         };
 
+        // Merge defaults only for missing keys
         this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
-    }
+            }
 
-
-}
+        

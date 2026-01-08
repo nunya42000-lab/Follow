@@ -249,63 +249,66 @@ export class GestureEngine {
             
             // A. Shapes (Closed or Multi-Segment)
             if (pathLen > this.config.swipeThreshold) {
-                if (segments.length >= 4 && isClosed) {
-                    type = 'square'; 
-                } else if (segments.length === 3 && isClosed) {
-                    type = 'triangle';
-                } else if (segments.length === 3 && !isClosed) {
-                    // Check for U-Shape (3 segments, roughly 90 deg turns)
-                    type = 'u_shape';
-                    // Check for Zig Zag (3 segments, alternating directions)
-                    // e.g. Up -> Down -> Up
-                    const angle1 = this._getAngleDiff(segments[0].vec, segments[1].vec);
-                    const angle2 = this._getAngleDiff(segments[1].vec, segments[2].vec);
-                    if (Math.abs(angle1) > 120 && Math.abs(angle2) > 120) {
-                         type = 'zigzag';
-                    }
-                    // ... existing logic for 3 segments (triangle/zigzag) ...
+                
+                // --- FIX START: PRIORITIZE DOUBLE BOOMERANG ---
+                // We check this first because it relies on specific angles (reversals),
+                // whereas Square simply checks if the shape is closed.
+                // A Double Boomerang (Up-Down-Up-Down) IS closed (returns to start),
+                // so it was incorrectly being caught as a Square.
+                let shapeDetected = false;
 
-} else if (segments.length === 4 && !isClosed) {
-    // NEW: Check for "M" or "W" shape (Up-Down-Up-Down)
-    // We check if all 3 turns are sharp (> 120 degrees)
-    const a1 = this._getAngleDiff(segments[0].vec, segments[1].vec);
-    const a2 = this._getAngleDiff(segments[1].vec, segments[2].vec);
-    const a3 = this._getAngleDiff(segments[2].vec, segments[3].vec);
-    
-    if (Math.abs(a1) > 100 && Math.abs(a2) > 100 && Math.abs(a3) > 100) {
-         type = 'double_boomerang';
-    } else {
-         // Fallback if angles aren't sharp enough
-         type = 'square'; 
-    }
-
-// ... existing logic for 2 segments ...
-                                  
-                } else if (segments.length === 2) {
-                    const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
-                    if (Math.abs(angle) > 150) { 
-                        // Out and Back -> Boomerang
-                        type = 'boomerang'; 
-                        // Check for Long Boomerang (Zig Zag)
-                        if (pathLen > 250) type = 'zigzag';
-                    } else {
-                        type = 'corner';
-                    }
-                } else if (segments.length === 1 || (netDist > pathLen * 0.8)) {
-                    // Straight Line
-                    if (netDist > 150) {
-                        type = 'swipe_long';
-                        meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
-                    } else if (netDist > this.config.motionTapLimit) {
-                         type = 'swipe';
-                         meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
-                    } else if (netDist > 15) {
-                        // Very short travel -> Motion Tap (Spatial)
-                        type = 'motion_tap_spatial';
-                        meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
+                if (segments.length === 4) {
+                    const a1 = this._getAngleDiff(segments[0].vec, segments[1].vec);
+                    const a2 = this._getAngleDiff(segments[1].vec, segments[2].vec);
+                    const a3 = this._getAngleDiff(segments[2].vec, segments[3].vec);
+                    
+                    // Check for sharp reversals (> 100 degrees)
+                    if (Math.abs(a1) > 100 && Math.abs(a2) > 100 && Math.abs(a3) > 100) {
+                         type = 'double_boomerang';
+                         shapeDetected = true;
                     }
                 }
-            } else if (netDist > 10 && netDist <= this.config.swipeThreshold) {
+
+                if (!shapeDetected) {
+                    if (segments.length >= 4 && isClosed) {
+                        type = 'square'; 
+                    } else if (segments.length === 3 && isClosed) {
+                        type = 'triangle';
+                    } else if (segments.length === 3 && !isClosed) {
+                        // Check for U-Shape (3 segments, roughly 90 deg turns)
+                        type = 'u_shape';
+                        // Check for Zig Zag (3 segments, alternating directions)
+                        const angle1 = this._getAngleDiff(segments[0].vec, segments[1].vec);
+                        const angle2 = this._getAngleDiff(segments[1].vec, segments[2].vec);
+                        if (Math.abs(angle1) > 120 && Math.abs(angle2) > 120) {
+                             type = 'zigzag';
+                        }
+                    } else if (segments.length === 2) {
+                        const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
+                        if (Math.abs(angle) > 150) { 
+                            // Out and Back -> Boomerang
+                            type = 'boomerang'; 
+                            // Check for Long Boomerang (Zig Zag)
+                            if (pathLen > 250) type = 'zigzag';
+                        } else {
+                            type = 'corner';
+                        }
+                    } else if (segments.length === 1 || (netDist > pathLen * 0.8)) {
+                        // Straight Line
+                        if (netDist > 150) {
+                            type = 'swipe_long';
+                            meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
+                        } else if (netDist > this.config.motionTapLimit) {
+                             type = 'swipe';
+                             meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
+                        } else if (netDist > 15) {
+                            // Very short travel -> Motion Tap (Spatial)
+                            type = 'motion_tap_spatial';
+                            meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
+                        }
+                    }
+                }
+                else if (netDist > 10 && netDist <= this.config.swipeThreshold) {
                 // Micro movement -> Spatial Tap
                 type = 'motion_tap_spatial';
                 meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);

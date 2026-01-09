@@ -57,7 +57,20 @@ const DEFAULT_APP = {
     selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en', 
     isGestureInputEnabled: false, gestureMappings: {} 
 };
-
+// DEFAULT MAPPINGS (Extracted to top level)
+const DEFAULT_MAPPINGS = {
+    'k9_1': 'tap', 'k9_2': 'double_tap', 'k9_3': 'triple_tap',
+    'k9_4': 'tap_2f_any', 'k9_5': 'double_tap_2f_any', 'k9_6': 'triple_tap_2f_any',
+    'k9_7': 'tap_3f_any', 'k9_8': 'double_tap_3f_any', 'k9_9': 'triple_tap_3f_any',
+    'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
+    'k12_5': 'tap_2f_any', 'k12_6': 'double_tap_2f_any', 'k12_7': 'triple_tap_2f_any', 'k12_8': 'long_tap_2f_any',
+    'k12_9': 'tap_3f_any', 'k12_10': 'double_tap_3f_any', 'k12_11': 'triple_tap_3f_any', 'k12_12': 'long_tap_3f_any',
+    'piano_C': 'swipe_nw', 'piano_D': 'swipe_left', 'piano_E': 'swipe_sw',
+    'piano_F': 'swipe_down', 'piano_G': 'swipe_se', 'piano_A': 'swipe_right', 'piano_B': 'swipe_ne',
+    'piano_1': 'swipe_left_2f', 'piano_2': 'swipe_nw_2f', 'piano_3': 'swipe_up_2f',
+    'piano_4': 'swipe_ne_2f', 'piano_5': 'swipe_right_2f'
+};
+    
 const DICTIONARY = {
     'en': { correct: "Correct", wrong: "Wrong", stealth: "Stealth Active", reset: "Reset to Round 1", stop: "Playback Stopped 🛑" },
     'es': { correct: "Correcto", wrong: "Incorrecto", stealth: "Modo Sigilo", reset: "Reiniciar Ronda 1", stop: "Detenido 🛑" }
@@ -911,12 +924,11 @@ const startApp = () => {
 
 function mapGestureToValue(kind, currentInput) {
     const saved = appSettings.gestureMappings || {};
-    
+
     // Strict Match Helper
     const matches = (target, incoming) => {
         if (!target) return false;
         if (target === incoming) return true;
-        // Strict Hierarchy: tap_2f matches tap_2f_any, but tap_2f_vertical does NOT match tap_2f_diagonal
         if (target.endsWith('_any')) {
             const base = target.replace('_any', '');
             if (incoming.startsWith(base)) return true;
@@ -924,39 +936,42 @@ function mapGestureToValue(kind, currentInput) {
         return false;
     };
 
-    const getG = (key) => {
-        // Defaults embedded for robustness
-        const defaults = {
-            'k9_1': 'tap', 'k9_2': 'double_tap', 'k9_3': 'triple_tap',
-            'k9_4': 'tap_2f_any', 'k9_5': 'double_tap_2f_any', 'k9_6': 'triple_tap_2f_any',
-            'k9_7': 'tap_3f_any', 'k9_8': 'double_tap_3f_any', 'k9_9': 'triple_tap_3f_any',
-            'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
-            'k12_5': 'tap_2f_any', 'k12_6': 'double_tap_2f_any', 'k12_7': 'triple_tap_2f_any', 'k12_8': 'long_tap_2f_any',
-            'k12_9': 'tap_3f_any', 'k12_10': 'double_tap_3f_any', 'k12_11': 'triple_tap_3f_any', 'k12_12': 'long_tap_3f_any',
-            'piano_C': 'swipe_nw', 'piano_D': 'swipe_left', 'piano_E': 'swipe_sw',
-            'piano_F': 'swipe_down', 'piano_G': 'swipe_se', 'piano_A': 'swipe_right', 'piano_B': 'swipe_ne',
-            'piano_1': 'swipe_left_2f', 'piano_2': 'swipe_nw_2f', 'piano_3': 'swipe_up_2f',
-            'piano_4': 'swipe_ne_2f', 'piano_5': 'swipe_right_2f'
-        };
-        return (saved[key] && saved[key].gesture) ? saved[key].gesture : defaults[key];
-    };
+    const getG = (key) => (saved[key] && saved[key].gesture) ? saved[key].gesture : DEFAULT_MAPPINGS[key];
 
     if(currentInput === CONFIG.INPUTS.PIANO) {
         const keys = ['C','D','E','F','G','A','B','1','2','3','4','5'];
-        for(let k of keys) {
-            if (matches(getG('piano_' + k), kind)) return k;
-        }
+        for(let k of keys) { if (matches(getG('piano_' + k), kind)) return k; }
     } else if(currentInput === CONFIG.INPUTS.KEY12) {
-        for(let i=1; i<=12; i++) { 
-            if (matches(getG('k12_' + i), kind)) return i; 
-        }
+        for(let i=1; i<=12; i++) { if (matches(getG('k12_' + i), kind)) return i; }
     } else if(currentInput === CONFIG.INPUTS.KEY9) {
-        for(let i=1; i<=9; i++) { 
-            if (matches(getG('k9_' + i), kind)) return i; 
-        }
+        for(let i=1; i<=9; i++) { if (matches(getG('k9_' + i), kind)) return i; }
     }
     return null;
 }
+
+// NEW FUNCTION: Tells the engine which gestures to look for
+function updateEngineConstraints() {
+    if (!modules.gestureEngine) return;
+    const settings = getProfileSettings();
+    const saved = appSettings.gestureMappings || {};
+    const getG = (key) => (saved[key] && saved[key].gesture) ? saved[key].gesture : DEFAULT_MAPPINGS[key];
+
+    const activeList = [];
+
+    if(settings.currentInput === CONFIG.INPUTS.PIANO) {
+        ['C','D','E','F','G','A','B','1','2','3','4','5'].forEach(k => activeList.push(getG('piano_' + k)));
+    } else if(settings.currentInput === CONFIG.INPUTS.KEY12) {
+        for(let i=1; i<=12; i++) activeList.push(getG('k12_' + i));
+    } else if(settings.currentInput === CONFIG.INPUTS.KEY9) {
+        for(let i=1; i<=9; i++) activeList.push(getG('k9_' + i));
+    }
+
+    if (appSettings.isDeleteGestureEnabled) activeList.push('delete'); 
+    if (appSettings.isClearGestureEnabled) activeList.push('clear');   
+
+    modules.gestureEngine.updateAllowed(activeList);
+}
+
 
 function initGestureEngine() {
     const engine = new GestureEngine(document.body, {
@@ -965,7 +980,7 @@ function initGestureEngine() {
         debug: false
     }, {
         onGesture: (data) => {
-            // Global Actions (Delete/Clear)
+            // Global Actions
             if ((data.name === 'DELETE' || data.base === 'squiggle') && data.fingers === 1) {
                 if (appSettings.isDeleteGestureEnabled) { handleBackspace(); showToast("Deleted ⌫"); vibrate(); return; }
             }
@@ -980,26 +995,30 @@ function initGestureEngine() {
             const isPadOpen = (typeof isGesturePadVisible !== 'undefined' && isGesturePadVisible);
             const isClassPresent = document.body.classList.contains('input-gestures-mode');
             const isBossActive = appSettings.isBlackoutFeatureEnabled && appSettings.isBlackoutGesturesEnabled && blackoutState.isActive;
-            
+
             if (isPadOpen || isClassPresent || isBossActive) {
                 const settings = getProfileSettings();
                 const mapResult = mapGestureToValue(data.name, settings.currentInput);
-                
-                // STRICT MODE: Only show feedback if valid
+                const indicator = document.getElementById('gesture-indicator');
+
                 if (mapResult !== null) {
                     addValue(mapResult);
-                    const indicator = document.getElementById('gesture-indicator');
                     if(indicator) {
                         indicator.textContent = data.name.replace(/_/g, ' ').toUpperCase();
                         indicator.style.opacity = '1';
-                        // Fast fade for rapid input
-                        setTimeout(() => indicator.style.opacity = '0.3', 250);
+                        indicator.style.color = 'var(--seq-bubble)';
+                        setTimeout(() => { indicator.style.opacity = '0.3'; indicator.style.color = ''; }, 250);
+                    }
+                } else {
+                    if(indicator) {
+                        indicator.textContent = data.name.replace(/_/g, ' ');
+                        indicator.style.opacity = '0.5';
+                        setTimeout(() => indicator.style.opacity = '0.3', 500);
                     }
                 }
             }
         },
         onContinuous: (data) => {
-             // ... (Keep existing Logic) ...
             if (data.type === 'twist' && data.fingers === 3 && appSettings.isVolumeGesturesEnabled) {
                 let newVol = appSettings.voiceVolume || 1.0; newVol += (data.value * 0.05); 
                 appSettings.voiceVolume = Math.min(1.0, Math.max(0.0, newVol)); saveState(); showToast(`Volume: ${(appSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
@@ -1011,10 +1030,8 @@ function initGestureEngine() {
             if (data.type === 'pinch') {
                 const mode = appSettings.gestureResizeMode || 'global';
                 if (mode === 'none') return;
-
                 if (!gestureState.isPinching) { gestureState.isPinching = true; gestureState.startGlobal = appSettings.globalUiScale; gestureState.startSeq = appSettings.uiScaleMultiplier; }
                 clearTimeout(gestureState.resetTimer); gestureState.resetTimer = setTimeout(() => { gestureState.isPinching = false; }, 250);
-                
                 if (mode === 'sequence') {
                     let raw = gestureState.startSeq * data.scale; let newScale = Math.round(raw * 10) / 10;
                     if (newScale !== appSettings.uiScaleMultiplier) { appSettings.uiScaleMultiplier = Math.min(2.5, Math.max(0.5, newScale)); renderUI(); showToast(`Cards: ${(appSettings.uiScaleMultiplier * 100).toFixed(0)}% 🔍`); }
@@ -1026,7 +1043,18 @@ function initGestureEngine() {
         }
     });
     modules.gestureEngine = engine;
-}
+
+    // Initial Update
+    updateEngineConstraints();
+
+    // Hook into renderUI so constraints update when you switch inputs
+    const originalRender = renderUI;
+    renderUI = function() {
+        originalRender();
+        updateEngineConstraints();
+    };
+            }
+                            
 
 function initGlobalListeners() {
     try {

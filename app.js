@@ -196,45 +196,6 @@ function vibrateMorse(val) {
     }
 
 
-function mapGestureToValue(kind, currentInput) {
-    const gm = appSettings.gestureMappings || {};
-
-    // Helper: Returns true if the saved setting matches the incoming gesture
-    // e.g., Saved: 'tap_2f' matches Incoming: 'tap_2f_horizontal'
-    const matches = (savedGesture, incomingGesture) => {
-        if (!savedGesture) return false;
-        if (savedGesture === incomingGesture) return true;
-        // Check if incoming is a specific version of the saved generic gesture
-        // e.g. "tap_2f" should match "tap_2f_horizontal"
-        if (incomingGesture.startsWith(savedGesture + '_')) return true;
-        return false;
-    };
-
-    if(currentInput === CONFIG.INPUTS.PIANO) {
-        for(const k in gm) {
-            if(k.startsWith('piano_') && matches(gm[k].gesture, kind)) {
-                return k.replace('piano_','');
-            }
-        }
-        return null;
-    }
-    if(currentInput === CONFIG.INPUTS.KEY12) {
-        for(let i=1; i<=12; i++) { 
-            const k = 'k12_' + i; 
-            if(gm[k] && matches(gm[k].gesture, kind)) return i; 
-        }
-        return null;
-    }
-    if(currentInput === CONFIG.INPUTS.KEY9) {
-        for(let i=1; i<=9; i++) { 
-            const k = 'k9_' + i; 
-            if(gm[k] && matches(gm[k].gesture, kind)) return i; 
-        }
-        return null;
-    }
-    return null;
-            }
-
 function speak(text) { 
     if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; 
     window.speechSynthesis.cancel(); 
@@ -945,58 +906,83 @@ const startApp = () => {
     
     renderUI();
 };
+// --- FIX: IMPROVED MAPPING LOGIC ---
+function mapGestureToValue(kind, currentInput) {
+    const gm = appSettings.gestureMappings || {};
 
-// --- NEW GESTURE ENGINE INTEGRATION ---
-// REPLACE THE initGestureEngine FUNCTION IN app.js WITH THIS:
+    // Helper: Returns true if the saved setting matches the incoming gesture
+    const matches = (savedGesture, incomingGesture) => {
+        if (!savedGesture) return false;
+        
+        // 1. Exact Match (e.g. Saved "swipe_up", Incoming "swipe_up")
+        if (savedGesture === incomingGesture) return true;
+
+        // 2. Parent Match (e.g. Saved "swipe", Incoming "swipe_up")
+        if (incomingGesture.startsWith(savedGesture + '_')) return true;
+
+        // 3. Any Match (e.g. Saved "swipe_any", Incoming "swipe_up")
+        if (savedGesture.endsWith('_any')) {
+            const base = savedGesture.replace('_any', '');
+            if (incomingGesture.startsWith(base)) return true;
+        }
+
+        return false;
+    };
+
+    if(currentInput === CONFIG.INPUTS.PIANO) {
+        for(const k in gm) {
+            if(k.startsWith('piano_') && matches(gm[k].gesture, kind)) {
+                return k.replace('piano_','');
+            }
+        }
+        return null;
+    }
+    if(currentInput === CONFIG.INPUTS.KEY12) {
+        for(let i=1; i<=12; i++) { 
+            const k = 'k12_' + i; 
+            if(gm[k] && matches(gm[k].gesture, kind)) return i; 
+        }
+        return null;
+    }
+    if(currentInput === CONFIG.INPUTS.KEY9) {
+        for(let i=1; i<=9; i++) { 
+            const k = 'k9_' + i; 
+            if(gm[k] && matches(gm[k].gesture, kind)) return i; 
+        }
+        return null;
+    }
+    return null;
+}
 
 function initGestureEngine() {
-    // We attach to body to handle global actions (Twist/Pinch) 
-    // AND input actions when in "Gesture Mode"
     const engine = new GestureEngine(document.body, {
         tapDelay: appSettings.gestureTapDelay || 300,
         swipeThreshold: appSettings.gestureSwipeDist || 30,
         debug: false
     }, {
-        // 1. DISCRETE GESTURES (Taps, Swipes, Shapes, SHAKES)
         onGesture: (data) => {
-            
-            // --- FIX START: Handle Delete/Clear Correctly ---
-            
-            // 1-Finger Shake = Delete
+            // 1. Global Actions (Delete/Clear)
             if ((data.name === 'DELETE' || data.base === 'squiggle') && data.fingers === 1) {
-                if (appSettings.isDeleteGestureEnabled) {
-                    handleBackspace();
-                    showToast("Deleted ⌫");
-                    vibrate();
-                    return;
-                }
+                if (appSettings.isDeleteGestureEnabled) { handleBackspace(); showToast("Deleted ⌫"); vibrate(); return; }
             }
-            
-            // 2-Finger Shake = Clear All
             if ((data.name === 'CLEAR' || data.base === 'squiggle') && data.fingers === 2) {
-                if (appSettings.isClearGestureEnabled) {
-                    const s = getState();
-                    s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []);
-                    s.nextSequenceIndex = 0;
-                    renderUI();
-                    saveState();
-                    showToast("CLEARED 💥");
-                    vibrate();
-                    return;
+                if (appSettings.isClearGestureEnabled) { 
+                    const s = getState(); s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); 
+                    s.nextSequenceIndex = 0; renderUI(); saveState(); showToast("CLEARED 💥"); vibrate(); return; 
                 }
             }
-            // --- FIX END ---
 
-            // Mapped Inputs (Only if Gesture Pad is visible/active)
+            // 2. Mapped Inputs (Check if enabled)
             const isGestureMode = document.body.classList.contains('input-gestures-mode');
-            if (isGestureMode) {
+            const isBossGesture = appSettings.isBlackoutFeatureEnabled && appSettings.isBlackoutGesturesEnabled && blackoutState.isActive;
+            
+            // Allow if gesture pad is open OR boss mode gestures are on
+            if (isGestureMode || isBossGesture) {
                 const settings = getProfileSettings();
-                const mapResult = mapGestureToValue(data.id, settings.currentInput);
+                const mapResult = mapGestureToValue(data.name, settings.currentInput);
                 
                 if (mapResult !== null) {
                     addValue(mapResult);
-                    
-                    // Visual feedback on the pad if it exists
                     const indicator = document.getElementById('gesture-indicator');
                     if(indicator) {
                         indicator.textContent = data.name;
@@ -1006,66 +992,32 @@ function initGestureEngine() {
                 }
             }
         },
-
-        // 2. CONTINUOUS GESTURES (Twist, Pinch)
         onContinuous: (data) => {
-            // Volume Control (3 Finger Twist)
             if (data.type === 'twist' && data.fingers === 3 && appSettings.isVolumeGesturesEnabled) {
-                let newVol = appSettings.voiceVolume || 1.0;
-                newVol += (data.value * 0.05); 
-                appSettings.voiceVolume = Math.min(1.0, Math.max(0.0, newVol));
-                saveState();
-                showToast(`Volume: ${(appSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
+                let newVol = appSettings.voiceVolume || 1.0; newVol += (data.value * 0.05); 
+                appSettings.voiceVolume = Math.min(1.0, Math.max(0.0, newVol)); saveState(); showToast(`Volume: ${(appSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
             }
-
-            // Speed Control (2 Finger Twist)
             if (data.type === 'twist' && data.fingers === 2 && appSettings.isSpeedGesturesEnabled) {
-                let newSpeed = appSettings.playbackSpeed || 1.0;
-                newSpeed += (data.value * 0.05);
-                appSettings.playbackSpeed = Math.min(2.0, Math.max(0.5, newSpeed));
-                saveState();
-                showToast(`Speed: ${(appSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
+                let newSpeed = appSettings.playbackSpeed || 1.0; newSpeed += (data.value * 0.05);
+                appSettings.playbackSpeed = Math.min(2.0, Math.max(0.5, newSpeed)); saveState(); showToast(`Speed: ${(appSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
             }
-            
-            // Resize UI (2 Finger Pinch)
             if (data.type === 'pinch') {
-                if (!gestureState.isPinching) {
-                    gestureState.isPinching = true;
-                    gestureState.startGlobal = appSettings.globalUiScale;
-                    gestureState.startSeq = appSettings.uiScaleMultiplier;
-                }
-
-                clearTimeout(gestureState.resetTimer);
-                gestureState.resetTimer = setTimeout(() => { 
-                    gestureState.isPinching = false; 
-                }, 250);
-
+                if (!gestureState.isPinching) { gestureState.isPinching = true; gestureState.startGlobal = appSettings.globalUiScale; gestureState.startSeq = appSettings.uiScaleMultiplier; }
+                clearTimeout(gestureState.resetTimer); gestureState.resetTimer = setTimeout(() => { gestureState.isPinching = false; }, 250);
                 const mode = appSettings.gestureResizeMode || 'global';
-                
                 if (mode === 'sequence') {
-                    let raw = gestureState.startSeq * data.scale;
-                    let newScale = Math.round(raw * 10) / 10;
-                    if (newScale !== appSettings.uiScaleMultiplier) {
-                        appSettings.uiScaleMultiplier = Math.min(2.5, Math.max(0.5, newScale));
-                        renderUI(); 
-                        showToast(`Cards: ${(appSettings.uiScaleMultiplier * 100).toFixed(0)}% 🔍`);
-                    }
+                    let raw = gestureState.startSeq * data.scale; let newScale = Math.round(raw * 10) / 10;
+                    if (newScale !== appSettings.uiScaleMultiplier) { appSettings.uiScaleMultiplier = Math.min(2.5, Math.max(0.5, newScale)); renderUI(); showToast(`Cards: ${(appSettings.uiScaleMultiplier * 100).toFixed(0)}% 🔍`); }
                 } else {
-                    let raw = gestureState.startGlobal * data.scale;
-                    let newScale = Math.round(raw / 10) * 10;
-                    if (newScale !== appSettings.globalUiScale) {
-                        appSettings.globalUiScale = Math.min(200, Math.max(50, newScale));
-                        updateAllChrome(); 
-                        showToast(`UI: ${appSettings.globalUiScale}% 🔍`);
-                    }
+                    let raw = gestureState.startGlobal * data.scale; let newScale = Math.round(raw / 10) * 10;
+                    if (newScale !== appSettings.globalUiScale) { appSettings.globalUiScale = Math.min(200, Math.max(50, newScale)); updateAllChrome(); showToast(`UI: ${appSettings.globalUiScale}% 🔍`); }
                 }
             }
         }
     });
-
     modules.gestureEngine = engine;
-            }
-                             
+                                 }
+                                                                        
 
 function initGlobalListeners() {
     try {

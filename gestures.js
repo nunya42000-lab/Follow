@@ -500,6 +500,17 @@ export class GestureEngine {
         }
 
         // 5. Explicit Overrides from List Requirements
+        // NEW: Ensure basic multi-finger taps get _any suffix if they are bare
+        // e.g. "tap_2f" -> "tap_2f_any"
+        const multiFingerBases = [
+            'tap_2f', 'double_tap_2f', 'triple_tap_2f', 'long_tap_2f',
+            'tap_3f', 'double_tap_3f', 'triple_tap_3f', 'long_tap_3f'
+        ];
+        
+        if (multiFingerBases.includes(id)) {
+            id += '_any';
+        }
+
         // Ensure "motion_tap_swipe" naming convention
         if (id.startsWith('motion_tap_swipe') && !id.includes('_long')) {
             // Already correct

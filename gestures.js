@@ -1,5 +1,5 @@
 // gestures.js
-// Version: v72 - Fixed ID Matching & Added Long Tap
+// Version: v73 - Reliable Swipes, Easy Long Press & Robust Fallbacks
 
 export class GestureEngine {
     constructor(targetElement, config, callbacks) {
@@ -93,13 +93,11 @@ export class GestureEngine {
         const count = Object.keys(this.activePointers).length;
         const pointers = Object.values(this.activePointers);
 
-        // Squiggle 1F
         if (count === 1) {
             this.contState.squiggle = {
                 isTracking: true, startX: e.clientX, lastX: e.clientX, direction: 0, flips: 0, hasTriggered: false
             };
         }
-        // Pinch/Twist/Squiggle 2F
         if (count === 2) {
             const p1 = pointers[0].pts[0];
             const p2 = pointers[1].pts[0];
@@ -213,12 +211,10 @@ export class GestureEngine {
         if (remaining === 0) {
             this._resetContinuous();
             clearTimeout(this.debounceTimer);
-            
             if (this.contState.squiggle.hasTriggered || this.contState.squiggle2F.hasTriggered) {
                 this.history = []; 
                 return;
             }
-            
             this.debounceTimer = setTimeout(() => this._analyze(), 50);
         }
     }
@@ -230,7 +226,6 @@ export class GestureEngine {
 
         const fingers = new Set(inputs.map(s => s.id)).size;
         
-        // Centroids & Timing
         let sc = {x:0,y:0}, ec = {x:0,y:0};
         let startTime = Infinity, endTime = -Infinity;
 
@@ -250,10 +245,6 @@ export class GestureEngine {
         const pathLen = this._getPathLen(primaryPath);
         const isClosed = netDist < 50;
         
-        // Linear Check (Force Swipe if straight line)
-        const isLinear = netDist > (pathLen * 0.85);
-
-        // Calculate Winding
         let turnSum = 0;
         if (segments.length > 1) {
             for (let i = 0; i < segments.length - 1; i++) {
@@ -290,47 +281,44 @@ export class GestureEngine {
 
         // 2. Motion / Swipe / Shape (1 Finger)
         if (fingers === 1) {
+            let shapeDetected = false;
+
+            // Only attempt shape detection if enough path length
             if (pathLen > this.config.swipeThreshold) {
-                let shapeDetected = false;
-                // Only check shapes if not linear
-                if (!isLinear) {
-                    if (segments.length >= 3) {
-                        const a1 = this._getAngleDiff(segments[0].vec, segments[1].vec);
-                        const a2 = this._getAngleDiff(segments[1].vec, segments[2].vec);
-                        if (Math.abs(a1) > 140 && Math.abs(a2) > 140) { type = 'zigzag'; shapeDetected = true; }
-                    }
-                    if (!shapeDetected) {
-                        if (segments.length >= 4 && isClosed) type = 'square'; 
-                        else if (segments.length === 3 && isClosed) type = 'triangle';
-                        else if (segments.length === 3 && !isClosed) type = 'u_shape';
-                        else if (segments.length === 2) {
-                            const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
-                            if (Math.abs(angle) > 150) type = 'boomerang'; else type = 'corner';
-                        }
+                if (segments.length >= 3) {
+                    const a1 = this._getAngleDiff(segments[0].vec, segments[1].vec);
+                    const a2 = this._getAngleDiff(segments[1].vec, segments[2].vec);
+                    if (Math.abs(a1) > 140 && Math.abs(a2) > 140) { type = 'zigzag'; shapeDetected = true; }
+                }
+                if (!shapeDetected) {
+                    if (segments.length >= 4 && isClosed) { type = 'square'; shapeDetected = true; }
+                    else if (segments.length === 3 && isClosed) { type = 'triangle'; shapeDetected = true; }
+                    else if (segments.length === 3 && !isClosed) { type = 'u_shape'; shapeDetected = true; }
+                    else if (segments.length === 2) {
+                        const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
+                        if (Math.abs(angle) > 150) type = 'boomerang'; else type = 'corner';
+                        shapeDetected = true;
                     }
                 }
-
-                if (!shapeDetected && (segments.length <= 1 || isLinear || (netDist > pathLen * 0.8))) {
-                    if (netDist > 150) { type = 'swipe_long'; meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y); } 
-                    else if (netDist > this.config.swipeThreshold) { type = 'swipe'; meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y); } 
-                    else if (netDist > this.config.spatialThreshold) { type = 'spatial_tap'; meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y); }
-                } 
-            } 
-            else if (netDist > this.config.spatialThreshold && netDist <= this.config.swipeThreshold) {
-                type = 'spatial_tap';
-                meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
             }
 
-            if (['corner', 'boomerang', 'square', 'triangle', 'swipe', 'swipe_long'].includes(type) && pathLen < 150) {
-                if(type === 'swipe' || type === 'swipe_long') type = 'motion_tap_' + type;
-                else type = 'motion_tap_' + type;
+            // Fallback: If not a shape, treat as swipe or spatial tap
+            if (!shapeDetected) {
+                if (netDist > 150) { type = 'swipe_long'; meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y); } 
+                else if (netDist > this.config.swipeThreshold) { type = 'swipe'; meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y); } 
+                else if (netDist > this.config.spatialThreshold) { type = 'spatial_tap'; meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y); }
+            } 
+            
+            // Motion Tap Modifier (Short shapes)
+            if (shapeDetected && pathLen < 150) {
+                type = 'motion_tap_' + type;
             }
         } 
 
         // 3. Multi-Finger Swipes
         if (fingers > 1 && type === 'tap' && netDist > 30) {
             type = 'swipe';
-            if (!isLinear && segments.length >= 2) {
+            if (segments.length >= 2) {
                  const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
                  if (Math.abs(angle) > 150) type = 'boomerang';
             }
@@ -341,14 +329,13 @@ export class GestureEngine {
         if (type === 'tap') {
             if (fingers > 1) meta.align = this._getAlignment(inputs);
             
-            // CHECK FOR LONG TAP (NEW)
-            // If it's a single finger, didn't move much, and held for > 500ms
-            if (fingers === 1 && netDist < this.config.spatialThreshold && duration > this.config.longPressTime) {
+            // UPDATED: Relaxed Long Tap Check
+            // Use tapPrecision (30px) instead of spatialThreshold (10px) to allow for finger wiggle
+            if (fingers === 1 && netDist < this.config.tapPrecision && duration > this.config.longPressTime) {
                 this._emitGesture('long_tap', 1, meta);
                 return;
             }
             
-            // Otherwise, send to Tap Stack for double/triple detection
             this._handleTapStack(ec, fingers, meta);
             return;
         }
@@ -436,7 +423,6 @@ export class GestureEngine {
         // 1. Direction Handling
         if (meta && meta.dir && meta.dir !== 'none') {
             const dir = meta.dir.toLowerCase();
-            // Shapes and directional taps get suffixes
             if (['square', 'triangle', 'u_shape', 'corner', 'motion_tap_corner', 
                  'triple_tap_corner', 'triple_tap_long', 'triple_tap_boomerang', 
                  'spatial_tap', 'double_tap'].includes(baseType) || baseType.startsWith('double_tap_')) {
@@ -446,7 +432,6 @@ export class GestureEngine {
                  id += `_${dir}`;
             }
         } else {
-            // FIXED: Removed 'double_tap' from this list so it stays "double_tap" instead of "double_tap_any"
             if (['swipe', 'swipe_long', 'boomerang', 'zigzag', 'spatial_tap', 
                  'triple_tap_long', 'triple_tap_boomerang', 'triple_tap_corner'].includes(baseType)) {
                  id += '_any'; 
@@ -463,7 +448,6 @@ export class GestureEngine {
             if (map[meta.align]) id += `_${map[meta.align]}`;
         }
 
-        // Force _any for multi-finger basic taps to match standard lists
         const multiFingerBases = [
             'tap_2f', 'double_tap_2f', 'triple_tap_2f', 'long_tap_2f',
             'tap_3f', 'double_tap_3f', 'triple_tap_3f', 'long_tap_3f'

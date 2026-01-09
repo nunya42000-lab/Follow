@@ -698,7 +698,9 @@ if (this.dom.gestureSwipeSlider) {
     hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
 
-        
+          
+
+
     populateMappingUI() {
         if (!this.dom) return;
         if (!this.appSettings) return;
@@ -714,6 +716,7 @@ if (this.dom.gestureSwipeSlider) {
         if (tabRoot) {
             tabRoot.className = "tab-content p-1 space-y-4";
             
+            // Re-inject the slider HTML
             tabRoot.innerHTML = `
                 <div class="p-3 mb-4 rounded-lg border border-custom bg-black bg-opacity-30">
                     <h4 class="font-bold text-sm mb-3 text-primary-app">Gesture Sensitivity 🎛️</h4>
@@ -736,6 +739,7 @@ if (this.dom.gestureSwipeSlider) {
                 </div>
             `;
             
+            // Re-bind listeners for sliders
             const tapSlider = document.getElementById('gesture-tap-slider');
             const swipeSlider = document.getElementById('gesture-swipe-slider');
             const tapVal = document.getElementById('gesture-tap-val');
@@ -759,156 +763,56 @@ if (this.dom.gestureSwipeSlider) {
             }
         }
 
-        // 2. DEFINE SHAPES (Used for Label Generation)
-        const shapeDefs = [
-            { id: 'corner', label: 'Corner', cw: [ 'Up Right', 'Right Down', 'Down Left', 'Left Up' ], ccw: [ 'Up Left', 'Left Down', 'Down Right', 'Right Up' ] },
-            { id: 'triangle', label: 'Triangle', cw: [ 'Up Right', 'Right Down', 'Down Left', 'Left Up' ], ccw: [ 'Up Left', 'Left Down', 'Down Right', 'Right Up' ] },
-            { id: 'u_shape', label: 'U-Shape', cw: [ 'Up Right Down', 'Right Down Left', 'Down Left Up', 'Left Up Right' ], ccw: [ 'Up Left Down', 'Left Down Right', 'Down Right Up', 'Right Up Left' ] },
-            { id: 'square', label: 'Square', cw: [ 'Up CW', 'Right CW', 'Down CW', 'Left CW' ], ccw: [ 'Up CCW', 'Right CCW', 'Down CCW', 'Left CCW' ] }
+        // 2. DEFINE THE EXACT LIST (No Auto-Generation)
+        // IDs are now used directly as the display label (just removing underscores for readability)
+        const gestureList = [
+            'tap', 'double_tap', 'triple_tap', 'long_tap',
+            'spatial_tap_any', 'spatial_tap_up', 'spatial_tap_down', 'spatial_tap_left', 'spatial_tap_right', 'spatial_tap_nw', 'spatial_tap_ne', 'spatial_tap_sw', 'spatial_tap_se',
+            'double_tap_any', 'double_tap_up', 'double_tap_down', 'double_tap_left', 'double_tap_right', 'double_tap_nw', 'double_tap_ne', 'double_tap_sw', 'double_tap_se',
+            'triple_tap_long_any', 'triple_tap_long_up', 'triple_tap_long_down', 'triple_tap_long_left', 'triple_tap_long_right', 'triple_tap_long_nw', 'triple_tap_long_ne', 'triple_tap_long_sw', 'triple_tap_long_se',
+            'triple_tap_boomerang_any', 'triple_tap_boomerang_up', 'triple_tap_boomerang_down', 'triple_tap_boomerang_left', 'triple_tap_boomerang_right', 'triple_tap_boomerang_nw', 'triple_tap_boomerang_ne', 'triple_tap_boomerang_sw', 'triple_tap_boomerang_se',
+            'triple_tap_corner_any', 'triple_tap_corner_cw', 'triple_tap_corner_ccw',
+            'triple_tap_corner_up_cw', 'triple_tap_corner_right_cw', 'triple_tap_corner_down_cw', 'triple_tap_corner_left_cw',
+            'triple_tap_corner_up_ccw', 'triple_tap_corner_left_ccw', 'triple_tap_corner_down_ccw', 'triple_tap_corner_right_ccw',
+            'tap_2f', 'tap_2f_vertical', 'tap_2f_horizontal', 'tap_2f_diagonal_se', 'tap_2f_diagonal_sw',
+            'double_tap_2f', 'double_tap_2f_vertical', 'double_tap_2f_horizontal', 'double_tap_2f_diagonal_se', 'double_tap_2f_diagonal_sw',
+            'triple_tap_2f', 'triple_tap_2f_vertical', 'triple_tap_2f_horizontal', 'triple_tap_2f_diagonal_se', 'triple_tap_2f_diagonal_sw',
+            'long_tap_2f', 'long_tap_2f_vertical', 'long_tap_2f_horizontal', 'long_tap_2f_diagonal_se', 'long_tap_2f_diagonal_sw',
+            'tap_3f', 'tap_3f_vertical', 'tap_3f_horizontal', 'tap_3f_diagonal_se', 'tap_3f_diagonal_sw',
+            'double_tap_3f', 'double_tap_3f_vertical', 'double_tap_3f_horizontal', 'double_tap_3f_diagonal_se', 'double_tap_3f_diagonal_sw',
+            'triple_tap_3f', 'triple_tap_3f_vertical', 'triple_tap_3f_horizontal', 'triple_tap_3f_diagonal_se', 'triple_tap_3f_diagonal_sw',
+            'long_tap_3f', 'long_tap_3f_vertical', 'long_tap_3f_horizontal', 'long_tap_3f_diagonal_se', 'long_tap_3f_diagonal_sw',
+            'swipe_any', 'swipe_up', 'swipe_down', 'swipe_left', 'swipe_right', 'swipe_nw', 'swipe_ne', 'swipe_sw', 'swipe_se',
+            'swipe_long_any', 'swipe_long_up', 'swipe_long_down', 'swipe_long_left', 'swipe_long_right', 'swipe_long_nw', 'swipe_long_ne', 'swipe_long_sw', 'swipe_long_se',
+            'swipe_any_2f', 'swipe_up_2f', 'swipe_down_2f', 'swipe_left_2f', 'swipe_right_2f', 'swipe_nw_2f', 'swipe_ne_2f', 'swipe_sw_2f', 'swipe_se_2f',
+            'pinch_swipe_any_2f', 'pinch_swipe_up_2f', 'pinch_swipe_down_2f', 'pinch_swipe_left_2f', 'pinch_swipe_right_2f',
+            'expand_swipe_any_2f', 'expand_swipe_up_2f', 'expand_swipe_down_2f', 'expand_swipe_left_2f', 'expand_swipe_right_2f',
+            'swipe_any_3f', 'swipe_up_3f', 'swipe_down_3f', 'swipe_left_3f', 'swipe_right_3f', 'swipe_nw_3f', 'swipe_ne_3f', 'swipe_sw_3f', 'swipe_se_3f',
+            'boomerang_any', 'boomerang_up', 'boomerang_down', 'boomerang_left', 'boomerang_right', 'boomerang_nw', 'boomerang_ne', 'boomerang_sw', 'boomerang_se',
+            'boomerang_any_2f', 'boomerang_up_2f', 'boomerang_down_2f', 'boomerang_left_2f', 'boomerang_right_2f', 'boomerang_nw_2f', 'boomerang_ne_2f', 'boomerang_sw_2f', 'boomerang_se_2f',
+            'boomerang_any_3f', 'boomerang_up_3f', 'boomerang_down_3f', 'boomerang_left_3f', 'boomerang_right_3f', 'boomerang_nw_3f', 'boomerang_ne_3f', 'boomerang_sw_3f', 'boomerang_se_3f',
+            'zigzag_any', 'zigzag_up', 'zigzag_down', 'zigzag_left', 'zigzag_right', 'zigzag_nw', 'zigzag_ne', 'zigzag_sw', 'zigzag_se',
+            'corner_any', 'corner_cw', 'corner_ccw',
+            'corner_up_cw', 'corner_right_cw', 'corner_down_cw', 'corner_left_cw',
+            'corner_up_ccw', 'corner_left_ccw', 'corner_down_ccw', 'corner_right_ccw',
+            'triangle_any', 'triangle_cw', 'triangle_ccw',
+            'triangle_up_cw', 'triangle_right_cw', 'triangle_down_cw', 'triangle_left_cw',
+            'triangle_up_ccw', 'triangle_left_ccw', 'triangle_down_ccw', 'triangle_right_ccw',
+            'u_shape_any', 'u_shape_cw', 'u_shape_ccw',
+            'u_shape_up_cw', 'u_shape_right_cw', 'u_shape_down_cw', 'u_shape_left_cw',
+            'u_shape_up_ccw', 'u_shape_left_ccw', 'u_shape_down_ccw', 'u_shape_right_ccw',
+            'square_any', 'square_cw', 'square_ccw',
+            'square_up_cw', 'square_right_cw', 'square_down_cw', 'square_left_cw',
+            'square_up_ccw', 'square_left_ccw', 'square_down_ccw', 'square_right_ccw',
+            'motion_tap_swipe_any', 'motion_tap_swipe_up', 'motion_tap_swipe_down', 'motion_tap_swipe_left', 'motion_tap_swipe_right', 'motion_tap_swipe_nw', 'motion_tap_swipe_ne', 'motion_tap_swipe_sw', 'motion_tap_swipe_se',
+            'motion_tap_swipe_long_any', 'motion_tap_swipe_long_up', 'motion_tap_swipe_long_down', 'motion_tap_swipe_long_left', 'motion_tap_swipe_long_right', 'motion_tap_swipe_long_nw', 'motion_tap_swipe_long_ne', 'motion_tap_swipe_long_sw', 'motion_tap_swipe_long_se',
+            'motion_tap_boomerang_any', 'motion_tap_boomerang_up', 'motion_tap_boomerang_down', 'motion_tap_boomerang_left', 'motion_tap_boomerang_right', 'motion_tap_boomerang_nw', 'motion_tap_boomerang_ne', 'motion_tap_boomerang_sw', 'motion_tap_boomerang_se',
+            'motion_tap_corner_any', 'motion_tap_corner_cw', 'motion_tap_corner_ccw',
+            'motion_tap_corner_up_cw', 'motion_tap_corner_right_cw', 'motion_tap_corner_down_cw', 'motion_tap_corner_left_cw',
+            'motion_tap_corner_up_ccw', 'motion_tap_corner_left_ccw', 'motion_tap_corner_down_ccw', 'motion_tap_corner_right_ccw'
         ];
-        const shapeDirs = ['up', 'right', 'down', 'left'];
 
-        // 3. GENERATE LIST (In exact requested order)
-        const gestureList = [];
-        const compass = ['up', 'down', 'left', 'right', 'nw', 'ne', 'sw', 'se'];
-        const compassWithAny = ['any', ...compass];
-
-        // A. Taps (1F)
-        gestureList.push('tap', 'double_tap', 'triple_tap', 'long_tap');
-
-        // B. Spatial Taps
-        compass.forEach(d => gestureList.push(`motion_tap_spatial_${d}`));
-
-        // C. Multi-Finger Taps (2F then 3F)
-        [2, 3].forEach(f => {
-            const suffix = `_${f}f`;
-            const types = ['tap', 'double_tap', 'triple_tap', 'long_tap'];
-            
-            // Base (Any Direction) -> "Tap 2 Finger"
-            types.forEach(t => gestureList.push(`${t}${suffix}`));
-            // Vertical -> "Tap 2 Finger Vertical"
-            types.forEach(t => gestureList.push(`${t}${suffix}_vertical`));
-            // Horizontal -> "Tap 2 Finger Horizontal"
-            types.forEach(t => gestureList.push(`${t}${suffix}_horizontal`));
-            // NW/SE (Mapped from diagonal_se) -> "Tap 2 Finger NW/SE"
-            types.forEach(t => gestureList.push(`${t}${suffix}_diagonal_se`));
-            // NE/SW (Mapped from diagonal_sw) -> "Tap 2 Finger NE/SW"
-            types.forEach(t => gestureList.push(`${t}${suffix}_diagonal_sw`));
-        });
-
-        // D. Swipe (1F)
-        compassWithAny.forEach(d => gestureList.push(d === 'any' ? 'swipe_any' : `swipe_${d}`));
-
-        // E. Long Swipe (1F)
-        compassWithAny.forEach(d => gestureList.push(d === 'any' ? 'swipe_long_any' : `swipe_long_${d}`));
-
-        // F. Swipe 2 Finger
-        compassWithAny.forEach(d => gestureList.push(d === 'any' ? 'swipe_any_2f' : `swipe_${d}_2f`));
-
-        // G. Pinch/Expand Swipe
-        const cardWithAny = ['any', 'up', 'down', 'left', 'right'];
-        cardWithAny.forEach(d => gestureList.push(d === 'any' ? 'pinch_swipe_any_2f' : `pinch_swipe_${d}_2f`));
-        cardWithAny.forEach(d => gestureList.push(d === 'any' ? 'expand_swipe_any_2f' : `expand_swipe_${d}_2f`));
-
-        // H. Swipe 3 Finger
-        compassWithAny.forEach(d => gestureList.push(d === 'any' ? 'swipe_any_3f' : `swipe_${d}_3f`));
-
-        // I. Boomerang (1F, 2F, 3F)
-        [1, 2, 3].forEach(f => {
-            const suffix = f === 1 ? '' : `_${f}f`;
-            compassWithAny.forEach(d => gestureList.push(d === 'any' ? `boomerang_any${suffix}` : `boomerang_${d}${suffix}`));
-        });
-
-        // J. Zig Zag
-        compassWithAny.forEach(d => gestureList.push(d === 'any' ? 'zigzag_any' : `zigzag_${d}`));
-
-        // K. Shapes (Corner, Triangle, U-Shape, Square)
-        shapeDefs.forEach(s => {
-            gestureList.push(`${s.id}_any`);
-            gestureList.push(`${s.id}_cw`);
-            gestureList.push(`${s.id}_ccw`);
-            // Specifics
-            s.cw.forEach((l, i) => gestureList.push(`${s.id}_${shapeDirs[i]}_cw`));
-            s.ccw.forEach((l, i) => gestureList.push(`${s.id}_${shapeDirs[i]}_ccw`));
-        });
-
-        // L. Motion Taps
-        const mtTypes = ['swipe', 'swipe_long', 'boomerang'];
-        mtTypes.forEach(t => {
-            compassWithAny.forEach(d => gestureList.push(d === 'any' ? `motion_tap_${t}_any` : `motion_tap_${t}_${d}`));
-        });
-
-        // M. Motion Tap Corner
-        gestureList.push('motion_tap_corner_any', 'motion_tap_corner_cw', 'motion_tap_corner_ccw');
-        shapeDefs[0].cw.forEach((l, i) => gestureList.push(`motion_tap_corner_${shapeDirs[i]}_cw`));
-        shapeDefs[0].ccw.forEach((l, i) => gestureList.push(`motion_tap_corner_${shapeDirs[i]}_ccw`));
-
-
-        // 4. LABEL GENERATOR (Match Requested Names Exactly)
-        const getLabel = (id) => {
-            // A. Handle Shapes using Definitions
-            if (id.includes('corner') || id.includes('triangle') || id.includes('u_shape') || id.includes('square')) {
-                let isMotion = id.startsWith('motion_tap_');
-                let baseId = isMotion ? id.replace('motion_tap_', '') : id;
-                let parts = baseId.split('_');
-                let shape = parts[0] === 'u' ? 'u_shape' : parts[0];
-                let sObj = shapeDefs.find(s => s.id === shape);
-                
-                if (sObj) {
-                    let prefix = isMotion ? "Motion Tap " : "";
-                    
-                    // Specific Directions (e.g., corner_up_cw)
-                    let winding = baseId.endsWith('_cw') ? 'cw' : (baseId.endsWith('_ccw') ? 'ccw' : null);
-                    let dir = shapeDirs.find(d => baseId.includes(`_${d}_`));
-                    
-                    if (dir && winding) {
-                        let idx = shapeDirs.indexOf(dir);
-                        return prefix + sObj.label + " " + sObj[winding][idx];
-                    }
-                    // Generics
-                    if (baseId.endsWith('_any')) return prefix + sObj.label;
-                    if (baseId.endsWith('_cw')) return prefix + sObj.label + " CW";
-                    if (baseId.endsWith('_ccw')) return prefix + sObj.label + " CCW";
-                }
-            }
-
-            let label = id;
-
-            // B. Replace Technical Terms with User Terms
-            // 1. Prefixes
-            if (label.startsWith('motion_tap_spatial')) label = label.replace('motion_tap_spatial', 'Spatial Tap');
-            else if (label.startsWith('motion_tap_swipe_long')) label = label.replace('motion_tap_swipe_long', 'Motion Tap Long Swipe'); // Fix Order
-            else if (label.startsWith('motion_tap_')) label = label.replace('motion_tap_', 'Motion Tap ');
-            
-            else if (label.startsWith('zigzag')) label = label.replace('zigzag', 'Zig Zag');
-            else if (label.startsWith('pinch_swipe')) label = label.replace('pinch_swipe', 'Pinch Swipe');
-            else if (label.startsWith('expand_swipe')) label = label.replace('expand_swipe', 'Expand Swipe');
-            else if (label.startsWith('swipe_long')) label = label.replace('swipe_long', 'Long Swipe');
-            
-            // 2. Suffixes & Fingers
-            label = label.replace('_diagonal_se', ' NW/SE'); 
-            label = label.replace('_diagonal_sw', ' NE/SW');
-            label = label.replace('_any', ''); // "Any" is hidden in final list
-            label = label.replace('long_tap', 'Long Tap');
-
-            // C. Formatting
-            let parts = label.split('_');
-            parts = parts.map(p => {
-                // Keep pre-formatted parts
-                if (p.includes(' ') || p.includes('/')) return p;
-                // Format Directions
-                if (['nw', 'ne', 'sw', 'se', 'cw', 'ccw'].includes(p)) return p.toUpperCase();
-                // Format Fingers
-                if (p === '2f') return '2 Finger';
-                if (p === '3f') return '3 Finger';
-                // Title Case
-                return p.charAt(0).toUpperCase() + p.slice(1);
-            });
-
-            return parts.join(' ').trim().replace(/\s+/g, ' ');
-        };
-
-        // 5. BUILD UI
+        // 3. BUILD UI
         const buildSection = (type, title, keyPrefix, count, customKeys = null) => {
             const wrapper = document.createElement('div');
             wrapper.className = "p-3 rounded-lg border border-custom settings-input bg-opacity-50 mb-4";
@@ -1028,7 +932,8 @@ if (this.dom.gestureSwipeSlider) {
                     gestureList.forEach(g => {
                         const opt = document.createElement('option');
                         opt.value = g;
-                        opt.textContent = getLabel(g);
+                        // Use raw ID as label, just replace underscores for basic readability
+                        opt.textContent = g; 
                         dropdown.appendChild(opt);
                     });
 

@@ -765,7 +765,7 @@ if (this.dom.gestureSwipeSlider) {
 
         // 2. DEFINE THE EXACT LIST (No Auto-Generation)
         // IDs are now used directly as the display label (just removing underscores for readability)
-        const gestureList = [
+                const gestureList = [
             'tap', 'double_tap', 'triple_tap', 'long_tap',
             'spatial_tap_any', 'spatial_tap_up', 'spatial_tap_down', 'spatial_tap_left', 'spatial_tap_right', 'spatial_tap_nw', 'spatial_tap_ne', 'spatial_tap_sw', 'spatial_tap_se',
             'double_tap_any', 'double_tap_up', 'double_tap_down', 'double_tap_left', 'double_tap_right', 'double_tap_nw', 'double_tap_ne', 'double_tap_sw', 'double_tap_se',
@@ -811,6 +811,7 @@ if (this.dom.gestureSwipeSlider) {
             'motion_tap_corner_up_cw', 'motion_tap_corner_right_cw', 'motion_tap_corner_down_cw', 'motion_tap_corner_left_cw',
             'motion_tap_corner_up_ccw', 'motion_tap_corner_left_ccw', 'motion_tap_corner_down_ccw', 'motion_tap_corner_right_ccw'
         ];
+                    
 
         // 3. BUILD UI
         const buildSection = (type, title, keyPrefix, count, customKeys = null) => {

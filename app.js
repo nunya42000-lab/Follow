@@ -1026,10 +1026,13 @@ function initGestureEngine() {
                 let newSpeed = appSettings.playbackSpeed || 1.0; newSpeed += (data.value * 0.05);
                 appSettings.playbackSpeed = Math.min(2.0, Math.max(0.5, newSpeed)); saveState(); showToast(`Speed: ${(appSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
             }
-            if (data.type === 'pinch') {
+                        if (data.type === 'pinch') {
+                const mode = appSettings.gestureResizeMode || 'global';
+                if (mode === 'none') return; // Exit if disabled
+
                 if (!gestureState.isPinching) { gestureState.isPinching = true; gestureState.startGlobal = appSettings.globalUiScale; gestureState.startSeq = appSettings.uiScaleMultiplier; }
                 clearTimeout(gestureState.resetTimer); gestureState.resetTimer = setTimeout(() => { gestureState.isPinching = false; }, 250);
-                const mode = appSettings.gestureResizeMode || 'global';
+                
                 if (mode === 'sequence') {
                     let raw = gestureState.startSeq * data.scale; let newScale = Math.round(raw * 10) / 10;
                     if (newScale !== appSettings.uiScaleMultiplier) { appSettings.uiScaleMultiplier = Math.min(2.5, Math.max(0.5, newScale)); renderUI(); showToast(`Cards: ${(appSettings.uiScaleMultiplier * 100).toFixed(0)}% 🔍`); }
@@ -1037,7 +1040,8 @@ function initGestureEngine() {
                     let raw = gestureState.startGlobal * data.scale; let newScale = Math.round(raw / 10) * 10;
                     if (newScale !== appSettings.globalUiScale) { appSettings.globalUiScale = Math.min(200, Math.max(50, newScale)); updateAllChrome(); showToast(`UI: ${appSettings.globalUiScale}% 🔍`); }
                 }
-            }
+                    }
+                        
         }
     });
     modules.gestureEngine = engine;

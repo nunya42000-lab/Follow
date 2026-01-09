@@ -906,53 +906,75 @@ const startApp = () => {
     
     renderUI();
 };
-// --- FIX: IMPROVED MAPPING LOGIC ---
+
 function mapGestureToValue(kind, currentInput) {
-    const gm = appSettings.gestureMappings || {};
+    // 1. Get Saved Mappings or use Empty Object
+    const saved = appSettings.gestureMappings || {};
 
-    // Helper: Returns true if the saved setting matches the incoming gesture
-    const matches = (savedGesture, incomingGesture) => {
-        if (!savedGesture) return false;
-        
-        // 1. Exact Match (e.g. Saved "swipe_up", Incoming "swipe_up")
-        if (savedGesture === incomingGesture) return true;
+    // 2. Define Hardcoded Defaults (Fallback if saved is empty)
+    const defaults = {
+        // 9-Key (Taps)
+        'k9_1': 'tap', 'k9_2': 'double_tap', 'k9_3': 'triple_tap',
+        'k9_4': 'tap_2f', 'k9_5': 'double_tap_2f', 'k9_6': 'triple_tap_2f',
+        'k9_7': 'tap_3f', 'k9_8': 'double_tap_3f', 'k9_9': 'triple_tap_3f',
+        // 12-Key (Taps)
+        'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
+        'k12_5': 'tap_2f', 'k12_6': 'double_tap_2f', 'k12_7': 'triple_tap_2f', 'k12_8': 'long_tap_2f',
+        'k12_9': 'tap_3f', 'k12_10': 'double_tap_3f', 'k12_11': 'triple_tap_3f', 'k12_12': 'long_tap_3f',
+        // Piano (Swipes)
+        'piano_C': 'swipe_nw', 'piano_D': 'swipe_left', 'piano_E': 'swipe_sw',
+        'piano_F': 'swipe_down', 'piano_G': 'swipe_se', 'piano_A': 'swipe_right', 'piano_B': 'swipe_ne',
+        'piano_1': 'swipe_left_2f', 'piano_2': 'swipe_nw_2f', 'piano_3': 'swipe_up_2f',
+        'piano_4': 'swipe_ne_2f', 'piano_5': 'swipe_right_2f'
+    };
 
-        // 2. Parent Match (e.g. Saved "swipe", Incoming "swipe_up")
-        if (incomingGesture.startsWith(savedGesture + '_')) return true;
-
-        // 3. Any Match (e.g. Saved "swipe_any", Incoming "swipe_up")
-        if (savedGesture.endsWith('_any')) {
-            const base = savedGesture.replace('_any', '');
-            if (incomingGesture.startsWith(base)) return true;
+    // Helper: Returns true if the gesture string matches
+    const matches = (target, incoming) => {
+        if (!target) return false;
+        if (target === incoming) return true; // Exact match
+        if (incoming.startsWith(target + '_')) return true; // Parent match (e.g. swipe -> swipe_up)
+        if (target.endsWith('_any')) { // Wildcard match
+            const base = target.replace('_any', '');
+            if (incoming.startsWith(base)) return true;
         }
-
         return false;
     };
 
+    // Helper: Get gesture string from Saved or Default
+    const getG = (key) => {
+        if (saved[key] && saved[key].gesture) return saved[key].gesture;
+        return defaults[key];
+    };
+
+    // 3. Check Mappings based on Current Input Mode
     if(currentInput === CONFIG.INPUTS.PIANO) {
-        for(const k in gm) {
-            if(k.startsWith('piano_') && matches(gm[k].gesture, kind)) {
-                return k.replace('piano_','');
-            }
+        // Check Piano Keys (C-B and 1-5)
+        const keys = ['C','D','E','F','G','A','B','1','2','3','4','5'];
+        for(let k of keys) {
+            const id = 'piano_' + k;
+            if (matches(getG(id), kind)) return k;
         }
         return null;
     }
+
     if(currentInput === CONFIG.INPUTS.KEY12) {
         for(let i=1; i<=12; i++) { 
-            const k = 'k12_' + i; 
-            if(gm[k] && matches(gm[k].gesture, kind)) return i; 
+            const id = 'k12_' + i; 
+            if (matches(getG(id), kind)) return i; 
         }
         return null;
     }
+
     if(currentInput === CONFIG.INPUTS.KEY9) {
         for(let i=1; i<=9; i++) { 
-            const k = 'k9_' + i; 
-            if(gm[k] && matches(gm[k].gesture, kind)) return i; 
+            const id = 'k9_' + i; 
+            if (matches(getG(id), kind)) return i; 
         }
         return null;
     }
+
     return null;
-}
+            }
 
 function initGestureEngine() {
     const engine = new GestureEngine(document.body, {
@@ -961,7 +983,7 @@ function initGestureEngine() {
         debug: false
     }, {
         onGesture: (data) => {
-            // 1. Global Actions (Delete/Clear)
+            // 1. Global Actions (Always Active)
             if ((data.name === 'DELETE' || data.base === 'squiggle') && data.fingers === 1) {
                 if (appSettings.isDeleteGestureEnabled) { handleBackspace(); showToast("Deleted ⌫"); vibrate(); return; }
             }
@@ -972,17 +994,19 @@ function initGestureEngine() {
                 }
             }
 
-            // 2. Mapped Inputs (Check if enabled)
-            const isGestureMode = document.body.classList.contains('input-gestures-mode');
-            const isBossGesture = appSettings.isBlackoutFeatureEnabled && appSettings.isBlackoutGesturesEnabled && blackoutState.isActive;
+            // 2. Mapped Inputs (The fix is here)
+            // Check: Is Pad Visible? OR Class Present? OR Boss Mode Active?
+            const isPadOpen = (typeof isGesturePadVisible !== 'undefined' && isGesturePadVisible);
+            const isClassPresent = document.body.classList.contains('input-gestures-mode');
+            const isBossActive = appSettings.isBlackoutFeatureEnabled && appSettings.isBlackoutGesturesEnabled && blackoutState.isActive;
             
-            // Allow if gesture pad is open OR boss mode gestures are on
-            if (isGestureMode || isBossGesture) {
+            if (isPadOpen || isClassPresent || isBossActive) {
                 const settings = getProfileSettings();
                 const mapResult = mapGestureToValue(data.name, settings.currentInput);
                 
                 if (mapResult !== null) {
                     addValue(mapResult);
+                    // Visual Feedback for gesture
                     const indicator = document.getElementById('gesture-indicator');
                     if(indicator) {
                         indicator.textContent = data.name;
@@ -993,6 +1017,7 @@ function initGestureEngine() {
             }
         },
         onContinuous: (data) => {
+            // ... (Keep existing continuous logic for twist/pinch) ...
             if (data.type === 'twist' && data.fingers === 3 && appSettings.isVolumeGesturesEnabled) {
                 let newVol = appSettings.voiceVolume || 1.0; newVol += (data.value * 0.05); 
                 appSettings.voiceVolume = Math.min(1.0, Math.max(0.0, newVol)); saveState(); showToast(`Volume: ${(appSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
@@ -1016,8 +1041,8 @@ function initGestureEngine() {
         }
     });
     modules.gestureEngine = engine;
-                                 }
-                                                                        
+                }
+
 
 function initGlobalListeners() {
     try {

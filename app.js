@@ -915,12 +915,12 @@ function mapGestureToValue(kind, currentInput) {
     const defaults = {
         // 9-Key (Taps)
         'k9_1': 'tap', 'k9_2': 'double_tap', 'k9_3': 'triple_tap',
-        'k9_4': 'tap_2f', 'k9_5': 'double_tap_2f', 'k9_6': 'triple_tap_2f',
-        'k9_7': 'tap_3f', 'k9_8': 'double_tap_3f', 'k9_9': 'triple_tap_3f',
+        'k9_4': 'tap_2f_any', 'k9_5': 'double_tap_2f_any', 'k9_6': 'triple_tap_2f_any',
+        'k9_7': 'tap_3f_any', 'k9_8': 'double_tap_3f_any', 'k9_9': 'triple_tap_3f_any',
         // 12-Key (Taps)
         'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
-        'k12_5': 'tap_2f', 'k12_6': 'double_tap_2f', 'k12_7': 'triple_tap_2f', 'k12_8': 'long_tap_2f',
-        'k12_9': 'tap_3f', 'k12_10': 'double_tap_3f', 'k12_11': 'triple_tap_3f', 'k12_12': 'long_tap_3f',
+        'k12_5': 'tap_2f_any', 'k12_6': 'double_tap_2f_any', 'k12_7': 'triple_tap_2f_any', 'k12_8': 'long_tap_2f_any',
+        'k12_9': 'tap_3f_any', 'k12_10': 'double_tap_3f_any', 'k12_11': 'triple_tap_3f_any', 'k12_12': 'long_tap_3f_any',
         // Piano (Swipes)
         'piano_C': 'swipe_nw', 'piano_D': 'swipe_left', 'piano_E': 'swipe_sw',
         'piano_F': 'swipe_down', 'piano_G': 'swipe_se', 'piano_A': 'swipe_right', 'piano_B': 'swipe_ne',
@@ -1002,6 +1002,47 @@ function initGestureEngine() {
             
             if (isPadOpen || isClassPresent || isBossActive) {
                 const settings = getProfileSettings();
+                
+                // --- STRICT "IN USE" CHECK ---
+                // 1. Get the list of gestures currently assigned to the active input buttons
+                const currentInput = settings.currentInput;
+                const saved = appSettings.gestureMappings || {};
+                
+                // Helper to get gesture string for a specific ID
+                const getG = (key) => {
+                    // Re-use logic from mapGestureToValue but simplified for lookups
+                    if (saved[key] && saved[key].gesture) return saved[key].gesture;
+                    // Fallback to defaults if needed, though strictly we should check what's "selected"
+                    // accessing the defaults map from mapGestureToValue scope would be cleaner, 
+                    // but for now we rely on the fact mapGestureToValue handles defaults.
+                    // To be strictly "what is selected in dropdowns", we rely on saved or defaults.
+                    return mapGestureToValue_GetGestureOnly(key, currentInput); 
+                };
+
+                let activeGestures = [];
+                if(currentInput === 'key9') {
+                    for(let i=1; i<=9; i++) activeGestures.push(getG('k9_' + i));
+                } else if(currentInput === 'key12') {
+                    for(let i=1; i<=12; i++) activeGestures.push(getG('k12_' + i));
+                } else if(currentInput === 'piano') {
+                    ['C','D','E','F','G','A','B','1','2','3','4','5'].forEach(k => activeGestures.push(getG('piano_' + k)));
+                }
+
+                // 2. Filter: Does the incoming gesture (data.name) match ANY of the active gestures?
+                // matches() logic: if active is 'tap_2f_any', incoming 'tap_2f_diagonal' -> TRUE
+                const isValid = activeGestures.some(target => {
+                    if (!target) return false;
+                    if (target === data.name) return true;
+                    if (target.endsWith('_any')) {
+                        const base = target.replace('_any', '');
+                        if (data.name.startsWith(base)) return true;
+                    }
+                    return false;
+                });
+
+                if (!isValid) return; // IGNORE GESTURE (Stops indicator and action)
+                // -----------------------------
+
                 const mapResult = mapGestureToValue(data.name, settings.currentInput);
                 
                 if (mapResult !== null) {

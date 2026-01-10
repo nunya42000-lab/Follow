@@ -1,5 +1,5 @@
 // gestures.js
-// Version: v77 - Fix for Diagonal Swipes (Increased Long Threshold)
+// Version: v79 - Fix: Increased Diagonal Threshold & Strict Mapping
 
 export class GestureEngine {
     constructor(targetElement, config, callbacks) {
@@ -10,7 +10,7 @@ export class GestureEngine {
             swipeThreshold: 30,   
             spatialThreshold: 10, 
             tapPrecision: 30,
-            longSwipeThreshold: 250, // INCREASED from 150 to prevent accidental long swipes
+            longSwipeThreshold: 250, // INCREASED (was 150) to prevent accidental long swipes on diagonals
             debug: false
         }, config || {});
 
@@ -131,7 +131,7 @@ export class GestureEngine {
         const count = pointers.length;
         const now = Date.now();
 
-        // 1. Squiggle 1F
+        // 1. Squiggle 1F (Delete)
         if (count === 1 && this.contState.squiggle.isTracking && !this.contState.squiggle.hasTriggered) {
             const x = e.clientX; const dx = x - this.contState.squiggle.lastX;
             if (Math.abs(dx) > 8) { 
@@ -145,7 +145,7 @@ export class GestureEngine {
                 }
             }
         }
-        // 2. Squiggle 2F
+        // 2. Squiggle 2F (Clear)
         if (count === 2 && this.contState.squiggle2F.isTracking && !this.contState.squiggle2F.hasTriggered) {
             const currentAvgX = (pointers[0].pts.slice(-1)[0].x + pointers[1].pts.slice(-1)[0].x) / 2;
             const dx = currentAvgX - this.contState.squiggle2F.lastX;
@@ -280,7 +280,7 @@ export class GestureEngine {
             }
 
             if (!shapeDetected) {
-                // CHANGED: Use config.longSwipeThreshold instead of hardcoded 150
+                // FIXED: Use Increased Threshold (250) for Long Swipes to fix diagonal sensitivity
                 if (netDist > this.config.longSwipeThreshold) { 
                     type = 'swipe_long'; 
                     meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y); 
@@ -378,7 +378,7 @@ export class GestureEngine {
         }
     }
 
-    // --- SMART EMITTER WITH FALLBACK & FIXES ---
+    // --- SMART EMITTER WITH STRICT FILTER ---
     _emitGesture(baseType, fingers, meta, overrideName = null) {
         let id = baseType;
 
@@ -418,20 +418,59 @@ export class GestureEngine {
         if (multiFingerBases.includes(id)) id += '_any';
 
         // --- SMART FALLBACK LOGIC ---
-        // If we have an active allowed list, and the detected gesture ISN'T in it, try to degrade it.
         let finalId = id;
 
+        // Helper to check if a candidate is allowed
+        const tryFallback = (candidate) => {
+            if (this.allowedGestures.has(candidate)) {
+                finalId = candidate;
+                return true;
+            }
+            return false;
+        };
+
         if (this.allowedGestures.size > 0 && !this.allowedGestures.has(id)) {
-            // 1. Fallback: Long Swipe -> Swipe
+            // A. Downgrade: Long Swipe -> Normal Swipe
             if (id.startsWith('swipe_long_')) {
-                const fallback = id.replace('swipe_long_', 'swipe_');
-                if (this.allowedGestures.has(fallback)) finalId = fallback;
+                const standard = id.replace('swipe_long_', 'swipe_');
+                if (tryFallback(standard)) { /* matched */ }
             }
-            // 2. Fallback: Spatial Tap -> Swipe
+            
+            // B. Downgrade: Spatial Tap -> Normal Swipe 
             else if (id.startsWith('spatial_tap_')) {
-                const fallback = id.replace('spatial_tap_', 'swipe_');
-                if (this.allowedGestures.has(fallback)) finalId = fallback;
+                 const standard = id.replace('spatial_tap_', 'swipe_');
+                 if (tryFallback(standard)) { /* matched */ }
             }
+            
+            // C. Generic Fallback (Specific Direction/Align -> '_any')
+            // This catches "swipe_sw" -> "swipe_any" IF AND ONLY IF "swipe_any" is mapped.
+            if (!this.allowedGestures.has(finalId)) {
+                const dirs = ['_up','_down','_left','_right','_nw','_ne','_sw','_se'];
+                for (let d of dirs) {
+                    if (finalId.includes(d)) {
+                        let test = finalId.replace(d, '_any');
+                        if (tryFallback(test)) break;
+                    }
+                }
+            }
+            
+            // D. Generic Fallback (Specific Align -> '_any') for taps
+            if (!this.allowedGestures.has(finalId) && finalId.includes('tap_')) {
+                const aligns = ['_vertical','_horizontal','_diagonal_se','_diagonal_sw'];
+                for (let a of aligns) {
+                    if (finalId.includes(a)) {
+                        let test = finalId.replace(a, '_any');
+                        if (tryFallback(test)) break;
+                    }
+                }
+            }
+        }
+
+        // --- STRICT FILTER ---
+        // If we have constraints, and the gesture (even after fallback) is NOT allowed,
+        // we SILENTLY ABORT. It will not be recognized.
+        if (this.allowedGestures.size > 0 && !this.allowedGestures.has(finalId)) {
+            return;
         }
 
         const name = overrideName || finalId;

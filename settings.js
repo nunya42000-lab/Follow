@@ -765,55 +765,73 @@ if (this.dom.gestureSwipeSlider) {
 
         // 2. DEFINE THE EXACT LIST (No Auto-Generation)
         // IDs are now used directly as the display label (just removing underscores for readability)
-                const gestureList = [
-            'tap', 'double_tap', 'triple_tap', 'long_tap',
-            'spatial_tap_any', 'spatial_tap_up', 'spatial_tap_down', 'spatial_tap_left', 'spatial_tap_right', 'spatial_tap_nw', 'spatial_tap_ne', 'spatial_tap_sw', 'spatial_tap_se',
-            'double_tap_any', 'double_tap_up', 'double_tap_down', 'double_tap_left', 'double_tap_right', 'double_tap_nw', 'double_tap_ne', 'double_tap_sw', 'double_tap_se',
-            'triple_tap_long_any', 'triple_tap_long_up', 'triple_tap_long_down', 'triple_tap_long_left', 'triple_tap_long_right', 'triple_tap_long_nw', 'triple_tap_long_ne', 'triple_tap_long_sw', 'triple_tap_long_se',
-            'triple_tap_boomerang_any', 'triple_tap_boomerang_up', 'triple_tap_boomerang_down', 'triple_tap_boomerang_left', 'triple_tap_boomerang_right', 'triple_tap_boomerang_nw', 'triple_tap_boomerang_ne', 'triple_tap_boomerang_sw', 'triple_tap_boomerang_se',
-            'triple_tap_corner_any', 'triple_tap_corner_cw', 'triple_tap_corner_ccw',
-            'triple_tap_corner_up_cw', 'triple_tap_corner_right_cw', 'triple_tap_corner_down_cw', 'triple_tap_corner_left_cw',
-            'triple_tap_corner_up_ccw', 'triple_tap_corner_left_ccw', 'triple_tap_corner_down_ccw', 'triple_tap_corner_right_ccw',
-            'tap_2f_any', 'tap_2f_vertical', 'tap_2f_horizontal', 'tap_2f_diagonal_se', 'tap_2f_diagonal_sw',
-            'double_tap_2f_any', 'double_tap_2f_vertical', 'double_tap_2f_horizontal', 'double_tap_2f_diagonal_se', 'double_tap_2f_diagonal_sw',
-            'triple_tap_2f_any', 'triple_tap_2f_vertical', 'triple_tap_2f_horizontal', 'triple_tap_2f_diagonal_se', 'triple_tap_2f_diagonal_sw',
-            'long_tap_2f_any', 'long_tap_2f_vertical', 'long_tap_2f_horizontal', 'long_tap_2f_diagonal_se', 'long_tap_2f_diagonal_sw',
-            
-            'tap_3f_any', 'tap_3f_vertical', 'tap_3f_horizontal', 'tap_3f_diagonal_se', 'tap_3f_diagonal_sw',
-            'double_tap_3f_any', 'double_tap_3f_vertical', 'double_tap_3f_horizontal', 'double_tap_3f_diagonal_se', 'double_tap_3f_diagonal_sw',
-            'triple_tap_3f_any', 'triple_tap_3f_vertical', 'triple_tap_3f_horizontal', 'triple_tap_3f_diagonal_se', 'triple_tap_3f_diagonal_sw',
-            'long_tap_3f_any', 'long_tap_3f_vertical', 'long_tap_3f_horizontal', 'long_tap_3f_diagonal_se', 'long_tap_3f_diagonal_sw',
-            
-            'swipe_any', 'swipe_up', 'swipe_down', 'swipe_left', 'swipe_right', 'swipe_nw', 'swipe_ne', 'swipe_sw', 'swipe_se',
-            'swipe_long_any', 'swipe_long_up', 'swipe_long_down', 'swipe_long_left', 'swipe_long_right', 'swipe_long_nw', 'swipe_long_ne', 'swipe_long_sw', 'swipe_long_se',
-            'swipe_any_2f', 'swipe_up_2f', 'swipe_down_2f', 'swipe_left_2f', 'swipe_right_2f', 'swipe_nw_2f', 'swipe_ne_2f', 'swipe_sw_2f', 'swipe_se_2f',
-            'pinch_swipe_any_2f', 'pinch_swipe_up_2f', 'pinch_swipe_down_2f', 'pinch_swipe_left_2f', 'pinch_swipe_right_2f',
-            'expand_swipe_any_2f', 'expand_swipe_up_2f', 'expand_swipe_down_2f', 'expand_swipe_left_2f', 'expand_swipe_right_2f',
-            'swipe_any_3f', 'swipe_up_3f', 'swipe_down_3f', 'swipe_left_3f', 'swipe_right_3f', 'swipe_nw_3f', 'swipe_ne_3f', 'swipe_sw_3f', 'swipe_se_3f',
-            'boomerang_any', 'boomerang_up', 'boomerang_down', 'boomerang_left', 'boomerang_right', 'boomerang_nw', 'boomerang_ne', 'boomerang_sw', 'boomerang_se',
-            'boomerang_any_2f', 'boomerang_up_2f', 'boomerang_down_2f', 'boomerang_left_2f', 'boomerang_right_2f', 'boomerang_nw_2f', 'boomerang_ne_2f', 'boomerang_sw_2f', 'boomerang_se_2f',
-            'boomerang_any_3f', 'boomerang_up_3f', 'boomerang_down_3f', 'boomerang_left_3f', 'boomerang_right_3f', 'boomerang_nw_3f', 'boomerang_ne_3f', 'boomerang_sw_3f', 'boomerang_se_3f',
-            'zigzag_any', 'zigzag_up', 'zigzag_down', 'zigzag_left', 'zigzag_right', 'zigzag_nw', 'zigzag_ne', 'zigzag_sw', 'zigzag_se',
-            'corner_any', 'corner_cw', 'corner_ccw',
-            'corner_up_cw', 'corner_right_cw', 'corner_down_cw', 'corner_left_cw',
-            'corner_up_ccw', 'corner_left_ccw', 'corner_down_ccw', 'corner_right_ccw',
-            'triangle_any', 'triangle_cw', 'triangle_ccw',
-            'triangle_up_cw', 'triangle_right_cw', 'triangle_down_cw', 'triangle_left_cw',
-            'triangle_up_ccw', 'triangle_left_ccw', 'triangle_down_ccw', 'triangle_right_ccw',
-            'u_shape_any', 'u_shape_cw', 'u_shape_ccw',
-            'u_shape_up_cw', 'u_shape_right_cw', 'u_shape_down_cw', 'u_shape_left_cw',
-            'u_shape_up_ccw', 'u_shape_left_ccw', 'u_shape_down_ccw', 'u_shape_right_ccw',
-            'square_any', 'square_cw', 'square_ccw',
-            'square_up_cw', 'square_right_cw', 'square_down_cw', 'square_left_cw',
-            'square_up_ccw', 'square_left_ccw', 'square_down_ccw', 'square_right_ccw',
-            'motion_tap_swipe_any', 'motion_tap_swipe_up', 'motion_tap_swipe_down', 'motion_tap_swipe_left', 'motion_tap_swipe_right', 'motion_tap_swipe_nw', 'motion_tap_swipe_ne', 'motion_tap_swipe_sw', 'motion_tap_swipe_se',
-            'motion_tap_swipe_long_any', 'motion_tap_swipe_long_up', 'motion_tap_swipe_long_down', 'motion_tap_swipe_long_left', 'motion_tap_swipe_long_right', 'motion_tap_swipe_long_nw', 'motion_tap_swipe_long_ne', 'motion_tap_swipe_long_sw', 'motion_tap_swipe_long_se',
-            'motion_tap_boomerang_any', 'motion_tap_boomerang_up', 'motion_tap_boomerang_down', 'motion_tap_boomerang_left', 'motion_tap_boomerang_right', 'motion_tap_boomerang_nw', 'motion_tap_boomerang_ne', 'motion_tap_boomerang_sw', 'motion_tap_boomerang_se',
-            'motion_tap_corner_any', 'motion_tap_corner_cw', 'motion_tap_corner_ccw',
-            'motion_tap_corner_up_cw', 'motion_tap_corner_right_cw', 'motion_tap_corner_down_cw', 'motion_tap_corner_left_cw',
-            'motion_tap_corner_up_ccw', 'motion_tap_corner_left_ccw', 'motion_tap_corner_down_ccw', 'motion_tap_corner_right_ccw'
-        ];
-                    
+                  const gestureList = [
+    // --- BASICS ---
+    'tap', 'double_tap', 'triple_tap', 'long_tap',
+
+    // --- SPATIAL TAPS (Tap-Move-Tap) ---
+    'motion_tap_spatial_any', 'motion_tap_spatial_up', 'motion_tap_spatial_down', 'motion_tap_spatial_left', 'motion_tap_spatial_right', 'motion_tap_spatial_nw', 'motion_tap_spatial_ne', 'motion_tap_spatial_sw', 'motion_tap_spatial_se',
+
+    // --- 3-TAP SPATIALS ---
+    'triple_tap_spatial_line_any', 'triple_tap_spatial_line_up', 'triple_tap_spatial_line_down', 'triple_tap_spatial_line_left', 'triple_tap_spatial_line_right', 
+    'triple_tap_spatial_corner_any', 'triple_tap_spatial_corner_ne', 'triple_tap_spatial_corner_nw', 'triple_tap_spatial_corner_se', 'triple_tap_spatial_corner_sw',
+    'triple_tap_spatial_boomerang_any', 'triple_tap_spatial_boomerang_up', 'triple_tap_spatial_boomerang_down', 'triple_tap_spatial_boomerang_left', 'triple_tap_spatial_boomerang_right',
+
+    // --- MULTI-TOUCH TAPS (With Alignments) ---
+    'tap_2f_any', 'tap_2f_vertical', 'tap_2f_horizontal', 'tap_2f_diagonal_se', 'tap_2f_diagonal_sw',
+    'double_tap_2f_any', 'double_tap_2f_vertical', 'double_tap_2f_horizontal', 'double_tap_2f_diagonal_se', 'double_tap_2f_diagonal_sw',
+    'triple_tap_2f_any', 'triple_tap_2f_vertical', 'triple_tap_2f_horizontal', 'triple_tap_2f_diagonal_se', 'triple_tap_2f_diagonal_sw',
+    'long_tap_2f_any', 'long_tap_2f_vertical', 'long_tap_2f_horizontal', 'long_tap_2f_diagonal_se', 'long_tap_2f_diagonal_sw',
+
+    'tap_3f_any', 'tap_3f_vertical', 'tap_3f_horizontal', 'tap_3f_diagonal_se', 'tap_3f_diagonal_sw',
+    'double_tap_3f_any', 'double_tap_3f_vertical', 'double_tap_3f_horizontal', 'double_tap_3f_diagonal_se', 'double_tap_3f_diagonal_sw',
+    'triple_tap_3f_any', 'triple_tap_3f_vertical', 'triple_tap_3f_horizontal', 'triple_tap_3f_diagonal_se', 'triple_tap_3f_diagonal_sw',
+    'long_tap_3f_any', 'long_tap_3f_vertical', 'long_tap_3f_horizontal', 'long_tap_3f_diagonal_se', 'long_tap_3f_diagonal_sw',
+
+    // --- SWIPES ---
+    'swipe_any', 'swipe_up', 'swipe_down', 'swipe_left', 'swipe_right', 'swipe_nw', 'swipe_ne', 'swipe_sw', 'swipe_se',
+    'swipe_long_any', 'swipe_long_up', 'swipe_long_down', 'swipe_long_left', 'swipe_long_right', 'swipe_long_nw', 'swipe_long_ne', 'swipe_long_sw', 'swipe_long_se',
+
+    // --- MULTI-TOUCH SWIPES ---
+    'swipe_any_2f', 'swipe_up_2f', 'swipe_down_2f', 'swipe_left_2f', 'swipe_right_2f', 'swipe_nw_2f', 'swipe_ne_2f', 'swipe_sw_2f', 'swipe_se_2f',
+    'pinch_swipe_any_2f', 'pinch_swipe_up_2f', 'pinch_swipe_down_2f', 'pinch_swipe_left_2f', 'pinch_swipe_right_2f',
+    'expand_swipe_any_2f', 'expand_swipe_up_2f', 'expand_swipe_down_2f', 'expand_swipe_left_2f', 'expand_swipe_right_2f',
+    'swipe_any_3f', 'swipe_up_3f', 'swipe_down_3f', 'swipe_left_3f', 'swipe_right_3f', 'swipe_nw_3f', 'swipe_ne_3f', 'swipe_sw_3f', 'swipe_se_3f',
+
+    // --- SIMPLE SHAPES (No Winding) ---
+    'boomerang_any', 'boomerang_up', 'boomerang_down', 'boomerang_left', 'boomerang_right', 'boomerang_nw', 'boomerang_ne', 'boomerang_sw', 'boomerang_se',
+    'long_boomerang_any', 'long_boomerang_up', 'long_boomerang_down', 'long_boomerang_left', 'long_boomerang_right', 'long_boomerang_nw', 'long_boomerang_ne', 'long_boomerang_sw', 'long_boomerang_se',
+    'zigzag_any', 'zigzag_up', 'zigzag_down', 'zigzag_left', 'zigzag_right', 'zigzag_nw', 'zigzag_ne', 'zigzag_sw', 'zigzag_se',
+    'long_zigzag_any', 'long_zigzag_up', 'long_zigzag_down', 'long_zigzag_left', 'long_zigzag_right', 'long_zigzag_nw', 'long_zigzag_ne', 'long_zigzag_sw', 'long_zigzag_se',
+
+    // --- COMPLEX SHAPES (With Winding CW/CCW) ---
+    'corner_any', 'corner_cw', 'corner_ccw',
+    'corner_up_cw', 'corner_right_cw', 'corner_down_cw', 'corner_left_cw',
+    'corner_up_ccw', 'corner_left_ccw', 'corner_down_ccw', 'corner_right_ccw',
+
+    'triangle_any', 'triangle_cw', 'triangle_ccw',
+    'triangle_up_cw', 'triangle_right_cw', 'triangle_down_cw', 'triangle_left_cw',
+    'triangle_up_ccw', 'triangle_left_ccw', 'triangle_down_ccw', 'triangle_right_ccw',
+
+    'u_shape_any', 'u_shape_cw', 'u_shape_ccw',
+    'u_shape_up_cw', 'u_shape_right_cw', 'u_shape_down_cw', 'u_shape_left_cw',
+    'u_shape_up_ccw', 'u_shape_left_ccw', 'u_shape_down_ccw', 'u_shape_right_ccw',
+
+    'square_any', 'square_cw', 'square_ccw',
+    'square_up_cw', 'square_right_cw', 'square_down_cw', 'square_left_cw',
+    'square_up_ccw', 'square_left_ccw', 'square_down_ccw', 'square_right_ccw',
+
+    // --- MOTION TAPS (Tap + Gesture) ---
+    'motion_tap_swipe_any', 'motion_tap_swipe_up', 'motion_tap_swipe_down', 'motion_tap_swipe_left', 'motion_tap_swipe_right', 'motion_tap_swipe_nw', 'motion_tap_swipe_ne', 'motion_tap_swipe_sw', 'motion_tap_swipe_se',
+    'motion_tap_swipe_long_any', 'motion_tap_swipe_long_up', 'motion_tap_swipe_long_down', 'motion_tap_swipe_long_left', 'motion_tap_swipe_long_right',
+    
+    'motion_tap_boomerang_any', 'motion_tap_boomerang_up', 'motion_tap_boomerang_down', 'motion_tap_boomerang_left', 'motion_tap_boomerang_right',
+    
+    'motion_tap_corner_any', 'motion_tap_corner_cw', 'motion_tap_corner_ccw',
+    'motion_tap_corner_up_cw', 'motion_tap_corner_right_cw', 'motion_tap_corner_down_cw', 'motion_tap_corner_left_cw',
+    'motion_tap_corner_up_ccw', 'motion_tap_corner_left_ccw', 'motion_tap_corner_down_ccw', 'motion_tap_corner_right_ccw'
+];
+                      
 
         // 3. BUILD UI
         const buildSection = (type, title, keyPrefix, count, customKeys = null) => {

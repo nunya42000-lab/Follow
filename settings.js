@@ -67,9 +67,9 @@ const GESTURE_PRESETS = {
         type: 'key9',
         map: {
             // UPDATED to new ID names
-            'k9_1': 'spatial_tap_nw', 'k9_2': 'spatial_tap_up', 'k9_3': 'spatial_tap_ne',
-            'k9_4': 'spatial_tap_left', 'k9_5': 'double_tap', 'k9_6': 'spatial_tap_right',
-            'k9_7': 'spatial_tap_sw', 'k9_8': 'spatial_tap_down', 'k9_9': 'spatial_tap_se'
+           'k9_1': 'motion_tap_spatial_nw', 'k9_2': 'motion_tap_spatial_up', 'k9_3': 'motion_tap_spatial_ne',
+            'k9_4': 'motion_tap_spatial_left', 'k9_5': 'double_tap', 'k9_6': 'motion_tap_spatial_right',
+            'k9_7': 'motion_tap_spatial_sw', 'k9_8': 'motion_tap_spatial_down', 'k9_9': 'motion_tap_spatial_se' 
         }
     },
 

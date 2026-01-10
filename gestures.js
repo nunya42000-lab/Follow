@@ -1,5 +1,5 @@
 // gestures.js
-// Version: v76 - Fixed Winding Logic for Swipes
+// Version: v77 - Fix for Diagonal Swipes (Increased Long Threshold)
 
 export class GestureEngine {
     constructor(targetElement, config, callbacks) {
@@ -9,7 +9,8 @@ export class GestureEngine {
             longPressTime: 500,   
             swipeThreshold: 30,   
             spatialThreshold: 10, 
-            tapPrecision: 30,     
+            tapPrecision: 30,
+            longSwipeThreshold: 250, // INCREASED from 150 to prevent accidental long swipes
             debug: false
         }, config || {});
 
@@ -279,7 +280,8 @@ export class GestureEngine {
             }
 
             if (!shapeDetected) {
-                if (netDist > 150) { 
+                // CHANGED: Use config.longSwipeThreshold instead of hardcoded 150
+                if (netDist > this.config.longSwipeThreshold) { 
                     type = 'swipe_long'; 
                     meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y); 
                 } 

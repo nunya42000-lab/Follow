@@ -772,9 +772,18 @@ if (this.dom.gestureSwipeSlider) {
     // --- SPATIAL TAPS (Tap-Move-Tap) ---
     'motion_tap_spatial_any', 'motion_tap_spatial_up', 'motion_tap_spatial_down', 'motion_tap_spatial_left', 'motion_tap_spatial_right', 'motion_tap_spatial_nw', 'motion_tap_spatial_ne', 'motion_tap_spatial_sw', 'motion_tap_spatial_se',
 
-    // --- 3-TAP SPATIALS ---
+        // --- 3-TAP SPATIALS ---
     'triple_tap_spatial_line_any', 'triple_tap_spatial_line_up', 'triple_tap_spatial_line_down', 'triple_tap_spatial_line_left', 'triple_tap_spatial_line_right', 
-    'triple_tap_spatial_corner_any', 'triple_tap_spatial_corner_ne', 'triple_tap_spatial_corner_nw', 'triple_tap_spatial_corner_se', 'triple_tap_spatial_corner_sw',
+    
+    // Corners (Standard)
+    'triple_tap_spatial_corner_any', 
+    'triple_tap_spatial_corner_ne', 'triple_tap_spatial_corner_nw', 
+    'triple_tap_spatial_corner_se', 'triple_tap_spatial_corner_sw',
+    
+    // Corners (Reverse/Alternates)
+    'triple_tap_spatial_corner_en', 'triple_tap_spatial_corner_wn', 
+    'triple_tap_spatial_corner_es', 'triple_tap_spatial_corner_ws',
+    
     'triple_tap_spatial_boomerang_any', 'triple_tap_spatial_boomerang_up', 'triple_tap_spatial_boomerang_down', 'triple_tap_spatial_boomerang_left', 'triple_tap_spatial_boomerang_right',
 
     // --- MULTI-TOUCH TAPS (With Alignments) ---

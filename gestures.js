@@ -1,5 +1,5 @@
 // gestures.js
-// Version: v75 - Smart Fallback & Active Constraint System
+// Version: v76 - Fixed Winding Logic for Swipes
 
 export class GestureEngine {
     constructor(targetElement, config, callbacks) {
@@ -38,7 +38,7 @@ export class GestureEngine {
         this._startStaleCheck();
     }
 
-    // --- NEW: Update the list of gestures the App actually cares about ---
+    // --- Update the list of gestures the App actually cares about ---
     updateAllowed(list) {
         if (!list || !Array.isArray(list)) return;
         this.allowedGestures = new Set(list);
@@ -130,8 +130,6 @@ export class GestureEngine {
         const count = pointers.length;
         const now = Date.now();
 
-        // Continuous Gestures (Delete/Clear/Twist/Pinch)
-        // ... (Logic kept identical to v74) ...
         // 1. Squiggle 1F
         if (count === 1 && this.contState.squiggle.isTracking && !this.contState.squiggle.hasTriggered) {
             const x = e.clientX; const dx = x - this.contState.squiggle.lastX;
@@ -228,6 +226,7 @@ export class GestureEngine {
             return;
         }
 
+        // Calculate winding even for lines, but only use it for shapes later
         let turnSum = 0;
         if (segments.length > 1) {
             for (let i = 0; i < segments.length - 1; i++) {
@@ -280,7 +279,6 @@ export class GestureEngine {
             }
 
             if (!shapeDetected) {
-                // RESTORED: Distinguish Long Swipe vs Swipe vs Spatial Tap
                 if (netDist > 150) { 
                     type = 'swipe_long'; 
                     meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y); 
@@ -378,38 +376,42 @@ export class GestureEngine {
         }
     }
 
-    // --- SMART EMITTER WITH FALLBACK ---
+    // --- SMART EMITTER WITH FALLBACK & FIXES ---
     _emitGesture(baseType, fingers, meta, overrideName = null) {
         let id = baseType;
 
-        // Construct ID
+        // 1. Append Direction
         if (meta && meta.dir && meta.dir !== 'none') {
             const dir = meta.dir.toLowerCase();
-            // Most directional things just get appended
-            if (['swipe', 'swipe_long', 'spatial_tap', 'square', 'triangle', 'u_shape', 'corner', 'motion_tap_corner', 
-                 'triple_tap_corner', 'triple_tap_long', 'triple_tap_boomerang', 'double_tap'].includes(baseType) || baseType.startsWith('double_tap_')) {
-                 id += `_${dir}`;
-            } else if (!baseType.includes(dir)) {
-                 id += `_${dir}`;
+            const directionalTypes = ['swipe', 'swipe_long', 'spatial_tap', 'square', 'triangle', 'u_shape', 'corner', 'motion_tap_corner', 'triple_tap_corner', 'triple_tap_long', 'triple_tap_boomerang', 'double_tap'];
+            
+            if (directionalTypes.some(t => baseType.startsWith(t)) || baseType.includes('double_tap')) {
+                 if (!id.includes(dir)) id += `_${dir}`;
             }
         } else {
             // Append _any for generic compatibility if needed
-            if (['swipe', 'swipe_long', 'boomerang', 'zigzag', 'spatial_tap', 
-                 'triple_tap_long', 'triple_tap_boomerang', 'triple_tap_corner'].includes(baseType)) {
+            const anyTypes = ['swipe', 'swipe_long', 'boomerang', 'zigzag', 'spatial_tap', 'triple_tap_long', 'triple_tap_boomerang', 'triple_tap_corner'];
+            if (anyTypes.includes(baseType) || (baseType.startsWith('motion_tap_') && !baseType.includes('corner'))) {
                  id += '_any'; 
-            }
-            if (baseType.startsWith('motion_tap_') && !baseType.includes('corner')) {
-                 id += '_any';
             }
         }
 
-        if (meta && meta.winding) id += `_${meta.winding}`;
+        // 2. Append Winding (CW/CCW) - RESTRICTED TO SHAPES ONLY
+        const windingShapes = ['corner', 'triangle', 'u_shape', 'square', 'triple_tap_corner', 'motion_tap_corner'];
+        if (meta && meta.winding && windingShapes.some(s => baseType.includes(s))) {
+             id += `_${meta.winding}`;
+        }
+
+        // 3. Append Fingers (if multi-finger and not already present)
         if (fingers > 1 && !id.includes(`${fingers}f`) && !baseType.includes(`${fingers}f`)) id += `_${fingers}f`;
+        
+        // 4. Append Alignment (Horizontal/Vertical)
         if (meta && meta.align) {
             const map = { 'Vertical': 'vertical', 'Horizontal': 'horizontal', 'Diagonal SE': 'diagonal_se', 'Diagonal SW': 'diagonal_sw' };
             if (map[meta.align]) id += `_${map[meta.align]}`;
         }
 
+        // 5. Normalization for Multi-Finger Taps
         const multiFingerBases = ['tap_2f', 'double_tap_2f', 'triple_tap_2f', 'long_tap_2f', 'tap_3f', 'double_tap_3f', 'triple_tap_3f', 'long_tap_3f'];
         if (multiFingerBases.includes(id)) id += '_any';
 
@@ -423,7 +425,7 @@ export class GestureEngine {
                 const fallback = id.replace('swipe_long_', 'swipe_');
                 if (this.allowedGestures.has(fallback)) finalId = fallback;
             }
-            // 2. Fallback: Spatial Tap -> Swipe (Micro-swipes count as swipes if spatial not mapped)
+            // 2. Fallback: Spatial Tap -> Swipe
             else if (id.startsWith('spatial_tap_')) {
                 const fallback = id.replace('spatial_tap_', 'swipe_');
                 if (this.allowedGestures.has(fallback)) finalId = fallback;

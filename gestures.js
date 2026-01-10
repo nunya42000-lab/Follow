@@ -1,5 +1,5 @@
 // gestures.js
-// Version: v97 - The Complete Engine (Geometry Fixes + Continuous Actions)
+// Version: v98 - Fixed Missing Constraints Logic
 
 export class GestureEngine {
     constructor(targetElement, config, callbacks) {
@@ -25,6 +25,9 @@ export class GestureEngine {
         this.history = [];
         this.tapStack = { count: 0, fingers: 0, timer: null, posHistory: [], active: false };
         
+        // --- FIX: Initialize the allowed set ---
+        this.allowedGestures = new Set();
+
         // Continuous State (For Delete/Clear/Twist)
         this.contState = {
             rotStartAngle: 0, rotAccumulator: 0, rotLastUpdate: 0, pinchStartDist: 0,
@@ -33,6 +36,11 @@ export class GestureEngine {
         };
 
         this._bindHandlers();
+    }
+
+    // --- FIX: Add the missing update method ---
+    updateAllowed(list) {
+        this.allowedGestures = new Set(list);
     }
 
     _bindHandlers() {
@@ -96,7 +104,6 @@ export class GestureEngine {
         const now = Date.now();
 
         // 1. Squiggle 1F (Delete)
-        // Detects rapid left-right shaking
         if (count === 1 && this.contState.squiggle.isTracking && !this.contState.squiggle.hasTriggered) {
             const x = e.clientX; 
             const dx = x - this.contState.squiggle.lastX;
@@ -108,10 +115,8 @@ export class GestureEngine {
                 this.contState.squiggle.direction = newDir; 
                 this.contState.squiggle.lastX = x;
                 
-                // Trigger after 4 reversals (Left-Right-Left-Right)
                 if (this.contState.squiggle.flips >= 4) {
                     this.contState.squiggle.hasTriggered = true;
-                    // Standardizes as 'squiggle' for the app to interpret as Delete
                     this.callbacks.onContinuous({ type: 'squiggle', fingers: 1 });
                 }
             }
@@ -173,12 +178,10 @@ export class GestureEngine {
         
         const remaining = Object.keys(this.activePointers).length;
         if (remaining === 0) {
-            // Reset Continuous
             this.contState.pinchStartDist = 0;
             this.contState.squiggle.isTracking = false;
             this.contState.squiggle2F.isTracking = false;
             
-            // If continuous action triggered (e.g., delete), don't analyze as a shape
             if (this.contState.squiggle.hasTriggered || this.contState.squiggle2F.hasTriggered) {
                 this.history = []; 
                 this.contState.squiggle.hasTriggered = false;
@@ -226,59 +229,43 @@ export class GestureEngine {
 
         // --- 2. Shapes & Swipes ---
         if (type === 'tap' && pathLen > this.config.swipeThreshold) {
-            // 4+ Segments
             if (segments.length >= 4) {
                 const t1 = this._getTurnDir(segments[0].vec, segments[1].vec); 
                 const t2 = this._getTurnDir(segments[1].vec, segments[2].vec);
-                
-                // Strict Winding Check: Alternating = ZigZag/M/W; Consistent = Square
                 const alternating = (t1 > 0 && t2 < 0) || (t1 < 0 && t2 > 0);
-                
-                if (alternating) {
-                    type = 'long_zigzag'; // M/W Shape
-                } else if (isClosed) { 
-                    type = 'square'; meta.winding = winding; 
-                } else {
-                    type = 'long_zigzag'; 
-                }
+                if (alternating) { type = 'long_zigzag'; } 
+                else if (isClosed) { type = 'square'; meta.winding = winding; } 
+                else { type = 'long_zigzag'; }
                 meta.dir = segments[0].dir; 
             } 
-            // 3 Segments
             else if (segments.length === 3) {
-                 if (isClosed) { 
-                     type = 'triangle'; meta.dir = segments[0].dir; meta.winding = winding; 
-                 } else { 
+                 if (isClosed) { type = 'triangle'; meta.dir = segments[0].dir; meta.winding = winding; } 
+                 else { 
                      const t1 = this._getTurnDir(segments[0].vec, segments[1].vec); 
                      const t2 = this._getTurnDir(segments[1].vec, segments[2].vec);
-                     if ((t1 > 0 && t2 < 0) || (t1 < 0 && t2 > 0)) {
-                         type = 'zigzag'; // Z Shape
-                     } else {
+                     if ((t1 > 0 && t2 < 0) || (t1 < 0 && t2 > 0)) { type = 'zigzag'; } 
+                     else {
                          const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
-                         if (Math.abs(angle) < 135) type = 'u_shape';
-                         else type = 'long_boomerang';
+                         if (Math.abs(angle) < 135) type = 'u_shape'; else type = 'long_boomerang';
                          meta.winding = winding;
                      }
                      meta.dir = segments[0].dir; 
                  }
             } 
-            // 2 Segments
             else if (segments.length === 2) {
                 meta.dir = segments[0].dir; meta.winding = winding;
                 const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
-                if (Math.abs(angle) > 125) { type = 'boomerang'; }
-                else { type = 'corner'; }
+                if (Math.abs(angle) > 125) { type = 'boomerang'; } else { type = 'corner'; }
             } 
-            // 1 Segment
             else {
                 const dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
                 let threshold = this.config.longSwipeThreshold;
-                if (dir.length > 2) threshold += 60; // Diagonal penalty
+                if (dir.length > 2) threshold += 60; 
                 type = netDist > threshold ? 'swipe_long' : 'swipe';
                 meta.dir = dir;
             }
         }
 
-        // --- 3. Multi Finger Swipes ---
         if (fingers > 1 && type === 'tap' && netDist > this.config.multiSwipeThreshold) {
             type = 'swipe';
             if (segments.length >= 2) {
@@ -294,10 +281,9 @@ export class GestureEngine {
             if (fingers > 1) meta.align = this._getAlignment(inputs);
         }
 
-        // --- 4. Tap Stack (Spatial & Motion) ---
+        // --- 4. Tap Stack ---
         if (this.tapStack.active) {
             clearTimeout(this.tapStack.timer); this.tapStack.active = false;
-            
             if (type === 'tap' && fingers === this.tapStack.fingers) {
                 const seqDist = Math.hypot(sc.x - this.tapStack.lastPos.x, sc.y - this.tapStack.lastPos.y);
                 if (seqDist > 50 && fingers === 1) {
@@ -314,7 +300,6 @@ export class GestureEngine {
                     return;
                 }
             }
-            // Tap then Shape
             if (type !== 'tap' && fingers === 1 && this.tapStack.fingers === 1) {
                 this._emitGesture('motion_tap', 1, { subMode: type, dir: meta.dir, winding: meta.winding });
                 this._clearStack();
@@ -340,7 +325,6 @@ export class GestureEngine {
         if (count > 0) { 
             let maxDist = 0; for(let i=1; i<posHistory.length; i++) maxDist = Math.max(maxDist, Math.hypot(posHistory[i].x-posHistory[i-1].x, posHistory[i].y-posHistory[i-1].y));
             if (maxDist > 50 && fingers === 1 && count >= 2) {
-                // 3-Tap Spatial
                 if (count === 3) {
                     const v1 = { x: posHistory[1].x - posHistory[0].x, y: posHistory[1].y - posHistory[0].y };
                     const v2 = { x: posHistory[2].x - posHistory[1].x, y: posHistory[2].y - posHistory[1].y };
@@ -380,14 +364,15 @@ export class GestureEngine {
         const multiFingerBases = ['tap_2f', 'double_tap_2f', 'triple_tap_2f', 'long_tap_2f', 'tap_3f', 'double_tap_3f', 'triple_tap_3f', 'long_tap_3f'];
         if (multiFingerBases.includes(id)) id += '_any';
 
-        // Smart Fallback
         let finalId = id;
         const tryFallback = (candidate) => {
-            if (this.allowedGestures.has(candidate)) { finalId = candidate; return true; }
+            // FIX: Guard against undefined allowedGestures
+            if (this.allowedGestures && this.allowedGestures.has(candidate)) { finalId = candidate; return true; }
             return false;
         };
 
-        if (this.allowedGestures.size > 0 && !this.allowedGestures.has(id)) {
+        // FIX: Ensure allowedGestures exists before checking size/has
+        if (this.allowedGestures && this.allowedGestures.size > 0 && !this.allowedGestures.has(id)) {
             if (id.startsWith('swipe_long_')) {
                 const standard = id.replace('swipe_long_', 'swipe_');
                 if (tryFallback(standard)) { /* matched */ }
@@ -406,7 +391,7 @@ export class GestureEngine {
             }
         }
 
-        if (this.allowedGestures.size > 0 && !this.allowedGestures.has(finalId)) return;
+        if (this.allowedGestures && this.allowedGestures.size > 0 && !this.allowedGestures.has(finalId)) return;
         
         const name = overrideName || finalId;
         this.callbacks.onGesture({ id: finalId, base: baseType, fingers: fingers, meta: meta, name: name });

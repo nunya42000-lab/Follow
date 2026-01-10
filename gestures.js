@@ -1,31 +1,31 @@
 // gestures.js
-// Version: v96 - Final Production (ZigZag/Square Logic + Tuned Timing)
+// Version: v97 - The Complete Engine (Geometry Fixes + Continuous Actions)
 
 export class GestureEngine {
     constructor(targetElement, config, callbacks) {
         this.target = targetElement || document.body;
         this.config = Object.assign({
-            tapDelay: 800,        // 800ms buffer for Motion Taps
-            longPressTime: 300,   // 300ms for Long Tap
-            swipeThreshold: 40,   // 40px minimum for Swipe
+            tapDelay: 800,        
+            longPressTime: 300,   
+            swipeThreshold: 40,   
             spatialThreshold: 10, 
             tapPrecision: 30,
-            longSwipeThreshold: 150, // 150px for Long Swipe
-            multiSwipeThreshold: 10, // 10px for Multi-finger Swipe
+            longSwipeThreshold: 150, 
+            multiSwipeThreshold: 10, 
             debug: false
         }, config || {});
 
         this.callbacks = Object.assign({
             onGesture: (data) => console.log('Gesture:', data), 
-            onContinuous: (data) => {}, 
+            onContinuous: (data) => console.log('Continuous:', data), 
             onDebug: (msg) => {}
         }, callbacks || {});
 
-        this.allowedGestures = new Set(); 
         this.activePointers = {};
         this.history = [];
         this.tapStack = { count: 0, fingers: 0, timer: null, posHistory: [], active: false };
         
+        // Continuous State (For Delete/Clear/Twist)
         this.contState = {
             rotStartAngle: 0, rotAccumulator: 0, rotLastUpdate: 0, pinchStartDist: 0,
             squiggle: { isTracking: false, startX: 0, lastX: 0, direction: 0, flips: 0, hasTriggered: false },
@@ -33,12 +33,6 @@ export class GestureEngine {
         };
 
         this._bindHandlers();
-        this._startStaleCheck();
-    }
-
-    updateAllowed(list) {
-        if (!list || !Array.isArray(list)) return;
-        this.allowedGestures = new Set(list);
     }
 
     _bindHandlers() {
@@ -46,40 +40,8 @@ export class GestureEngine {
         t.addEventListener('pointerdown', e => this._handleDown(e), { passive: false });
         t.addEventListener('pointermove', e => this._handleMove(e), { passive: false });
         t.addEventListener('pointerup', e => this._handleUp(e), { passive: false });
-        t.addEventListener('pointercancel', e => this._forceReset(e), { passive: false });
+        t.addEventListener('pointercancel', e => this._handleUp(e), { passive: false });
         t.addEventListener('contextmenu', e => e.preventDefault());
-    }
-
-    _startStaleCheck() {
-        this.staleCheckTimer = setInterval(() => {
-            const now = Date.now();
-            let cleared = false;
-            Object.keys(this.activePointers).forEach(key => {
-                if (now - this.activePointers[key].startTime > 2000) {
-                    delete this.activePointers[key];
-                    cleared = true;
-                }
-            });
-            if (cleared && Object.keys(this.activePointers).length === 0) {
-                this._resetContinuous();
-            }
-        }, 1000);
-    }
-
-    _forceReset(e) {
-        if (e && this.activePointers[e.pointerId]) delete this.activePointers[e.pointerId];
-        if (Object.keys(this.activePointers).length === 0) {
-            this._resetContinuous();
-            this.history = [];
-        }
-    }
-
-    _resetContinuous() {
-        this.contState.pinchStartDist = 0;
-        this.contState.squiggle.isTracking = false;
-        this.contState.squiggle2F.isTracking = false;
-        this.contState.squiggle.hasTriggered = false;
-        this.contState.squiggle2F.hasTriggered = false;
     }
 
     _handleDown(e) {
@@ -94,11 +56,14 @@ export class GestureEngine {
         const count = Object.keys(this.activePointers).length;
         const pointers = Object.values(this.activePointers);
 
+        // Init 1-Finger Squiggle (Delete)
         if (count === 1) {
             this.contState.squiggle = {
                 isTracking: true, startX: e.clientX, lastX: e.clientX, direction: 0, flips: 0, hasTriggered: false
             };
         }
+        
+        // Init 2-Finger Squiggle (Clear) & Rotate/Pinch
         if (count === 2) {
             const p1 = pointers[0].pts[0];
             const p2 = pointers[1].pts[0];
@@ -108,6 +73,7 @@ export class GestureEngine {
             const dx = p1.x - p2.x;
             const dy = p1.y - p2.y;
             this.contState.pinchStartDist = Math.hypot(dx, dy);
+            
             this.contState.squiggle2F = {
                 isTracking: true, lastX: (p1.x + p2.x) / 2, direction: 0, flips: 0, hasTriggered: false
             };
@@ -116,6 +82,8 @@ export class GestureEngine {
 
     _handleMove(e) {
         if (!this.activePointers[e.pointerId]) return;
+        
+        // Prevent scrolling if tracking complex gestures
         if (this.contState.squiggle.isTracking || this.contState.squiggle2F.isTracking) {
              if (e.cancelable) e.preventDefault();
         }
@@ -127,50 +95,69 @@ export class GestureEngine {
         const count = pointers.length;
         const now = Date.now();
 
-        // 1. Squiggle 1F
+        // 1. Squiggle 1F (Delete)
+        // Detects rapid left-right shaking
         if (count === 1 && this.contState.squiggle.isTracking && !this.contState.squiggle.hasTriggered) {
-            const x = e.clientX; const dx = x - this.contState.squiggle.lastX;
+            const x = e.clientX; 
+            const dx = x - this.contState.squiggle.lastX;
             if (Math.abs(dx) > 8) { 
                 const newDir = dx > 0 ? 1 : -1;
-                if (this.contState.squiggle.direction !== 0 && newDir !== this.contState.squiggle.direction) this.contState.squiggle.flips++;
-                this.contState.squiggle.direction = newDir; this.contState.squiggle.lastX = x;
-                if (this.contState.squiggle.flips >= 3) {
+                if (this.contState.squiggle.direction !== 0 && newDir !== this.contState.squiggle.direction) {
+                    this.contState.squiggle.flips++;
+                }
+                this.contState.squiggle.direction = newDir; 
+                this.contState.squiggle.lastX = x;
+                
+                // Trigger after 4 reversals (Left-Right-Left-Right)
+                if (this.contState.squiggle.flips >= 4) {
                     this.contState.squiggle.hasTriggered = true;
-                    this._emitGesture('delete', 1, {}, 'DELETE');
+                    // Standardizes as 'squiggle' for the app to interpret as Delete
                     this.callbacks.onContinuous({ type: 'squiggle', fingers: 1 });
                 }
             }
         }
-        // 2. Squiggle 2F
+
+        // 2. Squiggle 2F (Clear)
         if (count === 2 && this.contState.squiggle2F.isTracking && !this.contState.squiggle2F.hasTriggered) {
             const currentAvgX = (pointers[0].pts.slice(-1)[0].x + pointers[1].pts.slice(-1)[0].x) / 2;
             const dx = currentAvgX - this.contState.squiggle2F.lastX;
             if (Math.abs(dx) > 8) {
                 const newDir = dx > 0 ? 1 : -1;
-                if (this.contState.squiggle2F.direction !== 0 && newDir !== this.contState.squiggle2F.direction) this.contState.squiggle2F.flips++;
-                this.contState.squiggle2F.direction = newDir; this.contState.squiggle2F.lastX = currentAvgX;
-                if (this.contState.squiggle2F.flips >= 3) {
+                if (this.contState.squiggle2F.direction !== 0 && newDir !== this.contState.squiggle2F.direction) {
+                    this.contState.squiggle2F.flips++;
+                }
+                this.contState.squiggle2F.direction = newDir; 
+                this.contState.squiggle2F.lastX = currentAvgX;
+                
+                if (this.contState.squiggle2F.flips >= 4) {
                     this.contState.squiggle2F.hasTriggered = true;
-                    this._emitGesture('clear', 2, {}, 'CLEAR');
                     this.callbacks.onContinuous({ type: 'squiggle', fingers: 2 });
                 }
             }
         }
+
         // 3. Twist
         if ((count === 2 || count === 3) && (now - this.contState.rotLastUpdate > 50)) {
-            const p1 = pointers[0].pts.slice(-1)[0]; const p2 = pointers[1].pts.slice(-1)[0];
+            const p1 = pointers[0].pts.slice(-1)[0]; 
+            const p2 = pointers[1].pts.slice(-1)[0];
             const currentAngle = this._getRotationAngle(p1, p2);
             let delta = currentAngle - this.contState.rotStartAngle;
             if (delta > 180) delta -= 360; if (delta < -180) delta += 360;
-            this.contState.rotAccumulator += delta; this.contState.rotStartAngle = currentAngle;
+            
+            this.contState.rotAccumulator += delta; 
+            this.contState.rotStartAngle = currentAngle;
+            
             if (Math.abs(this.contState.rotAccumulator) > 15) {
                 this.callbacks.onContinuous({ type: 'twist', fingers: count, value: this.contState.rotAccumulator > 0 ? 1 : -1 });
-                this.contState.rotAccumulator = 0; this.contState.rotLastUpdate = now;
+                this.contState.rotAccumulator = 0; 
+                this.contState.rotLastUpdate = now;
             }
         }
+
         // 4. Pinch
         if (count === 2 && this.contState.pinchStartDist > 0) {
-            const p1 = pointers[0].pts.slice(-1)[0]; const p2 = pointers[1].pts.slice(-1)[0];
+            const p1 = pointers[0].pts.slice(-1)[0]; 
+            const p2 = pointers[1].pts.slice(-1)[0];
             const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
             if (Math.abs(dist - this.contState.pinchStartDist) > 20) {
                 this.callbacks.onContinuous({ type: 'pinch', scale: dist / this.contState.pinchStartDist });
@@ -183,29 +170,33 @@ export class GestureEngine {
         this.activePointers[e.pointerId].endTime = Date.now();
         this.history.push(this.activePointers[e.pointerId]);
         delete this.activePointers[e.pointerId];
+        
         const remaining = Object.keys(this.activePointers).length;
         if (remaining === 0) {
-            this._resetContinuous();
-            clearTimeout(this.debounceTimer);
+            // Reset Continuous
+            this.contState.pinchStartDist = 0;
+            this.contState.squiggle.isTracking = false;
+            this.contState.squiggle2F.isTracking = false;
+            
+            // If continuous action triggered (e.g., delete), don't analyze as a shape
             if (this.contState.squiggle.hasTriggered || this.contState.squiggle2F.hasTriggered) {
-                this.history = []; return;
+                this.history = []; 
+                this.contState.squiggle.hasTriggered = false;
+                this.contState.squiggle2F.hasTriggered = false;
+                return;
             }
+
+            clearTimeout(this.debounceTimer);
             this.debounceTimer = setTimeout(() => this._analyze(), 50);
         }
     }
 
     _analyze() {
-        const inputs = this.history; this.history = [];
-        if (inputs.length === 0) return;
+        const inputs = this.history; this.history = []; if (inputs.length === 0) return;
         const fingers = new Set(inputs.map(s => s.id)).size;
-        
         let sc = {x:0,y:0}, ec = {x:0,y:0};
-        inputs.forEach(s => {
-            sc.x += s.pts[0].x; sc.y += s.pts[0].y;
-            ec.x += s.pts[s.pts.length-1].x; ec.y += s.pts[s.pts.length-1].y;
-        });
-        sc.x /= inputs.length; sc.y /= inputs.length;
-        ec.x /= inputs.length; ec.y /= inputs.length;
+        inputs.forEach(s => { sc.x += s.pts[0].x; sc.y += s.pts[0].y; ec.x += s.pts[s.pts.length-1].x; ec.y += s.pts[s.pts.length-1].y; });
+        sc.x /= inputs.length; sc.y /= inputs.length; ec.x /= inputs.length; ec.y /= inputs.length;
 
         const primaryPath = inputs[0].pts;
         let segments = this._segmentPath(primaryPath);
@@ -216,46 +207,35 @@ export class GestureEngine {
         const pathLen = this._getPathLen(primaryPath);
         const isClosed = netDist < 50;
 
-        let turnSum = 0;
-        if (segments.length > 1) {
-            for (let i = 0; i < segments.length - 1; i++) {
-                turnSum += this._getTurnDir(segments[i].vec, segments[i + 1].vec);
-            }
-        }
+        let turnSum = 0; if (segments.length > 1) { for (let i = 0; i < segments.length - 1; i++) { turnSum += this._getTurnDir(segments[i].vec, segments[i + 1].vec); } }
         const winding = turnSum > 0 ? 'cw' : 'ccw';
-        let type = 'tap';
-        let meta = { fingers: fingers };
+        let type = 'tap'; let meta = { fingers: fingers };
 
-        // --- 2. Hybrid Gestures ---
+        // --- 1. Multi-Finger Hybrid Swipes ---
         if (fingers === 2 && pathLen > 40 && netDist > 40) {
              let startSpan = 0, endSpan = 0;
-             inputs.forEach(s => {
-                 const f = s.pts[0], l = s.pts[s.pts.length-1];
-                 startSpan += Math.hypot(f.x - sc.x, f.y - sc.y);
-                 endSpan += Math.hypot(l.x - ec.x, l.y - ec.y);
-             });
+             inputs.forEach(s => { const f = s.pts[0], l = s.pts[s.pts.length-1]; startSpan += Math.hypot(f.x - sc.x, f.y - sc.y); endSpan += Math.hypot(l.x - ec.x, l.y - ec.y); });
              startSpan /= 2; endSpan /= 2;
              if (Math.abs(endSpan - startSpan) > 30) {
                  const dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
                  if (endSpan < startSpan * 0.7) { type = 'pinch_swipe'; meta.dir = dir; }
                  else if (endSpan > startSpan * 1.3) { type = 'expand_swipe'; meta.dir = dir; }
-                 this._emitGesture(type, fingers, meta);
-                 return;
+                 this._emitGesture(type, fingers, meta); return;
              }
         }
 
-        // --- 3. One Finger Logic (Shapes & Swipes) ---
+        // --- 2. Shapes & Swipes ---
         if (type === 'tap' && pathLen > this.config.swipeThreshold) {
-            // 4+ Segments (Square vs Long ZigZag)
+            // 4+ Segments
             if (segments.length >= 4) {
                 const t1 = this._getTurnDir(segments[0].vec, segments[1].vec); 
                 const t2 = this._getTurnDir(segments[1].vec, segments[2].vec);
                 
-                // ZigZags (M/W/Z) have alternating turns
+                // Strict Winding Check: Alternating = ZigZag/M/W; Consistent = Square
                 const alternating = (t1 > 0 && t2 < 0) || (t1 < 0 && t2 > 0);
                 
                 if (alternating) {
-                    type = 'long_zigzag'; 
+                    type = 'long_zigzag'; // M/W Shape
                 } else if (isClosed) { 
                     type = 'square'; meta.winding = winding; 
                 } else {
@@ -271,7 +251,7 @@ export class GestureEngine {
                      const t1 = this._getTurnDir(segments[0].vec, segments[1].vec); 
                      const t2 = this._getTurnDir(segments[1].vec, segments[2].vec);
                      if ((t1 > 0 && t2 < 0) || (t1 < 0 && t2 > 0)) {
-                         type = 'zigzag';
+                         type = 'zigzag'; // Z Shape
                      } else {
                          const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
                          if (Math.abs(angle) < 135) type = 'u_shape';
@@ -298,10 +278,9 @@ export class GestureEngine {
             }
         }
 
-        // --- 4. Multi Finger Swipes ---
+        // --- 3. Multi Finger Swipes ---
         if (fingers > 1 && type === 'tap' && netDist > this.config.multiSwipeThreshold) {
             type = 'swipe';
-            // Simple check for boomerang on multi-touch if needed
             if (segments.length >= 2) {
                  const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
                  if (Math.abs(angle) > 150) type = 'boomerang';
@@ -315,10 +294,9 @@ export class GestureEngine {
             if (fingers > 1) meta.align = this._getAlignment(inputs);
         }
 
-        // --- STACK LOGIC (Handles 1-2-3 Tap Spatials) ---
+        // --- 4. Tap Stack (Spatial & Motion) ---
         if (this.tapStack.active) {
-            clearTimeout(this.tapStack.timer);
-            this.tapStack.active = false;
+            clearTimeout(this.tapStack.timer); this.tapStack.active = false;
             
             if (type === 'tap' && fingers === this.tapStack.fingers) {
                 const seqDist = Math.hypot(sc.x - this.tapStack.lastPos.x, sc.y - this.tapStack.lastPos.y);
@@ -329,13 +307,14 @@ export class GestureEngine {
                     return;
                 } else {
                     this.tapStack.count++;
+                    this.tapStack.posHistory.push(ec);
                     this.tapStack.lastPos = ec;
                     this.tapStack.active = true;
                     this.tapStack.timer = setTimeout(() => this._commitStack(), this.config.tapDelay);
                     return;
                 }
             }
-            
+            // Tap then Shape
             if (type !== 'tap' && fingers === 1 && this.tapStack.fingers === 1) {
                 this._emitGesture('motion_tap', 1, { subMode: type, dir: meta.dir, winding: meta.winding });
                 this._clearStack();
@@ -344,35 +323,25 @@ export class GestureEngine {
             this._commitStack();
         }
 
-        if (type === 'tap') {
+        if (type === 'tap') { 
             this.tapStack = { 
                 active: true, count: 1, fingers: fingers, 
                 posHistory: [ec], lastPos: ec,
                 align: meta.align, 
                 timer: setTimeout(() => this._commitStack(), this.config.tapDelay) 
-            };
-            return;
+            }; 
+            return; 
         }
-
         this._emitGesture(type, fingers, meta);
     }
 
-    _commitStack() {
+    _commitStack() { 
         const { count, fingers, posHistory, align } = this.tapStack;
-        
-        if (count > 0) {
-            // Check for Spatial Sequence
-            let maxDist = 0;
-            for (let i = 1; i < posHistory.length; i++) {
-                const d = Math.hypot(posHistory[i].x - posHistory[i-1].x, posHistory[i].y - posHistory[i-1].y);
-                if (d > maxDist) maxDist = d;
-            }
-
-            if (maxDist > 50 && fingers === 1) {
-                if (count === 2) {
-                    const dir = this._getDirection(posHistory[1].x - posHistory[0].x, posHistory[1].y - posHistory[0].y);
-                    this._emitGesture('motion_tap', fingers, { subMode: 'spatial', dir: dir });
-                } else if (count === 3) {
+        if (count > 0) { 
+            let maxDist = 0; for(let i=1; i<posHistory.length; i++) maxDist = Math.max(maxDist, Math.hypot(posHistory[i].x-posHistory[i-1].x, posHistory[i].y-posHistory[i-1].y));
+            if (maxDist > 50 && fingers === 1 && count >= 2) {
+                // 3-Tap Spatial
+                if (count === 3) {
                     const v1 = { x: posHistory[1].x - posHistory[0].x, y: posHistory[1].y - posHistory[0].y };
                     const v2 = { x: posHistory[2].x - posHistory[1].x, y: posHistory[2].y - posHistory[1].y };
                     const angle = Math.abs(this._getAngleDiff(v1, v2));
@@ -382,20 +351,19 @@ export class GestureEngine {
                     else if (angle > 45 && angle < 135) { subMode = 'spatial_corner'; finalDir = this._getDirection(v1.x + v2.x, v1.y + v2.y); }
                     this._emitGesture('triple_tap', fingers, { subMode: subMode, dir: finalDir });
                 }
-            } else {
-                let type = 'tap';
-                if (count === 2) type = 'double_tap';
-                if (count === 3) type = 'triple_tap';
-                this._emitGesture(type, fingers, { align: align });
+            } else { 
+                let type = 'tap'; 
+                if (count === 2) type = 'double_tap'; 
+                if (count === 3) type = 'triple_tap'; 
+                this._emitGesture(type, fingers, { align: align }); 
             }
-            this._clearStack();
-        }
+            this._clearStack(); 
+        } 
     }
     _clearStack() { this.tapStack = { active: false, count: 0, fingers: 0, posHistory: [], timer: null }; }
 
     _emitGesture(baseType, fingers, meta, overrideName = null) {
         let id = baseType;
-
         if (meta && meta.subMode) id += '_' + meta.subMode;
         if (meta && meta.dir && meta.dir !== 'Any' && meta.dir !== 'none') id += '_' + meta.dir.toLowerCase(); 
         
@@ -412,7 +380,7 @@ export class GestureEngine {
         const multiFingerBases = ['tap_2f', 'double_tap_2f', 'triple_tap_2f', 'long_tap_2f', 'tap_3f', 'double_tap_3f', 'triple_tap_3f', 'long_tap_3f'];
         if (multiFingerBases.includes(id)) id += '_any';
 
-        // --- SMART FALLBACK ---
+        // Smart Fallback
         let finalId = id;
         const tryFallback = (candidate) => {
             if (this.allowedGestures.has(candidate)) { finalId = candidate; return true; }
@@ -423,8 +391,7 @@ export class GestureEngine {
             if (id.startsWith('swipe_long_')) {
                 const standard = id.replace('swipe_long_', 'swipe_');
                 if (tryFallback(standard)) { /* matched */ }
-            }
-            else if (id.startsWith('motion_tap_spatial_')) {
+            } else if (id.startsWith('motion_tap_spatial_')) {
                  const standard = id.replace('motion_tap_spatial_', 'swipe_');
                  if (tryFallback(standard)) { /* matched */ }
             }
@@ -440,16 +407,14 @@ export class GestureEngine {
         }
 
         if (this.allowedGestures.size > 0 && !this.allowedGestures.has(finalId)) return;
-
+        
         const name = overrideName || finalId;
         this.callbacks.onGesture({ id: finalId, base: baseType, fingers: fingers, meta: meta, name: name });
     }
 
     // --- UTILS ---
     _getRotationAngle(p1, p2) { return Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI; }
-    
     _cleanSegments(segments) { return segments.filter(s => Math.hypot(s.vec.x, s.vec.y) > 15); }
-    
     _mergeSegments(segments) {
         if (segments.length < 2) return segments;
         const merged = []; let current = segments[0];
@@ -462,7 +427,6 @@ export class GestureEngine {
         }
         merged.push(current); return merged;
     }
-
     _segmentPath(pts) {
         if (pts.length < 5) return [{dir: 'none', vec:{x:0,y:0}}];
         const segments = []; let start = 0; const threshold = 45; 

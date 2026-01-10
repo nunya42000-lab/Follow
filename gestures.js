@@ -1,3 +1,4 @@
+
 // gestures.js
 // Version: v98 - Fixed Missing Constraints Logic
 
@@ -320,22 +321,52 @@ export class GestureEngine {
         this._emitGesture(type, fingers, meta);
     }
 
-    _commitStack() { 
+        _commitStack() { 
         const { count, fingers, posHistory, align } = this.tapStack;
         if (count > 0) { 
-            let maxDist = 0; for(let i=1; i<posHistory.length; i++) maxDist = Math.max(maxDist, Math.hypot(posHistory[i].x-posHistory[i-1].x, posHistory[i].y-posHistory[i-1].y));
+            // Calculate max distance between any two taps to distinguish spatial from static
+            let maxDist = 0; 
+            for(let i=1; i<posHistory.length; i++) {
+                maxDist = Math.max(maxDist, Math.hypot(posHistory[i].x-posHistory[i-1].x, posHistory[i].y-posHistory[i-1].y));
+            }
+
             if (maxDist > 50 && fingers === 1 && count >= 2) {
+                // --- 3-Tap Spatial Logic ---
                 if (count === 3) {
                     const v1 = { x: posHistory[1].x - posHistory[0].x, y: posHistory[1].y - posHistory[0].y };
                     const v2 = { x: posHistory[2].x - posHistory[1].x, y: posHistory[2].y - posHistory[1].y };
                     const angle = Math.abs(this._getAngleDiff(v1, v2));
+                    
                     let subMode = 'spatial_line';
-                    let finalDir = this._getDirection(v1.x, v1.y);
-                    if (angle > 150) subMode = 'spatial_boomerang';
-                    else if (angle > 45 && angle < 135) { subMode = 'spatial_corner'; finalDir = this._getDirection(v1.x + v2.x, v1.y + v2.y); }
+                    let finalDir = this._getDirection(v1.x, v1.y); // Default
+
+                    if (angle > 150) {
+                        subMode = 'spatial_boomerang';
+                        finalDir = this._getDirection(v1.x, v1.y);
+                    }
+                    else if (angle > 45 && angle < 135) { 
+                        subMode = 'spatial_corner'; 
+                        
+                        // NEW: 8-Way Corner Detection (Order matters)
+                        const d1 = this._getDirection(v1.x, v1.y);
+                        const d2 = this._getDirection(v2.x, v2.y);
+                        const combo = d1 + '_' + d2;
+                        
+                        // Map specific sequences to your requested IDs
+                        const dirMap = {
+                            'up_right': 'ne',   'right_up': 'en',
+                            'up_left': 'nw',    'left_up': 'wn',
+                            'down_right': 'se', 'right_down': 'es',
+                            'down_left': 'sw',  'left_down': 'ws'
+                        };
+                        
+                        if(dirMap[combo]) finalDir = dirMap[combo];
+                        else finalDir = this._getDirection(v1.x + v2.x, v1.y + v2.y); // Fallback
+                    }
                     this._emitGesture('triple_tap', fingers, { subMode: subMode, dir: finalDir });
                 }
             } else { 
+                // Static Taps
                 let type = 'tap'; 
                 if (count === 2) type = 'double_tap'; 
                 if (count === 3) type = 'triple_tap'; 
@@ -344,6 +375,7 @@ export class GestureEngine {
             this._clearStack(); 
         } 
     }
+
     _clearStack() { this.tapStack = { active: false, count: 0, fingers: 0, posHistory: [], timer: null }; }
 
     _emitGesture(baseType, fingers, meta, overrideName = null) {

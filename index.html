@@ -586,74 +586,65 @@
                                 <li><strong>Mapping Lists:</strong> Assign specific swipes (Up, Down, Left, Right) or taps to specific numbers.</li>
                             </ul>
                         </div>
-                                                            <h5 class="font-bold text-primary-app text-sm uppercase mb-3">Gesture Encyclopedia 📖</h5>
-
-<div class="space-y-4 text-xs opacity-90">
-    <div>
-        <strong class="text-white block mb-1 border-b border-gray-700 pb-1">Taps (1 Finger)</strong>
+                            <h5 class="font-bold text-primary-app text-sm uppercase mb-3">Gesture Encyclopedia 📖</h5>
+<div class="space-y-4 text-sm text-gray-300">
+    
+    <div class="border-b border-gray-700 pb-2">
+        <h3 class="text-white font-bold mb-1">Basics</h3>
         <ul class="list-disc pl-4 space-y-1">
-            <li><strong>Tap:</strong> Standard single touch.</li>
-            <li><strong>Double Tap:</strong> Two quick taps in the same spot.</li>
-            <li><strong>Triple Tap:</strong> Three quick taps in the same spot.</li>
-            <li><strong>Long Tap:</strong> Press and hold for >600ms.</li>
+            <li><strong class="text-primary-app">Tap:</strong> Short press (< 300ms).</li>
+            <li><strong class="text-primary-app">Long Tap:</strong> Hold for > 300ms.</li>
+            <li><strong class="text-primary-app">Swipe:</strong> Quick slide (> 40px).</li>
+            <li><strong class="text-primary-app">Long Swipe:</strong> Slide across screen (> 150px).</li>
         </ul>
     </div>
 
-    <div>
-        <strong class="text-white block mb-1 border-b border-gray-700 pb-1">Spatial & Directional Taps</strong>
+    <div class="border-b border-gray-700 pb-2">
+        <h3 class="text-white font-bold mb-1">Complex Shapes (v96)</h3>
+        <div class="grid grid-cols-2 gap-3">
+            
+            <div class="bg-white/5 p-2 rounded">
+                <span class="text-xs text-blue-400 block font-bold">ZIGZAG</span>
+                Draw a "Z" shape. 
+                <span class="text-[10px] block opacity-70">3 segments, sharp turns.</span>
+            </div>
+
+            <div class="bg-white/5 p-2 rounded">
+                <span class="text-xs text-blue-400 block font-bold">LONG ZIGZAG (M/W)</span>
+                Draw an "M" or "W".
+                <span class="text-[10px] block opacity-70">4 segments, alternating turns.</span>
+            </div>
+
+            <div class="bg-white/5 p-2 rounded">
+                <span class="text-xs text-blue-400 block font-bold">BOOMERANG</span>
+                Draw a sharp "&lt;" or "&gt;".
+                <span class="text-[10px] block opacity-70">2 segments, sharp return.</span>
+            </div>
+
+            <div class="bg-white/5 p-2 rounded">
+                <span class="text-xs text-blue-400 block font-bold">LONG BOOMERANG</span>
+                Draw a wide, smooth curve.
+                <span class="text-[10px] block opacity-70">3 segments, wide arc.</span>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="pb-2">
+        <h3 class="text-white font-bold mb-1">Motion Taps</h3>
         <ul class="list-disc pl-4 space-y-1">
-            <li>
-                <strong>Spatial Tap (Micro-Swipe):</strong> A very short drag (10px–30px). 
-                <br><span class="italic text-gray-400">Like flicking a crumb off the screen.</span>
-            </li>
-            <li>
-                <strong>Directional Double Tap:</strong> Tap once, then Tap again in a specific direction.
-                <br><span class="italic text-gray-400">Example: Tap center, then Tap Top = Double Tap Up.</span>
-            </li>
-            <li>
-                <strong>Directional Triple Tap:</strong>
-                <ul class="list-disc pl-4 mt-1">
-                    <li><strong>Long:</strong> 3 taps in a straight line (e.g. Bottom -> Center -> Top).</li>
-                    <li><strong>Boomerang:</strong> Tap A, Tap B (away), Tap A (back).</li>
-                    <li><strong>Corner:</strong> 3 taps forming a 90° angle (e.g. Bottom -> Center -> Right).</li>
-                </ul>
-            </li>
+            <li><strong class="text-green-400">Spatial Tap:</strong> Tap once, lift, move finger, tap again elsewhere.</li>
+            <li><strong class="text-green-400">Motion Swipe:</strong> Tap once, then immediately swipe.</li>
+            <li><strong class="text-green-400">3-Tap Line:</strong> Tap, move up, tap, move up, tap (creates a line).</li>
         </ul>
     </div>
 
-    <div>
-        <strong class="text-white block mb-1 border-b border-gray-700 pb-1">Multi-Finger Taps</strong>
-        <ul class="list-disc pl-4 space-y-1">
-            <li><strong>2-Finger Tap:</strong> Tap with 2 fingers simultaneously.</li>
-            <li><strong>3-Finger Tap:</strong> Tap with 3 fingers simultaneously.</li>
-            <li>
-                <strong>Alignment:</strong> The engine detects how your fingers are lined up.
-                <br><span class="italic text-gray-400">Vertical (one above other), Horizontal (side-by-side), or Diagonal.</span>
-            </li>
-        </ul>
-    </div>
-
-    <div>
-        <strong class="text-white block mb-1 border-b border-gray-700 pb-1">Swipes (1, 2, or 3 Fingers)</strong>
-        <ul class="list-disc pl-4 space-y-1">
-            <li><strong>Standard:</strong> Slide >30px in any compass direction.</li>
-            <li><strong>Long Swipe:</strong> Slide >150px across the screen.</li>
-            <li><strong>Pinch/Expand:</strong> 2 fingers pinching in or pushing out while swiping.</li>
-            <li><strong>Boomerang:</strong> Swipe out and return without lifting.</li>
-            <li><strong>Zig Zag:</strong> Quick back-and-forth motion (3 segments).</li>
-        </ul>
-    </div>
-
-    <div>
-        <strong class="text-white block mb-1 border-b border-gray-700 pb-1">Motion Tap (Tap & Go)</strong>
-        <p>Tap, release, then immediately <strong>Swipe</strong>.</p>
-        <span class="italic text-gray-400">Used to trigger complex swipes without accidental triggers.</span>
-    </div>
 </div>
-
-
-
                         
+
+
+
+       
                     </div>
                 </div>
 

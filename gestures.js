@@ -1,5 +1,5 @@
 // gestures.js
-// Version: v101 - Full Fix for Continuous & Static Gestures
+// Version: v103 - Final Fix for All System Gestures
 
 export class GestureEngine {
     constructor(targetElement, config, callbacks) {
@@ -109,7 +109,6 @@ export class GestureEngine {
                 
                 if (this.contState.squiggle.flips >= 4) {
                     this.contState.squiggle.hasTriggered = true;
-                    // Directly emit DELETE event
                     this._emitGesture('delete', 1, null, 'DELETE');
                 }
             }
@@ -129,7 +128,6 @@ export class GestureEngine {
                 
                 if (this.contState.squiggle2F.flips >= 4) {
                     this.contState.squiggle2F.hasTriggered = true;
-                    // Directly emit CLEAR event
                     this._emitGesture('clear', 2, null, 'CLEAR');
                 }
             }
@@ -371,10 +369,12 @@ export class GestureEngine {
             return false;
         };
 
-        if (this.allowedGestures && this.allowedGestures.size > 0 && !this.allowedGestures.has(finalId)) {
-            if (id.startsWith('swipe_long_')) { if (tryFallback(id.replace('swipe_long_', 'swipe_'))) {} } 
-            else if (id.startsWith('motion_tap_spatial_')) { if (tryFallback(id.replace('motion_tap_spatial_', 'swipe_'))) {} }
+        // --- CRITICAL FIX: Bypass Filter for System Gestures ---
+        const isSystem = (overrideName === 'DELETE' || overrideName === 'CLEAR' || id.startsWith('motion_tap_'));
 
+        if (!isSystem && this.allowedGestures && this.allowedGestures.size > 0 && !this.allowedGestures.has(finalId)) {
+            if (id.startsWith('swipe_long_')) { if (tryFallback(id.replace('swipe_long_', 'swipe_'))) {} } 
+            
             const alignments = ['_vertical', '_horizontal', '_diagonal_se', '_diagonal_sw'];
             for (let a of alignments) {
                 if (finalId.includes(a)) { let test = finalId.replace(a, '_any'); if (tryFallback(test)) break; }
@@ -386,9 +386,10 @@ export class GestureEngine {
                     if (finalId.includes(d)) { let test = finalId.replace(d, '_any'); if (tryFallback(test)) break; }
                 }
             }
+            
+            if (!this.allowedGestures.has(finalId)) return;
         }
 
-        if (this.allowedGestures && this.allowedGestures.size > 0 && !this.allowedGestures.has(finalId)) return;
         const name = overrideName || finalId;
         this.callbacks.onGesture({ id: finalId, base: baseType, fingers: fingers, meta: meta, name: name });
     }

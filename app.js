@@ -990,17 +990,6 @@ function initGestureEngine() {
         debug: false
     }, {
         onGesture: (data) => {
-            // Global Actions
-            if ((data.name === 'DELETE' || data.base === 'squiggle') && data.fingers === 1) {
-                if (appSettings.isDeleteGestureEnabled) { handleBackspace(); showToast("Deleted ⌫"); vibrate(); return; }
-            }
-            if ((data.name === 'CLEAR' || data.base === 'squiggle') && data.fingers === 2) {
-                if (appSettings.isClearGestureEnabled) { 
-                    const s = getState(); s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); 
-                    s.nextSequenceIndex = 0; renderUI(); saveState(); showToast("CLEARED 💥"); vibrate(); return; 
-                }
-            }
-
             // Input Mapping
             const isPadOpen = (typeof isGesturePadVisible !== 'undefined' && isGesturePadVisible);
             const isClassPresent = document.body.classList.contains('input-gestures-mode');
@@ -1029,6 +1018,34 @@ function initGestureEngine() {
             }
         },
         onContinuous: (data) => {
+            // --- FIX: HANDLE DELETE & CLEAR HERE ---
+            // The v100 engine emits 'squiggle' as a continuous event for instant feedback.
+            
+            // 1. Delete (1-Finger Squiggle)
+            if (data.type === 'squiggle' && data.fingers === 1) {
+                if (appSettings.isDeleteGestureEnabled) { 
+                    handleBackspace(); 
+                    showToast("Deleted ⌫"); 
+                    vibrate(); 
+                }
+                return;
+            }
+
+            // 2. Clear (2-Finger Squiggle)
+            if (data.type === 'squiggle' && data.fingers === 2) {
+                if (appSettings.isClearGestureEnabled) { 
+                    const s = getState(); 
+                    s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); 
+                    s.nextSequenceIndex = 0; 
+                    renderUI(); 
+                    saveState(); 
+                    showToast("CLEARED 💥"); 
+                    vibrate(); 
+                }
+                return;
+            }
+            // ---------------------------------------
+
             if (data.type === 'twist' && data.fingers === 3 && appSettings.isVolumeGesturesEnabled) {
                 let newVol = appSettings.voiceVolume || 1.0; newVol += (data.value * 0.05); 
                 appSettings.voiceVolume = Math.min(1.0, Math.max(0.0, newVol)); saveState(); showToast(`Volume: ${(appSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
@@ -1063,7 +1080,8 @@ function initGestureEngine() {
         originalRender();
         updateEngineConstraints();
     };
-            }
+                }
+                    
                             
 
 function initGlobalListeners() {

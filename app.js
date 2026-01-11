@@ -59,7 +59,6 @@ const DEFAULT_APP = {
 };
 // DEFAULT MAPPINGS (Extracted to top level)
 const DEFAULT_MAPPINGS = {
-const DEFAULT_MAPPINGS = {
     // 9-Key: Basic Taps
     'k9_1': 'tap', 'k9_2': 'double_tap', 'k9_3': 'triple_tap',
     

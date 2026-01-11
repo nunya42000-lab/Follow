@@ -772,21 +772,18 @@ if (this.dom.gestureSwipeSlider) {
     // --- SPATIAL TAPS (Tap-Move-Tap) ---
     'motion_tap_spatial_any', 'motion_tap_spatial_up', 'motion_tap_spatial_down', 'motion_tap_spatial_left', 'motion_tap_spatial_right', 'motion_tap_spatial_nw', 'motion_tap_spatial_ne', 'motion_tap_spatial_sw', 'motion_tap_spatial_se',
 
-        // --- 3-TAP SPATIALS ---
+    // --- 3-TAP SPATIALS ---
     'triple_tap_spatial_line_any', 'triple_tap_spatial_line_up', 'triple_tap_spatial_line_down', 'triple_tap_spatial_line_left', 'triple_tap_spatial_line_right', 
     
-    // Corners (Standard)
-    'triple_tap_spatial_corner_any', 
+    // Corners (Standard) - Using standardized directionals from gestures.js
     'triple_tap_spatial_corner_ne', 'triple_tap_spatial_corner_nw', 
     'triple_tap_spatial_corner_se', 'triple_tap_spatial_corner_sw',
-    
-    // Corners (Reverse/Alternates)
     'triple_tap_spatial_corner_en', 'triple_tap_spatial_corner_wn', 
     'triple_tap_spatial_corner_es', 'triple_tap_spatial_corner_ws',
     
     'triple_tap_spatial_boomerang_any', 'triple_tap_spatial_boomerang_up', 'triple_tap_spatial_boomerang_down', 'triple_tap_spatial_boomerang_left', 'triple_tap_spatial_boomerang_right',
 
-    // --- MULTI-TOUCH TAPS (With Alignments) ---
+    // --- MULTI-TOUCH TAPS (Fixed Alignment IDs) ---
     'tap_2f_any', 'tap_2f_vertical', 'tap_2f_horizontal', 'tap_2f_diagonal_se', 'tap_2f_diagonal_sw',
     'double_tap_2f_any', 'double_tap_2f_vertical', 'double_tap_2f_horizontal', 'double_tap_2f_diagonal_se', 'double_tap_2f_diagonal_sw',
     'triple_tap_2f_any', 'triple_tap_2f_vertical', 'triple_tap_2f_horizontal', 'triple_tap_2f_diagonal_se', 'triple_tap_2f_diagonal_sw',
@@ -813,7 +810,7 @@ if (this.dom.gestureSwipeSlider) {
     'zigzag_any', 'zigzag_up', 'zigzag_down', 'zigzag_left', 'zigzag_right', 'zigzag_nw', 'zigzag_ne', 'zigzag_sw', 'zigzag_se',
     'long_zigzag_any', 'long_zigzag_up', 'long_zigzag_down', 'long_zigzag_left', 'long_zigzag_right', 'long_zigzag_nw', 'long_zigzag_ne', 'long_zigzag_sw', 'long_zigzag_se',
 
-    // --- COMPLEX SHAPES (With Winding CW/CCW) ---
+    // --- COMPLEX SHAPES ---
     'corner_any', 'corner_cw', 'corner_ccw',
     'corner_up_cw', 'corner_right_cw', 'corner_down_cw', 'corner_left_cw',
     'corner_up_ccw', 'corner_left_ccw', 'corner_down_ccw', 'corner_right_ccw',
@@ -840,8 +837,6 @@ if (this.dom.gestureSwipeSlider) {
     'motion_tap_corner_up_cw', 'motion_tap_corner_right_cw', 'motion_tap_corner_down_cw', 'motion_tap_corner_left_cw',
     'motion_tap_corner_up_ccw', 'motion_tap_corner_left_ccw', 'motion_tap_corner_down_ccw', 'motion_tap_corner_right_ccw'
 ];
-                      
-
         // 3. BUILD UI
         const buildSection = (type, title, keyPrefix, count, customKeys = null) => {
             const wrapper = document.createElement('div');

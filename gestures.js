@@ -1,5 +1,5 @@
 // gestures.js
-// Version: v99 - All Fixes (Delete/Clear + 8-Way Corners + Constraints)
+// Version: v99 - Fixed Diagonals & ID Mismatches
 
 export class GestureEngine {
     constructor(targetElement, config, callbacks) {
@@ -24,11 +24,7 @@ export class GestureEngine {
         this.activePointers = {};
         this.history = [];
         this.tapStack = { count: 0, fingers: 0, timer: null, posHistory: [], active: false };
-        
-        // Safety: Initialize allowed gestures set
         this.allowedGestures = new Set();
-
-        // Continuous State (For Delete/Clear/Twist)
         this.contState = {
             rotStartAngle: 0, rotAccumulator: 0, rotLastUpdate: 0, pinchStartDist: 0,
             squiggle: { isTracking: false, startX: 0, lastX: 0, direction: 0, flips: 0, hasTriggered: false },
@@ -38,7 +34,6 @@ export class GestureEngine {
         this._bindHandlers();
     }
 
-    // Constraint Management
     updateAllowed(list) {
         this.allowedGestures = new Set(list);
     }
@@ -53,7 +48,6 @@ export class GestureEngine {
     }
 
     _handleDown(e) {
-        // Ignore buttons unless in gesture mode
         if (e.target.tagName === 'BUTTON' && !document.body.classList.contains('input-gestures-mode')) return;
         
         this.activePointers[e.pointerId] = {
@@ -65,14 +59,12 @@ export class GestureEngine {
         const count = Object.keys(this.activePointers).length;
         const pointers = Object.values(this.activePointers);
 
-        // Init 1-Finger Squiggle (Delete)
         if (count === 1) {
             this.contState.squiggle = {
                 isTracking: true, startX: e.clientX, lastX: e.clientX, direction: 0, flips: 0, hasTriggered: false
             };
         }
         
-        // Init 2-Finger Squiggle (Clear) & Rotate/Pinch
         if (count === 2) {
             const p1 = pointers[0].pts[0];
             const p2 = pointers[1].pts[0];
@@ -92,7 +84,6 @@ export class GestureEngine {
     _handleMove(e) {
         if (!this.activePointers[e.pointerId]) return;
         
-        // Prevent scrolling if tracking complex gestures
         if (this.contState.squiggle.isTracking || this.contState.squiggle2F.isTracking) {
              if (e.cancelable) e.preventDefault();
         }
@@ -118,8 +109,7 @@ export class GestureEngine {
                 
                 if (this.contState.squiggle.flips >= 4) {
                     this.contState.squiggle.hasTriggered = true;
-                    // FIX: Emit as 'onGesture' so app.js listeners catch it as "DELETE"
-                    this.callbacks.onGesture({ name: 'DELETE', base: 'squiggle', fingers: 1, id: 'squiggle' });
+                    this.callbacks.onContinuous({ type: 'squiggle', fingers: 1 });
                 }
             }
         }
@@ -138,8 +128,7 @@ export class GestureEngine {
                 
                 if (this.contState.squiggle2F.flips >= 4) {
                     this.contState.squiggle2F.hasTriggered = true;
-                    // FIX: Emit as 'onGesture' so app.js listeners catch it as "CLEAR"
-                    this.callbacks.onGesture({ name: 'CLEAR', base: 'squiggle', fingers: 2, id: 'squiggle_2f' });
+                    this.callbacks.onContinuous({ type: 'squiggle', fingers: 2 });
                 }
             }
         }
@@ -185,7 +174,6 @@ export class GestureEngine {
             this.contState.squiggle.isTracking = false;
             this.contState.squiggle2F.isTracking = false;
             
-            // If continuous action triggered (e.g., delete), don't analyze as a shape
             if (this.contState.squiggle.hasTriggered || this.contState.squiggle2F.hasTriggered) {
                 this.history = []; 
                 this.contState.squiggle.hasTriggered = false;
@@ -233,58 +221,43 @@ export class GestureEngine {
 
         // --- 2. Shapes & Swipes ---
         if (type === 'tap' && pathLen > this.config.swipeThreshold) {
-            // 4+ Segments
             if (segments.length >= 4) {
                 const t1 = this._getTurnDir(segments[0].vec, segments[1].vec); 
                 const t2 = this._getTurnDir(segments[1].vec, segments[2].vec);
-                
                 const alternating = (t1 > 0 && t2 < 0) || (t1 < 0 && t2 > 0);
-                
-                if (alternating) {
-                    type = 'long_zigzag'; // M/W Shape
-                } else if (isClosed) { 
-                    type = 'square'; meta.winding = winding; 
-                } else {
-                    type = 'long_zigzag'; 
-                }
+                if (alternating) { type = 'long_zigzag'; } 
+                else if (isClosed) { type = 'square'; meta.winding = winding; } 
+                else { type = 'long_zigzag'; }
                 meta.dir = segments[0].dir; 
             } 
-            // 3 Segments
             else if (segments.length === 3) {
-                 if (isClosed) { 
-                     type = 'triangle'; meta.dir = segments[0].dir; meta.winding = winding; 
-                 } else { 
+                 if (isClosed) { type = 'triangle'; meta.dir = segments[0].dir; meta.winding = winding; } 
+                 else { 
                      const t1 = this._getTurnDir(segments[0].vec, segments[1].vec); 
                      const t2 = this._getTurnDir(segments[1].vec, segments[2].vec);
-                     if ((t1 > 0 && t2 < 0) || (t1 < 0 && t2 > 0)) {
-                         type = 'zigzag'; // Z Shape
-                     } else {
+                     if ((t1 > 0 && t2 < 0) || (t1 < 0 && t2 > 0)) { type = 'zigzag'; } 
+                     else {
                          const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
-                         if (Math.abs(angle) < 135) type = 'u_shape';
-                         else type = 'long_boomerang';
+                         if (Math.abs(angle) < 135) type = 'u_shape'; else type = 'long_boomerang';
                          meta.winding = winding;
                      }
                      meta.dir = segments[0].dir; 
                  }
             } 
-            // 2 Segments
             else if (segments.length === 2) {
                 meta.dir = segments[0].dir; meta.winding = winding;
                 const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
-                if (Math.abs(angle) > 125) { type = 'boomerang'; }
-                else { type = 'corner'; }
+                if (Math.abs(angle) > 125) { type = 'boomerang'; } else { type = 'corner'; }
             } 
-            // 1 Segment
             else {
                 const dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
                 let threshold = this.config.longSwipeThreshold;
-                if (dir.length > 2) threshold += 60; // Diagonal penalty
+                if (dir.length > 2) threshold += 60; 
                 type = netDist > threshold ? 'swipe_long' : 'swipe';
                 meta.dir = dir;
             }
         }
 
-        // --- 3. Multi Finger Swipes ---
         if (fingers > 1 && type === 'tap' && netDist > this.config.multiSwipeThreshold) {
             type = 'swipe';
             if (segments.length >= 2) {
@@ -297,13 +270,13 @@ export class GestureEngine {
         if (type === 'tap') {
             const dur = inputs[0].endTime - inputs[0].startTime;
             if (dur > this.config.longPressTime) type = 'long_tap';
+            // CRITICAL FIX: Ensure alignment is calculated for multi-touch
             if (fingers > 1) meta.align = this._getAlignment(inputs);
         }
 
-        // --- 4. Tap Stack (Spatial & Motion) ---
+        // --- 4. Tap Stack ---
         if (this.tapStack.active) {
             clearTimeout(this.tapStack.timer); this.tapStack.active = false;
-            
             if (type === 'tap' && fingers === this.tapStack.fingers) {
                 const seqDist = Math.hypot(sc.x - this.tapStack.lastPos.x, sc.y - this.tapStack.lastPos.y);
                 if (seqDist > 50 && fingers === 1) {
@@ -320,7 +293,6 @@ export class GestureEngine {
                     return;
                 }
             }
-            // Tap then Shape
             if (type !== 'tap' && fingers === 1 && this.tapStack.fingers === 1) {
                 this._emitGesture('motion_tap', 1, { subMode: type, dir: meta.dir, winding: meta.winding });
                 this._clearStack();
@@ -333,7 +305,7 @@ export class GestureEngine {
             this.tapStack = { 
                 active: true, count: 1, fingers: fingers, 
                 posHistory: [ec], lastPos: ec,
-                align: meta.align, 
+                align: meta.align, // Store alignment
                 timer: setTimeout(() => this._commitStack(), this.config.tapDelay) 
             }; 
             return; 
@@ -350,14 +322,14 @@ export class GestureEngine {
             }
 
             if (maxDist > 50 && fingers === 1 && count >= 2) {
-                // 3-Tap Spatial
+                // Spatial Taps
                 if (count === 3) {
                     const v1 = { x: posHistory[1].x - posHistory[0].x, y: posHistory[1].y - posHistory[0].y };
                     const v2 = { x: posHistory[2].x - posHistory[1].x, y: posHistory[2].y - posHistory[1].y };
                     const angle = Math.abs(this._getAngleDiff(v1, v2));
                     
                     let subMode = 'spatial_line';
-                    let finalDir = this._getDirection(v1.x, v1.y);
+                    let finalDir = this._getDirection(v1.x, v1.y); 
 
                     if (angle > 150) {
                         subMode = 'spatial_boomerang';
@@ -366,25 +338,23 @@ export class GestureEngine {
                     else if (angle > 45 && angle < 135) { 
                         subMode = 'spatial_corner'; 
                         
-                        // NEW: 8-Way Corner Detection (Order matters)
+                        // Fix for spatial IDs mapping
                         const d1 = this._getDirection(v1.x, v1.y);
                         const d2 = this._getDirection(v2.x, v2.y);
                         const combo = d1 + '_' + d2;
-                        
                         const dirMap = {
                             'up_right': 'ne',   'right_up': 'en',
                             'up_left': 'nw',    'left_up': 'wn',
                             'down_right': 'se', 'right_down': 'es',
                             'down_left': 'sw',  'left_down': 'ws'
                         };
-                        
                         if(dirMap[combo]) finalDir = dirMap[combo];
-                        else finalDir = this._getDirection(v1.x + v2.x, v1.y + v2.y); // Fallback
+                        else finalDir = this._getDirection(v1.x + v2.x, v1.y + v2.y); 
                     }
                     this._emitGesture('triple_tap', fingers, { subMode: subMode, dir: finalDir });
                 }
             } else { 
-                // Static Taps
+                // Static Taps (with Alignment if fingers > 1)
                 let type = 'tap'; 
                 if (count === 2) type = 'double_tap'; 
                 if (count === 3) type = 'triple_tap'; 
@@ -406,29 +376,53 @@ export class GestureEngine {
         if (meta && meta.winding && windingShapes.some(s => checkType.includes(s))) id += '_' + meta.winding; 
 
         if (fingers > 1) id += '_' + fingers + 'f';
+
+        // CRITICAL FIX: Alignment Mapping matches new _getAlignment returns
         if (meta && meta.align) {
-            const map = { 'Vertical': 'vertical', 'Horizontal': 'horizontal', 'Diagonal SE': 'diagonal_se', 'Diagonal SW': 'diagonal_sw' };
+            const map = { 
+                'Vertical': 'vertical', 
+                'Horizontal': 'horizontal', 
+                'Diagonal SE': 'diagonal_se', 
+                'Diagonal SW': 'diagonal_sw' 
+            };
             if (map[meta.align]) id += `_${map[meta.align]}`;
         }
 
         const multiFingerBases = ['tap_2f', 'double_tap_2f', 'triple_tap_2f', 'long_tap_2f', 'tap_3f', 'double_tap_3f', 'triple_tap_3f', 'long_tap_3f'];
-        if (multiFingerBases.includes(id)) id += '_any';
+        if (multiFingerBases.includes(id)) id += '_any'; // Default to _any if no specific alignment matched yet? No, wait.
 
-        // Constraint Checking
+        // Fix: If we have an alignment (e.g. tap_2f_diagonal_se), we want to try that first.
+        // If not found, fall back to tap_2f_any.
+        
         let finalId = id;
+
+        // Helper to check allow list
         const tryFallback = (candidate) => {
             if (this.allowedGestures && this.allowedGestures.has(candidate)) { finalId = candidate; return true; }
             return false;
         };
 
-        if (this.allowedGestures && this.allowedGestures.size > 0 && !this.allowedGestures.has(id)) {
+        // Try exact match first
+        if (this.allowedGestures && this.allowedGestures.size > 0 && !this.allowedGestures.has(finalId)) {
+            
+            // Fallback 1: Spatial/Swipe long simplifications
             if (id.startsWith('swipe_long_')) {
-                const standard = id.replace('swipe_long_', 'swipe_');
-                if (tryFallback(standard)) { /* matched */ }
+                if (tryFallback(id.replace('swipe_long_', 'swipe_'))) {}
             } else if (id.startsWith('motion_tap_spatial_')) {
-                 const standard = id.replace('motion_tap_spatial_', 'swipe_');
-                 if (tryFallback(standard)) { /* matched */ }
+                 if (tryFallback(id.replace('motion_tap_spatial_', 'swipe_'))) {}
             }
+
+            // Fallback 2: Multi-finger specific alignment -> generic alignment
+            // e.g. tap_2f_diagonal_se -> tap_2f_any
+            const alignments = ['_vertical', '_horizontal', '_diagonal_se', '_diagonal_sw'];
+            for (let a of alignments) {
+                if (finalId.includes(a)) {
+                    let test = finalId.replace(a, '_any');
+                    if (tryFallback(test)) break;
+                }
+            }
+
+            // Fallback 3: Directional simplification (e.g. swipe_nw -> swipe_any)
             if (!this.allowedGestures.has(finalId)) {
                 const dirs = ['_up','_down','_left','_right','_nw','_ne','_sw','_se'];
                 for (let d of dirs) {
@@ -492,12 +486,42 @@ export class GestureEngine {
         if (ang > -112.5 && ang <= -67.5) return 'up'; 
         return 'ne';
     }
+    
+    // --- UPDATED ALIGNMENT LOGIC ---
     _getAlignment(inputs) {
         if (inputs.length < 2) return null;
         const pts = inputs.map(s => s.pts[0]);
+        // Simple bounding box logic isn't enough for diagonals
+        // We need regression or just simple slope check between two points (if 2 fingers)
+        
+        if (inputs.length === 2) {
+            const p1 = pts[0];
+            const p2 = pts[1];
+            const dx = Math.abs(p1.x - p2.x);
+            const dy = Math.abs(p1.y - p2.y);
+            
+            if (dy > dx * 2.5) return 'Vertical';
+            if (dx > dy * 2.5) return 'Horizontal';
+            
+            // It is diagonal. Determine which one.
+            // Screen coords: Y increases downwards.
+            // SE Diagonal ( \ ): (x1<x2, y1<y2) OR (x1>x2, y1>y2). Signs of dx/dy match.
+            // SW Diagonal ( / ): (x1<x2, y1>y2) OR (x1>x2, y1<y2). Signs differ.
+            
+            const rawDx = p1.x - p2.x;
+            const rawDy = p1.y - p2.y;
+            
+            // If product is positive, they vary together (Main Diagonal SE)
+            // If product is negative, they vary inversely (Anti-Diagonal SW)
+            if ((rawDx * rawDy) > 0) return 'Diagonal SE';
+            else return 'Diagonal SW';
+        }
+        
+        // For 3+ fingers, rely on bounding box ratio
         const xs = pts.map(p => p.x); const ys = pts.map(p => p.y);
         const w = Math.max(...xs) - Math.min(...xs); const h = Math.max(...ys) - Math.min(...ys);
-        if (h > w * 1.5) return 'Vertical'; if (w > h * 1.5) return 'Horizontal';
-        return 'Diagonal';
+        if (h > w * 1.5) return 'Vertical'; 
+        if (w > h * 1.5) return 'Horizontal';
+        return 'Diagonal SE'; // Default to SE for complex blobs
     }
 }

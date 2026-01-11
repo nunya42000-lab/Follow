@@ -1,5 +1,5 @@
 // gestures.js
-// Version: v103 - Final Fix for All System Gestures
+// Version: v100 - "I-Shape" Boomerangs & Switchbacks
 
 export class GestureEngine {
     constructor(targetElement, config, callbacks) {
@@ -109,7 +109,7 @@ export class GestureEngine {
                 
                 if (this.contState.squiggle.flips >= 4) {
                     this.contState.squiggle.hasTriggered = true;
-                    this._emitGesture('delete', 1, null, 'DELETE');
+                    this.callbacks.onContinuous({ type: 'squiggle', fingers: 1 });
                 }
             }
         }
@@ -128,12 +128,12 @@ export class GestureEngine {
                 
                 if (this.contState.squiggle2F.flips >= 4) {
                     this.contState.squiggle2F.hasTriggered = true;
-                    this._emitGesture('clear', 2, null, 'CLEAR');
+                    this.callbacks.onContinuous({ type: 'squiggle', fingers: 2 });
                 }
             }
         }
 
-        // 3. Twist (Volume/Speed)
+        // 3. Twist
         if ((count === 2 || count === 3) && (now - this.contState.rotLastUpdate > 50)) {
             const p1 = pointers[0].pts.slice(-1)[0]; 
             const p2 = pointers[1].pts.slice(-1)[0];
@@ -151,7 +151,7 @@ export class GestureEngine {
             }
         }
 
-        // 4. Pinch (Resize)
+        // 4. Pinch
         if (count === 2 && this.contState.pinchStartDist > 0) {
             const p1 = pointers[0].pts.slice(-1)[0]; 
             const p2 = pointers[1].pts.slice(-1)[0];
@@ -206,6 +206,7 @@ export class GestureEngine {
         const winding = turnSum > 0 ? 'cw' : 'ccw';
         let type = 'tap'; let meta = { fingers: fingers };
 
+        // --- 1. Multi-Finger Hybrid Swipes ---
         if (fingers === 2 && pathLen > 40 && netDist > 40) {
              let startSpan = 0, endSpan = 0;
              inputs.forEach(s => { const f = s.pts[0], l = s.pts[s.pts.length-1]; startSpan += Math.hypot(f.x - sc.x, f.y - sc.y); endSpan += Math.hypot(l.x - ec.x, l.y - ec.y); });
@@ -218,35 +219,62 @@ export class GestureEngine {
              }
         }
 
+        // --- 2. Shapes & Swipes ---
         if (type === 'tap' && pathLen > this.config.swipeThreshold) {
+            
+            // --- 4 Segments (Square or Long Zigzag) ---
             if (segments.length >= 4) {
                 const t1 = this._getTurnDir(segments[0].vec, segments[1].vec); 
                 const t2 = this._getTurnDir(segments[1].vec, segments[2].vec);
                 const alternating = (t1 > 0 && t2 < 0) || (t1 < 0 && t2 > 0);
+                
                 if (alternating) { type = 'long_zigzag'; } 
                 else if (isClosed) { type = 'square'; meta.winding = winding; } 
                 else { type = 'long_zigzag'; }
                 meta.dir = segments[0].dir; 
             } 
+            // --- 3 Segments (Long Boomerang, Zigzag, Triangle, U-Shape) ---
             else if (segments.length === 3) {
                  if (isClosed) { type = 'triangle'; meta.dir = segments[0].dir; meta.winding = winding; } 
                  else { 
                      const t1 = this._getTurnDir(segments[0].vec, segments[1].vec); 
                      const t2 = this._getTurnDir(segments[1].vec, segments[2].vec);
-                     if ((t1 > 0 && t2 < 0) || (t1 < 0 && t2 > 0)) { type = 'zigzag'; } 
+                     // Check if turns alternate (Left-Right or Right-Left)
+                     const alternating = (t1 > 0 && t2 < 0) || (t1 < 0 && t2 > 0);
+                     
+                     if (alternating) {
+                         const a1 = this._getAngleDiff(segments[0].vec, segments[1].vec);
+                         const a2 = this._getAngleDiff(segments[1].vec, segments[2].vec);
+                         
+                         // Tight "I" Shape check (Double 180 flip)
+                         if (a1 >= 165 && a2 >= 165) {
+                             type = 'long_boomerang';
+                         } else {
+                             type = 'zigzag';
+                         }
+                     } 
                      else {
                          const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
-                         if (Math.abs(angle) < 135) type = 'u_shape'; else type = 'long_boomerang';
+                         // Note: 'long_boomerang' used to be here for wide curves, 
+                         // but user redefined it as an I-shape. 
+                         // Wide curves are now just U-Shapes or U-Shape derivatives.
+                         type = 'u_shape';
                          meta.winding = winding;
                      }
                      meta.dir = segments[0].dir; 
                  }
             } 
+            // --- 2 Segments (Boomerang, Switchback, Corner) ---
             else if (segments.length === 2) {
-                meta.dir = segments[0].dir; meta.winding = winding;
-                const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
-                if (Math.abs(angle) > 125) { type = 'boomerang'; } else { type = 'corner'; }
+                meta.dir = segments[0].dir; 
+                meta.winding = winding;
+                const angle = Math.abs(this._getAngleDiff(segments[0].vec, segments[1].vec));
+                
+                if (angle >= 165) { type = 'boomerang'; }     // I-Shape (180 deg)
+                else if (angle > 125) { type = 'switchback'; } // > Shape
+                else { type = 'corner'; }                     // L Shape
             } 
+            // --- 1 Segment (Swipe) ---
             else {
                 const dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
                 let threshold = this.config.longSwipeThreshold;
@@ -271,6 +299,7 @@ export class GestureEngine {
             if (fingers > 1) meta.align = this._getAlignment(inputs);
         }
 
+        // --- 4. Tap Stack ---
         if (this.tapStack.active) {
             clearTimeout(this.tapStack.timer); this.tapStack.active = false;
             if (type === 'tap' && fingers === this.tapStack.fingers) {
@@ -318,20 +347,33 @@ export class GestureEngine {
             }
 
             if (maxDist > 50 && fingers === 1 && count >= 2) {
+                // Spatial Taps
                 if (count === 3) {
                     const v1 = { x: posHistory[1].x - posHistory[0].x, y: posHistory[1].y - posHistory[0].y };
                     const v2 = { x: posHistory[2].x - posHistory[1].x, y: posHistory[2].y - posHistory[1].y };
                     const angle = Math.abs(this._getAngleDiff(v1, v2));
+                    
                     let subMode = 'spatial_line';
                     let finalDir = this._getDirection(v1.x, v1.y); 
-                    if (angle > 150) { subMode = 'spatial_boomerang'; finalDir = this._getDirection(v1.x, v1.y); }
+
+                    if (angle > 150) {
+                        subMode = 'spatial_boomerang';
+                        finalDir = this._getDirection(v1.x, v1.y);
+                    }
                     else if (angle > 45 && angle < 135) { 
                         subMode = 'spatial_corner'; 
+                        
                         const d1 = this._getDirection(v1.x, v1.y);
                         const d2 = this._getDirection(v2.x, v2.y);
                         const combo = d1 + '_' + d2;
-                        const dirMap = { 'up_right': 'ne', 'right_up': 'en', 'up_left': 'nw', 'left_up': 'wn', 'down_right': 'se', 'right_down': 'es', 'down_left': 'sw', 'left_down': 'ws' };
-                        if(dirMap[combo]) finalDir = dirMap[combo]; else finalDir = this._getDirection(v1.x + v2.x, v1.y + v2.y); 
+                        const dirMap = {
+                            'up_right': 'ne',   'right_up': 'en',
+                            'up_left': 'nw',    'left_up': 'wn',
+                            'down_right': 'se', 'right_down': 'es',
+                            'down_left': 'sw',  'left_down': 'ws'
+                        };
+                        if(dirMap[combo]) finalDir = dirMap[combo];
+                        else finalDir = this._getDirection(v1.x + v2.x, v1.y + v2.y); 
                     }
                     this._emitGesture('triple_tap', fingers, { subMode: subMode, dir: finalDir });
                 }
@@ -355,45 +397,65 @@ export class GestureEngine {
         const windingShapes = ['corner', 'triangle', 'u_shape', 'square'];
         const checkType = meta && meta.subMode ? meta.subMode : baseType;
         if (meta && meta.winding && windingShapes.some(s => checkType.includes(s))) id += '_' + meta.winding; 
+
         if (fingers > 1) id += '_' + fingers + 'f';
+
         if (meta && meta.align) {
-            const map = { 'Vertical': 'vertical', 'Horizontal': 'horizontal', 'Diagonal SE': 'diagonal_se', 'Diagonal SW': 'diagonal_sw' };
+            const map = { 
+                'Vertical': 'vertical', 
+                'Horizontal': 'horizontal', 
+                'Diagonal SE': 'diagonal_se', 
+                'Diagonal SW': 'diagonal_sw' 
+            };
             if (map[meta.align]) id += `_${map[meta.align]}`;
         }
+
         const multiFingerBases = ['tap_2f', 'double_tap_2f', 'triple_tap_2f', 'long_tap_2f', 'tap_3f', 'double_tap_3f', 'triple_tap_3f', 'long_tap_3f'];
         if (multiFingerBases.includes(id)) id += '_any'; 
-
+        
         let finalId = id;
+
+        // Helper to check allow list
         const tryFallback = (candidate) => {
             if (this.allowedGestures && this.allowedGestures.has(candidate)) { finalId = candidate; return true; }
             return false;
         };
 
-        // --- CRITICAL FIX: Bypass Filter for System Gestures ---
-        const isSystem = (overrideName === 'DELETE' || overrideName === 'CLEAR' || id.startsWith('motion_tap_'));
-
-        if (!isSystem && this.allowedGestures && this.allowedGestures.size > 0 && !this.allowedGestures.has(finalId)) {
-            if (id.startsWith('swipe_long_')) { if (tryFallback(id.replace('swipe_long_', 'swipe_'))) {} } 
+        // Try exact match first
+        if (this.allowedGestures && this.allowedGestures.size > 0 && !this.allowedGestures.has(finalId)) {
             
+            if (id.startsWith('swipe_long_')) {
+                if (tryFallback(id.replace('swipe_long_', 'swipe_'))) {}
+            } else if (id.startsWith('motion_tap_spatial_')) {
+                 if (tryFallback(id.replace('motion_tap_spatial_', 'swipe_'))) {}
+            }
+
             const alignments = ['_vertical', '_horizontal', '_diagonal_se', '_diagonal_sw'];
             for (let a of alignments) {
-                if (finalId.includes(a)) { let test = finalId.replace(a, '_any'); if (tryFallback(test)) break; }
+                if (finalId.includes(a)) {
+                    let test = finalId.replace(a, '_any');
+                    if (tryFallback(test)) break;
+                }
             }
 
             if (!this.allowedGestures.has(finalId)) {
                 const dirs = ['_up','_down','_left','_right','_nw','_ne','_sw','_se'];
                 for (let d of dirs) {
-                    if (finalId.includes(d)) { let test = finalId.replace(d, '_any'); if (tryFallback(test)) break; }
+                    if (finalId.includes(d)) {
+                        let test = finalId.replace(d, '_any');
+                        if (tryFallback(test)) break;
+                    }
                 }
             }
-            
-            if (!this.allowedGestures.has(finalId)) return;
         }
 
+        if (this.allowedGestures && this.allowedGestures.size > 0 && !this.allowedGestures.has(finalId)) return;
+        
         const name = overrideName || finalId;
         this.callbacks.onGesture({ id: finalId, base: baseType, fingers: fingers, meta: meta, name: name });
     }
 
+    // --- UTILS ---
     _getRotationAngle(p1, p2) { return Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI; }
     _cleanSegments(segments) { return segments.filter(s => Math.hypot(s.vec.x, s.vec.y) > 15); }
     _mergeSegments(segments) {
@@ -439,25 +501,31 @@ export class GestureEngine {
         if (ang > -112.5 && ang <= -67.5) return 'up'; 
         return 'ne';
     }
+    
     _getAlignment(inputs) {
         if (inputs.length < 2) return null;
         const pts = inputs.map(s => s.pts[0]);
+        
         if (inputs.length === 2) {
             const p1 = pts[0];
             const p2 = pts[1];
             const dx = Math.abs(p1.x - p2.x);
             const dy = Math.abs(p1.y - p2.y);
+            
             if (dy > dx * 2.5) return 'Vertical';
             if (dx > dy * 2.5) return 'Horizontal';
+            
             const rawDx = p1.x - p2.x;
             const rawDy = p1.y - p2.y;
+            
             if ((rawDx * rawDy) > 0) return 'Diagonal SE';
             else return 'Diagonal SW';
         }
+        
         const xs = pts.map(p => p.x); const ys = pts.map(p => p.y);
         const w = Math.max(...xs) - Math.min(...xs); const h = Math.max(...ys) - Math.min(...ys);
         if (h > w * 1.5) return 'Vertical'; 
         if (w > h * 1.5) return 'Horizontal';
-        return 'Diagonal SE';
+        return 'Diagonal SE'; 
     }
 }

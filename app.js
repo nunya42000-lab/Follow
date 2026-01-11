@@ -1,4 +1,4 @@
-import { GestureEngine } from './gestures.js';
+.import { GestureEngine } from './gestures.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { SensorEngine } from './sensors.js';
@@ -59,18 +59,29 @@ const DEFAULT_APP = {
 };
 // DEFAULT MAPPINGS (Extracted to top level)
 const DEFAULT_MAPPINGS = {
+const DEFAULT_MAPPINGS = {
+    // 9-Key: Basic Taps
     'k9_1': 'tap', 'k9_2': 'double_tap', 'k9_3': 'triple_tap',
+    
+    // 9-Key: Multi-Touch (Defaults to _any for forgiveness)
     'k9_4': 'tap_2f_any', 'k9_5': 'double_tap_2f_any', 'k9_6': 'triple_tap_2f_any',
     'k9_7': 'tap_3f_any', 'k9_8': 'double_tap_3f_any', 'k9_9': 'triple_tap_3f_any',
+
+    // 12-Key: Basic Taps
     'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
+    
+    // 12-Key: Multi-Touch
     'k12_5': 'tap_2f_any', 'k12_6': 'double_tap_2f_any', 'k12_7': 'triple_tap_2f_any', 'k12_8': 'long_tap_2f_any',
     'k12_9': 'tap_3f_any', 'k12_10': 'double_tap_3f_any', 'k12_11': 'triple_tap_3f_any', 'k12_12': 'long_tap_3f_any',
+
+    // Piano: Directional Swipes (Unchanged)
     'piano_C': 'swipe_nw', 'piano_D': 'swipe_left', 'piano_E': 'swipe_sw',
     'piano_F': 'swipe_down', 'piano_G': 'swipe_se', 'piano_A': 'swipe_right', 'piano_B': 'swipe_ne',
+    
+    // Piano: Multi-Finger Swipes
     'piano_1': 'swipe_left_2f', 'piano_2': 'swipe_nw_2f', 'piano_3': 'swipe_up_2f',
     'piano_4': 'swipe_ne_2f', 'piano_5': 'swipe_right_2f'
-};
-    
+};    
 const DICTIONARY = {
     'en': { correct: "Correct", wrong: "Wrong", stealth: "Stealth Active", reset: "Reset to Round 1", stop: "Playback Stopped 🛑" },
     'es': { correct: "Correcto", wrong: "Incorrecto", stealth: "Modo Sigilo", reset: "Reiniciar Ronda 1", stop: "Detenido 🛑" }

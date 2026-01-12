@@ -510,6 +510,14 @@ gestureSwipeVal: document.getElementById('gesture-swipe-val'),
                 const target = btn.dataset.tab;
                 if (target === 'help-voice') this.generatePrompt();
                 document.getElementById(`tab-${target}`).classList.add('active');
+         // Initialize swipe for Settings Modal
+        if (this.dom.settingsModal) {
+            this.setupTabSwipe(this.dom.settingsModal);
+        }
+        // Initialize swipe for Help Modal
+        if (this.dom.helpModal) {
+            this.setupTabSwipe(this.dom.helpModal);
+        }
             }
         });
         if (this.dom.openShareInside) this.dom.openShareInside.onclick = () => this.openShare();
@@ -880,6 +888,51 @@ if (this.dom.gestureSwipeSlider) {
                 });
                 select.appendChild(grp2);
             };
+               setupTabSwipe(modal) {
+        // Find the inner card to attach listeners to (prevents issues with backdrop)
+        const content = modal.querySelector('.settings-modal-bg');
+        if (!content) return;
+
+        let startX = 0;
+        let startY = 0;
+
+        content.addEventListener('touchstart', (e) => {
+            startX = e.changedTouches[0].screenX;
+            startY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        content.addEventListener('touchend', (e) => {
+            const endX = e.changedTouches[0].screenX;
+            const endY = e.changedTouches[0].screenY;
+            const diffX = endX - startX;
+            const diffY = endY - startY;
+
+            // Threshold: >50px movement, and significantly more horizontal than vertical
+            // This ensures we don't accidentally switch tabs while scrolling down
+            if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY) * 2) {
+                
+                // Get tabs specific to this modal
+                const tabs = Array.from(modal.querySelectorAll('.tab-btn'));
+                // Find currently active tab index
+                const activeIdx = tabs.findIndex(t => t.classList.contains('active'));
+
+                if (activeIdx === -1) return;
+
+                if (diffX < 0) {
+                    // Swipe Left -> Go to Next Tab
+                    if (activeIdx < tabs.length - 1) {
+                        tabs[activeIdx + 1].click();
+                    }
+                } else {
+                    // Swipe Right -> Go to Previous Tab
+                    if (activeIdx > 0) {
+                        tabs[activeIdx - 1].click();
+                    }
+                }
+            }
+        }, { passive: true });
+            }
+            
             populateSelect();
             wrapper.appendChild(select);
 

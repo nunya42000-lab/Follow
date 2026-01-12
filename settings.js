@@ -512,6 +512,14 @@ gestureSwipeVal: document.getElementById('gesture-swipe-val'),
                 document.getElementById(`tab-${target}`).classList.add('active');
             }
         });
+        // Initialize swipe for Settings Modal
+        if (this.dom.settingsModal) {
+            this.setupTabSwipe(this.dom.settingsModal);
+        }
+        // Initialize swipe for Help Modal
+        if (this.dom.helpModal) {
+            this.setupTabSwipe(this.dom.helpModal);
+        }
         if (this.dom.openShareInside) this.dom.openShareInside.onclick = () => this.openShare();
         // Restore Settings when closing share
         if (this.dom.closeShareBtn) this.dom.closeShareBtn.onclick = () => { this.closeShare(); this.openSettings(); };

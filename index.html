@@ -524,127 +524,185 @@
 
                     <p class="mt-4 opacity-90 text-xs text-center"><strong>ID Icon (🆔):</strong> Opens the Redeem barcode for compatible kiosks.<br><strong>Support ☕:</strong> If this app helps you win, use the Coffee icon to send a tip!</p>
                 </div>
-
-                <div id="tab-help-settings" class="tab-content">
-                    <h4 class="font-bold text-lg text-primary-app mb-4">Settings Glossary ⚙️</h4>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <h5 class="font-bold text-base text-white border-b border-gray-600 pb-1 mb-2">Game Tab</h5>
-                            <ul class="space-y-2 text-xs opacity-90">
-                                <li><strong>Profiles:</strong> Save/Load different setups (e.g., "Fast 9-Key", "Slow Piano").</li>
-                                <li><strong>Input:</strong> Choose between 9-Key (3x3), 12-Key (3x4), or Piano layouts.</li>
-                                <li><strong>Mode (Simon):</strong> Cumulative. Adds one number per round. App reads back the full history.</li>
-                                <li><strong>Mode (Unique):</strong> Random. New sequence every round. App forgets previous numbers.</li>
-                                <li><strong>Length:</strong> The amount of numbers in the sequence.</li>
-                                <li><strong>Machines:</strong> Split the screen for tracking up to 4 machines simultaneously.</li>
-                                <li><strong>Auto-Advance:</strong> (Unique Mode) Automatically clears and starts the next round after playback.</li>
-                                <li><strong>Practice Mode:</strong> Switches from "Tracker" to "Game". The app generates sequences for you to memorize.</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h5 class="font-bold text-base text-white border-b border-gray-600 pb-1 mb-2">Playback Tab</h5>
-                            <ul class="space-y-2 text-xs opacity-90">
-                                <li><strong>Autoplay:</strong> Immediately plays back the sequence after you enter a number.</li>
-                                <li><strong>Flash:</strong> Highlights buttons visually during playback.</li>
-                                <li><strong>Audio:</strong> Reads the numbers out loud (Text-to-Speech).</li>
-                                <li><strong>Morse:</strong> Vibrates a pattern for each number so you can "feel" the sequence.</li>
-                                <li><strong>Speed:</strong> Playback tempo (75% - 150%). Affects voice and flash speed.</li>
-                                <li><strong>Chunk Size:</strong> Groups numbers (e.g., "1-2-3 ... 4-5-6") primarily for multiple machines.</li>
-                                <li><strong>Delay:</strong> Pause between chunks. makes multiple machines easier.</li>
-                                <li><strong>Pause:</strong> Pause between numbers. Designed for haptic playback but works for everything</li>
-                                <li><strong>Voice Settings:</strong> Customize pitch rate, and volume, or choose a voice preset.</li>
-                                <li><strong>Haptic Mapping:</strong> Customize exactly which vibration pattern plays for each number.</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h5 class="font-bold text-base text-white border-b border-gray-600 pb-1 mb-2">General Tab</h5>
-                            <ul class="space-y-2 text-xs opacity-90">
-                                <li><strong>Timer/Counter:</strong> Adds a stopwatch or tally counter to the top header.</li>
-                                <li><strong>Auto Timer/Counter:</strong> Automatically starts/increments when you add the first number of a sequence. Timer stops when fully deleted.</li>
-                                <li><strong>Boss Mode (🌑):</strong> Turns screen black. <strong>Input Grid</strong> remains active (Top-Left = 1, Bottom-Right = Max). <strong>shake phone</strong> to start and exit.</li>
-                                <li><strong>BM Gestures:</strong> If enabled, Boss Mode ignores the Grid and uses regular gestures instead.</li>
-                                <li><strong>Inputs Only (🥷):</strong> press ⌨️ to hide all controls except the inputs. Inputs enlarge to fit the footer. Works best in landscape mode.</li>
-                                <li><strong>Gesture Input:</strong> Press 🗒️ to toggle a full-screen gesture pad.</li>
-                                <li><strong>AR Mode 📸:</strong> Uses your camera as a transparent background so you can see the machine <em>through</em> the buttons. Toggle with the Cam icon.</li>
-                                <li><strong>Voice Input 🎤:</strong> Toggle with the Mic icon. Say "Add One", "Plus Two" etc. Commands: "Play", "Stop", "Clear".</li>
-                                <li><strong>Quick Erase:</strong> Hold 'Backspace' to delete the entire sequence.</li>
-                                <li><strong>AP Shortcut:</strong> Long-press 'Play' to toggle Autoplay on/off.</li>
-                                <li><strong>Speed Gestures ⚡:</strong> Twist <strong>2 fingers</strong> like a dial to adjust playback speed.</li>
-                                <li><strong>Vol. Gestures 🔊:</strong> Twist <strong>3 fingers</strong> like a jar lid to adjust volume.</li>
-                                <li><strong>Delete Gesture 🧹:</strong> Squiggle (shake finger Left-Right) to backspace.</li>
-                                <li><strong>Clear Gesture 💥:</strong> 2 Finger Squiggle (shake 2 fingers Left-Right) to clear everything.</li>
-                                <li><strong>Sequence Size:</strong> The size of the cards the numbers are displayed in.</li>
-                                <li><strong>UI Size:</strong> The size of everything.</li>
-                                <li><strong>Number Size:</strong> How big the numbers are in the cards.</li>
-                                <li><strong>Resize Gesture:</strong> 2 finger pinch and expand gestures to control sequence and UI size.</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h5 class="font-bold text-base text-white border-b border-gray-600 pb-1 mb-2">Mapping Tab</h5>
-                            <p class="text-xs opacity-90 mb-2">Configures gestures for "Gesture Input" and "BM Gestures".</p>
-                            <ul class="space-y-2 text-xs opacity-90">
-                                <li><strong>Profiles:</strong> Presets like "Directional Swipes" (Faster) or "Standard Taps" (Easier).</li>
-                                <li><strong>Mapping Lists:</strong> Assign specific swipes (Up, Down, Left, Right) or taps to specific numbers.</li>
-                            </ul>
-                        </div>
-                            <h5 class="font-bold text-primary-app text-sm uppercase mb-3">Gesture Encyclopedia 📖</h5>
-<div class="space-y-4 text-sm text-gray-300">
+<div id="tab-help-settings" class="tab-content">
     
-    <div class="border-b border-gray-700 pb-2">
-        <h3 class="text-white font-bold mb-1">Basics</h3>
-        <ul class="list-disc pl-4 space-y-1">
-            <li><strong class="text-primary-app">Tap:</strong> Short press (< 300ms).</li>
-            <li><strong class="text-primary-app">Long Tap:</strong> Hold for > 300ms.</li>
-            <li><strong class="text-primary-app">Swipe:</strong> Quick slide (> 40px).</li>
-            <li><strong class="text-primary-app">Long Swipe:</strong> Slide across screen (> 150px).</li>
-        </ul>
-    </div>
-
-    <div class="border-b border-gray-700 pb-2">
-        <h3 class="text-white font-bold mb-1">Complex Shapes (v96)</h3>
-        <div class="grid grid-cols-2 gap-3">
-            
-            <div class="bg-white/5 p-2 rounded">
-                <span class="text-xs text-blue-400 block font-bold">ZIGZAG</span>
-                Draw a "Z" shape. 
-                <span class="text-[10px] block opacity-70">3 segments, sharp turns.</span>
-            </div>
-
-            <div class="bg-white/5 p-2 rounded">
-                <span class="text-xs text-blue-400 block font-bold">LONG ZIGZAG (M/W)</span>
-                Draw an "M" or "W".
-                <span class="text-[10px] block opacity-70">4 segments, alternating turns.</span>
-            </div>
-
-            <div class="bg-white/5 p-2 rounded">
-                <span class="text-xs text-blue-400 block font-bold">BOOMERANG</span>
-                Draw a sharp "&lt;" or "&gt;".
-                <span class="text-[10px] block opacity-70">2 segments, sharp return.</span>
-            </div>
-
-            <div class="bg-white/5 p-2 rounded">
-                <span class="text-xs text-blue-400 block font-bold">LONG BOOMERANG</span>
-                Draw a wide, smooth curve.
-                <span class="text-[10px] block opacity-70">3 segments, wide arc.</span>
-            </div>
-
+    <h5 class="font-bold text-primary-app text-sm uppercase mb-3 border-b border-gray-700 pb-1">Game Configuration 🎮</h5>
+    <div class="grid grid-cols-2 gap-3 mb-6">
+        <div class="bg-white/5 p-3 rounded border border-gray-700">
+            <span class="text-xs text-blue-400 block font-bold mb-1">MODES</span>
+            <ul class="space-y-2">
+                <li class="text-xs leading-tight"><strong class="text-white">Simon Says:</strong> Cumulative. The sequence adds 1 number every round. You recite the <em>entire</em> history.</li>
+                <li class="text-xs leading-tight"><strong class="text-white">Unique:</strong> Random. A fresh sequence every round. No history to memorize.</li>
+            </ul>
+        </div>
+        <div class="bg-white/5 p-3 rounded border border-gray-700">
+            <span class="text-xs text-blue-400 block font-bold mb-1">SETUP</span>
+            <ul class="space-y-2">
+                <li class="text-xs leading-tight"><strong class="text-white">Machines:</strong> Split screen (up to 4) to track multiple sources at once.</li>
+                <li class="text-xs leading-tight"><strong class="text-white">Practice Mode:</strong> The app generates numbers for you. Good for training without a machine.</li>
+            </ul>
         </div>
     </div>
 
-    <div class="pb-2">
-        <h3 class="text-white font-bold mb-1">Motion Taps</h3>
-        <ul class="list-disc pl-4 space-y-1">
-            <li><strong class="text-green-400">Spatial Tap:</strong> Tap once, lift, move finger, tap again elsewhere.</li>
-            <li><strong class="text-green-400">Motion Swipe:</strong> Tap once, then immediately swipe.</li>
-            <li><strong class="text-green-400">3-Tap Line:</strong> Tap, move up, tap, move up, tap (creates a line).</li>
-        </ul>
+    <h5 class="font-bold text-primary-app text-sm uppercase mb-3 border-b border-gray-700 pb-1">Playback & Feedback 🔊</h5>
+    <div class="space-y-3 mb-6">
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white/5 p-2 rounded flex flex-col justify-center">
+                <span class="text-xs font-bold text-green-400">Audio & Voice</span>
+                <span class="text-[10px] opacity-70">Reads numbers aloud. Customize Pitch/Rate in settings.</span>
+            </div>
+            <div class="bg-white/5 p-2 rounded flex flex-col justify-center">
+                <span class="text-xs font-bold text-green-400">Haptic Morse</span>
+                <span class="text-[10px] opacity-70">Vibrates dot/dash patterns for "silent" reading.</span>
+            </div>
+            <div class="bg-white/5 p-2 rounded flex flex-col justify-center">
+                <span class="text-xs font-bold text-green-400">Flash</span>
+                <span class="text-[10px] opacity-70">Visually highlights keys during playback.</span>
+            </div>
+            <div class="bg-white/5 p-2 rounded flex flex-col justify-center">
+                <span class="text-xs font-bold text-green-400">Autoplay</span>
+                <span class="text-[10px] opacity-70">Automatically reads back input after entry.</span>
+            </div>
+        </div>
+        <div class="bg-white/5 p-3 rounded border border-gray-700">
+            <span class="text-xs text-blue-400 block font-bold mb-1">CHUNKING STRATEGY</span>
+            <p class="text-xs opacity-80 mb-1"><strong>Chunk Size:</strong> Groups numbers (e.g., "1-2-3 ... pause ... 4-5-6").</p>
+            <p class="text-xs opacity-80"><strong>Delay:</strong> The silence duration between chunks or machine switches.</p>
+        </div>
     </div>
 
-</div>
+    <h5 class="font-bold text-primary-app text-sm uppercase mb-3 border-b border-gray-700 pb-1">Special Features 🚀</h5>
+    <div class="grid grid-cols-1 gap-3 mb-6">
+        
+        <div class="bg-white/5 p-3 rounded border border-gray-700 flex items-start gap-3">
+            <div class="text-2xl">🌑</div>
+            <div>
+                <span class="text-xs text-purple-400 font-bold block">BOSS MODE (Blackout)</span>
+                <p class="text-[10px] opacity-80 leading-tight">Turns screen black. <strong>Shake device</strong> to toggle.</p>
+                <p class="text-[10px] opacity-60 mt-1">If "BM Gestures" is ON, the grid is disabled and you must use swipes.</p>
+            </div>
+        </div>
+
+        <div class="bg-white/5 p-3 rounded border border-gray-700 flex items-start gap-3">
+            <div class="text-2xl">🥷</div>
+            <div>
+                <span class="text-xs text-purple-400 font-bold block">INPUTS ONLY (Stealth)</span>
+                <p class="text-[10px] opacity-80 leading-tight">Hides all controls. Keys expand to fill the bottom area. Best for landscape use.</p>
+                <p class="text-[10px] opacity-60 mt-1">Press the ⌨️ header icon to toggle.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white/5 p-2 rounded">
+                <span class="text-xs text-purple-400 font-bold block">📸 AR Mode</span>
+                <span class="text-[10px] opacity-70">Camera background to see through the phone.</span>
+            </div>
+            <div class="bg-white/5 p-2 rounded">
+                <span class="text-xs text-purple-400 font-bold block">🎤 Voice Input</span>
+                <span class="text-[10px] opacity-70">Say "Add 1", "Play", "Clear".</span>
+            </div>
+            <div class="bg-white/5 p-2 rounded">
+                <span class="text-xs text-purple-400 font-bold block">⏱️ Auto-Timer</span>
+                <span class="text-[10px] opacity-70">Starts on first input. Stops on clear.</span>
+            </div>
+             <div class="bg-white/5 p-2 rounded">
+                <span class="text-xs text-purple-400 font-bold block">🧹 Quick Erase</span>
+                <span class="text-[10px] opacity-70">Hold 'Backspace' button to clear all.</span>
+            </div>
+        </div>
+    </div>
+
+    <h5 class="font-bold text-primary-app text-sm uppercase mb-3 border-b border-gray-700 pb-1">Gesture Encyclopedia 📖</h5>
+    <div class="space-y-4 text-sm text-gray-300">
+
+        <div>
+            <h3 class="text-white font-bold mb-2 text-xs uppercase tracking-wider">Shapes & Lines</h3>
+            <div class="grid grid-cols-2 gap-3">
+                
+                <div class="bg-white/5 p-2 rounded border border-gray-800">
+                    <span class="text-xs text-blue-400 block font-bold">BOOMERANG</span>
+                    <span class="text-[10px] block opacity-90">"I" Shape (180° Flip)</span>
+                    <span class="text-[10px] block opacity-60">Swipe up, then immediately down (2 segments).</span>
+                </div>
+
+                <div class="bg-white/5 p-2 rounded border border-gray-800">
+                    <span class="text-xs text-blue-400 block font-bold">SWITCHBACK</span>
+                    <span class="text-[10px] block opacity-90">"V" or "&gt;" Shape</span>
+                    <span class="text-[10px] block opacity-60">Sharp angle (>125° but not 180°).</span>
+                </div>
+
+                <div class="bg-white/5 p-2 rounded border border-gray-800">
+                    <span class="text-xs text-blue-400 block font-bold">LONG BOOMERANG</span>
+                    <span class="text-[10px] block opacity-90">3-Segment "I" Shape</span>
+                    <span class="text-[10px] block opacity-60">Up, Down, then Up again. (2 flips).</span>
+                </div>
+
+                <div class="bg-white/5 p-2 rounded border border-gray-800">
+                    <span class="text-xs text-blue-400 block font-bold">ZIGZAG</span>
+                    <span class="text-[10px] block opacity-90">"Z" Shape</span>
+                    <span class="text-[10px] block opacity-60">3 segments with sharp acute angles.</span>
+                </div>
+
+                 <div class="bg-white/5 p-2 rounded border border-gray-800">
+                    <span class="text-xs text-blue-400 block font-bold">SQUARE / BOX</span>
+                    <span class="text-[10px] block opacity-90">Closed Box</span>
+                    <span class="text-[10px] block opacity-60">4 segments ending near start point.</span>
+                </div>
+                
+                 <div class="bg-white/5 p-2 rounded border border-gray-800">
+                    <span class="text-xs text-blue-400 block font-bold">SWIPE</span>
+                    <span class="text-[10px] block opacity-90">Straight Line</span>
+                    <span class="text-[10px] block opacity-60">Short (>40px) or Long (>150px).</span>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h3 class="text-white font-bold mb-2 text-xs uppercase tracking-wider">Taps & Spatial</h3>
+            <div class="bg-black bg-opacity-30 rounded border border-gray-800 overflow-hidden">
+                <div class="p-2 border-b border-gray-800 flex justify-between">
+                    <strong class="text-green-400 text-xs">Standard Tap</strong>
+                    <span class="text-[10px] opacity-70">Short press (< 300ms)</span>
+                </div>
+                <div class="p-2 border-b border-gray-800 flex justify-between">
+                    <strong class="text-green-400 text-xs">Long Press</strong>
+                    <span class="text-[10px] opacity-70">Hold (> 300ms)</span>
+                </div>
+                <div class="p-2 border-b border-gray-800">
+                    <strong class="text-green-400 text-xs block">Spatial Tap (Motion Tap)</strong>
+                    <span class="text-[10px] opacity-70 block">Tap once, lift, move finger, tap again elsewhere.</span>
+                </div>
+                <div class="p-2">
+                    <strong class="text-green-400 text-xs block">3-Tap Line</strong>
+                    <span class="text-[10px] opacity-70 block">Tap 3 times in a specific direction (e.g. Up, Up, Up).</span>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h3 class="text-white font-bold mb-2 text-xs uppercase tracking-wider">Utility Gestures</h3>
+            <ul class="space-y-2">
+                <li class="bg-red-900 bg-opacity-20 p-2 rounded border border-red-900/50">
+                    <strong class="text-red-400 text-xs block">🧹 DELETE (1-Finger Squiggle)</strong>
+                    <span class="text-[10px] opacity-80">Shake 1 finger left-right rapidly. Backspaces last entry.</span>
+                </li>
+                <li class="bg-red-900 bg-opacity-20 p-2 rounded border border-red-900/50">
+                    <strong class="text-red-400 text-xs block">💥 CLEAR (2-Finger Squiggle)</strong>
+                    <span class="text-[10px] opacity-80">Shake 2 fingers left-right rapidly. Resets round.</span>
+                </li>
+                <li class="bg-blue-900 bg-opacity-20 p-2 rounded border border-blue-900/50">
+                    <strong class="text-blue-400 text-xs block">⚡ SPEED (2-Finger Twist)</strong>
+                    <span class="text-[10px] opacity-80">Rotate 2 fingers like a dial to change playback speed.</span>
+                </li>
+                <li class="bg-blue-900 bg-opacity-20 p-2 rounded border border-blue-900/50">
+                    <strong class="text-blue-400 text-xs block">🔊 VOLUME (3-Finger Twist)</strong>
+                    <span class="text-[10px] opacity-80">Rotate 3 fingers like a jar lid to change volume.</span>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+    
                         
 
 

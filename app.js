@@ -513,9 +513,77 @@ function renderUI() {
     let gridCols = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 1 : Math.min(settings.machineCount, 4); 
     container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
     
-    activeSeqs.forEach((seq) => { 
-        const card = document.createElement('div'); card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)]"; 
-                const numGrid = document.createElement('div'); 
+    activeSeqs.forEach((seq, idx) => { 
+        const card = document.createElement('div'); 
+        card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)] relative group"; 
+        
+        // --- NEW: Header Row for Machine Controls ---
+        const headerRow = document.createElement('div');
+        headerRow.className = "flex justify-between items-center mb-2 pb-2 border-b border-custom border-opacity-20";
+        
+        const title = document.createElement('span');
+        title.className = "text-[10px] font-bold uppercase text-muted-custom tracking-wider";
+        title.textContent = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? "SEQUENCE" : `MACHINE ${idx + 1}`;
+        
+        const controls = document.createElement('div');
+        controls.className = "flex space-x-3 opacity-60 hover:opacity-100 transition-opacity";
+
+        // 1. Backspace for this specific machine
+        const btnBack = document.createElement('button');
+        btnBack.innerHTML = "⌫";
+        btnBack.className = "hover:text-red-400 text-sm font-bold";
+        btnBack.onclick = (e) => {
+            e.stopPropagation();
+            if(state.sequences[idx] && state.sequences[idx].length > 0) {
+                state.sequences[idx].pop();
+                // We also need to reverse the global index so the rotation stays correct
+                if (state.nextSequenceIndex > 0) state.nextSequenceIndex--; 
+                vibrate();
+                renderUI();
+                saveState();
+            }
+        };
+
+        // 2. Trash (Remove Machine Entirely)
+        if (settings.machineCount > 1 && settings.currentMode !== CONFIG.MODES.UNIQUE_ROUNDS) {
+            const btnTrash = document.createElement('button');
+            btnTrash.innerHTML = "🗑️";
+            btnTrash.className = "hover:text-red-600 text-sm";
+            btnTrash.title = "Remove Machine";
+            btnTrash.onclick = (e) => {
+                e.stopPropagation();
+                if(confirm(`Remove Machine ${idx + 1} entirely?`)) {
+                    // Calculate how many items to remove from global index based on this machine's length
+                    const countToRemove = state.sequences[idx].length;
+                    
+                    // Remove the array for this machine
+                    state.sequences.splice(idx, 1);
+                    
+                    // Decrease global setting
+                    settings.machineCount--;
+                    // Update the select box UI if it exists so settings match reality
+                    const sel = document.getElementById('machines-select');
+                    if(sel) sel.value = settings.machineCount;
+
+                    // Fix the rotation index
+                    state.nextSequenceIndex = Math.max(0, state.nextSequenceIndex - countToRemove);
+
+                    vibrate();
+                    showToast(`Removed Machine ${idx + 1}`);
+                    renderUI();
+                    saveState();
+                }
+            };
+            controls.appendChild(btnTrash);
+        }
+
+        controls.insertBefore(btnBack, controls.firstChild); // Ensure backspace is left of trash
+        headerRow.appendChild(title);
+        headerRow.appendChild(controls);
+        card.appendChild(headerRow);
+        // ----------------------------------------
+
+        const numGrid = document.createElement('div'); 
         if (settings.machineCount > 1) { numGrid.className = "grid grid-cols-4 gap-2 justify-items-center"; } else { numGrid.className = "flex flex-wrap gap-2 justify-center"; }
         (seq || []).forEach(num => { 
             const span = document.createElement('span'); 
@@ -542,9 +610,9 @@ function renderUI() {
     const hGest = document.getElementById('header-gesture-btn'); // ADDED
 
     if(hMic) {
-    const isSensorActive = modules.sensor && modules.sensor.mode.audio;
-    const isVoiceActive = voiceModule && voiceModule.isListening;
-    hMic.classList.toggle('header-btn-active', isSensorActive || isVoiceActive);
+        const isSensorActive = modules.sensor && modules.sensor.mode.audio;
+        const isVoiceActive = voiceModule && voiceModule.isListening;
+        hMic.classList.toggle('header-btn-active', isSensorActive || isVoiceActive);
     }
     if(hCam) hCam.classList.toggle('header-btn-active', document.body.classList.contains('ar-active'));
     // CHANGE: Update header button state based on the visibility flag, not just the setting
@@ -552,6 +620,8 @@ function renderUI() {
 
     document.querySelectorAll('.reset-button').forEach(b => { b.style.display = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 'block' : 'none'; });
 }
+
+
 
 function disableInput(disabled) {
     const footer = document.getElementById('input-footer');

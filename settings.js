@@ -1,3 +1,4 @@
+
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
 export const PREMADE_THEMES = {
@@ -367,50 +368,55 @@ gestureSwipeVal: document.getElementById('gesture-swipe-val'),
 
     toggleRedeem(show) { if (show) { if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.style.pointerEvents = 'auto'; } } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.style.pointerEvents = 'none'; } } }
     toggleDonate(show) { if (show) { if (this.dom.donateModal) { this.dom.donateModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'auto'; } } else { if (this.dom.donateModal) { this.dom.donateModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'none'; } } }
-    setupTabSwipe(modal) {
-        // Find the inner card to attach listeners to (prevents issues with backdrop)
+        setupTabSwipe(modal) {
+        // Find the inner card
         const content = modal.querySelector('.settings-modal-bg');
         if (!content) return;
 
         let startX = 0;
         let startY = 0;
+        let isSwipeIgnored = false;
 
         content.addEventListener('touchstart', (e) => {
+            // CRITICAL FIX: If the touch starts in the header or on a button, IGNORE IT.
+            // This ensures clicks pass through instantly without being treated as swipes.
+            if (e.target.closest('.no-swipe-zone') || e.target.closest('button')) {
+                isSwipeIgnored = true;
+                return;
+            }
+
+            isSwipeIgnored = false;
             startX = e.changedTouches[0].screenX;
             startY = e.changedTouches[0].screenY;
         }, { passive: true });
 
         content.addEventListener('touchend', (e) => {
+            if (isSwipeIgnored) return; // Exit immediately if we marked this touch as ignored
+
             const endX = e.changedTouches[0].screenX;
             const endY = e.changedTouches[0].screenY;
             const diffX = endX - startX;
             const diffY = endY - startY;
 
             // Threshold: >50px movement, and significantly more horizontal than vertical
-            // This ensures we don't accidentally switch tabs while scrolling down
             if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY) * 2) {
                 
-                // Get tabs specific to this modal
                 const tabs = Array.from(modal.querySelectorAll('.tab-btn'));
-                // Find currently active tab index
                 const activeIdx = tabs.findIndex(t => t.classList.contains('active'));
 
                 if (activeIdx === -1) return;
 
                 if (diffX < 0) {
-                    // Swipe Left -> Go to Next Tab
-                    if (activeIdx < tabs.length - 1) {
-                        tabs[activeIdx + 1].click();
-                    }
+                    // Swipe Left -> Next Tab
+                    if (activeIdx < tabs.length - 1) tabs[activeIdx + 1].click();
                 } else {
-                    // Swipe Right -> Go to Previous Tab
-                    if (activeIdx > 0) {
-                        tabs[activeIdx - 1].click();
-                    }
+                    // Swipe Right -> Prev Tab
+                    if (activeIdx > 0) tabs[activeIdx - 1].click();
                 }
             }
         }, { passive: true });
-                }
+    }
+
     
     initListeners() {
         this.dom.targetBtns.forEach(btn => { btn.onclick = () => { this.dom.targetBtns.forEach(b => { b.classList.remove('active', 'bg-primary-app'); b.classList.add('opacity-60'); }); btn.classList.add('active', 'bg-primary-app'); btn.classList.remove('opacity-60'); this.currentTargetKey = btn.dataset.target; if (this.tempTheme) { const [h, s, l] = this.hexToHsl(this.tempTheme[this.currentTargetKey]); this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l; this.dom.ftPreview.style.backgroundColor = this.tempTheme[this.currentTargetKey]; } }; });

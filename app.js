@@ -1480,7 +1480,7 @@ function initGlobalListeners() {
     } catch(e) {
         console.error("Listener Error:", e);
     }
-    }
+
 
 
 // Keep screen awake

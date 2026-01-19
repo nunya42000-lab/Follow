@@ -509,34 +509,76 @@
     <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
             <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center">
-                <h3 class="text-2xl font-bold">User Manual 📘</h3>
+                <h3 class="text-2xl font-bold">Manual 📘</h3>
                 <button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button>
             </div>
 
-            <div class="flex border-b border-custom bg-black bg-opacity-10">
-                <div class="tab-btn active" data-tab="help-guide">Guide</div>
-                <div class="tab-btn" data-tab="help-gestures">Gestures</div>
-                <div class="tab-btn" data-tab="help-voice">AI Voice</div>
+            <div class="flex border-b border-custom bg-black bg-opacity-10 overflow-x-auto no-scrollbar">
+                <div class="tab-btn active shrink-0" data-tab="help-about">About</div>
+                <div class="tab-btn shrink-0" data-tab="help-settings">Settings</div>
+                <div class="tab-btn shrink-0" data-tab="help-gestures">Gestures</div>
+                <div class="tab-btn shrink-0" data-tab="help-voice">AI Voice</div>
             </div>
 
             <div class="p-5 overflow-y-auto leading-relaxed space-y-4 text-sm flex-grow">
 
-                <div id="tab-help-guide" class="tab-content active space-y-3">
+                <div id="tab-help-about" class="tab-content active space-y-4">
                     
-                    <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
-                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-yellow-400">
-                            <span>0. Header & Icons</span>
-                            <span class="group-open:rotate-180 transition-transform">▼</span>
-                        </summary>
-                        <div class="p-3 pt-0 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
-                            <p><strong>🇺🇸/🇲🇽 Language:</strong> Selects the interface language (English/Spanish).</p>
-                            <p><strong>☕ Donate:</strong> Support development via CashApp or PayPal.</p>
-                            <p><strong>🆔 ID/Redeem:</strong> Displays your barcode. Use the +/- buttons inside the modal to zoom for scanners.</p>
-                            <p><strong>📤 Share:</strong> Share the app via QR code, link, email, or text.</p>
-                            <p><strong>💬 Comment:</strong> Send feedback or bug reports directly to the developer.</p>
-                            <p><strong>❓ Help:</strong> Opens this manual.</p>
+                    <div class="bg-gradient-to-r from-blue-900/40 to-purple-900/40 p-4 rounded-lg border border-white/10">
+                        <h4 class="font-bold text-lg text-white mb-2">Welcome to Follow Me 👋</h4>
+                        <p class="opacity-90 text-xs leading-5">
+                            This app is a memory assistant for beating sequence games (like Simon Says). 
+                            It remembers the numbers for you so you can focus on the game.
+                        </p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">How it Works (The Loop)</strong>
+                        <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                            <div class="bg-white/5 p-2 rounded">
+                                <div class="text-xl mb-1">👀</div>
+                                <div class="font-bold text-blue-400">1. Watch</div>
+                                <span class="opacity-60 text-[10px]">See the new number on the machine.</span>
+                            </div>
+                            <div class="bg-white/5 p-2 rounded">
+                                <div class="text-xl mb-1">👇</div>
+                                <div class="font-bold text-green-400">2. Input</div>
+                                <span class="opacity-60 text-[10px]">Type ONLY that new number into the app.</span>
+                            </div>
+                            <div class="bg-white/5 p-2 rounded">
+                                <div class="text-xl mb-1">👂</div>
+                                <div class="font-bold text-purple-400">3. Listen</div>
+                                <span class="opacity-60 text-[10px]">The app reads the <em>entire</em> list back to you.</span>
+                            </div>
                         </div>
-                    </details>
+                    </div>
+
+                    <div class="space-y-3">
+                        <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Menu Bar Icons</strong>
+                        <ul class="space-y-2 text-xs opacity-90">
+                            <li class="flex items-center gap-2"><span class="bg-white/10 p-1 rounded">🇺🇸 / 🇲🇽</span> <span><strong>Language:</strong> Toggle English / Spanish.</span></li>
+                            <li class="flex items-center gap-2"><span class="bg-white/10 p-1 rounded">☕</span> <span><strong>Donate:</strong> Buy me a coffee (PayPal/CashApp).</span></li>
+                            <li class="flex items-center gap-2"><span class="bg-white/10 p-1 rounded">🆔</span> <span><strong>ID Card:</strong> Show your barcode. (Use +/- buttons to zoom).</span></li>
+                            <li class="flex items-center gap-2"><span class="bg-white/10 p-1 rounded">📤</span> <span><strong>Share:</strong> Get a QR code to share this app.</span></li>
+                            <li class="flex items-center gap-2"><span class="bg-white/10 p-1 rounded">💬</span> <span><strong>Comment:</strong> Send feedback to the developer.</span></li>
+                        </ul>
+                    </div>
+
+                    <div class="space-y-3">
+                        <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Screen Controls</strong>
+                        <ul class="space-y-2 text-xs opacity-90">
+                            <li><strong>⏱️ Timer:</strong> Tracks how long you've been playing.</li>
+                            <li><strong># Counter:</strong> Shows how many numbers are in the list.</li>
+                            <li><strong>🎤 Mic:</strong> Toggles Voice Input (Speak numbers).</li>
+                            <li><strong>📷 AR:</strong> Toggles Camera background (See-through).</li>
+                            <li><strong>🗑️ Trash (Card):</strong> In Split-Screen, deletes that specific machine.</li>
+                            <li><strong>⌫ Backspace:</strong> Delete last number. (Hold for Quick Erase).</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div id="tab-help-settings" class="tab-content space-y-3">
+                     <p class="text-xs opacity-70 italic text-center mb-2">This follows the tabs in the Settings Menu.</p>
 
                     <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
                         <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-blue-400">
@@ -545,28 +587,24 @@
                         </summary>
                         <div class="p-3 pt-0 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
                             <div>
-                                <strong class="block text-white">Profiles</strong>
-                                <p class="opacity-80">Save/Load different configurations for specific games.</p>
-                            </div>
-                            <div>
                                 <strong class="block text-white">Input Methods</strong>
-                                <ul class="list-disc pl-4 opacity-80 mt-1">
+                                <ul class="list-disc pl-4 opacity-70 mt-1">
                                     <li><strong>9-Key:</strong> Standard keypad (1-9).</li>
                                     <li><strong>12-Key:</strong> Extended keypad (1-12).</li>
-                                    <li><strong>Piano:</strong> Musical layout (C-B + 1-5). Keys map to specific values.</li>
+                                    <li><strong>Piano:</strong> Musical keys. C-B (White) and 1-5 (Black).</li>
                                 </ul>
                             </div>
                             <div>
-                                <strong class="block text-white">Modes</strong>
-                                <ul class="list-disc pl-4 opacity-80 mt-1">
-                                    <li><strong>Simon Says:</strong> Cumulative. Sequence grows by 1. Input new number, read back all.</li>
-                                    <li><strong>Unique:</strong> Random. Fresh sequence every round.</li>
+                                <strong class="block text-white">Game Modes</strong>
+                                <ul class="list-disc pl-4 opacity-70 mt-1">
+                                    <li><strong>Simon Says:</strong> Cumulative history. Sequence gets longer by 1 every round.</li>
+                                    <li><strong>Unique:</strong> Random strings. New sequence every round.</li>
                                 </ul>
                             </div>
-                            <p><strong>Machines:</strong> Split screen for 1-4 machines.</p>
-                            <p><strong>Length:</strong> Maximum sequence length before stopping.</p>
-                            <p><strong>Auto-Advance (Unique):</strong> Automatically clears the list when you reach the target length.</p>
-                            <p><strong>Practice Mode 🎓:</strong> The app generates numbers for you to train on.</p>
+                            <p><strong>Machines:</strong> Split the screen to track 1, 2, 3, or 4 games at once.</p>
+                            <p><strong>Length:</strong> Set a max limit for the sequence.</p>
+                            <p><strong>Auto-Advance:</strong> (Unique Mode) Auto-clears the list when length is reached.</p>
+                            <p><strong>Practice Mode:</strong> The app generates random numbers for you to train with.</p>
                         </div>
                     </details>
 
@@ -576,20 +614,17 @@
                             <span class="group-open:rotate-180 transition-transform">▼</span>
                         </summary>
                         <div class="p-3 pt-0 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
-                            <p><strong>Autoplay:</strong> Automatically starts playback after input.</p>
-                            <p><strong>Flash 👀:</strong> Buttons light up during playback.</p>
-                            <p><strong>Audio 👂:</strong> Reads numbers aloud using Text-to-Speech.</p>
-                            <p><strong>Morse ✋:</strong> Vibrates phone in patterns (Silent Mode).</p>
-                            <p><strong>Speed:</strong> Playback speed (0.75x to 1.50x).</p>
-                            <p><strong>Pause:</strong> Add artificial pauses (Short/Long) between numbers.</p>
+                            <p><strong>Autoplay:</strong> Playback starts immediately after you type.</p>
+                            <p><strong>Flash:</strong> Buttons light up visually during playback.</p>
+                            <p><strong>Audio:</strong> Spoken voice reads the numbers.</p>
+                            <p><strong>Haptic Morse:</strong> Phone vibrates in dots/dashes (Silent play).</p>
+                            <p><strong>Speed:</strong> How fast the voice speaks (0.75x - 1.5x).</p>
+                            <p><strong>Pause:</strong> Adds artificial silence between numbers.</p>
                             <div>
-                                <strong class="block text-white">Chunking Strategy</strong>
-                                <p class="opacity-80">Groups numbers (e.g., "1-2-3 ... 4-5-6"). Set size (2-5) and delay time between chunks.</p>
+                                <strong class="block text-white">Chunking (Important)</strong>
+                                <p class="opacity-70 mt-1">Groups numbers to help memory (e.g., "1-2-3... 4-5-6"). Set the <strong>Size</strong> (how many numbers) and <strong>Delay</strong> (pause length).</p>
                             </div>
-                            <div>
-                                <strong class="block text-white">Voice Settings</strong>
-                                <p class="opacity-80">Customize Pitch, Rate, and Volume. Save custom voice profiles.</p>
-                            </div>
+                            <p><strong>Voice Profile:</strong> Change the Pitch, Rate, and Volume of the AI voice.</p>
                         </div>
                     </details>
 
@@ -599,44 +634,28 @@
                             <span class="group-open:rotate-180 transition-transform">▼</span>
                         </summary>
                         <div class="p-3 pt-0 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
-                            <p><strong>Theme:</strong> Visual style editor. Custom colors available.</p>
+                            <p><strong>Theme:</strong> Change colors (Dark, Light, Matrix, etc.).</p>
                             
                             <div class="border-t border-white/10 pt-2">
-                                <strong class="text-white block mb-1">Tools & HUD</strong>
-                                <p><strong>Timer ⏱️:</strong> Shows stopwatch in header.</p>
-                                <p><strong>Auto Timer:</strong> Starts on first input, stops on clear/full.</p>
-                                <p><strong>Counter #:</strong> Shows input count in header.</p>
-                                <p><strong>Auto Counter:</strong> Resets count on clear.</p>
-                                <p><strong>Haptics 📳:</strong> Vibration feedback for button presses.</p>
-                                <p><strong>Show Intro:</strong> Toggles the "Start" screen.</p>
+                                <strong class="text-white block mb-1">Tools</strong>
+                                <p><strong>Timer / Auto-Timer:</strong> Stopwatch controls.</p>
+                                <p><strong>Counter / Auto-Counter:</strong> Tracks total inputs.</p>
+                                <p><strong>Haptics:</strong> Vibration feedback on button press.</p>
                             </div>
 
                             <div class="border-t border-white/10 pt-2">
-                                <strong class="text-white block mb-1">Advanced Modes</strong>
-                                <p><strong>Boss Mode (Blackout) 🌑:</strong> Screen goes black. Shake to toggle.</p>
-                                <p><strong>BM Gestures:</strong> Allows input via gestures even when screen is black.</p>
-                                <p><strong>Inputs Only (Stealth) 🥷:</strong> Hides UI, maximizes keys. Toggle via Header Icon.</p>
-                                <p><strong>Gesture Input:</strong> Enables the overlay for drawing inputs.</p>
-                                <p><strong>AR Mode 📸:</strong> Transparent background to see through phone.</p>
-                                <p><strong>Voice Input 🎤:</strong> Enables microphone for spoken numbers.</p>
+                                <strong class="text-white block mb-1">Advanced Views</strong>
+                                <p><strong>Boss Mode 🌑:</strong> Black screen. Shake device to toggle.</p>
+                                <p><strong>BM Gestures:</strong> Allow inputs while screen is black.</p>
+                                <p><strong>Stealth (Inputs Only) 🥷:</strong> Removes menus, makes buttons huge.</p>
+                                <p><strong>AR Mode:</strong> See-through background.</p>
                             </div>
-
+                            
                             <div class="border-t border-white/10 pt-2">
-                                <strong class="text-white block mb-1">Shortcuts & Gestures</strong>
-                                <p><strong>Quick Erase:</strong> Hold 'Backspace' to rapid-delete.</p>
-                                <p><strong>AP Shortcut:</strong> Long-press 'Play' button to toggle Autoplay.</p>
-                                <p><strong>Vol. Gesture 🔊:</strong> 3-finger twist controls volume.</p>
-                                <p><strong>Speed Gesture ⚡:</strong> 2-finger twist controls speed.</p>
-                                <p><strong>Delete Gesture 🧹:</strong> 1-finger shake to backspace.</p>
-                                <p><strong>Clear Gesture 💥:</strong> 2-finger shake to reset.</p>
-                            </div>
-
-                            <div class="border-t border-white/10 pt-2">
-                                <strong class="text-white block mb-1">UI Scaling</strong>
-                                <p><strong>Sequence Size:</strong> Scale of the number cards.</p>
-                                <p><strong>UI Scale:</strong> Scale of the entire interface.</p>
-                                <p><strong>Number Size:</strong> Size of font inside cards.</p>
-                                <p><strong>Resize Gesture:</strong> Pinch screen to resize UI dynamically.</p>
+                                <strong class="text-white block mb-1">Scale & UI</strong>
+                                <p><strong>Seq Size:</strong> Size of the history cards.</p>
+                                <p><strong>UI Scale:</strong> Overall interface zoom.</p>
+                                <p><strong>Resize Gesture:</strong> Toggle pinch-to-zoom on the main screen.</p>
                             </div>
                         </div>
                     </details>
@@ -644,44 +663,61 @@
 
                 <div id="tab-help-gestures" class="tab-content space-y-4">
                     
-                    <div class="bg-gray-800 p-3 rounded border border-gray-600">
-                        <strong class="text-white text-xs block mb-1">Sensitivity Settings</strong>
-                        <p class="text-[10px] opacity-70">Located at the top of the Mapping Tab.</p>
-                        <ul class="list-disc pl-4 text-[10px] opacity-70">
-                            <li><strong>Tap Speed:</strong> How fast you must touch for it to be a "Tap". Slower = easier taps.</li>
-                            <li><strong>Swipe Dist:</strong> How far you must move for it to be a "Swipe". Higher = prevents accidental swipes.</li>
-                        </ul>
+                    <div class="bg-gray-800 p-2 rounded border border-gray-600">
+                        <strong class="text-white text-xs block mb-1">Gesture Basics</strong>
+                        <p class="text-[10px] opacity-70">
+                            Enable "Gesture Input" in Settings > General. 
+                            Use the sliders in Settings > Mapping to adjust sensitivity.
+                        </p>
                     </div>
 
                     <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
                         <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white">
-                            <span>👆 Tap Gestures</span>
+                            <span>↘️ Corners & Diagonals</span>
                             <span class="group-open:rotate-180 transition-transform">▼</span>
                         </summary>
                         <div class="p-3 pt-0 text-xs opacity-90 space-y-2 border-t border-gray-700 mt-2 pt-2">
-                            <p><strong>Tap:</strong> Short touch (< 300ms).</p>
-                            <p><strong>Double Tap:</strong> Two quick touches.</p>
-                            <p><strong>Triple Tap:</strong> Three quick touches.</p>
-                            <p><strong>Long Press:</strong> Touch and hold (> 300ms).</p>
-                            <p><strong>Multi-Finger:</strong> Use 2 or 3 fingers for any of the above (e.g., "2-Finger Tap").</p>
+                            <p class="mb-2">Swiping towards a corner is different than swiping Up/Down.</p>
+                            <div class="grid grid-cols-2 gap-2 text-[10px] font-mono">
+                                <div class="bg-black/20 p-1 rounded">↖️ Swipe Up-Left</div>
+                                <div class="bg-black/20 p-1 rounded">↗️ Swipe Up-Right</div>
+                                <div class="bg-black/20 p-1 rounded">↙️ Swipe Down-Left</div>
+                                <div class="bg-black/20 p-1 rounded">↘️ Swipe Down-Right</div>
+                            </div>
                         </div>
                     </details>
 
                     <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
                         <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white">
-                            <span>💨 Swipe Gestures</span>
+                            <span>📍 Motion Taps (Spatial)</span>
                             <span class="group-open:rotate-180 transition-transform">▼</span>
                         </summary>
                         <div class="p-3 pt-0 text-xs opacity-90 space-y-2 border-t border-gray-700 mt-2 pt-2">
-                            <p><strong>Standard:</strong> Swipe Up, Down, Left, Right.</p>
-                            <p><strong>Diagonals:</strong> Swipe toward corners (NW, NE, SW, SE).</p>
-                            <p><strong>Multi-Finger:</strong> Swipe with 2 or 3 fingers.</p>
+                            <p><strong>Concept:</strong> The app tracks where your finger <em>moves</em> while it is in the air between two taps.</p>
+                            <ol class="list-decimal pl-4 space-y-1 opacity-80">
+                                <li>Tap anywhere once.</li>
+                                <li>Lift finger.</li>
+                                <li>Move hand UP (or any direction).</li>
+                                <li>Tap anywhere again.</li>
+                            </ol>
+                            <p class="text-[10px] mt-2 text-blue-300">This registers as "Spatial Up" (or whichever direction you moved).</p>
                         </div>
                     </details>
 
                     <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
                         <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white">
-                            <span>📐 Shape Gestures</span>
+                            <span>💨 Basic Swipes</span>
+                            <span class="group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-3 pt-0 text-xs opacity-90 space-y-2 border-t border-gray-700 mt-2 pt-2">
+                            <p><strong>1-Finger:</strong> Up, Down, Left, Right.</p>
+                            <p><strong>2-Finger:</strong> Use two fingers to swipe (Up/Down/Left/Right).</p>
+                        </div>
+                    </details>
+
+                    <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
+                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white">
+                            <span>📐 Shapes</span>
                             <span class="group-open:rotate-180 transition-transform">▼</span>
                         </summary>
                         <div class="p-3 pt-0 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
@@ -704,21 +740,25 @@
                         </div>
                     </details>
 
-                    <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
-                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white">
-                            <span>📍 Spatial Taps (Advanced)</span>
+                    <details class="group bg-red-900/20 rounded-lg border border-red-500/30 open:bg-red-900/30 transition-colors">
+                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-red-300">
+                            <span>🔧 System Actions</span>
                             <span class="group-open:rotate-180 transition-transform">▼</span>
                         </summary>
-                        <div class="p-3 pt-0 text-xs opacity-90 space-y-2 border-t border-gray-700 mt-2 pt-2">
-                            <p><strong>Motion Tap:</strong> Tap once, lift finger, move to a new spot, tap again.</p>
-                            <p class="opacity-70">The direction you moved determines the input (e.g., Tap -> Move Up -> Tap = "Spatial Up").</p>
+                        <div class="p-3 pt-0 text-xs opacity-90 space-y-2 border-t border-red-500/30 mt-2 pt-2 text-red-100">
+                            <p><strong>Shake (1 Finger):</strong> Wiggle 1 finger rapidly = <strong>Backspace</strong>.</p>
+                            <p><strong>Shake (2 Fingers):</strong> Wiggle 2 fingers rapidly = <strong>Clear All</strong>.</p>
+                            <p><strong>Twist (2 Fingers):</strong> Rotate 2 fingers = Adjust <strong>Speed</strong>.</p>
+                            <p><strong>Twist (3 Fingers):</strong> Rotate 3 fingers = Adjust <strong>Volume</strong>.</p>
+                            <p><strong>Pinch (2 Fingers):</strong> Pinch in/out = <strong>Resize UI</strong> (If enabled).</p>
                         </div>
                     </details>
+
                 </div>
 
                 <div id="tab-help-voice" class="tab-content">
-                    <h4 class="font-bold text-lg text-primary-app mb-2">AI Prompt 🤖</h4>
-                    <p class="mb-4 opacity-90 text-xs">Copy this prompt into an AI Audio Assistant (like ChatGPT Voice) to play hands-free.</p>
+                    <h4 class="font-bold text-lg text-primary-app mb-2">AI Assistant Prompt 🤖</h4>
+                    <p class="mb-4 opacity-90 text-xs">Copy this prompt into an AI Audio Assistant (like ChatGPT Voice). It allows the AI to play the game with you.</p>
                     <div class="relative">
                         <textarea id="prompt-display" class="w-full h-48 bg-gray-900 border border-gray-700 rounded-lg p-3 text-xs font-mono text-green-400 resize-none" readonly></textarea>
                     </div>
@@ -734,8 +774,8 @@
                 <button id="close-help-btn-bottom" class="px-6 py-2 bg-primary-app text-white rounded-lg font-bold hover:bg-secondary-app transition shadow-lg">Close Manual</button>
             </div>
         </div>
-                                </div>
-    
+    </div>
+
     
     <div id="comment-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[120] transition-opacity duration-300 opacity-0 pointer-events-none hidden">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom">

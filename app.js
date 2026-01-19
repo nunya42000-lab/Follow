@@ -1,3 +1,4 @@
+
 import { GestureEngine } from './gestures.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
@@ -921,7 +922,6 @@ const visionEngine = new VisionEngine(
 
         for (const [keyId, mapData] of Object.entries(mapping)) {
             if (mapData.hand === gestureName) {
-                // Check if this keyId belongs to the current input mode
                 if (currentInput === 'key9' && keyId.startsWith('k9_')) foundValue = keyId.replace('k9_', '');
                 if (currentInput === 'key12' && keyId.startsWith('k12_')) foundValue = keyId.replace('k12_', '');
                 if (currentInput === 'piano' && keyId.startsWith('piano_')) foundValue = keyId.replace('piano_', '');
@@ -931,46 +931,91 @@ const visionEngine = new VisionEngine(
         if (foundValue) {
             addValue(foundValue);
             showToast(`${gestureName.replace('hand_', '').replace('_', ' ').toUpperCase()} -> ${foundValue}`);
-            // Flash Button
             const btn = document.querySelector(`#pad-${currentInput} button[data-value="${foundValue}"]`);
             if(btn) { btn.classList.add('flash-active'); setTimeout(()=>btn.classList.remove('flash-active'), 200); }
         }
     },
     (status) => showToast(status)
 );
-    modules.sensor = new SensorEngine(
-        (val, source) => { 
-             addValue(val); 
-             const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
-             if(btn) { btn.classList.add('flash-active'); setTimeout(() => btn.classList.remove('flash-active'), 200); }
-        },
-        (status) => { }
-    );
-    modules.settings.sensorEngine = modules.sensor;
 
-    // --- FIX: INITIALIZE VOICE MODULE ---
-    voiceModule = new VoiceCommander({
-        onStatus: (msg) => showToast(msg),
-            onInput: (val) => {
+modules.sensor = new SensorEngine(
+    (val, source) => { 
+            addValue(val); 
+            const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
+            if(btn) { btn.classList.add('flash-active'); setTimeout(() => btn.classList.remove('flash-active'), 200); }
+    },
+    (status) => { }
+);
+modules.settings.sensorEngine = modules.sensor;
+
+// --- FIX: INITIALIZE VOICE MODULE ---
+voiceModule = new VoiceCommander({
+    onStatus: (msg) => showToast(msg),
+    onInput: (val) => {
         addValue(val);
 
         // --- NEW: Blink the Mic Button ---
         const hMic = document.getElementById('header-mic-btn');
         if(hMic) {
-            // 1. Force the visual state OFF
             hMic.classList.remove('header-btn-active');
-            
-            // 2. Wait 300ms (approx time for speech engine to reset) then turn ON
             setTimeout(() => {
-                // Only turn back on if the user hasn't manually stopped it
                 if(voiceModule && voiceModule.isListening) {
                     hMic.classList.add('header-btn-active');
                 }
             }, 300);
         }
-        // ---------------------------------
+
+        // --- FIXED: Button Flash Logic is now INSIDE onInput ---
+        const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
+        if(btn) { 
+            btn.classList.add('flash-active'); 
+            setTimeout(() => btn.classList.remove('flash-active'), 200); 
+        }
+    },
+    onCommand: (cmd) => {
+        if(cmd === 'CMD_PLAY') playDemo();
+        if(cmd === 'CMD_STOP') { isDemoPlaying = false; showToast("Stopped"); }
+        if(cmd === 'CMD_CLEAR') { 
+            const s = getState(); s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); 
+            renderUI(); showToast("Cleared"); 
+        }
+        if(cmd === 'CMD_DELETE') handleBackspace();
+        if(cmd === 'CMD_SETTINGS') modules.settings.openSettings();
+    }
+});
+
+// --- Hand & Camera Button Listeners (Placed AFTER voiceModule closes) ---
 const handBtn = document.getElementById('header-hand-btn');
 const camBtn = document.getElementById('header-cam-btn');
+
+if (handBtn) {
+    handBtn.onclick = () => {
+        if (handBtn.classList.contains('header-btn-active')) {
+            visionEngine.stop();
+            handBtn.classList.remove('header-btn-active');
+        } else {
+            if (document.body.classList.contains('ar-active')) {
+                camBtn.click(); 
+                showToast("Switching to Hands... 🖐️");
+            }
+            visionEngine.start();
+            handBtn.classList.add('header-btn-active');
+        }
+    };
+}
+
+if (camBtn) {
+    const originalClick = camBtn.onclick;
+    camBtn.onclick = () => {
+        if (visionEngine.isActive) {
+            handBtn.click(); 
+            showToast("Switching to AR... 📸");
+            setTimeout(() => originalClick(), 300); 
+        } else {
+            originalClick();
+        }
+    };
+}
 
 if (handBtn) {
     handBtn.onclick = () => {

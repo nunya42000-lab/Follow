@@ -958,15 +958,39 @@ voiceModule = new VoiceCommander({
 
         // --- NEW: Blink the Mic Button ---
         const hMic = document.getElementById('header-mic-btn');
-        if(hMic) {
+        if (hMic) {
             hMic.classList.remove('header-btn-active');
             setTimeout(() => {
-                if(voiceModule && voiceModule.isListening) {
+                if (voiceModule && voiceModule.isListening) {
                     hMic.classList.add('header-btn-active');
                 }
             }, 300);
         }
 
+        // --- Flash Keypad Button ---
+        const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
+        if (btn) {
+            btn.classList.add('flash-active');
+            setTimeout(() => btn.classList.remove('flash-active'), 200);
+        }
+    },
+
+    onCommand: (cmd) => {
+        if (cmd === 'CMD_PLAY') playDemo();
+        if (cmd === 'CMD_STOP') {
+            isDemoPlaying = false;
+            showToast("Stopped");
+        }
+        if (cmd === 'CMD_CLEAR') {
+            const s = getState();
+            s.sequences = Array.from({ length: CONFIG.MAX_MACHINES }, () => []);
+            renderUI();
+            showToast("Cleared");
+        }
+        if (cmd === 'CMD_DELETE') handleBackspace();
+        if (cmd === 'CMD_SETTINGS') modules.settings.openSettings();
+    }
+});
 
 // --- Hand & Camera Button Listeners (Placed AFTER voiceModule closes) ---
 const handBtn = document.getElementById('header-hand-btn');
@@ -978,38 +1002,9 @@ if (handBtn) {
             visionEngine.stop();
             handBtn.classList.remove('header-btn-active');
         } else {
-            if (document.body.classList.contains('ar-active')) {
-                camBtn.click(); 
-                showToast("Switching to Hands... 🖐️");
-            }
-            visionEngine.start();
-            handBtn.classList.add('header-btn-active');
-        }
-    };
-}
-
-if (camBtn) {
-    const originalClick = camBtn.onclick;
-    camBtn.onclick = () => {
-        if (visionEngine.isActive) {
-            handBtn.click(); 
-            showToast("Switching to AR... 📸");
-            setTimeout(() => originalClick(), 300); 
-        } else {
-            originalClick();
-        }
-    };
-}
-
-if (handBtn) {
-    handBtn.onclick = () => {
-        if (handBtn.classList.contains('header-btn-active')) {
-            visionEngine.stop();
-            handBtn.classList.remove('header-btn-active');
-        } else {
             // Safety: Turn off AR if active
             if (document.body.classList.contains('ar-active')) {
-                camBtn.click(); 
+                camBtn.click();
                 showToast("Switching to Hands... 🖐️");
             }
             visionEngine.start();
@@ -1019,7 +1014,8 @@ if (handBtn) {
 }
 
 if (camBtn) {
-    const originalClick = camBtn.onclick;
+    // If camBtn already has an onclick (from startApp logic), preserve it
+    const originalClick = camBtn.onclick || (() => {});
     camBtn.onclick = () => {
         if (visionEngine.isActive) {
             handBtn.click(); // Turn off hands
@@ -1029,27 +1025,8 @@ if (camBtn) {
             originalClick();
         }
     };
-                                     }
-                
-        const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
-        if(btn) { 
-            btn.classList.add('flash-active'); 
-            setTimeout(() => btn.classList.remove('flash-active'), 200); 
-        }
-    },
-        
-        onCommand: (cmd) => {
-            if(cmd === 'CMD_PLAY') playDemo();
-            if(cmd === 'CMD_STOP') { isDemoPlaying = false; showToast("Stopped"); }
-            if(cmd === 'CMD_CLEAR') { 
-                const s = getState(); s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); 
-                renderUI(); showToast("Cleared"); 
-            }
-            if(cmd === 'CMD_DELETE') handleBackspace();
-            if(cmd === 'CMD_SETTINGS') modules.settings.openSettings();
-        }
-    });
-
+}
+    
         updateAllChrome();
     initComments(db);
     modules.settings.updateHeaderVisibility();

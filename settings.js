@@ -189,8 +189,7 @@ const GESTURE_PRESETS = {
             'piano_4': 'long_tap_2f_any',
             'piano_5': 'long_tap_3f_any'
         }
-    }
-};
+    },
        // === PIANO HAND ===
     'piano_hand_hybrid': {
         name: "Piano Hands",

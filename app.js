@@ -1,4 +1,6 @@
 
+
+
 import { GestureEngine } from './gestures.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
@@ -965,24 +967,6 @@ voiceModule = new VoiceCommander({
             }, 300);
         }
 
-        // --- FIXED: Button Flash Logic is now INSIDE onInput ---
-        const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
-        if(btn) { 
-            btn.classList.add('flash-active'); 
-            setTimeout(() => btn.classList.remove('flash-active'), 200); 
-        }
-    },
-    onCommand: (cmd) => {
-        if(cmd === 'CMD_PLAY') playDemo();
-        if(cmd === 'CMD_STOP') { isDemoPlaying = false; showToast("Stopped"); }
-        if(cmd === 'CMD_CLEAR') { 
-            const s = getState(); s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); 
-            renderUI(); showToast("Cleared"); 
-        }
-        if(cmd === 'CMD_DELETE') handleBackspace();
-        if(cmd === 'CMD_SETTINGS') modules.settings.openSettings();
-    }
-});
 
 // --- Hand & Camera Button Listeners (Placed AFTER voiceModule closes) ---
 const handBtn = document.getElementById('header-hand-btn');

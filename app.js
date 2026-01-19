@@ -4,7 +4,7 @@ import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.co
 import { SensorEngine } from './sensors.js';
 import { SettingsManager, PREMADE_THEMES, PREMADE_VOICE_PRESETS } from './settings.js';
 import { initComments } from './comments.js';
-
+import { VisionEngine } from './vision.js';
 const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -913,7 +913,31 @@ const startApp = () => {
             } 
         }
     }, null); 
+const visionEngine = new VisionEngine(
+    (gestureName) => {
+        const mapping = appSettings.gestureMappings || {};
+        const currentInput = getProfileSettings().currentInput;
+        let foundValue = null;
 
+        for (const [keyId, mapData] of Object.entries(mapping)) {
+            if (mapData.hand === gestureName) {
+                // Check if this keyId belongs to the current input mode
+                if (currentInput === 'key9' && keyId.startsWith('k9_')) foundValue = keyId.replace('k9_', '');
+                if (currentInput === 'key12' && keyId.startsWith('k12_')) foundValue = keyId.replace('k12_', '');
+                if (currentInput === 'piano' && keyId.startsWith('piano_')) foundValue = keyId.replace('piano_', '');
+            }
+        }
+        
+        if (foundValue) {
+            addValue(foundValue);
+            showToast(`${gestureName.replace('hand_', '').replace('_', ' ').toUpperCase()} -> ${foundValue}`);
+            // Flash Button
+            const btn = document.querySelector(`#pad-${currentInput} button[data-value="${foundValue}"]`);
+            if(btn) { btn.classList.add('flash-active'); setTimeout(()=>btn.classList.remove('flash-active'), 200); }
+        }
+    },
+    (status) => showToast(status)
+);
     modules.sensor = new SensorEngine(
         (val, source) => { 
              addValue(val); 
@@ -945,7 +969,39 @@ const startApp = () => {
             }, 300);
         }
         // ---------------------------------
+const handBtn = document.getElementById('header-hand-btn');
+const camBtn = document.getElementById('header-cam-btn');
 
+if (handBtn) {
+    handBtn.onclick = () => {
+        if (handBtn.classList.contains('header-btn-active')) {
+            visionEngine.stop();
+            handBtn.classList.remove('header-btn-active');
+        } else {
+            // Safety: Turn off AR if active
+            if (document.body.classList.contains('ar-active')) {
+                camBtn.click(); 
+                showToast("Switching to Hands... 🖐️");
+            }
+            visionEngine.start();
+            handBtn.classList.add('header-btn-active');
+        }
+    };
+}
+
+if (camBtn) {
+    const originalClick = camBtn.onclick;
+    camBtn.onclick = () => {
+        if (visionEngine.isActive) {
+            handBtn.click(); // Turn off hands
+            showToast("Switching to AR... 📸");
+            setTimeout(() => originalClick(), 300); // Wait for cam cleanup
+        } else {
+            originalClick();
+        }
+    };
+                                     }
+                
         const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
         if(btn) { 
             btn.classList.add('flash-active'); 
@@ -1211,7 +1267,7 @@ function initGlobalListeners() {
 
         // --- BOSS MODE SHAKE & GRID ---
         let lastX=0, lastY=0, lastZ=0;
-        window.addEventListener('devicemotion', (e) => {
+                window.addEventListener('devicemotion', (e) => {
             if(!appSettings.isBlackoutFeatureEnabled) return; 
             const acc = e.accelerationIncludingGravity; if(!acc) return;
             const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
@@ -1221,7 +1277,40 @@ function initGlobalListeners() {
                 if(now - blackoutState.lastShake > 1000) {
                     blackoutState.isActive = !blackoutState.isActive;
                     document.body.classList.toggle('blackout-active', blackoutState.isActive);
-                    showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back");
+                    
+                    // --- NEW BOSS MODE LOGIC ---
+                    const gpWrap = document.getElementById('gesture-pad-wrapper');
+                    const gpPad = document.getElementById('gesture-pad');
+
+                    if (blackoutState.isActive) {
+                        if (isGesturePadVisible) {
+                            // BOSS MODE + GESTURES (Transparent overlay)
+                            document.body.classList.add('input-gestures-mode');
+                            if(gpWrap) {
+                                gpWrap.classList.remove('hidden');
+                                gpWrap.style.zIndex = '10001'; // Place above blackout layer
+                            }
+                            if(gpPad) gpPad.style.opacity = '0.05'; // Nearly invisible
+                            showToast("Boss Mode (Gestures) 🌑");
+                        } else {
+                            // BOSS MODE + GRID (Standard)
+                            showToast("Boss Mode (Grid) 🌑");
+                        }
+                    } else {
+                        // EXIT BOSS MODE
+                        document.body.classList.remove('input-gestures-mode');
+                        if (isGesturePadVisible) {
+                            // Restore Gesture Pad visibility
+                            if(gpWrap) gpWrap.style.zIndex = '';
+                            if(gpPad) gpPad.style.opacity = '1';
+                        } else {
+                            // Hide Gesture Pad if it was off
+                            if(gpWrap) gpWrap.classList.add('hidden');
+                        }
+                        showToast("Welcome Back");
+                    }
+                    // ---------------------------
+
                     vibrate();
                     renderUI(); 
                     blackoutState.lastShake = now;
@@ -1233,7 +1322,11 @@ function initGlobalListeners() {
         const bl = document.getElementById('blackout-layer');
         if(bl) {
              bl.addEventListener('touchstart', (e) => {
-                 if (appSettings.isBlackoutGesturesEnabled) return;
+                 // --- UPDATED GUARD ---
+                 // Disable the invisible Grid if Hand Gestures are active
+                 if (isGesturePadVisible) return; 
+                 // ---------------------
+
                  if (e.touches.length === 1) {
                      e.preventDefault(); 
                      const t = e.touches[0]; const w = window.innerWidth; const h = window.innerHeight;

@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-   <script>
-  window.onerror = function(msg, url, line) {
-    alert("Error: " + msg + "\nLine: " + line);
-  };
-  window.onunhandledrejection = function(event) {
-    alert("Promise Error: " + event.reason);
-  };
-   </script>
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Follow Me</title>
@@ -39,10 +30,6 @@
                 <button id="header-gesture-btn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">
                     🗒️
                 </button>
-          <button id="header-hand-btn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">
-    🖐️
-          </button>
-                
             </div>
 
           <div class="flex gap-2 pointer-events-auto">
@@ -506,6 +493,234 @@
         </div>
     </div>
    
+    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
+            <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center"><h3 class="text-2xl font-bold">Manual 📘</h3><button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button></div>
+            <div class="flex border-b border-custom bg-black bg-opacity-10">
+                <div class="tab-btn active" data-tab="help-about">About</div>
+                <div class="tab-btn" data-tab="help-settings">Settings</div>
+                <div class="tab-btn" data-tab="help-voice">Voice</div>
+            </div>
+            <div class="p-6 overflow-y-auto leading-relaxed space-y-6 text-sm flex-grow">
+                
+                <div id="tab-help-about" class="tab-content active">
+                    <h4 class="font-bold text-lg text-primary-app mb-2">The Goal 🎯</h4>
+                    <p class="mb-4 opacity-90">This is a sandbox tool designed to help you beat the "Follow" memory portion of skill-based machines.</p>
+                    
+                    <div class="bg-black bg-opacity-30 p-3 rounded-lg border border-gray-700 mb-4">
+                        <h5 class="font-bold text-white mb-1">🎮 How to Play</h5>
+                        <p class="text-xs opacity-80">Select your input method (9-Key, 12-Key, or Piano). When the machine flashes a number, press it here. The app tracks the full sequence so you don't have to memorize it.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="bg-black bg-opacity-30 p-3 rounded-lg border border-gray-700">
+                            <h5 class="font-bold text-white mb-1">📤 Share & Feedback</h5>
+                            <p class="text-xs opacity-80">Use the 📤 icon in the header to share the app with friends. Use the 💬 icon to send feedback or suggestions directly to the developer.</p>
+                        </div>
+                        <div class="bg-black bg-opacity-30 p-3 rounded-lg border border-gray-700">
+                            <h5 class="font-bold text-white mb-1">⏸️ Hold to Pause</h5>
+                            <p class="text-xs opacity-80">Touch and <strong>hold anywhere</strong> on the screen during playback to pause the sequence. Release to resume instantly.</p>
+                        </div>
+                    </div>
+
+                    <p class="mt-4 opacity-90 text-xs text-center"><strong>ID Icon (🆔):</strong> Opens the Redeem barcode for compatible kiosks.<br><strong>Support ☕:</strong> If this app helps you win, use the Coffee icon to send a tip!</p>
+                </div>
+<div id="tab-help-settings" class="tab-content">
+    
+    <h5 class="font-bold text-primary-app text-sm uppercase mb-3 border-b border-gray-700 pb-1">Game Configuration 🎮</h5>
+    <div class="grid grid-cols-2 gap-3 mb-6">
+        <div class="bg-white/5 p-3 rounded border border-gray-700">
+            <span class="text-xs text-blue-400 block font-bold mb-1">MODES</span>
+            <ul class="space-y-2">
+                <li class="text-xs leading-tight"><strong class="text-white">Simon Says:</strong> Cumulative. The sequence adds 1 number every round. You recite the <em>entire</em> history.</li>
+                <li class="text-xs leading-tight"><strong class="text-white">Unique:</strong> Random. A fresh sequence every round. No history to memorize.</li>
+            </ul>
+        </div>
+        <div class="bg-white/5 p-3 rounded border border-gray-700">
+            <span class="text-xs text-blue-400 block font-bold mb-1">SETUP</span>
+            <ul class="space-y-2">
+                <li class="text-xs leading-tight"><strong class="text-white">Machines:</strong> Split screen (up to 4) to track multiple sources at once.</li>
+                <li class="text-xs leading-tight"><strong class="text-white">Practice Mode:</strong> The app generates numbers for you. Good for training without a machine.</li>
+            </ul>
+        </div>
+    </div>
+
+    <h5 class="font-bold text-primary-app text-sm uppercase mb-3 border-b border-gray-700 pb-1">Playback & Feedback 🔊</h5>
+    <div class="space-y-3 mb-6">
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white/5 p-2 rounded flex flex-col justify-center">
+                <span class="text-xs font-bold text-green-400">Audio & Voice</span>
+                <span class="text-[10px] opacity-70">Reads numbers aloud. Customize Pitch/Rate in settings.</span>
+            </div>
+            <div class="bg-white/5 p-2 rounded flex flex-col justify-center">
+                <span class="text-xs font-bold text-green-400">Haptic Morse</span>
+                <span class="text-[10px] opacity-70">Vibrates dot/dash patterns for "silent" reading.</span>
+            </div>
+            <div class="bg-white/5 p-2 rounded flex flex-col justify-center">
+                <span class="text-xs font-bold text-green-400">Flash</span>
+                <span class="text-[10px] opacity-70">Visually highlights keys during playback.</span>
+            </div>
+            <div class="bg-white/5 p-2 rounded flex flex-col justify-center">
+                <span class="text-xs font-bold text-green-400">Autoplay</span>
+                <span class="text-[10px] opacity-70">Automatically reads back input after entry.</span>
+            </div>
+        </div>
+        <div class="bg-white/5 p-3 rounded border border-gray-700">
+            <span class="text-xs text-blue-400 block font-bold mb-1">CHUNKING STRATEGY</span>
+            <p class="text-xs opacity-80 mb-1"><strong>Chunk Size:</strong> Groups numbers (e.g., "1-2-3 ... pause ... 4-5-6").</p>
+            <p class="text-xs opacity-80"><strong>Delay:</strong> The silence duration between chunks or machine switches.</p>
+        </div>
+    </div>
+
+    <h5 class="font-bold text-primary-app text-sm uppercase mb-3 border-b border-gray-700 pb-1">Special Features 🚀</h5>
+    <div class="grid grid-cols-1 gap-3 mb-6">
+        
+        <div class="bg-white/5 p-3 rounded border border-gray-700 flex items-start gap-3">
+            <div class="text-2xl">🌑</div>
+            <div>
+                <span class="text-xs text-purple-400 font-bold block">BOSS MODE (Blackout)</span>
+                <p class="text-[10px] opacity-80 leading-tight">Turns screen black. <strong>Shake device</strong> to toggle.</p>
+                <p class="text-[10px] opacity-60 mt-1">If "BM Gestures" is ON, the grid is disabled and you must use swipes.</p>
+            </div>
+        </div>
+
+        <div class="bg-white/5 p-3 rounded border border-gray-700 flex items-start gap-3">
+            <div class="text-2xl">🥷</div>
+            <div>
+                <span class="text-xs text-purple-400 font-bold block">INPUTS ONLY (Stealth)</span>
+                <p class="text-[10px] opacity-80 leading-tight">Hides all controls. Keys expand to fill the bottom area. Best for landscape use.</p>
+                <p class="text-[10px] opacity-60 mt-1">Press the ⌨️ header icon to toggle.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white/5 p-2 rounded">
+                <span class="text-xs text-purple-400 font-bold block">📸 AR Mode</span>
+                <span class="text-[10px] opacity-70">Camera background to see through the phone.</span>
+            </div>
+            <div class="bg-white/5 p-2 rounded">
+                <span class="text-xs text-purple-400 font-bold block">🎤 Voice Input</span>
+                <span class="text-[10px] opacity-70">Say "Add 1", "Play", "Clear".</span>
+            </div>
+            <div class="bg-white/5 p-2 rounded">
+                <span class="text-xs text-purple-400 font-bold block">⏱️ Auto-Timer</span>
+                <span class="text-[10px] opacity-70">Starts on first input. Stops on clear.</span>
+            </div>
+             <div class="bg-white/5 p-2 rounded">
+                <span class="text-xs text-purple-400 font-bold block">🧹 Quick Erase</span>
+                <span class="text-[10px] opacity-70">Hold 'Backspace' button to clear all.</span>
+            </div>
+        </div>
+    </div>
+
+    <h5 class="font-bold text-primary-app text-sm uppercase mb-3 border-b border-gray-700 pb-1">Gesture Encyclopedia 📖</h5>
+    <div class="space-y-4 text-sm text-gray-300">
+
+        <div>
+            <h3 class="text-white font-bold mb-2 text-xs uppercase tracking-wider">Shapes & Lines</h3>
+            <div class="grid grid-cols-2 gap-3">
+                
+                <div class="bg-white/5 p-2 rounded border border-gray-800">
+                    <span class="text-xs text-blue-400 block font-bold">BOOMERANG</span>
+                    <span class="text-[10px] block opacity-90">"I" Shape (180° Flip)</span>
+                    <span class="text-[10px] block opacity-60">Swipe up, then immediately down (2 segments).</span>
+                </div>
+
+                <div class="bg-white/5 p-2 rounded border border-gray-800">
+                    <span class="text-xs text-blue-400 block font-bold">SWITCHBACK</span>
+                    <span class="text-[10px] block opacity-90">"V" or "&gt;" Shape</span>
+                    <span class="text-[10px] block opacity-60">Sharp angle (>125° but not 180°).</span>
+                </div>
+
+                <div class="bg-white/5 p-2 rounded border border-gray-800">
+                    <span class="text-xs text-blue-400 block font-bold">LONG BOOMERANG</span>
+                    <span class="text-[10px] block opacity-90">3-Segment "I" Shape</span>
+                    <span class="text-[10px] block opacity-60">Up, Down, then Up again. (2 flips).</span>
+                </div>
+
+                <div class="bg-white/5 p-2 rounded border border-gray-800">
+                    <span class="text-xs text-blue-400 block font-bold">ZIGZAG</span>
+                    <span class="text-[10px] block opacity-90">"Z" Shape</span>
+                    <span class="text-[10px] block opacity-60">3 segments with sharp acute angles.</span>
+                </div>
+
+                 <div class="bg-white/5 p-2 rounded border border-gray-800">
+                    <span class="text-xs text-blue-400 block font-bold">SQUARE / BOX</span>
+                    <span class="text-[10px] block opacity-90">Closed Box</span>
+                    <span class="text-[10px] block opacity-60">4 segments ending near start point.</span>
+                </div>
+                
+                 <div class="bg-white/5 p-2 rounded border border-gray-800">
+                    <span class="text-xs text-blue-400 block font-bold">SWIPE</span>
+                    <span class="text-[10px] block opacity-90">Straight Line</span>
+                    <span class="text-[10px] block opacity-60">Short (>40px) or Long (>150px).</span>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h3 class="text-white font-bold mb-2 text-xs uppercase tracking-wider">Taps & Spatial</h3>
+            <div class="bg-black bg-opacity-30 rounded border border-gray-800 overflow-hidden">
+                <div class="p-2 border-b border-gray-800 flex justify-between">
+                    <strong class="text-green-400 text-xs">Standard Tap</strong>
+                    <span class="text-[10px] opacity-70">Short press (< 300ms)</span>
+                </div>
+                <div class="p-2 border-b border-gray-800 flex justify-between">
+                    <strong class="text-green-400 text-xs">Long Press</strong>
+                    <span class="text-[10px] opacity-70">Hold (> 300ms)</span>
+                </div>
+                <div class="p-2 border-b border-gray-800">
+                    <strong class="text-green-400 text-xs block">Spatial Tap (Motion Tap)</strong>
+                    <span class="text-[10px] opacity-70 block">Tap once, lift, move finger, tap again elsewhere.</span>
+                </div>
+                <div class="p-2">
+                    <strong class="text-green-400 text-xs block">3-Tap Line</strong>
+                    <span class="text-[10px] opacity-70 block">Tap 3 times in a specific direction (e.g. Up, Up, Up).</span>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h3 class="text-white font-bold mb-2 text-xs uppercase tracking-wider">Utility Gestures</h3>
+            <ul class="space-y-2">
+                <li class="bg-red-900 bg-opacity-20 p-2 rounded border border-red-900/50">
+                    <strong class="text-red-400 text-xs block">🧹 DELETE (1-Finger Squiggle)</strong>
+                    <span class="text-[10px] opacity-80">Shake 1 finger left-right rapidly. Backspaces last entry.</span>
+                </li>
+                <li class="bg-red-900 bg-opacity-20 p-2 rounded border border-red-900/50">
+                    <strong class="text-red-400 text-xs block">💥 CLEAR (2-Finger Squiggle)</strong>
+                    <span class="text-[10px] opacity-80">Shake 2 fingers left-right rapidly. Resets round.</span>
+                </li>
+                <li class="bg-blue-900 bg-opacity-20 p-2 rounded border border-blue-900/50">
+                    <strong class="text-blue-400 text-xs block">⚡ SPEED (2-Finger Twist)</strong>
+                    <span class="text-[10px] opacity-80">Rotate 2 fingers like a dial to change playback speed.</span>
+                </li>
+                <li class="bg-blue-900 bg-opacity-20 p-2 rounded border border-blue-900/50">
+                    <strong class="text-blue-400 text-xs block">🔊 VOLUME (3-Finger Twist)</strong>
+                    <span class="text-[10px] opacity-80">Rotate 3 fingers like a jar lid to change volume.</span>
+                </li>
+            </ul>
+        </div>
+                    </div>
+                </div>
+
+                <div id="tab-help-voice" class="tab-content">
+                    <h4 class="font-bold text-lg text-primary-app mb-2">AI Assistant Prompt 🤖</h4>
+                    <p class="mb-4 opacity-90 text-xs">Copy this prompt into your preferred AI Audio Assistant (like ChatGPT Voice). It generates instructions based on your <strong>current</strong> settings.</p>
+                    <div class="flex justify-end space-x-2 mb-2">
+                        <button id="generate-prompt-btn" class="bg-green-600 hover:bg-green-500 text-white text-xs font-bold px-3 py-1 rounded shadow">🔄 Update</button>
+                        <button id="copy-prompt-btn" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded shadow">📋 Copy</button>
+                    </div>
+                    <div class="relative">
+                        <textarea id="prompt-display" class="w-full h-48 bg-gray-900 border border-gray-700 rounded-lg p-3 text-xs font-mono text-green-400 resize-none" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-custom flex justify-end bg-black bg-opacity-20"><button id="close-help-btn-bottom" class="px-6 py-2 bg-primary-app text-white rounded-lg font-bold hover:bg-secondary-app transition shadow-lg">Close</button></div>
+        </div>
+    </div>
+
+                
     <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-80 flex flex-col justify-end z-[70] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="share-sheet p-6 text-center flex flex-col items-center border-t border-gray-700 shadow-2xl transform translate-y-full transition-transform duration-300">
             <div class="w-12 h-1 bg-gray-600 rounded-full mb-4"></div> <div class="bg-white p-2 rounded-lg mb-6 shadow-inner"><img src="qr.jpg" alt="QR Code" class="w-64 h-64 object-contain"></div>
@@ -515,208 +730,6 @@
                 <button id="chat-share-button" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-xl">💬</div><span class="text-xs">Chat</span></button>
                 <button id="email-share-button" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-yellow-600 rounded-full flex items-center justify-center text-xl">📧</div><span class="text-xs">Email</span></button>
                 <button id="close-share" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl">✕</div><span class="text-xs">Close</span></button>
-            </div>
-        </div>
-    </div>
-        <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
-        <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
-            <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center">
-                <h3 class="text-2xl font-bold">Manual 📘</h3>
-                <button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button>
-            </div>
-
-            <div class="flex border-b border-custom bg-black bg-opacity-10 overflow-x-auto no-scrollbar">
-                <div class="tab-btn active flex-none whitespace-nowrap px-4" data-tab="help-about">About</div>
-                <div class="tab-btn flex-none whitespace-nowrap px-4" data-tab="help-settings">Settings</div>
-                <div class="tab-btn flex-none whitespace-nowrap px-4" data-tab="help-vision">Hand Tracking</div>
-                <div class="tab-btn flex-none whitespace-nowrap px-4" data-tab="help-gestures">Touch Gestures</div>
-                <div class="tab-btn flex-none whitespace-nowrap px-4" data-tab="help-voice">AI Voice</div>
-            </div>
-            
-
-            <div class="p-5 overflow-y-auto leading-relaxed space-y-4 text-sm flex-grow">
-
-                <div id="tab-help-about" class="tab-content active space-y-4">
-                    
-                    <div class="bg-gradient-to-r from-blue-900/40 to-purple-900/40 p-4 rounded-lg border border-white/10">
-                        <h4 class="font-bold text-lg text-white mb-2">Welcome to Follow Me 👋</h4>
-                        <p class="opacity-90 text-xs leading-5">
-                            This app is a memory assistant for beating sequence games (like Simon Says). 
-                            It remembers the numbers for you so you can focus on the game.
-                        </p>
-                    </div>
-
-                    <div class="space-y-3">
-                        <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">How it Works</strong>
-                        <div class="grid grid-cols-3 gap-2 text-center text-xs">
-                            <div class="bg-white/5 p-2 rounded">
-                                <div class="text-xl mb-1">👀</div>
-                                <div class="font-bold text-blue-400">1. Watch</div>
-                                <span class="opacity-60 text-[10px]">See the number.</span>
-                            </div>
-                            <div class="bg-white/5 p-2 rounded">
-                                <div class="text-xl mb-1">👇</div>
-                                <div class="font-bold text-green-400">2. Input</div>
-                                <span class="opacity-60 text-[10px]">Type it in.</span>
-                            </div>
-                            <div class="bg-white/5 p-2 rounded">
-                                <div class="text-xl mb-1">👂</div>
-                                <div class="font-bold text-purple-400">3. Listen</div>
-                                <span class="opacity-60 text-[10px]">Hear the list back.</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-3">
-                        <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Menu Bar Icons</strong>
-                        <ul class="space-y-2 text-xs opacity-90">
-                            <li class="flex items-center gap-2"><span class="bg-white/10 p-1 rounded">🖐️</span> <span><strong>Hand Tracking:</strong> Toggle Front Camera input.</span></li>
-                            <li class="flex items-center gap-2"><span class="bg-white/10 p-1 rounded">⌨️</span> <span><strong>Stealth:</strong> Inputs only (Big Buttons).</span></li>
-                            <li class="flex items-center gap-2"><span class="bg-white/10 p-1 rounded">⏱️</span> <span><strong>Timer:</strong> Stopwatch controls.</span></li>
-                            <li class="flex items-center gap-2"><span class="bg-white/10 p-1 rounded">📷</span> <span><strong>AR Mode:</strong> See-through background.</span></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div id="tab-help-vision" class="tab-content space-y-4">
-                    <div class="bg-blue-900/30 p-3 rounded-lg border border-blue-500/30">
-                        <strong class="text-blue-300 block mb-1">🖐️ Front Camera Tracking</strong>
-                        <p class="text-xs opacity-90">
-                            Control the app without touching the screen! 
-                            Click the 🖐️ icon in the header to activate.
-                        </p>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-white/5 p-3 rounded border border-white/10">
-                            <strong class="block text-green-400 text-sm mb-2">Inputs 1 - 5</strong>
-                            <div class="text-center text-3xl mb-2">☝️</div>
-                            <p class="text-[10px] opacity-80 text-center">
-                                Point fingers <strong>UP</strong>.<br>
-                                (Palm facing camera)
-                            </p>
-                        </div>
-                        <div class="bg-white/5 p-3 rounded border border-white/10">
-                            <strong class="block text-red-400 text-sm mb-2">Inputs 6 - 9</strong>
-                            <div class="text-center text-3xl mb-2">👇</div>
-                            <p class="text-[10px] opacity-80 text-center">
-                                Point fingers <strong>DOWN</strong>.<br>
-                                (Flop wrist downward)
-                            </p>
-                        </div>
-                    </div>
-
-                    <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
-                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white">
-                            <span>Logic Guide (9-Key)</span>
-                            <span class="group-open:rotate-180 transition-transform">▼</span>
-                        </summary>
-                        <div class="p-3 pt-0 text-xs opacity-90 space-y-2 border-t border-gray-700 mt-2 pt-2">
-                            <ul class="space-y-1 font-mono">
-                                <li><strong>1:</strong> 1 Finger UP ☝️</li>
-                                <li><strong>2:</strong> 2 Fingers UP ✌️</li>
-                                <li><strong>3:</strong> 3 Fingers UP 🤟</li>
-                                <li><strong>4:</strong> 4 Fingers UP 🖖</li>
-                                <li><strong>5:</strong> 5 Fingers UP 🖐️</li>
-                                <li class="pt-2 border-t border-gray-700"></li>
-                                <li class="pt-1"><strong>6:</strong> 1 Finger DOWN 👇</li>
-                                <li><strong>7:</strong> 2 Fingers DOWN</li>
-                                <li><strong>8:</strong> 3 Fingers DOWN</li>
-                                <li><strong>9:</strong> 4 Fingers DOWN</li>
-                            </ul>
-                        </div>
-                    </details>
-
-                    <div class="text-xs space-y-2 opacity-80 bg-black/20 p-3 rounded">
-                        <p><strong>💡 Pro Tips:</strong></p>
-                        <ul class="list-disc pl-4 space-y-1">
-                            <li><strong>Hold Steady:</strong> You must hold the gesture for <strong>0.5 seconds</strong> to trigger it. This prevents accidental double-inputs.</li>
-                            <li><strong>Boss Mode:</strong> Hand Tracking works in the dark! Activate Boss Mode while the tracking is on.</li>
-                            <li><strong>Lighting:</strong> Ensure your face/hand is well lit. Backlighting (window behind you) will break the AI.</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div id="tab-help-settings" class="tab-content space-y-3">
-                     <p class="text-xs opacity-70 italic text-center mb-2">This guides you through the many settings.</p>
-
-                    <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
-                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-blue-400">
-                            <span>1. Game Settings 🎮</span>
-                            <span class="group-open:rotate-180 transition-transform">▼</span>
-                        </summary>
-                        <div class="p-3 pt-0 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
-                            <p><strong>Modes:</strong> Simon Says (Cumulative) or Unique (Random).</p>
-                            <p><strong>Machines:</strong> Track up to 4 sequences at once.</p>
-                            <p><strong>Mapping:</strong> Assign specific Touch or Hand gestures to specific keys.</p>
-                        </div>
-                    </details>
-
-                    <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
-                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-purple-400">
-                            <span>2. Advanced Views 🛠️</span>
-                            <span class="group-open:rotate-180 transition-transform">▼</span>
-                        </summary>
-                        <div class="p-3 pt-0 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
-                            <p><strong>Boss Mode 🌑:</strong> Shake device to turn screen black.</p>
-                            <p class="pl-2 border-l-2 border-purple-500">
-                                <em>New:</em> If you shake while the Gesture Pad/Hands are active, you can continue to input numbers in the dark!
-                            </p>
-                            <p><strong>Stealth 🥷:</strong> Removes all menus, making buttons huge.</p>
-                            <p><strong>AR Mode 📸:</strong> Uses Back Camera for transparent background.</p>
-                        </div>
-                    </details>
-                </div>
-
-                <div id="tab-help-gestures" class="tab-content space-y-4">
-                    <div class="bg-gray-800 p-2 rounded border border-gray-600">
-                        <strong class="text-white text-xs block mb-1">Touch Pad</strong>
-                        <p class="text-[10px] opacity-70">
-                            These gestures work on the "Gesture Pad" (The 🗒️ icon).
-                        </p>
-                    </div>
-
-                    <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
-                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white">
-                            <span>💨 Basic Swipes</span>
-                            <span class="group-open:rotate-180 transition-transform">▼</span>
-                        </summary>
-                        <div class="p-3 pt-0 text-xs opacity-90 space-y-2 border-t border-gray-700 mt-2 pt-2">
-                            <p><strong>1-Finger:</strong> Up, Down, Left, Right.</p>
-                            <p><strong>2-Finger:</strong> Swipe with two fingers.</p>
-                            <p><strong>Corners:</strong> Swipe diagonally (e.g., Up-Right).</p>
-                        </div>
-                    </details>
-
-                    <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
-                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white">
-                            <span>📐 Shapes</span>
-                            <span class="group-open:rotate-180 transition-transform">▼</span>
-                        </summary>
-                        <div class="p-3 pt-0 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
-                            <p><strong>Boomerang (I-Shape):</strong> Swipe UP then DOWN.</p>
-                            <p><strong>Switchback (V-Shape):</strong> Swipe RIGHT then DOWN-LEFT.</p>
-                            <p><strong>Square:</strong> Draw a box.</p>
-                        </div>
-                    </details>
-                </div>
-
-                <div id="tab-help-voice" class="tab-content">
-                    <h4 class="font-bold text-lg text-primary-app mb-2">AI Assistant Prompt 🤖</h4>
-                    <p class="mb-4 opacity-90 text-xs">Copy this prompt into an AI Audio Assistant (like ChatGPT Voice) to play with an AI partner.</p>
-                    <div class="relative">
-                        <textarea id="prompt-display" class="w-full h-48 bg-gray-900 border border-gray-700 rounded-lg p-3 text-xs font-mono text-green-400 resize-none" readonly></textarea>
-                    </div>
-                     <div class="flex justify-end space-x-2 mt-2">
-                        <button id="generate-prompt-btn" class="bg-green-600 hover:bg-green-500 text-white text-xs font-bold px-4 py-2 rounded shadow">🔄 Update</button>
-                        <button id="copy-prompt-btn" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded shadow">📋 Copy</button>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="p-4 border-t border-custom flex justify-end bg-black bg-opacity-20">
-                <button id="close-help-btn-bottom" class="px-6 py-2 bg-primary-app text-white rounded-lg font-bold hover:bg-secondary-app transition shadow-lg">Close Manual</button>
             </div>
         </div>
     </div>

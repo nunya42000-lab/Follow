@@ -4,6 +4,7 @@ import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.co
 import { SensorEngine } from './sensors.js';
 import { SettingsManager, PREMADE_THEMES, PREMADE_VOICE_PRESETS } from './settings.js';
 import { initComments } from './comments.js';
+import { VisionEngine } from './vision.js';
 
 const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
 const app = initializeApp(firebaseConfig);
@@ -913,7 +914,46 @@ const startApp = () => {
             } 
         }
     }, null); 
+    // ----------------------------------------------------
+    // INSERT THIS BLOCK AFTER modules.settings
+    // ----------------------------------------------------
+    const visionEngine = new VisionEngine(
+        (gestureName) => {
+            // Find which key maps to this hand gesture
+            const mapping = appSettings.gestureMappings || {};
+            const currentInput = getProfileSettings().currentInput;
+            let foundValue = null;
 
+            // Loop through mappings to find the match
+            for (const [keyId, mapData] of Object.entries(mapping)) {
+                if (mapData.hand === gestureName) {
+                    // Check if this keyId belongs to the current input mode
+                    if (currentInput === 'key9' && keyId.startsWith('k9_')) {
+                        foundValue = keyId.replace('k9_', '');
+                    } else if (currentInput === 'key12' && keyId.startsWith('k12_')) {
+                        foundValue = keyId.replace('k12_', '');
+                    } else if (currentInput === 'piano' && keyId.startsWith('piano_')) {
+                        foundValue = keyId.replace('piano_', '');
+                    }
+                }
+            }
+            
+            if (foundValue) {
+                // A. Trigger the input
+                addValue(foundValue);
+                showToast(`${gestureName.replace('hand_', '').replace('_', ' ').toUpperCase()} -> ${foundValue}`);
+                
+                // B. Flash the Button
+                const btn = document.querySelector(`#pad-${currentInput} button[data-value="${foundValue}"]`);
+                if(btn) { 
+                    btn.classList.add('flash-active'); 
+                    setTimeout(() => btn.classList.remove('flash-active'), 200); 
+                }
+            }
+        },
+        (status) => showToast(status)
+    );
+                
     modules.sensor = new SensorEngine(
         (val, source) => { 
              addValue(val); 

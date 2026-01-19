@@ -89,7 +89,7 @@ const DICTIONARY = {
 
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
-let modules = { sensor: null, settings: null };
+let modules = { sensor: null, settings: null, gestureEngine: null };
 let timers = { speedDelete: null, initialDelay: null, longPress: null, settingsLongPress: null, stealth: null, stealthAction: null, playback: null, tap: null };
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 let blackoutState = { isActive: false, lastShake: 0 }; 
@@ -853,6 +853,21 @@ class VoiceCommander {
 
 
         
+function initGestureEngine() {
+    // 1. Initialize the engine and store it in your modules object
+    modules.gestureEngine = new GestureEngine({
+        // Assuming GestureEngine takes a callback for detection
+        onGesture: (gestureName) => {
+            handleGesture(gestureName);
+        }
+    });
+
+    // 2. Initial setup of constraints
+    updateEngineConstraints();
+
+    // 3. Start it (if your engine requires an explicit start)
+    // modules.gestureEngine.start(); 
+}
 
 
 const startApp = () => {
@@ -1384,11 +1399,10 @@ async function requestWakeLock() {
     } catch (err) {
         console.log('Wake Lock not supported/allowed');
     }
-}
 // Call this when the app starts
 requestWakeLock();
         
 
 
         
-document.addEventListener('DOMContentLoaded', startApp););
+document.addEventListener('DOMContentLoaded', startApp);

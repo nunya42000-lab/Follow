@@ -1391,4 +1391,4 @@ requestWakeLock();
 
 
         
-document.addEventListener('DOMContentLoaded', startApp););
+document.addEventListener('DOMContentLoaded', startApp);

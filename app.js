@@ -1117,7 +1117,6 @@ function updateEngineConstraints() {
 
     modules.gestureEngine.updateAllowed(activeList);
 }
-
 function initGlobalListeners() {
     try {
         // --- BUTTON LISTENERS ---
@@ -1365,31 +1364,26 @@ function initGlobalListeners() {
     } catch(e) {
         console.error("Listener Error:", e);
     }
-        
-                
 
-// Keep screen awake
-async function requestWakeLock() {
-    try {
-        if ('wakeLock' in navigator) {
-            let wakeLock = await navigator.wakeLock.request('screen');
-            console.log('Wake Lock active');
-            // Re-acquire if app minimizes and comes back
-            document.addEventListener('visibilitychange', async () => {
-                if (document.visibilityState === 'visible') {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                }
-            });
+    // Keep screen awake
+    async function requestWakeLock() {
+        try {
+            if ('wakeLock' in navigator) {
+                let wakeLock = await navigator.wakeLock.request('screen');
+                console.log('Wake Lock active');
+                // Re-acquire if app minimizes and comes back
+                document.addEventListener('visibilitychange', async () => {
+                    if (document.visibilityState === 'visible') {
+                        wakeLock = await navigator.wakeLock.request('screen');
+                    }
+                });
+            }
+        } catch (err) {
+            console.log('Wake Lock not supported/allowed');
         }
-    } catch (err) {
-        console.log('Wake Lock not supported/allowed');
     }
-}
-// Call this when the app starts
-requestWakeLock();
-        
+    // Call this when the app starts
+    requestWakeLock();
 }
 
-
-        
 document.addEventListener('DOMContentLoaded', startApp);

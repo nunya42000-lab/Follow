@@ -14,6 +14,13 @@ const CRITICAL_ASSETS = [
     './gestures.js',
     './comments.js',
     './manifest.json'
+    './vision.js',
+    './wasm/vision_bundle.js',
+    './wasm/vision_wasm_internal.js',
+    './wasm/vision_wasm_internal.wasm',
+    './wasm/gesture_recognizer.task'
+];
+
 ];
 
 // 2. OPTIONAL: Images & External Links.

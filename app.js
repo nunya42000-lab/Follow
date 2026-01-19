@@ -4,7 +4,6 @@ import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.co
 import { SensorEngine } from './sensors.js';
 import { SettingsManager, PREMADE_THEMES, PREMADE_VOICE_PRESETS } from './settings.js';
 import { initComments } from './comments.js';
-import { VisionEngine } from './vision.js';
 
 const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
 const app = initializeApp(firebaseConfig);
@@ -915,46 +914,6 @@ const startApp = () => {
         }
     }, null); 
 
-        // ----------------------------------------------------
-    // INSERT THIS BLOCK AFTER modules.settings
-    // ----------------------------------------------------
-    const visionEngine = new VisionEngine(
-        (gestureName) => {
-            // Find which key maps to this hand gesture
-            const mapping = appSettings.gestureMappings || {};
-            const currentInput = getProfileSettings().currentInput;
-            let foundValue = null;
-
-            // Loop through mappings to find the match
-            for (const [keyId, mapData] of Object.entries(mapping)) {
-                if (mapData.hand === gestureName) {
-                    // Check if this keyId belongs to the current input mode
-                    if (currentInput === 'key9' && keyId.startsWith('k9_')) {
-                        foundValue = keyId.replace('k9_', '');
-                    } else if (currentInput === 'key12' && keyId.startsWith('k12_')) {
-                        foundValue = keyId.replace('k12_', '');
-                    } else if (currentInput === 'piano' && keyId.startsWith('piano_')) {
-                        foundValue = keyId.replace('piano_', '');
-                    }
-                }
-            }
-            
-            if (foundValue) {
-                // A. Trigger the input
-                addValue(foundValue);
-                showToast(`${gestureName.replace('hand_', '').replace('_', ' ').toUpperCase()} -> ${foundValue}`);
-                
-                // B. Flash the Button
-                const btn = document.querySelector(`#pad-${currentInput} button[data-value="${foundValue}"]`);
-                if(btn) { 
-                    btn.classList.add('flash-active'); 
-                    setTimeout(() => btn.classList.remove('flash-active'), 200); 
-                }
-            }
-        },
-        (status) => showToast(status)
-    );
-    
     modules.sensor = new SensorEngine(
         (val, source) => { 
              addValue(val); 
@@ -1013,54 +972,6 @@ const startApp = () => {
     // --- THIS IS THE CRITICAL CHANGE ---
     initGlobalListeners(); // Keep buttons working
     initGestureEngine();   // Start the new gesture system
-        // ----------------------------------------------------
-    // INSERT THIS BLOCK AFTER modules.sensor
-    // ----------------------------------------------------
-    
-    const handBtn = document.getElementById('header-hand-btn');
-    const camBtn = document.getElementById('header-cam-btn');
-
-    // 1. Hand Gesture Toggle
-    if (handBtn) {
-        handBtn.onclick = () => {
-            // Check if currently active
-            if (handBtn.classList.contains('header-btn-active')) {
-                visionEngine.stop();
-                handBtn.classList.remove('header-btn-active');
-            } else {
-                // Safety: Turn off AR if active (Mutual Exclusion)
-                if (document.body.classList.contains('ar-active')) {
-                    camBtn.click(); 
-                    showToast("Switching to Hands... 🖐️");
-                }
-                visionEngine.start();
-                handBtn.classList.add('header-btn-active');
-            }
-        };
-    }
-
-    // 2. AR Camera Toggle (Modified to turn off Hands)
-    if (camBtn) {
-        // We wrap the logic to ensure we check for hands first
-        const originalClick = camBtn.onclick; 
-        camBtn.onclick = () => {
-            if (visionEngine.isActive) {
-                handBtn.click(); // Turn off hands safely
-                showToast("Switching to AR... 📸");
-                // Wait small delay for camera resource to free up
-                setTimeout(() => {
-                    // Now trigger the standard AR logic
-                    // (Assuming your existing code sets up an onclick or handles it elsewhere)
-                    // If you don't have an originalClick, just ensure your AR toggle code runs here.
-                     if (originalClick) originalClick(); 
-                     // Fallback: If originalClick is null, your AR code might be added via addEventListener elsewhere.
-                     // If that's the case, you might need to manually trigger your toggleCamera function.
-                }, 300); 
-            } else {
-                if (originalClick) originalClick();
-            }
-        };
-        }
     
     if (appSettings.autoInputMode === 'mic' || appSettings.autoInputMode === 'both') {
         modules.sensor.toggleAudio(true);
@@ -1225,6 +1136,7 @@ function initGestureEngine() {
                 }
                     
                             
+
 function initGlobalListeners() {
     try {
         // --- BUTTON LISTENERS ---
@@ -1269,7 +1181,6 @@ function initGlobalListeners() {
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => {
             b.addEventListener('click', () => { if(confirm("Reset Round Counter to 1?")) { const s = getState(); s.currentRound = 1; s.sequences[0] = []; s.nextSequenceIndex = 0; renderUI(); saveState(); showToast("Reset to Round 1"); } });
         });
-
         document.querySelectorAll('button[data-action="open-settings"]').forEach(b => {
             b.addEventListener('click', () => { if(isDemoPlaying) { isDemoPlaying = false; const pb = document.querySelector('button[data-action="play-demo"]'); if(pb) pb.textContent = "▶"; showToast("Playback Stopped 🛑"); return; } modules.settings.openSettings(); });
             const start = () => { timers.settingsLongPress = setTimeout(() => { modules.settings.toggleRedeem(true); ignoreNextClick = true; setTimeout(() => ignoreNextClick = false, 500); }, 1000); };
@@ -1298,60 +1209,31 @@ function initGlobalListeners() {
         
         document.getElementById('close-settings').addEventListener('click', () => { if(appSettings.isPracticeModeEnabled) { setTimeout(startPracticeRound, 500); } });
 
-        // --- NEW BOSS MODE SHAKE LISTENER ---
+        // --- BOSS MODE SHAKE & GRID ---
+        let lastX=0, lastY=0, lastZ=0;
         window.addEventListener('devicemotion', (e) => {
             if(!appSettings.isBlackoutFeatureEnabled) return; 
             const acc = e.accelerationIncludingGravity; if(!acc) return;
-            const delta = Math.abs(acc.x - (lastX||0)) + Math.abs(acc.y - (lastY||0)) + Math.abs(acc.z - (lastZ||0));
+            const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
             
             if(delta > 25) { 
                 const now = Date.now();
                 if(now - blackoutState.lastShake > 1000) {
                     blackoutState.isActive = !blackoutState.isActive;
                     document.body.classList.toggle('blackout-active', blackoutState.isActive);
-                    
-                    const gpWrap = document.getElementById('gesture-pad-wrapper');
-                    const gpPad = document.getElementById('gesture-pad');
-
-                    if (blackoutState.isActive) {
-                        const isHandsActive = (typeof visionEngine !== 'undefined') && visionEngine.isActive;
-                        
-                        if (isGesturePadVisible || isHandsActive) {
-                            document.body.classList.add('input-gestures-mode');
-                            if(gpWrap) {
-                                gpWrap.classList.remove('hidden');
-                                gpWrap.style.zIndex = '10001'; 
-                            }
-                            if(gpPad) gpPad.style.opacity = '0.05'; 
-                            showToast("Boss Mode (Gestures) 🌑");
-                        } else {
-                            showToast("Boss Mode (Grid) 🌑");
-                        }
-                    } else {
-                        document.body.classList.remove('input-gestures-mode');
-                        if (isGesturePadVisible) {
-                            if(gpWrap) gpWrap.style.zIndex = '';
-                            if(gpPad) gpPad.style.opacity = '1';
-                        } else {
-                            if(gpWrap) gpWrap.classList.add('hidden');
-                        }
-                        showToast("Welcome Back");
-                    }
-                    if(navigator.vibrate) navigator.vibrate(200);
-                    if(renderUI) renderUI(); 
+                    showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back");
+                    vibrate();
+                    renderUI(); 
                     blackoutState.lastShake = now;
                 }
             }
             lastX = acc.x; lastY = acc.y; lastZ = acc.z;
         });
-
-        // --- NEW INVISIBLE GRID LISTENER ---
+                                                                                                                   
         const bl = document.getElementById('blackout-layer');
         if(bl) {
              bl.addEventListener('touchstart', (e) => {
-                 const isHandsActive = (typeof visionEngine !== 'undefined') && visionEngine.isActive;
-                 if (isGesturePadVisible || isHandsActive) return; 
-
+                 if (appSettings.isBlackoutGesturesEnabled) return;
                  if (e.touches.length === 1) {
                      e.preventDefault(); 
                      const t = e.touches[0]; const w = window.innerWidth; const h = window.innerHeight;
@@ -1379,17 +1261,18 @@ function initGlobalListeners() {
         const headerMic = document.getElementById('header-mic-btn');
         const headerCam = document.getElementById('header-cam-btn');
         const headerGesture = document.getElementById('header-gesture-btn'); 
-        const headerStealth = document.getElementById('header-stealth-btn');
-
-        if(headerStealth) {
-            headerStealth.onclick = () => {
-                document.body.classList.toggle('hide-controls');
-                const isActive = document.body.classList.contains('hide-controls');
-                headerStealth.classList.toggle('header-btn-active', isActive);
-                showToast(isActive ? "Inputs Only Active" : "Controls Visible");
-                setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
-            };
-        }
+const headerStealth = document.getElementById('header-stealth-btn');
+if(headerStealth) {
+    headerStealth.onclick = () => {
+        document.body.classList.toggle('hide-controls');
+        const isActive = document.body.classList.contains('hide-controls');
+        headerStealth.classList.toggle('header-btn-active', isActive);
+        showToast(isActive ? "Inputs Only Active" : "Controls Visible");
+        
+        // Force layout recalculation for the new huge buttons
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+    };
+}
         
         if(headerTimer) {
             headerTimer.textContent = "00:00"; 
@@ -1475,14 +1358,37 @@ function initGlobalListeners() {
             };
         }
         
-        // Note: Hand and Cam buttons are handled in startApp because they need VisionEngine scope.
-        
+        if(headerCam) { 
+            headerCam.onclick = () => {
+                const isArActive = document.body.classList.contains('ar-active');
+                const newState = !isArActive;
+                if (newState) {
+                    document.body.classList.add('ar-active');
+                    headerCam.classList.add('header-btn-active');
+                    if (modules.sensor) {
+                        modules.sensor.toggleCamera(true); 
+                        if (modules.sensor.videoEl) {
+                            modules.sensor.videoEl.style.display = 'block';
+                            modules.sensor.videoEl.className = 'ar-background-video';
+                        }
+                    }
+                    showToast("AR Mode ON 📸");
+                } else {
+                    document.body.classList.remove('ar-active');
+                    headerCam.classList.remove('header-btn-active');
+                    if (modules.sensor) {
+                        modules.sensor.toggleCamera(false);
+                        if (modules.sensor.videoEl) {
+                            modules.sensor.videoEl.style.display = 'none';
+                        }
+                    }
+                    showToast("AR Mode OFF");
+                }
+            }; 
+        }
     } catch(e) {
         console.error("Listener Error:", e);
     }
-
-
-
 // Keep screen awake
 async function requestWakeLock() {
     try {

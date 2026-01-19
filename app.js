@@ -1291,96 +1291,96 @@ function initGlobalListeners() {
         document.body.addEventListener('mouseup', handleResume); document.body.addEventListener('touchend', handleResume);
         
         document.getElementById('close-settings').addEventListener('click', () => { if(appSettings.isPracticeModeEnabled) { setTimeout(startPracticeRound, 500); } });
-
         // --- BOSS MODE SHAKE & GRID ---
         let lastX=0, lastY=0, lastZ=0;
         window.addEventListener('devicemotion', (e) => {
-        if(!appSettings.isBlackoutFeatureEnabled) return; 
-        const acc = e.accelerationIncludingGravity; if(!acc) return;
-        const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
-        
-        if(delta > 25) { 
-            const now = Date.now();
-            if(now - blackoutState.lastShake > 1000) {
-                blackoutState.isActive = !blackoutState.isActive;
-                document.body.classList.toggle('blackout-active', blackoutState.isActive);
-                
-                // --- NEW BOSS MODE LOGIC ---
-                const gpWrap = document.getElementById('gesture-pad-wrapper');
-                const gpPad = document.getElementById('gesture-pad');
-
-                if (blackoutState.isActive) {
-                    // Check if Hand Gestures (Vision) or Touch Gestures are active
-                    const isHandsActive = visionEngine && visionEngine.isActive;
+            if(!appSettings.isBlackoutFeatureEnabled) return; 
+            const acc = e.accelerationIncludingGravity; if(!acc) return;
+            const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
+            
+            if(delta > 25) { 
+                const now = Date.now();
+                if(now - blackoutState.lastShake > 1000) {
+                    blackoutState.isActive = !blackoutState.isActive;
+                    document.body.classList.toggle('blackout-active', blackoutState.isActive);
                     
-                    if (isGesturePadVisible || isHandsActive) {
-                        // BOSS MODE + GESTURES (Transparent overlay)
-                        document.body.classList.add('input-gestures-mode');
-                        if(gpWrap) {
-                            gpWrap.classList.remove('hidden');
-                            gpWrap.style.zIndex = '10001'; // Place above blackout layer
+                    // --- NEW BOSS MODE LOGIC ---
+                    const gpWrap = document.getElementById('gesture-pad-wrapper');
+                    const gpPad = document.getElementById('gesture-pad');
+
+                    if (blackoutState.isActive) {
+                        // Check if Hand Gestures (Vision) or Touch Gestures are active
+                        const isHandsActive = window.visionEngine && window.visionEngine.isActive;
+                        
+                        if (isGesturePadVisible || isHandsActive) {
+                            // BOSS MODE + GESTURES (Transparent overlay)
+                            document.body.classList.add('input-gestures-mode');
+                            if(gpWrap) {
+                                gpWrap.classList.remove('hidden');
+                                gpWrap.style.zIndex = '10001'; // Place above blackout layer
+                            }
+                            if(gpPad) gpPad.style.opacity = '0.05'; // Nearly invisible
+                            showToast("Boss Mode (Gestures) 🌑");
+                        } else {
+                            // BOSS MODE + GRID (Standard)
+                            showToast("Boss Mode (Grid) 🌑");
                         }
-                        if(gpPad) gpPad.style.opacity = '0.05'; // Nearly invisible
-                        showToast("Boss Mode (Gestures) 🌑");
                     } else {
-                        // BOSS MODE + GRID (Standard)
-                        showToast("Boss Mode (Grid) 🌑");
+                        // EXIT BOSS MODE
+                        document.body.classList.remove('input-gestures-mode');
+                        if (isGesturePadVisible) {
+                            // Restore Gesture Pad visibility
+                            if(gpWrap) gpWrap.style.zIndex = '';
+                            if(gpPad) gpPad.style.opacity = '1';
+                        } else {
+                            // Hide Gesture Pad if it was off
+                            if(gpWrap) gpWrap.classList.add('hidden');
+                        }
+                        showToast("Welcome Back");
                     }
-                } else {
-                    // EXIT BOSS MODE
-                    document.body.classList.remove('input-gestures-mode');
-                    if (isGesturePadVisible) {
-                        // Restore Gesture Pad visibility
-                        if(gpWrap) gpWrap.style.zIndex = '';
-                        if(gpPad) gpPad.style.opacity = '1';
-                    } else {
-                        // Hide Gesture Pad if it was off
-                        if(gpWrap) gpWrap.classList.add('hidden');
-                    }
-                    showToast("Welcome Back");
-                }
-                // ---------------------------
+                    // ---------------------------
 
-                if(navigator.vibrate) navigator.vibrate(200);
-                if(renderUI) renderUI(); 
-                blackoutState.lastShake = now;
+                    if(navigator.vibrate) navigator.vibrate(200);
+                    if(renderUI) renderUI(); 
+                    blackoutState.lastShake = now;
+                }
             }
-        }
-        lastX = acc.x; lastY = acc.y; lastZ = acc.z;
-    });
+            lastX = acc.x; lastY = acc.y; lastZ = acc.z;
+        });
                                                                                                            
-    // 2. Invisible Grid Listener
-    const bl = document.getElementById('blackout-layer');
-    if(bl) {
-            bl.addEventListener('touchstart', (e) => {
-                // --- UPDATED GUARD ---
-                // Disable the invisible Grid if Hand Gestures or Touch Gestures are active
-                const isHandsActive = visionEngine && visionEngine.isActive;
-                if (isGesturePadVisible || isHandsActive) return; 
-                // ---------------------
+        // 2. Invisible Grid Listener
+        const bl = document.getElementById('blackout-layer');
+        if(bl) {
+             bl.addEventListener('touchstart', (e) => {
+                 // --- UPDATED GUARD ---
+                 // Disable the invisible Grid if Hand Gestures or Touch Gestures are active
+                 const isHandsActive = window.visionEngine && window.visionEngine.isActive;
+                 if (isGesturePadVisible || isHandsActive) return; 
+                 // ---------------------
 
-                if (e.touches.length === 1) {
-                    e.preventDefault(); 
-                    const t = e.touches[0]; const w = window.innerWidth; const h = window.innerHeight;
-                    let col = Math.floor(t.clientX / (w / 3)); if (col > 2) col = 2;
-                    const settings = getProfileSettings();
-                    let val = null;
-                    if (settings.currentInput === 'key9') {
-                        let row = Math.floor(t.clientY / (h / 3)); if (row > 2) row = 2;
-                        val = (row * 3) + col + 1;
-                    } else {
-                        let row = Math.floor(t.clientY / (h / 4)); if (row > 3) row = 3;
-                        const index = (row * 3) + col; 
-                        if (settings.currentInput === 'piano') {
-                            const map = ['1','2','3', '4','5','C', 'D','E','F', 'G','A','B']; val = map[index];
-                        } else { val = index + 1; }
-                    }
-                    if (val !== null) { addValue(val.toString()); if(navigator.vibrate) navigator.vibrate(20); }
-                }
-            }, { passive: false });
-    }
+                 if (e.touches.length === 1) {
+                     e.preventDefault(); 
+                     const t = e.touches[0]; const w = window.innerWidth; const h = window.innerHeight;
+                     let col = Math.floor(t.clientX / (w / 3)); if (col > 2) col = 2;
+                     const settings = getProfileSettings();
+                     let val = null;
+                     if (settings.currentInput === 'key9') {
+                         let row = Math.floor(t.clientY / (h / 3)); if (row > 2) row = 2;
+                         val = (row * 3) + col + 1;
+                     } else {
+                         let row = Math.floor(t.clientY / (h / 4)); if (row > 3) row = 3;
+                         const index = (row * 3) + col; 
+                         if (settings.currentInput === 'piano') {
+                             const map = ['1','2','3', '4','5','C', 'D','E','F', 'G','A','B']; val = map[index];
+                         } else { val = index + 1; }
+                     }
+                     if (val !== null) { addValue(val.toString()); if(navigator.vibrate) navigator.vibrate(20); }
+                 }
+             }, { passive: false });
+        }
         
-        // --- HEADER BUTTONS ---
+        
+      // --- HEADER BUTTONS ---
         const headerTimer = document.getElementById('header-timer-btn');
         const headerCounter = document.getElementById('header-counter-btn');
         const headerMic = document.getElementById('header-mic-btn');

@@ -13,7 +13,7 @@ const CRITICAL_ASSETS = [
     './sensors.js',
     './gestures.js',
     './comments.js',
-    './manifest.json'
+    './manifest.json',
     './vision.js',
     './wasm/vision_bundle.js',
     './wasm/vision_wasm_internal.js',
@@ -21,7 +21,6 @@ const CRITICAL_ASSETS = [
     './wasm/gesture_recognizer.task'
 ];
 
-];
 
 // 2. OPTIONAL: Images & External Links.
 // We will TRY to cache these. If they fail (404 missing, network error), 

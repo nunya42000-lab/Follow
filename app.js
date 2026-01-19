@@ -1399,6 +1399,7 @@ async function requestWakeLock() {
     } catch (err) {
         console.log('Wake Lock not supported/allowed');
     }
+    }
 // Call this when the app starts
 requestWakeLock();
         

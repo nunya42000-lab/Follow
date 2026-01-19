@@ -1225,7 +1225,6 @@ function initGestureEngine() {
                 }
                     
                             
-
 function initGlobalListeners() {
     try {
         // --- BUTTON LISTENERS ---
@@ -1270,6 +1269,7 @@ function initGlobalListeners() {
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => {
             b.addEventListener('click', () => { if(confirm("Reset Round Counter to 1?")) { const s = getState(); s.currentRound = 1; s.sequences[0] = []; s.nextSequenceIndex = 0; renderUI(); saveState(); showToast("Reset to Round 1"); } });
         });
+
         document.querySelectorAll('button[data-action="open-settings"]').forEach(b => {
             b.addEventListener('click', () => { if(isDemoPlaying) { isDemoPlaying = false; const pb = document.querySelector('button[data-action="play-demo"]'); if(pb) pb.textContent = "▶"; showToast("Playback Stopped 🛑"); return; } modules.settings.openSettings(); });
             const start = () => { timers.settingsLongPress = setTimeout(() => { modules.settings.toggleRedeem(true); ignoreNextClick = true; setTimeout(() => ignoreNextClick = false, 500); }, 1000); };
@@ -1298,120 +1298,79 @@ function initGlobalListeners() {
         
         document.getElementById('close-settings').addEventListener('click', () => { if(appSettings.isPracticeModeEnabled) { setTimeout(startPracticeRound, 500); } });
 
-        // --- BOSS MODE SHAKE & GRID ---
-        let lastX=0, lastY=0, lastZ=0;
-        
-        if(!appSettings.isBlackoutFeatureEnabled) return; 
+        // --- NEW BOSS MODE SHAKE LISTENER ---
+        window.addEventListener('devicemotion', (e) => {
+            if(!appSettings.isBlackoutFeatureEnabled) return; 
             const acc = e.accelerationIncludingGravity; if(!acc) return;
-            const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
+            const delta = Math.abs(acc.x - (lastX||0)) + Math.abs(acc.y - (lastY||0)) + Math.abs(acc.z - (lastZ||0));
             
             if(delta > 25) { 
                 const now = Date.now();
                 if(now - blackoutState.lastShake > 1000) {
                     blackoutState.isActive = !blackoutState.isActive;
                     document.body.classList.toggle('blackout-active', blackoutState.isActive);
-                    showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back");
-                    vibrate();
-                    renderUI(); 
+                    
+                    const gpWrap = document.getElementById('gesture-pad-wrapper');
+                    const gpPad = document.getElementById('gesture-pad');
+
+                    if (blackoutState.isActive) {
+                        const isHandsActive = (typeof visionEngine !== 'undefined') && visionEngine.isActive;
+                        
+                        if (isGesturePadVisible || isHandsActive) {
+                            document.body.classList.add('input-gestures-mode');
+                            if(gpWrap) {
+                                gpWrap.classList.remove('hidden');
+                                gpWrap.style.zIndex = '10001'; 
+                            }
+                            if(gpPad) gpPad.style.opacity = '0.05'; 
+                            showToast("Boss Mode (Gestures) 🌑");
+                        } else {
+                            showToast("Boss Mode (Grid) 🌑");
+                        }
+                    } else {
+                        document.body.classList.remove('input-gestures-mode');
+                        if (isGesturePadVisible) {
+                            if(gpWrap) gpWrap.style.zIndex = '';
+                            if(gpPad) gpPad.style.opacity = '1';
+                        } else {
+                            if(gpWrap) gpWrap.classList.add('hidden');
+                        }
+                        showToast("Welcome Back");
+                    }
+                    if(navigator.vibrate) navigator.vibrate(200);
+                    if(renderUI) renderUI(); 
                     blackoutState.lastShake = now;
                 }
             }
             lastX = acc.x; lastY = acc.y; lastZ = acc.z;
         });
-                                                                                                                   
+
+        // --- NEW INVISIBLE GRID LISTENER ---
         const bl = document.getElementById('blackout-layer');
         if(bl) {
-             // ----------------------------------------------------
-    // REPLACE YOUR OLD 'devicemotion' AND 'blackout-layer' LISTENERS WITH THIS
-    // ----------------------------------------------------
+             bl.addEventListener('touchstart', (e) => {
+                 const isHandsActive = (typeof visionEngine !== 'undefined') && visionEngine.isActive;
+                 if (isGesturePadVisible || isHandsActive) return; 
 
-    // 1. Boss Mode Shake Listener
-    window.addEventListener('devicemotion', (e) => {
-        if(!appSettings.isBlackoutFeatureEnabled) return; 
-        const acc = e.accelerationIncludingGravity; if(!acc) return;
-        const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
-        
-        if(delta > 25) { 
-            const now = Date.now();
-            if(now - blackoutState.lastShake > 1000) {
-                blackoutState.isActive = !blackoutState.isActive;
-                document.body.classList.toggle('blackout-active', blackoutState.isActive);
-                
-                // --- NEW BOSS MODE LOGIC ---
-                const gpWrap = document.getElementById('gesture-pad-wrapper');
-                const gpPad = document.getElementById('gesture-pad');
-
-                if (blackoutState.isActive) {
-                    // Check if Hand Gestures (Vision) or Touch Gestures are active
-                    const isHandsActive = visionEngine && visionEngine.isActive;
-                    
-                    if (isGesturePadVisible || isHandsActive) {
-                        // BOSS MODE + GESTURES (Transparent overlay)
-                        document.body.classList.add('input-gestures-mode');
-                        if(gpWrap) {
-                            gpWrap.classList.remove('hidden');
-                            gpWrap.style.zIndex = '10001'; // Place above blackout layer
-                        }
-                        if(gpPad) gpPad.style.opacity = '0.05'; // Nearly invisible
-                        showToast("Boss Mode (Gestures) 🌑");
-                    } else {
-                        // BOSS MODE + GRID (Standard)
-                        showToast("Boss Mode (Grid) 🌑");
-                    }
-                } else {
-                    // EXIT BOSS MODE
-                    document.body.classList.remove('input-gestures-mode');
-                    if (isGesturePadVisible) {
-                        // Restore Gesture Pad visibility
-                        if(gpWrap) gpWrap.style.zIndex = '';
-                        if(gpPad) gpPad.style.opacity = '1';
-                    } else {
-                        // Hide Gesture Pad if it was off
-                        if(gpWrap) gpWrap.classList.add('hidden');
-                    }
-                    showToast("Welcome Back");
-                }
-                // ---------------------------
-
-                if(navigator.vibrate) navigator.vibrate(200);
-                if(renderUI) renderUI(); 
-                blackoutState.lastShake = now;
-            }
-        }
-        lastX = acc.x; lastY = acc.y; lastZ = acc.z;
-    });
-                                                                                                           
-    // 2. Invisible Grid Listener
-    const bl = document.getElementById('blackout-layer');
-    if(bl) {
-            bl.addEventListener('touchstart', (e) => {
-                // --- UPDATED GUARD ---
-                // Disable the invisible Grid if Hand Gestures or Touch Gestures are active
-                const isHandsActive = visionEngine && visionEngine.isActive;
-                if (isGesturePadVisible || isHandsActive) return; 
-                // ---------------------
-
-                if (e.touches.length === 1) {
-                    e.preventDefault(); 
-                    const t = e.touches[0]; const w = window.innerWidth; const h = window.innerHeight;
-                    let col = Math.floor(t.clientX / (w / 3)); if (col > 2) col = 2;
-                    const settings = getProfileSettings();
-                    let val = null;
-                    if (settings.currentInput === 'key9') {
-                        let row = Math.floor(t.clientY / (h / 3)); if (row > 2) row = 2;
-                        val = (row * 3) + col + 1;
-                    } else {
-                        let row = Math.floor(t.clientY / (h / 4)); if (row > 3) row = 3;
-                        const index = (row * 3) + col; 
-                        if (settings.currentInput === 'piano') {
-                            const map = ['1','2','3', '4','5','C', 'D','E','F', 'G','A','B']; val = map[index];
-                        } else { val = index + 1; }
-                    }
-                    if (val !== null) { addValue(val.toString()); if(navigator.vibrate) navigator.vibrate(20); }
-                }
-            }, { passive: false });
-    }
-            
+                 if (e.touches.length === 1) {
+                     e.preventDefault(); 
+                     const t = e.touches[0]; const w = window.innerWidth; const h = window.innerHeight;
+                     let col = Math.floor(t.clientX / (w / 3)); if (col > 2) col = 2;
+                     const settings = getProfileSettings();
+                     let val = null;
+                     if (settings.currentInput === 'key9') {
+                         let row = Math.floor(t.clientY / (h / 3)); if (row > 2) row = 2;
+                         val = (row * 3) + col + 1;
+                     } else {
+                         let row = Math.floor(t.clientY / (h / 4)); if (row > 3) row = 3;
+                         const index = (row * 3) + col; 
+                         if (settings.currentInput === 'piano') {
+                             const map = ['1','2','3', '4','5','C', 'D','E','F', 'G','A','B']; val = map[index];
+                         } else { val = index + 1; }
+                     }
+                     if (val !== null) { addValue(val.toString()); if(navigator.vibrate) navigator.vibrate(20); }
+                 }
+             }, { passive: false });
         }
         
         // --- HEADER BUTTONS ---
@@ -1420,18 +1379,17 @@ function initGlobalListeners() {
         const headerMic = document.getElementById('header-mic-btn');
         const headerCam = document.getElementById('header-cam-btn');
         const headerGesture = document.getElementById('header-gesture-btn'); 
-const headerStealth = document.getElementById('header-stealth-btn');
-if(headerStealth) {
-    headerStealth.onclick = () => {
-        document.body.classList.toggle('hide-controls');
-        const isActive = document.body.classList.contains('hide-controls');
-        headerStealth.classList.toggle('header-btn-active', isActive);
-        showToast(isActive ? "Inputs Only Active" : "Controls Visible");
-        
-        // Force layout recalculation for the new huge buttons
-        setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
-    };
-}
+        const headerStealth = document.getElementById('header-stealth-btn');
+
+        if(headerStealth) {
+            headerStealth.onclick = () => {
+                document.body.classList.toggle('hide-controls');
+                const isActive = document.body.classList.contains('hide-controls');
+                headerStealth.classList.toggle('header-btn-active', isActive);
+                showToast(isActive ? "Inputs Only Active" : "Controls Visible");
+                setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+            };
+        }
         
         if(headerTimer) {
             headerTimer.textContent = "00:00"; 
@@ -1517,37 +1475,14 @@ if(headerStealth) {
             };
         }
         
-        if(headerCam) { 
-            headerCam.onclick = () => {
-                const isArActive = document.body.classList.contains('ar-active');
-                const newState = !isArActive;
-                if (newState) {
-                    document.body.classList.add('ar-active');
-                    headerCam.classList.add('header-btn-active');
-                    if (modules.sensor) {
-                        modules.sensor.toggleCamera(true); 
-                        if (modules.sensor.videoEl) {
-                            modules.sensor.videoEl.style.display = 'block';
-                            modules.sensor.videoEl.className = 'ar-background-video';
-                        }
-                    }
-                    showToast("AR Mode ON 📸");
-                } else {
-                    document.body.classList.remove('ar-active');
-                    headerCam.classList.remove('header-btn-active');
-                    if (modules.sensor) {
-                        modules.sensor.toggleCamera(false);
-                        if (modules.sensor.videoEl) {
-                            modules.sensor.videoEl.style.display = 'none';
-                        }
-                    }
-                    showToast("AR Mode OFF");
-                }
-            }; 
-        }
+        // Note: Hand and Cam buttons are handled in startApp because they need VisionEngine scope.
+        
     } catch(e) {
         console.error("Listener Error:", e);
     }
+    }
+
+
 // Keep screen awake
 async function requestWakeLock() {
     try {

@@ -1,3 +1,4 @@
+// Import from YOUR local file (Offline Mode)
 import { FilesetResolver, GestureRecognizer } from "./wasm/vision_bundle.js";
 
 export class VisionEngine {
@@ -18,12 +19,12 @@ export class VisionEngine {
 
     async start() {
         if (!this.recognizer) {
-            this.onStatus("Loading AI... 🧠");
+            this.onStatus("Loading AI (Offline)... 🧠");
             try {
-                // 1. Load the Wasm binary from local folder
+                // 1. Load Wasm from LOCAL folder
                 const vision = await FilesetResolver.forVisionTasks("./wasm");
                 
-                // 2. Load the Model from local folder
+                // 2. Load Model from LOCAL folder
                 this.recognizer = await GestureRecognizer.createFromOptions(vision, {
                     baseOptions: {
                         modelAssetPath: "./wasm/gesture_recognizer.task",
@@ -34,7 +35,7 @@ export class VisionEngine {
                 });
             } catch (e) {
                 console.error("Vision Init Error:", e);
-                this.onStatus("AI Failed ❌");
+                this.onStatus("AI Failed ❌ (Check Files)");
                 return;
             }
         }
@@ -84,13 +85,12 @@ export class VisionEngine {
         if (this.video.currentTime !== this.lastVideoTime) {
             this.lastVideoTime = this.video.currentTime;
             
-            // Generate Timestamp for MediaPipe
             const startTimeMs = performance.now();
             try {
                 const results = this.recognizer.recognizeForVideo(this.video, startTimeMs);
                 this.process(results);
             } catch(e) {
-                // Occasional glitches in stream can cause MP errors, just ignore frame
+                // Ignore dropped frames
             }
         }
         
@@ -103,28 +103,17 @@ export class VisionEngine {
         let gesture = "none";
 
         if (results.landmarks.length > 0) {
-            const lm = results.landmarks[0]; // 21 points of the hand
+            const lm = results.landmarks[0]; 
             const fingers = this.countFingers(lm);
             
-            // Direction Logic: Vector from Wrist(0) to Middle Finger MCP(9)
-            // This determines Palm Orientation regardless of screen position
+            // Direction Logic
             const dx = lm[9].x - lm[0].x;
             const dy = lm[9].y - lm[0].y;
-            
             let dir = "";
             
-            // Determine Major Axis (Horizontal vs Vertical)
             if (Math.abs(dx) > Math.abs(dy)) {
-                // Horizontal
-                // Note: Camera is usually mirrored. 
-                // dx < 0 means pointing LEFT in raw coords (0 is left), 
-                // but visually looks like pointing RIGHT on a mirrored selfie cam.
                 dir = dx < 0 ? "right" : "left"; 
             } else {
-                // Vertical
-                // In Computer Vision (0,0) is Top-Left.
-                // dy < 0 means 9 is ABOVE 0 (Pointing Up)
-                // dy > 0 means 9 is BELOW 0 (Pointing Down)
                 dir = dy < 0 ? "up" : "down"; 
             }
 
@@ -132,41 +121,35 @@ export class VisionEngine {
             else gesture = `hand_${fingers}_${dir}`;
         }
 
-        // Debounce Logic: Buffer results to prevent flickering
+        // Debounce Logic
         this.history.push(gesture);
         if (this.history.length > this.requiredFrames) this.history.shift();
         
         const candidate = this.history[0];
-        // Only trigger if we have N identical frames and it's not "none"
         if (candidate !== "none" && this.history.every(g => g === candidate)) {
             this.onTrigger(candidate);
-            this.cooldown = 25; // ~0.8 seconds cooldown (at 30fps)
+            this.cooldown = 25; 
             this.history = [];
         }
     }
 
     countFingers(lm) {
         let count = 0;
-        // Thumb: Compare X coordinates
-        // Logic assumes Right Hand for simplicity (Left hand mirrors this).
-        // A simple generic check is if the Tip(4) is further out than IP(3)
-        // relative to the palm center, but X-check usually works fine for selfies.
+        // Thumb
         if (lm[4].x < lm[3].x && lm[4].x < lm[2].x) count++;
         
-        // Fingers: Compare distance from wrist
-        // Tip must be significantly further from wrist than the PIP joint
-        const w = lm[0]; // Wrist
-        
+        // Fingers
+        const w = lm[0]; 
         const isExtended = (tip, pip) => {
             const dTip = Math.hypot(tip.x - w.x, tip.y - w.y);
             const dPip = Math.hypot(pip.x - w.x, pip.y - w.y);
-            return dTip > (dPip * 1.15); // Threshold
+            return dTip > (dPip * 1.15); 
         };
         
-        if (isExtended(lm[8], lm[6])) count++;   // Index
-        if (isExtended(lm[12], lm[10])) count++; // Middle
-        if (isExtended(lm[16], lm[14])) count++; // Ring
-        if (isExtended(lm[20], lm[18])) count++; // Pinky
+        if (isExtended(lm[8], lm[6])) count++;   
+        if (isExtended(lm[12], lm[10])) count++; 
+        if (isExtended(lm[16], lm[14])) count++; 
+        if (isExtended(lm[20], lm[18])) count++; 
 
         return Math.min(5, count);
     }

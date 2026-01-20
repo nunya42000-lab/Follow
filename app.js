@@ -4,7 +4,7 @@ import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.co
 import { SensorEngine } from './sensors.js';
 import { SettingsManager, PREMADE_THEMES, PREMADE_VOICE_PRESETS } from './settings.js';
 import { initComments } from './comments.js';
-
+import { VisionEngine } from './vision.js';
 const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -915,7 +915,26 @@ const startApp = () => {
         (status) => { }
     );
     modules.settings.sensorEngine = modules.sensor;
-
+modules.vision = new VisionEngine(
+        (gesture) => {
+            // This runs when the AI detects a hand gesture (e.g. "hand_5_up")
+            const settings = getProfileSettings();
+            const mappedVal = mapGestureToValue(gesture, settings.currentInput);
+            
+            if (mappedVal) {
+                addValue(mappedVal);
+                
+                // Visual Feedback
+                const btn = document.querySelector(`#pad-${settings.currentInput} button[data-value="${mappedVal}"]`);
+                if(btn) { 
+                    btn.classList.add('flash-active'); 
+                    setTimeout(() => btn.classList.remove('flash-active'), 200); 
+                }
+                showToast(`Hand: ${mappedVal} 🖐️`);
+            }
+        },
+        (status) => showToast(status) // Shows "Loading AI...", "Cam Blocked", etc.
+    );
     // --- FIX: INITIALIZE VOICE MODULE ---
     voiceModule = new VoiceCommander({
         onStatus: (msg) => showToast(msg),
@@ -1253,7 +1272,26 @@ function initGlobalListeners() {
         const headerMic = document.getElementById('header-mic-btn');
         const headerCam = document.getElementById('header-cam-btn');
         const headerGesture = document.getElementById('header-gesture-btn'); 
-const headerStealth = document.getElementById('header-stealth-btn');
+        const headerHand = document.getElementById('header-hand-btn'); // Get the button
+
+        if(headerHand) {
+            headerHand.onclick = () => {
+                if(!modules.vision) return;
+                
+                // Toggle State
+                const isActive = !modules.vision.isActive;
+                
+                if (isActive) {
+                    modules.vision.start();
+                    headerHand.classList.add('header-btn-active');
+                } else {
+                    modules.vision.stop();
+                    headerHand.classList.remove('header-btn-active');
+                }
+            };
+        }
+        
+        const headerStealth = document.getElementById('header-stealth-btn');
 if(headerStealth) {
     headerStealth.onclick = () => {
         document.body.classList.toggle('hide-controls');

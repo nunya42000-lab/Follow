@@ -101,6 +101,7 @@ let practiceSequence = [];
 let practiceInputIndex = 0;
 let ignoreNextClick = false;
 let voiceModule = null
+let lastInputTime = 0;
 
 // New flag for Shake Toggle
 let isGesturePadVisible = false;
@@ -304,6 +305,9 @@ function playPracticeSequence() {
     next();
 }
 function addValue(value) {
+    const now = Date.now();
+    if (now - lastInputTime < 300) return; // 300ms cooldown to stop double-triggers
+    lastInputTime = now;
     vibrate(); 
     const state = getState(); 
     const settings = getProfileSettings();
@@ -1313,13 +1317,26 @@ function initGlobalListeners() {
         const headerGesture = document.getElementById('header-gesture-btn'); 
         const headerHand = document.getElementById('header-hand-btn'); // Get the button
 
-        if(headerHand) {
+                if(headerHand) {
             headerHand.onclick = () => {
                 if(!modules.vision) return;
                 
-                // Toggle State
+                // 1. EXCLUSIVE: If turning Hand Tracking ON, kill AR Mode first
+                if (!modules.vision.isActive) {
+                     if (document.body.classList.contains('ar-active')) {
+                        document.body.classList.remove('ar-active');
+                        const camBtn = document.getElementById('header-cam-btn');
+                        if(camBtn) camBtn.classList.remove('header-btn-active');
+                        if (modules.sensor) {
+                            modules.sensor.toggleCamera(false);
+                            if (modules.sensor.videoEl) modules.sensor.videoEl.style.display = 'none';
+                        }
+                        showToast("AR Mode OFF");
+                     }
+                }
+
+                // 2. Normal Toggle Logic
                 const isActive = !modules.vision.isActive;
-                
                 if (isActive) {
                     modules.vision.start();
                     headerHand.classList.add('header-btn-active');
@@ -1329,7 +1346,7 @@ function initGlobalListeners() {
                 }
             };
         }
-        
+
         const headerStealth = document.getElementById('header-stealth-btn');
 if(headerStealth) {
     headerStealth.onclick = () => {

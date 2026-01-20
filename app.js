@@ -202,10 +202,7 @@ function vibrateMorse(val) {
         pattern.push(GAP);
     }
     if(pattern.length > 0) navigator.vibrate(pattern); 
-            }
-
-   
-
+}
     function handleGesture(kind) {
        const indicator = document.getElementById('gesture-indicator');
         if(indicator) {
@@ -849,11 +846,6 @@ class VoiceCommander {
         }
     }
 }
-
-
-        
-
-
 const startApp = () => {
     loadState();
 
@@ -1133,7 +1125,7 @@ function initGestureEngine() {
         originalRender();
         updateEngineConstraints();
     };
-                }
+}
                     
                             
 
@@ -1410,7 +1402,5 @@ async function requestWakeLock() {
 requestWakeLock();
         
 }
-
-
         
 document.addEventListener('DOMContentLoaded', startApp);

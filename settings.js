@@ -46,173 +46,83 @@ const HAND_GESTURES_LIST = [
 ];
     
 const GESTURE_PRESETS = {
-    // ================= 9-KEY PROFILES =================
+    // ================= 9-KEY TOUCH =================
     '9_taps': {
-        name: "Taps (Default)",
-        type: 'key9',
+        name: "Taps (Default)", type: 'key9',
         map: {
-            'k9_1': 'tap', 
-            'k9_2': 'double_tap', 
-            'k9_3': 'triple_tap',
-            'k9_4': 'tap_2f_any', 
-            'k9_5': 'double_tap_2f_any', 
-            'k9_6': 'triple_tap_2f_any',
-            'k9_7': 'tap_3f_any', 
-            'k9_8': 'double_tap_3f_any', 
-            'k9_9': 'triple_tap_3f_any'
+            'k9_1': { gesture: 'tap' }, 'k9_2': { gesture: 'double_tap' }, 'k9_3': { gesture: 'triple_tap' },
+            'k9_4': { gesture: 'tap_2f_any' }, 'k9_5': { gesture: 'double_tap_2f_any' }, 'k9_6': { gesture: 'triple_tap_2f_any' },
+            'k9_7': { gesture: 'tap_3f_any' }, 'k9_8': { gesture: 'double_tap_3f_any' }, 'k9_9': { gesture: 'triple_tap_3f_any' }
         }
     },
     '9_swipes': {
-        name: "Swipes (Directional)",
-        type: 'key9',
+        name: "Swipes (Directional)", type: 'key9',
         map: {
-            'k9_1': 'swipe_nw', 'k9_2': 'swipe_up', 'k9_3': 'swipe_ne',
-            'k9_4': 'swipe_left', 'k9_5': 'tap', 'k9_6': 'swipe_right',
-            'k9_7': 'swipe_sw', 'k9_8': 'swipe_down', 'k9_9': 'swipe_se'
+            'k9_1': { gesture: 'swipe_nw' }, 'k9_2': { gesture: 'swipe_up' }, 'k9_3': { gesture: 'swipe_ne' },
+            'k9_4': { gesture: 'swipe_left' }, 'k9_5': { gesture: 'tap' }, 'k9_6': { gesture: 'swipe_right' },
+            'k9_7': { gesture: 'swipe_sw' }, 'k9_8': { gesture: 'swipe_down' }, 'k9_9': { gesture: 'swipe_se' }
         }
     },
-    '9_motion': {
-        name: "Spatial Taps (Micro)",
-        type: 'key9',
-        map: {
-            // UPDATED to new ID names
-           'k9_1': 'motion_tap_spatial_nw', 'k9_2': 'motion_tap_spatial_up', 'k9_3': 'motion_tap_spatial_ne',
-            'k9_4': 'motion_tap_spatial_left', 'k9_5': 'double_tap', 'k9_6': 'motion_tap_spatial_right',
-            'k9_7': 'motion_tap_spatial_sw', 'k9_8': 'motion_tap_spatial_down', 'k9_9': 'motion_tap_spatial_se' 
-        }
-    },
-// === 9-KEY HAND ===
+    // ================= 9-KEY HAND =================
     '9_hand_count': {
-        name: "Hand Count (Up/Down)",
-        type: 'key9',
+        name: "Hand Count (Up/Down)", type: 'key9',
         map: {
-            'k9_1': { hand: 'hand_1_up' },   // 1 Up
-            'k9_2': { hand: 'hand_2_up' },   // 2 Up
-            'k9_3': { hand: 'hand_3_up' },   // 3 Up
-            'k9_4': { hand: 'hand_4_up' },   // 4 Up
-            'k9_5': { hand: 'hand_5_up' },   // 5 Up (Palm)
-            'k9_6': { hand: 'hand_1_down' }, // 1 Down
-            'k9_7': { hand: 'hand_2_down' }, // 2 Down
-            'k9_8': { hand: 'hand_3_down' }, // 3 Down
-            'k9_9': { hand: 'hand_4_down' }  // 4 Down
+            'k9_1': { hand: 'hand_1_up' }, 'k9_2': { hand: 'hand_2_up' }, 'k9_3': { hand: 'hand_3_up' },
+            'k9_4': { hand: 'hand_4_up' }, 'k9_5': { hand: 'hand_5_up' }, 'k9_6': { hand: 'hand_1_down' },
+            'k9_7': { hand: 'hand_2_down' }, 'k9_8': { hand: 'hand_3_down' }, 'k9_9': { hand: 'hand_4_down' }
         }
     },
-    // ================= 12-KEY PROFILES =================
+
+    // ================= 12-KEY TOUCH =================
     '12_taps': {
-        name: "Taps (Default)",
-        type: 'key12',
+        name: "Taps (Default)", type: 'key12',
         map: {
-            'k12_1': 'tap', 
-            'k12_2': 'double_tap', 
-            'k12_3': 'triple_tap', 
-            'k12_4': 'long_tap',
-            'k12_5': 'tap_2f_any', 
-            'k12_6': 'double_tap_2f_any', 
-            'k12_7': 'triple_tap_2f_any', 
-            'k12_8': 'long_tap_2f_any',
-            'k12_9': 'tap_3f_any', 
-            'k12_10': 'double_tap_3f_any', 
-            'k12_11': 'triple_tap_3f_any', 
-            'k12_12': 'long_tap_3f_any'
+            'k12_1': { gesture: 'tap' }, 'k12_2': { gesture: 'double_tap' }, 'k12_3': { gesture: 'triple_tap' }, 'k12_4': { gesture: 'long_tap' },
+            'k12_5': { gesture: 'tap_2f_any' }, 'k12_6': { gesture: 'double_tap_2f_any' }, 'k12_7': { gesture: 'triple_tap_2f_any' }, 'k12_8': { gesture: 'long_tap_2f_any' },
+            'k12_9': { gesture: 'tap_3f_any' }, 'k12_10': { gesture: 'double_tap_3f_any' }, 'k12_11': { gesture: 'triple_tap_3f_any' }, 'k12_12': { gesture: 'long_tap_3f_any' }
         }
     },
     '12_swipes': {
-        name: "Swipes (Directional)",
-        type: 'key12',
+        name: "Swipes (Directional)", type: 'key12',
         map: {
-            'k12_1': 'swipe_left', 'k12_2': 'swipe_up', 'k12_3': 'swipe_down', 'k12_4': 'swipe_right',
-            'k12_5': 'swipe_left_2f', 'k12_6': 'swipe_up_2f', 'k12_7': 'swipe_down_2f', 'k12_8': 'swipe_right_2f',
-            'k12_9': 'swipe_left_3f', 'k12_10': 'swipe_up_3f', 'k12_11': 'swipe_down_3f', 'k12_12': 'swipe_right_3f'
+            'k12_1': { gesture: 'swipe_left' }, 'k12_2': { gesture: 'swipe_up' }, 'k12_3': { gesture: 'swipe_down' }, 'k12_4': { gesture: 'swipe_right' },
+            'k12_5': { gesture: 'swipe_left_2f' }, 'k12_6': { gesture: 'swipe_up_2f' }, 'k12_7': { gesture: 'swipe_down_2f' }, 'k12_8': { gesture: 'swipe_right_2f' },
+            'k12_9': { gesture: 'swipe_left_3f' }, 'k12_10': { gesture: 'swipe_up_3f' }, 'k12_11': { gesture: 'swipe_down_3f' }, 'k12_12': { gesture: 'swipe_right_3f' }
         }
     },
-    '12_hybrid': {
-        name: "Hybrid (Mix)",
-        type: 'key12',
-        map: {
-            'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
-            'k12_5': 'swipe_left', 'k12_6': 'swipe_up', 'k12_7': 'swipe_down', 'k12_8': 'swipe_right',
-            'k12_9': 'swipe_left_2f', 'k12_10': 'swipe_up_2f', 'k12_11': 'swipe_down_2f', 'k12_12': 'swipe_right_2f'
-        }
-    },
-// === 12-KEY HAND ===
+    // ================= 12-KEY HAND =================
     '12_hand_extended': {
-        name: "Hand Extended (Up/Down/Side)",
-        type: 'key12',
+        name: "Hand Extended (Up/Down)", type: 'key12',
         map: {
-            // 1-5: Up
-            'k12_1': { hand: 'hand_1_up' },
-            'k12_2': { hand: 'hand_2_up' },
-            'k12_3': { hand: 'hand_3_up' },
-            'k12_4': { hand: 'hand_4_up' },
-            'k12_5': { hand: 'hand_5_up' },
-            
-            // 6-10: Down
-            'k12_6': { hand: 'hand_1_down' },
-            'k12_7': { hand: 'hand_2_down' },
-            'k12_8': { hand: 'hand_3_down' },
-            'k12_9': { hand: 'hand_4_down' },
-            'k12_10': { hand: 'hand_5_down' },
-
-            // 11-12: Directional (Thumb/Index sideways)
-            'k12_11': { hand: 'hand_1_right' }, // Point Right
-            'k12_12': { hand: 'hand_1_left' }   // Point Left
+            'k12_1': { hand: 'hand_1_up' }, 'k12_2': { hand: 'hand_2_up' }, 'k12_3': { hand: 'hand_3_up' }, 'k12_4': { hand: 'hand_4_up' }, 'k12_5': { hand: 'hand_5_up' },
+            'k12_6': { hand: 'hand_1_down' }, 'k12_7': { hand: 'hand_2_down' }, 'k12_8': { hand: 'hand_3_down' }, 'k12_9': { hand: 'hand_4_down' }, 'k12_10': { hand: 'hand_5_down' },
+            'k12_11': { hand: 'hand_1_right' }, 'k12_12': { hand: 'hand_1_left' }
         }
     },
-    
-    // ================= PIANO PROFILES =================
+
+    // ================= PIANO TOUCH =================
     'piano_swipes': {
-        name: "Swipes (Default)",
-        type: 'piano',
+        name: "Swipes (Default)", type: 'piano',
         map: {
-            'piano_C': 'swipe_nw', 'piano_D': 'swipe_left', 'piano_E': 'swipe_sw', 
-            'piano_F': 'swipe_down', 'piano_G': 'swipe_se', 
-            'piano_A': 'swipe_right', 'piano_B': 'swipe_ne',
-            'piano_1': 'swipe_left_2f', 'piano_2': 'swipe_nw_2f', 'piano_3': 'swipe_up_2f', 
-            'piano_4': 'swipe_ne_2f', 'piano_5': 'swipe_right_2f'
+            'piano_C': { gesture: 'swipe_nw' }, 'piano_D': { gesture: 'swipe_left' }, 'piano_E': { gesture: 'swipe_sw' },
+            'piano_F': { gesture: 'swipe_down' }, 'piano_G': { gesture: 'swipe_se' }, 'piano_A': { gesture: 'swipe_right' }, 'piano_B': { gesture: 'swipe_ne' },
+            'piano_1': { gesture: 'swipe_left_2f' }, 'piano_2': { gesture: 'swipe_nw_2f' }, 'piano_3': { gesture: 'swipe_up_2f' },
+            'piano_4': { gesture: 'swipe_ne_2f' }, 'piano_5': { gesture: 'swipe_right_2f' }
         }
     },
-    'piano_taps': {
-        name: "Taps Only",
-        type: 'piano',
-        map: {
-            'piano_C': 'tap', 
-            'piano_D': 'double_tap', 
-            'piano_E': 'triple_tap',
-            'piano_F': 'long_tap',
-            'piano_G': 'tap_2f_any',
-            'piano_A': 'double_tap_2f_any',
-            'piano_B': 'triple_tap_2f_any',
-            
-            'piano_1': 'tap_3f_any',
-            'piano_2': 'double_tap_3f_any',
-            'piano_3': 'triple_tap_3f_any',
-            'piano_4': 'long_tap_2f_any',
-            'piano_5': 'long_tap_3f_any'
-        }
-    },
-       // === PIANO HAND ===
+    // ================= PIANO HAND =================
     'piano_hand_hybrid': {
-        name: "Piano Hands",
-        type: 'piano',
+        name: "Piano Hands", type: 'piano',
         map: {
-            // White Keys (C-B) -> Up & Sides
-            'piano_C': { hand: 'hand_1_up' },
-            'piano_D': { hand: 'hand_2_up' },
-            'piano_E': { hand: 'hand_3_up' },
-            'piano_F': { hand: 'hand_4_up' },
-            'piano_G': { hand: 'hand_5_up' },
-            'piano_A': { hand: 'hand_1_right' }, // Point Right
-            'piano_B': { hand: 'hand_2_right' }, // Peace Sign Right
-
-            // Black Keys (1-5) -> Down
-            'piano_1': { hand: 'hand_1_down' },
-            'piano_2': { hand: 'hand_2_down' },
-            'piano_3': { hand: 'hand_3_down' },
-            'piano_4': { hand: 'hand_4_down' },
-            'piano_5': { hand: 'hand_5_down' }
+            'piano_C': { hand: 'hand_1_up' }, 'piano_D': { hand: 'hand_2_up' }, 'piano_E': { hand: 'hand_3_up' },
+            'piano_F': { hand: 'hand_4_up' }, 'piano_G': { hand: 'hand_5_up' }, 'piano_A': { hand: 'hand_1_right' }, 'piano_B': { hand: 'hand_1_left' },
+            'piano_1': { hand: 'hand_1_down' }, 'piano_2': { hand: 'hand_2_down' }, 'piano_3': { hand: 'hand_3_down' },
+            'piano_4': { hand: 'hand_4_down' }, 'piano_5': { hand: 'hand_5_down' }
         }
     }
-};     
+};
+
+
 
 const CRAYONS = ["#000000", "#1F75FE", "#1CA9C9", "#0D98BA", "#FFFFFF", "#C5D0E6", "#B0B7C6", "#AF4035", "#F5F5F5", "#FEFEFA", "#FFFAFA", "#F0F8FF", "#F8F8FF", "#F5F5DC", "#FFFACD", "#FAFAD2", "#FFFFE0", "#FFFFF0", "#FFFF00", "#FFEFD5", "#FFE4B5", "#FFDAB9", "#EEE8AA", "#F0E68C", "#BDB76B", "#E6E6FA", "#D8BFD8", "#DDA0DD", "#EE82EE", "#DA70D6", "#FF00FF", "#BA55D3", "#9370DB", "#8A2BE2", "#9400D3", "#9932CC", "#8B008B", "#800000", "#4B0082", "#483D8B", "#6A5ACD", "#7B68EE", "#ADFF2F", "#7FFF00", "#7CFC00", "#00FF00", "#32CD32", "#98FB98", "#90EE90", "#00FA9A", "#00FF7F", "#3CB371", "#2E8B57", "#228B22", "#008000", "#006400", "#9ACD32", "#6B8E23", "#808000", "#556B2F", "#66CDAA", "#8FBC8F", "#20B2AA", "#008B8B", "#008080", "#00FFFF", "#00CED1", "#40E0D0", "#48D1CC", "#AFEEEE", "#7FFFD4", "#B0E0E6", "#5F9EA0", "#4682B4", "#6495ED", "#00BFFF", "#1E90FF", "#ADD8E6", "#87CEEB", "#87CEFA", "#191970", "#000080", "#0000FF", "#0000CD", "#4169E1", "#8A2BE2", "#4B0082", "#FFE4C4", "#FFEBCD", "#F5DEB3", "#DEB887", "#D2B48C", "#BC8F8F", "#F4A460", "#DAA520", "#B8860B", "#CD853F", "#D2691E", "#8B4513", "#A0522D", "#A52A2A", "#800000", "#FFA07A", "#FA8072", "#E9967A", "#F08080", "#CD5C5C", "#DC143C", "#B22222", "#FF0000", "#FF4500", "#FF6347", "#FF7F50", "#FF8C00", "#FFA500", "#FFD700", "#FFFF00", "#808000", "#556B2F", "#6B8E23", "#999999", "#808080", "#666666", "#333333", "#222222", "#111111", "#0A0A0A", "#000000"];
 
@@ -914,37 +824,27 @@ export class SettingsManager {
         }
 
         // 2. DEFINE THE EXPANDED GESTURE LIST
-        const gestureList = [
-            // --- Taps ---
+                const gestureList = [
             'tap', 'double_tap', 'triple_tap', 'long_tap',
-            
-            // --- Multi-Finger Taps ---
             'tap_2f_any', 'double_tap_2f_any', 'triple_tap_2f_any', 'long_tap_2f_any',
             'tap_3f_any', 'double_tap_3f_any', 'triple_tap_3f_any', 'long_tap_3f_any',
             
-            // --- Standard Swipes ---
+            // Basic Directional
             'swipe_up', 'swipe_down', 'swipe_left', 'swipe_right', 
             'swipe_nw', 'swipe_ne', 'swipe_sw', 'swipe_se',
             
-            // --- Long Swipes (Throw) ---
+            // Long / Throw
             'swipe_long_up', 'swipe_long_down', 'swipe_long_left', 'swipe_long_right',
             
-            // --- Multi-Finger Swipes ---
+            // Multi-Finger Swipes
             'swipe_up_2f', 'swipe_down_2f', 'swipe_left_2f', 'swipe_right_2f',
+            'swipe_up_3f', 'swipe_down_3f', 'swipe_left_3f', 'swipe_right_3f',
             
-            // --- Shapes: Boomerangs (I-Shape / 180 flip) ---
+            // Shapes
             'boomerang_up', 'boomerang_down', 'boomerang_left', 'boomerang_right',
-            
-            // --- Shapes: Switchbacks (V-Shape / < >) ---
             'switchback_up', 'switchback_down', 'switchback_left', 'switchback_right',
-            
-            // --- Shapes: Corners (L-Shape) ---
             'corner_cw', 'corner_ccw',
-            
-            // --- Shapes: Closed & Complex ---
-            'square_cw', 'square_ccw', 
-            'triangle_cw', 'triangle_ccw',
-            'u_shape_cw', 'u_shape_ccw',
+            'square_cw', 'square_ccw', 'circle_cw', 'circle_ccw',
             'zigzag_right', 'zigzag_left'
         ];
 
@@ -1143,31 +1043,29 @@ export class SettingsManager {
 
             renderMappings();
 
-            select.onchange = () => {
+                        select.onchange = () => {
                  const val = select.value;
                  if(!val) return;
-                 // Safe Preset Access again
                  const safePresets = (typeof GESTURE_PRESETS !== 'undefined') ? GESTURE_PRESETS : {};
                  
                  let data = safePresets[val] ? safePresets[val].map : (this.appSettings.gestureProfiles[val] ? this.appSettings.gestureProfiles[val].map : null);
+                 
                  if(data) {
-                     // Check if this is a simple string map (old presets) or object map (new presets)
-                     // Convert old string map to new object format for internal storage if needed
                      Object.keys(data).forEach(key => {
                          if(!this.appSettings.gestureMappings[key]) this.appSettings.gestureMappings[key] = {};
                          
                          const entry = data[key];
-                         if (typeof entry === 'string') {
-                             this.appSettings.gestureMappings[key].gesture = entry;
-                         } else if (typeof entry === 'object') {
-                             if(entry.gesture) this.appSettings.gestureMappings[key].gesture = entry.gesture;
-                             if(entry.hand) this.appSettings.gestureMappings[key].hand = entry.hand;
-                         }
+                         
+                         // MERGE LOGIC: Only overwrite if the preset has a value for that specific type
+                         // This prevents "Touch Only" presets from wiping your "Hand" settings
+                         if (entry.gesture) this.appSettings.gestureMappings[key].gesture = entry.gesture;
+                         if (entry.hand) this.appSettings.gestureMappings[key].hand = entry.hand;
                      });
                      this.callbacks.onSave();
                      renderMappings();
                  }
             };
+
             
             details.appendChild(contentDiv);
             if(tabRoot) tabRoot.appendChild(details);

@@ -1003,7 +1003,6 @@ modules.vision = new VisionEngine(
 
 // ... (Previous imports and init logic remain unchanged) ...
 
-function mapGestureToValue(kind, currentInput) {
 // --- NEW: Default Hand Definitions ---
 const DEFAULT_HAND_MAPPINGS = {
     // 9-Key Defaults
@@ -1063,8 +1062,6 @@ function mapGestureToValue(kind, currentInput) {
     }
     return null;
 }
-
-
 // NEW FUNCTION: Tells the engine which gestures to look for
 function updateEngineConstraints() {
     if (!modules.gestureEngine) return;

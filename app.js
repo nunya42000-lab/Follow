@@ -906,14 +906,21 @@ const startApp = () => {
         }
     }, null); 
 
-    modules.sensor = new SensorEngine(
+        modules.sensor = new SensorEngine(
         (val, source) => { 
+             // --- FIX: Prevent Sensor Interference ---
+             // If AI Vision is running, ignore the basic light/camera sensor
+             // to prevent "7s" or random inputs from light changes.
+             if (source === 'camera' && modules.vision && modules.vision.isActive) return;
+             // ----------------------------------------
+
              addValue(val); 
              const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
              if(btn) { btn.classList.add('flash-active'); setTimeout(() => btn.classList.remove('flash-active'), 200); }
         },
         (status) => { }
     );
+
     modules.settings.sensorEngine = modules.sensor;
 modules.vision = new VisionEngine(
         (gesture) => {
@@ -997,6 +1004,27 @@ modules.vision = new VisionEngine(
 // ... (Previous imports and init logic remain unchanged) ...
 
 function mapGestureToValue(kind, currentInput) {
+// --- NEW: Default Hand Definitions ---
+const DEFAULT_HAND_MAPPINGS = {
+    // 9-Key Defaults
+    'k9_1': 'hand_1_up', 'k9_2': 'hand_2_up', 'k9_3': 'hand_3_up',
+    'k9_4': 'hand_4_up', 'k9_5': 'hand_5_up', 'k9_6': 'hand_1_down',
+    'k9_7': 'hand_2_down', 'k9_8': 'hand_3_down', 'k9_9': 'hand_4_down',
+
+    // 12-Key Defaults
+    'k12_1': 'hand_1_up', 'k12_2': 'hand_2_up', 'k12_3': 'hand_3_up',
+    'k12_4': 'hand_4_up', 'k12_5': 'hand_5_up', 'k12_6': 'hand_1_down',
+    'k12_7': 'hand_2_down', 'k12_8': 'hand_3_down', 'k12_9': 'hand_4_down',
+    'k12_10': 'hand_5_down', 'k12_11': 'hand_1_right', 'k12_12': 'hand_1_left',
+
+    // Piano Defaults
+    'piano_C': 'hand_1_up', 'piano_D': 'hand_2_up', 'piano_E': 'hand_3_up',
+    'piano_F': 'hand_4_up', 'piano_G': 'hand_5_up', 'piano_A': 'hand_1_right', 'piano_B': 'hand_1_left',
+    'piano_1': 'hand_1_down', 'piano_2': 'hand_2_down', 'piano_3': 'hand_3_down',
+    'piano_4': 'hand_4_down', 'piano_5': 'hand_5_down'
+};
+
+function mapGestureToValue(kind, currentInput) {
     const saved = appSettings.gestureMappings || {};
 
     // Strict Match Helper
@@ -1010,18 +1038,32 @@ function mapGestureToValue(kind, currentInput) {
         return false;
     };
 
-    const getG = (key) => (saved[key] && saved[key].gesture) ? saved[key].gesture : DEFAULT_MAPPINGS[key];
+    // --- UPDATED LOGIC: Check Touch AND Hand defaults ---
+    const checkMatch = (key) => {
+        const m = saved[key] || {};
+        
+        // 1. Check Saved/Default TOUCH Gesture
+        const touchG = m.gesture || DEFAULT_MAPPINGS[key];
+        if (matches(touchG, kind)) return true;
+
+        // 2. Check Saved/Default HAND Gesture
+        const handG = m.hand || DEFAULT_HAND_MAPPINGS[key];
+        if (matches(handG, kind)) return true;
+
+        return false;
+    };
 
     if(currentInput === CONFIG.INPUTS.PIANO) {
         const keys = ['C','D','E','F','G','A','B','1','2','3','4','5'];
-        for(let k of keys) { if (matches(getG('piano_' + k), kind)) return k; }
+        for(let k of keys) { if (checkMatch('piano_' + k)) return k; }
     } else if(currentInput === CONFIG.INPUTS.KEY12) {
-        for(let i=1; i<=12; i++) { if (matches(getG('k12_' + i), kind)) return i; }
+        for(let i=1; i<=12; i++) { if (checkMatch('k12_' + i)) return i; }
     } else if(currentInput === CONFIG.INPUTS.KEY9) {
-        for(let i=1; i<=9; i++) { if (matches(getG('k9_' + i), kind)) return i; }
+        for(let i=1; i<=9; i++) { if (checkMatch('k9_' + i)) return i; }
     }
     return null;
 }
+
 
 // NEW FUNCTION: Tells the engine which gestures to look for
 function updateEngineConstraints() {

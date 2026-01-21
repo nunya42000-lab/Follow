@@ -36,6 +36,13 @@ export const PREMADE_VOICE_PRESETS = {
     'announcer': { name: "Announcer", pitch: 0.8, rate: 1.1, volume: 1.0 },
     'whisper': { name: "Quiet", pitch: 1.2, rate: 0.8, volume: 0.4 }
 };
+const SPATIAL_GESTURES = [
+    'motion_tap_spatial_up', 'motion_tap_spatial_down', 'motion_tap_spatial_left', 'motion_tap_spatial_right',
+    'motion_tap_spatial_nw', 'motion_tap_spatial_ne', 'motion_tap_spatial_sw', 'motion_tap_spatial_se',
+    'triple_tap_spatial_line_up', 'triple_tap_spatial_line_down', 'triple_tap_spatial_line_left', 'triple_tap_spatial_line_right',
+    'tap_2f_vertical', 'tap_2f_horizontal', 'tap_3f_vertical', 'tap_3f_horizontal',
+    'pinch_swipe_up_2f', 'pinch_swipe_down_2f', 'expand_swipe_up_2f', 'expand_swipe_down_2f'
+];
 const HAND_GESTURES_LIST = [
     'hand_fist',
     'hand_1_up', 'hand_1_down', 'hand_1_left', 'hand_1_right',
@@ -412,6 +419,50 @@ export class SettingsManager {
         if (this.dom.voiceRate) this.dom.voiceRate.oninput = updateVoiceLive;
         if (this.dom.voiceVolume) this.dom.voiceVolume.oninput = updateVoiceLive;
 
+        // AR Snapshot
+        if (this.dom.btnSnapshot) {
+            this.dom.btnSnapshot.onclick = () => {
+                const video = document.getElementById('sensor-video-feed');
+                if (!video) return alert("AR Mode must be ON.");
+                const cvs = document.createElement('canvas');
+                cvs.width = video.videoWidth;
+                cvs.height = video.videoHeight;
+                cvs.getContext('2d').drawImage(video, 0, 0);
+                const link = document.createElement('a');
+                link.download = `ar-snap-${Date.now()}.png`;
+                link.href = cvs.toDataURL('image/png');
+                link.click();
+            };
+        }
+
+        // AR Record
+        if (this.dom.btnRecord) this.dom.btnRecord.onclick = () => this.handleRecording();
+        
+        // Level Warp Cheat
+        if (this.dom.btnWarp) {
+            this.dom.btnWarp.onclick = () => {
+                const lvl = parseInt(this.dom.inputWarp.value);
+                if (lvl > 0 && window.startRoundCheat) {
+                    window.startRoundCheat(lvl);
+                    document.getElementById('settings-modal').classList.add('opacity-0', 'pointer-events-none');
+                }
+            };
+        }
+
+        // System Nuke
+        if (this.dom.btnNuke) {
+            this.dom.btnNuke.onclick = async () => {
+                if(!confirm("NUKE CACHE & RELOAD?")) return;
+                const keys = await caches.keys();
+                await Promise.all(keys.map(k => caches.delete(k)));
+                if('serviceWorker' in navigator) {
+                    const regs = await navigator.serviceWorker.getRegistrations();
+                    for(let r of regs) r.unregister();
+                }
+                window.location.reload(true);
+            };
+        }
+            
         // Voice Preset Management
         if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.onchange = (e) => { this.appSettings.activeVoicePresetId = e.target.value; this.applyVoicePreset(e.target.value); };
         if (this.dom.voicePresetAdd) this.dom.voicePresetAdd.onclick = () => { const n = prompt("New Voice Preset Name:"); if (n) { const id = 'vp_' + Date.now(); this.appSettings.voicePresets[id] = { name: n, pitch: this.appSettings.voicePitch, rate: this.appSettings.voiceRate, volume: this.appSettings.voiceVolume }; this.appSettings.activeVoicePresetId = id; this.populateVoicePresetDropdown(); this.callbacks.onSave(); } };

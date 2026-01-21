@@ -101,7 +101,6 @@ let practiceSequence = [];
 let practiceInputIndex = 0;
 let ignoreNextClick = false;
 let voiceModule = null
-let lastInputTime = 0;
 
 // New flag for Shake Toggle
 let isGesturePadVisible = false;
@@ -305,9 +304,6 @@ function playPracticeSequence() {
     next();
 }
 function addValue(value) {
-    const now = Date.now();
-    if (now - lastInputTime < 300) return; // 300ms cooldown to stop double-triggers
-    lastInputTime = now;
     vibrate(); 
     const state = getState(); 
     const settings = getProfileSettings();
@@ -850,31 +846,6 @@ class VoiceCommander {
         }
     }
 }
-const TONES = {
-    1: 261.63, 2: 293.66, 3: 329.63, 4: 349.23, 5: 392.00, 6: 440.00, 
-    7: 493.88, 8: 523.25, 9: 587.33, 10: 659.25, 11: 698.46, 12: 783.99
-};
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-function playTone(btnValue) {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    
-    // Map value to frequency, fallback to calculation if > 12
-    const freq = TONES[btnValue] || (200 + (btnValue * 50));
-    
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
-    
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.5);
-        }
 const startApp = () => {
     loadState();
 
@@ -1342,26 +1313,13 @@ function initGlobalListeners() {
         const headerGesture = document.getElementById('header-gesture-btn'); 
         const headerHand = document.getElementById('header-hand-btn'); // Get the button
 
-                if(headerHand) {
+        if(headerHand) {
             headerHand.onclick = () => {
                 if(!modules.vision) return;
                 
-                // 1. EXCLUSIVE: If turning Hand Tracking ON, kill AR Mode first
-                if (!modules.vision.isActive) {
-                     if (document.body.classList.contains('ar-active')) {
-                        document.body.classList.remove('ar-active');
-                        const camBtn = document.getElementById('header-cam-btn');
-                        if(camBtn) camBtn.classList.remove('header-btn-active');
-                        if (modules.sensor) {
-                            modules.sensor.toggleCamera(false);
-                            if (modules.sensor.videoEl) modules.sensor.videoEl.style.display = 'none';
-                        }
-                        showToast("AR Mode OFF");
-                     }
-                }
-
-                // 2. Normal Toggle Logic
+                // Toggle State
                 const isActive = !modules.vision.isActive;
+                
                 if (isActive) {
                     modules.vision.start();
                     headerHand.classList.add('header-btn-active');
@@ -1371,7 +1329,7 @@ function initGlobalListeners() {
                 }
             };
         }
-
+        
         const headerStealth = document.getElementById('header-stealth-btn');
 if(headerStealth) {
     headerStealth.onclick = () => {

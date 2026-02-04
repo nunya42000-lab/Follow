@@ -1473,6 +1473,31 @@ if(headerStealth) {
     } catch(e) {
         console.error("Listener Error:", e);
     }
+    // Inside app.js
+
+let mediaRecorder = null;
+let recordedChunks = [];
+
+async function startRecording() {
+    try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: appSettings.recordAudio });
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = (e) => recordedChunks.push(e.data);
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(recordedChunks, { type: "video/webm" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url; a.download = `follow-me-capture-${Date.now()}.webm`;
+            a.click();
+            recordedChunks = [];
+        };
+        mediaRecorder.start();
+        showToast("Recording Started 🎥");
+    } catch(e) { console.error(e); }
+}
+
+window.startRecording = startRecording;
+    
 // Keep screen awake
 let wakeLockRef = null;
 async function requestWakeLock() {

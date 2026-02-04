@@ -77,61 +77,73 @@ export class VisionEngine {
         if (this.loopId) cancelAnimationFrame(this.loopId);
         this.onStatus("Vision Off 🌑");
     }
+// Inside vision.js -> REPLACE predict() and process()
 
-    predict() {
-        if (!this.isActive) return;
-        
-        // Only process if video has advanced
-        if (this.video.currentTime !== this.lastVideoTime) {
-            this.lastVideoTime = this.video.currentTime;
-            
-            const startTimeMs = performance.now();
-            try {
-                const results = this.recognizer.recognizeForVideo(this.video, startTimeMs);
-                this.process(results);
-            } catch(e) {
-                // Ignore dropped frames
-            }
-        }
-        
+predict() {
+    if (!this.isActive) return;
+
+    // --- ECO MODE LOGIC ---
+    // If Eco Mode is on, we only process every 4th frame (approx 15fps)
+    this.frameCount = (this.frameCount || 0) + 1;
+    const isEco = window.appSettings?.isEcoModeEnabled;
+    if (isEco && this.frameCount % 4 !== 0) {
         this.loopId = requestAnimationFrame(() => this.predict());
+        return;
     }
 
-    process(results) {
-        if (this.cooldown > 0) { this.cooldown--; return; }
-
-        let gesture = "none";
-
-        if (results.landmarks.length > 0) {
-            const lm = results.landmarks[0]; 
-            const fingers = this.countFingers(lm);
-            
-            // Direction Logic
-            const dx = lm[9].x - lm[0].x;
-            const dy = lm[9].y - lm[0].y;
-            let dir = "";
-            
-            if (Math.abs(dx) > Math.abs(dy)) {
-                dir = dx < 0 ? "right" : "left"; 
-            } else {
-                dir = dy < 0 ? "up" : "down"; 
-            }
-
-            if (fingers === 0) gesture = "hand_fist";
-            else gesture = `hand_${fingers}_${dir}`;
-        }
-
-        // Debounce Logic
-        this.history.push(gesture);
-        if (this.history.length > this.requiredFrames) this.history.shift();
+    if (this.video.currentTime !== this.lastVideoTime) {
+        this.lastVideoTime = this.video.currentTime;
+        const startTimeMs = performance.now();
         
-        const candidate = this.history[0];
-        if (candidate !== "none" && this.history.every(g => g === candidate)) {
-            this.onTrigger(candidate);
-            this.cooldown = 25; 
-            this.history = [];
-        }
+        try {
+            const results = this.recognizer.recognizeForVideo(this.video, startTimeMs);
+            
+            // --- SKELETON DEBUG OVERLAY ---
+            if (window.appSettings?.isSkeletonDebugEnabled) {
+                this._drawDebugSkeleton(results);
+            }
+            
+            this.process(results);
+        } catch(e) { console.error("Vision Frame Error", e); }
     }
+    
+    this.loopId = requestAnimationFrame(() => this.predict());
+}
+
+process(results) {
+    if (this.cooldown > 0) { this.cooldown--; return; }
+
+    let gesture = "none";
+
+    if (results.landmarks && results.landmarks.length > 0) {
+        const lm = results.landmarks[0]; 
+        
+        // Use Developer-tuned sensitivity
+        const extensionThreshold = window.appSettings?.fingerExtensionThreshold || 1.15;
+        const fingers = this.countFingers(lm, extensionThreshold);
+        
+        // Direction Logic
+        const dx = lm[9].x - lm[0].x;
+        const dy = lm[9].y - lm[0].y;
+        let dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? "right" : "left") : (dy < 0 ? "up" : "down");
+
+        gesture = fingers === 0 ? "hand_fist" : `hand_${fingers}_${dir}`;
+    }
+
+    // Advanced Smoothing: Require 'Hold Duration' from dev settings
+    this.history.push(gesture);
+    const requiredFrames = window.appSettings?.handHoldFrames || 5;
+    if (this.history.length > requiredFrames) this.history.shift();
+    
+    const candidate = this.history[0];
+    if (candidate !== "none" && this.history.every(g => g === candidate)) {
+        this.onTrigger(candidate);
+        this.cooldown = 20; // Re-arm delay
+        this.history = [];
+    }
+    }
+    
+    
 
     countFingers(lm) {
         let count = 0;

@@ -1,3 +1,4 @@
+
 import { GestureEngine } from './gestures.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
@@ -1066,14 +1067,19 @@ function mapGestureToValue(kind, currentInput) {
     return null;
 }
 // NEW FUNCTION: Tells the engine which gestures to look for
+// REPLACE existing 'updateEngineConstraints' in app.js with this:
+
 function updateEngineConstraints() {
     if (!modules.gestureEngine) return;
+    
     const settings = getProfileSettings();
     const saved = appSettings.gestureMappings || {};
+    // Helper to get the active gesture for a key (default or custom)
     const getG = (key) => (saved[key] && saved[key].gesture) ? saved[key].gesture : DEFAULT_MAPPINGS[key];
 
     const activeList = [];
 
+    // 1. Add gestures for the CURRENT input mode only
     if(settings.currentInput === CONFIG.INPUTS.PIANO) {
         ['C','D','E','F','G','A','B','1','2','3','4','5'].forEach(k => activeList.push(getG('piano_' + k)));
     } else if(settings.currentInput === CONFIG.INPUTS.KEY12) {
@@ -1082,12 +1088,18 @@ function updateEngineConstraints() {
         for(let i=1; i<=9; i++) activeList.push(getG('k9_' + i));
     }
 
+    // 2. Add Global "Always On" gestures
     if (appSettings.isDeleteGestureEnabled) activeList.push('delete'); 
     if (appSettings.isClearGestureEnabled) activeList.push('clear');   
 
+    // 3. Sync with Gesture Engine
     modules.gestureEngine.updateAllowed(activeList);
+    
+    // 4. Sync Chord Latency (The new part)
+    if (modules.gestureEngine.config) {
+        modules.gestureEngine.config.chordLatency = appSettings.chordLatency || 50;
+    }
 }
-
 
 function initGestureEngine() {
     const engine = new GestureEngine(document.body, {

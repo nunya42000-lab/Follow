@@ -1,9 +1,8 @@
 // sw.js
 // Version: v64 - Fault Tolerant Offline
 const CACHE_NAME = 'follow-me-v64-robust';
+const CACHE_NAME = 'follow-me-v100-dev';
 
-// 1. CRITICAL: These MUST exist for the app to run.
-// If any of these are missing, the offline mode will fail.
 const CRITICAL_ASSETS = [
     './',
     './index.html',
@@ -12,28 +11,19 @@ const CRITICAL_ASSETS = [
     './settings.js',
     './sensors.js',
     './gestures.js',
-    './comments.js',
-    './manifest.json',
     './vision.js',
-    './wasm/vision_bundle.js',
-    './wasm/vision_wasm_internal.js',
-    './wasm/vision_wasm_internal.wasm',
-    './wasm/gesture_recognizer.task'
+    './manifest.json',
+    // Moved to Critical to ensure app always looks correct offline
+    'https://cdn.tailwindcss.com',
+    'https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap'
 ];
 
-
-// 2. OPTIONAL: Images & External Links.
-// We will TRY to cache these. If they fail (404 missing, network error), 
-// we simply skip them so the app still installs successfully.
 const OPTIONAL_ASSETS = [
     './icon-192.png',
     './icon-512.png',
-    './qr.jpg',
-    './redeem.jpg',
-    'https://cdn.tailwindcss.com',
-    'https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap',
-    'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js',
-    'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js'
+    './wasm/vision_bundle.js',
+    './wasm/vision_wasm_internal.wasm',
+    './wasm/gesture_recognizer.task'
 ];
 
 self.addEventListener('install', event => {

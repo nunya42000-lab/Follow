@@ -852,7 +852,32 @@ class VoiceCommander {
 }
 const startApp = () => {
     loadState();
+// Inside app.js -> startApp()
 
+const startApp = () => {
+    loadState();
+    
+    // --- NEW: SYNC DEVELOPER SETTINGS ---
+    if (modules.gestureEngine) {
+        // Tell engine which groups are enabled
+        modules.gestureEngine.enabledGroups = new Set(appSettings.enabledGestureGroups || ['taps_1f']);
+        
+        // Sync the precision/latency
+        modules.gestureEngine.config.chordLatency = appSettings.chordLatency || 50;
+    }
+
+    // Apply Full Screen visual state if it was saved
+    if (appSettings.isFullScreenEnabled) {
+        document.body.classList.add('fullscreen-mode');
+    }
+    
+    // Initial Wake Lock
+    requestWakeLock();
+    // ------------------------------------
+
+    renderUI();
+};
+    
     modules.settings = new SettingsManager(appSettings, {
         onSave: saveState,
         onUpdate: (type) => { 

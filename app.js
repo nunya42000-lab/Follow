@@ -38,7 +38,10 @@ const DEFAULT_APP = {
     isVolumeGesturesEnabled: false,
     isArModeEnabled: false, 
     isVoiceInputEnabled: false, 
-    
+    isWakeLockEnabled: true,
+isDeveloperMode: false,
+enabledGestureGroups: ['taps_1f', Swipes_1f'],
+uiPrecisionIndex: 2, Default to 5% (Index 2)
     // --- NEW TOGGLES ---
     isDeleteGestureEnabled: false, 
     isClearGestureEnabled: false,
@@ -1459,25 +1462,42 @@ if(headerStealth) {
         console.error("Listener Error:", e);
     }
 // Keep screen awake
+let wakeLockRef = null;
 async function requestWakeLock() {
+    if (!appSettings.isWakeLockEnabled) {
+        if (wakeLockRef) wakeLockRef.release().then(() => wakeLockRef = null);
+        return;
+    }
     try {
         if ('wakeLock' in navigator) {
-            let wakeLock = await navigator.wakeLock.request('screen');
+            wakeLockRef = await navigator.wakeLock.request('screen');
             console.log('Wake Lock active');
-            // Re-acquire if app minimizes and comes back
             document.addEventListener('visibilitychange', async () => {
-                if (document.visibilityState === 'visible') {
-                    wakeLock = await navigator.wakeLock.request('screen');
+                if (document.visibilityState === 'visible' && appSettings.isWakeLockEnabled) {
+                    wakeLockRef = await navigator.wakeLock.request('screen');
                 }
             });
         }
-    } catch (err) {
-        console.log('Wake Lock not supported/allowed');
+    } catch (err) { console.log('Wake Lock error/unsupported'); }
+}
+    
+ function toggleFullScreen(enable) {
+    const doc = window.document;
+    const docEl = doc.documentElement;
+    if (enable) {
+        document.body.classList.add('fullscreen-mode');
+        const rfs = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+        if (rfs) rfs.call(docEl).catch(e => console.log("FS Blocked", e));
+    } else {
+        document.body.classList.remove('fullscreen-mode');
+        const cfs = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+        if (cfs) cfs.call(doc).catch(e => console.log("FS Exit Blocked", e));
     }
 }
-// Call this when the app starts
-requestWakeLock();
-        
-}
-        
+       
+// Global Exports for Settings Manager
+window.requestWakeLock = requestWakeLock;
+window.toggleFullScreen = toggleFullScreen;
+window.showToast = showToast;
+
 document.addEventListener('DOMContentLoaded', startApp);

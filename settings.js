@@ -342,32 +342,55 @@ export class SettingsManager {
         }
         
     }
-    populatePlaybackSpeedDropdown() {
-        if (!this.dom.playbackSpeed) return;
-        this.dom.playbackSpeed.innerHTML = '';
-        // Range 75% to 150% in 5% increments
-        for (let i = 75; i <= 150; i += 5) {
-            const opt = document.createElement('option');
-            const val = (i / 100).toFixed(2);
-            opt.value = val;
-            opt.textContent = i + '%';
-            this.dom.playbackSpeed.appendChild(opt);
+    
+        populatePlaybackSpeedDropdown(selectEl) {
+        if (!selectEl) return;
+        selectEl.innerHTML = '';
+        const currentSpeed = this.appSettings.playbackSpeed;
+        
+        // Developer Precision: 0=0.01, 1=0.02, 2=0.05, 3=0.1
+        const idx = this.appSettings.uiPrecisionIndex ?? 2;
+        const step = [0.01, 0.02, 0.05, 0.1][idx];
+        
+        // Range: 0.1x to 3.0x
+        for (let i = 0.1; i <= 3.0; i += step) {
+            const val = parseFloat(i.toFixed(2));
+            const option = document.createElement('option');
+            option.value = val;
+            option.textContent = val + 'x';
+            if (Math.abs(val - currentSpeed) < (step/2)) option.selected = true;
+            selectEl.appendChild(option);
         }
-        // Set current value
-        this.dom.playbackSpeed.value = (this.appSettings.playbackSpeed || 1.0).toFixed(2);
+        
+        selectEl.onchange = (e) => {
+            this.appSettings.playbackSpeed = parseFloat(e.target.value);
+            this.callbacks.onSave();
+        };
     }
 
-    populateUIScaleDropdown() {
-        if (!this.dom.uiScale) return;
-        this.dom.uiScale.innerHTML = '';
-        // Range 50% to 500% in 10% increments
-        for (let i = 50; i <= 500; i += 10) {
-            const opt = document.createElement('option');
-            opt.value = i;
-            opt.textContent = i + '%';
-            this.dom.uiScale.appendChild(opt);
+    populateUIScaleDropdown(selectEl) {
+        if (!selectEl) return;
+        selectEl.innerHTML = '';
+        const currentScale = this.appSettings.uiScale || 1.0;
+        
+        const idx = this.appSettings.uiPrecisionIndex ?? 2;
+        const step = [0.01, 0.02, 0.05, 0.1][idx];
+
+        // Range: 0.5x to 2.0x
+        for (let i = 0.5; i <= 2.0; i += step) {
+            const val = parseFloat(i.toFixed(2));
+            const option = document.createElement('option');
+            option.value = val;
+            option.textContent = Math.round(val * 100) + '%';
+            if (Math.abs(val - currentScale) < (step/2)) option.selected = true;
+            selectEl.appendChild(option);
         }
-        this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
+
+        selectEl.onchange = (e) => {
+            this.appSettings.uiScale = parseFloat(e.target.value);
+            this.callbacks.onSave();
+            this.applyTheme(); // Re-apply to update zoom
+        };
     }
 
     populateVoicePresetDropdown() {
@@ -1345,4 +1368,215 @@ export class SettingsManager {
 
         this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
     }
+    // --- NEW: Developer Mode Logic ---
+    
+    initDeveloperMode() {
+        const trigger = document.getElementById('dev-mode-trigger');
+        if (!trigger) return;
+        
+        let clicks = 0;
+        let timer = null;
+
+        trigger.onclick = (e) => {
+            e.stopPropagation();
+            clearTimeout(timer);
+            timer = setTimeout(() => { clicks = 0; }, 2000);
+            clicks++;
+
+            if (this.appSettings.isDeveloperMode) {
+                this.openDeveloperMenu();
+                return;
+            }
+
+            if (clicks === 4) window.showToast("3...");
+            if (clicks === 5) window.showToast("2...");
+            if (clicks === 6) window.showToast("1...");
+            if (clicks === 7) {
+                window.showToast("You are now a developer 👨‍💻");
+                this.appSettings.isDeveloperMode = true;
+                this.callbacks.onSave();
+                this.openDeveloperMenu();
+            }
+        };
+    }
+
+    openDeveloperMenu() {
+        // Prevent duplicates
+        if (document.getElementById('developer-options-modal')) return;
+
+        // Ensure defaults exist
+        if (!this.appSettings.enabledGestureGroups) {
+            this.appSettings.enabledGestureGroups = ['taps_1f', 'swipes_1f']; 
+        }
+
+        const modal = document.createElement('div');
+        modal.id = 'developer-options-modal';
+        modal.className = "fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[200] opacity-0 transition-opacity duration-300";
+        
+        // --- HTML CONTENT ---
+        modal.innerHTML = `
+            <div class="bg-gray-900 border border-green-500/30 p-4 rounded-xl shadow-2xl w-full max-w-2xl h-[90vh] flex flex-col transform scale-95 transition-transform duration-300">
+                
+                <div class="flex justify-between items-center mb-4 border-b border-green-500/30 pb-2">
+                    <h3 class="text-xl font-mono font-bold text-green-500 flex items-center gap-2">
+                        <span>{ DEV_OPTS }</span>
+                        <span class="text-xs bg-green-900 text-green-300 px-2 py-0.5 rounded">v100_dev</span>
+                    </h3>
+                    <button id="close-dev-menu" class="text-gray-400 hover:text-white text-xl">✕</button>
+                </div>
+
+                <div class="overflow-y-auto flex-grow space-y-6 pr-2 custom-scrollbar">
+                    
+                    <div class="bg-black/40 p-3 rounded border border-gray-700">
+                        <label class="text-xs text-gray-400 font-mono block mb-1">UI PRECISION (Step Size)</label>
+                        <select id="dev-precision-select" class="w-full bg-gray-800 text-white p-2 rounded border border-gray-600 font-mono text-sm">
+                            <option value="0">1% (Fine)</option>
+                            <option value="1">2% (Precise)</option>
+                            <option value="2">5% (Standard)</option>
+                            <option value="3">10% (Coarse)</option>
+                        </select>
+                    </div>
+
+                    <div class="bg-black/40 p-3 rounded border border-gray-700 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-mono text-gray-300">Show Voice Settings</span>
+                            <input type="checkbox" id="dev-show-voice" class="accent-green-500">
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-mono text-gray-300">Show Haptic Mapping</span>
+                            <input type="checkbox" id="dev-show-haptics" class="accent-green-500">
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-900/20 p-3 rounded border border-blue-500/30 space-y-2">
+                         <label class="text-xs text-blue-300 font-mono block mb-2">AR & DEBUG LAB</label>
+                         
+                         <div class="grid grid-cols-2 gap-2">
+                            <button id="dev-btn-skeleton" class="bg-blue-800/50 hover:bg-blue-700 text-xs py-2 rounded text-blue-100 border border-blue-600">
+                                💀 Skeleton Overlay
+                            </button>
+                            <button id="dev-btn-perf" class="bg-blue-800/50 hover:bg-blue-700 text-xs py-2 rounded text-blue-100 border border-blue-600">
+                                ⚡ Eco Mode
+                            </button>
+                         </div>
+                         
+                         <div class="flex justify-between items-center mt-2 border-t border-blue-800/50 pt-2">
+                             <span class="text-xs text-blue-200">Chord Latency (ms)</span>
+                             <input type="range" id="dev-chord-latency" min="0" max="200" step="10" class="w-1/2 accent-blue-500">
+                             <span id="dev-chord-val" class="text-xs font-mono w-8 text-right">50</span>
+                         </div>
+                    </div>
+
+                    <div class="bg-black/40 p-3 rounded border border-gray-700">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-xs text-gray-400 font-mono">ENABLED GESTURE GROUPS</label>
+                            <div class="flex gap-1">
+                                <button id="dev-grp-simple" class="text-[10px] bg-gray-700 px-2 py-1 rounded hover:bg-gray-600">Simple</button>
+                                <button id="dev-grp-all" class="text-[10px] bg-gray-700 px-2 py-1 rounded hover:bg-gray-600">All</button>
+                            </div>
+                        </div>
+                        <div id="dev-group-list" class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs font-mono text-gray-400">
+                            </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-2 border-t border-gray-700 flex justify-between">
+                    <button id="dev-nuke" class="text-red-500 text-xs hover:text-red-400">☢️ RESET ALL DATA</button>
+                    <button id="dev-save" class="bg-green-700 hover:bg-green-600 text-white px-4 py-1 rounded text-sm font-bold">SAVE & RELOAD</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+
+        // --- ANIMATE IN ---
+        requestAnimationFrame(() => {
+            modal.classList.remove('opacity-0');
+            modal.querySelector('div').classList.remove('scale-95');
+        });
+
+        // --- BIND LOGIC ---
+        const groups = [
+            'taps_1f', 'taps_2f', 'taps_3f', 'tap_4f',
+            'swipes_1f', 'swipes_2f', 'swipes_3f', 'swipes_long', 'swipes_pinch',
+            'spatial_taps', 'spatial_triple_taps', 
+            'boomerangs_1f', 'boomerangs_2f', 'boomerangs_3f',
+            'zigzags', 'corners', 'triangles', 'u_shapes', 'squares',
+            'switchbacks', 'twists', 'curved_s', 'curved_c',
+            'temporal_flicks', 'temporal_paused', 'anchor_touch', 'chorded_gestures',
+            'motion_swipes', 'motion_swipes_long', 'motion_boomerangs', 'motion_corners'
+        ];
+
+        // 1. Populate Groups
+        const listEl = modal.querySelector('#dev-group-list');
+        const currentGroups = new Set(this.appSettings.enabledGestureGroups || []);
+        
+        groups.forEach(g => {
+            const lbl = document.createElement('label');
+            lbl.className = "flex items-center gap-2 cursor-pointer hover:text-white";
+            const checked = currentGroups.has(g) ? 'checked' : '';
+            lbl.innerHTML = `<input type="checkbox" value="${g}" class="accent-green-500 rounded-sm" ${checked}> <span>${g}</span>`;
+            listEl.appendChild(lbl);
+        });
+
+        // 2. Bind Precision
+        const precSel = modal.querySelector('#dev-precision-select');
+        precSel.value = this.appSettings.uiPrecisionIndex ?? 2;
+
+        // 3. Bind Visibility
+        modal.querySelector('#dev-show-voice').checked = !!this.appSettings.showVoiceSettings;
+        modal.querySelector('#dev-show-haptics').checked = !!this.appSettings.showHapticMapping;
+
+        // 4. Bind Latency Slider
+        const latSlider = modal.querySelector('#dev-chord-latency');
+        const latVal = modal.querySelector('#dev-chord-val');
+        latSlider.value = this.appSettings.chordLatency ?? 50;
+        latVal.innerText = latSlider.value;
+        latSlider.oninput = (e) => latVal.innerText = e.target.value;
+
+        // 5. Close / Save Actions
+        const close = () => {
+            modal.classList.add('opacity-0');
+            modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => modal.remove(), 300);
+        };
+
+        modal.querySelector('#close-dev-menu').onclick = close;
+        
+        modal.querySelector('#dev-save').onclick = () => {
+            // Save Groups
+            const selected = Array.from(listEl.querySelectorAll('input:checked')).map(i => i.value);
+            this.appSettings.enabledGestureGroups = selected;
+            
+            // Save Others
+            this.appSettings.uiPrecisionIndex = parseInt(precSel.value);
+            this.appSettings.showVoiceSettings = modal.querySelector('#dev-show-voice').checked;
+            this.appSettings.showHapticMapping = modal.querySelector('#dev-show-haptics').checked;
+            this.appSettings.chordLatency = parseInt(latSlider.value);
+            
+            this.callbacks.onSave();
+            window.location.reload(); // Reload to apply structural changes
+        };
+
+        // 6. Nuke
+        modal.querySelector('#dev-nuke').onclick = () => {
+            if (confirm("WARNING: This will wipe ALL settings and mappings. Continue?")) {
+                localStorage.clear();
+                window.location.reload();
+            }
+        };
+
+        // 7. Group Presets
+        modal.querySelector('#dev-grp-simple').onclick = () => {
+            listEl.querySelectorAll('input').forEach(i => i.checked = false);
+            ['taps_1f', 'swipes_1f'].forEach(g => {
+                 const box = listEl.querySelector(`input[value="${g}"]`);
+                 if(box) box.checked = true;
+            });
+        };
+        modal.querySelector('#dev-grp-all').onclick = () => {
+            listEl.querySelectorAll('input').forEach(i => i.checked = true);
+        };
+    }
+    
 }

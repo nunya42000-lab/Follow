@@ -1448,24 +1448,47 @@ export class SettingsManager {
                         </div>
                     </div>
 
-                    <div class="bg-blue-900/20 p-3 rounded border border-blue-500/30 space-y-2">
-                         <label class="text-xs text-blue-300 font-mono block mb-2">AR & DEBUG LAB</label>
-                         
-                         <div class="grid grid-cols-2 gap-2">
-                            <button id="dev-btn-skeleton" class="bg-blue-800/50 hover:bg-blue-700 text-xs py-2 rounded text-blue-100 border border-blue-600">
-                                💀 Skeleton Overlay
-                            </button>
-                            <button id="dev-btn-perf" class="bg-blue-800/50 hover:bg-blue-700 text-xs py-2 rounded text-blue-100 border border-blue-600">
-                                ⚡ Eco Mode
-                            </button>
-                         </div>
-                         
-                         <div class="flex justify-between items-center mt-2 border-t border-blue-800/50 pt-2">
-                             <span class="text-xs text-blue-200">Chord Latency (ms)</span>
-                             <input type="range" id="dev-chord-latency" min="0" max="200" step="10" class="w-1/2 accent-blue-500">
-                             <span id="dev-chord-val" class="text-xs font-mono w-8 text-right">50</span>
-                         </div>
-                    </div>
+         <div class="bg-blue-900/20 p-3 rounded border border-blue-500/30 space-y-2">
+     <label class="text-xs text-blue-300 font-mono block mb-2 uppercase">AR Media & Test Lab</label>
+
+     <div class="grid grid-cols-2 gap-2 mb-3">
+         <button id="dev-capture-photo" class="bg-blue-600/40 hover:bg-blue-600 text-[10px] py-2 rounded border border-blue-500">📸 SNAPSHOT</button>
+         <button id="dev-record-video" class="bg-red-600/40 hover:bg-red-600 text-[10px] py-2 rounded border border-red-500">🔴 RECORD (720p)</button>
+     </div>
+
+     <div class="space-y-3">
+         <div class="bg-black/60 p-2 rounded border border-blue-900/50">
+             <span class="text-[9px] text-blue-400 block mb-1">GESTURE INPUT MONITOR</span>
+             <div id="dev-gesture-pad" class="h-16 bg-blue-900/10 border border-dashed border-blue-500/30 rounded flex items-center justify-center text-[10px] text-blue-300 italic">
+                 Swipe/Tap here to test
+             </div>
+             <button id="dev-export-logs" class="w-full mt-1 text-[8px] text-gray-500 hover:text-white uppercase tracking-widest">Copy Raw Log to Clipboard</button>
+         </div>
+
+         <div class="grid grid-cols-2 gap-2">
+            <button id="dev-btn-skeleton" class="bg-blue-800/50 hover:bg-blue-700 text-xs py-2 rounded text-blue-100 border border-blue-600">
+                💀 Skeleton Overlay
+            </button>
+            <button id="dev-btn-perf" class="bg-blue-800/50 hover:bg-blue-700 text-xs py-2 rounded text-blue-100 border border-blue-600">
+                ⚡ Eco Mode
+            </button>
+         </div>
+
+         <div class="p-2 bg-black/40 rounded border border-gray-800">
+             <div class="flex justify-between text-[9px] mb-1">
+                 <span class="text-gray-400">Finger Extension (Sensitivity)</span>
+                 <span id="val-ext" class="text-blue-300">1.15</span>
+             </div>
+             <input type="range" id="dev-ext-slider" min="1.0" max="1.5" step="0.05" class="w-full h-1 accent-blue-500">
+         </div>
+
+         <div class="flex justify-between items-center mt-2 border-t border-blue-800/50 pt-2">
+             <span class="text-xs text-blue-200">Chord Latency (ms)</span>
+             <input type="range" id="dev-chord-latency" min="0" max="200" step="10" class="w-1/2 accent-blue-500">
+             <span id="dev-chord-val" class="text-xs font-mono w-8 text-right">50</span>
+         </div>
+     </div>
+</div>
 
                     <div class="bg-black/40 p-3 rounded border border-gray-700">
                         <div class="flex justify-between items-center mb-2">
@@ -1528,6 +1551,59 @@ export class SettingsManager {
         modal.querySelector('#dev-show-haptics').checked = !!this.appSettings.showHapticMapping;
 
         // 4. Bind Latency Slider
+                // --- NEW LISTENERS FOR AR LAB ---
+        
+        // Hand Sensitivity Slider
+        const extSlider = modal.querySelector('#dev-ext-slider');
+        const extVal = modal.querySelector('#val-ext');
+        extSlider.value = this.appSettings.fingerExtensionThreshold || 1.15;
+        extVal.innerText = extSlider.value;
+        extSlider.oninput = (e) => {
+            extVal.innerText = e.target.value;
+            this.appSettings.fingerExtensionThreshold = parseFloat(e.target.value);
+            // Auto-save effectively
+            this.callbacks.onSave(); 
+        };
+
+        // Snapshot Button
+        modal.querySelector('#dev-capture-photo').onclick = () => {
+             // We can access the vision engine via global modules if available
+             if(window.modules && window.modules.sensor && window.modules.sensor.videoEl) {
+                 const v = window.modules.sensor.videoEl;
+                 const canvas = document.createElement('canvas');
+                 canvas.width = v.videoWidth; canvas.height = v.videoHeight;
+                 canvas.getContext('2d').drawImage(v, 0, 0);
+                 const a = document.createElement('a');
+                 a.href = canvas.toDataURL('image/png');
+                 a.download = `follow-me-snap-${Date.now()}.png`;
+                 a.click();
+                 window.showToast("Snapshot Saved 📸");
+             } else {
+                 window.showToast("Camera not active");
+             }
+        };
+
+        // Record Button
+        modal.querySelector('#dev-record-video').onclick = () => {
+             if(window.startRecording) window.startRecording();
+        };
+
+        // Skeleton Toggle
+        const skelBtn = modal.querySelector('#dev-btn-skeleton');
+        skelBtn.onclick = () => {
+            this.appSettings.isSkeletonDebugEnabled = !this.appSettings.isSkeletonDebugEnabled;
+            skelBtn.classList.toggle('bg-green-600', this.appSettings.isSkeletonDebugEnabled);
+            window.showToast("Skeleton Overlay: " + (this.appSettings.isSkeletonDebugEnabled ? "ON" : "OFF"));
+        };
+        
+        // Eco Mode Toggle
+        const ecoBtn = modal.querySelector('#dev-btn-perf');
+        ecoBtn.onclick = () => {
+            this.appSettings.isEcoModeEnabled = !this.appSettings.isEcoModeEnabled;
+            ecoBtn.classList.toggle('bg-green-600', this.appSettings.isEcoModeEnabled);
+            window.showToast("Eco Mode: " + (this.appSettings.isEcoModeEnabled ? "ON" : "OFF"));
+        };
+                     
         const latSlider = modal.querySelector('#dev-chord-latency');
         const latVal = modal.querySelector('#dev-chord-val');
         latSlider.value = this.appSettings.chordLatency ?? 50;

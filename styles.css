@@ -473,3 +473,17 @@ body.hide-controls #piano-keys {
         height: 50vh !important; /* Use half the screen height */
     }
 }
+/* --- NEW: Follow Me 2.0 Styles --- */
+
+/* 1. Full Screen Mode Padding (Prevents Header Overlap) */
+body.fullscreen-mode #app {
+    padding-top: 4rem !important; 
+}
+body.fullscreen-mode #aux-control-header {
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 20%, rgba(0, 0, 0, 0) 100%);
+}
+
+/* 2. Developer Menu Backdrop */
+#developer-options-modal {
+    backdrop-filter: blur(5px);
+    }

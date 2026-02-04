@@ -45,7 +45,16 @@ const DEFAULT_APP = {
     isAutoTimerEnabled: false,
     isAutoCounterEnabled: false,
     // -------------------
-
+    isWakeLockEnabled: true,
+    isFullScreenEnabled: false,
+    isDeveloperMode: false,
+    enabledGestureGroups: ['taps_1f', 'swipes_1f'],
+    uiPrecisionIndex: 2,
+    chordLatency: 50,
+    fingerExtensionThreshold: 1.15,
+    isEcoModeEnabled: false,
+    showVoiceSettings: false,
+    showHapticMapping: false,
     isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, 
     activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, 
     isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, 
@@ -56,6 +65,7 @@ const DEFAULT_APP = {
     isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, 
     selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en', 
     isGestureInputEnabled: false, gestureMappings: {} 
+      
 };
 // DEFAULT MAPPINGS (Extracted to top level)
 const DEFAULT_MAPPINGS = {
@@ -848,7 +858,11 @@ class VoiceCommander {
 }
 const startApp = () => {
     loadState();
-
+    // Apply Full Screen
+    if (appSettings.isFullScreenEnabled) document.body.classList.add('fullscreen-mode');
+    // Initial Wake Lock
+    requestWakeLock();
+    
     modules.settings = new SettingsManager(appSettings, {
         onSave: saveState,
         onUpdate: (type) => { 
@@ -1065,10 +1079,11 @@ function mapGestureToValue(kind, currentInput) {
 // NEW FUNCTION: Tells the engine which gestures to look for
 function updateEngineConstraints() {
     if (!modules.gestureEngine) return;
+    
+    // 1. Sync Allowed Gestures
     const settings = getProfileSettings();
     const saved = appSettings.gestureMappings || {};
     const getG = (key) => (saved[key] && saved[key].gesture) ? saved[key].gesture : DEFAULT_MAPPINGS[key];
-
     const activeList = [];
 
     if(settings.currentInput === CONFIG.INPUTS.PIANO) {
@@ -1078,12 +1093,18 @@ function updateEngineConstraints() {
     } else if(settings.currentInput === CONFIG.INPUTS.KEY9) {
         for(let i=1; i<=9; i++) activeList.push(getG('k9_' + i));
     }
-
     if (appSettings.isDeleteGestureEnabled) activeList.push('delete'); 
     if (appSettings.isClearGestureEnabled) activeList.push('clear');   
 
     modules.gestureEngine.updateAllowed(activeList);
+    
+    // 2. Sync Engine Configs (Chords, Groups)
+    if (modules.gestureEngine.config) {
+        modules.gestureEngine.config.chordLatency = appSettings.chordLatency || 50;
+        modules.gestureEngine.enabledGroups = new Set(appSettings.enabledGestureGroups || ['taps_1f']);
+    }
 }
+
 
 
 function initGestureEngine() {
@@ -1479,5 +1500,55 @@ async function requestWakeLock() {
 requestWakeLock();
         
 }
-        
+  // --- Global Helpers for Settings/Dev Menu ---
+let wakeLockRef = null;
+async function requestWakeLock() {
+    if (!appSettings.isWakeLockEnabled) {
+        if (wakeLockRef) wakeLockRef.release().then(() => wakeLockRef = null);
+        return;
+    }
+    try {
+        if ('wakeLock' in navigator) {
+            wakeLockRef = await navigator.wakeLock.request('screen');
+            document.addEventListener('visibilitychange', async () => {
+                if (document.visibilityState === 'visible' && appSettings.isWakeLockEnabled) {
+                    wakeLockRef = await navigator.wakeLock.request('screen');
+                }
+            });
+        }
+    } catch (e) {}
+}
+
+function toggleFullScreen(enable) {
+    if (enable) {
+        document.body.classList.add('fullscreen-mode');
+        const el = document.documentElement;
+        (el.requestFullscreen || el.webkitRequestFullScreen || function(){}).call(el);
+    } else {
+        document.body.classList.remove('fullscreen-mode');
+        (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+    }
+}
+
+window.startRecording = async () => {
+    try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        let chunks = [];
+        mediaRecorder.ondataavailable = e => chunks.push(e.data);
+        mediaRecorder.onstop = () => {
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(new Blob(chunks, { type: "video/webm" }));
+            a.download = `follow-me-${Date.now()}.webm`;
+            a.click();
+        };
+        mediaRecorder.start();
+        showToast("Recording... Stop sharing to save.");
+    } catch(e) { console.error(e); }
+};
+
+window.requestWakeLock = requestWakeLock;
+window.toggleFullScreen = toggleFullScreen;
+window.showToast = showToast;
+
 document.addEventListener('DOMContentLoaded', startApp);

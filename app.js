@@ -1,4 +1,3 @@
-
 import { GestureEngine } from './gestures.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
@@ -39,10 +38,7 @@ const DEFAULT_APP = {
     isVolumeGesturesEnabled: false,
     isArModeEnabled: false, 
     isVoiceInputEnabled: false, 
-    isWakeLockEnabled: true,
-isDeveloperMode: false,
-enabledGestureGroups: ['taps_1f', Swipes_1f'],
-uiPrecisionIndex: 2, Default to 5% (Index 2)
+    
     // --- NEW TOGGLES ---
     isDeleteGestureEnabled: false, 
     isClearGestureEnabled: false,
@@ -852,32 +848,7 @@ class VoiceCommander {
 }
 const startApp = () => {
     loadState();
-// Inside app.js -> startApp()
 
-const startApp = () => {
-    loadState();
-    
-    // --- NEW: SYNC DEVELOPER SETTINGS ---
-    if (modules.gestureEngine) {
-        // Tell engine which groups are enabled
-        modules.gestureEngine.enabledGroups = new Set(appSettings.enabledGestureGroups || ['taps_1f']);
-        
-        // Sync the precision/latency
-        modules.gestureEngine.config.chordLatency = appSettings.chordLatency || 50;
-    }
-
-    // Apply Full Screen visual state if it was saved
-    if (appSettings.isFullScreenEnabled) {
-        document.body.classList.add('fullscreen-mode');
-    }
-    
-    // Initial Wake Lock
-    requestWakeLock();
-    // ------------------------------------
-
-    renderUI();
-};
-    
     modules.settings = new SettingsManager(appSettings, {
         onSave: saveState,
         onUpdate: (type) => { 
@@ -1092,19 +1063,14 @@ function mapGestureToValue(kind, currentInput) {
     return null;
 }
 // NEW FUNCTION: Tells the engine which gestures to look for
-// REPLACE existing 'updateEngineConstraints' in app.js with this:
-
 function updateEngineConstraints() {
     if (!modules.gestureEngine) return;
-    
     const settings = getProfileSettings();
     const saved = appSettings.gestureMappings || {};
-    // Helper to get the active gesture for a key (default or custom)
     const getG = (key) => (saved[key] && saved[key].gesture) ? saved[key].gesture : DEFAULT_MAPPINGS[key];
 
     const activeList = [];
 
-    // 1. Add gestures for the CURRENT input mode only
     if(settings.currentInput === CONFIG.INPUTS.PIANO) {
         ['C','D','E','F','G','A','B','1','2','3','4','5'].forEach(k => activeList.push(getG('piano_' + k)));
     } else if(settings.currentInput === CONFIG.INPUTS.KEY12) {
@@ -1113,18 +1079,12 @@ function updateEngineConstraints() {
         for(let i=1; i<=9; i++) activeList.push(getG('k9_' + i));
     }
 
-    // 2. Add Global "Always On" gestures
     if (appSettings.isDeleteGestureEnabled) activeList.push('delete'); 
     if (appSettings.isClearGestureEnabled) activeList.push('clear');   
 
-    // 3. Sync with Gesture Engine
     modules.gestureEngine.updateAllowed(activeList);
-    
-    // 4. Sync Chord Latency (The new part)
-    if (modules.gestureEngine.config) {
-        modules.gestureEngine.config.chordLatency = appSettings.chordLatency || 50;
-    }
 }
+
 
 function initGestureEngine() {
     const engine = new GestureEngine(document.body, {
@@ -1498,68 +1458,26 @@ if(headerStealth) {
     } catch(e) {
         console.error("Listener Error:", e);
     }
-    // Inside app.js
-
-let mediaRecorder = null;
-let recordedChunks = [];
-
-async function startRecording() {
-    try {
-        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: appSettings.recordAudio });
-        mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.ondataavailable = (e) => recordedChunks.push(e.data);
-        mediaRecorder.onstop = () => {
-            const blob = new Blob(recordedChunks, { type: "video/webm" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url; a.download = `follow-me-capture-${Date.now()}.webm`;
-            a.click();
-            recordedChunks = [];
-        };
-        mediaRecorder.start();
-        showToast("Recording Started 🎥");
-    } catch(e) { console.error(e); }
-}
-
-window.startRecording = startRecording;
-    
 // Keep screen awake
-let wakeLockRef = null;
 async function requestWakeLock() {
-    if (!appSettings.isWakeLockEnabled) {
-        if (wakeLockRef) wakeLockRef.release().then(() => wakeLockRef = null);
-        return;
-    }
     try {
         if ('wakeLock' in navigator) {
-            wakeLockRef = await navigator.wakeLock.request('screen');
+            let wakeLock = await navigator.wakeLock.request('screen');
             console.log('Wake Lock active');
+            // Re-acquire if app minimizes and comes back
             document.addEventListener('visibilitychange', async () => {
-                if (document.visibilityState === 'visible' && appSettings.isWakeLockEnabled) {
-                    wakeLockRef = await navigator.wakeLock.request('screen');
+                if (document.visibilityState === 'visible') {
+                    wakeLock = await navigator.wakeLock.request('screen');
                 }
             });
         }
-    } catch (err) { console.log('Wake Lock error/unsupported'); }
-}
-    
- function toggleFullScreen(enable) {
-    const doc = window.document;
-    const docEl = doc.documentElement;
-    if (enable) {
-        document.body.classList.add('fullscreen-mode');
-        const rfs = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-        if (rfs) rfs.call(docEl).catch(e => console.log("FS Blocked", e));
-    } else {
-        document.body.classList.remove('fullscreen-mode');
-        const cfs = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
-        if (cfs) cfs.call(doc).catch(e => console.log("FS Exit Blocked", e));
+    } catch (err) {
+        console.log('Wake Lock not supported/allowed');
     }
 }
-       
-// Global Exports for Settings Manager
-window.requestWakeLock = requestWakeLock;
-window.toggleFullScreen = toggleFullScreen;
-window.showToast = showToast;
-
+// Call this when the app starts
+requestWakeLock();
+        
+}
+        
 document.addEventListener('DOMContentLoaded', startApp);

@@ -5,26 +5,15 @@ export class GestureEngine {
     constructor(targetElement, config, callbacks) {
         this.target = targetElement || document.body;
         this.config = Object.assign({
-    tapDelay: 800,        
-    longPressTime: 300,   
-    swipeThreshold: 40,   
-    spatialThreshold: 10, 
-    tapPrecision: 30,
-    longSwipeThreshold: 150, 
-    chordLatency: 50,      // NEW: Window for fingers to land together
-    flickVelocity: 1.5,    // NEW: Pixels per ms for "Fast Flicks"
-    debug: false
-}, config || {});
-
-// NEW: Chord & Anchor State
-this.chordState = {
-    pending: false,
-    timer: null,
-    fingers: 0,
-    startTime: 0
-};
-
-this.allowedGestures = new Set(); // To be populated by app.js
+            tapDelay: 800,        
+            longPressTime: 300,   
+            swipeThreshold: 40,   
+            spatialThreshold: 10, 
+            tapPrecision: 30,
+            longSwipeThreshold: 150, 
+            multiSwipeThreshold: 10, 
+            debug: false
+        }, config || {});
 
         this.callbacks = Object.assign({
             onGesture: (data) => console.log('Gesture:', data), 
@@ -59,29 +48,6 @@ this.allowedGestures = new Set(); // To be populated by app.js
     }
 
     _handleDown(e) {
-        // Inside gestures.js -> _handleTouchStart(e)
-
-const now = Date.now();
-
-// Chord Logic: If a touch starts, wait a few ms to see if more fingers follow
-if (!this.chordState.pending) {
-    this.chordState.pending = true;
-    this.chordState.startTime = now;
-    this.chordState.fingers = 1;
-    
-    // Use the dynamic latency from settings
-    const windowTime = this.config.chordLatency || 50;
-    
-    this.chordState.timer = setTimeout(() => {
-        if (this.chordState.fingers > 1) {
-            this._fireGesture(`chord_${this.chordState.fingers}f`);
-        }
-        this.chordState.pending = false;
-    }, windowTime);
-} else {
-    this.chordState.fingers++;
-}
-        
         if (e.target.tagName === 'BUTTON' && !document.body.classList.contains('input-gestures-mode')) return;
         
         this.activePointers[e.pointerId] = {
@@ -235,50 +201,7 @@ if (!this.chordState.pending) {
         const netDist = Math.hypot(ec.x - sc.x, ec.y - sc.y);
         const pathLen = this._getPathLen(primaryPath);
         const isClosed = netDist < 50;
-        // --- PASTE STARTS HERE ---
-        // Define variables needed for the new logic
-        const startTime = inputs[0].startTime;
-        const endTime = inputs[inputs.length - 1].endTime;
-        const distance = netDist;
-        const primaryDirection = this._getDirection(ec.x - sc.x, ec.y - sc.y);
-        // Estimate complexity based on segment count relative to length
-        const pathComplexity = (segments.length / Math.max(1, pathLen)) * 100; 
 
-        // 1. Switchback (Direction change > 140 degrees)
-        if (segments.length === 2) {
-            // Note: segments only have 'dir' and 'vec', we calculate angle here
-            const getAng = (v) => Math.atan2(v.y, v.x) * 180 / Math.PI;
-            const a1 = getAng(segments[0].vec);
-            const a2 = getAng(segments[1].vec);
-            let angleDiff = Math.abs(a1 - a2);
-            if (angleDiff > 180) angleDiff = 360 - angleDiff;
-
-            if (angleDiff > 140 && angleDiff < 220) {
-                this._emitGesture(`switchback`, fingers, { dir: segments[0].dir });
-                return;
-            }
-        }
-
-        // 2. S-Shape (Two opposing curves - simplified check)
-        if (segments.length >= 3 && pathComplexity > 0.5) {
-             // Simple fallback: if complex and not closed, call it S-Shape
-             if (!isClosed) {
-                 this._emitGesture(`s_shape`, fingers, { dir: primaryDirection });
-                 return;
-             }
-        }
-
-        // 3. Fast Flick (Velocity check)
-        const duration = endTime - startTime;
-        if (duration > 0) {
-            const velocity = distance / duration;
-            if (velocity > (this.config.flickVelocity || 1.5)) {
-                this._emitGesture(`flick`, fingers, { dir: primaryDirection });
-                return;
-            }
-        }
-        // --- PASTE ENDS HERE ---
-                                   
         let turnSum = 0; if (segments.length > 1) { for (let i = 0; i < segments.length - 1; i++) { turnSum += this._getTurnDir(segments[i].vec, segments[i + 1].vec); } }
         const winding = turnSum > 0 ? 'cw' : 'ccw';
         let type = 'tap'; let meta = { fingers: fingers };
@@ -465,30 +388,7 @@ if (!this.chordState.pending) {
     }
 
     _clearStack() { this.tapStack = { active: false, count: 0, fingers: 0, posHistory: [], timer: null }; }
-_fireGesture(gestureName) {
-    // 1. Is this gesture explicitly enabled in Dev Options?
-    // 2. Or is it one of the "Always On" gestures (like backspace/clear)?
-    const isAlwaysOn = ['squiggle_1f', 'squiggle_2f'].includes(gestureName);
-    
-    // We only fire if the app is actually listening for this specific movement
-    if (this.allowedGestures.has(gestureName) || isAlwaysOn) {
-        if (this.config.debug) console.log("Engine Match:", gestureName);
-        this.callbacks.onGesture({ type: gestureName });
-        
-        // Visual Feedback for Chords (if enabled)
-        if (gestureName.startsWith('chord_')) {
-            this._showVisualFeedback(gestureName);
-        }
-    } else {
-        // OPTIONAL: "Fuzzy Snapping" 
-        // If 'flick_up' isn't mapped but 'swipe_up' is, fire 'swipe_up' instead.
-        const fallback = gestureName.replace('flick_', 'swipe_').replace('switchback_', 'swipe_');
-        if (this.allowedGestures.has(fallback)) {
-            this.callbacks.onGesture({ type: fallback });
-        }
-    }
-                                                                         }
-    
+
     _emitGesture(baseType, fingers, meta, overrideName = null) {
         let id = baseType;
         if (meta && meta.subMode) id += '_' + meta.subMode;

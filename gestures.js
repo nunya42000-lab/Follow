@@ -1,30 +1,35 @@
 // gestures.js
-// Version: v2.0 - Flicks, Pausing Gestures, Curves, & Chords
+// Version: v100 - "I-Shape" Boomerangs & Switchbacks
 
 export class GestureEngine {
     constructor(targetElement, config, callbacks) {
         this.target = targetElement || document.body;
         this.config = Object.assign({
-            tapDelay: 800,
-            longPressTime: 500, // Time to trigger a "long" tap
-            pauseThreshold: 600, // Time to hold still to trigger a "pausing" gesture
-            swipeThreshold: 40,
-            flickVelocity: 1.5, // Pixels per ms to count as a flick
-            chordLatency: 60, // Window to wait for other fingers
+            tapDelay: 800,        
+            longPressTime: 300,   
+            swipeThreshold: 40,   
+            spatialThreshold: 10, 
+            tapPrecision: 30,
+            longSwipeThreshold: 150, 
+            multiSwipeThreshold: 10, 
             debug: false
         }, config || {});
 
         this.callbacks = Object.assign({
-            onGesture: (data) => console.log('Gesture:', data),
+            onGesture: (data) => console.log('Gesture:', data), 
+            onContinuous: (data) => console.log('Continuous:', data), 
             onDebug: (msg) => {}
         }, callbacks || {});
 
-        // State Tracking
         this.activePointers = {};
         this.history = [];
-        this.chordState = { pending: false, timer: null, fingers: 0 };
-        this.pauseState = { timer: null, triggered: false };
-        this.allowedGestures = new Set(); // Whitelist
+        this.tapStack = { count: 0, fingers: 0, timer: null, posHistory: [], active: false };
+        this.allowedGestures = new Set();
+        this.contState = {
+            rotStartAngle: 0, rotAccumulator: 0, rotLastUpdate: 0, pinchStartDist: 0,
+            squiggle: { isTracking: false, startX: 0, lastX: 0, direction: 0, flips: 0, hasTriggered: false },
+            squiggle2F: { isTracking: false, lastX: 0, direction: 0, flips: 0, hasTriggered: false }
+        };
 
         this._bindHandlers();
     }
@@ -35,246 +40,492 @@ export class GestureEngine {
 
     _bindHandlers() {
         const t = this.target;
-        t.addEventListener('pointerdown', e => this._handleDown(e));
-        t.addEventListener('pointermove', e => this._handleMove(e));
-        t.addEventListener('pointerup', e => this._handleUp(e));
-        t.addEventListener('pointercancel', e => this._handleUp(e));
+        t.addEventListener('pointerdown', e => this._handleDown(e), { passive: false });
+        t.addEventListener('pointermove', e => this._handleMove(e), { passive: false });
+        t.addEventListener('pointerup', e => this._handleUp(e), { passive: false });
+        t.addEventListener('pointercancel', e => this._handleUp(e), { passive: false });
         t.addEventListener('contextmenu', e => e.preventDefault());
     }
 
     _handleDown(e) {
         if (e.target.tagName === 'BUTTON' && !document.body.classList.contains('input-gestures-mode')) return;
         
-        // Chord Logic: Wait to see if more fingers land
-        const now = Date.now();
-        if (!this.chordState.pending) {
-            this.chordState.pending = true;
-            this.chordState.fingers = 1;
-            
-            setTimeout(() => {
-                if (this.chordState.fingers > 1) {
-                    this._fireGesture(`chord_${this.chordState.fingers}f`);
-                }
-                this.chordState.pending = false;
-            }, this.config.chordLatency);
-        } else {
-            this.chordState.fingers++;
-        }
-
         this.activePointers[e.pointerId] = {
             id: e.pointerId,
-            pts: [{ x: e.clientX, y: e.clientY, t: now }],
-            startTime: now
+            pts: [{ x: e.clientX, y: e.clientY }],
+            startTime: Date.now()
         };
 
-        // Reset pause state on new touch
-        this.pauseState.triggered = false;
-        clearTimeout(this.pauseState.timer);
+        const count = Object.keys(this.activePointers).length;
+        const pointers = Object.values(this.activePointers);
+
+        if (count === 1) {
+            this.contState.squiggle = {
+                isTracking: true, startX: e.clientX, lastX: e.clientX, direction: 0, flips: 0, hasTriggered: false
+            };
+        }
+        
+        if (count === 2) {
+            const p1 = pointers[0].pts[0];
+            const p2 = pointers[1].pts[0];
+            this.contState.rotStartAngle = this._getRotationAngle(p1, p2);
+            this.contState.rotAccumulator = 0;
+            this.contState.rotLastUpdate = Date.now();
+            const dx = p1.x - p2.x;
+            const dy = p1.y - p2.y;
+            this.contState.pinchStartDist = Math.hypot(dx, dy);
+            
+            this.contState.squiggle2F = {
+                isTracking: true, lastX: (p1.x + p2.x) / 2, direction: 0, flips: 0, hasTriggered: false
+            };
+        }
     }
 
     _handleMove(e) {
         if (!this.activePointers[e.pointerId]) return;
         
-        const ptr = this.activePointers[e.pointerId];
-        ptr.pts.push({ x: e.clientX, y: e.clientY, t: Date.now() });
+        if (this.contState.squiggle.isTracking || this.contState.squiggle2F.isTracking) {
+             if (e.cancelable) e.preventDefault();
+        }
 
-        // --- Pausing Gesture Logic ---
-        // Every time we move, reset the pause timer. 
-        // If we stop moving for 'pauseThreshold', we check for a pausing gesture.
-        clearTimeout(this.pauseState.timer);
-        if (!this.pauseState.triggered) {
-            this.pauseState.timer = setTimeout(() => {
-                this._checkForPause(e.pointerId);
-            }, this.config.pauseThreshold);
+        const ptr = this.activePointers[e.pointerId];
+        ptr.pts.push({ x: e.clientX, y: e.clientY });
+
+        const pointers = Object.values(this.activePointers);
+        const count = pointers.length;
+        const now = Date.now();
+
+        // 1. Squiggle 1F (Delete)
+        if (count === 1 && this.contState.squiggle.isTracking && !this.contState.squiggle.hasTriggered) {
+            const x = e.clientX; 
+            const dx = x - this.contState.squiggle.lastX;
+            if (Math.abs(dx) > 8) { 
+                const newDir = dx > 0 ? 1 : -1;
+                if (this.contState.squiggle.direction !== 0 && newDir !== this.contState.squiggle.direction) {
+                    this.contState.squiggle.flips++;
+                }
+                this.contState.squiggle.direction = newDir; 
+                this.contState.squiggle.lastX = x;
+                
+                if (this.contState.squiggle.flips >= 4) {
+                    this.contState.squiggle.hasTriggered = true;
+                    this.callbacks.onContinuous({ type: 'squiggle', fingers: 1 });
+                }
+            }
+        }
+
+        // 2. Squiggle 2F (Clear)
+        if (count === 2 && this.contState.squiggle2F.isTracking && !this.contState.squiggle2F.hasTriggered) {
+            const currentAvgX = (pointers[0].pts.slice(-1)[0].x + pointers[1].pts.slice(-1)[0].x) / 2;
+            const dx = currentAvgX - this.contState.squiggle2F.lastX;
+            if (Math.abs(dx) > 8) {
+                const newDir = dx > 0 ? 1 : -1;
+                if (this.contState.squiggle2F.direction !== 0 && newDir !== this.contState.squiggle2F.direction) {
+                    this.contState.squiggle2F.flips++;
+                }
+                this.contState.squiggle2F.direction = newDir; 
+                this.contState.squiggle2F.lastX = currentAvgX;
+                
+                if (this.contState.squiggle2F.flips >= 4) {
+                    this.contState.squiggle2F.hasTriggered = true;
+                    this.callbacks.onContinuous({ type: 'squiggle', fingers: 2 });
+                }
+            }
+        }
+
+        // 3. Twist
+        if ((count === 2 || count === 3) && (now - this.contState.rotLastUpdate > 50)) {
+            const p1 = pointers[0].pts.slice(-1)[0]; 
+            const p2 = pointers[1].pts.slice(-1)[0];
+            const currentAngle = this._getRotationAngle(p1, p2);
+            let delta = currentAngle - this.contState.rotStartAngle;
+            if (delta > 180) delta -= 360; if (delta < -180) delta += 360;
+            
+            this.contState.rotAccumulator += delta; 
+            this.contState.rotStartAngle = currentAngle;
+            
+            if (Math.abs(this.contState.rotAccumulator) > 15) {
+                this.callbacks.onContinuous({ type: 'twist', fingers: count, value: this.contState.rotAccumulator > 0 ? 1 : -1 });
+                this.contState.rotAccumulator = 0; 
+                this.contState.rotLastUpdate = now;
+            }
+        }
+
+        // 4. Pinch
+        if (count === 2 && this.contState.pinchStartDist > 0) {
+            const p1 = pointers[0].pts.slice(-1)[0]; 
+            const p2 = pointers[1].pts.slice(-1)[0];
+            const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+            if (Math.abs(dist - this.contState.pinchStartDist) > 20) {
+                this.callbacks.onContinuous({ type: 'pinch', scale: dist / this.contState.pinchStartDist });
+            }
         }
     }
 
     _handleUp(e) {
         if (!this.activePointers[e.pointerId]) return;
-        
-        clearTimeout(this.pauseState.timer); // Stop checking for pause
-
-        const ptr = this.activePointers[e.pointerId];
-        ptr.pts.push({ x: e.clientX, y: e.clientY, t: Date.now() });
-        
-        // If we already triggered a "pausing" gesture, do not fire a normal one on lift
-        if (!this.pauseState.triggered) {
-            this._analyze(e.pointerId, false); // false = not pausing
-        }
-
+        this.activePointers[e.pointerId].endTime = Date.now();
+        this.history.push(this.activePointers[e.pointerId]);
         delete this.activePointers[e.pointerId];
-    }
-
-    _checkForPause(pointerId) {
-        // This runs if the user holds still at the end of a motion
-        this.pauseState.triggered = true;
-        this._analyze(pointerId, true); // true = is pausing
-    }
-
-    _analyze(pointerId, isPausing) {
-        const history = this.activePointers[pointerId].pts;
-        if (history.length < 2) return;
-
-        const start = history[0];
-        const end = history[history.length - 1];
-        const duration = end.t - start.t;
-        const dist = Math.hypot(end.x - start.x, end.y - start.y);
-        const velocity = dist / duration;
         
-        // Get pointers count (active fingers)
-        const fingerCount = Object.keys(this.activePointers).length || 1; 
-
-        // 1. Analyze Path Geometry
-        const segments = this._segmentPath(history);
-        const pathType = this._identifyShape(segments, dist);
-        
-        // 2. Determine Prefix (Flick vs Swipe vs Pause)
-        let prefix = "swipe";
-        let suffix = "";
-        
-        if (isPausing) {
-            prefix = "pausing"; // e.g., pausing_swipe, pausing_boomerang
-        } else if (pathType.type === 'swipe' && velocity > this.config.flickVelocity && duration < 400) {
-            prefix = "flick"; // e.g., flick_up
-        } else if (duration > this.config.longPressTime && dist < 10) {
-             // Long Tap Logic handled separately usually, but fallback here
-             this._fireGesture(`long_tap_${fingerCount}f`);
-             return;
-        }
-
-        // 3. Construct Gesture Name
-        let baseName = "";
-        
-        if (dist < this.config.swipeThreshold && !isPausing) {
-            // It's a tap
-            if (fingerCount === 1) this._fireGesture("tap");
-            else this._fireGesture(`tap_${fingerCount}f`);
-            return;
-        }
-
-        // Shape Naming
-        if (pathType.type === 'swipe') {
-            baseName = `${prefix}_${pathType.dir}`; 
-        } else {
-            // Shapes: boomerang, switchback, corner, zigzag, etc.
-            // If pausing, prefix is 'pausing_'. If normal, prefix is empty (just "boomerang_up")
-            const shapePrefix = isPausing ? "pausing_" : "";
-            baseName = `${shapePrefix}${pathType.type}_${pathType.dir}`;
-        }
-
-        // Add Finger Suffix if > 1
-        if (fingerCount > 1) {
-            baseName += `_${fingerCount}f`;
-        }
-
-        // 4. Fire
-        this._fireGesture(baseName);
-    }
-
-    _identifyShape(segments, totalDist) {
-        // Return { type: 'swipe'|'boomerang'|'switchback'|..., dir: 'up'|'cw'... }
-        
-        const segCount = segments.length;
-        const firstDir = segments[0]?.dir || 'up';
-        
-        // Simple Swipe
-        if (segCount === 1) return { type: 'swipe', dir: firstDir };
-
-        // 2 Segments: Corner, Boomerang, Switchback
-        if (segCount === 2) {
-            const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
-            const winding = this._getWinding(segments[0].vec, segments[1].vec); // 'cw' or 'ccw'
+        const remaining = Object.keys(this.activePointers).length;
+        if (remaining === 0) {
+            this.contState.pinchStartDist = 0;
+            this.contState.squiggle.isTracking = false;
+            this.contState.squiggle2F.isTracking = false;
             
-            if (angle > 140) return { type: 'switchback', dir: `${firstDir}_${winding}` };
-            if (angle > 100) return { type: 'boomerang', dir: firstDir }; // Rough return
-            if (angle > 60) return { type: 'corner', dir: `${firstDir}_${winding}` };
-        }
+            if (this.contState.squiggle.hasTriggered || this.contState.squiggle2F.hasTriggered) {
+                this.history = []; 
+                this.contState.squiggle.hasTriggered = false;
+                this.contState.squiggle2F.hasTriggered = false;
+                return;
+            }
 
-        // 3 Segments: Triangle, Zigzag
-        if (segCount === 3) {
-            // Check for Triangle (closed loop)
-            // This requires start/end proximity logic which is complex on segments
-            // Simplified: Zigzags alternate turns
-            return { type: 'zigzag', dir: `${firstDir}_cw` }; // Simplified
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = setTimeout(() => this._analyze(), 50);
         }
-
-        // Curves (Heuristic based on segment count relative to length)
-        // If many small segments changing direction gradually
-        if (segCount > 3) {
-             // Check for C-Shape or S-Shape
-             // For now, default to complex swipe or map to specific shapes if needed
-             // This is a placeholder for advanced curve math
-             return { type: 'swipe', dir: firstDir }; // Fallback
-        }
-
-        return { type: 'swipe', dir: firstDir };
     }
 
-    _segmentPath(points) {
-        // Simplifies path into straight vectors
-        const segments = [];
-        const sampleRate = 5; // Look at every 5th point to smooth jitter
-        if(points.length < sampleRate) return [{ dir: this._getDir(points[0], points[points.length-1]), vec: {x:0, y:0} }];
+    _analyze() {
+        const inputs = this.history; this.history = []; if (inputs.length === 0) return;
+        const fingers = new Set(inputs.map(s => s.id)).size;
+        let sc = {x:0,y:0}, ec = {x:0,y:0};
+        inputs.forEach(s => { sc.x += s.pts[0].x; sc.y += s.pts[0].y; ec.x += s.pts[s.pts.length-1].x; ec.y += s.pts[s.pts.length-1].y; });
+        sc.x /= inputs.length; sc.y /= inputs.length; ec.x /= inputs.length; ec.y /= inputs.length;
 
-        for (let i = 0; i < points.length - sampleRate; i += sampleRate) {
-            const p1 = points[i];
-            const p2 = points[i + sampleRate];
-            const dx = p2.x - p1.x;
-            const dy = p2.y - p1.y;
-            const dist = Math.hypot(dx, dy);
+        const primaryPath = inputs[0].pts;
+        let segments = this._segmentPath(primaryPath);
+        segments = this._cleanSegments(segments);
+        segments = this._mergeSegments(segments);
+
+        const netDist = Math.hypot(ec.x - sc.x, ec.y - sc.y);
+        const pathLen = this._getPathLen(primaryPath);
+        const isClosed = netDist < 50;
+
+        let turnSum = 0; if (segments.length > 1) { for (let i = 0; i < segments.length - 1; i++) { turnSum += this._getTurnDir(segments[i].vec, segments[i + 1].vec); } }
+        const winding = turnSum > 0 ? 'cw' : 'ccw';
+        let type = 'tap'; let meta = { fingers: fingers };
+
+        // --- 1. Multi-Finger Hybrid Swipes ---
+        if (fingers === 2 && pathLen > 40 && netDist > 40) {
+             let startSpan = 0, endSpan = 0;
+             inputs.forEach(s => { const f = s.pts[0], l = s.pts[s.pts.length-1]; startSpan += Math.hypot(f.x - sc.x, f.y - sc.y); endSpan += Math.hypot(l.x - ec.x, l.y - ec.y); });
+             startSpan /= 2; endSpan /= 2;
+             if (Math.abs(endSpan - startSpan) > 30) {
+                 const dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
+                 if (endSpan < startSpan * 0.7) { type = 'pinch_swipe'; meta.dir = dir; }
+                 else if (endSpan > startSpan * 1.3) { type = 'expand_swipe'; meta.dir = dir; }
+                 this._emitGesture(type, fingers, meta); return;
+             }
+        }
+
+        // --- 2. Shapes & Swipes ---
+        if (type === 'tap' && pathLen > this.config.swipeThreshold) {
             
-            if (dist > 10) { // meaningful movement
-                const dir = this._getDir(p1, p2);
-                // Merge with previous if same direction
-                if (segments.length > 0 && segments[segments.length-1].dir === dir) {
-                    segments[segments.length-1].vec.x += dx;
-                    segments[segments.length-1].vec.y += dy;
+            // --- 4 Segments (Square or Long Zigzag) ---
+            if (segments.length >= 4) {
+                const t1 = this._getTurnDir(segments[0].vec, segments[1].vec); 
+                const t2 = this._getTurnDir(segments[1].vec, segments[2].vec);
+                const alternating = (t1 > 0 && t2 < 0) || (t1 < 0 && t2 > 0);
+                
+                if (alternating) { type = 'long_zigzag'; } 
+                else if (isClosed) { type = 'square'; meta.winding = winding; } 
+                else { type = 'long_zigzag'; }
+                meta.dir = segments[0].dir; 
+            } 
+            // --- 3 Segments (Long Boomerang, Zigzag, Triangle, U-Shape) ---
+            else if (segments.length === 3) {
+                 if (isClosed) { type = 'triangle'; meta.dir = segments[0].dir; meta.winding = winding; } 
+                 else { 
+                     const t1 = this._getTurnDir(segments[0].vec, segments[1].vec); 
+                     const t2 = this._getTurnDir(segments[1].vec, segments[2].vec);
+                     // Check if turns alternate (Left-Right or Right-Left)
+                     const alternating = (t1 > 0 && t2 < 0) || (t1 < 0 && t2 > 0);
+                     
+                     if (alternating) {
+                         const a1 = this._getAngleDiff(segments[0].vec, segments[1].vec);
+                         const a2 = this._getAngleDiff(segments[1].vec, segments[2].vec);
+                         
+                         // Tight "I" Shape check (Double 180 flip)
+                         if (a1 >= 165 && a2 >= 165) {
+                             type = 'long_boomerang';
+                         } else {
+                             type = 'zigzag';
+                         }
+                     } 
+                     else {
+                         const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
+                         // Note: 'long_boomerang' used to be here for wide curves, 
+                         // but user redefined it as an I-shape. 
+                         // Wide curves are now just U-Shapes or U-Shape derivatives.
+                         type = 'u_shape';
+                         meta.winding = winding;
+                     }
+                     meta.dir = segments[0].dir; 
+                 }
+            } 
+            // --- 2 Segments (Boomerang, Switchback, Corner) ---
+            else if (segments.length === 2) {
+                meta.dir = segments[0].dir; 
+                meta.winding = winding;
+                const angle = Math.abs(this._getAngleDiff(segments[0].vec, segments[1].vec));
+                
+                if (angle >= 165) { type = 'boomerang'; }     // I-Shape (180 deg)
+                else if (angle > 125) { type = 'switchback'; } // > Shape
+                else { type = 'corner'; }                     // L Shape
+            } 
+            // --- 1 Segment (Swipe) ---
+            else {
+                const dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
+                let threshold = this.config.longSwipeThreshold;
+                if (dir.length > 2) threshold += 60; 
+                type = netDist > threshold ? 'swipe_long' : 'swipe';
+                meta.dir = dir;
+            }
+        }
+
+        if (fingers > 1 && type === 'tap' && netDist > this.config.multiSwipeThreshold) {
+            type = 'swipe';
+            if (segments.length >= 2) {
+                 const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
+                 if (Math.abs(angle) > 150) type = 'boomerang';
+            }
+            meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
+        }
+
+        if (type === 'tap') {
+            const dur = inputs[0].endTime - inputs[0].startTime;
+            if (dur > this.config.longPressTime) type = 'long_tap';
+            if (fingers > 1) meta.align = this._getAlignment(inputs);
+        }
+
+        // --- 4. Tap Stack ---
+        if (this.tapStack.active) {
+            clearTimeout(this.tapStack.timer); this.tapStack.active = false;
+            if (type === 'tap' && fingers === this.tapStack.fingers) {
+                const seqDist = Math.hypot(sc.x - this.tapStack.lastPos.x, sc.y - this.tapStack.lastPos.y);
+                if (seqDist > 50 && fingers === 1) {
+                    const dir = this._getDirection(sc.x - this.tapStack.lastPos.x, sc.y - this.tapStack.lastPos.y);
+                    this._emitGesture('motion_tap', fingers, { subMode: 'spatial', dir: dir });
+                    this._clearStack();
+                    return;
                 } else {
-                    segments.push({ dir, vec: {x: dx, y: dy} });
+                    this.tapStack.count++;
+                    this.tapStack.posHistory.push(ec);
+                    this.tapStack.lastPos = ec;
+                    this.tapStack.active = true;
+                    this.tapStack.timer = setTimeout(() => this._commitStack(), this.config.tapDelay);
+                    return;
+                }
+            }
+            if (type !== 'tap' && fingers === 1 && this.tapStack.fingers === 1) {
+                this._emitGesture('motion_tap', 1, { subMode: type, dir: meta.dir, winding: meta.winding });
+                this._clearStack();
+                return;
+            }
+            this._commitStack();
+        }
+
+        if (type === 'tap') { 
+            this.tapStack = { 
+                active: true, count: 1, fingers: fingers, 
+                posHistory: [ec], lastPos: ec,
+                align: meta.align, 
+                timer: setTimeout(() => this._commitStack(), this.config.tapDelay) 
+            }; 
+            return; 
+        }
+        this._emitGesture(type, fingers, meta);
+    }
+
+    _commitStack() { 
+        const { count, fingers, posHistory, align } = this.tapStack;
+        if (count > 0) { 
+            let maxDist = 0; 
+            for(let i=1; i<posHistory.length; i++) {
+                maxDist = Math.max(maxDist, Math.hypot(posHistory[i].x-posHistory[i-1].x, posHistory[i].y-posHistory[i-1].y));
+            }
+
+            if (maxDist > 50 && fingers === 1 && count >= 2) {
+                // Spatial Taps
+                if (count === 3) {
+                    const v1 = { x: posHistory[1].x - posHistory[0].x, y: posHistory[1].y - posHistory[0].y };
+                    const v2 = { x: posHistory[2].x - posHistory[1].x, y: posHistory[2].y - posHistory[1].y };
+                    const angle = Math.abs(this._getAngleDiff(v1, v2));
+                    
+                    let subMode = 'spatial_line';
+                    let finalDir = this._getDirection(v1.x, v1.y); 
+
+                    if (angle > 150) {
+                        subMode = 'spatial_boomerang';
+                        finalDir = this._getDirection(v1.x, v1.y);
+                    }
+                    else if (angle > 45 && angle < 135) { 
+                        subMode = 'spatial_corner'; 
+                        
+                        const d1 = this._getDirection(v1.x, v1.y);
+                        const d2 = this._getDirection(v2.x, v2.y);
+                        const combo = d1 + '_' + d2;
+                        const dirMap = {
+                            'up_right': 'ne',   'right_up': 'en',
+                            'up_left': 'nw',    'left_up': 'wn',
+                            'down_right': 'se', 'right_down': 'es',
+                            'down_left': 'sw',  'left_down': 'ws'
+                        };
+                        if(dirMap[combo]) finalDir = dirMap[combo];
+                        else finalDir = this._getDirection(v1.x + v2.x, v1.y + v2.y); 
+                    }
+                    this._emitGesture('triple_tap', fingers, { subMode: subMode, dir: finalDir });
+                }
+            } else { 
+                let type = 'tap'; 
+                if (count === 2) type = 'double_tap'; 
+                if (count === 3) type = 'triple_tap'; 
+                this._emitGesture(type, fingers, { align: align }); 
+            }
+            this._clearStack(); 
+        } 
+    }
+
+    _clearStack() { this.tapStack = { active: false, count: 0, fingers: 0, posHistory: [], timer: null }; }
+
+    _emitGesture(baseType, fingers, meta, overrideName = null) {
+        let id = baseType;
+        if (meta && meta.subMode) id += '_' + meta.subMode;
+        if (meta && meta.dir && meta.dir !== 'Any' && meta.dir !== 'none') id += '_' + meta.dir.toLowerCase(); 
+        
+        const windingShapes = ['corner', 'triangle', 'u_shape', 'square'];
+        const checkType = meta && meta.subMode ? meta.subMode : baseType;
+        if (meta && meta.winding && windingShapes.some(s => checkType.includes(s))) id += '_' + meta.winding; 
+
+        if (fingers > 1) id += '_' + fingers + 'f';
+
+        if (meta && meta.align) {
+            const map = { 
+                'Vertical': 'vertical', 
+                'Horizontal': 'horizontal', 
+                'Diagonal SE': 'diagonal_se', 
+                'Diagonal SW': 'diagonal_sw' 
+            };
+            if (map[meta.align]) id += `_${map[meta.align]}`;
+        }
+
+        const multiFingerBases = ['tap_2f', 'double_tap_2f', 'triple_tap_2f', 'long_tap_2f', 'tap_3f', 'double_tap_3f', 'triple_tap_3f', 'long_tap_3f'];
+        if (multiFingerBases.includes(id)) id += '_any'; 
+        
+        let finalId = id;
+
+        // Helper to check allow list
+        const tryFallback = (candidate) => {
+            if (this.allowedGestures && this.allowedGestures.has(candidate)) { finalId = candidate; return true; }
+            return false;
+        };
+
+        // Try exact match first
+        if (this.allowedGestures && this.allowedGestures.size > 0 && !this.allowedGestures.has(finalId)) {
+            
+            if (id.startsWith('swipe_long_')) {
+                if (tryFallback(id.replace('swipe_long_', 'swipe_'))) {}
+            } else if (id.startsWith('motion_tap_spatial_')) {
+                 if (tryFallback(id.replace('motion_tap_spatial_', 'swipe_'))) {}
+            }
+
+            const alignments = ['_vertical', '_horizontal', '_diagonal_se', '_diagonal_sw'];
+            for (let a of alignments) {
+                if (finalId.includes(a)) {
+                    let test = finalId.replace(a, '_any');
+                    if (tryFallback(test)) break;
+                }
+            }
+
+            if (!this.allowedGestures.has(finalId)) {
+                const dirs = ['_up','_down','_left','_right','_nw','_ne','_sw','_se'];
+                for (let d of dirs) {
+                    if (finalId.includes(d)) {
+                        let test = finalId.replace(d, '_any');
+                        if (tryFallback(test)) break;
+                    }
                 }
             }
         }
-        return segments.length ? segments : [{ dir: 'up', vec:{x:0,y:0}}];
-    }
 
-    _getDir(p1, p2) {
-        const dx = p2.x - p1.x;
-        const dy = p2.y - p1.y;
-        if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? 'right' : 'left';
-        return dy > 0 ? 'down' : 'up';
-    }
-
-    _getAngleDiff(v1, v2) {
-        const a1 = Math.atan2(v1.y, v1.x);
-        const a2 = Math.atan2(v2.y, v2.x);
-        let diff = (a1 - a2) * 180 / Math.PI;
-        return Math.abs(diff);
-    }
-
-    _getWinding(v1, v2) {
-        // Cross product 2D
-        return (v1.x * v2.y - v1.y * v2.x) > 0 ? 'cw' : 'ccw';
-    }
-
-    _fireGesture(name) {
-        // Whitelist Check
-        // Also allow "any" wildcards (e.g. if 'flick_any' is allowed, 'flick_up' fires)
-        let valid = this.allowedGestures.has(name);
+        if (this.allowedGestures && this.allowedGestures.size > 0 && !this.allowedGestures.has(finalId)) return;
         
-        if (!valid) {
-            // Check wildcards
-            const parts = name.split('_');
-            const base = parts[0]; // flick, pausing, swipe
-            if (this.allowedGestures.has(`${base}_any`)) valid = true;
-            if (parts.length > 2 && this.allowedGestures.has(`${base}_${parts[1]}_any`)) valid = true;
-        }
+        const name = overrideName || finalId;
+        this.callbacks.onGesture({ id: finalId, base: baseType, fingers: fingers, meta: meta, name: name });
+    }
 
-        // Always allow defaults if whitelist is empty (dev safety) or specifically enabled
-        if (this.allowedGestures.size === 0 || valid) {
-            this.callbacks.onGesture({ type: name });
-            if (this.config.debug) console.log(`🔥 Fired: ${name}`);
-        } else {
-            if (this.config.debug) console.log(`🚫 Blocked: ${name}`);
+    // --- UTILS ---
+    _getRotationAngle(p1, p2) { return Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI; }
+    _cleanSegments(segments) { return segments.filter(s => Math.hypot(s.vec.x, s.vec.y) > 15); }
+    _mergeSegments(segments) {
+        if (segments.length < 2) return segments;
+        const merged = []; let current = segments[0];
+        for (let i = 1; i < segments.length; i++) {
+            const next = segments[i];
+            if (Math.abs(this._getAngleDiff(current.vec, next.vec)) < 45) {
+                current.vec.x += next.vec.x; current.vec.y += next.vec.y;
+                current.dir = this._getDirection(current.vec.x, current.vec.y);
+            } else { merged.push(current); current = next; }
         }
+        merged.push(current); return merged;
+    }
+    _segmentPath(pts) {
+        if (pts.length < 5) return [{dir: 'none', vec:{x:0,y:0}}];
+        const segments = []; let start = 0; const threshold = 45; 
+        for (let i = 2; i < pts.length - 2; i++) {
+            const dx1 = pts[i].x - pts[start].x; const dy1 = pts[i].y - pts[start].y;
+            const nextIdx = Math.min(i + 5, pts.length - 1);
+            const dx2 = pts[nextIdx].x - pts[i].x; const dy2 = pts[nextIdx].y - pts[i].y;
+            const a1 = Math.atan2(dy1, dx1) * 180/Math.PI; const a2 = Math.atan2(dy2, dx2) * 180/Math.PI;
+            let diff = Math.abs(a1-a2); if (diff > 180) diff = 360 - diff;
+            if (diff > threshold && Math.hypot(dx1,dy1) > 10) {
+                segments.push({ dir: this._getDirection(dx1, dy1), vec: {x:dx1, y:dy1} }); start = i;
+            }
+        }
+        const lastDx = pts[pts.length-1].x - pts[start].x; const lastDy = pts[pts.length-1].y - pts[start].y;
+        if (Math.hypot(lastDx, lastDy) > 10) segments.push({ dir: this._getDirection(lastDx, lastDy), vec: {x:lastDx, y:lastDy} });
+        return segments;
+    }
+    _getTurnDir(v1, v2) { return (v1.x * v2.y - v1.y * v2.x); }
+    _getAngleDiff(v1, v2) { const a1 = Math.atan2(v1.y, v1.x)*180/Math.PI; const a2 = Math.atan2(v2.y, v2.x)*180/Math.PI; let d = Math.abs(a1-a2); if(d>180) d=360-d; return d; }
+    _getPathLen(pts) { let l=0; for(let i=1;i<pts.length;i++) l+=Math.hypot(pts[i].x-pts[i-1].x, pts[i].y-pts[i-1].y); return l; }
+    _getDirection(dx, dy) {
+        const ang = Math.atan2(dy, dx) * 180 / Math.PI;
+        if (ang > -22.5 && ang <= 22.5) return 'right'; 
+        if (ang > 22.5 && ang <= 67.5) return 'se';
+        if (ang > 67.5 && ang <= 112.5) return 'down'; 
+        if (ang > 112.5 && ang <= 157.5) return 'sw'; 
+        if (ang > 157.5 || ang <= -157.5) return 'left'; 
+        if (ang > -157.5 && ang <= -112.5) return 'nw';
+        if (ang > -112.5 && ang <= -67.5) return 'up'; 
+        return 'ne';
+    }
+    
+    _getAlignment(inputs) {
+        if (inputs.length < 2) return null;
+        const pts = inputs.map(s => s.pts[0]);
+        
+        if (inputs.length === 2) {
+            const p1 = pts[0];
+            const p2 = pts[1];
+            const dx = Math.abs(p1.x - p2.x);
+            const dy = Math.abs(p1.y - p2.y);
+            
+            if (dy > dx * 2.5) return 'Vertical';
+            if (dx > dy * 2.5) return 'Horizontal';
+            
+            const rawDx = p1.x - p2.x;
+            const rawDy = p1.y - p2.y;
+            
+            if ((rawDx * rawDy) > 0) return 'Diagonal SE';
+            else return 'Diagonal SW';
+        }
+        
+        const xs = pts.map(p => p.x); const ys = pts.map(p => p.y);
+        const w = Math.max(...xs) - Math.min(...xs); const h = Math.max(...ys) - Math.min(...ys);
+        if (h > w * 1.5) return 'Vertical'; 
+        if (w > h * 1.5) return 'Horizontal';
+        return 'Diagonal SE'; 
     }
 }

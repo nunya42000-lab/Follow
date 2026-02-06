@@ -78,25 +78,13 @@ export class VisionEngine {
         this.onStatus("Vision Off 🌑");
     }
 
-    predict() {
-        if (!this.isActive) return;
-        
-        // Only process if video has advanced
-        if (this.video.currentTime !== this.lastVideoTime) {
-            this.lastVideoTime = this.video.currentTime;
-            
-            const startTimeMs = performance.now();
-            try {
+     try {
                 const results = this.recognizer.recognizeForVideo(this.video, startTimeMs);
-                this.process(results);
-            } catch(e) {
-                // Ignore dropped frames
-            }
+                this.process(results); // Ensure this call exists
+            } catch(e) { console.error("Vision Frame Error", e); }
         }
-        
         this.loopId = requestAnimationFrame(() => this.predict());
-    }
-
+}
     process(results) {
         if (this.cooldown > 0) { this.cooldown--; return; }
 

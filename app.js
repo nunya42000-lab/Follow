@@ -96,8 +96,7 @@ let modules = { sensor: null, settings: null };
 let timers = { speedDelete: null, initialDelay: null, longPress: null, settingsLongPress: null, stealth: null, stealthAction: null, playback: null, tap: null };
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 let blackoutState = { isActive: false, lastShake: 0 }; 
-let gestureInputState = { startX: 0, startY: 0, startTime: 0, maxTouches: 0, isTapC
-    .andidate: false, tapCount: 0 };
+let gestureInputState = { startX: 0, startY: 0, startTime: 0, maxTouches: 0, isTapCandidate: false, tapCount: 0 };
 let isDeleting = false; 
 let isDemoPlaying = false;
 let isPlaybackPaused = false;

@@ -746,11 +746,10 @@ export class SettingsManager {
     this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); 
     this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); 
 
-    // --- The logic below must be INSIDE the closing brace of openSettings ---
+    // NEW: Toggle Visibility
     const voiceBlock = document.getElementById('voice-settings-block');
     const hapticBlock = document.getElementById('haptic-settings-block');
 
-    // Only show if the dev flag is ON
     if (voiceBlock) {
         voiceBlock.style.display = this.appSettings.showVoiceSettings ? 'block' : 'none';
     }
@@ -759,8 +758,28 @@ export class SettingsManager {
     }
 }
 
-    openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); }
-    closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); }
+
+    // settings.js -> openSetup()
+openSetup() { 
+    this.populateConfigDropdown(); 
+    this.updateUIFromSettings(); 
+    
+    // NEW: Rename button if Dev Mode is active
+    const settingsBtn = document.getElementById('quick-open-settings');
+    if (settingsBtn) {
+        if (this.appSettings.showVoiceSettings) { 
+            settingsBtn.textContent = "Developer Options";
+            settingsBtn.classList.replace('bg-gray-700', 'bg-purple-700');
+        } else {
+            settingsBtn.textContent = "Settings";
+            settingsBtn.classList.replace('bg-purple-700', 'bg-gray-700');
+        }
+    }
+
+    this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); 
+    this.dom.setupModal.querySelector('div').classList.remove('scale-90'); 
+}
+   closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); }
 
     generatePrompt() {
         if (!this.dom.promptDisplay) return;
@@ -1229,16 +1248,28 @@ export class SettingsManager {
         buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
     }
 
-    populateMorseUI() {
-        const tab = document.getElementById('tab-playback');
-        if (!tab) return;
-        
-        let container = document.getElementById('morse-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'morse-container';
-            container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
-            tab.appendChild(container);
+// settings.js -> populateMorseUI()
+populateMorseUI() {
+    const tab = document.getElementById('tab-playback');
+    if (!tab) return;
+    
+    // CHANGED: Target the specific block we created in HTML
+    let container = document.getElementById('haptic-settings-block');
+    
+    // Fallback if HTML wasn't updated
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'haptic-settings-block'; // Set the ID so we can toggle it later
+        container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
+        tab.appendChild(container);
+    }
+    
+    // Ensure styles are set (if using the empty div from HTML)
+    container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
+    
+    // ... rest of the function (building the grid) ...
+}
+ tab.appendChild(container);
         }
 
         // Generate all Morse combinations (1-5 length)

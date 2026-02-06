@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
    <script>
@@ -65,8 +65,10 @@
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
             <div class="flex items-center justify-between border-b border-custom pb-3 mb-4 relative">
                 <div class="flex items-center space-x-2"><button id="quick-resize-down" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">-</button><button id="quick-resize-up" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">+</button></div>
-                <h3 class="text-2xl font-bold text-center flex-grow" data-i18n="quick_title">👋 Quick Start</h3>
-                <select id="quick-lang-select" class="bg-black bg-opacity-30 text-white text-xs rounded p-2 border border-gray-600"><option value="en">🇺🇸 EN</option><option value="es">🇲🇽 ES</option></select>
+ <h3 class="text-2xl font-bold text-center flex-grow">
+    FOLLOW ME <span id="dev-mode-trigger" class="cursor-pointer select-none active:text-blue-500 transition-colors">1.0</span>
+</h3>
+  <select id="quick-lang-select" class="bg-black bg-opacity-30 text-white text-xs rounded p-2 border border-gray-600"><option value="en">🇺🇸 EN</option><option value="es">🇲🇽 ES</option></select>
             </div>
             <div class="overflow-y-auto py-2 px-1">
                 <div class="mb-6"><label class="block text-sm font-semibold mb-2 text-muted-custom" data-i18n="select_profile">Select Profile</label><select id="quick-config-select" class="settings-input w-full h-12 px-4 py-2 text-lg font-semibold shadow-sm rounded"></select></div>
@@ -271,7 +273,7 @@
                                     <button id="voice-preset-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
                                 </div>
                             </div>
-                            <div class="space-y-3 p-2 bg-black bg-opacity-20 rounded-lg">
+                            <div id="voice-settings-block" class="space-y-3 p-2 bg-black bg-opacity-20 rounded-lg">
                                 <div><label class="block text-xs font-bold mb-1">Pitch / Tone</label><input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
                                 <div><label class="block text-xs font-bold mb-1">Speed</label><input type="range" id="voice-rate" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
                                 <div><label class="block text-xs font-bold mb-1">Volume</label><input type="range" id="voice-volume" min="0" max="1" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
@@ -283,7 +285,17 @@
 
                                 <div id="tab-general" class="tab-content">
                     <div class="space-y-4">
-                        
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+    <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm">Wake Lock 💡</span>
+        <input type="checkbox" id="wake-lock-toggle" class="h-6 w-6 accent-indigo-500" checked>
+    </div>
+    <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm">Full Screen 📺</span>
+        <input type="checkbox" id="fullscreen-toggle" class="h-6 w-6 accent-indigo-500">
+    </div>
+                        </div>
+                       
                         <div class="p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
                             <div class="flex justify-between items-center mb-2">
                                 <label class="text-xs font-bold uppercase text-muted-custom">Theme 🎨</label>

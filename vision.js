@@ -1,4 +1,4 @@
-// Import from YOUR local file (Offline Mode)
+ // Import from YOUR local file (Offline Mode)
 import { FilesetResolver, GestureRecognizer } from "./wasm/vision_bundle.js";
 
 export class VisionEngine {
@@ -112,15 +112,16 @@ export class VisionEngine {
         this.loopId = requestAnimationFrame(() => this.predict());
     }
 
-        // Inside process(results)...
-    const lm = results.landmarks[0]; 
-    
-    // Use Developer-tuned sensitivity (Default 1.15)
-    // Lower = Easier to trigger; Higher = Must be straighter
-    const extensionThreshold = window.appSettings?.fingerExtensionThreshold || 1.15;
-    
-    // Make sure your countFingers function uses this second argument!
-    const fingers = this.countFingers(lm, extensionThreshold);
+            process(results) { // <--- Add this line
+        if (!results.landmarks || !results.landmarks[0]) return; // Add safety check
+        const lm = results.landmarks[0]; 
+        
+        const extensionThreshold = window.appSettings?.fingerExtensionThreshold || 1.15;
+        const fingers = this.countFingers(lm, extensionThreshold);
+        
+        // You likely need to emit/trigger the gesture here, e.g.:
+        // this.onTrigger(fingers);
+    } // <--- Add closing brace
 
     countFingers(lm) {
         let count = 0;

@@ -1,4 +1,4 @@
-// gestures.js
+ // gestures.js
 // Version: v100 - "I-Shape" Boomerangs & Switchbacks
 
 export class GestureEngine {
@@ -185,7 +185,7 @@ this.chordState = { pending: false, timer: null, fingers: 0 };
                 this.callbacks.onContinuous({ type: 'pinch', scale: dist / this.contState.pinchStartDist });
             }
         }
-    }
+    
         // --- PAUSE DETECTION START ---
         if (!this.pauseState.triggered) {
             clearTimeout(this.pauseState.timer);
@@ -194,6 +194,7 @@ this.chordState = { pending: false, timer: null, fingers: 0 };
                 this._analyze(e.pointerId, true); 
             }, this.config.pauseThreshold || 600);
         }
+    }
         // --- PAUSE DETECTION END ---
 
     _handleUp(e) {

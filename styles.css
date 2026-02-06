@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 
 :root {
@@ -473,21 +472,4 @@ body.hide-controls #piano-keys {
     body.hide-controls #piano-keys {
         height: 50vh !important; /* Use half the screen height */
     }
-}
-/* --- V2 DEVELOPER EDITION STYLES --- */
-
-/* Full Screen Mode: Add padding so header isn't hidden by status bar */
-body.fullscreen-mode #app {
-    padding-top: 4rem !important; 
-}
-
-/* Gradient behind header for readability in full screen */
-body.fullscreen-mode #aux-control-header {
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 20%, rgba(0, 0, 0, 0) 100%);
-}
-
-/* Developer Menu Blur Effect */
-#developer-options-modal {
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
 }

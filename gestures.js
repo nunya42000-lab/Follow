@@ -1,14 +1,10 @@
- // gestures.js
+// gestures.js
 // Version: v100 - "I-Shape" Boomerangs & Switchbacks
 
 export class GestureEngine {
     constructor(targetElement, config, callbacks) {
         this.target = targetElement || document.body;
         this.config = Object.assign({
-         flickVelocity: 1.5,
-            pauseThreshold: 600,
-            chordLatency: 50,
-            
             tapDelay: 800,        
             longPressTime: 300,   
             swipeThreshold: 40,   
@@ -34,8 +30,7 @@ export class GestureEngine {
             squiggle: { isTracking: false, startX: 0, lastX: 0, direction: 0, flips: 0, hasTriggered: false },
             squiggle2F: { isTracking: false, lastX: 0, direction: 0, flips: 0, hasTriggered: false }
         };
-this.chordState = { pending: false, timer: null, fingers: 0 };
-        this.pauseState = { timer: null, triggered: false, lastPos: {x:0, y:0} };
+
         this._bindHandlers();
     }
 
@@ -54,27 +49,7 @@ this.chordState = { pending: false, timer: null, fingers: 0 };
 
     _handleDown(e) {
         if (e.target.tagName === 'BUTTON' && !document.body.classList.contains('input-gestures-mode')) return;
-                // --- CHORD INSERTION START ---
-        const now = Date.now();
-        if (!this.chordState.pending) {
-            this.chordState.pending = true;
-            this.chordState.fingers = 1;
-            setTimeout(() => {
-                if (this.chordState.fingers > 1) {
-                    // This uses your existing emit logic
-                    const emit = this._fireGesture ? this._fireGesture.bind(this) : this._emitGesture.bind(this);
-                    emit(`chord_${this.chordState.fingers}f`, this.chordState.fingers, {}); 
-                }
-                this.chordState.pending = false;
-            }, this.config.chordLatency || 50);
-        } else {
-            this.chordState.fingers++;
-        }
         
-        this.pauseState.triggered = false;
-        clearTimeout(this.pauseState.timer);
-        // --- CHORD INSERTION END ---
-                        
         this.activePointers[e.pointerId] = {
             id: e.pointerId,
             pts: [{ x: e.clientX, y: e.clientY }],
@@ -185,17 +160,7 @@ this.chordState = { pending: false, timer: null, fingers: 0 };
                 this.callbacks.onContinuous({ type: 'pinch', scale: dist / this.contState.pinchStartDist });
             }
         }
-    
-        // --- PAUSE DETECTION START ---
-        if (!this.pauseState.triggered) {
-            clearTimeout(this.pauseState.timer);
-            this.pauseState.timer = setTimeout(() => {
-                this.pauseState.triggered = true;
-                this._analyze(e.pointerId, true); 
-            }, this.config.pauseThreshold || 600);
-        }
     }
-        // --- PAUSE DETECTION END ---
 
     _handleUp(e) {
         if (!this.activePointers[e.pointerId]) return;
@@ -236,17 +201,7 @@ this.chordState = { pending: false, timer: null, fingers: 0 };
         const netDist = Math.hypot(ec.x - sc.x, ec.y - sc.y);
         const pathLen = this._getPathLen(primaryPath);
         const isClosed = netDist < 50;
-        // --- VELOCITY LOGIC ---
-        const startTime = inputs[0].startTime;
-        const endTime = Date.now(); 
-        const duration = endTime - startTime;
-        const velocity = netDist / duration; 
 
-        if (duration > 0 && velocity > (this.config.flickVelocity || 1.5)) {
-             // Optional: Early return for pure flicks if desired, 
-             // but usually we let it flow to the prefix logic below.
-}
-        
         let turnSum = 0; if (segments.length > 1) { for (let i = 0; i < segments.length - 1; i++) { turnSum += this._getTurnDir(segments[i].vec, segments[i + 1].vec); } }
         const winding = turnSum > 0 ? 'cw' : 'ccw';
         let type = 'tap'; let meta = { fingers: fingers };
@@ -260,22 +215,8 @@ this.chordState = { pending: false, timer: null, fingers: 0 };
                  const dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
                  if (endSpan < startSpan * 0.7) { type = 'pinch_swipe'; meta.dir = dir; }
                  else if (endSpan > startSpan * 1.3) { type = 'expand_swipe'; meta.dir = dir; }
-                         // --- PREFIX LOGIC START ---
-        let prefix = "";
-        
-        // 1. Check Pause
-        if (this.pauseState && this.pauseState.triggered) {
-            prefix = "pausing_";
-        } 
-        // 2. Check Flick
-        else if (velocity > (this.config.flickVelocity || 1.5) && duration < 400) {
-            prefix = "flick_";
-        }
-        // --------------------------
-
-        // Fire the gesture with the new prefix
-        this._emitGesture(prefix + type, fingers, meta);
-  }
+                 this._emitGesture(type, fingers, meta); return;
+             }
         }
 
         // --- 2. Shapes & Swipes ---

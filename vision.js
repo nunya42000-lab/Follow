@@ -1,4 +1,4 @@
- // Import from YOUR local file (Offline Mode)
+// Import from YOUR local file (Offline Mode)
 import { FilesetResolver, GestureRecognizer } from "./wasm/vision_bundle.js";
 
 export class VisionEngine {
@@ -78,50 +78,60 @@ export class VisionEngine {
         this.onStatus("Vision Off 🌑");
     }
 
-        predict() {
+    predict() {
         if (!this.isActive) return;
-
-        // --- ECO MODE LOGIC (BATTERY SAVER) ---
-        // If Eco Mode is on, we skip frames to run at ~15fps instead of 60fps
-        this.frameCount = (this.frameCount || 0) + 1;
-        const isEco = window.appSettings?.isEcoModeEnabled;
         
-        // Skip 3 out of 4 frames if Eco Mode is active
-        if (isEco && this.frameCount % 4 !== 0) {
-            this.loopId = requestAnimationFrame(() => this.predict());
-            return;
-        }
-
+        // Only process if video has advanced
         if (this.video.currentTime !== this.lastVideoTime) {
             this.lastVideoTime = this.video.currentTime;
-            const startTimeMs = performance.now();
             
+            const startTimeMs = performance.now();
             try {
                 const results = this.recognizer.recognizeForVideo(this.video, startTimeMs);
-                
-                // --- SKELETON DEBUG OVERLAY ---
-                // If Developer Mode enabled this, we draw the wireframe
-                if (window.appSettings?.isSkeletonDebugEnabled) {
-                    this._drawDebugSkeleton(results);
-                }
-                
                 this.process(results);
-            } catch(e) { console.error("Vision Frame Error", e); }
+            } catch(e) {
+                // Ignore dropped frames
+            }
         }
         
         this.loopId = requestAnimationFrame(() => this.predict());
     }
 
-            process(results) { // <--- Add this line
-        if (!results.landmarks || !results.landmarks[0]) return; // Add safety check
-        const lm = results.landmarks[0]; 
+    process(results) {
+        if (this.cooldown > 0) { this.cooldown--; return; }
+
+        let gesture = "none";
+
+        if (results.landmarks.length > 0) {
+            const lm = results.landmarks[0]; 
+            const fingers = this.countFingers(lm);
+            
+            // Direction Logic
+            const dx = lm[9].x - lm[0].x;
+            const dy = lm[9].y - lm[0].y;
+            let dir = "";
+            
+            if (Math.abs(dx) > Math.abs(dy)) {
+                dir = dx < 0 ? "right" : "left"; 
+            } else {
+                dir = dy < 0 ? "up" : "down"; 
+            }
+
+            if (fingers === 0) gesture = "hand_fist";
+            else gesture = `hand_${fingers}_${dir}`;
+        }
+
+        // Debounce Logic
+        this.history.push(gesture);
+        if (this.history.length > this.requiredFrames) this.history.shift();
         
-        const extensionThreshold = window.appSettings?.fingerExtensionThreshold || 1.15;
-        const fingers = this.countFingers(lm, extensionThreshold);
-        
-        // You likely need to emit/trigger the gesture here, e.g.:
-        // this.onTrigger(fingers);
-    } // <--- Add closing brace
+        const candidate = this.history[0];
+        if (candidate !== "none" && this.history.every(g => g === candidate)) {
+            this.onTrigger(candidate);
+            this.cooldown = 25; 
+            this.history = [];
+        }
+    }
 
     countFingers(lm) {
         let count = 0;

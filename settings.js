@@ -484,175 +484,37 @@ export class SettingsManager {
             }
         }, { passive: true });
     }
-        initDeveloperMode() {
-        const trigger = document.getElementById('dev-mode-trigger');
-        if (!trigger) return;
-
-        let taps = 0;
-        let resetTimer;
-
-        trigger.onclick = () => {
-            taps++;
-            clearTimeout(resetTimer);
-            
-            if (taps >= 7) {
-                // Toggle Developer Flags
-                this.appSettings.showVoiceSettings = !this.appSettings.showVoiceSettings;
-                this.appSettings.showHapticMapping = !this.appSettings.showHapticMapping;
-                
-                alert(this.appSettings.showVoiceSettings ? "👨‍💻 Dev Mode ENABLED" : "Dev Mode DISABLED");
-                this.callbacks.onSave();
-                
-                // Refresh UI if settings are open
-                if (!this.dom.settingsModal.classList.contains('pointer-events-none')) {
-                    this.openSettings();
-                }
-                taps = 0;
-            }
-            
-            // Reset taps if too slow
-            resetTimer = setTimeout(() => taps = 0, 400);
-        };
-        }
-
-    initListeners() {
-        this.initDeveloperMode();
-
-        // Helper: Only attach listener if element exists
-        const safeClick = (el, fn) => { if (el) el.onclick = fn; };
-        const safeChange = (el, fn) => { if (el) el.onchange = fn; };
-        const safeInput = (el, fn) => { if (el) el.oninput = fn; };
-
-        // --- Theme Editor & Color Grid ---
-        if (this.dom.targetBtns) {
-            this.dom.targetBtns.forEach(btn => {
-                btn.onclick = () => {
-                    this.dom.targetBtns.forEach(b => {
-                        b.classList.remove('active', 'bg-primary-app');
-                        b.classList.add('opacity-60');
-                    });
-                    btn.classList.add('active', 'bg-primary-app');
-                    btn.classList.remove('opacity-60');
-                    this.currentTargetKey = btn.dataset.target;
-                    if (this.tempTheme) {
-                        const [h, s, l] = this.hexToHsl(this.tempTheme[this.currentTargetKey]);
-                        if(this.dom.ftHue) this.dom.ftHue.value = h;
-                        if(this.dom.ftSat) this.dom.ftSat.value = s;
-                        if(this.dom.ftLit) this.dom.ftLit.value = l;
-                        if(this.dom.ftPreview) this.dom.ftPreview.style.backgroundColor = this.tempTheme[this.currentTargetKey];
-                    }
-                };
-            });
-        }
-
-        // Safe Sliders
-        [this.dom.ftHue, this.dom.ftSat, this.dom.ftLit].forEach(sl => { 
-            if (sl) sl.oninput = () => this.updateColorFromSliders(); 
-        });
-
-        safeClick(this.dom.ftToggle, () => { 
-            if(this.dom.ftContainer) this.dom.ftContainer.classList.remove('hidden'); 
-            if(this.dom.ftToggle) this.dom.ftToggle.style.display = 'none'; 
-        });
-
-        safeClick(this.dom.edSave, () => {
-            if (this.tempTheme) {
-                const activeId = this.appSettings.activeTheme;
-                if (PREMADE_THEMES[activeId]) {
-                    const newId = 'custom_' + Date.now();
-                    this.appSettings.customThemes[newId] = this.tempTheme;
-                    this.appSettings.activeTheme = newId;
-                } else {
-                    this.appSettings.customThemes[activeId] = this.tempTheme;
-                }
-                this.callbacks.onSave();
-                this.callbacks.onUpdate();
-                if(this.dom.editorModal) {
-                    this.dom.editorModal.classList.add('opacity-0', 'pointer-events-none');
-                    this.dom.editorModal.querySelector('div').classList.add('scale-90');
-                }
-                this.populateThemeDropdown();
-            }
-        });
-
-        safeClick(this.dom.openEditorBtn, () => this.openThemeEditor());
-        safeClick(this.dom.edCancel, () => { if(this.dom.editorModal) this.dom.editorModal.classList.add('opacity-0', 'pointer-events-none'); });
-
-        // --- Voice Controls ---
-        safeClick(this.dom.voiceTestBtn, () => this.testVoice());
-        
+        initListeners() {
+        this.dom.targetBtns.forEach(btn => { btn.onclick = () => { this.dom.targetBtns.forEach(b => { b.classList.remove('active', 'bg-primary-app'); b.classList.add('opacity-60'); }); btn.classList.add('active', 'bg-primary-app'); btn.classList.remove('opacity-60'); this.currentTargetKey = btn.dataset.target; if (this.tempTheme) { const [h, s, l] = this.hexToHsl(this.tempTheme[this.currentTargetKey]); this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l; this.dom.ftPreview.style.backgroundColor = this.tempTheme[this.currentTargetKey]; } }; });
+        [this.dom.ftHue, this.dom.ftSat, this.dom.ftLit].forEach(sl => { sl.oninput = () => this.updateColorFromSliders(); });
+        this.dom.ftToggle.onclick = () => { this.dom.ftContainer.classList.remove('hidden'); this.dom.ftToggle.style.display = 'none'; };
+        if (this.dom.edSave) this.dom.edSave.onclick = () => { if (this.tempTheme) { const activeId = this.appSettings.activeTheme; if (PREMADE_THEMES[activeId]) { const newId = 'custom_' + Date.now(); this.appSettings.customThemes[newId] = this.tempTheme; this.appSettings.activeTheme = newId; } else { this.appSettings.customThemes[activeId] = this.tempTheme; } this.callbacks.onSave(); this.callbacks.onUpdate(); this.dom.editorModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.editorModal.querySelector('div').classList.add('scale-90'); this.populateThemeDropdown(); } };
+        if (this.dom.openEditorBtn) this.dom.openEditorBtn.onclick = () => this.openThemeEditor();
+        if (this.dom.edCancel) this.dom.edCancel.onclick = () => { this.dom.editorModal.classList.add('opacity-0', 'pointer-events-none'); };
+        // Voice Controls
+        if (this.dom.voiceTestBtn) this.dom.voiceTestBtn.onclick = () => this.testVoice();
         const updateVoiceLive = () => {
-            if(this.dom.voicePitch) this.appSettings.voicePitch = parseFloat(this.dom.voicePitch.value);
-            if(this.dom.voiceRate) this.appSettings.voiceRate = parseFloat(this.dom.voiceRate.value);
-            if(this.dom.voiceVolume) this.appSettings.voiceVolume = parseFloat(this.dom.voiceVolume.value);
+            this.appSettings.voicePitch = parseFloat(this.dom.voicePitch.value);
+            this.appSettings.voiceRate = parseFloat(this.dom.voiceRate.value);
+            this.appSettings.voiceVolume = parseFloat(this.dom.voiceVolume.value);
         };
-        safeInput(this.dom.voicePitch, updateVoiceLive);
-        safeInput(this.dom.voiceRate, updateVoiceLive);
-        safeInput(this.dom.voiceVolume, updateVoiceLive);
+        if (this.dom.voicePitch) this.dom.voicePitch.oninput = updateVoiceLive;
+        if (this.dom.voiceRate) this.dom.voiceRate.oninput = updateVoiceLive;
+        if (this.dom.voiceVolume) this.dom.voiceVolume.oninput = updateVoiceLive;
 
-        // --- Voice Preset Management ---
-        safeChange(this.dom.voicePresetSelect, (e) => { 
-            this.appSettings.activeVoicePresetId = e.target.value; 
-            this.applyVoicePreset(e.target.value); 
-        });
-        
-        safeClick(this.dom.voicePresetAdd, () => { 
-            const n = prompt("New Voice Preset Name:"); 
-            if (n) { 
-                const id = 'vp_' + Date.now(); 
-                this.appSettings.voicePresets[id] = { name: n, pitch: this.appSettings.voicePitch, rate: this.appSettings.voiceRate, volume: this.appSettings.voiceVolume }; 
-                this.appSettings.activeVoicePresetId = id; 
-                this.populateVoicePresetDropdown(); 
-                this.callbacks.onSave(); 
-            } 
-        });
+        // Voice Preset Management
+        if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.onchange = (e) => { this.appSettings.activeVoicePresetId = e.target.value; this.applyVoicePreset(e.target.value); };
+        if (this.dom.voicePresetAdd) this.dom.voicePresetAdd.onclick = () => { const n = prompt("New Voice Preset Name:"); if (n) { const id = 'vp_' + Date.now(); this.appSettings.voicePresets[id] = { name: n, pitch: this.appSettings.voicePitch, rate: this.appSettings.voiceRate, volume: this.appSettings.voiceVolume }; this.appSettings.activeVoicePresetId = id; this.populateVoicePresetDropdown(); this.callbacks.onSave(); } };
+        if (this.dom.voicePresetSave) this.dom.voicePresetSave.onclick = () => { const id = this.appSettings.activeVoicePresetId; if (PREMADE_VOICE_PRESETS[id]) { alert("Cannot save over built-in presets. Create a new one."); return; } if (this.appSettings.voicePresets[id]) { this.appSettings.voicePresets[id] = { ...this.appSettings.voicePresets[id], pitch: parseFloat(this.dom.voicePitch.value), rate: parseFloat(this.dom.voiceRate.value), volume: parseFloat(this.dom.voiceVolume.value) }; this.callbacks.onSave(); alert("Voice Preset Saved!"); } };
+        if (this.dom.voicePresetDelete) this.dom.voicePresetDelete.onclick = () => { const id = this.appSettings.activeVoicePresetId; if (PREMADE_VOICE_PRESETS[id]) { alert("Cannot delete built-in."); return; } if (confirm("Delete this voice preset?")) { delete this.appSettings.voicePresets[id]; this.appSettings.activeVoicePresetId = 'standard'; this.populateVoicePresetDropdown(); this.applyVoicePreset('standard'); } };
+        if (this.dom.voicePresetRename) this.dom.voicePresetRename.onclick = () => { const id = this.appSettings.activeVoicePresetId; if (PREMADE_VOICE_PRESETS[id]) return alert("Cannot rename built-in."); const n = prompt("Rename:", this.appSettings.voicePresets[id].name); if (n) { this.appSettings.voicePresets[id].name = n; this.populateVoicePresetDropdown(); this.callbacks.onSave(); } };
 
-        safeClick(this.dom.voicePresetSave, () => { 
-            const id = this.appSettings.activeVoicePresetId; 
-            if (PREMADE_VOICE_PRESETS[id]) { alert("Cannot save over built-in presets. Create a new one."); return; } 
-            if (this.appSettings.voicePresets[id]) { 
-                this.appSettings.voicePresets[id] = { 
-                    ...this.appSettings.voicePresets[id], 
-                    pitch: parseFloat(this.dom.voicePitch.value), 
-                    rate: parseFloat(this.dom.voiceRate.value), 
-                    volume: parseFloat(this.dom.voiceVolume.value) 
-                }; 
-                this.callbacks.onSave(); 
-                alert("Voice Preset Saved!"); 
-            } 
-        });
-
-        safeClick(this.dom.voicePresetDelete, () => { 
-            const id = this.appSettings.activeVoicePresetId; 
-            if (PREMADE_VOICE_PRESETS[id]) { alert("Cannot delete built-in."); return; } 
-            if (confirm("Delete this voice preset?")) { 
-                delete this.appSettings.voicePresets[id]; 
-                this.appSettings.activeVoicePresetId = 'standard'; 
-                this.populateVoicePresetDropdown(); 
-                this.applyVoicePreset('standard'); 
-            } 
-        });
-
-        safeClick(this.dom.voicePresetRename, () => { 
-            const id = this.appSettings.activeVoicePresetId; 
-            if (PREMADE_VOICE_PRESETS[id]) return alert("Cannot rename built-in."); 
-            const n = prompt("Rename:", this.appSettings.voicePresets[id].name); 
-            if (n) { 
-                this.appSettings.voicePresets[id].name = n; 
-                this.populateVoicePresetDropdown(); 
-                this.callbacks.onSave(); 
-            } 
-        });
-
-        // --- Languages & Profiles ---
-        safeChange(this.dom.quickLang, (e) => this.setLanguage(e.target.value));
-        safeChange(this.dom.generalLang, (e) => this.setLanguage(e.target.value));
-        
+        if (this.dom.quickLang) this.dom.quickLang.onchange = (e) => this.setLanguage(e.target.value);
+        if (this.dom.generalLang) this.dom.generalLang.onchange = (e) => this.setLanguage(e.target.value);
         const handleProfileSwitch = (val) => { this.callbacks.onProfileSwitch(val); this.openSettings(); };
-        safeChange(this.dom.configSelect, (e) => handleProfileSwitch(e.target.value));
-        safeChange(this.dom.quickConfigSelect, (e) => handleProfileSwitch(e.target.value));
+        if (this.dom.configSelect) this.dom.configSelect.onchange = (e) => handleProfileSwitch(e.target.value);
+        if (this.dom.quickConfigSelect) this.dom.quickConfigSelect.onchange = (e) => handleProfileSwitch(e.target.value);
 
-        // --- Universal Binder for Settings ---
         const bind = (el, prop, isGlobal, isInt = false, isFloat = false) => {
             if (!el) return;
             el.onchange = () => {
@@ -668,65 +530,45 @@ export class SettingsManager {
                 }
                 this.callbacks.onSave();
                 this.generatePrompt();
-                // Update header if needed
-                if (['showTimer', 'showCounter', 'autoInputMode', 'isVoiceInputEnabled', 'isArModeEnabled', 'isStealth1KeyEnabled', 'isHandGesturesEnabled', 'isGestureInputEnabled'].includes(prop)) {
+                
+                // --- FIXED: ADDED VOICE & AR TO THE TRIGGER LIST ---
+                if (['showTimer', 'showCounter', 'autoInputMode', 'isVoiceInputEnabled', 'isArModeEnabled', 'isStealth1KeyEnabled'].includes(prop)) {
                     this.updateHeaderVisibility();
                 }
             };
         };
 
-        // --- Bind All Inputs Safely ---
-        bind(this.dom.input, 'currentInput', false); 
-        bind(this.dom.machines, 'machineCount', false, true); 
-        bind(this.dom.seqLength, 'sequenceLength', false, true); 
-        bind(this.dom.autoClear, 'isUniqueRoundsAutoClearEnabled', true);
+        bind(this.dom.input, 'currentInput', false); bind(this.dom.machines, 'machineCount', false, true); bind(this.dom.seqLength, 'sequenceLength', false, true); bind(this.dom.autoClear, 'isUniqueRoundsAutoClearEnabled', true);
         bind(this.dom.longPressToggle, 'isLongPressAutoplayEnabled', true);
+        
+        // NEW HEADER TOGGLE LISTENERS
         bind(this.dom.timerToggle, 'showTimer', true);
         bind(this.dom.counterToggle, 'showCounter', true);
         bind(this.dom.arModeToggle, 'isArModeEnabled', true);
         bind(this.dom.voiceInputToggle, 'isVoiceInputEnabled', true);
-        
-        // Mode Switch Special Logic
-        if (this.dom.mode) { 
-            this.dom.mode.onchange = () => { 
-                this.appSettings.runtimeSettings.currentMode = this.dom.mode.value; 
-                this.callbacks.onSave(); 
-                this.callbacks.onUpdate('mode_switch'); 
-                this.generatePrompt(); 
-            }; 
-        }
+        if (this.dom.mode) { this.dom.mode.onchange = () => { this.appSettings.runtimeSettings.currentMode = this.dom.mode.value; this.callbacks.onSave(); this.callbacks.onUpdate('mode_switch'); this.generatePrompt(); }; }
+        if (this.dom.input) this.dom.input.addEventListener('change', () => this.generatePrompt());
+        if (this.dom.machines) this.dom.machines.addEventListener('change', () => this.generatePrompt());
+        if (this.dom.seqLength) this.dom.seqLength.addEventListener('change', () => this.generatePrompt());
+        if (this.dom.playbackSpeed) this.dom.playbackSpeed.addEventListener('change', () => this.generatePrompt());
+        if (this.dom.delay) this.dom.delay.addEventListener('change', () => this.generatePrompt());
+        if (this.dom.chunk) this.dom.chunk.addEventListener('change', () => this.generatePrompt());
 
-        // Generative Prompt Triggers
-        [this.dom.input, this.dom.machines, this.dom.seqLength, this.dom.playbackSpeed, this.dom.delay, this.dom.chunk].forEach(el => {
-            if(el) el.addEventListener('change', () => this.generatePrompt());
-        });
-
-        // Autoplay & Audio Linking
-        if (this.dom.autoplay) { this.dom.autoplay.onchange = (e) => { this.appSettings.isAutoplayEnabled = e.target.checked; if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = e.target.checked; this.callbacks.onSave(); }; }
-        if (this.dom.audio) { this.dom.audio.onchange = (e) => { this.appSettings.isAudioEnabled = e.target.checked; if (this.dom.quickAudio) this.dom.quickAudio.checked = e.target.checked; this.callbacks.onSave(); }; }
-        if (this.dom.quickAutoplay) { this.dom.quickAutoplay.onchange = (e) => { this.appSettings.isAutoplayEnabled = e.target.checked; if (this.dom.autoplay) this.dom.autoplay.checked = e.target.checked; this.callbacks.onSave(); }; }
-        if (this.dom.quickAudio) { this.dom.quickAudio.onchange = (e) => { this.appSettings.isAudioEnabled = e.target.checked; if (this.dom.audio) this.dom.audio.checked = e.target.checked; this.callbacks.onSave(); }; }
-        
-        // Misc Toggles
+        if (this.dom.autoplay) { this.dom.autoplay.onchange = (e) => { this.appSettings.isAutoplayEnabled = e.target.checked; if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = e.target.checked; this.callbacks.onSave(); } }
+        if (this.dom.audio) { this.dom.audio.onchange = (e) => { this.appSettings.isAudioEnabled = e.target.checked; if (this.dom.quickAudio) this.dom.quickAudio.checked = e.target.checked; this.callbacks.onSave(); } }
+        if (this.dom.quickAutoplay) { this.dom.quickAutoplay.onchange = (e) => { this.appSettings.isAutoplayEnabled = e.target.checked; if (this.dom.autoplay) this.dom.autoplay.checked = e.target.checked; this.callbacks.onSave(); } }
         if (this.dom.flash) this.dom.flash.checked = !!this.appSettings.isFlashEnabled;
-        if (this.dom.pause) this.dom.pause.value = this.appSettings.pauseSetting || 'none';
-        
-        safeChange(this.dom.dontShowWelcome, (e) => { this.appSettings.showWelcomeScreen = !e.target.checked; if (this.dom.showWelcome) this.dom.showWelcome.checked = !e.target.checked; this.callbacks.onSave(); });
-        safeChange(this.dom.showWelcome, (e) => { this.appSettings.showWelcomeScreen = e.target.checked; if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !e.target.checked; this.callbacks.onSave(); });
+        if (this.dom.pause) this.dom.pause.value = this.appSettings.pauseSetting || 'none';if (this.dom.quickAudio) { this.dom.quickAudio.onchange = (e) => { this.appSettings.isAudioEnabled = e.target.checked; if (this.dom.audio) this.dom.audio.checked = e.target.checked; this.callbacks.onSave(); } }
+      
+        if (this.dom.dontShowWelcome) { this.dom.dontShowWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = !e.target.checked; if (this.dom.showWelcome) this.dom.showWelcome.checked = !e.target.checked; this.callbacks.onSave(); } }
+        if (this.dom.showWelcome) { this.dom.showWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = e.target.checked; if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !e.target.checked; this.callbacks.onSave(); } }
 
         bind(this.dom.hapticMorse, 'isHapticMorseEnabled', true);
-        
         if (this.dom.playbackSpeed) this.dom.playbackSpeed.onchange = (e) => { this.appSettings.playbackSpeed = parseFloat(e.target.value); this.callbacks.onSave(); this.generatePrompt(); };
-        
-        bind(this.dom.chunk, 'simonChunkSize', false, true); 
-        bind(this.dom.flash, 'isFlashEnabled', true); 
+        bind(this.dom.chunk, 'simonChunkSize', false, true); bind(this.dom.flash, 'isFlashEnabled', true); 
         bind(this.dom.pause, 'pauseSetting', true);
-        
         if (this.dom.delay) this.dom.delay.onchange = (e) => { this.appSettings.runtimeSettings.simonInterSequenceDelay = parseFloat(e.target.value) * 1000; this.callbacks.onSave(); this.generatePrompt(); };
-        
-        bind(this.dom.haptics, 'isHapticsEnabled', true); 
-        bind(this.dom.speedDelete, 'isSpeedDeletingEnabled', true); 
-        bind(this.dom.stealth1KeyToggle, 'isStealth1KeyEnabled', true);
+        bind(this.dom.haptics, 'isHapticsEnabled', true); bind(this.dom.speedDelete, 'isSpeedDeletingEnabled', true); bind(this.dom.stealth1KeyToggle, 'isStealth1KeyEnabled', true);
         bind(this.dom.blackoutToggle, 'isBlackoutFeatureEnabled', true); 
         bind(this.dom.speedGesturesToggle, 'isSpeedGesturesEnabled', true);
         bind(this.dom.volumeGesturesToggle, 'isVolumeGesturesEnabled', true);
@@ -735,18 +577,22 @@ export class SettingsManager {
         bind(this.dom.autoTimerToggle, 'isAutoTimerEnabled', true);
         bind(this.dom.autoCounterToggle, 'isAutoCounterEnabled', true);
         bind(this.dom.practiceMode, 'isPracticeModeEnabled', true);
-
-        safeChange(this.dom.uiScale, (e) => { this.appSettings.globalUiScale = parseInt(e.target.value); this.callbacks.onUpdate(); });
-        safeChange(this.dom.seqSize, (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onUpdate(); });
+        if (this.dom.uiScale) this.dom.uiScale.onchange = (e) => { this.appSettings.globalUiScale = parseInt(e.target.value); this.callbacks.onUpdate(); };
+        if (this.dom.seqSize) this.dom.seqSize.onchange = (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onUpdate(); };
         
-        // Hand Gestures Check
+        // HAND GESTURES TOGGLE (Replaces BM Gestures)
         if (this.dom.blackoutGesturesToggle) {
+            // 1. Load saved state (mapped to isHandGesturesEnabled now)
             this.dom.blackoutGesturesToggle.checked = !!this.appSettings.isHandGesturesEnabled;
+            
+            // 2. Custom Change Listener
             this.dom.blackoutGesturesToggle.onchange = (e) => {
                 this.appSettings.isHandGesturesEnabled = e.target.checked;
-                this.updateHeaderVisibility();
+                this.updateHeaderVisibility(); // Triggers the 🖐️ icon to appear/disappear
                 this.callbacks.onSave();
             };
+            
+            // 3. Rename the Label in the UI to "Hand Gestures"
             const container = this.dom.blackoutGesturesToggle.closest('.settings-input');
             if(container) {
                 const label = container.querySelector('span');
@@ -754,151 +600,116 @@ export class SettingsManager {
             }
         }
         
-        safeChange(this.dom.seqFontSize, (e) => {
-            this.appSettings.uiFontSizeMultiplier = parseInt(e.target.value) / 100.0;
-            this.callbacks.onSave();
-            this.callbacks.onUpdate();
-        });
+        // --- NEW FONT SIZE UPDATE ---
+        if (this.dom.seqFontSize) {
+            this.dom.seqFontSize.onchange = (e) => {
+                this.appSettings.uiFontSizeMultiplier = parseInt(e.target.value) / 100.0;
+                this.callbacks.onSave();
+                this.callbacks.onUpdate();
+            };
+        }
 
         if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
-        safeChange(this.dom.gestureMode, (e) => { this.appSettings.gestureResizeMode = e.target.value; this.callbacks.onSave(); });
+        if (this.dom.gestureMode) this.dom.gestureMode.onchange = (e) => { this.appSettings.gestureResizeMode = e.target.value; this.callbacks.onSave(); };
         
-        safeChange(this.dom.autoInput, (e) => { 
-            const val = e.target.value; 
-            this.appSettings.autoInputMode = val; 
-            this.appSettings.showMicBtn = (val === 'mic' || val === 'both'); 
-            this.appSettings.showCamBtn = (val === 'cam' || val === 'both'); 
-            this.callbacks.onSave(); 
-            this.callbacks.onUpdate(); 
-            this.updateHeaderVisibility(); 
-        });
+        // Updated Auto-Input to also trigger header visibility check
+        if (this.dom.autoInput) this.dom.autoInput.onchange = (e) => { const val = e.target.value; this.appSettings.autoInputMode = val; this.appSettings.showMicBtn = (val === 'mic' || val === 'both'); this.appSettings.showCamBtn = (val === 'cam' || val === 'both'); this.callbacks.onSave(); this.callbacks.onUpdate(); this.updateHeaderVisibility(); };
+        
+        if (this.dom.themeAdd) this.dom.themeAdd.onclick = () => { const n = prompt("Name:"); if (n) { const id = 'c_' + Date.now(); this.appSettings.customThemes[id] = { ...PREMADE_THEMES['default'], name: n }; this.appSettings.activeTheme = id; this.callbacks.onSave(); this.callbacks.onUpdate(); this.populateThemeDropdown(); this.openThemeEditor(); } };
+        if (this.dom.themeRename) this.dom.themeRename.onclick = () => { const id = this.appSettings.activeTheme; if (PREMADE_THEMES[id]) return alert("Cannot rename built-in."); const n = prompt("Rename:", this.appSettings.customThemes[id].name); if (n) { this.appSettings.customThemes[id].name = n; this.callbacks.onSave(); this.populateThemeDropdown(); } };
+        if (this.dom.themeDelete) this.dom.themeDelete.onclick = () => { if (PREMADE_THEMES[this.appSettings.activeTheme]) return alert("Cannot delete built-in."); if (confirm("Delete?")) { delete this.appSettings.customThemes[this.appSettings.activeTheme]; this.appSettings.activeTheme = 'default'; this.callbacks.onSave(); this.callbacks.onUpdate(); this.populateThemeDropdown(); } };
+        if (this.dom.themeSelect) this.dom.themeSelect.onchange = (e) => { this.appSettings.activeTheme = e.target.value; this.callbacks.onUpdate(); this.populateThemeDropdown(); };
+        if (this.dom.configAdd) this.dom.configAdd.onclick = () => { const n = prompt("Profile Name:"); if (n) this.callbacks.onProfileAdd(n); this.openSettings(); };
+        if (this.dom.configRename) this.dom.configRename.onclick = () => { const n = prompt("Rename:"); if (n) this.callbacks.onProfileRename(n); this.populateConfigDropdown(); };
+        if (this.dom.configDelete) this.dom.configDelete.onclick = () => { this.callbacks.onProfileDelete(); this.openSettings(); };
+        if (this.dom.configSave) this.dom.configSave.onclick = () => { this.callbacks.onProfileSave(); };
+        if (this.dom.themeSave) this.dom.themeSave.onclick = () => { if (this.tempTheme) { const activeId = this.appSettings.activeTheme; if (PREMADE_THEMES[activeId]) { const newId = 'custom_' + Date.now(); this.appSettings.customThemes[newId] = this.tempTheme; this.appSettings.activeTheme = newId; } else { this.appSettings.customThemes[activeId] = this.tempTheme; } this.callbacks.onProfileSave(); this.callbacks.onUpdate(); this.populateThemeDropdown(); alert("Theme Saved!"); } };
+        if (this.dom.closeSetupBtn) this.dom.closeSetupBtn.onclick = () => this.closeSetup();
+        if (this.dom.quickSettings) this.dom.quickSettings.onclick = () => { this.closeSetup(); this.openSettings(); };
+        if (this.dom.quickHelp) this.dom.quickHelp.onclick = () => { this.closeSetup(); this.generatePrompt(); this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); };
+        if (this.dom.closeHelpBtn) this.dom.closeHelpBtn.onclick = () => this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none');
+        if (this.dom.closeHelpBtnBottom) this.dom.closeHelpBtnBottom.onclick = () => this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none');
+        if (this.dom.openHelpBtn) this.dom.openHelpBtn.onclick = () => { this.generatePrompt(); this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); };
+        if (this.dom.closeSettingsBtn) this.dom.closeSettingsBtn.onclick = () => { this.callbacks.onSave(); this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.add('scale-90'); };
+        if (this.dom.openCalibBtn) this.dom.openCalibBtn.onclick = () => this.openCalibration();
+        if (this.dom.closeCalibBtn) this.dom.closeCalibBtn.onclick = () => this.closeCalibration();
+        if (this.dom.calibAudioSlider) this.dom.calibAudioSlider.oninput = () => { const val = parseInt(this.dom.calibAudioSlider.value); this.appSettings.sensorAudioThresh = val; this.sensorEngine.setSensitivity('audio', val); const pct = ((val - (-100)) / ((-30) - (-100))) * 100; this.dom.calibAudioMarker.style.left = `${pct}%`; this.dom.calibAudioVal.innerText = val + 'dB'; this.callbacks.onSave(); };
+        if (this.dom.calibCamSlider) this.dom.calibCamSlider.oninput = () => { const val = parseInt(this.dom.calibCamSlider.value); this.appSettings.sensorCamThresh = val; this.sensorEngine.setSensitivity('camera', val); const pct = Math.min(100, val); this.dom.calibCamMarker.style.left = `${pct}%`; this.dom.calibCamVal.innerText = val; this.callbacks.onSave(); };
 
-        // --- Theme Management ---
-        safeClick(this.dom.themeAdd, () => { 
-            const n = prompt("Name:"); 
-            if (n) { 
-                const id = 'c_' + Date.now(); 
-                this.appSettings.customThemes[id] = { ...PREMADE_THEMES['default'], name: n }; 
-                this.appSettings.activeTheme = id; 
-                this.callbacks.onSave(); 
-                this.callbacks.onUpdate(); 
-                this.populateThemeDropdown(); 
-                this.openThemeEditor(); 
-            } 
-        });
-        
-        safeClick(this.dom.themeRename, () => { 
-            const id = this.appSettings.activeTheme; 
-            if (PREMADE_THEMES[id]) return alert("Cannot rename built-in."); 
-            const n = prompt("Rename:", this.appSettings.customThemes[id].name); 
-            if (n) { this.appSettings.customThemes[id].name = n; this.callbacks.onSave(); this.populateThemeDropdown(); } 
-        });
-        
-        safeClick(this.dom.themeDelete, () => { 
-            if (PREMADE_THEMES[this.appSettings.activeTheme]) return alert("Cannot delete built-in."); 
-            if (confirm("Delete?")) { 
-                delete this.appSettings.customThemes[this.appSettings.activeTheme]; 
-                this.appSettings.activeTheme = 'default'; 
-                this.callbacks.onSave(); 
-                this.callbacks.onUpdate(); 
-                this.populateThemeDropdown(); 
-            } 
-        });
-        
-        safeChange(this.dom.themeSelect, (e) => { this.appSettings.activeTheme = e.target.value; this.callbacks.onUpdate(); this.populateThemeDropdown(); });
-        safeClick(this.dom.configAdd, () => { const n = prompt("Profile Name:"); if (n) this.callbacks.onProfileAdd(n); this.openSettings(); });
-        safeClick(this.dom.configRename, () => { const n = prompt("Rename:"); if (n) this.callbacks.onProfileRename(n); this.populateConfigDropdown(); });
-        safeClick(this.dom.configDelete, () => { this.callbacks.onProfileDelete(); this.openSettings(); });
-        safeClick(this.dom.configSave, () => { this.callbacks.onProfileSave(); });
-        
-        safeClick(this.dom.themeSave, () => { 
-            if (this.tempTheme) { 
-                const activeId = this.appSettings.activeTheme; 
-                if (PREMADE_THEMES[activeId]) { 
-                    const newId = 'custom_' + Date.now(); 
-                    this.appSettings.customThemes[newId] = this.tempTheme; 
-                    this.appSettings.activeTheme = newId; 
-                } else { this.appSettings.customThemes[activeId] = this.tempTheme; } 
-                this.callbacks.onProfileSave(); 
-                this.callbacks.onUpdate(); 
-                this.populateThemeDropdown(); 
-                alert("Theme Saved!"); 
-            } 
-        });
-
-        // --- UI Modals & Navigation ---
-        safeClick(this.dom.closeSetupBtn, () => this.closeSetup());
-        safeClick(this.dom.quickSettings, () => { this.closeSetup(); this.openSettings(); });
-        safeClick(this.dom.quickHelp, () => { this.closeSetup(); this.generatePrompt(); if(this.dom.helpModal) this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); });
-        safeClick(this.dom.closeHelpBtn, () => { if(this.dom.helpModal) this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none'); });
-        safeClick(this.dom.closeHelpBtnBottom, () => { if(this.dom.helpModal) this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none'); });
-        safeClick(this.dom.openHelpBtn, () => { this.generatePrompt(); if(this.dom.helpModal) this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); });
-        safeClick(this.dom.closeSettingsBtn, () => { this.callbacks.onSave(); if(this.dom.settingsModal) { this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.add('scale-90'); } });
-
-        safeClick(this.dom.openCalibBtn, () => this.openCalibration());
-        safeClick(this.dom.closeCalibBtn, () => this.closeCalibration());
-        
-        safeInput(this.dom.calibAudioSlider, () => { 
-            const val = parseInt(this.dom.calibAudioSlider.value); 
-            this.appSettings.sensorAudioThresh = val; 
-            this.sensorEngine.setSensitivity('audio', val); 
-            const pct = ((val - (-100)) / ((-30) - (-100))) * 100; 
-            if(this.dom.calibAudioMarker) this.dom.calibAudioMarker.style.left = `${pct}%`; 
-            if(this.dom.calibAudioVal) this.dom.calibAudioVal.innerText = val + 'dB'; 
-            this.callbacks.onSave(); 
-        });
-        
-        safeInput(this.dom.calibCamSlider, () => { 
-            const val = parseInt(this.dom.calibCamSlider.value); 
-            this.appSettings.sensorCamThresh = val; 
-            this.sensorEngine.setSensitivity('camera', val); 
-            const pct = Math.min(100, val); 
-            if(this.dom.calibCamMarker) this.dom.calibCamMarker.style.left = `${pct}%`; 
-            if(this.dom.calibCamVal) this.dom.calibCamVal.innerText = val; 
-            this.callbacks.onSave(); 
-        });
-
-        // Tabs
-        if (this.dom.tabs) {
-            this.dom.tabs.forEach(btn => {
-                btn.onclick = () => {
-                    const parent = btn.parentElement.parentElement;
-                    parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                    parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    btn.classList.add('active');
-                    const target = btn.dataset.tab;
-                    if (target === 'help-voice') this.generatePrompt();
-                    const tabContent = document.getElementById(`tab-${target}`);
-                    if(tabContent) tabContent.classList.add('active');
-                };
-            });
-        }
-        
-        if (this.dom.settingsModal) this.setupTabSwipe(this.dom.settingsModal);
-        if (this.dom.helpModal) this.setupTabS
-
-openSetup() { 
-        this.populateConfigDropdown(); 
-        this.updateUIFromSettings(); 
-        
-        // Logic to rename the button if Dev Mode is active
-        const settingsBtn = document.getElementById('quick-open-settings');
-        if (settingsBtn) {
-            if (this.appSettings.showVoiceSettings) { 
-                settingsBtn.textContent = "Developer Options";
-                settingsBtn.classList.remove('bg-gray-700');
-                settingsBtn.classList.add('bg-purple-700');
-            } else {
-                settingsBtn.textContent = "Settings";
-                settingsBtn.classList.remove('bg-purple-700');
-                settingsBtn.classList.add('bg-gray-700');
+        this.dom.tabs.forEach(btn => {
+            btn.onclick = () => {
+                const parent = btn.parentElement.parentElement;
+                parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                const target = btn.dataset.tab;
+                if (target === 'help-voice') this.generatePrompt();
+                document.getElementById(`tab-${target}`).classList.add('active');
             }
+        });
+        // Initialize swipe for Settings Modal
+        if (this.dom.settingsModal) {
+            this.setupTabSwipe(this.dom.settingsModal);
         }
+        // Initialize swipe for Help Modal
+        if (this.dom.helpModal) {
+            this.setupTabSwipe(this.dom.helpModal);
+        }
+        if (this.dom.openShareInside) this.dom.openShareInside.onclick = () => this.openShare();
+        // Restore Settings when closing share
+        if (this.dom.closeShareBtn) this.dom.closeShareBtn.onclick = () => { this.closeShare(); this.openSettings(); };
+        
+        // Redeem Zoom Logic
+        let rScale = 100;
+        const updateRedeem = () => { if(this.dom.redeemImg) this.dom.redeemImg.style.transform = `scale(${rScale/100})`; };
+        
+        if (this.dom.openRedeemBtn) this.dom.openRedeemBtn.onclick = () => { rScale = 100; updateRedeem(); this.toggleRedeem(true); };
+        if (this.dom.closeRedeemBtn) this.dom.closeRedeemBtn.onclick = () => this.toggleRedeem(false);
+        if (this.dom.openRedeemSettingsBtn) this.dom.openRedeemSettingsBtn.onclick = () => { rScale = 100; updateRedeem(); this.toggleRedeem(true); };
+        
+        if (this.dom.redeemPlus) this.dom.redeemPlus.onclick = () => { rScale = Math.min(100, rScale + 10); updateRedeem(); };
+        if (this.dom.redeemMinus) this.dom.redeemMinus.onclick = () => { rScale = Math.max(10, rScale - 10); updateRedeem(); };
+        if (this.dom.openDonateBtn) this.dom.openDonateBtn.onclick = () => this.toggleDonate(true);
+        if (this.dom.closeDonateBtn) this.dom.closeDonateBtn.onclick = () => this.toggleDonate(false);
+        if (this.dom.copyLinkBtn) this.dom.copyLinkBtn.onclick = () => { navigator.clipboard.writeText(window.location.href).then(() => alert("Link Copied!")); };
+        if (this.dom.copyPromptBtn) this.dom.copyPromptBtn.onclick = () => { if (this.dom.promptDisplay) { this.dom.promptDisplay.select(); navigator.clipboard.writeText(this.dom.promptDisplay.value).then(() => alert("Prompt Copied!")); } };
+        if (this.dom.generatePromptBtn) this.dom.generatePromptBtn.onclick = () => { this.generatePrompt(); if (this.dom.promptDisplay) { this.dom.promptDisplay.style.opacity = '0.5'; setTimeout(() => this.dom.promptDisplay.style.opacity = '1', 150); } };
+        if (this.dom.nativeShareBtn) this.dom.nativeShareBtn.onclick = () => { if (navigator.share) { navigator.share({ title: "Follow Me", url: window.location.href }); } else { alert("Share not supported"); } };
+        if (this.dom.chatShareBtn) this.dom.chatShareBtn.onclick = () => { window.location.href = `sms:?body=Check%20out%20Follow%20Me:%20${window.location.href}`; };
+        if (this.dom.emailShareBtn) this.dom.emailShareBtn.onclick = () => { window.location.href = `mailto:?subject=Follow%20Me%20App&body=Check%20out%20Follow%20Me:%20${window.location.href}`; };
+        if (this.dom.btnCashMain) this.dom.btnCashMain.onclick = () => { window.open('https://cash.app/$jwo83', '_blank'); };
+        if (this.dom.btnPaypalMain) this.dom.btnPaypalMain.onclick = () => { window.open('https://www.paypal.me/Oyster981', '_blank'); };
+        document.querySelectorAll('.donate-quick-btn').forEach(btn => { btn.onclick = () => { const app = btn.dataset.app; const amt = btn.dataset.amount; if (app === 'cash') window.open(`https://cash.app/$jwo83/${amt}`, '_blank'); if (app === 'paypal') window.open(`https://www.paypal.me/Oyster981/${amt}`, '_blank'); }; });
+        if (this.dom.restoreBtn) this.dom.restoreBtn.onclick = () => { if (confirm("Factory Reset?")) this.callbacks.onReset(); };
+        if (this.dom.quickResizeUp) this.dom.quickResizeUp.onclick = () => { this.appSettings.globalUiScale = Math.min(200, this.appSettings.globalUiScale + 10); this.callbacks.onUpdate(); };
+        if (this.dom.quickResizeDown) this.dom.quickResizeDown.onclick = () => { this.appSettings.globalUiScale = Math.max(50, this.appSettings.globalUiScale - 10); this.callbacks.onUpdate(); };
 
-        this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); 
-        this.dom.setupModal.querySelector('div').classList.remove('scale-90'); 
+        // INIT MORSE UI
+        this.populateMorseUI();
+
+        // NEW: Sensitivity Listeners
+        if (this.dom.gestureTapSlider) {
+            this.dom.gestureTapSlider.oninput = (e) => {
+                const val = parseInt(e.target.value);
+                this.appSettings.gestureTapDelay = val;
+                this.dom.gestureTapVal.textContent = val + 'ms';
+                this.callbacks.onSave();
+            };
+        }
+        if (this.dom.gestureSwipeSlider) {
+            this.dom.gestureSwipeSlider.oninput = (e) => {
+                const val = parseInt(e.target.value);
+                this.appSettings.gestureSwipeDist = val;
+                this.dom.gestureSwipeVal.textContent = val + 'px';
+                this.callbacks.onSave();
+            };
+        }
     }
-closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); }
+    populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
+    populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
+    openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); }
+    openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); }
+    closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); }
 
     generatePrompt() {
         if (!this.dom.promptDisplay) return;
@@ -1367,26 +1178,17 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
         buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
     }
 
-// settings.js -> populateMorseUI()
-populateMorseUI() {
-    const tab = document.getElementById('tab-playback');
-    if (!tab) return;
-    
-    // CHANGED: Target the specific block we created in HTML
-    let container = document.getElementById('haptic-settings-block');
-    
-    // Fallback if HTML wasn't updated
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'haptic-settings-block'; // Set the ID so we can toggle it later
-        container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
-        tab.appendChild(container);
-    }
-    
-    // Ensure styles are set (if using the empty div from HTML)
-    container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
-    
-    // ... rest of the function (building the grid) ...
+    populateMorseUI() {
+        const tab = document.getElementById('tab-playback');
+        if (!tab) return;
+        
+        let container = document.getElementById('morse-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'morse-container';
+            container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
+            tab.appendChild(container);
+        }
 
         // Generate all Morse combinations (1-5 length)
         const morseOptions = [];

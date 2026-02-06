@@ -484,7 +484,38 @@ export class SettingsManager {
             }
         }, { passive: true });
     }
-        initListeners() {
+        initDeveloperMode() {
+        const trigger = document.getElementById('dev-mode-trigger');
+        if (!trigger) return;
+
+        let taps = 0;
+        let resetTimer;
+
+        trigger.onclick = () => {
+            taps++;
+            clearTimeout(resetTimer);
+            
+            if (taps >= 7) {
+                // Toggle Developer Flags
+                this.appSettings.showVoiceSettings = !this.appSettings.showVoiceSettings;
+                this.appSettings.showHapticMapping = !this.appSettings.showHapticMapping;
+                
+                alert(this.appSettings.showVoiceSettings ? "👨‍💻 Dev Mode ENABLED" : "Dev Mode DISABLED");
+                this.callbacks.onSave();
+                
+                // Refresh UI if settings are open
+                if (!this.dom.settingsModal.classList.contains('pointer-events-none')) {
+                    this.openSettings();
+                }
+                taps = 0;
+            }
+            
+            // Reset taps if too slow
+            resetTimer = setTimeout(() => taps = 0, 400);
+        };
+        }
+    
+    initListeners() {
         this.initDeveloperMode();
         this.dom.targetBtns.forEach(btn => { btn.onclick = () => { this.dom.targetBtns.forEach(b => { b.classList.remove('active', 'bg-primary-app'); b.classList.add('opacity-60'); }); btn.classList.add('active', 'bg-primary-app'); btn.classList.remove('opacity-60'); this.currentTargetKey = btn.dataset.target; if (this.tempTheme) { const [h, s, l] = this.hexToHsl(this.tempTheme[this.currentTargetKey]); this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l; this.dom.ftPreview.style.backgroundColor = this.tempTheme[this.currentTargetKey]; } }; });
         [this.dom.ftHue, this.dom.ftSat, this.dom.ftLit].forEach(sl => { sl.oninput = () => this.updateColorFromSliders(); });

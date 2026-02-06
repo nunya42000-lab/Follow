@@ -1267,9 +1267,6 @@ populateMorseUI() {
     container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
     
     // ... rest of the function (building the grid) ...
-}
- tab.appendChild(container);
-        }
 
         // Generate all Morse combinations (1-5 length)
         const morseOptions = [];

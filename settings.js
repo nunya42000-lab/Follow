@@ -1246,138 +1246,125 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
         buildSection('key12', '12-Key', 'k12_', 12);
         buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
     }
-
-// settings.js -> populateMorseUI()
 populateMorseUI() {
     const tab = document.getElementById('tab-playback');
     if (!tab) return;
-    
-    // CHANGED: Target the specific block we created in HTML
+
+    // 1. Find or Create the Container
     let container = document.getElementById('haptic-settings-block');
-    
-    // Fallback if HTML wasn't updated
     if (!container) {
         container = document.createElement('div');
-        container.id = 'haptic-settings-block'; // Set the ID so we can toggle it later
+        container.id = 'haptic-settings-block';
         container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
-        tab.appendChild(container);
+        tab.appendChild(container); // <--- Fixed: Properly appended inside the check
     }
-    
-    // Ensure styles are set (if using the empty div from HTML)
-    container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
-    
-    // ... rest of the function (building the grid) ...
-}
- tab.appendChild(container);
+
+    // 2. Generate Morse Combinations
+    const morseOptions = [];
+    const chars = ['.', '-'];
+    const generate = (current) => {
+        if (current.length > 0) morseOptions.push(current);
+        if (current.length >= 5) return;
+        chars.forEach(c => generate(current + c));
+    };
+    generate('');
+
+    // Sort: Shortest first, then alphabetical (dots before dashes)
+    morseOptions.sort((a, b) => a.length - b.length || a.localeCompare(b));
+
+    // 3. Build the UI Grid
+    const labels = ["1", "2", "3", "4", "5", "6 C", "7 D", "8 E", "9 F", "10 G", "11 A", "12 B"];
+    let gridHtml = `<div class="grid grid-cols-4 gap-y-3 gap-x-2 items-center">`;
+
+    labels.forEach((label, index) => {
+        const val = index + 1;
+
+        let optionsHtml = `<optgroup label="Tactile Textures">
+            <option value="__TICK__">🔹 Tick (Sharp)</option>
+            <option value="__THUD__">⬛ Thud (Heavy)</option>
+            <option value="__BUZZ__">🐝 Buzz (Long)</option>
+            <option value="__DBL__">✌️ Double Click</option>
+            <option value="__TRPL__">⚡ Triple Click</option>
+            <option value="__HBEAT__">❤️ Heartbeat</option>
+            <option value="__RAMP__">📈 Ramp Up</option>
+        </optgroup>
+        <optgroup label="Morse Patterns">`;
+
+        optionsHtml += morseOptions.map(m => `<option value="${m}">${m}</option>`).join('');
+        optionsHtml += `</optgroup>`;
+
+        gridHtml += `
+            <div class="text-right text-xs font-bold text-gray-400 pr-1 whitespace-nowrap">${label}</div>
+            <select class="bg-gray-800 text-white text-xs p-1 rounded border border-gray-600 focus:border-primary-app outline-none h-8 w-full font-mono tracking-widest text-center" data-morse-id="${val}">
+                ${optionsHtml}
+            </select>
+        `;
+    });
+    gridHtml += `</div>`;
+
+    container.innerHTML = `
+        <h3 class="text-sm font-bold uppercase text-gray-400 mb-3">Haptic Output Mapping</h3>
+        ${gridHtml}
+        <p class="text-[10px] text-gray-500 mt-3 text-center">Custom dot/dash patterns for playback.</p>
+    `;
+
+    // 4. Bind Listeners & Set Defaults
+    const selects = container.querySelectorAll('select');
+    selects.forEach(sel => {
+        const id = sel.dataset.morseId;
+
+        // Load saved or calculate default
+        if (this.appSettings.morseMappings && this.appSettings.morseMappings[id]) {
+            sel.value = this.appSettings.morseMappings[id];
+        } else {
+            // Default Logic
+            let d = "";
+            const n = parseInt(id);
+            if (n <= 3) d = ".".repeat(n);
+            else if (n <= 6) d = "-" + ".".repeat(n - 3);
+            else if (n <= 9) d = "--" + ".".repeat(n - 6);
+            else d = "---" + ".".repeat(n - 10);
+            sel.value = d;
         }
 
-        // Generate all Morse combinations (1-5 length)
-        const morseOptions = [];
-        const chars = ['.', '-'];
-        const generate = (current) => {
-            if (current.length > 0) morseOptions.push(current);
-            if (current.length >= 5) return;
-            chars.forEach(c => generate(current + c));
-        };
-        generate('');
-        
-        // Sort by length, then alphabet (dots before dashes)
-        morseOptions.sort((a, b) => a.length - b.length || a.localeCompare(b));
+        sel.onchange = () => {
+            if (!this.appSettings.morseMappings) this.appSettings.morseMappings = {};
+            this.appSettings.morseMappings[id] = sel.value;
+            this.callbacks.onSave();
 
-        // Labels as requested
-        const labels = ["1", "2", "3", "4", "5", "6 C", "7 D", "8 E", "9 F", "10 G", "11 A", "12 B"];
-
-        let gridHtml = `<div class="grid grid-cols-4 gap-y-3 gap-x-2 items-center">`;
-        
-        labels.forEach((label, index) => {
-            const val = index + 1;
-            
-            // Build the select options
-            let optionsHtml = `<optgroup label="Tactile Textures">
-                <option value="__TICK__">🔹 Tick (Sharp)</option>
-                <option value="__THUD__">⬛ Thud (Heavy)</option>
-                <option value="__BUZZ__">🐝 Buzz (Long)</option>
-                <option value="__DBL__">✌️ Double Click</option>
-                <option value="__TRPL__">⚡ Triple Click</option>
-                <option value="__HBEAT__">❤️ Heartbeat</option>
-                <option value="__RAMP__">📈 Ramp Up</option>
-            </optgroup>
-            <optgroup label="Morse Patterns">`;
-            
-            optionsHtml += morseOptions.map(m => `<option value="${m}">${m}</option>`).join('');
-            optionsHtml += `</optgroup>`;
-            
-
-            gridHtml += `
-                <div class="text-right text-xs font-bold text-gray-400 pr-1 whitespace-nowrap">${label}</div>
-                <select class="bg-gray-800 text-white text-xs p-1 rounded border border-gray-600 focus:border-primary-app outline-none h-8 w-full font-mono tracking-widest text-center" data-morse-id="${val}">
-                    ${optionsHtml}
-                </select>
-            `;
-        });
-        gridHtml += `</div>`;
-        
-        container.innerHTML = `
-            <h3 class="text-sm font-bold uppercase text-gray-400 mb-3">Haptic Output Mapping</h3>
-            ${gridHtml}
-            <p class="text-[10px] text-gray-500 mt-3 text-center">Custom dot/dash patterns for playback.</p>
-        `;
-
-        // Bind Listeners & Set Defaults
-        const selects = container.querySelectorAll('select');
-        selects.forEach(sel => {
-            const id = sel.dataset.morseId;
-            
-            // Load saved or calculate default
-            if (this.appSettings.morseMappings && this.appSettings.morseMappings[id]) {
-                sel.value = this.appSettings.morseMappings[id];
-            } else {
-                // Default Logic (Standard Morse-like count)
-                let d = "";
-                const n = parseInt(id);
-                if (n <= 3) d = ".".repeat(n);
-                else if (n <= 6) d = "-" + ".".repeat(n-3);
-                else if (n <= 9) d = "--" + ".".repeat(n-6);
-                else d = "---" + ".".repeat(n-10);
-                sel.value = d;
-            }
-
-            sel.onchange = () => {
-                if (!this.appSettings.morseMappings) this.appSettings.morseMappings = {};
-                this.appSettings.morseMappings[id] = sel.value;
-                this.callbacks.onSave();
-
-                // Haptic Preview
-                if (navigator.vibrate) {
-                    const pattern = [];
-                    const speed = this.appSettings.playbackSpeed || 1.0;
-                    const factor = 1.0 / speed; 
-                    const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor;
-                    
-                    // Check for preset
-                    if(sel.value.startsWith('__')) {
-                        switch(sel.value) {
-                            case '__TICK__': navigator.vibrate(15); break;
-                            case '__THUD__': navigator.vibrate(70); break;
-                            case '__BUZZ__': navigator.vibrate(400); break;
-                            case '__DBL__': navigator.vibrate([20,50,20]); break;
-                            case '__TRPL__': navigator.vibrate([20,40,20,40,20]); break;
-                            case '__HBEAT__': navigator.vibrate([60,80,150]); break;
-                            case '__RAMP__': navigator.vibrate([10,20,40,80]); break;
-                        }
-                        return;
+            // Preview Vibration
+            if (navigator.vibrate) {
+                // Tactile Preset Handler
+                if (sel.value.startsWith('__')) {
+                    switch (sel.value) {
+                        case '__TICK__': navigator.vibrate(15); break;
+                        case '__THUD__': navigator.vibrate(70); break;
+                        case '__BUZZ__': navigator.vibrate(400); break;
+                        case '__DBL__': navigator.vibrate([20, 50, 20]); break;
+                        case '__TRPL__': navigator.vibrate([20, 40, 20, 40, 20]); break;
+                        case '__HBEAT__': navigator.vibrate([60, 80, 150]); break;
+                        case '__RAMP__': navigator.vibrate([10, 20, 40, 80]); break;
                     }
-
-                    for (let char of sel.value) {
-                        if(char === '.') pattern.push(DOT);
-                        if(char === '-') pattern.push(DASH);
-                        pattern.push(GAP);
-                    }
-                    if(pattern.length) navigator.vibrate(pattern);
+                    return;
                 }
-            };
-        });
-    }
+
+                // Standard Morse Handler
+                const speed = this.appSettings.playbackSpeed || 1.0;
+                const factor = 1.0 / speed;
+                const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor;
+                const pattern = [];
+
+                for (let char of sel.value) {
+                    if (char === '.') pattern.push(DOT);
+                    if (char === '-') pattern.push(DASH);
+                    pattern.push(GAP);
+                }
+                if (pattern.length) navigator.vibrate(pattern);
+            }
+        };
+    });
+} // <--- Final closing brace matches the function start
+                        
 
     applyDefaultGestureMappings() {
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};

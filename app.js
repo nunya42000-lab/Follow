@@ -59,12 +59,16 @@ const DEFAULT_APP = {
 };
 // DEFAULT MAPPINGS (Extracted to top level)
 const DEFAULT_MAPPINGS = {
-    // 9-Key: Basic Taps
-    'k9_1': 'tap', 'k9_2': 'double_tap', 'k9_3': 'triple_tap',
-    
-    // 9-Key: Multi-Touch (Defaults to _any for forgiveness)
-    'k9_4': 'tap_2f_any', 'k9_5': 'double_tap_2f_any', 'k9_6': 'triple_tap_2f_any',
-    'k9_7': 'tap_3f_any', 'k9_8': 'double_tap_3f_any', 'k9_9': 'triple_tap_3f_any',
+    // Updated 9-Key Default (Double Taps)
+'k9_1': 'double_tap_spatial_nw',
+'k9_2': 'double_tap_spatial_up',
+'k9_3': 'double_tap_spatial_ne',
+'k9_4': 'double_tap_spatial_left',
+'k9_5': 'double_tap', // Center key remains a standard double tap
+'k9_6': 'double_tap_spatial_right',
+'k9_7': 'double_tap_spatial_sw',
+'k9_8': 'double_tap_spatial_down',
+'k9_9': 'double_tap_spatial_se',
 
     // 12-Key: Basic Taps
     'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
@@ -1481,3 +1485,52 @@ requestWakeLock();
 }
         
 document.addEventListener('DOMContentLoaded', startApp);
+// --- ADVANCED AR RECORDING ENGINE ---
+window.startAdvancedRecording = async () => {
+    try {
+        // Pull quality settings from Developer Options
+        const fps = appSettings.recordFPS || 30;
+        const resolution = appSettings.recordRes || '720p';
+        const resMap = { '480p': 480, '720p': 720, '1080p': 1080 };
+        
+        const constraints = {
+            video: {
+                frameRate: { ideal: fps },
+                height: { ideal: resMap[resolution] }
+            },
+            audio: appSettings.isAudioRecordingEnabled ? {
+                echoCancellation: true,
+                noiseSuppression: true
+            } : false
+        };
+
+        const stream = await navigator.mediaDevices.getDisplayMedia(constraints);
+        const mediaRecorder = new MediaRecorder(stream, {
+            mimeType: 'video/webm; codecs=vp9',
+            bitsPerSecond: resolution === '1080p' ? 5000000 : 2500000
+        });
+
+        let chunks = [];
+        mediaRecorder.ondataavailable = e => chunks.push(e.data);
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(chunks, { type: "video/webm" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `follow-me-dev-capture-${Date.now()}.webm`;
+            a.click();
+        };
+
+        mediaRecorder.start();
+        showToast(`Recording @ ${resolution}/${fps}fps 🎥`);
+        
+        // Handle long-press cancel logic via a global reference if needed
+        window.currentMediaRecorder = mediaRecorder;
+        window.currentStream = stream;
+        
+    } catch(e) {
+        console.error("Recording failed:", e);
+        showToast("Recording Error");
+    }
+};
+        

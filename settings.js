@@ -1,5 +1,4 @@
 
-
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
 export const PREMADE_THEMES = {
@@ -485,13 +484,68 @@ export class SettingsManager {
             }
         }, { passive: true });
     }
+        initDeveloperMode() {
+        const trigger = document.getElementById('dev-mode-trigger');
+        if (!trigger) return;
+
+        let taps = 0;
+        let resetTimer;
+
+        trigger.onclick = () => {
+            taps++;
+            clearTimeout(resetTimer);
+            
+            if (taps >= 7) {
+                // Toggle Developer Flags
+                this.appSettings.showVoiceSettings = !this.appSettings.showVoiceSettings;
+                this.appSettings.showHapticMapping = !this.appSettings.showHapticMapping;
+                
+                alert(this.appSettings.showVoiceSettings ? "👨‍💻 Dev Mode ENABLED" : "Dev Mode DISABLED");
+                this.callbacks.onSave();
+                
+                // Refresh UI if settings are open
+                if (!this.dom.settingsModal.classList.contains('pointer-events-none')) {
+                    this.openSettings();
+                }
+                taps = 0;
+            }
+            
+            // Reset taps if too slow
+            resetTimer = setTimeout(() => taps = 0, 400);
+        };
+        }
+    
+    
         initListeners() {
-        this.dom.targetBtns.forEach(btn => { btn.onclick = () => { this.dom.targetBtns.forEach(b => { b.classList.remove('active', 'bg-primary-app'); b.classList.add('opacity-60'); }); btn.classList.add('active', 'bg-primary-app'); btn.classList.remove('opacity-60'); this.currentTargetKey = btn.dataset.target; if (this.tempTheme) { const [h, s, l] = this.hexToHsl(this.tempTheme[this.currentTargetKey]); this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l; this.dom.ftPreview.style.backgroundColor = this.tempTheme[this.currentTargetKey]; } }; });
+        this.initDeveloperMode();
+        
+        // --- Existing Listeners ---
+        this.dom.targetBtns.forEach(btn => { 
+            btn.onclick = () => { 
+                this.dom.targetBtns.forEach(b => { 
+                    b.classList.remove('active', 'bg-primary-app'); 
+                    b.classList.add('opacity-60'); 
+                }); 
+                btn.classList.add('active', 'bg-primary-app'); 
+                btn.classList.remove('opacity-60'); 
+                this.currentTargetKey = btn.dataset.target; 
+                if (this.tempTheme) { 
+                    const [h, s, l] = this.hexToHsl(this.tempTheme[this.currentTargetKey]); 
+                    this.dom.ftHue.value = h; 
+                    this.dom.ftSat.value = s; 
+                    this.dom.ftLit.value = l; 
+                    this.dom.ftPreview.style.backgroundColor = this.tempTheme[this.currentTargetKey]; 
+                } 
+            }; 
+        });
+
         [this.dom.ftHue, this.dom.ftSat, this.dom.ftLit].forEach(sl => { sl.oninput = () => this.updateColorFromSliders(); });
         this.dom.ftToggle.onclick = () => { this.dom.ftContainer.classList.remove('hidden'); this.dom.ftToggle.style.display = 'none'; };
+        
         if (this.dom.edSave) this.dom.edSave.onclick = () => { if (this.tempTheme) { const activeId = this.appSettings.activeTheme; if (PREMADE_THEMES[activeId]) { const newId = 'custom_' + Date.now(); this.appSettings.customThemes[newId] = this.tempTheme; this.appSettings.activeTheme = newId; } else { this.appSettings.customThemes[activeId] = this.tempTheme; } this.callbacks.onSave(); this.callbacks.onUpdate(); this.dom.editorModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.editorModal.querySelector('div').classList.add('scale-90'); this.populateThemeDropdown(); } };
         if (this.dom.openEditorBtn) this.dom.openEditorBtn.onclick = () => this.openThemeEditor();
         if (this.dom.edCancel) this.dom.edCancel.onclick = () => { this.dom.editorModal.classList.add('opacity-0', 'pointer-events-none'); };
+        
         // Voice Controls
         if (this.dom.voiceTestBtn) this.dom.voiceTestBtn.onclick = () => this.testVoice();
         const updateVoiceLive = () => {
@@ -531,18 +585,15 @@ export class SettingsManager {
                 }
                 this.callbacks.onSave();
                 this.generatePrompt();
-                
-                // --- FIXED: ADDED VOICE & AR TO THE TRIGGER LIST ---
                 if (['showTimer', 'showCounter', 'autoInputMode', 'isVoiceInputEnabled', 'isArModeEnabled', 'isStealth1KeyEnabled'].includes(prop)) {
                     this.updateHeaderVisibility();
                 }
             };
         };
 
+        // --- BINDINGS ---
         bind(this.dom.input, 'currentInput', false); bind(this.dom.machines, 'machineCount', false, true); bind(this.dom.seqLength, 'sequenceLength', false, true); bind(this.dom.autoClear, 'isUniqueRoundsAutoClearEnabled', true);
         bind(this.dom.longPressToggle, 'isLongPressAutoplayEnabled', true);
-        
-        // NEW HEADER TOGGLE LISTENERS
         bind(this.dom.timerToggle, 'showTimer', true);
         bind(this.dom.counterToggle, 'showCounter', true);
         bind(this.dom.arModeToggle, 'isArModeEnabled', true);
@@ -559,7 +610,8 @@ export class SettingsManager {
         if (this.dom.audio) { this.dom.audio.onchange = (e) => { this.appSettings.isAudioEnabled = e.target.checked; if (this.dom.quickAudio) this.dom.quickAudio.checked = e.target.checked; this.callbacks.onSave(); } }
         if (this.dom.quickAutoplay) { this.dom.quickAutoplay.onchange = (e) => { this.appSettings.isAutoplayEnabled = e.target.checked; if (this.dom.autoplay) this.dom.autoplay.checked = e.target.checked; this.callbacks.onSave(); } }
         if (this.dom.flash) this.dom.flash.checked = !!this.appSettings.isFlashEnabled;
-        if (this.dom.pause) this.dom.pause.value = this.appSettings.pauseSetting || 'none';if (this.dom.quickAudio) { this.dom.quickAudio.onchange = (e) => { this.appSettings.isAudioEnabled = e.target.checked; if (this.dom.audio) this.dom.audio.checked = e.target.checked; this.callbacks.onSave(); } }
+        if (this.dom.pause) this.dom.pause.value = this.appSettings.pauseSetting || 'none';
+        if (this.dom.quickAudio) { this.dom.quickAudio.onchange = (e) => { this.appSettings.isAudioEnabled = e.target.checked; if (this.dom.audio) this.dom.audio.checked = e.target.checked; this.callbacks.onSave(); } }
       
         if (this.dom.dontShowWelcome) { this.dom.dontShowWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = !e.target.checked; if (this.dom.showWelcome) this.dom.showWelcome.checked = !e.target.checked; this.callbacks.onSave(); } }
         if (this.dom.showWelcome) { this.dom.showWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = e.target.checked; if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !e.target.checked; this.callbacks.onSave(); } }
@@ -581,19 +633,13 @@ export class SettingsManager {
         if (this.dom.uiScale) this.dom.uiScale.onchange = (e) => { this.appSettings.globalUiScale = parseInt(e.target.value); this.callbacks.onUpdate(); };
         if (this.dom.seqSize) this.dom.seqSize.onchange = (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onUpdate(); };
         
-        // HAND GESTURES TOGGLE (Replaces BM Gestures)
         if (this.dom.blackoutGesturesToggle) {
-            // 1. Load saved state (mapped to isHandGesturesEnabled now)
             this.dom.blackoutGesturesToggle.checked = !!this.appSettings.isHandGesturesEnabled;
-            
-            // 2. Custom Change Listener
             this.dom.blackoutGesturesToggle.onchange = (e) => {
                 this.appSettings.isHandGesturesEnabled = e.target.checked;
-                this.updateHeaderVisibility(); // Triggers the 🖐️ icon to appear/disappear
+                this.updateHeaderVisibility();
                 this.callbacks.onSave();
             };
-            
-            // 3. Rename the Label in the UI to "Hand Gestures"
             const container = this.dom.blackoutGesturesToggle.closest('.settings-input');
             if(container) {
                 const label = container.querySelector('span');
@@ -601,7 +647,6 @@ export class SettingsManager {
             }
         }
         
-        // --- NEW FONT SIZE UPDATE ---
         if (this.dom.seqFontSize) {
             this.dom.seqFontSize.onchange = (e) => {
                 this.appSettings.uiFontSizeMultiplier = parseInt(e.target.value) / 100.0;
@@ -613,7 +658,6 @@ export class SettingsManager {
         if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
         if (this.dom.gestureMode) this.dom.gestureMode.onchange = (e) => { this.appSettings.gestureResizeMode = e.target.value; this.callbacks.onSave(); };
         
-        // Updated Auto-Input to also trigger header visibility check
         if (this.dom.autoInput) this.dom.autoInput.onchange = (e) => { const val = e.target.value; this.appSettings.autoInputMode = val; this.appSettings.showMicBtn = (val === 'mic' || val === 'both'); this.appSettings.showCamBtn = (val === 'cam' || val === 'both'); this.callbacks.onSave(); this.callbacks.onUpdate(); this.updateHeaderVisibility(); };
         
         if (this.dom.themeAdd) this.dom.themeAdd.onclick = () => { const n = prompt("Name:"); if (n) { const id = 'c_' + Date.now(); this.appSettings.customThemes[id] = { ...PREMADE_THEMES['default'], name: n }; this.appSettings.activeTheme = id; this.callbacks.onSave(); this.callbacks.onUpdate(); this.populateThemeDropdown(); this.openThemeEditor(); } };
@@ -648,26 +692,17 @@ export class SettingsManager {
                 document.getElementById(`tab-${target}`).classList.add('active');
             }
         });
-        // Initialize swipe for Settings Modal
-        if (this.dom.settingsModal) {
-            this.setupTabSwipe(this.dom.settingsModal);
-        }
-        // Initialize swipe for Help Modal
-        if (this.dom.helpModal) {
-            this.setupTabSwipe(this.dom.helpModal);
-        }
+        
+        if (this.dom.settingsModal) this.setupTabSwipe(this.dom.settingsModal);
+        if (this.dom.helpModal) this.setupTabSwipe(this.dom.helpModal);
         if (this.dom.openShareInside) this.dom.openShareInside.onclick = () => this.openShare();
-        // Restore Settings when closing share
         if (this.dom.closeShareBtn) this.dom.closeShareBtn.onclick = () => { this.closeShare(); this.openSettings(); };
         
-        // Redeem Zoom Logic
         let rScale = 100;
         const updateRedeem = () => { if(this.dom.redeemImg) this.dom.redeemImg.style.transform = `scale(${rScale/100})`; };
-        
         if (this.dom.openRedeemBtn) this.dom.openRedeemBtn.onclick = () => { rScale = 100; updateRedeem(); this.toggleRedeem(true); };
         if (this.dom.closeRedeemBtn) this.dom.closeRedeemBtn.onclick = () => this.toggleRedeem(false);
         if (this.dom.openRedeemSettingsBtn) this.dom.openRedeemSettingsBtn.onclick = () => { rScale = 100; updateRedeem(); this.toggleRedeem(true); };
-        
         if (this.dom.redeemPlus) this.dom.redeemPlus.onclick = () => { rScale = Math.min(100, rScale + 10); updateRedeem(); };
         if (this.dom.redeemMinus) this.dom.redeemMinus.onclick = () => { rScale = Math.max(10, rScale - 10); updateRedeem(); };
         if (this.dom.openDonateBtn) this.dom.openDonateBtn.onclick = () => this.toggleDonate(true);
@@ -685,10 +720,8 @@ export class SettingsManager {
         if (this.dom.quickResizeUp) this.dom.quickResizeUp.onclick = () => { this.appSettings.globalUiScale = Math.min(200, this.appSettings.globalUiScale + 10); this.callbacks.onUpdate(); };
         if (this.dom.quickResizeDown) this.dom.quickResizeDown.onclick = () => { this.appSettings.globalUiScale = Math.max(50, this.appSettings.globalUiScale - 10); this.callbacks.onUpdate(); };
 
-        // INIT MORSE UI
         this.populateMorseUI();
 
-        // NEW: Sensitivity Listeners
         if (this.dom.gestureTapSlider) {
             this.dom.gestureTapSlider.oninput = (e) => {
                 const val = parseInt(e.target.value);
@@ -705,12 +738,47 @@ export class SettingsManager {
                 this.callbacks.onSave();
             };
         }
+
+        // --- NEW: FULL SCREEN LOGIC (Correctly placed inside method) ---
+        this.dom.fullscreenToggle = document.getElementById('fullscreen-toggle');
+        if (this.dom.fullscreenToggle) {
+            this.dom.fullscreenToggle.onchange = (e) => {
+                if (e.target.checked) {
+                    if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+                    else if (document.documentElement.webkitRequestFullscreen) document.documentElement.webkitRequestFullscreen();
+                } else {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                }
+                this.appSettings.isFullscreenEnabled = e.target.checked;
+                this.callbacks.onSave();
+            };
+            this.dom.fullscreenToggle.checked = !!document.fullscreenElement;
+        }
+        }
+    // settings.js -> openSetup()
+    openSetup() { 
+        this.populateConfigDropdown(); 
+        this.updateUIFromSettings(); 
+        
+        // Logic to rename the button if Dev Mode is active
+        const settingsBtn = document.getElementById('quick-open-settings');
+        if (settingsBtn) {
+            if (this.appSettings.showVoiceSettings) { 
+                settingsBtn.textContent = "Developer Options";
+                settingsBtn.classList.remove('bg-gray-700');
+                settingsBtn.classList.add('bg-purple-700');
+            } else {
+                settingsBtn.textContent = "Settings";
+                settingsBtn.classList.remove('bg-purple-700');
+                settingsBtn.classList.add('bg-gray-700');
+            }
+        }
+
+        this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); 
+        this.dom.setupModal.querySelector('div').classList.remove('scale-90'); 
     }
-    populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
-    populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
-    openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); }
-    openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); }
-    closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); }
+closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); }
 
     generatePrompt() {
         if (!this.dom.promptDisplay) return;
@@ -1179,16 +1247,28 @@ export class SettingsManager {
         buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
     }
 
-    populateMorseUI() {
-        const tab = document.getElementById('tab-playback');
-        if (!tab) return;
-        
-        let container = document.getElementById('morse-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'morse-container';
-            container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
-            tab.appendChild(container);
+// settings.js -> populateMorseUI()
+populateMorseUI() {
+    const tab = document.getElementById('tab-playback');
+    if (!tab) return;
+    
+    // CHANGED: Target the specific block we created in HTML
+    let container = document.getElementById('haptic-settings-block');
+    
+    // Fallback if HTML wasn't updated
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'haptic-settings-block'; // Set the ID so we can toggle it later
+        container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
+        tab.appendChild(container);
+    }
+    
+    // Ensure styles are set (if using the empty div from HTML)
+    container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
+    
+    // ... rest of the function (building the grid) ...
+}
+ tab.appendChild(container);
         }
 
         // Generate all Morse combinations (1-5 length)

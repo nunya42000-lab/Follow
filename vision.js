@@ -66,26 +66,37 @@ export class VisionEngine {
         }
     }
 
-    stop() {
+        stop() {
         this.isActive = false;
         if (this.video) {
             if (this.video.srcObject) {
                 this.video.srcObject.getTracks().forEach(t => t.stop());
             }
             this.video.remove();
+            this.video = null; // Clear reference
         }
         if (this.loopId) cancelAnimationFrame(this.loopId);
         this.onStatus("Vision Off 🌑");
     }
 
-     try {
-                const results = this.recognizer.recognizeForVideo(this.video, startTimeMs);
-                this.process(results); // Ensure this call exists
-            } catch(e) { console.error("Vision Frame Error", e); }
+    predict() {
+        if (!this.isActive || !this.recognizer || !this.video) return;
+
+        const startTimeMs = Date.now();
+        
+        try {
+            const results = this.recognizer.recognizeForVideo(this.video, startTimeMs);
+            this.process(results);
+        } catch(e) { 
+            console.error("Vision Frame Error", e); 
         }
+
         this.loopId = requestAnimationFrame(() => this.predict());
-}
+    }
+
     process(results) {
+        // ... (The rest of your process function remains the same)
+
         if (this.cooldown > 0) { this.cooldown--; return; }
 
         let gesture = "none";

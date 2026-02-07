@@ -66,18 +66,29 @@ export class VisionEngine {
         }
     }
 
-        stop() {
+            stop() {
         this.isActive = false;
+        
+        // Cleanup Video
         if (this.video) {
             if (this.video.srcObject) {
                 this.video.srcObject.getTracks().forEach(t => t.stop());
             }
             this.video.remove();
-            this.video = null; // Clear reference
+            this.video = null;
         }
+
+        // Cleanup Debug Canvas (New)
+        if (this.debugCanvas) {
+            this.debugCanvas.remove();
+            this.debugCanvas = null;
+            this.debugCtx = null;
+        }
+
         if (this.loopId) cancelAnimationFrame(this.loopId);
         this.onStatus("Vision Off 🌑");
-    }
+            }
+    
 
     predict() {
         if (!this.isActive || !this.recognizer || !this.video) return;
@@ -93,7 +104,12 @@ export class VisionEngine {
 
         this.loopId = requestAnimationFrame(() => this.predict());
     }
-
+if (window.appSettings?.isSkeletonDebugEnabled) {
+    this._drawDebugSkeleton(results);
+} else if (this.debugCanvas) {
+    // Clear canvas if setting is toggled off while running
+    this.debugCtx.clearRect(0, 0, this.debugCanvas.width, this.debugCanvas.height);
+    }
     process(results) {
         // ... (The rest of your process function remains the same)
 
@@ -119,7 +135,74 @@ export class VisionEngine {
             if (fingers === 0) gesture = "hand_fist";
             else gesture = `hand_${fingers}_${dir}`;
         }
+    _drawDebugSkeleton(results) {
+        // 1. Lazy Initialization: Create Canvas only if needed
+        if (!this.debugCanvas) {
+            this.debugCanvas = document.createElement('canvas');
+            this.debugCanvas.style.position = 'fixed';
+            this.debugCanvas.style.top = '0';
+            this.debugCanvas.style.left = '0';
+            this.debugCanvas.style.width = '100vw';
+            this.debugCanvas.style.height = '100vh';
+            this.debugCanvas.style.zIndex = '9999'; // Ensure it's on top
+            this.debugCanvas.style.pointerEvents = 'none'; // Allow clicks to pass through
+            document.body.appendChild(this.debugCanvas);
+            this.debugCtx = this.debugCanvas.getContext('2d');
+        }
 
+        const ctx = this.debugCtx;
+        const canvas = this.debugCanvas;
+
+        // 2. Resize Canvas to match Window (Responsiveness)
+        if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        // 3. Clear Previous Frame
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 4. Draw Landmarks
+        if (results.landmarks) {
+            for (const landmarks of results.landmarks) {
+                this._drawHand(ctx, landmarks, canvas.width, canvas.height);
+            }
+        }
+    }
+
+    _drawHand(ctx, landmarks, w, h) {
+        const connectors = [
+            [0, 1], [1, 2], [2, 3], [3, 4],           // Thumb
+            [0, 5], [5, 6], [6, 7], [7, 8],           // Index
+            [5, 9], [9, 10], [10, 11], [11, 12],      // Middle
+            [9, 13], [13, 14], [14, 15], [15, 16],    // Ring
+            [13, 17], [0, 17], [17, 18], [18, 19], [19, 20] // Pinky & Wrist
+        ];
+
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+
+        // Draw Lines (Bones)
+        ctx.strokeStyle = "#00FF00"; // Neon Green
+        for (const [start, end] of connectors) {
+            const p1 = landmarks[start];
+            const p2 = landmarks[end];
+            ctx.beginPath();
+            // Note: Mirror X (1.0 - x) if using front camera to match user movement naturally
+            ctx.moveTo((1.0 - p1.x) * w, p1.y * h); 
+            ctx.lineTo((1.0 - p2.x) * w, p2.y * h);
+            ctx.stroke();
+        }
+
+        // Draw Joints (Dots)
+        ctx.fillStyle = "#FF0000"; // Red
+        for (const point of landmarks) {
+            ctx.beginPath();
+            ctx.arc((1.0 - point.x) * w, point.y * h, 4, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+                }
+        
         // Debounce Logic
         this.history.push(gesture);
         if (this.history.length > this.requiredFrames) this.history.shift();

@@ -18,9 +18,7 @@ const CRITICAL_ASSETS = [
     './wasm/vision_bundle.js',
     './wasm/vision_wasm_internal.js',
     './wasm/vision_wasm_internal.wasm',
-    './wasm/gesture_recognizer.task',
-    'https://cdn.tailwindcss.com',
-    'https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap'
+    './wasm/gesture_recognizer.task'
 ];
 
 

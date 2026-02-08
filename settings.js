@@ -1,5 +1,4 @@
 
-
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
 export const PREMADE_THEMES = {
@@ -343,55 +342,6 @@ export class SettingsManager {
         }
         
     }
-      populateConfigDropdown() {
-        if (!this.dom.configSelect) return;
-        this.dom.configSelect.innerHTML = '';
-        if (this.dom.quickConfigSelect) this.dom.quickConfigSelect.innerHTML = '';
-        
-        Object.keys(this.appSettings.profiles).forEach(key => {
-            const profile = this.appSettings.profiles[key];
-            const opt = document.createElement('option');
-            opt.value = key;
-            opt.textContent = profile.name;
-            this.dom.configSelect.appendChild(opt);
-            
-            if (this.dom.quickConfigSelect) {
-                const qOpt = opt.cloneNode(true);
-                this.dom.quickConfigSelect.appendChild(qOpt);
-            }
-        });
-        this.dom.configSelect.value = this.appSettings.activeProfileId;
-        if (this.dom.quickConfigSelect) this.dom.quickConfigSelect.value = this.appSettings.activeProfileId;
-    }
-
-    populateThemeDropdown() {
-        if (!this.dom.themeSelect) return;
-        this.dom.themeSelect.innerHTML = '';
-        
-        // Built-in Themes
-        const grp1 = document.createElement('optgroup'); grp1.label = "Built-in";
-        Object.keys(PREMADE_THEMES).forEach(k => {
-            const opt = document.createElement('option');
-            opt.value = k;
-            opt.textContent = PREMADE_THEMES[k].name;
-            grp1.appendChild(opt);
-        });
-        this.dom.themeSelect.appendChild(grp1);
-
-        // Custom Themes
-        const grp2 = document.createElement('optgroup'); grp2.label = "Custom";
-        if(this.appSettings.customThemes) {
-            Object.keys(this.appSettings.customThemes).forEach(k => {
-                const opt = document.createElement('option');
-                opt.value = k;
-                opt.textContent = this.appSettings.customThemes[k].name;
-                grp2.appendChild(opt);
-            });
-        }
-        this.dom.themeSelect.appendChild(grp2);
-        this.dom.themeSelect.value = this.appSettings.activeTheme;
-    }
-        
     populatePlaybackSpeedDropdown() {
         if (!this.dom.playbackSpeed) return;
         this.dom.playbackSpeed.innerHTML = '';
@@ -534,77 +484,13 @@ export class SettingsManager {
             }
         }, { passive: true });
     }
-        initDeveloperMode() {
-        const trigger = document.getElementById('dev-mode-trigger');
-        if (!trigger) return;
-
-        let taps = 0;
-        let resetTimer;
-
-        trigger.onclick = () => {
-            taps++;
-            clearTimeout(resetTimer);
-            
-            if (taps >= 7) {
-                // Toggle Developer Flags
-                this.appSettings.showVoiceSettings = !this.appSettings.showVoiceSettings;
-                this.appSettings.showHapticMapping = !this.appSettings.showHapticMapping;
-                
-                alert(this.appSettings.showVoiceSettings ? "👨‍💻 Dev Mode ENABLED" : "Dev Mode DISABLED");
-                this.callbacks.onSave();
-                
-                // Refresh UI if settings are open
-                if (!this.dom.settingsModal.classList.contains('pointer-events-none')) {
-                    this.openSettings();
-                }
-                taps = 0;
-            }
-            
-            // Reset taps if too slow
-            resetTimer = setTimeout(() => taps = 0, 400);
-        };
-        }
-    
-    
         initListeners() {
-        this.initDeveloperMode();
-        
-        // --- Existing Listeners ---
-        this.dom.targetBtns.forEach(btn => { 
-            btn.onclick = () => { 
-                this.dom.targetBtns.forEach(b => { 
-                    b.classList.remove('active', 'bg-primary-app'); 
-                    b.classList.add('opacity-60'); 
-                }); 
-                btn.classList.add('active', 'bg-primary-app'); 
-                btn.classList.remove('opacity-60'); 
-                this.currentTargetKey = btn.dataset.target; 
-                if (this.tempTheme) { 
-                    const [h, s, l] = this.hexToHsl(this.tempTheme[this.currentTargetKey]); 
-                    this.dom.ftHue.value = h; 
-                    this.dom.ftSat.value = s; 
-                    this.dom.ftLit.value = l; 
-                    this.dom.ftPreview.style.backgroundColor = this.tempTheme[this.currentTargetKey]; 
-                } 
-            }; 
-        });
- // --- FIX START ---
-[this.dom.ftHue, this.dom.ftSat, this.dom.ftLit].forEach(sl => { 
-    if (sl) sl.oninput = () => this.updateColorFromSliders(); 
-});
-
-if (this.dom.ftToggle) {
-    this.dom.ftToggle.onclick = () => { 
-        if (this.dom.ftContainer) this.dom.ftContainer.classList.remove('hidden'); 
-        this.dom.ftToggle.style.display = 'none'; 
-    };
-}
-// --- FIX END ---
- 
+        this.dom.targetBtns.forEach(btn => { btn.onclick = () => { this.dom.targetBtns.forEach(b => { b.classList.remove('active', 'bg-primary-app'); b.classList.add('opacity-60'); }); btn.classList.add('active', 'bg-primary-app'); btn.classList.remove('opacity-60'); this.currentTargetKey = btn.dataset.target; if (this.tempTheme) { const [h, s, l] = this.hexToHsl(this.tempTheme[this.currentTargetKey]); this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l; this.dom.ftPreview.style.backgroundColor = this.tempTheme[this.currentTargetKey]; } }; });
+        [this.dom.ftHue, this.dom.ftSat, this.dom.ftLit].forEach(sl => { sl.oninput = () => this.updateColorFromSliders(); });
+        this.dom.ftToggle.onclick = () => { this.dom.ftContainer.classList.remove('hidden'); this.dom.ftToggle.style.display = 'none'; };
         if (this.dom.edSave) this.dom.edSave.onclick = () => { if (this.tempTheme) { const activeId = this.appSettings.activeTheme; if (PREMADE_THEMES[activeId]) { const newId = 'custom_' + Date.now(); this.appSettings.customThemes[newId] = this.tempTheme; this.appSettings.activeTheme = newId; } else { this.appSettings.customThemes[activeId] = this.tempTheme; } this.callbacks.onSave(); this.callbacks.onUpdate(); this.dom.editorModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.editorModal.querySelector('div').classList.add('scale-90'); this.populateThemeDropdown(); } };
         if (this.dom.openEditorBtn) this.dom.openEditorBtn.onclick = () => this.openThemeEditor();
         if (this.dom.edCancel) this.dom.edCancel.onclick = () => { this.dom.editorModal.classList.add('opacity-0', 'pointer-events-none'); };
-        
         // Voice Controls
         if (this.dom.voiceTestBtn) this.dom.voiceTestBtn.onclick = () => this.testVoice();
         const updateVoiceLive = () => {
@@ -644,15 +530,18 @@ if (this.dom.ftToggle) {
                 }
                 this.callbacks.onSave();
                 this.generatePrompt();
+                
+                // --- FIXED: ADDED VOICE & AR TO THE TRIGGER LIST ---
                 if (['showTimer', 'showCounter', 'autoInputMode', 'isVoiceInputEnabled', 'isArModeEnabled', 'isStealth1KeyEnabled'].includes(prop)) {
                     this.updateHeaderVisibility();
                 }
             };
         };
 
-        // --- BINDINGS ---
         bind(this.dom.input, 'currentInput', false); bind(this.dom.machines, 'machineCount', false, true); bind(this.dom.seqLength, 'sequenceLength', false, true); bind(this.dom.autoClear, 'isUniqueRoundsAutoClearEnabled', true);
         bind(this.dom.longPressToggle, 'isLongPressAutoplayEnabled', true);
+        
+        // NEW HEADER TOGGLE LISTENERS
         bind(this.dom.timerToggle, 'showTimer', true);
         bind(this.dom.counterToggle, 'showCounter', true);
         bind(this.dom.arModeToggle, 'isArModeEnabled', true);
@@ -669,8 +558,7 @@ if (this.dom.ftToggle) {
         if (this.dom.audio) { this.dom.audio.onchange = (e) => { this.appSettings.isAudioEnabled = e.target.checked; if (this.dom.quickAudio) this.dom.quickAudio.checked = e.target.checked; this.callbacks.onSave(); } }
         if (this.dom.quickAutoplay) { this.dom.quickAutoplay.onchange = (e) => { this.appSettings.isAutoplayEnabled = e.target.checked; if (this.dom.autoplay) this.dom.autoplay.checked = e.target.checked; this.callbacks.onSave(); } }
         if (this.dom.flash) this.dom.flash.checked = !!this.appSettings.isFlashEnabled;
-        if (this.dom.pause) this.dom.pause.value = this.appSettings.pauseSetting || 'none';
-        if (this.dom.quickAudio) { this.dom.quickAudio.onchange = (e) => { this.appSettings.isAudioEnabled = e.target.checked; if (this.dom.audio) this.dom.audio.checked = e.target.checked; this.callbacks.onSave(); } }
+        if (this.dom.pause) this.dom.pause.value = this.appSettings.pauseSetting || 'none';if (this.dom.quickAudio) { this.dom.quickAudio.onchange = (e) => { this.appSettings.isAudioEnabled = e.target.checked; if (this.dom.audio) this.dom.audio.checked = e.target.checked; this.callbacks.onSave(); } }
       
         if (this.dom.dontShowWelcome) { this.dom.dontShowWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = !e.target.checked; if (this.dom.showWelcome) this.dom.showWelcome.checked = !e.target.checked; this.callbacks.onSave(); } }
         if (this.dom.showWelcome) { this.dom.showWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = e.target.checked; if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !e.target.checked; this.callbacks.onSave(); } }
@@ -692,13 +580,19 @@ if (this.dom.ftToggle) {
         if (this.dom.uiScale) this.dom.uiScale.onchange = (e) => { this.appSettings.globalUiScale = parseInt(e.target.value); this.callbacks.onUpdate(); };
         if (this.dom.seqSize) this.dom.seqSize.onchange = (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onUpdate(); };
         
+        // HAND GESTURES TOGGLE (Replaces BM Gestures)
         if (this.dom.blackoutGesturesToggle) {
+            // 1. Load saved state (mapped to isHandGesturesEnabled now)
             this.dom.blackoutGesturesToggle.checked = !!this.appSettings.isHandGesturesEnabled;
+            
+            // 2. Custom Change Listener
             this.dom.blackoutGesturesToggle.onchange = (e) => {
                 this.appSettings.isHandGesturesEnabled = e.target.checked;
-                this.updateHeaderVisibility();
+                this.updateHeaderVisibility(); // Triggers the 🖐️ icon to appear/disappear
                 this.callbacks.onSave();
             };
+            
+            // 3. Rename the Label in the UI to "Hand Gestures"
             const container = this.dom.blackoutGesturesToggle.closest('.settings-input');
             if(container) {
                 const label = container.querySelector('span');
@@ -706,6 +600,7 @@ if (this.dom.ftToggle) {
             }
         }
         
+        // --- NEW FONT SIZE UPDATE ---
         if (this.dom.seqFontSize) {
             this.dom.seqFontSize.onchange = (e) => {
                 this.appSettings.uiFontSizeMultiplier = parseInt(e.target.value) / 100.0;
@@ -717,6 +612,7 @@ if (this.dom.ftToggle) {
         if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
         if (this.dom.gestureMode) this.dom.gestureMode.onchange = (e) => { this.appSettings.gestureResizeMode = e.target.value; this.callbacks.onSave(); };
         
+        // Updated Auto-Input to also trigger header visibility check
         if (this.dom.autoInput) this.dom.autoInput.onchange = (e) => { const val = e.target.value; this.appSettings.autoInputMode = val; this.appSettings.showMicBtn = (val === 'mic' || val === 'both'); this.appSettings.showCamBtn = (val === 'cam' || val === 'both'); this.callbacks.onSave(); this.callbacks.onUpdate(); this.updateHeaderVisibility(); };
         
         if (this.dom.themeAdd) this.dom.themeAdd.onclick = () => { const n = prompt("Name:"); if (n) { const id = 'c_' + Date.now(); this.appSettings.customThemes[id] = { ...PREMADE_THEMES['default'], name: n }; this.appSettings.activeTheme = id; this.callbacks.onSave(); this.callbacks.onUpdate(); this.populateThemeDropdown(); this.openThemeEditor(); } };
@@ -751,17 +647,26 @@ if (this.dom.ftToggle) {
                 document.getElementById(`tab-${target}`).classList.add('active');
             }
         });
-        
-        if (this.dom.settingsModal) this.setupTabSwipe(this.dom.settingsModal);
-        if (this.dom.helpModal) this.setupTabSwipe(this.dom.helpModal);
+        // Initialize swipe for Settings Modal
+        if (this.dom.settingsModal) {
+            this.setupTabSwipe(this.dom.settingsModal);
+        }
+        // Initialize swipe for Help Modal
+        if (this.dom.helpModal) {
+            this.setupTabSwipe(this.dom.helpModal);
+        }
         if (this.dom.openShareInside) this.dom.openShareInside.onclick = () => this.openShare();
+        // Restore Settings when closing share
         if (this.dom.closeShareBtn) this.dom.closeShareBtn.onclick = () => { this.closeShare(); this.openSettings(); };
         
+        // Redeem Zoom Logic
         let rScale = 100;
         const updateRedeem = () => { if(this.dom.redeemImg) this.dom.redeemImg.style.transform = `scale(${rScale/100})`; };
+        
         if (this.dom.openRedeemBtn) this.dom.openRedeemBtn.onclick = () => { rScale = 100; updateRedeem(); this.toggleRedeem(true); };
         if (this.dom.closeRedeemBtn) this.dom.closeRedeemBtn.onclick = () => this.toggleRedeem(false);
         if (this.dom.openRedeemSettingsBtn) this.dom.openRedeemSettingsBtn.onclick = () => { rScale = 100; updateRedeem(); this.toggleRedeem(true); };
+        
         if (this.dom.redeemPlus) this.dom.redeemPlus.onclick = () => { rScale = Math.min(100, rScale + 10); updateRedeem(); };
         if (this.dom.redeemMinus) this.dom.redeemMinus.onclick = () => { rScale = Math.max(10, rScale - 10); updateRedeem(); };
         if (this.dom.openDonateBtn) this.dom.openDonateBtn.onclick = () => this.toggleDonate(true);
@@ -779,8 +684,10 @@ if (this.dom.ftToggle) {
         if (this.dom.quickResizeUp) this.dom.quickResizeUp.onclick = () => { this.appSettings.globalUiScale = Math.min(200, this.appSettings.globalUiScale + 10); this.callbacks.onUpdate(); };
         if (this.dom.quickResizeDown) this.dom.quickResizeDown.onclick = () => { this.appSettings.globalUiScale = Math.max(50, this.appSettings.globalUiScale - 10); this.callbacks.onUpdate(); };
 
+        // INIT MORSE UI
         this.populateMorseUI();
 
+        // NEW: Sensitivity Listeners
         if (this.dom.gestureTapSlider) {
             this.dom.gestureTapSlider.oninput = (e) => {
                 const val = parseInt(e.target.value);
@@ -797,57 +704,12 @@ if (this.dom.ftToggle) {
                 this.callbacks.onSave();
             };
         }
-
-        // --- NEW: FULL SCREEN LOGIC (Correctly placed inside method) ---
-        this.dom.fullscreenToggle = document.getElementById('fullscreen-toggle');
-        if (this.dom.fullscreenToggle) {
-            this.dom.fullscreenToggle.onchange = (e) => {
-                if (e.target.checked) {
-                    if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
-                    else if (document.documentElement.webkitRequestFullscreen) document.documentElement.webkitRequestFullscreen();
-                } else {
-                    if (document.exitFullscreen) document.exitFullscreen();
-                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-                }
-                this.appSettings.isFullscreenEnabled = e.target.checked;
-                this.callbacks.onSave();
-            };
-            this.dom.fullscreenToggle.checked = !!document.fullscreenElement;
-        }
-        }
-    // settings.js -> openSetup()
-      openSettings() {
-        this.populateConfigDropdown();
-        this.updateUIFromSettings();
-        if (this.dom.settingsModal) {
-            this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none');
-            const innerDiv = this.dom.settingsModal.querySelector('div');
-            if (innerDiv) innerDiv.classList.remove('scale-90');
-        }
-      }
-    
-    openSetup() { 
-        this.populateConfigDropdown(); 
-        this.updateUIFromSettings(); 
-        
-        // Logic to rename the button if Dev Mode is active
-        const settingsBtn = document.getElementById('quick-open-settings');
-        if (settingsBtn) {
-            if (this.appSettings.showVoiceSettings) { 
-                settingsBtn.textContent = "Developer Options";
-                settingsBtn.classList.remove('bg-gray-700');
-                settingsBtn.classList.add('bg-purple-700');
-            } else {
-                settingsBtn.textContent = "Settings";
-                settingsBtn.classList.remove('bg-purple-700');
-                settingsBtn.classList.add('bg-gray-700');
-            }
-        }
-
-        this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); 
-        this.dom.setupModal.querySelector('div').classList.remove('scale-90'); 
     }
-closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); }
+    populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
+    populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
+    openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); }
+    openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); }
+    closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); }
 
     generatePrompt() {
         if (!this.dom.promptDisplay) return;
@@ -871,7 +733,7 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
         this.dom.promptDisplay.value = promptText;
     }
 
-            updateUIFromSettings() {
+    updateUIFromSettings() {
         const ps = this.appSettings.runtimeSettings;
         if (this.dom.input) this.dom.input.value = ps.currentInput;
         if (this.dom.mode) this.dom.mode.value = ps.currentMode;
@@ -886,10 +748,11 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
         if (this.dom.showWelcome) this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
         if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.isHapticMorseEnabled;
         
+        // UPDATED: Matches the new dropdown generation logic (e.g. "1.00")
         if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = (this.appSettings.playbackSpeed || 1.0).toFixed(2);
         
         if (this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
-        if (this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000); 
+        if (this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000); //
         if (this.dom.voicePitch) this.dom.voicePitch.value = this.appSettings.voicePitch || 1.0;
         if (this.dom.voiceRate) this.dom.voiceRate.value = this.appSettings.voiceRate || 1.0;
         if (this.dom.voiceVolume) this.dom.voiceVolume.value = this.appSettings.voiceVolume || 1.0;
@@ -911,12 +774,13 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
         if (this.dom.clearGestureToggle) this.dom.clearGestureToggle.checked = !!this.appSettings.isClearGestureEnabled;
         if (this.dom.autoTimerToggle) this.dom.autoTimerToggle.checked = !!this.appSettings.isAutoTimerEnabled;
         if (this.dom.autoCounterToggle) this.dom.autoCounterToggle.checked = !!this.appSettings.isAutoCounterEnabled;    
+        // UPDATED: Matches the new 50-500 range logic
         if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
         
         if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
         if (this.dom.seqFontSize) this.dom.seqFontSize.value = Math.round((this.appSettings.uiFontSizeMultiplier || 1.0) * 100);
         
-        // Re-apply sensitivity sliders if they exist
+        // NEW: Load Sensitivity
         if (this.dom.gestureTapSlider) {
             const tapVal = this.appSettings.gestureTapDelay || 300;
             this.dom.gestureTapSlider.value = tapVal;
@@ -931,6 +795,7 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
         if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
         if (this.dom.blackoutToggle) this.dom.blackoutToggle.checked = this.appSettings.isBlackoutFeatureEnabled;
         
+        // --- CRITICAL FIX: Map to the correct variable name ---
         if (this.dom.blackoutGesturesToggle) this.dom.blackoutGesturesToggle.checked = !!this.appSettings.isHandGesturesEnabled;
         
         if (this.dom.gestureToggle) this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
@@ -940,18 +805,8 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
         this.setLanguage(lang);
         
         this.updateHeaderVisibility();
+    }
 
-        // --- NEW: DEVELOPER MODE VISIBILITY ---
-        const voiceBlock = document.getElementById('voice-settings-block');
-        if(voiceBlock) {
-            voiceBlock.style.display = this.appSettings.showVoiceSettings ? 'block' : 'none';
-        }
-
-        const hapticBlock = document.getElementById('haptic-settings-block');
-        if(hapticBlock) {
-            hapticBlock.style.display = this.appSettings.showHapticMapping ? 'block' : 'none';
-        }
-            }
     // NEW METHOD: Manages the Auto-Hiding Header Bar
     updateHeaderVisibility() {
         const header = document.getElementById('aux-control-header');
@@ -996,50 +851,104 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
     
     hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
-    
-
     populateMappingUI() {
-        if (!this.dom || !this.appSettings) return;
+        if (!this.dom) return;
+        if (!this.appSettings) return;
         
-        // 1. Ensure Defaults exist
         if (!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
             this.applyDefaultGestureMappings();
         }
+        
         if (!this.appSettings.gestureProfiles) this.appSettings.gestureProfiles = {};
 
-        // 2. Find the tab
+        // 1. REBUILD SENSITIVITY CONTROLS
         const tabRoot = document.getElementById('tab-mapping');
-        if (!tabRoot) return;
+        if (tabRoot) {
+            tabRoot.className = "tab-content p-1 space-y-4";
+            
+            // Re-inject the slider HTML
+            tabRoot.innerHTML = `
+                <div class="p-3 mb-4 rounded-lg border border-custom bg-black bg-opacity-30">
+                    <h4 class="font-bold text-sm mb-3 text-primary-app">Gesture Sensitivity 🎛️</h4>
+                    <div class="mb-4">
+                        <div class="flex justify-between mb-1">
+                            <label class="text-xs font-bold">Tap Speed (ms)</label>
+                            <span id="gesture-tap-val" class="text-xs font-mono">${this.appSettings.gestureTapDelay || 300}ms</span>
+                        </div>
+                        <input type="range" id="gesture-tap-slider" min="100" max="800" step="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer" value="${this.appSettings.gestureTapDelay || 300}">
+                        <p class="text-[10px] text-gray-400 mt-1">Faster time = harder to tap, easier to swipe. Slower time = easier to tap.</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-xs font-bold">Swipe Distance (px)</label>
+                            <span id="gesture-swipe-val" class="text-xs font-mono">${this.appSettings.gestureSwipeDist || 30}px</span>
+                        </div>
+                        <input type="range" id="gesture-swipe-slider" min="10" max="100" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer" value="${this.appSettings.gestureSwipeDist || 30}">
+                        <p class="text-[10px] text-gray-400 mt-1">Higher distance = fewer accidental swipes.</p>
+                    </div>
+                </div>
+            `;
+            
+            // Re-bind listeners for sliders
+            const tapSlider = document.getElementById('gesture-tap-slider');
+            const swipeSlider = document.getElementById('gesture-swipe-slider');
+            const tapVal = document.getElementById('gesture-tap-val');
+            const swipeVal = document.getElementById('gesture-swipe-val');
 
-        // 3. Find or Create the CONTAINER for the list (Do NOT overwrite tabRoot.innerHTML)
-        let listRoot = document.getElementById('mapping-list-root');
-        if (!listRoot) {
-            listRoot = document.createElement('div');
-            listRoot.id = 'mapping-list-root';
-            listRoot.className = "mt-4 pt-4 border-t border-custom";
-            tabRoot.appendChild(listRoot);
+            if(tapSlider) {
+                tapSlider.oninput = (e) => {
+                    const val = parseInt(e.target.value);
+                    this.appSettings.gestureTapDelay = val;
+                    if(tapVal) tapVal.textContent = val + 'ms';
+                    this.callbacks.onSave();
+                };
+            }
+            if(swipeSlider) {
+                swipeSlider.oninput = (e) => {
+                    const val = parseInt(e.target.value);
+                    this.appSettings.gestureSwipeDist = val;
+                    if(swipeVal) swipeVal.textContent = val + 'px';
+                    this.callbacks.onSave();
+                };
+            }
         }
-        
-        // 4. Clear ONLY our specific list container, preserving the rest of the UI
-        listRoot.innerHTML = '';
 
-        // 5. Define Gestures
+        // 2. DEFINE THE EXPANDED GESTURE LIST
         const gestureList = [
+            // --- Taps ---
             'tap', 'double_tap', 'triple_tap', 'long_tap',
+            
+            // --- Multi-Finger Taps ---
             'tap_2f_any', 'double_tap_2f_any', 'triple_tap_2f_any', 'long_tap_2f_any',
             'tap_3f_any', 'double_tap_3f_any', 'triple_tap_3f_any', 'long_tap_3f_any',
+            
+            // --- Standard Swipes ---
             'swipe_up', 'swipe_down', 'swipe_left', 'swipe_right', 
             'swipe_nw', 'swipe_ne', 'swipe_sw', 'swipe_se',
+            
+            // --- Long Swipes (Throw) ---
             'swipe_long_up', 'swipe_long_down', 'swipe_long_left', 'swipe_long_right',
+            
+            // --- Multi-Finger Swipes ---
             'swipe_up_2f', 'swipe_down_2f', 'swipe_left_2f', 'swipe_right_2f',
+            
+            // --- Shapes: Boomerangs (I-Shape / 180 flip) ---
             'boomerang_up', 'boomerang_down', 'boomerang_left', 'boomerang_right',
+            
+            // --- Shapes: Switchbacks (V-Shape / < >) ---
             'switchback_up', 'switchback_down', 'switchback_left', 'switchback_right',
-            'corner_cw', 'corner_ccw', 'square_cw', 'square_ccw', 
-            'triangle_cw', 'triangle_ccw', 'u_shape_cw', 'u_shape_ccw',
+            
+            // --- Shapes: Corners (L-Shape) ---
+            'corner_cw', 'corner_ccw',
+            
+            // --- Shapes: Closed & Complex ---
+            'square_cw', 'square_ccw', 
+            'triangle_cw', 'triangle_ccw',
+            'u_shape_cw', 'u_shape_ccw',
             'zigzag_right', 'zigzag_left'
         ];
 
-        // 6. Helper to build Accordions
+        // 3. BUILD UI (With Accordions)
         const buildSection = (type, title, keyPrefix, count, customKeys = null, isOpen = false) => {
             const details = document.createElement('details');
             details.className = "group rounded-lg border border-custom bg-black bg-opacity-20 mb-3 open:bg-opacity-40 transition-all";
@@ -1053,7 +962,7 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
             const contentDiv = document.createElement('div');
             contentDiv.className = "p-3 pt-0 border-t border-gray-700 mt-2";
             
-            // Profile Selector
+            // --- PROFILE SELECTOR INSIDE ACCORDION ---
             const profileHeader = document.createElement('div');
             profileHeader.innerHTML = `<label class="text-xs font-bold uppercase text-muted-custom block mb-1 mt-2">Active Preset</label>`;
             contentDiv.appendChild(profileHeader);
@@ -1069,7 +978,10 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
                 select.appendChild(def);
 
                 const grp1 = document.createElement('optgroup'); grp1.label = "Built-in";
+                
+                // Fallback logic for safety in this snippet:
                 const safePresets = (typeof GESTURE_PRESETS !== 'undefined') ? GESTURE_PRESETS : {};
+
                 Object.keys(safePresets).forEach(k => {
                     if(safePresets[k].type === type) {
                         const opt = document.createElement('option');
@@ -1096,14 +1008,15 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
             populateSelect();
             contentDiv.appendChild(select);
 
-            // Buttons
+            // --- BUTTONS ---
             const btnGrid = document.createElement('div');
             btnGrid.className = "grid grid-cols-2 gap-2 mb-4"; 
+            
             const createBtn = (txt, color, onClick) => {
                 const b = document.createElement('button');
                 b.textContent = txt;
                 b.className = `py-2 text-xs bg-${color}-600 hover:bg-${color}-500 rounded text-white font-bold transition shadow`;
-                b.onclick = (e) => { e.stopPropagation(); onClick(); };
+                b.onclick = (e) => { e.stopPropagation(); onClick(); }; // Stop propagation so accordion doesn't close
                 return b;
             };
 
@@ -1151,7 +1064,7 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
             );
             contentDiv.appendChild(btnGrid);
 
-            // List Container
+            // --- LIST ---
             const listContainer = document.createElement('div');
             listContainer.className = "space-y-2 border-t border-custom pt-3 max-h-60 overflow-y-auto";
             contentDiv.appendChild(listContainer);
@@ -1169,10 +1082,12 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
                     lbl.className = "text-sm font-bold w-8 h-10 flex items-center justify-center bg-gray-800 rounded border border-gray-600 shrink-0";
                     lbl.textContent = k;
 
+                    // 1. TOUCH GESTURE DROPDOWN
                     const dropTouch = document.createElement('select');
                     dropTouch.className = "settings-input p-1 rounded text-[10px] h-10 border border-custom flex-1 w-0";
-                    dropTouch.dataset.key = keyId;
+                    dropTouch.dataset.key = keyId; // For saving presets
 
+                    // Add default "Choose..." or iterate your gestureList
                     gestureList.forEach(g => {
                         const opt = document.createElement('option');
                         opt.value = g;
@@ -1180,6 +1095,7 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
                         dropTouch.appendChild(opt);
                     });
 
+                    // 2. HAND GESTURE DROPDOWN
                     const dropHand = document.createElement('select');
                     dropHand.className = "settings-input p-1 rounded text-[10px] h-10 border border-custom flex-1 w-0 bg-blue-900 bg-opacity-20";
                     
@@ -1188,14 +1104,18 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
                     defHand.textContent = "- Hand -";
                     dropHand.appendChild(defHand);
                     
+                    // Safe access to HAND_GESTURES_LIST
                     const handList = (typeof HAND_GESTURES_LIST !== 'undefined') ? HAND_GESTURES_LIST : [];
+
                     handList.forEach(g => {
                         const opt = document.createElement('option');
                         opt.value = g;
+                        // Format: hand_2_up -> 2 Fingers Up
                         opt.textContent = g.replace('hand_', '').replace('_', ' ').replace('fist', '✊ Fist').toUpperCase(); 
                         dropHand.appendChild(opt);
                     });
 
+                    // LOAD SAVED VALUES
                     const mapping = (this.appSettings.gestureMappings && this.appSettings.gestureMappings[keyId]) 
                         ? this.appSettings.gestureMappings[keyId] 
                         : {};
@@ -1203,6 +1123,7 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
                     dropTouch.value = mapping.gesture || 'tap';
                     dropHand.value = mapping.hand || '';
 
+                    // SAVE LISTENER
                     const save = () => {
                         if(!this.appSettings.gestureMappings[keyId]) this.appSettings.gestureMappings[keyId] = {};
                         this.appSettings.gestureMappings[keyId].gesture = dropTouch.value;
@@ -1225,11 +1146,16 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
             select.onchange = () => {
                  const val = select.value;
                  if(!val) return;
+                 // Safe Preset Access again
                  const safePresets = (typeof GESTURE_PRESETS !== 'undefined') ? GESTURE_PRESETS : {};
+                 
                  let data = safePresets[val] ? safePresets[val].map : (this.appSettings.gestureProfiles[val] ? this.appSettings.gestureProfiles[val].map : null);
                  if(data) {
+                     // Check if this is a simple string map (old presets) or object map (new presets)
+                     // Convert old string map to new object format for internal storage if needed
                      Object.keys(data).forEach(key => {
                          if(!this.appSettings.gestureMappings[key]) this.appSettings.gestureMappings[key] = {};
+                         
                          const entry = data[key];
                          if (typeof entry === 'string') {
                              this.appSettings.gestureMappings[key].gesture = entry;
@@ -1244,28 +1170,27 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
             };
             
             details.appendChild(contentDiv);
-            listRoot.appendChild(details);
+            if(tabRoot) tabRoot.appendChild(details);
         };
 
-        buildSection('key9', '9-Key', 'k9_', 9, null, true);
+        buildSection('key9', '9-Key', 'k9_', 9, null, true); // Open first one by default
         buildSection('key12', '12-Key', 'k12_', 12);
         buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
-                     }
-            
-        populateMorseUI() {
+    }
+
+    populateMorseUI() {
         const tab = document.getElementById('tab-playback');
         if (!tab) return;
         
-        // 1. Find or Create Container
-        let container = document.getElementById('haptic-settings-block');
+        let container = document.getElementById('morse-container');
         if (!container) {
             container = document.createElement('div');
-            container.id = 'haptic-settings-block';
+            container.id = 'morse-container';
             container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
-            tab.appendChild(container); 
+            tab.appendChild(container);
         }
-        
-        // 2. Generate Morse Combinations
+
+        // Generate all Morse combinations (1-5 length)
         const morseOptions = [];
         const chars = ['.', '-'];
         const generate = (current) => {
@@ -1275,47 +1200,100 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
         };
         generate('');
         
-        // Sort
+        // Sort by length, then alphabet (dots before dashes)
         morseOptions.sort((a, b) => a.length - b.length || a.localeCompare(b));
 
-        // 3. Build UI
+        // Labels as requested
         const labels = ["1", "2", "3", "4", "5", "6 C", "7 D", "8 E", "9 F", "10 G", "11 A", "12 B"];
+
         let gridHtml = `<div class="grid grid-cols-4 gap-y-3 gap-x-2 items-center">`;
         
         labels.forEach((label, index) => {
             const val = index + 1;
-            let optionsHtml = `<optgroup label="Tactile"><option value="__TICK__">Tick</option><option value="__THUD__">Thud</option><option value="__BUZZ__">Buzz</option><option value="__DBL__">Double</option><option value="__TRPL__">Triple</option></optgroup><optgroup label="Morse">`;
+            
+            // Build the select options
+            let optionsHtml = `<optgroup label="Tactile Textures">
+                <option value="__TICK__">🔹 Tick (Sharp)</option>
+                <option value="__THUD__">⬛ Thud (Heavy)</option>
+                <option value="__BUZZ__">🐝 Buzz (Long)</option>
+                <option value="__DBL__">✌️ Double Click</option>
+                <option value="__TRPL__">⚡ Triple Click</option>
+                <option value="__HBEAT__">❤️ Heartbeat</option>
+                <option value="__RAMP__">📈 Ramp Up</option>
+            </optgroup>
+            <optgroup label="Morse Patterns">`;
+            
             optionsHtml += morseOptions.map(m => `<option value="${m}">${m}</option>`).join('');
             optionsHtml += `</optgroup>`;
+            
 
             gridHtml += `
                 <div class="text-right text-xs font-bold text-gray-400 pr-1 whitespace-nowrap">${label}</div>
-                <select class="bg-gray-800 text-white text-xs p-1 rounded border border-gray-600 outline-none h-8 w-full font-mono text-center" data-morse-id="${val}">
+                <select class="bg-gray-800 text-white text-xs p-1 rounded border border-gray-600 focus:border-primary-app outline-none h-8 w-full font-mono tracking-widest text-center" data-morse-id="${val}">
                     ${optionsHtml}
                 </select>
             `;
         });
         gridHtml += `</div>`;
         
-        container.innerHTML = `<h3 class="text-sm font-bold uppercase text-gray-400 mb-3">Haptic Mapping</h3>${gridHtml}`;
+        container.innerHTML = `
+            <h3 class="text-sm font-bold uppercase text-gray-400 mb-3">Haptic Output Mapping</h3>
+            ${gridHtml}
+            <p class="text-[10px] text-gray-500 mt-3 text-center">Custom dot/dash patterns for playback.</p>
+        `;
 
-        // 4. Bind Listeners
+        // Bind Listeners & Set Defaults
         const selects = container.querySelectorAll('select');
         selects.forEach(sel => {
             const id = sel.dataset.morseId;
-            // Load saved
+            
+            // Load saved or calculate default
             if (this.appSettings.morseMappings && this.appSettings.morseMappings[id]) {
                 sel.value = this.appSettings.morseMappings[id];
             } else {
-                // Default
-                let d = (parseInt(id) <= 5) ? ".".repeat(parseInt(id)) : "-";
+                // Default Logic (Standard Morse-like count)
+                let d = "";
+                const n = parseInt(id);
+                if (n <= 3) d = ".".repeat(n);
+                else if (n <= 6) d = "-" + ".".repeat(n-3);
+                else if (n <= 9) d = "--" + ".".repeat(n-6);
+                else d = "---" + ".".repeat(n-10);
                 sel.value = d;
             }
+
             sel.onchange = () => {
                 if (!this.appSettings.morseMappings) this.appSettings.morseMappings = {};
                 this.appSettings.morseMappings[id] = sel.value;
                 this.callbacks.onSave();
-                if(navigator.vibrate) navigator.vibrate(50); // Test click
+
+                // Haptic Preview
+                if (navigator.vibrate) {
+                    const pattern = [];
+                    const speed = this.appSettings.playbackSpeed || 1.0;
+                    const factor = 1.0 / speed; 
+                    const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor;
+                    
+                    // Check for preset
+                    if(sel.value.startsWith('__')) {
+                        switch(sel.value) {
+                            case '__TICK__': navigator.vibrate(15); break;
+                            case '__THUD__': navigator.vibrate(70); break;
+                            case '__BUZZ__': navigator.vibrate(400); break;
+                            case '__DBL__': navigator.vibrate([20,50,20]); break;
+                            case '__TRPL__': navigator.vibrate([20,40,20,40,20]); break;
+                            case '__HBEAT__': navigator.vibrate([60,80,150]); break;
+                            case '__RAMP__': navigator.vibrate([10,20,40,80]); break;
+                        }
+                        return;
+                    }
+
+                    for (let char of sel.value) {
+                        if(char === '.') pattern.push(DOT);
+                        if(char === '-') pattern.push(DASH);
+                        pattern.push(GAP);
+                    }
+                    if(pattern.length) navigator.vibrate(pattern);
+                }
             };
         });
     }

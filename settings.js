@@ -871,7 +871,7 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
         this.dom.promptDisplay.value = promptText;
     }
 
-        updateUIFromSettings() {
+            updateUIFromSettings() {
         const ps = this.appSettings.runtimeSettings;
         if (this.dom.input) this.dom.input.value = ps.currentInput;
         if (this.dom.mode) this.dom.mode.value = ps.currentMode;
@@ -916,6 +916,7 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
         if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
         if (this.dom.seqFontSize) this.dom.seqFontSize.value = Math.round((this.appSettings.uiFontSizeMultiplier || 1.0) * 100);
         
+        // Re-apply sensitivity sliders if they exist
         if (this.dom.gestureTapSlider) {
             const tapVal = this.appSettings.gestureTapDelay || 300;
             this.dom.gestureTapSlider.value = tapVal;
@@ -996,10 +997,11 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
     hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
     
+
     populateMappingUI() {
         if (!this.dom || !this.appSettings) return;
         
-        // 1. Ensure Defaults
+        // 1. Ensure Defaults exist
         if (!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
             this.applyDefaultGestureMappings();
         }
@@ -1018,10 +1020,10 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
             tabRoot.appendChild(listRoot);
         }
         
-        // 4. Clear ONLY our list container
+        // 4. Clear ONLY our specific list container, preserving the rest of the UI
         listRoot.innerHTML = '';
 
-        // 5. DEFINE GESTURES
+        // 5. Define Gestures
         const gestureList = [
             'tap', 'double_tap', 'triple_tap', 'long_tap',
             'tap_2f_any', 'double_tap_2f_any', 'triple_tap_2f_any', 'long_tap_2f_any',
@@ -1248,7 +1250,8 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
         buildSection('key9', '9-Key', 'k9_', 9, null, true);
         buildSection('key12', '12-Key', 'k12_', 12);
         buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
-    }
+                     }
+            
         populateMorseUI() {
         const tab = document.getElementById('tab-playback');
         if (!tab) return;

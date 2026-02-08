@@ -871,7 +871,7 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
         this.dom.promptDisplay.value = promptText;
     }
 
-    updateUIFromSettings() {
+        updateUIFromSettings() {
         const ps = this.appSettings.runtimeSettings;
         if (this.dom.input) this.dom.input.value = ps.currentInput;
         if (this.dom.mode) this.dom.mode.value = ps.currentMode;
@@ -886,11 +886,10 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
         if (this.dom.showWelcome) this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
         if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.isHapticMorseEnabled;
         
-        // UPDATED: Matches the new dropdown generation logic (e.g. "1.00")
         if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = (this.appSettings.playbackSpeed || 1.0).toFixed(2);
         
         if (this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
-        if (this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000); //
+        if (this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000); 
         if (this.dom.voicePitch) this.dom.voicePitch.value = this.appSettings.voicePitch || 1.0;
         if (this.dom.voiceRate) this.dom.voiceRate.value = this.appSettings.voiceRate || 1.0;
         if (this.dom.voiceVolume) this.dom.voiceVolume.value = this.appSettings.voiceVolume || 1.0;
@@ -912,13 +911,11 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
         if (this.dom.clearGestureToggle) this.dom.clearGestureToggle.checked = !!this.appSettings.isClearGestureEnabled;
         if (this.dom.autoTimerToggle) this.dom.autoTimerToggle.checked = !!this.appSettings.isAutoTimerEnabled;
         if (this.dom.autoCounterToggle) this.dom.autoCounterToggle.checked = !!this.appSettings.isAutoCounterEnabled;    
-        // UPDATED: Matches the new 50-500 range logic
         if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
         
         if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
         if (this.dom.seqFontSize) this.dom.seqFontSize.value = Math.round((this.appSettings.uiFontSizeMultiplier || 1.0) * 100);
         
-        // NEW: Load Sensitivity
         if (this.dom.gestureTapSlider) {
             const tapVal = this.appSettings.gestureTapDelay || 300;
             this.dom.gestureTapSlider.value = tapVal;
@@ -933,7 +930,6 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
         if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
         if (this.dom.blackoutToggle) this.dom.blackoutToggle.checked = this.appSettings.isBlackoutFeatureEnabled;
         
-        // --- CRITICAL FIX: Map to the correct variable name ---
         if (this.dom.blackoutGesturesToggle) this.dom.blackoutGesturesToggle.checked = !!this.appSettings.isHandGesturesEnabled;
         
         if (this.dom.gestureToggle) this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
@@ -943,8 +939,18 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
         this.setLanguage(lang);
         
         this.updateHeaderVisibility();
-    }
 
+        // --- NEW: DEVELOPER MODE VISIBILITY ---
+        const voiceBlock = document.getElementById('voice-settings-block');
+        if(voiceBlock) {
+            voiceBlock.style.display = this.appSettings.showVoiceSettings ? 'block' : 'none';
+        }
+
+        const hapticBlock = document.getElementById('haptic-settings-block');
+        if(hapticBlock) {
+            hapticBlock.style.display = this.appSettings.showHapticMapping ? 'block' : 'none';
+        }
+            }
     // NEW METHOD: Manages the Auto-Hiding Header Bar
     updateHeaderVisibility() {
         const header = document.getElementById('aux-control-header');
@@ -989,104 +995,49 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
     
     hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
+    
     populateMappingUI() {
-        if (!this.dom) return;
-        if (!this.appSettings) return;
+        if (!this.dom || !this.appSettings) return;
         
+        // 1. Ensure Defaults
         if (!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
             this.applyDefaultGestureMappings();
         }
-        
         if (!this.appSettings.gestureProfiles) this.appSettings.gestureProfiles = {};
 
-        // 1. REBUILD SENSITIVITY CONTROLS
+        // 2. Find the tab
         const tabRoot = document.getElementById('tab-mapping');
-        if (tabRoot) {
-            tabRoot.className = "tab-content p-1 space-y-4";
-            
-            // Re-inject the slider HTML
-            tabRoot.innerHTML = `
-                <div class="p-3 mb-4 rounded-lg border border-custom bg-black bg-opacity-30">
-                    <h4 class="font-bold text-sm mb-3 text-primary-app">Gesture Sensitivity 🎛️</h4>
-                    <div class="mb-4">
-                        <div class="flex justify-between mb-1">
-                            <label class="text-xs font-bold">Tap Speed (ms)</label>
-                            <span id="gesture-tap-val" class="text-xs font-mono">${this.appSettings.gestureTapDelay || 300}ms</span>
-                        </div>
-                        <input type="range" id="gesture-tap-slider" min="100" max="800" step="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer" value="${this.appSettings.gestureTapDelay || 300}">
-                        <p class="text-[10px] text-gray-400 mt-1">Faster time = harder to tap, easier to swipe. Slower time = easier to tap.</p>
-                    </div>
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <label class="text-xs font-bold">Swipe Distance (px)</label>
-                            <span id="gesture-swipe-val" class="text-xs font-mono">${this.appSettings.gestureSwipeDist || 30}px</span>
-                        </div>
-                        <input type="range" id="gesture-swipe-slider" min="10" max="100" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer" value="${this.appSettings.gestureSwipeDist || 30}">
-                        <p class="text-[10px] text-gray-400 mt-1">Higher distance = fewer accidental swipes.</p>
-                    </div>
-                </div>
-            `;
-            
-            // Re-bind listeners for sliders
-            const tapSlider = document.getElementById('gesture-tap-slider');
-            const swipeSlider = document.getElementById('gesture-swipe-slider');
-            const tapVal = document.getElementById('gesture-tap-val');
-            const swipeVal = document.getElementById('gesture-swipe-val');
+        if (!tabRoot) return;
 
-            if(tapSlider) {
-                tapSlider.oninput = (e) => {
-                    const val = parseInt(e.target.value);
-                    this.appSettings.gestureTapDelay = val;
-                    if(tapVal) tapVal.textContent = val + 'ms';
-                    this.callbacks.onSave();
-                };
-            }
-            if(swipeSlider) {
-                swipeSlider.oninput = (e) => {
-                    const val = parseInt(e.target.value);
-                    this.appSettings.gestureSwipeDist = val;
-                    if(swipeVal) swipeVal.textContent = val + 'px';
-                    this.callbacks.onSave();
-                };
-            }
+        // 3. Find or Create the CONTAINER for the list (Do NOT overwrite tabRoot.innerHTML)
+        let listRoot = document.getElementById('mapping-list-root');
+        if (!listRoot) {
+            listRoot = document.createElement('div');
+            listRoot.id = 'mapping-list-root';
+            listRoot.className = "mt-4 pt-4 border-t border-custom";
+            tabRoot.appendChild(listRoot);
         }
+        
+        // 4. Clear ONLY our list container
+        listRoot.innerHTML = '';
 
-        // 2. DEFINE THE EXPANDED GESTURE LIST
+        // 5. DEFINE GESTURES
         const gestureList = [
-            // --- Taps ---
             'tap', 'double_tap', 'triple_tap', 'long_tap',
-            
-            // --- Multi-Finger Taps ---
             'tap_2f_any', 'double_tap_2f_any', 'triple_tap_2f_any', 'long_tap_2f_any',
             'tap_3f_any', 'double_tap_3f_any', 'triple_tap_3f_any', 'long_tap_3f_any',
-            
-            // --- Standard Swipes ---
             'swipe_up', 'swipe_down', 'swipe_left', 'swipe_right', 
             'swipe_nw', 'swipe_ne', 'swipe_sw', 'swipe_se',
-            
-            // --- Long Swipes (Throw) ---
             'swipe_long_up', 'swipe_long_down', 'swipe_long_left', 'swipe_long_right',
-            
-            // --- Multi-Finger Swipes ---
             'swipe_up_2f', 'swipe_down_2f', 'swipe_left_2f', 'swipe_right_2f',
-            
-            // --- Shapes: Boomerangs (I-Shape / 180 flip) ---
             'boomerang_up', 'boomerang_down', 'boomerang_left', 'boomerang_right',
-            
-            // --- Shapes: Switchbacks (V-Shape / < >) ---
             'switchback_up', 'switchback_down', 'switchback_left', 'switchback_right',
-            
-            // --- Shapes: Corners (L-Shape) ---
-            'corner_cw', 'corner_ccw',
-            
-            // --- Shapes: Closed & Complex ---
-            'square_cw', 'square_ccw', 
-            'triangle_cw', 'triangle_ccw',
-            'u_shape_cw', 'u_shape_ccw',
+            'corner_cw', 'corner_ccw', 'square_cw', 'square_ccw', 
+            'triangle_cw', 'triangle_ccw', 'u_shape_cw', 'u_shape_ccw',
             'zigzag_right', 'zigzag_left'
         ];
 
-        // 3. BUILD UI (With Accordions)
+        // 6. Helper to build Accordions
         const buildSection = (type, title, keyPrefix, count, customKeys = null, isOpen = false) => {
             const details = document.createElement('details');
             details.className = "group rounded-lg border border-custom bg-black bg-opacity-20 mb-3 open:bg-opacity-40 transition-all";
@@ -1100,7 +1051,7 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
             const contentDiv = document.createElement('div');
             contentDiv.className = "p-3 pt-0 border-t border-gray-700 mt-2";
             
-            // --- PROFILE SELECTOR INSIDE ACCORDION ---
+            // Profile Selector
             const profileHeader = document.createElement('div');
             profileHeader.innerHTML = `<label class="text-xs font-bold uppercase text-muted-custom block mb-1 mt-2">Active Preset</label>`;
             contentDiv.appendChild(profileHeader);
@@ -1116,10 +1067,7 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
                 select.appendChild(def);
 
                 const grp1 = document.createElement('optgroup'); grp1.label = "Built-in";
-                
-                // Fallback logic for safety in this snippet:
                 const safePresets = (typeof GESTURE_PRESETS !== 'undefined') ? GESTURE_PRESETS : {};
-
                 Object.keys(safePresets).forEach(k => {
                     if(safePresets[k].type === type) {
                         const opt = document.createElement('option');
@@ -1146,15 +1094,14 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
             populateSelect();
             contentDiv.appendChild(select);
 
-            // --- BUTTONS ---
+            // Buttons
             const btnGrid = document.createElement('div');
             btnGrid.className = "grid grid-cols-2 gap-2 mb-4"; 
-            
             const createBtn = (txt, color, onClick) => {
                 const b = document.createElement('button');
                 b.textContent = txt;
                 b.className = `py-2 text-xs bg-${color}-600 hover:bg-${color}-500 rounded text-white font-bold transition shadow`;
-                b.onclick = (e) => { e.stopPropagation(); onClick(); }; // Stop propagation so accordion doesn't close
+                b.onclick = (e) => { e.stopPropagation(); onClick(); };
                 return b;
             };
 
@@ -1202,7 +1149,7 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
             );
             contentDiv.appendChild(btnGrid);
 
-            // --- LIST ---
+            // List Container
             const listContainer = document.createElement('div');
             listContainer.className = "space-y-2 border-t border-custom pt-3 max-h-60 overflow-y-auto";
             contentDiv.appendChild(listContainer);
@@ -1220,12 +1167,10 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
                     lbl.className = "text-sm font-bold w-8 h-10 flex items-center justify-center bg-gray-800 rounded border border-gray-600 shrink-0";
                     lbl.textContent = k;
 
-                    // 1. TOUCH GESTURE DROPDOWN
                     const dropTouch = document.createElement('select');
                     dropTouch.className = "settings-input p-1 rounded text-[10px] h-10 border border-custom flex-1 w-0";
-                    dropTouch.dataset.key = keyId; // For saving presets
+                    dropTouch.dataset.key = keyId;
 
-                    // Add default "Choose..." or iterate your gestureList
                     gestureList.forEach(g => {
                         const opt = document.createElement('option');
                         opt.value = g;
@@ -1233,7 +1178,6 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
                         dropTouch.appendChild(opt);
                     });
 
-                    // 2. HAND GESTURE DROPDOWN
                     const dropHand = document.createElement('select');
                     dropHand.className = "settings-input p-1 rounded text-[10px] h-10 border border-custom flex-1 w-0 bg-blue-900 bg-opacity-20";
                     
@@ -1242,18 +1186,14 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
                     defHand.textContent = "- Hand -";
                     dropHand.appendChild(defHand);
                     
-                    // Safe access to HAND_GESTURES_LIST
                     const handList = (typeof HAND_GESTURES_LIST !== 'undefined') ? HAND_GESTURES_LIST : [];
-
                     handList.forEach(g => {
                         const opt = document.createElement('option');
                         opt.value = g;
-                        // Format: hand_2_up -> 2 Fingers Up
                         opt.textContent = g.replace('hand_', '').replace('_', ' ').replace('fist', '✊ Fist').toUpperCase(); 
                         dropHand.appendChild(opt);
                     });
 
-                    // LOAD SAVED VALUES
                     const mapping = (this.appSettings.gestureMappings && this.appSettings.gestureMappings[keyId]) 
                         ? this.appSettings.gestureMappings[keyId] 
                         : {};
@@ -1261,7 +1201,6 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
                     dropTouch.value = mapping.gesture || 'tap';
                     dropHand.value = mapping.hand || '';
 
-                    // SAVE LISTENER
                     const save = () => {
                         if(!this.appSettings.gestureMappings[keyId]) this.appSettings.gestureMappings[keyId] = {};
                         this.appSettings.gestureMappings[keyId].gesture = dropTouch.value;
@@ -1284,16 +1223,11 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
             select.onchange = () => {
                  const val = select.value;
                  if(!val) return;
-                 // Safe Preset Access again
                  const safePresets = (typeof GESTURE_PRESETS !== 'undefined') ? GESTURE_PRESETS : {};
-                 
                  let data = safePresets[val] ? safePresets[val].map : (this.appSettings.gestureProfiles[val] ? this.appSettings.gestureProfiles[val].map : null);
                  if(data) {
-                     // Check if this is a simple string map (old presets) or object map (new presets)
-                     // Convert old string map to new object format for internal storage if needed
                      Object.keys(data).forEach(key => {
                          if(!this.appSettings.gestureMappings[key]) this.appSettings.gestureMappings[key] = {};
-                         
                          const entry = data[key];
                          if (typeof entry === 'string') {
                              this.appSettings.gestureMappings[key].gesture = entry;
@@ -1308,14 +1242,13 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
             };
             
             details.appendChild(contentDiv);
-            if(tabRoot) tabRoot.appendChild(details);
+            listRoot.appendChild(details);
         };
 
-        buildSection('key9', '9-Key', 'k9_', 9, null, true); // Open first one by default
+        buildSection('key9', '9-Key', 'k9_', 9, null, true);
         buildSection('key12', '12-Key', 'k12_', 12);
         buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
     }
-
         populateMorseUI() {
         const tab = document.getElementById('tab-playback');
         if (!tab) return;

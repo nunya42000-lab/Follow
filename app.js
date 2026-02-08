@@ -105,8 +105,8 @@ let playbackResumeCallback = null;
 let practiceSequence = [];
 let practiceInputIndex = 0;
 let ignoreNextClick = false;
-let voiceModule = null
-
+let voiceModule = null;
+let lastInputTime = 0;
 // New flag for Shake Toggle
 let isGesturePadVisible = false;
 
@@ -309,6 +309,8 @@ function playPracticeSequence() {
     next();
 }
 function addValue(value) {
+   const now = Date.now();
+    if (now - lastInputTime < 200) return;
     vibrate(); 
     const state = getState(); 
     const settings = getProfileSettings();

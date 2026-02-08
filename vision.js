@@ -104,15 +104,15 @@ export class VisionEngine {
 
         this.loopId = requestAnimationFrame(() => this.predict());
     }
+
+    process(results) {
+        // ... (The rest of your process function remains the same)
 if (window.appSettings?.isSkeletonDebugEnabled) {
     this._drawDebugSkeleton(results);
 } else if (this.debugCanvas) {
     // Clear canvas if setting is toggled off while running
     this.debugCtx.clearRect(0, 0, this.debugCanvas.width, this.debugCanvas.height);
-    }
-    process(results) {
-        // ... (The rest of your process function remains the same)
-
+}
         if (this.cooldown > 0) { this.cooldown--; return; }
 
         let gesture = "none";

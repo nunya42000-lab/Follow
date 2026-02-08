@@ -343,6 +343,55 @@ export class SettingsManager {
         }
         
     }
+      populateConfigDropdown() {
+        if (!this.dom.configSelect) return;
+        this.dom.configSelect.innerHTML = '';
+        if (this.dom.quickConfigSelect) this.dom.quickConfigSelect.innerHTML = '';
+        
+        Object.keys(this.appSettings.profiles).forEach(key => {
+            const profile = this.appSettings.profiles[key];
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = profile.name;
+            this.dom.configSelect.appendChild(opt);
+            
+            if (this.dom.quickConfigSelect) {
+                const qOpt = opt.cloneNode(true);
+                this.dom.quickConfigSelect.appendChild(qOpt);
+            }
+        });
+        this.dom.configSelect.value = this.appSettings.activeProfileId;
+        if (this.dom.quickConfigSelect) this.dom.quickConfigSelect.value = this.appSettings.activeProfileId;
+    }
+
+    populateThemeDropdown() {
+        if (!this.dom.themeSelect) return;
+        this.dom.themeSelect.innerHTML = '';
+        
+        // Built-in Themes
+        const grp1 = document.createElement('optgroup'); grp1.label = "Built-in";
+        Object.keys(PREMADE_THEMES).forEach(k => {
+            const opt = document.createElement('option');
+            opt.value = k;
+            opt.textContent = PREMADE_THEMES[k].name;
+            grp1.appendChild(opt);
+        });
+        this.dom.themeSelect.appendChild(grp1);
+
+        // Custom Themes
+        const grp2 = document.createElement('optgroup'); grp2.label = "Custom";
+        if(this.appSettings.customThemes) {
+            Object.keys(this.appSettings.customThemes).forEach(k => {
+                const opt = document.createElement('option');
+                opt.value = k;
+                opt.textContent = this.appSettings.customThemes[k].name;
+                grp2.appendChild(opt);
+            });
+        }
+        this.dom.themeSelect.appendChild(grp2);
+        this.dom.themeSelect.value = this.appSettings.activeTheme;
+    }
+        
     populatePlaybackSpeedDropdown() {
         if (!this.dom.playbackSpeed) return;
         this.dom.playbackSpeed.innerHTML = '';

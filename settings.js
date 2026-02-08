@@ -1457,27 +1457,4 @@ openDeveloperConsole() {
         alert("Developer Mode Active (Console Placeholder)");
     }
 }
-
-}
-        devBlock.style.display = 'block';
-        // Also show haptics
-        const hapBlock = document.getElementById('haptic-settings-block');
-        if(hapBlock) hapBlock.style.display = 'block';
-        
-        // Open the tab where these live (Playback Tab)
-        const tabBtn = document.querySelector('.tab-btn[data-tab="playback"]');
-        if(tabBtn) tabBtn.click();
-        
-        this.openSettings(); // Open the modal
-        
-        // Scroll to the hidden options
-        setTimeout(() => {
-            devBlock.scrollIntoView({ behavior: 'smooth' });
-            alert("ACCESS GRANTED: Developer Console 🛠️");
-        }, 300);
-    } else {
-        alert("Developer Mode Active (Console Placeholder)");
-    }
-}
-
 }

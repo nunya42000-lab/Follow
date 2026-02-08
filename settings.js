@@ -816,6 +816,16 @@ if (this.dom.ftToggle) {
         }
         }
     // settings.js -> openSetup()
+      openSettings() {
+        this.populateConfigDropdown();
+        this.updateUIFromSettings();
+        if (this.dom.settingsModal) {
+            this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none');
+            const innerDiv = this.dom.settingsModal.querySelector('div');
+            if (innerDiv) innerDiv.classList.remove('scale-90');
+        }
+      }
+    
     openSetup() { 
         this.populateConfigDropdown(); 
         this.updateUIFromSettings(); 

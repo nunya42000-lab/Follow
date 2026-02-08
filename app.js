@@ -1,6 +1,7 @@
 import { GestureEngine } from './gestures.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+import { VoiceCommander } from './voice.js';
 import { SensorEngine } from './sensors.js';
 import { SettingsManager, PREMADE_THEMES, PREMADE_VOICE_PRESETS } from './settings.js';
 import { initComments } from './comments.js';
@@ -59,12 +60,16 @@ const DEFAULT_APP = {
 };
 // DEFAULT MAPPINGS (Extracted to top level)
 const DEFAULT_MAPPINGS = {
-    // 9-Key: Basic Taps
-    'k9_1': 'tap', 'k9_2': 'double_tap', 'k9_3': 'triple_tap',
-    
-    // 9-Key: Multi-Touch (Defaults to _any for forgiveness)
-    'k9_4': 'tap_2f_any', 'k9_5': 'double_tap_2f_any', 'k9_6': 'triple_tap_2f_any',
-    'k9_7': 'tap_3f_any', 'k9_8': 'double_tap_3f_any', 'k9_9': 'triple_tap_3f_any',
+    // Updated 9-Key Default (Double Taps)
+'k9_1': 'double_tap_spatial_nw',
+'k9_2': 'double_tap_spatial_up',
+'k9_3': 'double_tap_spatial_ne',
+'k9_4': 'double_tap_spatial_left',
+'k9_5': 'double_tap', // Center key remains a standard double tap
+'k9_6': 'double_tap_spatial_right',
+'k9_7': 'double_tap_spatial_sw',
+'k9_8': 'double_tap_spatial_down',
+'k9_9': 'double_tap_spatial_se',
 
     // 12-Key: Basic Taps
     'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
@@ -726,126 +731,7 @@ function playDemo() {
     nextChunk();
 }
 
-/* --- UPDATED VOICE COMMANDER CLASS (Prefix Mode) --- */
-class VoiceCommander {
-    constructor(callbacks) {
-        this.callbacks = callbacks;
-        this.recognition = null;
-        this.isListening = false;
-        this.restartTimer = null;
-        
-        // Trigger words that must precede a number
-        this.prefixes = ['add', 'plus', 'press', 'enter', 'push', 'input'];
 
-        this.vocab = {
-            // Digits (Handle both words and numbers)
-            '1': '1', 'one': '1', 'won': '1',
-            '2': '2', 'two': '2', 'to': '2', 'too': '2',
-            '3': '3', 'three': '3', 'tree': '3',
-            '4': '4', 'four': '4', 'for': '4', 'fore': '4',
-            '5': '5', 'five': '5',
-            '6': '6', 'six': '6',
-            '7': '7', 'seven': '7',
-            '8': '8', 'eight': '8', 'ate': '8',
-            '9': '9', 'nine': '9',
-            '10': '10', 'ten': '10', 'tin': '10',
-            '11': '11', 'eleven': '11',
-            '12': '12', 'twelve': '12',
-
-            // Letters A-G (Piano Mode)
-            'a': 'A', 'hey': 'A',
-            'b': 'B', 'bee': 'B', 'be': 'B',
-            'c': 'C', 'see': 'C', 'sea': 'C',
-            'd': 'D', 'dee': 'D',
-            'e': 'E',
-            'f': 'F',
-            'g': 'G', 'jee': 'G',
-
-            // Global Commands (No prefix needed)
-            'play': 'CMD_PLAY', 'start': 'CMD_PLAY', 'go': 'CMD_PLAY', 'read': 'CMD_PLAY',
-            'stop': 'CMD_STOP', 'pause': 'CMD_STOP', 'halt': 'CMD_STOP',
-            'delete': 'CMD_DELETE', 'back': 'CMD_DELETE', 'undo': 'CMD_DELETE',
-            'clear': 'CMD_CLEAR', 'reset': 'CMD_CLEAR',
-            'settings': 'CMD_SETTINGS', 'menu': 'CMD_SETTINGS', 'options': 'CMD_SETTINGS'
-        };
-
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            this.recognition = new SpeechRecognition();
-            this.recognition.continuous = false; 
-            this.recognition.lang = 'en-US';
-            this.recognition.interimResults = false;
-            this.recognition.maxAlternatives = 1;
-
-            this.recognition.onresult = (event) => this.handleResult(event);
-            this.recognition.onend = () => this.handleEnd();
-            this.recognition.onerror = (e) => console.log('Voice Error:', e.error);
-        } else {
-            console.warn("Voice Control not supported.");
-        }
-    }
-
-    toggle(active) {
-        if (!this.recognition) return;
-        if (active) {
-            this.isListening = true;
-            try { this.recognition.start(); } catch(e) {}
-            this.callbacks.onStatus("Voice Active (Say 'Add...') 🎙️");
-        } else {
-            this.isListening = false;
-            try { this.recognition.stop(); } catch(e) {}
-            clearTimeout(this.restartTimer);
-            this.callbacks.onStatus("Voice Off 🔇");
-        }
-    }
-
-    handleResult(event) {
-        const last = event.results.length - 1;
-        const transcript = event.results[last][0].transcript.trim().toLowerCase();
-        console.log("Heard:", transcript);
-        
-        let processed = false; // Track if we did something
-
-        const words = transcript.split(' ');
-        
-        for (let i = 0; i < words.length; i++) {
-            const word = words[i];
-            
-            if (this.vocab[word] && this.vocab[word].startsWith('CMD_')) {
-                this.callbacks.onCommand(this.vocab[word]);
-                processed = true;
-                continue;
-            }
-
-            if (this.prefixes.includes(word)) {
-                const nextWord = words[i + 1];
-                if (nextWord) {
-                    const mapped = this.vocab[nextWord];
-                    if (mapped && !mapped.startsWith('CMD_')) {
-                        this.callbacks.onInput(mapped);
-                        processed = true;
-                        i++; 
-                    }
-                }
-            }
-        }
-
-        // Force restart if command processed to prevent mic lock-up
-        if (processed && this.isListening) {
-            try {
-                this.recognition.stop(); 
-            } catch(e) {}
-        }
-    }
-
-    handleEnd() {
-        if (this.isListening) {
-            this.restartTimer = setTimeout(() => {
-                try { this.recognition.start(); } catch(e) {}
-            }, 100);
-        }
-    }
-}
 const startApp = () => {
     loadState();
 
@@ -1231,13 +1117,63 @@ function initGlobalListeners() {
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => {
             b.addEventListener('click', () => { if(confirm("Reset Round Counter to 1?")) { const s = getState(); s.currentRound = 1; s.sequences[0] = []; s.nextSequenceIndex = 0; renderUI(); saveState(); showToast("Reset to Round 1"); } });
         });
-        document.querySelectorAll('button[data-action="open-settings"]').forEach(b => {
-            b.addEventListener('click', () => { if(isDemoPlaying) { isDemoPlaying = false; const pb = document.querySelector('button[data-action="play-demo"]'); if(pb) pb.textContent = "▶"; showToast("Playback Stopped 🛑"); return; } modules.settings.openSettings(); });
-            const start = () => { timers.settingsLongPress = setTimeout(() => { modules.settings.toggleRedeem(true); ignoreNextClick = true; setTimeout(() => ignoreNextClick = false, 500); }, 1000); };
-            const end = () => clearTimeout(timers.settingsLongPress);
-            b.addEventListener('touchstart', start, {passive:true}); b.addEventListener('touchend', end); b.addEventListener('mousedown', start); b.addEventListener('mouseup', end);
-        });
+        
+document.querySelectorAll('button[data-action="open-settings"]').forEach(b => {
+            let pressTimer;
+            let isLongPress = false;
 
+            const startPress = (e) => {
+                // 1. Check if Developer Mode is unlocked (using VoiceSettings flag as the key)
+                const isDevMode = modules.settings.appSettings.showVoiceSettings;
+                
+                // 2. If Dev Mode is OFF, do NOT start the timer (Long press does nothing)
+                if (!isDevMode) return;
+
+                isLongPress = false;
+                pressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    // Haptic feedback to let you know it triggered
+                    if(navigator.vibrate) navigator.vibrate([50, 50]); 
+                    
+                    // Open the Secret Menu
+                    modules.settings.openDeveloperConsole();
+                }, 800); // 800ms hold time
+            };
+
+            const endPress = (e) => {
+                clearTimeout(pressTimer);
+                if (isLongPress) {
+                    // If we held it long enough, stop the regular click
+                    if(e) { e.preventDefault(); e.stopPropagation(); }
+                }
+            };
+
+            // Bind Touch and Mouse events
+            b.addEventListener('mousedown', startPress);
+            b.addEventListener('touchstart', startPress, { passive: true });
+            
+            b.addEventListener('mouseup', endPress);
+            b.addEventListener('mouseleave', endPress);
+            b.addEventListener('touchend', endPress);
+
+            // Standard Click (Short Press)
+            b.onclick = (e) => {
+                if (isLongPress) return; // Don't open normal settings if we just did a long press
+                
+                if(isDemoPlaying) { 
+                    // Stop playback if playing
+                    isDemoPlaying = false; 
+                    const pb = document.querySelector('button[data-action="play-demo"]'); 
+                    if(pb) pb.textContent = "▶"; 
+                    showToast("Playback Stopped 🛑"); 
+                    return; 
+                } 
+                
+                // Open Normal Settings
+                modules.settings.openSettings(); 
+            };
+        });
+        
         document.querySelectorAll('button[data-action="backspace"]').forEach(b => {
             const startDelete = (e) => { 
                 if(e) { e.preventDefault(); e.stopPropagation(); } 
@@ -1481,3 +1417,52 @@ requestWakeLock();
 }
         
 document.addEventListener('DOMContentLoaded', startApp);
+// --- ADVANCED AR RECORDING ENGINE ---
+window.startAdvancedRecording = async () => {
+    try {
+        // Pull quality settings from Developer Options
+        const fps = appSettings.recordFPS || 30;
+        const resolution = appSettings.recordRes || '720p';
+        const resMap = { '480p': 480, '720p': 720, '1080p': 1080 };
+        
+        const constraints = {
+            video: {
+                frameRate: { ideal: fps },
+                height: { ideal: resMap[resolution] }
+            },
+            audio: appSettings.isAudioRecordingEnabled ? {
+                echoCancellation: true,
+                noiseSuppression: true
+            } : false
+        };
+
+        const stream = await navigator.mediaDevices.getDisplayMedia(constraints);
+        const mediaRecorder = new MediaRecorder(stream, {
+            mimeType: 'video/webm; codecs=vp9',
+            bitsPerSecond: resolution === '1080p' ? 5000000 : 2500000
+        });
+
+        let chunks = [];
+        mediaRecorder.ondataavailable = e => chunks.push(e.data);
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(chunks, { type: "video/webm" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `follow-me-dev-capture-${Date.now()}.webm`;
+            a.click();
+        };
+
+        mediaRecorder.start();
+        showToast(`Recording @ ${resolution}/${fps}fps 🎥`);
+        
+        // Handle long-press cancel logic via a global reference if needed
+        window.currentMediaRecorder = mediaRecorder;
+        window.currentStream = stream;
+        
+    } catch(e) {
+        console.error("Recording failed:", e);
+        showToast("Recording Error");
+    }
+};
+        

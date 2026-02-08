@@ -1247,7 +1247,7 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
         buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
     }
 
-    populateMorseUI() {
+        populateMorseUI() {
         const tab = document.getElementById('tab-playback');
         if (!tab) return;
         
@@ -1314,7 +1314,6 @@ closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opaci
             };
         });
     }
-    
 
     applyDefaultGestureMappings() {
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};

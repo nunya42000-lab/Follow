@@ -15,6 +15,11 @@ const CRITICAL_ASSETS = [
     './comments.js',
     './manifest.json',
     './vision.js',
+    './mod-state.js',
+    './mod-dictionary.js',
+    './mod-ui-injector.js',
+    './mod-engine-interceptor.js',
+    './mod-ar-haptics.js'
     './wasm/vision_bundle.js',
     './wasm/vision_wasm_internal.js',
     './wasm/vision_wasm_internal.wasm',

@@ -160,7 +160,27 @@ export function initGlobalListeners() {
 function setupHeaderControls(appSettings) {
     const headerTimer = document.getElementById('header-timer-btn');
     const headerCounter = document.getElementById('header-counter-btn');
+        const headerHand = document.getElementById('header-hand-btn');
 
+        if(headerHand) {
+            headerHand.onclick = () => {
+                const vision = modules.vision; // From getModules()
+                if(!vision) return;
+                
+                const isActive = !vision.isActive;
+                if (isActive) {
+                    vision.start(); // This turns on the camera and AI
+                    headerHand.classList.add('header-btn-active');
+                    showToast("Hand Tracking ON 🖐️", appSettings);
+                } else {
+                    vision.stop();
+                    headerHand.classList.remove('header-btn-active');
+                    showToast("Hand Tracking OFF", appSettings);
+                }
+                vibrate(appSettings);
+            };
+        }
+    
     if(headerTimer) {
         const formatTime = (ms) => {
             const totalSec = Math.floor(ms / 1000); 

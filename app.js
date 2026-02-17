@@ -8,6 +8,11 @@ import { VisionEngine } from './vision.js';
 import { CONFIG, DEFAULT_APP, PREMADE_PROFILES, DEFAULT_PROFILE_SETTINGS, DEFAULT_MAPPINGS, DEFAULT_HAND_MAPPINGS } from './constants.js';
 import { vibrate, vibrateMorse, speak, showToast, applyTheme } from './utils.js';
 import { VoiceCommander } from './voice.js';
+import { 
+    initCore, addValue, handleBackspace, playDemo, 
+    startPracticeRound, playPracticeSequence, 
+    isDemoPlaying, setDemoPlaying, isPlaybackPaused, setPlaybackPaused, 
+    practiceSequence, resetPracticeSequence } from './core.js';
 const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);

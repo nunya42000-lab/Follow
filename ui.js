@@ -154,18 +154,26 @@ function createSequenceCard(seq, idx, settings, state, appSettings) {
 }
 
 function updateHeaderButtons(modules, voiceModule, isGesturePadVisible) {
+    const appSettings = getAppSettings(); // Ensure this is available
     const hMic = document.getElementById('header-mic-btn');
     const hCam = document.getElementById('header-cam-btn');
     const hGest = document.getElementById('header-gesture-btn'); 
+    const hHand = document.getElementById('header-hand-btn'); // New
 
     if(hMic) {
-        const isSensorActive = modules.sensor?.mode.audio;
         const isVoiceActive = voiceModule?.isListening;
-        hMic.classList.toggle('header-btn-active', isSensorActive || isVoiceActive);
+        hMic.classList.toggle('header-btn-active', isVoiceActive);
     }
+    
+    // Toggle the hand tracking icon active state
+    if(hHand) {
+        const isVisionActive = modules.vision?.isActive;
+        hHand.classList.toggle('header-btn-active', isVisionActive);
+    }
+
     if(hCam) hCam.classList.toggle('header-btn-active', document.body.classList.contains('ar-active'));
     if(hGest) hGest.classList.toggle('header-btn-active', isGesturePadVisible); 
-}
+        }
 
 function renderPracticeMode(container, settings, state, appSettings) {
     const header = document.createElement('h2');

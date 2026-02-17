@@ -8,6 +8,7 @@ import { VisionEngine } from './vision.js';
 import { CONFIG, DEFAULT_APP, PREMADE_PROFILES, DEFAULT_PROFILE_SETTINGS, DEFAULT_MAPPINGS, DEFAULT_HAND_MAPPINGS } from './constants.js';
 import { vibrate, vibrateMorse, speak, showToast, applyTheme } from './utils.js';
 import { VoiceCommander } from './voice.js';
+import { initUI, renderUI, disableInput, updateAllChrome } from './ui.js';
 import { 
     initCore, addValue, handleBackspace, playDemo, 
     startPracticeRound, playPracticeSequence, 

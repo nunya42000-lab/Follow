@@ -65,7 +65,8 @@
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
             <div class="flex items-center justify-between border-b border-custom pb-3 mb-4 relative">
                 <div class="flex items-center space-x-2"><button id="quick-resize-down" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">-</button><button id="quick-resize-up" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">+</button></div>
-                <h3 class="text-2xl font-bold text-center flex-grow" data-i18n="quick_title">👋 Quick Start</h3>
+                <h3 class="text-2xl font-bold text-center flex-grow" data-i18n="quick_title"><span id="dev-secret-trigger" class="cursor-pointer">FOLLOW ME</span>
+                </h3>
                 <select id="quick-lang-select" class="bg-black bg-opacity-30 text-white text-xs rounded p-2 border border-gray-600"><option value="en">🇺🇸 EN</option><option value="es">🇲🇽 ES</option></select>
             </div>
             <div class="overflow-y-auto py-2 px-1">
@@ -79,7 +80,22 @@
             <div class="flex justify-between items-center pt-4 border-t border-custom mt-2"><label class="flex items-center text-sm text-muted-custom"><input type="checkbox" id="dont-show-welcome-toggle" class="mr-2 rounded"> <span data-i18n="dont_show">Don't show again</span></label><button id="close-game-setup-modal" class="px-8 py-3 text-white bg-primary-app hover:opacity-90 rounded-lg font-bold shadow-lg transition transform active:scale-95" data-i18n="play_btn">PLAY</button></div>
         </div>
     </div>
+<div id="developer-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-80 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-[#121212] w-full max-w-md m-4 p-6 rounded-2xl border border-gray-700 shadow-2xl transform scale-90 transition-transform duration-300">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-white">Developer Options 🛠️</h2>
+            <button id="close-developer-modal" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+        </div>
+        
+        <div class="space-y-6 max-h-[60vh] overflow-y-auto pr-2" id="developer-controls-container">
+            </div>
 
+        <div class="mt-8 flex gap-3">
+            <button id="save-developer-btn" class="flex-1 py-3 bg-primary-app text-white font-bold rounded-xl">Save & Close</button>
+        </div>
+    </div>
+</div>
+   
     <div id="theme-editor-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[100] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-md w-full transform scale-90 transition-transform duration-300 flex flex-col border border-custom max-h-[95vh] overflow-hidden">
             <h3 class="text-xl font-bold mb-4" data-i18n="theme_editor">🎨 Theme Editor</h3>

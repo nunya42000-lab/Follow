@@ -38,6 +38,8 @@ const DEFAULT_APP = {
     isVolumeGesturesEnabled: false,
     isArModeEnabled: false, 
     isVoiceInputEnabled: false, 
+    isWakeLockEnabled: true,
+    isUpsideDownEnabled: false,
     
     // --- NEW TOGGLES ---
     isDeleteGestureEnabled: false, 
@@ -155,6 +157,37 @@ function loadState() {
     } 
 }
 
+// --- NEW WAKE LOCK & ROTATION LOGIC ---
+let wakeLockObj = null;
+
+async function applyWakeLock() {
+    if (appSettings.isWakeLockEnabled && 'wakeLock' in navigator) {
+        try {
+            wakeLockObj = await navigator.wakeLock.request('screen');
+            console.log('☀️ Wake Lock active');
+        } catch (err) {
+            console.log('Wake Lock denied:', err);
+        }
+    } else if (!appSettings.isWakeLockEnabled && wakeLockObj) {
+        wakeLockObj.release().then(() => wakeLockObj = null);
+        console.log('🌙 Wake Lock released');
+    }
+}
+
+function applyUpsideDown() {
+    if (appSettings.isUpsideDownEnabled) {
+        document.body.style.transform = 'rotate(180deg)';
+    } else {
+        document.body.style.transform = 'none';
+    }
+}
+
+// Relock screen if user minimizes app and comes back
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && appSettings.isWakeLockEnabled) {
+        applyWakeLock();
+    }
+});
 
 function vibrate() { if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10); }
 
@@ -1584,25 +1617,7 @@ const gConfig = modules.gestureEngine.config;
    
 window.closeDeveloperModal = closeDeveloperModal; 
     // Keep screen awake
-async function requestWakeLock() {
-    try {
-        if ('wakeLock' in navigator) {
-            let wakeLock = await navigator.wakeLock.request('screen');
-            console.log('Wake Lock active');
-            // Re-acquire if app minimizes and comes back
-            document.addEventListener('visibilitychange', async () => {
-                if (document.visibilityState === 'visible') {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                }
-            });
-        }
-    } catch (err) {
-        console.log('Wake Lock not supported/allowed');
-    }
-}
-// Call this when the app starts
-requestWakeLock();
-        
+
 }
         
 document.addEventListener('DOMContentLoaded', startApp);

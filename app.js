@@ -1572,7 +1572,6 @@ const gConfig = modules.gestureEngine.config;
             showToast("Developer Settings Saved 💾"); // Optional: gives you visual feedback
         }
     }
-
     // --- EXISTING: Smooth close animation ---
     modal.classList.add('opacity-0');
     modal.querySelector('div').classList.add('scale-90');
@@ -1582,7 +1581,8 @@ const gConfig = modules.gestureEngine.config;
     }, 300);
    }
     
-    
+   
+window.closeDeveloperModal = closeDeveloperModal; 
     // Keep screen awake
 async function requestWakeLock() {
     try {

@@ -213,19 +213,43 @@ export class VisionEngine {
     }
 
     countFingers(lm) {
-        // ... (keep existing countFingers code) ...
-        let count = 0;
-        if (lm[4].x < lm[3].x && lm[4].x < lm[2].x) count++;
-        const w = lm[0]; 
-        const isExtended = (tip, pip) => {
-            const dTip = Math.hypot(tip.x - w.x, tip.y - w.y);
-            const dPip = Math.hypot(pip.x - w.x, pip.y - w.y);
-            return dTip > (dPip * 1.15); 
-        };
-        if (isExtended(lm[8], lm[6])) count++;   
-        if (isExtended(lm[12], lm[10])) count++; 
-        if (isExtended(lm[16], lm[14])) count++; 
-        if (isExtended(lm[20], lm[18])) count++; 
-        return Math.min(5, count);
-    }       
+    countFingers(lm) {
+    let count = 0;
+
+    // Finger Tips: 8(index), 12(middle), 16(ring), 20(pinky)
+    // Finger Bases (PIP joints): 6(index), 10(middle), 14(ring), 18(pinky)
+    const fingerIndices = [
+        { tip: 8, base: 6 },
+        { tip: 12, base: 10 },
+        { tip: 16, base: 14 },
+        { tip: 20, base: 18 }
+    ];
+
+    // 1. Check the 4 fingers
+    fingerIndices.forEach(f => {
+        // If the tip is higher (lower Y value) than the base joint, it's extended
+        if (lm[f.tip].y < lm[f.base].y) {
+            count++;
+        }
+    });
+
+    // 2. Special Logic for the Thumb (Landmark 4)
+    // The thumb is unique; we check if it's stretched out horizontally 
+    // relative to the index finger base (Landmark 5).
+    // We check the X-axis instead of Y.
+    const thumbTip = lm[4];
+    const thumbBase = lm[3];
+    const indexBase = lm[5];
+
+    // Determine if hand is left or right based on palm orientation
+    const isRightHand = lm[17].x > lm[5].x; 
+    
+    if (isRightHand) {
+        if (thumbTip.x < thumbBase.x - 0.02) count++;
+    } else {
+        if (thumbTip.x > thumbBase.x + 0.02) count++;
+    }
+
+    return count;
+}   
 }

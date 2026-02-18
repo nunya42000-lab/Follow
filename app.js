@@ -1514,9 +1514,7 @@ function openDeveloperModal() {
     // Clear container and get current gesture config
     container.innerHTML = ''; 
     
-    // FIX: Added the 's' to gesture
-    const gConfig = modules.gestures.config;
-
+const gConfig = modules.gestureEngine.config;
     // Define which sliders to show
     const settings = [
         { key: 'tapDelay', label: 'Tap Delay (ms)', min: 100, max: 1500, step: 50 },

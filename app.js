@@ -1513,7 +1513,7 @@ function openDeveloperModal() {
     
     // Clear container and get current gesture config
     container.innerHTML = ''; 
-    const gConfig = modules.gesture.config;
+    const gConfig = modules.gestures.config;
 
     // Define which sliders to show
     const settings = [

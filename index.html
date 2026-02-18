@@ -60,27 +60,53 @@
     </header>
     
     
-
     <div id="game-setup-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
             <div class="flex items-center justify-between border-b border-custom pb-3 mb-4 relative">
-                <div class="flex items-center space-x-2"><button id="quick-resize-down" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">-</button><button id="quick-resize-up" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">+</button></div>
+                <div class="flex items-center space-x-2">
+                    <button id="quick-resize-down" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">-</button>
+                    <button id="quick-resize-up" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">+</button>
+                </div>
+                
                 <h3 class="text-2xl font-bold text-center flex-grow">
-    <span data-i18n="quick_title"></span> <span id="dev-secret-trigger" class="cursor-pointer">FOLLOW ME</span> </h3>
+                    <span id="dev-secret-trigger" class="cursor-pointer">FOLLOW ME</span>
+                </h3>
                
-                <select id="quick-lang-select" class="bg-black bg-opacity-30 text-white text-xs rounded p-2 border border-gray-600"><option value="en">🇺🇸 EN</option><option value="es">🇲🇽 ES</option></select>
+                <select id="quick-lang-select" class="bg-black bg-opacity-30 text-white text-xs rounded p-2 border border-gray-600">
+                    <option value="en">🇺🇸 EN</option>
+                    <option value="es">🇲🇽 ES</option>
+                </select>
             </div>
             <div class="overflow-y-auto py-2 px-1">
-                <div class="mb-6"><label class="block text-sm font-semibold mb-2 text-muted-custom" data-i18n="select_profile">Select Profile</label><select id="quick-config-select" class="settings-input w-full h-12 px-4 py-2 text-lg font-semibold shadow-sm rounded"></select></div>
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom"><label class="font-semibold" data-i18n="autoplay">Autoplay</label><input type="checkbox" id="quick-autoplay-toggle" class="h-6 w-6 rounded accent-indigo-500"></div>
-                    <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom"><label class="font-semibold" data-i18n="audio">Audio</label><input type="checkbox" id="quick-audio-toggle" class="h-6 w-6 rounded accent-indigo-500"></div>
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold mb-2 text-muted-custom" data-i18n="select_profile">Select Profile</label>
+                    <select id="quick-config-select" class="settings-input w-full h-12 px-4 py-2 text-lg font-semibold shadow-sm rounded"></select>
                 </div>
-                <div class="grid grid-cols-2 gap-4 mb-2"><button id="quick-open-help" class="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-bold transition" data-i18n="help_btn">Help 📚</button><button id="quick-open-settings" class="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-bold transition" data-i18n="settings_btn">Settings</button></div>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
+                        <label class="font-semibold" data-i18n="autoplay">Autoplay</label>
+                        <input type="checkbox" id="quick-autoplay-toggle" class="h-6 w-6 rounded accent-indigo-500">
+                    </div>
+                    <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
+                        <label class="font-semibold" data-i18n="audio">Audio</label>
+                        <input type="checkbox" id="quick-audio-toggle" class="h-6 w-6 rounded accent-indigo-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-2">
+                    <button id="quick-open-help" class="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-bold transition" data-i18n="help_btn">Help 📚</button>
+                    <button id="quick-open-settings" class="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-bold transition" data-i18n="settings_btn">Settings</button>
+                </div>
             </div>
-            <div class="flex justify-between items-center pt-4 border-t border-custom mt-2"><label class="flex items-center text-sm text-muted-custom"><input type="checkbox" id="dont-show-welcome-toggle" class="mr-2 rounded"> <span data-i18n="dont_show">Don't show again</span></label><button id="close-game-setup-modal" class="px-8 py-3 text-white bg-primary-app hover:opacity-90 rounded-lg font-bold shadow-lg transition transform active:scale-95" data-i18n="play_btn">PLAY</button></div>
+            <div class="flex justify-between items-center pt-4 border-t border-custom mt-2">
+                <label class="flex items-center text-sm text-muted-custom">
+                    <input type="checkbox" id="dont-show-welcome-toggle" class="mr-2 rounded"> 
+                    <span data-i18n="dont_show">Don't show again</span>
+                </label>
+                <button id="close-game-setup-modal" class="px-8 py-3 text-white bg-primary-app hover:opacity-90 rounded-lg font-bold shadow-lg transition transform active:scale-95" data-i18n="play_btn">PLAY</button>
+            </div>
         </div>
     </div>
+
 <div id="developer-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-80 hidden opacity-0 transition-opacity duration-300">
     <div class="bg-[#121212] w-full max-w-md m-4 p-6 rounded-2xl border border-gray-700 shadow-2xl transform scale-90 transition-transform duration-300">
         <div class="flex justify-between items-center mb-6">

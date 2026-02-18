@@ -101,7 +101,10 @@ let practiceSequence = [];
 let practiceInputIndex = 0;
 let ignoreNextClick = false;
 let voiceModule = null
-
+let devClickCount = 0;
+let isDeveloperMode = localStorage.getItem('isDeveloperMode') === 'true';
+let devLongPressTimer; // For the settings button shortcut
+           
 // New flag for Shake Toggle
 let isGesturePadVisible = false;
 

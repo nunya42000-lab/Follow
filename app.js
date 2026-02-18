@@ -1540,15 +1540,16 @@ if(headerStealth) {
     } catch(e) {
         console.error("Listener Error:", e);
     }
+// 1. Keep this at the TOP level (outside any functions)
+let devGestureEngine = null;
+
 function openDeveloperModal() { 
     const modal = document.getElementById('developer-modal');
     const container = document.getElementById('developer-controls-container');
     
-    // Clear container and get current gesture config
     container.innerHTML = ''; 
-    
-const gConfig = modules.gestureEngine.config;
-    // Define which sliders to show
+    const gConfig = modules.gestureEngine.config;
+
     const settings = [
         { key: 'tapDelay', label: 'Tap Delay (ms)', min: 100, max: 1500, step: 50 },
         { key: 'longPressTime', label: 'Long Press Time (ms)', min: 100, max: 1000, step: 50 },
@@ -1567,14 +1568,12 @@ const gConfig = modules.gestureEngine.config;
             <input type="range" min="${s.min}" max="${s.max}" step="${s.step}" value="${gConfig[s.key]}" 
                    class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-primary-app">
         `;
-
         const input = div.querySelector('input');
         input.addEventListener('input', (e) => {
             const val = parseInt(e.target.value);
             document.getElementById(`val-${s.key}`).innerText = val;
-            gConfig[s.key] = val; // Update the GestureEngine live
+            gConfig[s.key] = val; 
         });
-
         container.appendChild(div);
     });
 
@@ -1584,8 +1583,32 @@ const gConfig = modules.gestureEngine.config;
         modal.classList.remove('opacity-0');
         modal.querySelector('div').classList.remove('scale-90');
     }, 10);
+
+    // --- CALL THE TESTER HERE ---
+    initDevTestBed(); 
+} // <--- Properly CLOSE the open function here
+
+// 2. Define this separately (Top level)
+function initDevTestBed() {
+    const pad = document.getElementById('dev-touch-pad');
+    if (!pad || devGestureEngine) return;
+
+    devGestureEngine = new GestureEngine(pad, modules.gestureEngine.config, {
+        onGesture: (data) => logToDevBox("GESTURE", data.name),
+        onContinuous: (data) => logToDevBox("MATH", `Type: ${data.type}, Val: ${data.value.toFixed(2)}, Fingers: ${data.fingers}`)
+    });
 }
-   function closeDeveloperModal() {
+
+// 3. Define this separately (Top level)
+function logToDevBox(title, data) {
+    const logBox = document.getElementById('dev-debug-log');
+    if (!logBox) return;
+    const time = new Date().toLocaleTimeString().split(' ')[0];
+    const dataString = typeof data === 'object' ? JSON.stringify(data) : data;
+    logBox.value = `[${time}] ${title}: ${dataString}\n` + logBox.value;
+}
+
+    function closeDeveloperModal() {
     const modal = document.getElementById('developer-modal');
     if (!modal) return;
 

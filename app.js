@@ -1556,15 +1556,32 @@ const gConfig = modules.gestureEngine.config;
     const modal = document.getElementById('developer-modal');
     if (!modal) return;
 
-    // Start the fade/scale out animation
+    // --- NEW: Save settings permanently ---
+    if (modules.gestureEngine) {
+        const gConfig = modules.gestureEngine.config;
+        
+        // Map the live engine config back to your persistent appSettings
+        appSettings.gestureTapDelay = gConfig.tapDelay;
+        appSettings.gestureSwipeDist = gConfig.swipeThreshold; 
+        appSettings.gestureLongPressTime = gConfig.longPressTime;
+        appSettings.gestureTapPrecision = gConfig.tapPrecision;
+        
+        // Save to localStorage so they survive a page refresh
+        if (typeof saveState === 'function') {
+            saveState();
+            showToast("Developer Settings Saved 💾"); // Optional: gives you visual feedback
+        }
+    }
+
+    // --- EXISTING: Smooth close animation ---
     modal.classList.add('opacity-0');
     modal.querySelector('div').classList.add('scale-90');
 
-    // Wait for the animation to finish, then hide completely
     setTimeout(() => {
         modal.classList.add('hidden');
-    }, 300); // 300ms matches your transition-duration
+    }, 300);
    }
+    
     
     // Keep screen awake
 async function requestWakeLock() {

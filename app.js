@@ -1269,17 +1269,16 @@ function initGlobalListeners() {
 
     const start = () => { 
         timers.settingsLongPress = setTimeout(() => { 
-            // --- UPDATED LOGIC HERE ---
+            // Only opens the developer modal if in dev mode
             if (isDeveloperMode) {
-                openDeveloperModal(); // Opens your secret menu
-            } else {
-                modules.settings.toggleRedeem(true); // Original redeem menu
+                openDeveloperModal(); 
             }
             
             ignoreNextClick = true; 
             setTimeout(() => ignoreNextClick = false, 500); 
         }, 1000); 
     };
+
 
     const end = () => clearTimeout(timers.settingsLongPress);
     b.addEventListener('touchstart', start, {passive:true}); 

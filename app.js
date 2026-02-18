@@ -175,10 +175,18 @@ async function applyWakeLock() {
 }
 
 function applyUpsideDown() {
+    const root = document.documentElement;
     if (appSettings.isUpsideDownEnabled) {
-        document.body.style.transform = 'rotate(180deg)';
+        // Force the flip at the highest possible level
+        root.style.setProperty('transform', 'rotate(180deg)', 'important');
+        root.style.setProperty('height', '100vh', 'important');
+        root.style.setProperty('width', '100vw', 'important');
+        root.style.setProperty('overflow', 'hidden', 'important');
     } else {
-        document.body.style.transform = 'none';
+        root.style.removeProperty('transform');
+        root.style.removeProperty('height');
+        root.style.removeProperty('width');
+        root.style.removeProperty('overflow');
     }
 }
 

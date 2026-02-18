@@ -106,24 +106,37 @@
             </div>
         </div>
     </div>
-
 <div id="developer-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-80 hidden opacity-0 transition-opacity duration-300">
-    <div class="bg-[#121212] w-full max-w-md m-4 p-6 rounded-2xl border border-gray-700 shadow-2xl transform scale-90 transition-transform duration-300">
-        <div class="flex justify-between items-center mb-6">
+    <div class="bg-[#121212] w-full max-w-2xl m-4 p-6 rounded-2xl border border-gray-700 shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh]">
+        <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold text-white">Developer Options 🛠️</h2>
-            
             <button id="close-developer-modal" onclick="closeDeveloperModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
         </div>
         
-        <div class="space-y-6 max-h-[60vh] overflow-y-auto pr-2" id="developer-controls-container">
+        <div class="overflow-y-auto pr-2 space-y-6 flex-grow">
+            <div id="developer-controls-container" class="grid grid-cols-2 gap-4"></div>
+
+            <div class="border border-gray-600 rounded-lg p-3 bg-black">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-white font-bold">Diagnostic Test Area 🧪</h3>
+                    <button onclick="document.getElementById('dev-debug-log').value=''" class="bg-gray-700 hover:bg-gray-600 text-white text-[10px] px-2 py-1 rounded">Clear Log</button>
+                </div>
+                
+                <div id="dev-touch-pad" class="w-full h-32 bg-gray-800 border-2 border-dashed border-gray-500 rounded flex items-center justify-center mb-3 touch-none overflow-hidden relative">
+                    <span class="text-gray-400 font-bold pointer-events-none z-10">Perform Touch Gestures Here</span>
+                    <div id="dev-touch-dot" class="absolute w-4 h-4 bg-red-500 rounded-full opacity-0 pointer-events-none transition-opacity"></div>
+                </div>
+
+                <textarea id="dev-debug-log" class="w-full h-32 bg-gray-900 text-green-400 text-xs font-mono p-2 rounded border border-gray-700 focus:outline-none" readonly placeholder="Raw gesture math and camera landmarks will appear here. Copy this and send it to Gemini!"></textarea>
+            </div>
         </div>
 
-        <div class="mt-8 flex gap-3">
-            
-            <button id="save-developer-btn" onclick="closeDeveloperModal()" class="flex-1 py-3 bg-primary-app text-white font-bold rounded-xl">Save & Close</button>
+        <div class="mt-4 flex gap-3">
+            <button id="save-developer-btn" onclick="closeDeveloperModal()" class="flex-1 py-3 bg-primary-app text-white font-bold rounded-xl shadow-lg">Save & Close</button>
         </div>
     </div>
-</div>
+               </div>
+   
 
    
     <div id="theme-editor-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[100] transition-opacity duration-300 opacity-0 pointer-events-none">
@@ -343,7 +356,17 @@
                                 <button id="theme-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
                             </div>
                         </div>
-
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+                                <span class="font-bold text-sm">Wake Lock ☀️</span>
+                                <input type="checkbox" id="wake-lock-toggle" class="h-6 w-6 accent-indigo-500">
+                            </div>
+                            <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+                                <span class="font-bold text-sm">Upside Down 🔃</span>
+                                <input type="checkbox" id="upside-down-toggle" class="h-6 w-6 accent-indigo-500">
+                            </div>
+                        </div>
+                       
                         <div class="grid grid-cols-2 gap-3">
                             <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
                                 <span class="font-bold text-sm" data-i18n="timer_toggle">Timer ⏱️</span>

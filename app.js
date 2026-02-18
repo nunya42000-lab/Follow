@@ -1507,12 +1507,14 @@ if(headerStealth) {
     } catch(e) {
         console.error("Listener Error:", e);
     }
-function openDeveloperModal() {
+function openDeveloperModal() { 
     const modal = document.getElementById('developer-modal');
     const container = document.getElementById('developer-controls-container');
     
     // Clear container and get current gesture config
     container.innerHTML = ''; 
+    
+    // FIX: Added the 's' to gesture
     const gConfig = modules.gestures.config;
 
     // Define which sliders to show

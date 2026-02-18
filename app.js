@@ -1002,6 +1002,26 @@ modules.vision = new VisionEngine(
     }
     
     renderUI();
+    const devTrigger = document.getElementById('dev-secret-trigger');
+if (devTrigger) {
+    devTrigger.addEventListener('click', () => {
+        // Only progress if not already a developer
+        if (isDeveloperMode) return;
+
+        devClickCount++;
+        
+        if (devClickCount === 4) showToast("3");
+        if (devClickCount === 5) showToast("2");
+        if (devClickCount === 6) showToast("1");
+        
+        if (devClickCount === 7) {
+            isDeveloperMode = true;
+            localStorage.setItem('isDeveloperMode', 'true');
+            showToast("You are now a developer. Long press the settings button to access developer options");
+        }
+    });
+                }
+    
 };
 
 // ... (Previous imports and init logic remain unchanged) ...
@@ -1234,13 +1254,40 @@ function initGlobalListeners() {
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => {
             b.addEventListener('click', () => { if(confirm("Reset Round Counter to 1?")) { const s = getState(); s.currentRound = 1; s.sequences[0] = []; s.nextSequenceIndex = 0; renderUI(); saveState(); showToast("Reset to Round 1"); } });
         });
+      
         document.querySelectorAll('button[data-action="open-settings"]').forEach(b => {
-            b.addEventListener('click', () => { if(isDemoPlaying) { isDemoPlaying = false; const pb = document.querySelector('button[data-action="play-demo"]'); if(pb) pb.textContent = "▶"; showToast("Playback Stopped 🛑"); return; } modules.settings.openSettings(); });
-            const start = () => { timers.settingsLongPress = setTimeout(() => { modules.settings.toggleRedeem(true); ignoreNextClick = true; setTimeout(() => ignoreNextClick = false, 500); }, 1000); };
-            const end = () => clearTimeout(timers.settingsLongPress);
-            b.addEventListener('touchstart', start, {passive:true}); b.addEventListener('touchend', end); b.addEventListener('mousedown', start); b.addEventListener('mouseup', end);
-        });
+    b.addEventListener('click', () => { 
+        if(isDemoPlaying) { 
+            isDemoPlaying = false; 
+            const pb = document.querySelector('button[data-action="play-demo"]'); 
+            if(pb) pb.textContent = "▶"; 
+            showToast("Playback Stopped 🛑"); 
+            return; 
+        } 
+        modules.settings.openSettings(); 
+    });
 
+    const start = () => { 
+        timers.settingsLongPress = setTimeout(() => { 
+            // --- UPDATED LOGIC HERE ---
+            if (isDeveloperMode) {
+                openDeveloperModal(); // Opens your secret menu
+            } else {
+                modules.settings.toggleRedeem(true); // Original redeem menu
+            }
+            
+            ignoreNextClick = true; 
+            setTimeout(() => ignoreNextClick = false, 500); 
+        }, 1000); 
+    };
+
+    const end = () => clearTimeout(timers.settingsLongPress);
+    b.addEventListener('touchstart', start, {passive:true}); 
+    b.addEventListener('touchend', end); 
+    b.addEventListener('mousedown', start); 
+    b.addEventListener('mouseup', end);
+});
+        
         document.querySelectorAll('button[data-action="backspace"]').forEach(b => {
             const startDelete = (e) => { 
                 if(e) { e.preventDefault(); e.stopPropagation(); } 
@@ -1461,7 +1508,53 @@ if(headerStealth) {
     } catch(e) {
         console.error("Listener Error:", e);
     }
-// Keep screen awake
+function openDeveloperModal() {
+    const modal = document.getElementById('developer-modal');
+    const container = document.getElementById('developer-controls-container');
+    
+    // Clear container and get current gesture config
+    container.innerHTML = ''; 
+    const gConfig = modules.gesture.config;
+
+    // Define which sliders to show
+    const settings = [
+        { key: 'tapDelay', label: 'Tap Delay (ms)', min: 100, max: 1500, step: 50 },
+        { key: 'longPressTime', label: 'Long Press Time (ms)', min: 100, max: 1000, step: 50 },
+        { key: 'swipeThreshold', label: 'Swipe Sensitivity', min: 10, max: 200, step: 10 },
+        { key: 'tapPrecision', label: 'Tap Precision (px)', min: 5, max: 100, step: 5 }
+    ];
+
+    settings.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'space-y-2 mb-4';
+        div.innerHTML = `
+            <div class="flex justify-between text-xs font-bold text-gray-400">
+                <span>${s.label}</span>
+                <span id="val-${s.key}">${gConfig[s.key]}</span>
+            </div>
+            <input type="range" min="${s.min}" max="${s.max}" step="${s.step}" value="${gConfig[s.key]}" 
+                   class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-primary-app">
+        `;
+
+        const input = div.querySelector('input');
+        input.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            document.getElementById(`val-${s.key}`).innerText = val;
+            gConfig[s.key] = val; // Update the GestureEngine live
+        });
+
+        container.appendChild(div);
+    });
+
+    // Show the modal
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        modal.querySelector('div').classList.remove('scale-90');
+    }, 10);
+}
+    
+    // Keep screen awake
 async function requestWakeLock() {
     try {
         if ('wakeLock' in navigator) {

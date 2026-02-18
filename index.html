@@ -207,11 +207,13 @@
 
             <button id="close-donate-btn" class="mt-6 w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold">Close</button>
         </div>
-    </div>
+    </div>                                                            </div>
+                            
+
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh] overflow-hidden border border-custom m-4">
             
-                        <div class="no-swipe-zone p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
+            <div class="no-swipe-zone p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
                 <div class="flex items-center">
                     <select id="general-lang-select" class="bg-black bg-opacity-30 text-white text-xs rounded p-1 border border-gray-600"><option value="en">🇺🇸</option><option value="es">🇲🇽</option></select>
                 </div>
@@ -222,7 +224,6 @@
                     <button id="open-comment-modal" class="text-xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="Feedback">💬</button>
                     <button id="open-help-button" class="text-xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="Help">❓</button>
                 </div>
-
             </div>
             
             <div class="flex border-b border-custom bg-black bg-opacity-20">
@@ -260,74 +261,10 @@
                                 <input type="checkbox" id="flash-toggle" class="h-6 w-6 rounded accent-indigo-500">
                             </div>
                         </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
-                                <label class="font-bold text-sm" data-i18n="audio">Audio 👂</label>
-                                <input type="checkbox" id="audio-toggle" class="h-6 w-6 rounded accent-indigo-500">
-                            </div>
-                            <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom border-yellow-500 border-opacity-30">
-                                <label class="font-bold text-sm">Morse ✋</label>
-                                <input type="checkbox" id="haptic-morse-toggle" class="h-6 w-6 rounded accent-indigo-500">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-bold mb-1 text-muted-custom">Speed</label>
-                                <select id="playback-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"></select>
-
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1 text-muted-custom">Pause</label>
-                                <select id="pause-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                    <option value="none">None</option>
-                                    <option value="short">Short</option>
-                                    <option value="long">Long</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-bold mb-1 text-muted-custom">Chunk Size</label>
-                                <select id="chunk-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                    <option value="2">2 items</option><option value="3">3 items</option><option value="4">4 items</option>
-                                    <option value="5">5 items</option><option value="40">40 items</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1 text-muted-custom">Delay</label>
-                                <select id="delay-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                    <option value="0">0s</option><option value="0.2">0.2s</option><option value="0.4">0.4s</option>
-                                    <option value="0.6">0.6s</option><option value="0.8">0.8s</option><option value="1.0">1.0s</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="mt-6 pt-4 border-t border-custom">
-                            <h4 class="font-bold text-sm mb-3 text-primary-app">Voice Settings 🗣️</h4>
-                            <div class="mb-4 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
-                                <label class="text-xs font-bold uppercase text-muted-custom mb-2 block">Voice Profile</label>
-                                <select id="voice-preset-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <button id="voice-preset-add" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button>
-                                    <button id="voice-preset-save" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">SAVE 💾</button>
-                                    <button id="voice-preset-rename" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button>
-                                    <button id="voice-preset-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
-                                </div>
-                            </div>
-                            <div class="space-y-3 p-2 bg-black bg-opacity-20 rounded-lg">
-                                <div><label class="block text-xs font-bold mb-1">Pitch / Tone</label><input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
-                                <div><label class="block text-xs font-bold mb-1">Speed</label><input type="range" id="voice-rate" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
-                                <div><label class="block text-xs font-bold mb-1">Volume</label><input type="range" id="voice-volume" min="0" max="1" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
-                            </div>
-                            <button id="test-voice-btn" class="w-full py-2 bg-gray-700 text-white rounded font-bold text-xs mt-3">Test Voice 🔊</button>
-                        </div>
                     </div>
                 </div>
 
-                                <div id="tab-general" class="tab-content">
+                <div id="tab-general" class="tab-content">
                     <div class="space-y-4">
                         
                         <div class="p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
@@ -372,93 +309,84 @@
                                 <input type="checkbox" id="show-welcome-toggle" class="h-6 w-6 accent-indigo-500">
                             </div>
                         </div>
+
                         <div class="grid grid-cols-2 gap-3 mb-3">
-                            
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
                                     <span class="font-bold text-sm">Boss Mode 🌑</span>
                                     <input type="checkbox" id="blackout-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
-
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
                                     <span class="font-bold text-sm text-muted-custom">BM Gestures</span>
                                     <input type="checkbox" id="blackout-gestures-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
-
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
                                     <span class="font-bold text-sm">Inputs Only 🥷</span>
                                     <input type="checkbox" id="stealth-1key-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
-
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
                                     <span class="font-bold text-sm text-muted-custom">Gesture Input</span>
                                     <input type="checkbox" id="gesture-input-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
-
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
                                     <span class="font-bold text-sm">AR Mode 📸</span>
                                     <input type="checkbox" id="ar-mode-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
-
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
                                     <span class="font-bold text-sm">Voice Input 🎤</span>
                                     <input type="checkbox" id="voice-input-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
-
                         </div>
                         
                         <div class="grid grid-cols-2 gap-3">
-    <div class="p-3 rounded-lg border border-custom settings-input">
-        <div class="flex justify-between items-center h-full">
-            <span class="font-bold text-sm">Quick Erase</span>
-            <input type="checkbox" id="speed-delete-toggle" class="h-5 w-5 accent-indigo-500">
-        </div>
-    </div>
-    <div class="p-3 rounded-lg border border-custom settings-input">
-        <div class="flex justify-between items-center h-full">
-            <span class="font-bold text-sm">AP Shortcut</span>
-            <input type="checkbox" id="long-press-autoplay-toggle" class="h-5 w-5 accent-indigo-500">
-        </div>
-    </div>
-
-    <div class="p-3 rounded-lg border border-custom settings-input">
-        <div class="flex justify-between items-center h-full">
-            <span class="font-bold text-sm">Vol. Gesture 🔊</span>
-            <input type="checkbox" id="volume-gestures-toggle" class="h-5 w-5 accent-indigo-500">
-        </div>
-    </div>
-    <div class="p-3 rounded-lg border border-custom settings-input">
-        <div class="flex justify-between items-center h-full">
-            <span class="font-bold text-sm">Speed Gesture ⚡</span>
-            <input type="checkbox" id="speed-gestures-toggle" class="h-5 w-5 accent-indigo-500">
-        </div>
-    </div>
-
-    <div class="p-3 rounded-lg border border-custom settings-input">
-        <div class="flex justify-between items-center h-full">
-            <span class="font-bold text-sm">Delete Gesture 🧹</span>
-            <input type="checkbox" id="delete-gesture-toggle" class="h-5 w-5 accent-indigo-500">
-        </div>
-    </div>
-    <div class="p-3 rounded-lg border border-custom settings-input">
-        <div class="flex justify-between items-center h-full">
-            <span class="font-bold text-sm">Clear Gesture 💥</span>
-            <input type="checkbox" id="clear-gesture-toggle" class="h-5 w-5 accent-indigo-500">
-        </div>
-    </div>
-</div>
-                            
+                            <div class="p-3 rounded-lg border border-custom settings-input">
+                                <div class="flex justify-between items-center h-full">
+                                    <span class="font-bold text-sm">Quick Erase</span>
+                                    <input type="checkbox" id="speed-delete-toggle" class="h-5 w-5 accent-indigo-500">
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-lg border border-custom settings-input">
+                                <div class="flex justify-between items-center h-full">
+                                    <span class="font-bold text-sm">AP Shortcut</span>
+                                    <input type="checkbox" id="long-press-autoplay-toggle" class="h-5 w-5 accent-indigo-500">
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-lg border border-custom settings-input">
+                                <div class="flex justify-between items-center h-full">
+                                    <span class="font-bold text-sm">Vol. Gesture 🔊</span>
+                                    <input type="checkbox" id="volume-gestures-toggle" class="h-5 w-5 accent-indigo-500">
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-lg border border-custom settings-input">
+                                <div class="flex justify-between items-center h-full">
+                                    <span class="font-bold text-sm">Speed Gesture ⚡</span>
+                                    <input type="checkbox" id="speed-gestures-toggle" class="h-5 w-5 accent-indigo-500">
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-lg border border-custom settings-input">
+                                <div class="flex justify-between items-center h-full">
+                                    <span class="font-bold text-sm">Delete Gesture 🧹</span>
+                                    <input type="checkbox" id="delete-gesture-toggle" class="h-5 w-5 accent-indigo-500">
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-lg border border-custom settings-input">
+                                <div class="flex justify-between items-center h-full">
+                                    <span class="font-bold text-sm">Clear Gesture 💥</span>
+                                    <input type="checkbox" id="clear-gesture-toggle" class="h-5 w-5 accent-indigo-500">
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="grid grid-cols-2 gap-3 pt-2">
                             <div>
@@ -499,23 +427,20 @@
                         </div>
                     </div>
                 </div>
- 
-<div id="tab-mapping" class="tab-content">
-    <div class="space-y-4">
-        <div class="p-3 rounded-lg border border-custom settings-input">
-            <div class="font-bold mb-2">9-Key Mapping</div>
-            <div id="mapping-9-container" class="grid grid-cols-2 gap-2"></div>
-            <p class="text-xs opacity-75 mt-2">Choose the gesture for each value and the Morse feedback (dot/dash combos). Changes save automatically.</p>
-        </div>
+ <div id="tab-mapping" class="tab-content">
+                    <div class="space-y-4">
+                        <div class="p-3 rounded-lg border border-custom settings-input">
+                            <div class="font-bold mb-2">9-Key Mapping</div>
+                            <div id="mapping-9-container" class="grid grid-cols-2 gap-2"></div>
+                            <p class="text-xs opacity-75 mt-2">Choose the gesture for each value and the Morse feedback (dot/dash combos). Changes save automatically.</p>
+                        </div>
 
-        <div class="p-3 rounded-lg border border-custom settings-input">
-            <div class="font-bold mb-2">12-Key Mapping</div>
-            <div id="mapping-12-container" class="grid grid-cols-2 gap-2"></div>
-            <p class="text-xs opacity-75 mt-2">12-key supports more swipe-based gestures by default.</p>
-        </div>
-        </div>
-</div>
-               
+                        <div class="p-3 rounded-lg border border-custom settings-input">
+                            <div class="font-bold mb-2">12-Key Mapping</div>
+                            <div id="mapping-12-container" class="grid grid-cols-2 gap-2"></div>
+                            <p class="text-xs opacity-75 mt-2">12-key supports more swipe-based gestures by default.</p>
+                        </div>
+                        
                         <div class="p-3 rounded-lg border border-custom settings-input">
                             <div class="font-bold mb-2">Piano Mapping</div>
                             <div id="mapping-piano-container" class="grid grid-cols-2 gap-2"></div>
@@ -523,11 +448,11 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="p-4 border-t border-custom flex justify-between items-center bg-opacity-20 bg-black"><button data-action="restore-defaults" class="px-5 py-2 bg-red-800 hover:bg-red-700 text-white rounded text-sm font-bold transition shadow">Reset</button><button id="close-settings" class="px-8 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold transition shadow">Exit</button></div>
+
+            </div> <div class="p-4 border-t border-custom flex justify-between items-center bg-opacity-20 bg-black"><button data-action="restore-defaults" class="px-5 py-2 bg-red-800 hover:bg-red-700 text-white rounded text-sm font-bold transition shadow">Reset</button><button id="close-settings" class="px-8 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold transition shadow">Exit</button></div>
         </div>
     </div>
+
     <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-80 flex flex-col justify-end z-[70] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="share-sheet p-6 text-center flex flex-col items-center border-t border-gray-700 shadow-2xl transform translate-y-full transition-transform duration-300">
             <div class="w-12 h-1 bg-gray-600 rounded-full mb-4"></div> <div class="bg-white p-2 rounded-lg mb-6 shadow-inner"><img src="qr.jpg" alt="QR Code" class="w-64 h-64 object-contain"></div>
@@ -539,7 +464,8 @@
                 <button id="close-share" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl">✕</div><span class="text-xs">Close</span></button>
             </div>
         </div>
-    </div>
+                               </div>
+                
         <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
             <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center">

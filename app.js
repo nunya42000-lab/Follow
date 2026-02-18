@@ -149,6 +149,9 @@ function loadState() {
         if(!appState['current_session']) appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
         
         appState['current_session'].currentRound = parseInt(appState['current_session'].currentRound) || 1;
+        if (typeof applyUpsideDown === 'function') {
+            applyUpsideDown();
+        }
         
     } catch(e) { 
         console.error("Load failed", e); 
@@ -173,7 +176,12 @@ async function applyWakeLock() {
         console.log('🌙 Wake Lock released');
     }
 }
-
+// Relock screen if user minimizes app and comes back
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && appSettings.isWakeLockEnabled) {
+        applyWakeLock();
+    }
+});
 function applyUpsideDown() {
     const root = document.documentElement;
     if (appSettings.isUpsideDownEnabled) {
@@ -189,13 +197,7 @@ function applyUpsideDown() {
         root.style.removeProperty('overflow');
     }
 }
-
-// Relock screen if user minimizes app and comes back
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && appSettings.isWakeLockEnabled) {
-        applyWakeLock();
-    }
-});
+window.applyUpsideDown = applyUpsideDown;
 
 function vibrate() { if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10); }
 

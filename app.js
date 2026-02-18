@@ -1596,6 +1596,14 @@ function openDeveloperModal() {
 
     // --- CALL THE TESTER HERE ---
     initDevTestBed(); 
+        const mainVideo = document.querySelector('video'); // Finds your main app camera
+    const devPreview = document.getElementById('dev-camera-preview');
+    
+    if (mainVideo && devPreview && mainVideo.srcObject) {
+        devPreview.srcObject = mainVideo.srcObject;
+        logToDevBox("SYSTEM", "Camera feed synced to diagnostic area.");
+    }
+    
 } // <--- Properly CLOSE the open function here
 
 // 2. Define this separately (Top level)

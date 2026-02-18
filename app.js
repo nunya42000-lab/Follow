@@ -1552,6 +1552,19 @@ const gConfig = modules.gestureEngine.config;
         modal.querySelector('div').classList.remove('scale-90');
     }, 10);
 }
+   function closeDeveloperModal() {
+    const modal = document.getElementById('developer-modal');
+    if (!modal) return;
+
+    // Start the fade/scale out animation
+    modal.classList.add('opacity-0');
+    modal.querySelector('div').classList.add('scale-90');
+
+    // Wait for the animation to finish, then hide completely
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 300); // 300ms matches your transition-duration
+   }
     
     // Keep screen awake
 async function requestWakeLock() {

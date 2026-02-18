@@ -501,7 +501,24 @@ export class SettingsManager {
         if (this.dom.voicePitch) this.dom.voicePitch.oninput = updateVoiceLive;
         if (this.dom.voiceRate) this.dom.voiceRate.oninput = updateVoiceLive;
         if (this.dom.voiceVolume) this.dom.voiceVolume.oninput = updateVoiceLive;
+        // Wake Lock Toggle Listener
+        if (this.dom.wakeLockToggle) {
+            this.dom.wakeLockToggle.onchange = (e) => {
+                this.appSettings.isWakeLockEnabled = e.target.checked;
+                if (typeof applyWakeLock === 'function') applyWakeLock();
+                this.saveSettings();
+            };
+        }
 
+        // Upside Down Toggle Listener
+        if (this.dom.upsideDownToggle) {
+            this.dom.upsideDownToggle.onchange = (e) => {
+                this.appSettings.isUpsideDownEnabled = e.target.checked;
+                if (typeof applyUpsideDown === 'function') applyUpsideDown();
+                this.saveSettings();
+            };
+        }
+    
         // Voice Preset Management
         if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.onchange = (e) => { this.appSettings.activeVoicePresetId = e.target.value; this.applyVoicePreset(e.target.value); };
         if (this.dom.voicePresetAdd) this.dom.voicePresetAdd.onclick = () => { const n = prompt("New Voice Preset Name:"); if (n) { const id = 'vp_' + Date.now(); this.appSettings.voicePresets[id] = { name: n, pitch: this.appSettings.voicePitch, rate: this.appSettings.voiceRate, volume: this.appSettings.voiceVolume }; this.appSettings.activeVoicePresetId = id; this.populateVoicePresetDropdown(); this.callbacks.onSave(); } };
@@ -750,6 +767,8 @@ export class SettingsManager {
         
         // UPDATED: Matches the new dropdown generation logic (e.g. "1.00")
         if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = (this.appSettings.playbackSpeed || 1.0).toFixed(2);
+        if (this.dom.wakeLockToggle) this.dom.wakeLockToggle.checked = !!this.appSettings.isWakeLockEnabled;
+        if (this.dom.upsideDownToggle) this.dom.upsideDownToggle.checked = !!this.appSettings.isUpsideDownEnabled;
         
         if (this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
         if (this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000); //

@@ -1251,6 +1251,8 @@ function initGestureEngine() {
     };
 }
                     
+                            
+
 function initGlobalListeners() {
     try {
         // --- BUTTON LISTENERS ---
@@ -1293,67 +1295,20 @@ function initGlobalListeners() {
         });
 
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => {
-            b.addEventListener('click', () => { 
-                if(confirm("Reset Round Counter to 1?")) { 
-                    const s = getState(); 
-                    s.currentRound = 1; 
-                    s.sequences[0] = []; 
-                    s.nextSequenceIndex = 0; 
-                    renderUI(); 
-                    saveState(); 
-                    showToast("Reset to Round 1"); 
-                } 
-            });
+            b.addEventListener('click', () => { if(confirm("Reset Round Counter to 1?")) { const s = getState(); s.currentRound = 1; s.sequences[0] = []; s.nextSequenceIndex = 0; renderUI(); saveState(); showToast("Reset to Round 1"); } });
         });
       
         document.querySelectorAll('button[data-action="open-settings"]').forEach(b => {
-            b.addEventListener('click', () => { 
-                if(isDemoPlaying) { 
-                    isDemoPlaying = false; 
-                    const pb = document.querySelector('button[data-action="play-demo"]'); 
-                    if(pb) pb.textContent = "▶"; 
-                    showToast("Playback Stopped 🛑"); 
-                    return; 
-                } 
-                modules.settings.openSettings(); 
-            });
-        });
-
-        // --- DEVELOPER BUTTON LISTENERS ---
-        const devSaveReloadBtn = document.getElementById('dev-save-reload-btn');
-        if (devSaveReloadBtn) {
-            devSaveReloadBtn.addEventListener('click', () => {
-                if (typeof closeDeveloperModal === 'function') {
-                    closeDeveloperModal(); 
-                } else if (typeof saveState === 'function') {
-                    saveState(); 
-                }
-                window.location.reload();
-            });
-        }
-
-        const devNukeBtn = document.getElementById('dev-nuke-btn');
-        if (devNukeBtn) {
-            devNukeBtn.addEventListener('click', () => {
-                if (confirm("☢️ WARNING: This will permanently wipe ALL saved settings, profiles, and sequences. Are you sure you want to proceed?")) {
-                    localStorage.clear();
-                    if ('serviceWorker' in navigator) {
-                        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                            for(let registration of registrations) {
-                                registration.unregister();
-                            }
-                        });
-                    }
-                    window.location.reload(true);
-                }
-            });
-        }
-
-    } catch (e) {
-        console.error("Error in initGlobalListeners:", e);
-    }
-                                                                                       }
-
+    b.addEventListener('click', () => { 
+        if(isDemoPlaying) { 
+            isDemoPlaying = false; 
+            const pb = document.querySelector('button[data-action="play-demo"]'); 
+            if(pb) pb.textContent = "▶"; 
+            showToast("Playback Stopped 🛑"); 
+            return; 
+        } 
+        modules.settings.openSettings(); 
+    });
 
     const start = () => { 
         timers.settingsLongPress = setTimeout(() => { 
@@ -1703,5 +1658,7 @@ function logToDevBox(title, data) {
    
 window.closeDeveloperModal = closeDeveloperModal; 
     // Keep screen awake
+
+}
         
 document.addEventListener('DOMContentLoaded', startApp);

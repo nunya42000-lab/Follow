@@ -1700,7 +1700,5 @@ function logToDevBox(title, data) {
    
 window.closeDeveloperModal = closeDeveloperModal; 
     // Keep screen awake
-
-}
         
 document.addEventListener('DOMContentLoaded', startApp);

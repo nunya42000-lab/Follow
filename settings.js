@@ -272,7 +272,8 @@ export class SettingsManager {
             autoCounterToggle: document.getElementById('auto-counter-toggle'),
             arModeToggle: document.getElementById('ar-mode-toggle'),
             voiceInputToggle: document.getElementById('voice-input-toggle'),
-            // RENAMED ITEMS BINDINGS
+            wakeLockToggle: document.getElementById('wake-lock-toggle'),
+            upsideDownToggle: document.getElementById('upside-down-toggle'),
             speedDelete: document.getElementById('speed-delete-toggle'), // "Quick Erase"
             showWelcome: document.getElementById('show-welcome-toggle'), 
             blackoutToggle: document.getElementById('blackout-toggle'), // "Boss Mode"
@@ -776,7 +777,6 @@ if (this.dom.upsideDownToggle) {
         if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = (this.appSettings.playbackSpeed || 1.0).toFixed(2);
         if (this.dom.wakeLockToggle) this.dom.wakeLockToggle.checked = !!this.appSettings.isWakeLockEnabled;
         if (this.dom.upsideDownToggle) this.dom.upsideDownToggle.checked = !!this.appSettings.isUpsideDownEnabled;
-        
         if (this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
         if (this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000); //
         if (this.dom.voicePitch) this.dom.voicePitch.value = this.appSettings.voicePitch || 1.0;
@@ -886,58 +886,6 @@ if (this.dom.upsideDownToggle) {
         }
         
         if (!this.appSettings.gestureProfiles) this.appSettings.gestureProfiles = {};
-
-        // 1. REBUILD SENSITIVITY CONTROLS
-        const tabRoot = document.getElementById('tab-mapping');
-        if (tabRoot) {
-            tabRoot.className = "tab-content p-1 space-y-4";
-            
-            // Re-inject the slider HTML
-            tabRoot.innerHTML = `
-                <div class="p-3 mb-4 rounded-lg border border-custom bg-black bg-opacity-30">
-                    <h4 class="font-bold text-sm mb-3 text-primary-app">Gesture Sensitivity 🎛️</h4>
-                    <div class="mb-4">
-                        <div class="flex justify-between mb-1">
-                            <label class="text-xs font-bold">Tap Speed (ms)</label>
-                            <span id="gesture-tap-val" class="text-xs font-mono">${this.appSettings.gestureTapDelay || 300}ms</span>
-                        </div>
-                        <input type="range" id="gesture-tap-slider" min="100" max="800" step="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer" value="${this.appSettings.gestureTapDelay || 300}">
-                        <p class="text-[10px] text-gray-400 mt-1">Faster time = harder to tap, easier to swipe. Slower time = easier to tap.</p>
-                    </div>
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <label class="text-xs font-bold">Swipe Distance (px)</label>
-                            <span id="gesture-swipe-val" class="text-xs font-mono">${this.appSettings.gestureSwipeDist || 30}px</span>
-                        </div>
-                        <input type="range" id="gesture-swipe-slider" min="10" max="100" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer" value="${this.appSettings.gestureSwipeDist || 30}">
-                        <p class="text-[10px] text-gray-400 mt-1">Higher distance = fewer accidental swipes.</p>
-                    </div>
-                </div>
-            `;
-            
-            // Re-bind listeners for sliders
-            const tapSlider = document.getElementById('gesture-tap-slider');
-            const swipeSlider = document.getElementById('gesture-swipe-slider');
-            const tapVal = document.getElementById('gesture-tap-val');
-            const swipeVal = document.getElementById('gesture-swipe-val');
-
-            if(tapSlider) {
-                tapSlider.oninput = (e) => {
-                    const val = parseInt(e.target.value);
-                    this.appSettings.gestureTapDelay = val;
-                    if(tapVal) tapVal.textContent = val + 'ms';
-                    this.callbacks.onSave();
-                };
-            }
-            if(swipeSlider) {
-                swipeSlider.oninput = (e) => {
-                    const val = parseInt(e.target.value);
-                    this.appSettings.gestureSwipeDist = val;
-                    if(swipeVal) swipeVal.textContent = val + 'px';
-                    this.callbacks.onSave();
-                };
-            }
-        }
 
         // 2. DEFINE THE EXPANDED GESTURE LIST
         const gestureList = [

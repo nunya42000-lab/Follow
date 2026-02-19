@@ -502,7 +502,7 @@ export class SettingsManager {
         if (this.dom.voicePitch) this.dom.voicePitch.oninput = updateVoiceLive;
         if (this.dom.voiceRate) this.dom.voiceRate.oninput = updateVoiceLive;
         if (this.dom.voiceVolume) this.dom.voiceVolume.oninput = updateVoiceLive;
-                // Wake Lock Toggle
+                        // Wake Lock Toggle
         if (this.dom.wakeLockToggle) {
             this.dom.wakeLockToggle.onchange = (e) => { // Use arrow function here
                 this.appSettings.isWakeLockEnabled = e.target.checked;

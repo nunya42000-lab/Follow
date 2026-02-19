@@ -1656,9 +1656,39 @@ function logToDevBox(title, data) {
    }
     
    
-window.closeDeveloperModal = closeDeveloperModal; 
-    // Keep screen awake
+    window.closeDeveloperModal = closeDeveloperModal; 
 
-}
+    // --- DEVELOPER BUTTON LISTENERS ---
+    const devSaveReloadBtn = document.getElementById('dev-save-reload-btn');
+    if (devSaveReloadBtn) {
+        devSaveReloadBtn.addEventListener('click', () => {
+            closeDeveloperModal(); // Saves the current settings 
+            setTimeout(() => {
+                window.location.reload(); // Reloads to apply changes
+            }, 100);
+        });
+    }
+
+    const devNukeBtn = document.getElementById('dev-nuke-btn');
+    if (devNukeBtn) {
+        devNukeBtn.addEventListener('click', () => {
+            if (confirm("☢️ WARNING: This will permanently wipe ALL saved settings, profiles, and sequences. Are you sure you want to proceed?")) {
+                localStorage.clear(); // Wipes all data
+                
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                        for(let registration of registrations) {
+                            registration.unregister(); // Clears offline cache ghosts
+                        }
+                    });
+                }
+                
+                window.location.reload(true); // Hard reboot
+            }
+        });
+    }
+
+} // <-- This is the final bracket for initGlobalListeners
         
 document.addEventListener('DOMContentLoaded', startApp);
+        

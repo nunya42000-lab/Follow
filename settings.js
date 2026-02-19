@@ -502,30 +502,23 @@ export class SettingsManager {
         if (this.dom.voicePitch) this.dom.voicePitch.oninput = updateVoiceLive;
         if (this.dom.voiceRate) this.dom.voiceRate.oninput = updateVoiceLive;
         if (this.dom.voiceVolume) this.dom.voiceVolume.oninput = updateVoiceLive;
-        // Wake Lock Toggle Listener
+                // Wake Lock Toggle
         if (this.dom.wakeLockToggle) {
-            this.dom.wakeLockToggle.onchange = (e) => {
+            this.dom.wakeLockToggle.onchange = (e) => { // Use arrow function here
                 this.appSettings.isWakeLockEnabled = e.target.checked;
-                if (typeof applyWakeLock === 'function') applyWakeLock();
-                this.saveSettings();
+                if (typeof window.applyWakeLock === 'function') window.applyWakeLock();
+                this.saveSettings(); // 'this' now correctly points to SettingsManager
             };
         }
-// Upside Down Toggle Listener
-if (this.dom.upsideDownToggle) {
-    this.dom.upsideDownToggle.onchange = (e) => {
-        const isEnabled = e.target.checked;
-        this.appSettings.isUpsideDownEnabled = isEnabled;
-        
-        // CRITICAL: Call the global function immediately
-        if (typeof window.applyUpsideDown === 'function') {
-            window.applyUpsideDown();
-        } else if (typeof applyUpsideDown === 'function') {
-            applyUpsideDown();
+
+        // Upside Down Toggle
+        if (this.dom.upsideDownToggle) {
+            this.dom.upsideDownToggle.onchange = (e) => { // Use arrow function here
+                this.appSettings.isUpsideDownEnabled = e.target.checked;
+                if (typeof window.applyUpsideDown === 'function') window.applyUpsideDown();
+                this.saveSettings(); // 'this' now correctly points to SettingsManager
+            };
         }
-        
-        this.saveSettings();
-    };
-}
 
         // Voice Preset Management
         if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.onchange = (e) => { this.appSettings.activeVoicePresetId = e.target.value; this.applyVoicePreset(e.target.value); };

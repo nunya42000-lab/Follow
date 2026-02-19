@@ -1309,6 +1309,7 @@ function initGlobalListeners() {
         } 
         modules.settings.openSettings(); 
     });
+             });
   // --- DEVELOPER BUTTON LISTENERS ---
         const devSaveReloadBtn = document.getElementById('dev-save-reload-btn');
         if (devSaveReloadBtn) {

@@ -1309,6 +1309,47 @@ function initGlobalListeners() {
         } 
         modules.settings.openSettings(); 
     });
+  // --- DEVELOPER BUTTON LISTENERS ---
+        const devSaveReloadBtn = document.getElementById('dev-save-reload-btn');
+        if (devSaveReloadBtn) {
+            devSaveReloadBtn.addEventListener('click', () => {
+                // Save developer state
+                if (typeof closeDeveloperModal === 'function') {
+                    closeDeveloperModal(); 
+                } else if (typeof saveState === 'function') {
+                    saveState(); 
+                }
+                // Reload to apply deep structural changes
+                window.location.reload();
+            });
+        }
+
+        const devNukeBtn = document.getElementById('dev-nuke-btn');
+        if (devNukeBtn) {
+            devNukeBtn.addEventListener('click', () => {
+                if (confirm("☢️ WARNING: This will permanently wipe ALL saved settings, profiles, and sequences. Are you sure you want to proceed?")) {
+                    // Wipe localStorage completely
+                    localStorage.clear();
+                    
+                    // Unregister service workers to ensure no cached ghosts remain
+                    if ('serviceWorker' in navigator) {
+                        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                            for(let registration of registrations) {
+                                registration.unregister();
+                            }
+                        });
+                    }
+                    
+                    // Hard reload app
+                    window.location.reload(true);
+                }
+            });
+        }
+
+    } catch (e) {
+        console.error("Error in initGlobalListeners:", e);
+    }
+                    }
 
     const start = () => { 
         timers.settingsLongPress = setTimeout(() => { 

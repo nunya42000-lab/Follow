@@ -228,7 +228,6 @@ export class VisionEngine {
     }
 
     countFingers(lm) {
-    countFingers(lm) {
     let count = 0;
 
     // Finger Tips: 8(index), 12(middle), 16(ring), 20(pinky)

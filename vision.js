@@ -105,20 +105,10 @@ export class VisionEngine {
         this.loopId = requestAnimationFrame(() => this.predict());
     }
 // ... inside vision.js ...
-
     process(results) {
-        // 1. Draw Skeleton (This call is fine here)
-        if (window.appSettings?.isSkeletonDebugEnabled) {
-            this._drawDebugSkeleton(results);
-        } else if (this.debugCanvas && this.debugCtx) {
-            this.debugCtx.clearRect(0, 0, this.debugCanvas.width, this.debugCanvas.height);
-        }
-
-        if (this.cooldown > 0) { this.cooldown--; return; }
-
         let gesture = "none";
 
-        if (results.landmarks.length > 0) {
+        if (results.landmarks && results.landmarks.length > 0) {
             const lm = results.landmarks[0]; 
             const fingers = this.countFingers(lm);
             
@@ -133,21 +123,46 @@ export class VisionEngine {
                 dir = dy < 0 ? "up" : "down"; 
             }
 
-            if (fingers === 0) gesture = "hand_fist";
-            else gesture = `hand_${fingers}_${dir}`;
+            // --- DIAGNOSTIC HOOK START ---
+            const devModal = document.getElementById('developer-modal');
+            if (devModal && !devModal.classList.contains('hidden')) {
+                const logger = window.logToDevBox || (typeof logToDevBox !== 'undefined' ? logToDevBox : null);
+                const drawer = window.drawDevSkeleton || (typeof drawDevSkeleton !== 'undefined' ? drawDevSkeleton : null);
+                
+                if (logger) {
+                    logger("VISION", `Fingers: ${fingers} | Dir: ${dir} | dx: ${dx.toFixed(2)} dy: ${dy.toFixed(2)}`);
+                }
+                if (drawer) {
+                    drawer(lm);
+                }
+            }
+            // --- DIAGNOSTIC HOOK END ---
+
+            if (fingers === 0) {
+                gesture = "hand_fist";
+            } else {
+                gesture = `hand_${fingers}_${dir}`;
+            }
         }
 
-        // Debounce Logic (Kept inside process!)
+        // Debounce Logic
         this.history.push(gesture);
-        if (this.history.length > this.requiredFrames) this.history.shift();
+        if (this.history.length > this.requiredFrames) {
+            this.history.shift();
+        }
         
         const candidate = this.history[0];
         if (candidate !== "none" && this.history.every(g => g === candidate)) {
-            this.onTrigger(candidate);
-            this.cooldown = 25; 
-            this.history = [];
+            if (this.cooldown <= 0) {
+                this.onTrigger(candidate);
+                this.cooldown = 25; 
+                this.history = [];
+            }
         }
-    } // <--- CLOSE process() HERE
+        
+        if (this.cooldown > 0) this.cooldown--;
+                    }
+    
 
     // --- MOVE THESE FUNCTIONS OUTSIDE process() ---
 

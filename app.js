@@ -1251,8 +1251,6 @@ function initGestureEngine() {
     };
 }
                     
-                            
-
 function initGlobalListeners() {
     try {
         // --- BUTTON LISTENERS ---
@@ -1295,32 +1293,41 @@ function initGlobalListeners() {
         });
 
         document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => {
-            b.addEventListener('click', () => { if(confirm("Reset Round Counter to 1?")) { const s = getState(); s.currentRound = 1; s.sequences[0] = []; s.nextSequenceIndex = 0; renderUI(); saveState(); showToast("Reset to Round 1"); } });
+            b.addEventListener('click', () => { 
+                if(confirm("Reset Round Counter to 1?")) { 
+                    const s = getState(); 
+                    s.currentRound = 1; 
+                    s.sequences[0] = []; 
+                    s.nextSequenceIndex = 0; 
+                    renderUI(); 
+                    saveState(); 
+                    showToast("Reset to Round 1"); 
+                } 
+            });
         });
       
         document.querySelectorAll('button[data-action="open-settings"]').forEach(b => {
-    b.addEventListener('click', () => { 
-        if(isDemoPlaying) { 
-            isDemoPlaying = false; 
-            const pb = document.querySelector('button[data-action="play-demo"]'); 
-            if(pb) pb.textContent = "▶"; 
-            showToast("Playback Stopped 🛑"); 
-            return; 
-        } 
-        modules.settings.openSettings(); 
-    });
-             });
-  // --- DEVELOPER BUTTON LISTENERS ---
+            b.addEventListener('click', () => { 
+                if(isDemoPlaying) { 
+                    isDemoPlaying = false; 
+                    const pb = document.querySelector('button[data-action="play-demo"]'); 
+                    if(pb) pb.textContent = "▶"; 
+                    showToast("Playback Stopped 🛑"); 
+                    return; 
+                } 
+                modules.settings.openSettings(); 
+            });
+        });
+
+        // --- DEVELOPER BUTTON LISTENERS ---
         const devSaveReloadBtn = document.getElementById('dev-save-reload-btn');
         if (devSaveReloadBtn) {
             devSaveReloadBtn.addEventListener('click', () => {
-                // Save developer state
                 if (typeof closeDeveloperModal === 'function') {
                     closeDeveloperModal(); 
                 } else if (typeof saveState === 'function') {
                     saveState(); 
                 }
-                // Reload to apply deep structural changes
                 window.location.reload();
             });
         }
@@ -1329,10 +1336,7 @@ function initGlobalListeners() {
         if (devNukeBtn) {
             devNukeBtn.addEventListener('click', () => {
                 if (confirm("☢️ WARNING: This will permanently wipe ALL saved settings, profiles, and sequences. Are you sure you want to proceed?")) {
-                    // Wipe localStorage completely
                     localStorage.clear();
-                    
-                    // Unregister service workers to ensure no cached ghosts remain
                     if ('serviceWorker' in navigator) {
                         navigator.serviceWorker.getRegistrations().then(function(registrations) {
                             for(let registration of registrations) {
@@ -1340,8 +1344,6 @@ function initGlobalListeners() {
                             }
                         });
                     }
-                    
-                    // Hard reload app
                     window.location.reload(true);
                 }
             });
@@ -1350,7 +1352,8 @@ function initGlobalListeners() {
     } catch (e) {
         console.error("Error in initGlobalListeners:", e);
     }
-                    }
+                                                                                       }
+
 
     const start = () => { 
         timers.settingsLongPress = setTimeout(() => { 

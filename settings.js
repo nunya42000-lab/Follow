@@ -1161,18 +1161,24 @@ export class SettingsManager {
         buildSection('key12', '12-Key', 'k12_', 12);
         buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
     }
+populateMorseUI() {
+    const tab = document.getElementById('tab-playback');
+    if (!tab) return;
+    
+    let container = document.getElementById('morse-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'morse-container';
+        container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
+        tab.appendChild(container);
+    }
 
-    populateMorseUI() {
-        const tab = document.getElementById('tab-playback');
-        if (!tab) return;
-        
-        let container = document.getElementById('morse-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'morse-container';
-            container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
-            tab.appendChild(container);
-        }
+    // NEW: Apply developer visibility override
+    if (this.appSettings.devHideHapticSettings) {
+        container.classList.add('hidden');
+    } else {
+        container.classList.remove('hidden');
+    }
 
         // Generate all Morse combinations (1-5 length)
         const morseOptions = [];

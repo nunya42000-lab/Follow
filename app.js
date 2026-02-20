@@ -1743,7 +1743,7 @@ function logToDevBox(title, data) {
     }
 
 } // <-- This is the final bracket for initGlobalListeners
-   window.applyDeveloperVisibility = applyDeveloperVisibility;
+   
 
 function applyDeveloperVisibility() {
     const voiceSection = document.getElementById('voice-settings-section');
@@ -1765,6 +1765,7 @@ function applyDeveloperVisibility() {
         }
     }
       }
+window.applyDeveloperVisibility = applyDeveloperVisibility;
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Initialize the main application
     startApp(); 

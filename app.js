@@ -1588,7 +1588,31 @@ function openDeveloperModal() {
         });
         container.appendChild(div);
     });
+// --- New: Visibility Toggles ---
+const toggleSection = document.createElement('div');
+toggleSection.className = 'mt-6 pt-4 border-t border-gray-700 space-y-4';
+toggleSection.innerHTML = `
+    <h3 class="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Tab Visibility (Playback)</h3>
+    <label class="flex items-center justify-between cursor-pointer group">
+        <span class="text-sm text-gray-300">Hide Voice Settings</span>
+        <input type="checkbox" id="dev-hide-voice" ${appSettings.devHideVoiceSettings ? 'checked' : ''} class="w-5 h-5 accent-primary-app">
+    </label>
+    <label class="flex items-center justify-between cursor-pointer group">
+        <span class="text-sm text-gray-300">Hide Haptic Mapping</span>
+        <input type="checkbox" id="dev-hide-haptic" ${appSettings.devHideHapticSettings ? 'checked' : ''} class="w-5 h-5 accent-primary-app">
+    </label>
+`;
 
+// Add event listeners for the toggles
+toggleSection.querySelector('#dev-hide-voice').onchange = (e) => {
+    appSettings.devHideVoiceSettings = e.target.checked;
+};
+toggleSection.querySelector('#dev-hide-haptic').onchange = (e) => {
+    appSettings.devHideHapticSettings = e.target.checked;
+};
+
+container.appendChild(toggleSection);
+    
     // Show the modal
     modal.classList.remove('hidden');
     setTimeout(() => {

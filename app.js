@@ -1743,7 +1743,9 @@ function logToDevBox(title, data) {
     }
 
 } // <-- This is the final bracket for initGlobalListeners
-      function applyDeveloperVisibility() {
+   window.applyDeveloperVisibility = applyDeveloperVisibility;
+
+function applyDeveloperVisibility() {
     const voiceSection = document.getElementById('voice-settings-section');
     const hapticSection = document.getElementById('morse-container');
 

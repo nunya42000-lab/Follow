@@ -1,3 +1,4 @@
+
 import { GestureEngine } from './gestures.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
@@ -47,7 +48,8 @@ const DEFAULT_APP = {
     isAutoTimerEnabled: false,
     isAutoCounterEnabled: false,
     // -------------------
-
+    devHideVoiceSettings: false,
+    devHideHapticSettings: false,
     isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, 
     activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, 
     isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, 

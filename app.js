@@ -1742,6 +1742,33 @@ function logToDevBox(title, data) {
     }
 
 } // <-- This is the final bracket for initGlobalListeners
-        
-document.addEventListener('DOMContentLoaded', startApp);
-        
+      function applyDeveloperVisibility() {
+    const voiceSection = document.getElementById('voice-settings-section');
+    const hapticSection = document.getElementById('morse-container');
+
+    if (voiceSection) {
+        if (appSettings.devHideVoiceSettings) {
+            voiceSection.classList.add('hidden');
+        } else {
+            voiceSection.classList.remove('hidden');
+        }
+    }
+
+    if (hapticSection) {
+        if (appSettings.devHideHapticSettings) {
+            hapticSection.classList.add('hidden');
+        } else {
+            hapticSection.classList.remove('hidden');
+        }
+    }
+      }
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Initialize the main application
+    startApp(); 
+    
+    // 2. Immediately apply visibility overrides from developer settings
+    if (typeof applyDeveloperVisibility === 'function') {
+        applyDeveloperVisibility();
+    }
+});
+

@@ -277,7 +277,8 @@ export class SettingsManager {
             showWelcome: document.getElementById('show-welcome-toggle'), 
             blackoutToggle: document.getElementById('blackout-toggle'), // "Boss Mode"
             stealth1KeyToggle: document.getElementById('stealth-1key-toggle'), // "Inputs Only"
-            
+            // Find your checkbox elements
+
             // Previously injected, now hardcoded
             longPressToggle: document.getElementById('long-press-autoplay-toggle'), // "AP Shortcut"
             blackoutGesturesToggle: document.getElementById('blackout-gestures-toggle'), // "Hand Gestures" (Previously BM Gestures)
@@ -509,7 +510,35 @@ export class SettingsManager {
                 this.saveSettings(); // 'this' now correctly points to SettingsManager
             };
         }
+// Find your checkbox elements
+const hideVoiceToggle = document.getElementById('dev-hide-voice-toggle');
+const hideHapticToggle = document.getElementById('dev-hide-haptic-toggle');
 
+// Wire up the Voice Toggle
+if (hideVoiceToggle) {
+    hideVoiceToggle.addEventListener('change', (e) => {
+        this.appSettings.devHideVoiceSettings = e.target.checked;
+        this.saveSettings(); // Save the data
+        
+        // Trigger the UI update in app.js
+        if (window.applyDeveloperVisibility) {
+            window.applyDeveloperVisibility();
+        }
+    });
+}
+
+// Wire up the Haptic Toggle
+if (hideHapticToggle) {
+    hideHapticToggle.addEventListener('change', (e) => {
+        this.appSettings.devHideHapticSettings = e.target.checked;
+        this.saveSettings();
+        
+        if (window.applyDeveloperVisibility) {
+            window.applyDeveloperVisibility();
+        }
+    });
+}
+            
         // Upside Down Toggle
         if (this.dom.upsideDownToggle) {
             this.dom.upsideDownToggle.onchange = (e) => { // Use arrow function here

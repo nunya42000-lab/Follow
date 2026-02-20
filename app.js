@@ -41,7 +41,8 @@ const DEFAULT_APP = {
     isVoiceInputEnabled: false, 
     isWakeLockEnabled: true,
     isUpsideDownEnabled: false,
-    
+    devHideVoiceSettings: false,
+    devHideHapticSettings: false,
     // --- NEW TOGGLES ---
     isDeleteGestureEnabled: false, 
     isClearGestureEnabled: false,

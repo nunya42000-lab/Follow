@@ -266,4 +266,52 @@ export class VisionEngine {
 
     return count;
 }   
+
+    drawSkeleton(landmarks) {
+        const canvas = document.getElementById('skeleton-overlay');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+            canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
+        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const w = canvas.width; const h = canvas.height;
+
+        const connections = [
+            [0,1,2,3,4], [0,5,6,7,8], [5,9,10,11,12], [9,13,14,15,16], [13,17,18,19,20], [0,17]
+        ];
+
+        ctx.strokeStyle = "#4f46e5"; ctx.lineWidth = 2;
+        connections.forEach(chain => {
+            ctx.beginPath();
+            for(let i=0; i < chain.length; i++) {
+                const pt = landmarks[chain[i]];
+                if (i === 0) ctx.moveTo(pt.x * w, pt.y * h);
+                else ctx.lineTo(pt.x * w, pt.y * h);
+            }
+            ctx.stroke();
+        });
+
+        landmarks.forEach((pt, i) => {
+            ctx.fillStyle = [4,8,12,16,20].includes(i) ? "#22c55e" : "#fff";
+            ctx.beginPath(); ctx.arc(pt.x * w, pt.y * h, 3, 0, Math.PI * 2); ctx.fill();
+            
+            // Angle Debugging
+            if ([2, 6, 10, 14, 18].includes(i)) {
+                const angle = this._calculateAngle(landmarks[i-1], landmarks[i], landmarks[i+1]);
+                ctx.fillStyle = "#fff"; ctx.font = "8px monospace";
+                ctx.fillText(Math.round(angle) + "°", pt.x * w + 5, pt.y * h);
+            }
+        });
+    }
+
+    _calculateAngle(a, b, c) {
+        const v1 = { x: a.x - b.x, y: a.y - b.y };
+        const v2 = { x: c.x - b.x, y: c.y - b.y };
+        const dot = v1.x * v2.x + v1.y * v2.y;
+        const mag1 = Math.sqrt(v1.x * v1.x + v1.y * v1.y);
+        const mag2 = Math.sqrt(v2.x * v2.x + v2.y * v2.y);
+        return Math.acos(dot / (mag1 * mag2)) * 180 / Math.PI;
+    }
+
 }

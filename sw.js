@@ -1,6 +1,6 @@
 // sw.js
 // Version: v64 - Fault Tolerant Offline
-const CACHE_NAME = 'follow-me-v64-robust';
+const CACHE_NAME = 'follow-me-v66-strict';
 
 // 1. CRITICAL: These MUST exist for the app to run.
 // If any of these are missing, the offline mode will fail.
@@ -12,11 +12,10 @@ const CRITICAL_ASSETS = [
     './settings.js',
     './sensors.js',
     './gestures.js',
-    './comments.js',
-    './manifest.json',
     './vision.js',
+    './voice.js',
+    './manifest.json',
     './wasm/vision_bundle.js',
-    './wasm/vision_wasm_internal.js',
     './wasm/vision_wasm_internal.wasm',
     './wasm/gesture_recognizer.task',
     'https://cdn.tailwindcss.com',

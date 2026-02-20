@@ -1558,7 +1558,34 @@ let devGestureEngine = null;
 function openDeveloperModal() { 
     const modal = document.getElementById('developer-modal');
     const container = document.getElementById('developer-controls-container');
-    
+    const visibilitySection = document.createElement('div');
+    visibilitySection.className = "mb-6 p-3 bg-gray-900 rounded-lg border border-gray-700";
+    visibilitySection.innerHTML = `
+        <h3 class="text-xs font-bold text-gray-400 uppercase mb-3">UI Visibility Overrides</h3>
+        
+        <div class="flex justify-between items-center mb-3">
+            <span class="text-sm">Hide Voice Settings</span>
+            <input type="checkbox" id="dev-hide-voice-toggle" class="h-5 w-5" ${appSettings.devHideVoiceSettings ? 'checked' : ''}>
+        </div>
+
+        <div class="flex justify-between items-center">
+            <span class="text-sm">Hide Haptic Mapping</span>
+            <input type="checkbox" id="dev-hide-haptic-toggle" class="h-5 w-5" ${appSettings.devHideHapticSettings ? 'checked' : ''}>
+        </div>
+    `;
+    container.appendChild(visibilitySection);
+    document.getElementById('dev-hide-voice-toggle').onchange = (e) => {
+        appSettings.devHideVoiceSettings = e.target.checked;
+        saveState(); // Ensure your save function is called
+        if (window.settingsManager) window.settingsManager.renderUI(); 
+    };
+
+    document.getElementById('dev-hide-haptic-toggle').onchange = (e) => {
+        appSettings.devHideHapticSettings = e.target.checked;
+        saveState();
+        if (window.settingsManager) window.settingsManager.renderUI();
+    };
+}
     container.innerHTML = ''; 
     const gConfig = modules.gestureEngine.config;
 

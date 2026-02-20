@@ -49,13 +49,6 @@ const DEFAULT_APP = {
     // -------------------
 
     isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, 
-        isFullScreenEnabled: false, 
-    isEcoModeEnabled: false,
-    devHideVoiceSettings: false,
-    devHideHapticSettings: false,
-    devSpeedStep: 0.1,
-    devUiStep: 5,
-    devSeqStep: 1,
     activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, 
     isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, 
     showMicBtn: false, showCamBtn: false, autoInputMode: 'none', 
@@ -116,60 +109,6 @@ let devLongPressTimer; // For the settings button shortcut
            
 // New flag for Shake Toggle
 let isGesturePadVisible = false;
-let currentDevTab = 0;
-let devGestureEngine = null;
-
-function applyFullScreenMode() {
-    if (appSettings.isFullScreenEnabled) {
-        document.body.classList.add('fullscreen-mode');
-        if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen().catch(() => {});
-        }
-    } else {
-        document.body.classList.remove('fullscreen-mode');
-        if (document.exitFullscreen && document.fullscreenElement) {
-            document.exitFullscreen().catch(() => {});
-        }
-    }
-}
-window.applyFullScreenMode = applyFullScreenMode;
-
-function switchDevTab(index) {
-    currentDevTab = index;
-    const track = document.getElementById('dev-tabs-track');
-    const btns = document.querySelectorAll('.dev-tab-btn');
-    if (track) track.style.transform = `translateX(-${index * 100}%)`;
-    btns.forEach((btn, i) => {
-        if (i === index) {
-            btn.classList.add('text-white', 'border-primary-app');
-            btn.classList.remove('text-gray-500', 'border-transparent');
-        } else {
-            btn.classList.remove('text-white', 'border-primary-app');
-            btn.classList.add('text-gray-500', 'border-transparent');
-        }
-    });
-    if (index === 2) {
-        const mainVideo = document.querySelector('video');
-        const devPreview = document.getElementById('dev-camera-preview');
-        if (mainVideo && devPreview && mainVideo.srcObject) devPreview.srcObject = mainVideo.srcObject;
-    }
-}
-window.switchDevTab = switchDevTab;
-
-function initDevSwipe() {
-    const track = document.getElementById('dev-tabs-track');
-    if (!track) return;
-    let startX = 0;
-    track.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, {passive: true});
-    track.addEventListener('touchend', (e) => {
-        const diff = startX - e.changedTouches[0].clientX;
-        if (Math.abs(diff) > 80) {
-            if (diff > 0 && currentDevTab < 2) switchDevTab(currentDevTab + 1);
-            if (diff < 0 && currentDevTab > 0) switchDevTab(currentDevTab - 1);
-        }
-    });
-}
-
 
 // --- NEW GLOBALS FOR AUTO-LOGIC ---
 let simpleTimer = { interval: null, startTime: 0, elapsed: 0, isRunning: false };
@@ -212,7 +151,6 @@ function loadState() {
         appState['current_session'].currentRound = parseInt(appState['current_session'].currentRound) || 1;
         if (typeof applyUpsideDown === 'function') {
             applyUpsideDown();
-        applyFullScreenMode();
         }
         
     } catch(e) { 
@@ -1031,7 +969,7 @@ const startApp = () => {
 
     modules.settings.sensorEngine = modules.sensor;
 modules.vision = new VisionEngine(
-        (gesture, result) => {
+        (gesture) => {
             // This runs when the AI detects a hand gesture (e.g. "hand_5_up")
             const settings = getProfileSettings();
             const mappedVal = mapGestureToValue(gesture, settings.currentInput);
@@ -1047,28 +985,6 @@ modules.vision = new VisionEngine(
                 }
                 showToast(`Hand: ${mappedVal} 🖐️`);
             }
-        (gesture, result) => {
-            // ... (existing code for gesture)
-            
-            // --- NEW: SKELETON DEBUG ---
-            if (result && result.landmarks && result.landmarks.length > 0) {
-                const landmarks = result.landmarks[0];
-                const pill = document.getElementById('hand-presence-pill');
-                if (pill) {
-                    pill.textContent = "HAND TRACKED";
-                    pill.className = "bg-green-900/60 px-2 py-1 rounded text-[10px] font-black text-green-200 border border-green-500/30";
-                }
-                if (!document.getElementById('developer-modal').classList.contains('hidden')) {
-                    modules.vision.drawSkeleton(landmarks);
-                }
-            } else {
-                const pill = document.getElementById('hand-presence-pill');
-                if (pill) {
-                    pill.textContent = "NO HAND";
-                    pill.className = "bg-red-900/60 px-2 py-1 rounded text-[10px] font-black text-red-200 border border-red-500/30";
-                }
-            }
-
         },
         (status) => showToast(status) // Shows "Loading AI...", "Cam Blocked", etc.
     );
@@ -1637,167 +1553,15 @@ if(headerStealth) {
 // 1. Keep this at the TOP level (outside any functions)
 let devGestureEngine = null;
 
-
 function openDeveloperModal() { 
     const modal = document.getElementById('developer-modal');
     const container = document.getElementById('developer-controls-container');
-    if (!modal || !container) return;
-    container.innerHTML = ''; 
     
-    // --- GESTURE CONFIG ---
-    const gConfig = modules.gestureEngine ? modules.gestureEngine.config : {};
+    container.innerHTML = ''; 
+    const gConfig = modules.gestureEngine.config;
+
     const settings = [
         { key: 'tapDelay', label: 'Tap Delay (ms)', min: 100, max: 1500, step: 50 },
-        { key: 'swipeThreshold', label: 'Swipe Sensitivity', min: 10, max: 200, step: 10 }
-    ];
-    settings.forEach(s => {
-        const div = document.createElement('div');
-        div.className = 'space-y-2 mb-4';
-        div.innerHTML = `
-            <div class="flex justify-between text-[10px] font-black uppercase text-gray-500">
-                <span>${s.label}</span>
-                <span id="val-${s.key}" class="text-primary-app">${gConfig[s.key] || 0}</span>
-            </div>
-            <input type="range" min="${s.min}" max="${s.max}" step="${s.step}" value="${gConfig[s.key] || 0}" 
-                   class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-primary-app">
-        `;
-        div.querySelector('input').oninput = (e) => {
-            const val = parseInt(e.target.value);
-            if(modules.gestureEngine) modules.gestureEngine.config[s.key] = val;
-            document.getElementById(`val-${s.key}`).innerText = val;
-        };
-        container.appendChild(div);
-    });
-
-    // --- INCREMENTS ---
-    const incrementSection = document.createElement('div');
-    incrementSection.className = 'mt-6 pt-4 border-t border-gray-700 space-y-4';
-    const steps = [{l:'1%', v:0.01}, {l:'2%', v:0.02}, {l:'5%', v:0.05}, {l:'10%', v:0.1}];
-    const createStepSelect = (label, key, options, current) => {
-        const div = document.createElement('div');
-        div.className = 'flex justify-between items-center bg-black/20 p-2 rounded-lg';
-        div.innerHTML = `
-            <span class="text-[10px] font-black uppercase text-gray-400">${label}</span>
-            <select class="bg-gray-800 text-white text-[10px] p-1 rounded border border-gray-600">
-                ${options.map(o => `<option value="${o.v}" ${current == o.v ? 'selected':''}>${o.l}</option>`).join('')}
-            </select>
-        `;
-        div.querySelector('select').onchange = (e) => appSettings[key] = parseFloat(e.target.value);
-        return div;
-    };
-    incrementSection.appendChild(createStepSelect('Speed Step', 'devSpeedStep', steps, appSettings.devSpeedStep || 0.1));
-    incrementSection.appendChild(createStepSelect('UI Scale Step', 'devUiStep', steps.map(s=>({l:s.l, v:s.v*100})), appSettings.devUiStep || 5));
-    incrementSection.appendChild(createStepSelect('Seq Size Step', 'devSeqStep', steps.map(s=>({l:s.l, v:Math.max(1,s.v*100)})), appSettings.devSeqStep || 1));
-    container.appendChild(incrementSection);
-
-    // --- SENSOR CALIBRATION ---
-    const sensorSection = document.createElement('div');
-    sensorSection.className = 'mt-6 pt-4 border-t border-gray-700 space-y-4';
-    sensorSection.innerHTML = `<h3 class="text-[10px] font-black uppercase text-gray-500 tracking-widest mb-2">Sensor Calibration</h3>`;
-    const sensorParams = [
-        { label: 'Mic Threshold (dB)', key: 'sensorAudioThresh', min: -100, max: -20, step: 1 },
-        { label: 'Cam Sensitivity (%)', key: 'sensorCamThresh', min: 1, max: 100, step: 1 }
-    ];
-    sensorParams.forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'space-y-2 mb-4';
-        div.innerHTML = `
-            <div class="flex justify-between text-[10px] font-black uppercase text-gray-400">
-                <span>${p.label}</span>
-                <span id="dev-val-${p.key}" class="text-primary-app">${appSettings[p.key]}</span>
-            </div>
-            <input type="range" min="${p.min}" max="${p.max}" step="${p.step}" value="${appSettings[p.key]}" 
-                   class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-primary-app">
-        `;
-        div.querySelector('input').oninput = (e) => {
-            const val = parseFloat(e.target.value);
-            appSettings[p.key] = val;
-            document.getElementById(`dev-val-${p.key}`).innerText = val;
-            if (modules.sensor) {
-                if (p.key === 'sensorAudioThresh') modules.sensor.audioThreshold = val;
-                if (p.key === 'sensorCamThresh') modules.sensor.threshold = val;
-            }
-        };
-        sensorSection.appendChild(div);
-    });
-    
-    // Noise Monitor
-    const monitorDiv = document.createElement('div');
-    monitorDiv.className = 'mt-4 bg-black/40 p-3 rounded-lg border border-gray-700';
-    monitorDiv.innerHTML = `
-        <div class="flex justify-between text-[9px] font-black text-gray-500 uppercase mb-1">
-            <span>Live Mic Level</span>
-            <span id="mic-db-text">-100dB</span>
-        </div>
-        <div class="w-full h-2 bg-gray-800 rounded-full overflow-hidden relative">
-            <div id="mic-bar" class="h-full bg-green-500 w-0 transition-all duration-75"></div>
-            <div id="mic-threshold-line" class="absolute top-0 bottom-0 w-0.5 bg-red-500" style="left: 0%"></div>
-        </div>
-    `;
-    sensorSection.appendChild(monitorDiv);
-
-    const autoCalBtn = document.createElement('button');
-    autoCalBtn.className = "w-full py-2 bg-purple-900/30 border border-purple-500 rounded text-[9px] font-black uppercase text-purple-200 mt-2";
-    autoCalBtn.textContent = "Run Auto-Calibration";
-    autoCalBtn.onclick = () => {
-        if (modules.sensor) {
-            showToast("Stay Quiet... Calibrating Mic 🤫");
-            modules.sensor.calibrate((newThresh) => {
-                appSettings.sensorAudioThresh = Math.round(newThresh);
-                document.getElementById('dev-val-sensorAudioThresh').innerText = Math.round(newThresh);
-                showToast("Mic Calibrated ✅");
-            });
-        }
-    };
-    sensorSection.appendChild(autoCalBtn);
-    container.appendChild(sensorSection);
-
-    // --- VISIBILITY ---
-    const toggleDiv = document.createElement('div');
-    toggleDiv.className = 'grid grid-cols-2 gap-2 mt-4';
-    const createToggle = (label, key) => {
-        const active = appSettings[key];
-        const btn = document.createElement('button');
-        btn.className = `p-2 text-[9px] font-black uppercase rounded border ${active ? 'border-primary-app bg-primary-app/10 text-primary-app' : 'border-gray-700 text-gray-500'}`;
-        btn.textContent = label;
-        btn.onclick = () => { appSettings[key] = !appSettings[key]; openDeveloperModal(); };
-        return btn;
-    };
-    toggleDiv.appendChild(createToggle('Hide Voice', 'devHideVoiceSettings'));
-    toggleDiv.appendChild(createToggle('Hide Haptics', 'devHideHapticSettings'));
-    container.appendChild(toggleDiv);
-
-    // Show
-    modal.classList.remove('hidden');
-    setTimeout(() => { modal.classList.remove('opacity-0'); modal.querySelector('div').classList.remove('scale-95'); }, 10);
-    
-    switchDevTab(0); 
-    initDevTestBed();
-    initDevSwipe();
-
-    const updateMonitor = () => {
-        if (!modal.classList.contains('hidden') && modules.sensor && modules.sensor.analyser) {
-            const data = new Uint8Array(modules.sensor.analyser.frequencyBinCount);
-            modules.sensor.analyser.getByteFrequencyData(data);
-            const avg = data.reduce((a, b) => a + b) / data.length;
-            const db = Math.round((avg / 255) * 100) - 100;
-            const bar = document.getElementById('mic-bar');
-            const text = document.getElementById('mic-db-text');
-            const line = document.getElementById('mic-threshold-line');
-            if (bar) bar.style.width = `${avg / 2.55}%`;
-            if (text) text.textContent = `${db}dB`;
-            if (line) {
-                const thresh = appSettings.sensorAudioThresh;
-                const pos = ((thresh + 100) / 80) * 100;
-                line.style.left = `${pos}%`;
-            }
-            requestAnimationFrame(updateMonitor);
-        }
-    };
-    updateMonitor();
-}
-window.openDeveloperModal = openDeveloperModal;
-,
         { key: 'longPressTime', label: 'Long Press Time (ms)', min: 100, max: 1000, step: 50 },
         { key: 'swipeThreshold', label: 'Swipe Sensitivity', min: 10, max: 200, step: 10 },
         { key: 'tapPrecision', label: 'Tap Precision (px)', min: 5, max: 100, step: 5 }

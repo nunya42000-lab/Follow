@@ -220,25 +220,4 @@ export class SensorEngine {
         }
         return [h, s, l];
     }
-
-    calibrate(callback) {
-        let samples = [];
-        const listener = (event) => {
-            // This is just a placeholder logic to simulate reading from analyser
-            if (this.analyser) {
-                const data = new Uint8Array(this.analyser.frequencyBinCount);
-                this.analyser.getByteFrequencyData(data);
-                const avg = data.reduce((a, b) => a + b) / data.length;
-                samples.push(Math.round((avg / 255) * 100) - 100);
-            }
-        };
-        const timer = setInterval(listener, 50);
-        setTimeout(() => {
-            clearInterval(timer);
-            const avg = samples.reduce((a, b) => a + b, 0) / samples.length;
-            this.audioThreshold = avg + 12;
-            if (callback) callback(this.audioThreshold);
-        }, 1500);
-    }
-    
 }

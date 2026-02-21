@@ -107,46 +107,6 @@ export class SettingsManager {
                 this.updateHeaderVisibility(); 
                 this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
             });
-       // --- DEVELOPER OVERRIDES LOGIC ---
-// Add these to the end of your SettingsManager constructor
-
-const devVoiceToggle = document.getElementById('dev-hide-voice-toggle');
-const devHapticToggle = document.getElementById('dev-hide-haptic-toggle');
-
-if (devVoiceToggle) {
-    // Set initial UI state from saved settings
-    devVoiceToggle.checked = !!this.appSettings.devHideVoiceSettings;
-    
-    devVoiceToggle.addEventListener('change', (e) => {
-        this.appSettings.devHideVoiceSettings = e.target.checked;
-        
-        // Use the global save function from app.js if available, or your internal one
-        if (this.saveSettings) {
-            this.saveSettings();
-        } else if (this.callbacks && this.callbacks.onSettingsChange) {
-            this.callbacks.onSettingsChange(this.appSettings);
-        }
-        
-        // Trigger the visibility update immediately
-        if (window.applyDeveloperVisibility) {
-            window.applyDeveloperVisibility();
-        } else {
-            console.error("applyDeveloperVisibility function not found on window!");
-        }
-    });
-}
-
-if (devHapticToggle) {
-    devHapticToggle.checked = !!this.appSettings.devHideHapticSettings;
-    devHapticToggle.addEventListener('change', (e) => {
-        this.appSettings.devHideHapticSettings = e.target.checked;
-        
-        if (this.saveSettings) this.saveSettings();
-        
-        if (window.applyDeveloperVisibility) window.applyDeveloperVisibility();
-    });
-}
-            
         }
         
     }
@@ -1122,35 +1082,7 @@ populateMorseUI() {
             };
         });
     }
-getVoiceSettingsHTML() {
-    return `
-    <div id="voice-settings-section" class="space-y-4 border-t border-custom pt-4 mt-4">
-        <h3 class="text-sm font-bold text-gray-400 uppercase">Voice Settings</h3>
-        </div>`;
-}
 
-getHapticSettingsHTML() {
-    return `
-    <div id="morse-container" class="space-y-4 border-t border-custom pt-4 mt-4">
-        <h3 class="text-sm font-bold text-gray-400 uppercase">Haptic Mapping</h3>
-        </div>`;
-}
-
-refreshDynamicSections() {
-    const voiceAnchor = document.getElementById('dynamic-voice-anchor');
-    const hapticAnchor = document.getElementById('dynamic-haptic-anchor');
-
-    if (voiceAnchor) {
-        voiceAnchor.innerHTML = !this.appSettings.devHideVoiceSettings ? this.getVoiceSettingsHTML() : '';
-    }
-    if (hapticAnchor) {
-        hapticAnchor.innerHTML = !this.appSettings.devHideHapticSettings ? this.getHapticSettingsHTML() : '';
-    }
-    
-    // Re-bind listeners for the newly created elements if necessary
-    if (!this.appSettings.devHideVoiceSettings) this.initVoiceUI();
-}
-    
     applyDefaultGestureMappings() {
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
         

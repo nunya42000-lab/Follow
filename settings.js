@@ -45,8 +45,7 @@ export class SettingsManager {
             blackoutToggle: document.getElementById('blackout-toggle'), // "Boss Mode"
             stealth1KeyToggle: document.getElementById('stealth-1key-toggle'), // "Inputs Only"
             // Find your checkbox elements
-devHideVoice: document.getElementById('dev-hide-voice-toggle'),
-    devHideHaptic: document.getElementById('dev-hide-haptic-toggle'),
+
             // Previously injected, now hardcoded
             longPressToggle: document.getElementById('long-press-autoplay-toggle'), // "AP Shortcut"
             blackoutGesturesToggle: document.getElementById('blackout-gestures-toggle'), // "Hand Gestures" (Previously BM Gestures)
@@ -278,37 +277,34 @@ devHideVoice: document.getElementById('dev-hide-voice-toggle'),
                 this.saveSettings(); // 'this' now correctly points to SettingsManager
             };
         }
-// Find your checkbox elements in settings.js
+// Find your checkbox elements
 const hideVoiceToggle = document.getElementById('dev-hide-voice-toggle');
 const hideHapticToggle = document.getElementById('dev-hide-haptic-toggle');
 
 // Wire up the Voice Toggle
 if (hideVoiceToggle) {
-    // Load the initial state from your settings object
-    hideVoiceToggle.checked = this.appSettings.devHideVoiceSettings || false;
-
-    hideVoiceToggle.onchange = (e) => {
+    hideVoiceToggle.addEventListener('change', (e) => {
         this.appSettings.devHideVoiceSettings = e.target.checked;
-        this.saveSettings(); // Persist the change
-        if (typeof window.applyDeveloperVisibility === 'function') {
-            window.applyDeveloperVisibility(); // Trigger the UI update
+        this.saveSettings(); // Save the data
+        
+        // Trigger the UI update in app.js
+        if (window.applyDeveloperVisibility) {
+            window.applyDeveloperVisibility();
         }
-    };
+    });
 }
 
 // Wire up the Haptic Toggle
 if (hideHapticToggle) {
-    hideHapticToggle.checked = this.appSettings.devHideHapticSettings || false;
-
-    hideHapticToggle.onchange = (e) => {
+    hideHapticToggle.addEventListener('change', (e) => {
         this.appSettings.devHideHapticSettings = e.target.checked;
-        this.saveSettings(); // Persist the change
-        if (typeof window.applyDeveloperVisibility === 'function') {
-            window.applyDeveloperVisibility(); // Trigger the UI update
+        this.saveSettings();
+        
+        if (window.applyDeveloperVisibility) {
+            window.applyDeveloperVisibility();
         }
-    };
+    });
 }
-
             
         // Upside Down Toggle
         if (this.dom.upsideDownToggle) {
@@ -377,22 +373,6 @@ if (hideHapticToggle) {
         if (this.dom.flash) this.dom.flash.checked = !!this.appSettings.isFlashEnabled;
         if (this.dom.pause) this.dom.pause.value = this.appSettings.pauseSetting || 'none';if (this.dom.quickAudio) { this.dom.quickAudio.onchange = (e) => { this.appSettings.isAudioEnabled = e.target.checked; if (this.dom.audio) this.dom.audio.checked = e.target.checked; this.callbacks.onSave(); } }
       
-    if (this.dom.devHideVoice) {
-        this.dom.devHideVoice.addEventListener('change', (e) => {
-            this.appSettings.devHideVoiceSettings = e.target.checked;
-            this.saveSettings();
-            if (typeof applyDeveloperVisibility === 'function') applyDeveloperVisibility();
-        });
-    }
-
-    if (this.dom.devHideHaptic) {
-        this.dom.devHideHaptic.addEventListener('change', (e) => {
-            this.appSettings.devHideHapticSettings = e.target.checked;
-            this.saveSettings();
-            if (typeof applyDeveloperVisibility === 'function') applyDeveloperVisibility();
-        });
-    }
-        }
         if (this.dom.dontShowWelcome) { this.dom.dontShowWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = !e.target.checked; if (this.dom.showWelcome) this.dom.showWelcome.checked = !e.target.checked; this.callbacks.onSave(); } }
         if (this.dom.showWelcome) { this.dom.showWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = e.target.checked; if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !e.target.checked; this.callbacks.onSave(); } }
 
@@ -613,15 +593,6 @@ if (hideHapticToggle) {
         
         if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
         if (this.dom.seqFontSize) this.dom.seqFontSize.value = Math.round((this.appSettings.uiFontSizeMultiplier || 1.0) * 100);
-        
-
-    if (this.dom.devHideVoice) {
-        this.dom.devHideVoice.checked = !!this.appSettings.devHideVoiceSettings;
-    }
-    if (this.dom.devHideHaptic) {
-        this.dom.devHideHaptic.checked = !!this.appSettings.devHideHapticSettings;
-    }
-        }
         
         // NEW: Load Sensitivity
         if (this.dom.gestureTapSlider) {

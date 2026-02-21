@@ -377,6 +377,22 @@ if (hideHapticToggle) {
         if (this.dom.flash) this.dom.flash.checked = !!this.appSettings.isFlashEnabled;
         if (this.dom.pause) this.dom.pause.value = this.appSettings.pauseSetting || 'none';if (this.dom.quickAudio) { this.dom.quickAudio.onchange = (e) => { this.appSettings.isAudioEnabled = e.target.checked; if (this.dom.audio) this.dom.audio.checked = e.target.checked; this.callbacks.onSave(); } }
       
+    if (this.dom.devHideVoice) {
+        this.dom.devHideVoice.addEventListener('change', (e) => {
+            this.appSettings.devHideVoiceSettings = e.target.checked;
+            this.saveSettings();
+            if (typeof applyDeveloperVisibility === 'function') applyDeveloperVisibility();
+        });
+    }
+
+    if (this.dom.devHideHaptic) {
+        this.dom.devHideHaptic.addEventListener('change', (e) => {
+            this.appSettings.devHideHapticSettings = e.target.checked;
+            this.saveSettings();
+            if (typeof applyDeveloperVisibility === 'function') applyDeveloperVisibility();
+        });
+    }
+        }
         if (this.dom.dontShowWelcome) { this.dom.dontShowWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = !e.target.checked; if (this.dom.showWelcome) this.dom.showWelcome.checked = !e.target.checked; this.callbacks.onSave(); } }
         if (this.dom.showWelcome) { this.dom.showWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = e.target.checked; if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !e.target.checked; this.callbacks.onSave(); } }
 
@@ -597,6 +613,15 @@ if (hideHapticToggle) {
         
         if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
         if (this.dom.seqFontSize) this.dom.seqFontSize.value = Math.round((this.appSettings.uiFontSizeMultiplier || 1.0) * 100);
+        
+
+    if (this.dom.devHideVoice) {
+        this.dom.devHideVoice.checked = !!this.appSettings.devHideVoiceSettings;
+    }
+    if (this.dom.devHideHaptic) {
+        this.dom.devHideHaptic.checked = !!this.appSettings.devHideHapticSettings;
+    }
+        }
         
         // NEW: Load Sensitivity
         if (this.dom.gestureTapSlider) {

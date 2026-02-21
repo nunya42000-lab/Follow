@@ -277,34 +277,37 @@ export class SettingsManager {
                 this.saveSettings(); // 'this' now correctly points to SettingsManager
             };
         }
-// Find your checkbox elements
+// Find your checkbox elements in settings.js
 const hideVoiceToggle = document.getElementById('dev-hide-voice-toggle');
 const hideHapticToggle = document.getElementById('dev-hide-haptic-toggle');
 
 // Wire up the Voice Toggle
 if (hideVoiceToggle) {
-    hideVoiceToggle.addEventListener('change', (e) => {
+    // Load the initial state from your settings object
+    hideVoiceToggle.checked = this.appSettings.devHideVoiceSettings || false;
+
+    hideVoiceToggle.onchange = (e) => {
         this.appSettings.devHideVoiceSettings = e.target.checked;
-        this.saveSettings(); // Save the data
-        
-        // Trigger the UI update in app.js
-        if (window.applyDeveloperVisibility) {
-            window.applyDeveloperVisibility();
+        this.saveSettings(); // Persist the change
+        if (typeof window.applyDeveloperVisibility === 'function') {
+            window.applyDeveloperVisibility(); // Trigger the UI update
         }
-    });
+    };
 }
 
 // Wire up the Haptic Toggle
 if (hideHapticToggle) {
-    hideHapticToggle.addEventListener('change', (e) => {
+    hideHapticToggle.checked = this.appSettings.devHideHapticSettings || false;
+
+    hideHapticToggle.onchange = (e) => {
         this.appSettings.devHideHapticSettings = e.target.checked;
-        this.saveSettings();
-        
-        if (window.applyDeveloperVisibility) {
-            window.applyDeveloperVisibility();
+        this.saveSettings(); // Persist the change
+        if (typeof window.applyDeveloperVisibility === 'function') {
+            window.applyDeveloperVisibility(); // Trigger the UI update
         }
-    });
+    };
 }
+
             
         // Upside Down Toggle
         if (this.dom.upsideDownToggle) {

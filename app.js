@@ -19,10 +19,6 @@ enableIndexedDbPersistence(db).catch((err) => {
         console.log('Browser does not support persistence');
     }
 });
-// ----------------------------------
-
-// --- CONFIG ---
-
 
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};

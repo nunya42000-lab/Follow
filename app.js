@@ -1187,6 +1187,39 @@ function initGestureEngine() {
 
 function initGlobalListeners() {
     try {
+        const devHideVoiceToggle = document.getElementById('dev-hide-voice-toggle');
+if (devHideVoiceToggle) {
+    // Set the initial visual state of the toggle to match loaded settings
+    devHideVoiceToggle.checked = appSettings.devHideVoiceSettings;
+    
+    // Listen for clicks
+    devHideVoiceToggle.addEventListener('change', (e) => {
+        appSettings.devHideVoiceSettings = e.target.checked;
+        applyDeveloperVisibility(); // Trigger the hide/show logic
+        
+        // Save the state so it remembers on refresh
+        if (typeof saveSettings === 'function') {
+            saveSettings(); 
+        }
+    });
+}
+
+const devHideHapticToggle = document.getElementById('dev-hide-haptic-toggle');
+if (devHideHapticToggle) {
+    // Set the initial visual state of the toggle to match loaded settings
+    devHideHapticToggle.checked = appSettings.devHideHapticSettings;
+    
+    // Listen for clicks
+    devHideHapticToggle.addEventListener('change', (e) => {
+        appSettings.devHideHapticSettings = e.target.checked;
+        applyDeveloperVisibility(); // Trigger the hide/show logic
+        
+        // Save the state so it remembers on refresh
+        if (typeof saveSettings === 'function') {
+            saveSettings(); 
+        }
+    });
+            }
         // --- BUTTON LISTENERS ---
         document.querySelectorAll('.btn-pad-number').forEach(b => {
             const press = (e) => { 

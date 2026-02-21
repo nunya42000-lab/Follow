@@ -1122,7 +1122,35 @@ populateMorseUI() {
             };
         });
     }
+getVoiceSettingsHTML() {
+    return `
+    <div id="voice-settings-section" class="space-y-4 border-t border-custom pt-4 mt-4">
+        <h3 class="text-sm font-bold text-gray-400 uppercase">Voice Settings</h3>
+        </div>`;
+}
 
+getHapticSettingsHTML() {
+    return `
+    <div id="morse-container" class="space-y-4 border-t border-custom pt-4 mt-4">
+        <h3 class="text-sm font-bold text-gray-400 uppercase">Haptic Mapping</h3>
+        </div>`;
+}
+
+refreshDynamicSections() {
+    const voiceAnchor = document.getElementById('dynamic-voice-anchor');
+    const hapticAnchor = document.getElementById('dynamic-haptic-anchor');
+
+    if (voiceAnchor) {
+        voiceAnchor.innerHTML = !this.appSettings.devHideVoiceSettings ? this.getVoiceSettingsHTML() : '';
+    }
+    if (hapticAnchor) {
+        hapticAnchor.innerHTML = !this.appSettings.devHideHapticSettings ? this.getHapticSettingsHTML() : '';
+    }
+    
+    // Re-bind listeners for the newly created elements if necessary
+    if (!this.appSettings.devHideVoiceSettings) this.initVoiceUI();
+}
+    
     applyDefaultGestureMappings() {
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
         

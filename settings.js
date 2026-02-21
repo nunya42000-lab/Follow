@@ -45,7 +45,8 @@ export class SettingsManager {
             blackoutToggle: document.getElementById('blackout-toggle'), // "Boss Mode"
             stealth1KeyToggle: document.getElementById('stealth-1key-toggle'), // "Inputs Only"
             // Find your checkbox elements
-
+devHideVoice: document.getElementById('dev-hide-voice-toggle'),
+    devHideHaptic: document.getElementById('dev-hide-haptic-toggle'),
             // Previously injected, now hardcoded
             longPressToggle: document.getElementById('long-press-autoplay-toggle'), // "AP Shortcut"
             blackoutGesturesToggle: document.getElementById('blackout-gestures-toggle'), // "Hand Gestures" (Previously BM Gestures)

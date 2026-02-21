@@ -26,7 +26,8 @@ export const DEFAULT_APP = {
     isClearGestureEnabled: false,
     isAutoTimerEnabled: false,
     isAutoCounterEnabled: false,
-    
+    devHideVoiceSettings: false,
+    devHideHapticSettings: false,
     isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, 
     activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, 
     isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, 

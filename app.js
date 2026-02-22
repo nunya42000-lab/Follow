@@ -1702,7 +1702,7 @@ function logToDevBox(title, data) {
                 window.location.reload(true); // Hard reboot
             }
         });
-    }
+
 
 } // <-- This is the final bracket for initGlobalListeners
    

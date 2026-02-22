@@ -148,7 +148,7 @@ function vibrateMorse(val) {
     if (appSettings.morseMappings && appSettings.morseMappings[num]) {
         patternStr = appSettings.morseMappings[num];
     } else {
-        // Default Fallback
+       // Default Fallback
         if (num <= 3) patternStr = ".".repeat(num);
         else if (num <= 6) patternStr = "-" + ".".repeat(num-3);
         else if (num <= 9) patternStr = "--" + ".".repeat(num-6);
@@ -207,7 +207,7 @@ function speak(text) {
     if(lang === 'es') u.lang = 'es-MX'; else u.lang = 'en-US';
     if(appSettings.selectedVoice){
         const voices = window.speechSynthesis.getVoices();
-        const v = voices.find(voice => voice.name === appSettings.selectedVoice);
+        const v = voices.find(voice => voice.name === appSettings.voiceName);
         if(v) u.voice = v;
     } 
     let p = appSettings.voicePitch || 1.0; 
@@ -1703,7 +1703,7 @@ function logToDevBox(title, data) {
             }
         });
 
-
+                    }
 } // <-- This is the final bracket for initGlobalListeners
    
 

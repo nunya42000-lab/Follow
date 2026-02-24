@@ -32,15 +32,24 @@ export const startApp = () => {
                 renderUI();
             } else {
                 updateAllChrome(); 
-                applyDeveloperVisibility():
+                if (typeof applyDeveloperVisibility === 'function') {
+                applyDeveloperVisibility();
+                }
+         if (type && type.toLowerCase().includes('step')) {
+            if (modules.settings.initGeneralDropdowns) {
+            modules.settings.initGeneralDropdowns();
             }
-        },
-        onReset: () => { 
+            }
+            }
+            },
+            onReset: () => { 
             localStorage.clear(); 
             location.reload(); 
-        },
+            },
+            });
+            }
         onProfileSwitch: (id) => { 
-            appSettings.activeProfileId = id; 
+            applyDeveloperVisibility()Settings.activeProfileId = id; 
             appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings)); 
             if(appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
             saveState(); 
@@ -196,6 +205,28 @@ export function applyDeveloperVisibility() {
 
     if (voiceSection) {
         if (appSettings.devHideVoiceSettings) {
+            voiceSection.classList.add('hidden');
+        } else {
+            voiceSection.classList.remove('hidden');
+        }
+    }
+
+    if (hapticSection) {
+        if (appSettings.devHideHapticSettings) {
+            hapticSection.classList.add('hidden');
+        } else {
+            hapticSection.classList.remove('hidden');
+        }
+    }
+}
+window.applyDeveloperVisibility = applyDeveloperVisibility;
+
+document.addEventListener('DOMContentLoaded', () => {
+    startApp(); 
+    if (typeof applyDeveloperVisibility === 'function') {
+        applyDeveloperVisibility();
+    }
+});;evHideVoiceSettings) {
             voiceSection.classList.add('hidden');
         } else {
             voiceSection.classList.remove('hidden');

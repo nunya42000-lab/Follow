@@ -4,13 +4,9 @@ export function injectModals() {
     modalContainer.id = "injected-modals";
     
     modalContainer.innerHTML = `
-        `;
+        
     
-    // Inserts the modals right at the top of the body
-    document.body.insertBefore(modalContainer, document.body.firstChild);
-}
-
-    <div id="game-setup-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
+   <div id="game-setup-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
             <div class="flex items-center justify-between border-b border-custom pb-3 mb-4 relative">
                 <div class="flex items-center space-x-2">
@@ -56,6 +52,8 @@ export function injectModals() {
             </div>
         </div>
     </div>
+
+
 <div id="developer-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-80 hidden opacity-0 transition-opacity duration-300">
     <div class="bg-[#121212] w-full max-w-2xl m-4 p-6 rounded-2xl border border-gray-700 shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh]">
         
@@ -80,6 +78,34 @@ export function injectModals() {
                     </div>
                 </div>
             </div>
+            <div class="grid grid-cols-3 gap-3 pt-4 border-t border-custom">
+            <div>
+            <label class="block text-[10px] font-bold mb-1 opacity-70">Speed Step</label>
+            <select id="speed-step-selector" class="w-full bg-black/40 p-1 text-xs rounded border border-custom">
+            <option value="0.01">1%</option>
+            <option value="0.02">2%</option>
+            <option value="0.05">5%</option>
+            <option value="0.10">10%</option>
+            </select>
+            </div>
+            <div>
+            <label class="block text-[10px] font-bold mb-1 opacity-70">UI Scale Step</label>
+            <select id="ui-step-selector" class="w-full bg-black/40 p-1 text-xs rounded border border-custom">
+            <option value="0.01">1%</option>
+            <option value="0.05">5%</option>
+            <option value="0.10">10%</option>
+            </select>
+            </div>
+            <div>
+            <label class="block text-[10px] font-bold mb-1 opacity-70">Seq Step</label>
+            <select id="seq-step-selector" class="w-full bg-black/40 p-1 text-xs rounded border border-custom">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="5">5</option>
+            </select>
+            </div>
+            </div>
+            
             <div class="border border-gray-600 rounded-lg p-3 bg-black">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="text-white font-bold">Diagnostic Test Area 🧪</h3>
@@ -743,3 +769,9 @@ export function injectModals() {
              <div class="flex space-x-2"><button id="close-comment-modal" class="flex-1 bg-gray-700 py-2 rounded text-white font-bold text-xs">Close</button><button id="submit-comment-btn" class="flex-1 bg-blue-600 py-2 rounded text-white font-bold text-xs">Send</button></div>
         </div>
     </div>
+    
+    `; // And the closing backtick here at the very end of your HTML!
+    
+    // Inserts the modals right at the top of the body
+    document.body.insertBefore(modalContainer, document.body.firstChild);
+    }

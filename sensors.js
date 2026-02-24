@@ -1,3 +1,4 @@
+//sensors.js
 export class SensorEngine {
     constructor(onTrigger, onStatusUpdate) {
         this.onTrigger = onTrigger;

@@ -1,4 +1,3 @@
-//vision.js
 // Import from YOUR local file (Offline Mode)
 import { FilesetResolver, GestureRecognizer } from "./wasm/vision_bundle.js";
 

@@ -1,67 +1,92 @@
 // gesture-engine-setup.js
-import { GestureEngine } from './gestures.js';
-import { appSettings, gestureState, saveState } from './state.js';
+import { analyzeGesturePath } from './gesture-math.js';
 import { showToast } from './ui-core.js';
-import { renderUI } from './renderer.js';
 
-let gestureEngineInstance = null;
+/**
+ * OmniGesture v114 Setup
+ * Captures raw touch streams and routes them to the math analyzer
+ */
 
 export function initGestureEngine() {
-    try {
-        gestureEngineInstance = new GestureEngine(document.body, (data) => {
-            if (data.type === 'swipe') {
-                if (data.dir === 'up') {
-                    let newSpeed = appSettings.playbackSpeed + 0.1;
-                    appSettings.playbackSpeed = Math.min(2.0, Math.max(0.5, newSpeed));
-                    saveState();
-                    showToast(`Speed: ${(appSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
-                } else if (data.dir === 'down') {
-                    let newSpeed = appSettings.playbackSpeed - 0.1;
-                    appSettings.playbackSpeed = Math.min(2.0, Math.max(0.5, newSpeed));
-                    saveState();
-                    showToast(`Speed: ${(appSettings.playbackSpeed * 100).toFixed(0)}% 🐢`);
-                }
-            }
-            
-            if (data.type === 'pinch') {
-                const mode = appSettings.gestureResizeMode || 'global';
-                if (mode === 'none') return;
-                
-                if (!gestureState.isPinching) {
-                    gestureState.isPinching = true;
-                    gestureState.startGlobal = appSettings.globalUiScale;
-                    gestureState.startSeq = appSettings.uiScaleMultiplier;
-                }
-                
-                clearTimeout(gestureState.resetTimer);
-                gestureState.resetTimer = setTimeout(() => {
-                    gestureState.isPinching = false;
-                }, 250);
-                
-                if (mode === 'sequence') {
-                    let raw = gestureState.startSeq * data.scale;
-                    let newScale = Math.round(raw * 10) / 10;
-                    if (newScale !== appSettings.uiScaleMultiplier) {
-                        appSettings.uiScaleMultiplier = Math.min(2.5, Math.max(0.5, newScale));
-                        renderUI();
-                        showToast(`Cards: ${(appSettings.uiScaleMultiplier * 100).toFixed(0)}% 🔍`);
-                    }
-                } else {
-                    let raw = gestureState.startGlobal * data.scale;
-                    let newScale = Math.round(raw * 10) / 10;
-                    if (newScale !== appSettings.globalUiScale) {
-                        appSettings.globalUiScale = Math.min(2.0, Math.max(0.5, newScale));
-                        document.documentElement.style.fontSize = `${16 * appSettings.globalUiScale}px`;
-                        showToast(`UI Scale: ${(appSettings.globalUiScale * 100).toFixed(0)}% 🔍`);
-                    }
-                }
-            }
-        });
-    } catch(e) {
-        console.error("Gesture Engine Initialization Error:", e);
-    }
-}
+    let activePoints = [];
+    let isTracking = false;
 
-export function getGestureEngine() {
-    return gestureEngineInstance;
+    // We attach listeners to the document to allow global gestures
+    document.addEventListener('touchstart', (e) => {
+        // Ignore multi-touch for basic gesture analysis
+        if (e.touches.length > 1) return;
+
+        isTracking = true;
+        activePoints = [];
+        addPoint(e.touches[0]);
+    }, { passive: true });
+
+    document.addEventListener('touchmove', (e) => {
+        if (!isTracking) return;
+        addPoint(e.touches[0]);
+    }, { passive: true });
+
+    document.addEventListener('touchend', (e) => {
+        if (!isTracking) return;
+        isTracking = false;
+
+        // Run the math analysis
+        const results = analyzeGesturePath(activePoints);
+        
+        if (results) {
+            processGestureResults(results);
+        }
+    }, { passive: true });
+
+    /**
+     * Helper to push formatted points into the stream
+     */
+    function addPoint(touch) {
+        activePoints.push({
+            x: touch.clientX,
+            y: touch.clientY,
+            t: Date.now()
+        });
+
+        // Update Developer Tab indicator if visible
+        const countDisplay = document.getElementById('active-touch-count');
+        if (countDisplay) countDisplay.textContent = activePoints.length;
+    }
+
+    /**
+     * Routes the calculated results to the UI and Logic
+     */
+    function processGestureResults(res) {
+        // 1. Log to developer console for tuning
+        console.log(`[OmniGesture] ${res.type.toUpperCase()} | Shape: ${res.shape} | Pauses: ${res.pauses} | Vel: ${res.velocity}`);
+
+        // 2. Visual Feedback
+        let feedbackIcon = "👆";
+        if (res.type === 'flick') feedbackIcon = "⚡";
+        if (res.shape === 'curve-s') feedbackIcon = "〰️";
+        if (res.shape === 'curve-c') feedbackIcon = "↩️";
+        if (res.pauses > 0) feedbackIcon = "⏸️";
+
+        // 3. Example Logic: Using these new types
+        if (res.type === 'flick' && res.direction === 'up') {
+            showToast(`${feedbackIcon} Fast Flick Up`);
+        } else if (res.shape === 'curve-s') {
+            showToast(`${feedbackIcon} S-Curve Detected`);
+        } else if (res.pauses > 0) {
+            showToast(`${feedbackIcon} Paused Gesture`);
+        } else {
+            // Default swipe reporting
+            showToast(`${feedbackIcon} ${res.direction} ${res.type}`);
+        }
+        
+        // Update Developer Monitor
+        const logContainer = document.getElementById('dev-log-container');
+        if (logContainer) {
+            const entry = document.createElement('div');
+            entry.className = "text-blue-400 border-l border-blue-900 pl-2 my-1";
+            entry.innerHTML = `<span class="text-gray-500">[${new Date().toLocaleTimeString()}]</span> 
+                               <strong>${res.shape} ${res.type}</strong> (${res.velocity}px/ms)`;
+            logContainer.prepend(entry);
+        }
+    }
 }

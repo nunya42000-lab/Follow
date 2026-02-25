@@ -49,7 +49,7 @@ export const startApp = () => {
             });
             }
         onProfileSwitch: (id) => { 
-            applyDeveloperVisibility()Settings.activeProfileId = id; 
+            applyDeveloperVisibility();appSettings.activeProfileId = id; 
             appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings)); 
             if(appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
             saveState(); 

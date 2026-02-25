@@ -1,72 +1,102 @@
-                const CACHE_NAME = 'omnigesture-v1.1.5'; // Increment this whenever you change code!
-const ASSETS = [
+// sw.js
+// Version: v64 - Fault Tolerant Offline
+const CACHE_NAME = 'follow-me-v64-robust';
+
+// 1. CRITICAL: These MUST exist for the app to run.
+// If any of these are missing, the offline mode will fail.
+const CRITICAL_ASSETS = [
     './',
     './index.html',
-    './style.css',
-    './manifest.json',
-    // Core Logic
+    './styles.css',
     './app.js',
-    './state.js',
-    './constants.js',
     './settings.js',
-    './game-logic.js',
-    // UI & Rendering
-    './renderer.js',
-    './settings-ui.js',
-    './ui-core.js',
-    './global-listeners.js',
-    // Subsystems
-    './audio-haptics.js',
-    './voice-commander.js',
-    './vision.js',
-    './ar_core.js',
     './sensors.js',
-    './gesture-engine-setup.js',
-    './gesture-mappings.js',
+    './gestures.js',
     './comments.js',
-    './firebase-setup.js'
+    './manifest.json',
+    './vision.js',
+    './wasm/vision_bundle.js',
+    './wasm/vision_wasm_internal.js',
+    './wasm/vision_wasm_internal.wasm',
+    './wasm/gesture_recognizer.task',
+    'https://cdn.tailwindcss.com',
+    'https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap'
 ];
 
-// 1. Install - Pre-cache all essential files
-self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            console.log('SW: Pre-caching app shell');
-            return cache.addAll(ASSETS);
-        })
-    );
+
+// 2. OPTIONAL: Images & External Links.
+// We will TRY to cache these. If they fail (404 missing, network error), 
+// we simply skip them so the app still installs successfully.
+const OPTIONAL_ASSETS = [
+    './icon-192.png',
+    './icon-512.png',
+    './qr.jpg',
+    './redeem.jpg',
+    'https://cdn.tailwindcss.com',
+    'https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap',
+    'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js',
+    'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js'
+];
+
+self.addEventListener('install', event => {
     self.skipWaiting();
-});
-
-// 2. Activate - Clean up old cache versions
-self.addEventListener('activate', (event) => {
     event.waitUntil(
-        caches.keys().then((keys) => {
-            return Promise.all(
-                keys.filter(key => key !== CACHE_NAME)
-                    .map(key => caches.delete(key))
-            );
+        caches.open(CACHE_NAME).then(async cache => {
+            console.log('[SW] Installing...');
+            
+            // A. Cache Critical Files (Fail if missing)
+            try {
+                await cache.addAll(CRITICAL_ASSETS);
+                console.log('[SW] Critical assets cached');
+            } catch (err) {
+                console.error('[SW] Critical install failed. Check file paths:', err);
+            }
+
+            // B. Cache Optional Files (Ignore errors)
+            await Promise.all(OPTIONAL_ASSETS.map(async url => {
+                try {
+                    const res = await fetch(url);
+                    if (res.ok) {
+                        await cache.put(url, res);
+                    } else {
+                        console.warn(`[SW] Could not cache optional: ${url} (${res.status})`);
+                    }
+                } catch (e) {
+                    console.warn(`[SW] Network error for optional: ${url}`);
+                }
+            }));
         })
     );
-    self.clients.claim();
 });
 
-// 3. Fetch - Stale-while-revalidate strategy
-self.addEventListener('fetch', (event) => {
-    // Skip cross-origin requests (like Firebase)
-    if (!event.request.url.startsWith(self.location.origin)) return;
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then(cacheNames => Promise.all(
+            cacheNames.map(cacheName => {
+                if (cacheName !== CACHE_NAME) return caches.delete(cacheName);
+            })
+        ))
+    ).then(() => self.clients.claim());
+});
 
+self.addEventListener('fetch', event => {
+    if (event.request.method !== 'GET') return;
+    
     event.respondWith(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.match(event.request).then((cachedResponse) => {
-                const fetchedResponse = fetch(event.request).then((networkResponse) => {
-                    cache.put(event.request, networkResponse.clone());
-                    return networkResponse;
-                });
+        caches.match(event.request).then(cached => {
+            // Return cached content if available
+            if (cached) return cached;
 
-                // Return the cached version if we have it, 
-                // but still update the cache in the background
-                return cachedResponse || fetchedResponse;
+            // Otherwise fetch from network and cache it for next time
+            return fetch(event.request).then(networkResponse => {
+                if (!networkResponse || networkResponse.status !== 200 || networkResponse.type === 'error') {
+                    return networkResponse;
+                }
+                const responseToCache = networkResponse.clone();
+                caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
+                return networkResponse;
+            }).catch(() => {
+                console.log('[SW] Offline & not found:', event.request.url);
             });
         })
     );

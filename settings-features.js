@@ -1,262 +1,106 @@
-//settings-features.js
-import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-import { PREMADE_THEMES, PREMADE_VOICE_PRESETS, CRAYONS, LANG } from './constants.js';
+export function initCore(manager) {
+    // 1. Build the DOM cache
+    manager.dom = {
+        editorModal: document.getElementById('theme-editor-modal'), 
+        editorGrid: document.getElementById('color-grid'), 
+        ftContainer: document.getElementById('fine-tune-container'), 
+        ftToggle: document.getElementById('toggle-fine-tune'), 
+        ftPreview: document.getElementById('fine-tune-preview'), 
+        ftHue: document.getElementById('ft-hue'), 
+        ftSat: document.getElementById('ft-sat'), 
+        ftLit: document.getElementById('ft-lit'),
+        targetBtns: document.querySelectorAll('.target-btn'), 
+        edName: document.getElementById('theme-name-input'), 
+        edPreview: document.getElementById('theme-preview-box'), 
+        edPreviewBtn: document.getElementById('preview-btn'), 
+        edPreviewCard: document.getElementById('preview-card'), 
+        edSave: document.getElementById('save-theme-btn'), 
+        edCancel: document.getElementById('cancel-theme-btn'),
+        openEditorBtn: document.getElementById('open-theme-editor'),
 
-export function initFeatures(manager) {
-    
-    // 1. General App Updates & UI Sync
+        // Voice Preset DOM
+        voicePresetSelect: document.getElementById('voice-preset-select'),
+        voicePresetAdd: document.getElementById('voice-preset-add'),
+        voicePresetSave: document.getElementById('voice-preset-save'),
+        voicePresetRename: document.getElementById('voice-preset-rename'),
+        voicePresetDelete: document.getElementById('voice-preset-delete'),
+        voicePitch: document.getElementById('voice-pitch'), 
+        voiceRate: document.getElementById('voice-rate'), 
+        voiceVolume: document.getElementById('voice-volume'), 
+        voiceTestBtn: document.getElementById('test-voice-btn'),
+        
+        // Developer & Config
+        settingsModal: document.getElementById('settings-modal'), 
+        themeSelect: document.getElementById('theme-select'), 
+        themeAdd: document.getElementById('theme-add'), 
+        themeRename: document.getElementById('theme-rename'), 
+        themeDelete: document.getElementById('theme-delete'), 
+        themeSave: document.getElementById('theme-save'),
+        configSelect: document.getElementById('config-select'), 
+        quickConfigSelect: document.getElementById('quick-config-select'), 
+        configAdd: document.getElementById('config-add'), 
+        configRename: document.getElementById('config-rename'), 
+        configDelete: document.getElementById('config-delete'), 
+        configSave: document.getElementById('config-save'),
+
+        // Inputs & Modes
+        input: document.getElementById('input-select'), 
+        mode: document.getElementById('mode-select'), // Where "Follow Me" is handled
+        practiceMode: document.getElementById('practice-mode-toggle'), 
+        machines: document.getElementById('machines-select'), 
+        seqLength: document.getElementById('seq-length-select'),
+        autoClear: document.getElementById('autoclear-toggle'), 
+        autoplay: document.getElementById('autoplay-toggle'), 
+        flash: document.getElementById('flash-toggle'),
+        pause: document.getElementById('pause-select'), 
+        audio: document.getElementById('audio-toggle'), 
+        hapticMorse: document.getElementById('haptic-morse-toggle'), 
+        playbackSpeed: document.getElementById('playback-speed-select'), 
+        chunk: document.getElementById('chunk-select'), 
+        delay: document.getElementById('delay-select'), 
+        haptics: document.getElementById('haptics-toggle'), 
+        
+        // Advanced Controls
+        speedGesturesToggle: document.getElementById('speed-gestures-toggle'),
+        volumeGesturesToggle: document.getElementById('volume-gestures-toggle'),
+        deleteGestureToggle: document.getElementById('delete-gesture-toggle'),
+        clearGestureToggle: document.getElementById('clear-gesture-toggle'),
+        autoTimerToggle: document.getElementById('auto-timer-toggle'),
+        autoCounterToggle: document.getElementById('auto-counter-toggle'),
+        arModeToggle: document.getElementById('ar-mode-toggle'),
+        voiceInputToggle: document.getElementById('voice-input-toggle'),
+        wakeLockToggle: document.getElementById('wake-lock-toggle'),
+        upsideDownToggle: document.getElementById('upside-down-toggle'),
+        speedDelete: document.getElementById('speed-delete-toggle'), 
+        showWelcome: document.getElementById('show-welcome-toggle'), 
+        blackoutToggle: document.getElementById('blackout-toggle'), 
+        stealth1KeyToggle: document.getElementById('stealth-1key-toggle'), // Bigger Buttons
+        
+        // Dynamic Dev Toggles
+        devVoiceToggle: document.getElementById('dev-voice-toggle'),
+        devHapticToggle: document.getElementById('dev-haptic-toggle'),
+
+        // Mappings Containers
+        mapping9Container: document.getElementById('mapping-9-container'),
+        mapping12Container: document.getElementById('mapping-12-container'),
+        mappingPianoContainer: document.getElementById('mapping-piano-container'),
+        morseContainer: document.getElementById('morse-container'),
+        voiceSection: document.getElementById('voice-settings-section'),
+
+        // TABS
+        tabs: document.querySelectorAll('.tab-btn'),
+        contents: document.querySelectorAll('.tab-content'),
+        closeSettingsBtn: document.getElementById('close-settings'),
+        
+        // Overlays
+        shareModal: document.getElementById('share-modal'), 
+        donateModal: document.getElementById('donate-modal'),
+        redeemModal: document.getElementById('redeem-modal')
+    };
+
     manager.updateApp = () => {
         if (manager.callbacks && manager.callbacks.onSettingsChange) {
             manager.callbacks.onSettingsChange(manager.appSettings);
         }
-    };
-
-    manager.updateUIFromSettings = () => {
-        if (manager.dom.voicePitch) manager.dom.voicePitch.value = manager.appSettings.voicePitch;
-        if (manager.dom.voiceRate) manager.dom.voiceRate.value = manager.appSettings.voiceRate;
-        if (manager.dom.voiceVolume) manager.dom.voiceVolume.value = manager.appSettings.voiceVolume;
-    };
-
-    manager.updateHeaderVisibility = () => {
-        const header = document.querySelector('header');
-        const gestureBtn = document.getElementById('header-gesture-btn');
-        const stealthBtn = document.getElementById('header-stealth-btn');
-        const handBtn = document.getElementById('header-hand-btn');
-        
-        if (!header) return;
-        
-        if (gestureBtn) gestureBtn.style.display = manager.appSettings.isGestureInputEnabled ? 'flex' : 'none';
-        if (stealthBtn) stealthBtn.style.display = manager.appSettings.stealth1KeyMode ? 'flex' : 'none';
-        if (handBtn) handBtn.style.display = manager.appSettings.isHandGesturesEnabled ? 'flex' : 'none';
-    };
-
-    // 2. Firebase Database Sync
-    manager.syncToFirebase = async (db, userId, dataObj) => {
-        try {
-            const settingsRef = collection(db, `users/${userId}/settings_backups`);
-            await addDoc(settingsRef, {
-                ...dataObj,
-                timestamp: serverTimestamp()
-            });
-            console.log("Settings synced to Firebase successfully.");
-        } catch (e) {
-            console.error("Error syncing to Firebase: ", e);
-        }
-    };
-
-    // 3. Prompt Generator (AI Assistance)
-    manager.generatePrompt = () => {
-        if (!manager.dom.promptDisplay) return;
-        const ps = manager.appSettings.runtimeSettings || {};
-        const max = ps.currentInput === 'key12' ? 12 : 9;
-        const speed = manager.appSettings.playbackSpeed || 1.0;
-        const machines = ps.machineCount || 1;
-        const chunk = ps.simonChunkSize || 3;
-        
-        const promptText = `Act as an expert sequence tracker. I am playing a game with ${machines} machines. The input uses a ${max}-key layout. The chunk size is ${chunk} and the playback speed is ${speed}x. Please provide the optimal strategy based on these parameters.`;
-        
-        manager.dom.promptDisplay.textContent = promptText;
-        manager.dom.promptDisplay.style.opacity = '0.5'; 
-        setTimeout(() => manager.dom.promptDisplay.style.opacity = '1', 150);
-    };
-
-    // 4. Voice & Language Features
-    manager.applyVoicePreset = (id) => {
-        let preset = manager.appSettings.voicePresets?.[id] || PREMADE_VOICE_PRESETS[id] || PREMADE_VOICE_PRESETS['standard'];
-        manager.appSettings.voicePitch = preset.pitch;
-        manager.appSettings.voiceRate = preset.rate;
-        manager.appSettings.voiceVolume = preset.volume;
-        manager.updateUIFromSettings();
-        if (manager.callbacks && manager.callbacks.onSave) manager.callbacks.onSave();
-    };
-
-    manager.testVoice = () => {
-        if (window.speechSynthesis) {
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance("Testing 1 2 3.");
-            if (manager.appSettings.selectedVoice) {
-                const v = window.speechSynthesis.getVoices().find(voice => voice.name === manager.appSettings.selectedVoice);
-                if (v) u.voice = v;
-            }
-            u.pitch = parseFloat(manager.dom.voicePitch.value || 1);
-            u.rate = parseFloat(manager.dom.voiceRate.value || 1);
-            u.volume = parseFloat(manager.dom.voiceVolume.value || 1);
-            window.speechSynthesis.speak(u);
-        }
-    };
-
-    manager.setLanguage = (lang) => {
-        if (typeof LANG === 'undefined') return;
-        const t = LANG[lang];
-        if (!t) return;
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (t[key]) el.textContent = t[key];
-        });
-        manager.appSettings.generalLanguage = lang;
-        if (manager.dom.quickLang) manager.dom.quickLang.value = lang;
-        if (manager.dom.generalLang) manager.dom.generalLang.value = lang;
-        if (manager.callbacks && manager.callbacks.onSave) manager.callbacks.onSave();
-    };
-
-    // 5. Modals & Overlays (Open/Close Logic)
-    manager.openShare = () => {
-        if (manager.dom.settingsModal) manager.dom.settingsModal.classList.add('hidden');
-        if (manager.dom.shareModal) manager.dom.shareModal.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
-    };
-    manager.closeShare = () => {
-        if (manager.dom.shareModal) manager.dom.shareModal.classList.add('hidden', 'opacity-0', 'pointer-events-none');
-    };
-
-    manager.openSetup = () => {
-        if (manager.dom.setupModal) manager.dom.setupModal.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
-    };
-    manager.closeSetup = () => {
-        if (manager.dom.setupModal) manager.dom.setupModal.classList.add('hidden', 'opacity-0', 'pointer-events-none');
-    };
-
-    manager.openCalibration = () => {
-        if (manager.dom.calibModal) manager.dom.calibModal.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
-        if (manager.sensorEngine && manager.sensorEngine.startCalibration) manager.sensorEngine.startCalibration();
-    };
-    manager.closeCalibration = () => {
-        if (manager.dom.calibModal) manager.dom.calibModal.classList.add('hidden', 'opacity-0', 'pointer-events-none');
-    };
-
-    manager.openRedeem = () => {
-        if (manager.dom.redeemModal) manager.dom.redeemModal.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
-    };
-    manager.closeRedeem = () => {
-        if (manager.dom.redeemModal) manager.dom.redeemModal.classList.add('hidden', 'opacity-0', 'pointer-events-none');
-    };
-
-    manager.openDonate = () => {
-        if (manager.dom.donateModal) manager.dom.donateModal.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
-    };
-    manager.closeDonate = () => {
-        if (manager.dom.donateModal) manager.dom.donateModal.classList.add('hidden', 'opacity-0', 'pointer-events-none');
-    };
-
-    manager.openHelp = () => {
-        if (manager.dom.helpModal) manager.dom.helpModal.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
-    };
-    manager.closeHelp = () => {
-        if (manager.dom.helpModal) manager.dom.helpModal.classList.add('hidden', 'opacity-0', 'pointer-events-none');
-    };
-
-    // 6. Theme Editor & Core Color Operations
-    manager.applyColorToTarget = (hex) => {
-        if (!manager.tempTheme) return;
-        manager.tempTheme[manager.currentTargetKey] = hex;
-        const [h, s, l] = manager.hexToHsl(hex);
-        if (manager.dom.ftHue) manager.dom.ftHue.value = h;
-        if (manager.dom.ftSat) manager.dom.ftSat.value = s;
-        if (manager.dom.ftLit) manager.dom.ftLit.value = l;
-        if (manager.dom.ftPreview) manager.dom.ftPreview.style.backgroundColor = hex;
-        
-        if (manager.dom.ftContainer && manager.dom.ftContainer.classList.contains('hidden')) {
-            manager.dom.ftContainer.classList.remove('hidden');
-            if (manager.dom.ftToggle) manager.dom.ftToggle.style.display = 'none';
-        }
-        manager.updatePreview();
-    };
-
-    manager.updateColorFromSliders = () => {
-        if (!manager.dom.ftHue || !manager.dom.ftSat || !manager.dom.ftLit) return;
-        const h = parseInt(manager.dom.ftHue.value);
-        const s = parseInt(manager.dom.ftSat.value);
-        const l = parseInt(manager.dom.ftLit.value);
-        const hex = manager.hslToHex(h, s, l);
-        
-        if (manager.dom.ftPreview) manager.dom.ftPreview.style.backgroundColor = hex;
-        if (manager.tempTheme) {
-            manager.tempTheme[manager.currentTargetKey] = hex;
-            manager.updatePreview();
-        }
-    };
-
-    manager.openThemeEditor = () => {
-        if (!manager.dom.editorModal) return;
-        const activeId = manager.appSettings.activeTheme;
-        const source = (manager.appSettings.customThemes && manager.appSettings.customThemes[activeId]) 
-            || PREMADE_THEMES[activeId] 
-            || PREMADE_THEMES['default'];
-            
-        manager.tempTheme = { ...source };
-        if (manager.dom.edName) manager.dom.edName.value = manager.tempTheme.name;
-        
-        if (manager.dom.targetBtns) {
-            manager.dom.targetBtns.forEach(b => b.classList.remove('active', 'bg-primary-app'));
-            if (manager.dom.targetBtns.length > 2) manager.dom.targetBtns[2].classList.add('active', 'bg-primary-app');
-        }
-        
-        manager.currentTargetKey = 'bubble';
-        
-        if (manager.tempTheme.bubble) {
-            const [h, s, l] = manager.hexToHsl(manager.tempTheme.bubble);
-            if (manager.dom.ftHue) manager.dom.ftHue.value = h;
-            if (manager.dom.ftSat) manager.dom.ftSat.value = s;
-            if (manager.dom.ftLit) manager.dom.ftLit.value = l;
-            if (manager.dom.ftPreview) manager.dom.ftPreview.style.backgroundColor = manager.tempTheme.bubble;
-        }
-        
-        manager.updatePreview();
-        manager.dom.editorModal.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
-    };
-
-    manager.updatePreview = () => {
-        const t = manager.tempTheme;
-        if (!t || !manager.dom.edPreview) return;
-        manager.dom.edPreview.style.backgroundColor = t.bgMain;
-        manager.dom.edPreview.style.color = t.text;
-        
-        if (manager.dom.edPreviewCard) {
-            manager.dom.edPreviewCard.style.backgroundColor = t.bgCard;
-            manager.dom.edPreviewCard.style.color = t.text;
-            manager.dom.edPreviewCard.style.border = '1px solid rgba(255,255,255,0.1)';
-        }
-        
-        if (manager.dom.edPreviewBtn) {
-            manager.dom.edPreviewBtn.style.backgroundColor = t.bubble;
-            manager.dom.edPreviewBtn.style.color = t.text;
-        }
-    };
-
-    // 7. Math & Color Conversions
-    manager.hexToHsl = (hex) => {
-        if (!hex) return [0, 0, 0];
-        hex = hex.replace(/^#/, '');
-        let r = 0, g = 0, b = 0;
-        if (hex.length === 3) {
-            r = parseInt(hex[0] + hex[0], 16); g = parseInt(hex[1] + hex[1], 16); b = parseInt(hex[2] + hex[2], 16);
-        } else if (hex.length === 6) {
-            r = parseInt(hex.substring(0, 2), 16); g = parseInt(hex.substring(2, 4), 16); b = parseInt(hex.substring(4, 6), 16);
-        }
-        r /= 255; g /= 255; b /= 255;
-        let max = Math.max(r, g, b), min = Math.min(r, g, b);
-        let h, s, l = (max + min) / 2;
-        if (max === min) h = s = 0; 
-        else {
-            let d = max - min;
-            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-            switch (max) {
-                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-                case g: h = (b - r) / d + 2; break;
-                case b: h = (r - g) / d + 4; break;
-            }
-            h /= 6;
-        }
-        return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
-    };
-
-    manager.hslToHex = (h, s, l) => {
-        l /= 100;
-        const a = s * Math.min(l, 1 - l) / 100;
-        const f = n => {
-            const k = (n + h / 30) % 12;
-            const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-            return Math.round(255 * color).toString(16).padStart(2, '0');
-        };
-        return `#${f(0)}${f(8)}${f(4)}`;
     };
 }

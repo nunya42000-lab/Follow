@@ -3,8 +3,6 @@ import { appSettings } from './state.js';
 import { DICTIONARY } from './constants.js';
 import { PREMADE_THEMES } from './settings.js';
 import { renderUI } from './renderer.js'; // Imported to refresh the grid after chrome updates
-import { showToast, updateAllChrome } from './ui-core.js';
-import { addValue, playDemo, handleBackspace } from './game-logic.js';
 
 export function showToast(msg) { 
     const lang = appSettings.generalLanguage || 'en';

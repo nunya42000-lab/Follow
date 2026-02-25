@@ -5,8 +5,7 @@ export function injectModals() {
     
     modalContainer.innerHTML = `
         
-    
-   <div id="game-setup-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
+    <div id="game-setup-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
             <div class="flex items-center justify-between border-b border-custom pb-3 mb-4 relative">
                 <div class="flex items-center space-x-2">
@@ -51,98 +50,7 @@ export function injectModals() {
                 <button id="close-game-setup-modal" class="px-8 py-3 text-white bg-primary-app hover:opacity-90 rounded-lg font-bold shadow-lg transition transform active:scale-95" data-i18n="play_btn">PLAY</button>
             </div>
         </div>
-    </div>
 
-
-<div id="developer-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-80 hidden opacity-0 transition-opacity duration-300">
-    <div class="bg-[#121212] w-full max-w-2xl m-4 p-6 rounded-2xl border border-gray-700 shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh]">
-        
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-white">Developer Options 🛠️</h2>
-            <button id="close-developer-modal" onclick="closeDeveloperModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
-        </div>
-        
-        <div class="overflow-y-auto pr-2 space-y-6 flex-grow">
-            <div id="developer-controls-container" class="grid grid-cols-2 gap-4"></div>
-
-            <div class="space-y-3">
-                <h3 class="text-white font-bold text-sm uppercase tracking-wider opacity-50">UI Visibility Overrides</h3>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="flex items-center justify-between bg-gray-800 p-3 rounded-lg border border-gray-700">
-                        <label class="text-sm font-semibold text-gray-300">Hide Voice Settings</label>
-                        <input type="checkbox" id="dev-hide-voice-toggle" class="h-5 w-5 rounded accent-blue-500 cursor-pointer">
-                    </div>
-                    <div class="flex items-center justify-between bg-gray-800 p-3 rounded-lg border border-gray-700">
-                        <label class="text-sm font-semibold text-gray-300">Hide Haptic/Morse</label>
-                        <input type="checkbox" id="dev-hide-haptic-toggle" class="h-5 w-5 rounded accent-blue-500 cursor-pointer">
-                    </div>
-                </div>
-            </div>
-            <div class="grid grid-cols-3 gap-3 pt-4 border-t border-custom">
-            <div>
-            <label class="block text-[10px] font-bold mb-1 opacity-70">Speed Step</label>
-            <select id="speed-step-selector" class="w-full bg-black/40 p-1 text-xs rounded border border-custom">
-            <option value="0.01">1%</option>
-            <option value="0.02">2%</option>
-            <option value="0.05">5%</option>
-            <option value="0.10">10%</option>
-            </select>
-            </div>
-            <div>
-            <label class="block text-[10px] font-bold mb-1 opacity-70">UI Scale Step</label>
-            <select id="ui-step-selector" class="w-full bg-black/40 p-1 text-xs rounded border border-custom">
-            <option value="0.01">1%</option>
-            <option value="0.05">5%</option>
-            <option value="0.10">10%</option>
-            </select>
-            </div>
-            <div>
-            <label class="block text-[10px] font-bold mb-1 opacity-70">Seq Step</label>
-            <select id="seq-step-selector" class="w-full bg-black/40 p-1 text-xs rounded border border-custom">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="5">5</option>
-            </select>
-            </div>
-            </div>
-            
-            <div class="border border-gray-600 rounded-lg p-3 bg-black">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-white font-bold">Diagnostic Test Area 🧪</h3>
-                    <button onclick="document.getElementById('dev-debug-log').value=''" class="bg-gray-700 hover:bg-gray-600 text-white text-[10px] px-2 py-1 rounded">Clear Log</button>
-                </div>
-                <div class="relative w-full h-48 bg-black rounded-lg overflow-hidden mb-3 border border-gray-600">
-                    <video id="dev-camera-preview" autoplay playsinline muted class="w-full h-full object-cover"></video>
-                    <canvas id="dev-skeleton-overlay" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
-                    <div class="absolute top-2 left-2 bg-black bg-opacity-50 text-[10px] text-white px-2 py-1 rounded">LIVE FEED</div>
-                </div>
-               
-                <div id="dev-touch-pad" class="w-full h-32 bg-gray-800 border-2 border-dashed border-gray-500 rounded flex items-center justify-center mb-3 touch-none overflow-hidden relative">
-                    <span class="text-gray-400 font-bold pointer-events-none z-10">Perform Touch Gestures Here</span>
-                    <div id="dev-touch-dot" class="absolute w-4 h-4 bg-red-500 rounded-full opacity-0 pointer-events-none transition-opacity"></div>
-                </div>
-
-                <textarea id="dev-debug-log" class="w-full h-32 bg-gray-900 text-green-400 text-xs font-mono p-2 rounded border border-gray-700 focus:outline-none" readonly placeholder="Raw gesture data..."></textarea>
-            </div>
-        </div>
-
-        <div class="mt-6 flex flex-col gap-3 border-t border-gray-600 pt-4">
-            <button id="dev-save-reload-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-lg shadow transition-colors border border-blue-400">
-                💾 SAVE & RELOAD
-            </button>
-
-            <button id="dev-nuke-btn" class="w-full bg-red-900 hover:bg-red-700 text-red-100 font-bold py-3 px-4 rounded-lg shadow transition-colors border border-red-500 flex items-center justify-center gap-2">
-                <span class="text-xl">☢️</span> RESET ALL DATA (NUKE)
-            </button>
-        </div>
-       
-        <div class="mt-4 flex gap-3">
-            <button id="save-developer-btn" onclick="closeDeveloperModal()" class="flex-1 py-3 bg-primary-app text-white font-bold rounded-xl shadow-lg">Save & Close</button>
-        </div>
-    </div>
-                           </div>
-   
-   
     <div id="theme-editor-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[100] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-md w-full transform scale-90 transition-transform duration-300 flex flex-col border border-custom max-h-[95vh] overflow-hidden">
             <h3 class="text-xl font-bold mb-4" data-i18n="theme_editor">🎨 Theme Editor</h3>
@@ -213,6 +121,50 @@ export function injectModals() {
                     <div class="grid grid-cols-7 gap-1">
                         <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="1">☕</button>
                         <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="2">🍦</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="3">🍺</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="5">🍔</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="10">🍕</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="20">🥩</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="50">🦞</button>
+                    </div>
+                </div>
+            </div>
+
+            <button id="close-donate-btn" class="mt-6 w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold">Close</button>
+        </div>
+    </div>                                                            </div>
+                            
+
+
+    <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-80 flex flex-col justify-end z-[70] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="share-sheet p-6 text-center flex flex-col items-center border-t border-gray-700 shadow-2xl transform translate-y-full transition-transform duration-300">
+            <div class="w-12 h-1 bg-gray-600 rounded-full mb-4"></div> <div class="bg-white p-2 rounded-lg mb-6 shadow-inner"><img src="qr.jpg" alt="QR Code" class="w-64 h-64 object-contain"></div>
+            <div class="flex items-center w-full mb-6"><div class="share-app-icon mr-4">🌎</div><div class="text-left flex-grow"><h3 class="text-lg font-bold">Follow Me</h3><p class="text-xs opacity-70 text-truncate w-48">https://nunya42000-lab.github.io/Follow/</p></div><button id="copy-link-button" class="p-2 bg-gray-700 rounded hover:bg-gray-600 text-white">📋</button></div>
+            <div class="grid grid-cols-4 gap-4 w-full">
+                <button id="native-share-button" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-xl">📤</div><span class="text-xs">Share</span></button>
+                <button id="chat-share-button" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-xl">💬</div><span class="text-xs">Chat</span></button>
+                <button id="email-share-button" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-yellow-600 rounded-full flex items-center justify-center text-xl">📧</div><span class="text-xs">Email</span></button>
+                <button id="close-share" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl">✕</div><span class="text-xs">Close</span></button>
+            </div>
+        </div>
+                               </div>
+                
+       
+    <div id="comment-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[120] transition-opacity duration-300 opacity-0 pointer-events-none hidden">
+        <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom">
+             <h3 class="font-bold text-lg mb-4">Send Feedback 💬</h3>
+             <input type="text" id="comment-username" class="settings-input w-full p-2 rounded mb-2 text-sm" placeholder="Name (Optional)">
+             <textarea id="comment-message" class="settings-input w-full p-2 rounded mb-4 text-sm h-24 resize-none" placeholder="Message..."></textarea>
+             <div id="comments-list-container" class="max-h-32 overflow-y-auto mb-4 text-xs"></div>
+             <div class="flex space-x-2"><button id="close-comment-modal" class="flex-1 bg-gray-700 py-2 rounded text-white font-bold text-xs">Close</button><button id="submit-comment-btn" class="flex-1 bg-blue-600 py-2 rounded text-white font-bold text-xs">Send</button></div>
+        </div>
+    </div>
+   `; // And the closing backtick here at the very end of your HTML!
+   
+   // Inserts the modals right at the top of the body
+   document.body.insertBefore(modalContainer, document.body.firstChild);
+   }
+      hover:scale-110 transition-transform" data-app="paypal" data-amount="2">🍦</button>
                         <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="3">🍺</button>
                         <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="5">🍔</button>
                         <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="10">🍕</button>
@@ -769,9 +721,3 @@ export function injectModals() {
              <div class="flex space-x-2"><button id="close-comment-modal" class="flex-1 bg-gray-700 py-2 rounded text-white font-bold text-xs">Close</button><button id="submit-comment-btn" class="flex-1 bg-blue-600 py-2 rounded text-white font-bold text-xs">Send</button></div>
         </div>
     </div>
-    
-    `; // And the closing backtick here at the very end of your HTML!
-    
-    // Inserts the modals right at the top of the body
-    document.body.insertBefore(modalContainer, document.body.firstChild);
-    }

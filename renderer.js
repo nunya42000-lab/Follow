@@ -1,5 +1,5 @@
 // renderer.js
-import { appSettings, getState, getProfileSettings, blackoutState, isGesturePadVisible, practiceSequence, saveState, modules, voiceModule } from './state.js';
+import { appSettings, getState, getProfileSettings, blackoutState, isGesturePadVisible, practiceSequence, saveState } from './state.js';
 import { CONFIG } from './constants.js';
 import { vibrate } from './audio-haptics.js';
 import { showToast } from './ui-core.js';
@@ -198,10 +198,10 @@ export function renderUI() {
     const hGest = document.getElementById('header-gesture-btn'); 
     
     if(hMic) { 
-        // Syncs UI if either the environmental sensor or voice commander is listening
-        const isSensorActive = modules.sensor && modules.sensor.mode.audio; 
-        const isVoiceActive = voiceModule && voiceModule.isListening; 
-        hMic.classList.toggle('header-btn-active', isSensorActive || isVoiceActive); 
+    // Syncs UI if either the environmental sensor or voice commander is listening
+    const isSensorActive = SharedState.modules.sensor && SharedState.modules.sensor.mode.audio; 
+    const isVoiceActive = SharedState.voiceModule && SharedState.voiceModule.isListening; 
+    hMic.classList.toggle('header-btn-active', isSensorActive || isVoiceActive); 
     } 
     
     if(hCam) hCam.classList.toggle('header-btn-active', document.body.classList.contains('ar-active')); 
@@ -209,7 +209,6 @@ export function renderUI() {
     
     // --- RESTORED: Reset Button Visibility ---
     document.querySelectorAll('.reset-button').forEach(b => { 
-        b.style.display = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 'block' : 'none'; 
+    b.style.display = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 'block' : 'none'; 
     }); 
-} // End of renderUI()
-enderUI()
+    } // End of renderUI()

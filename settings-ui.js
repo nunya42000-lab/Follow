@@ -18,32 +18,32 @@ export function initUI(manager) {
     };
 
     // 2. Main Dropdown Initialization (Updated for dynamic increments)
-   manager.initGeneralDropdowns = () => {
-   // 1. UI Scale - uses uiScaleStep
-   const scaleOptions = [];
-   const scaleStep = (manager.appSettings.uiScaleStep || 0.10) * 100; 
-   for (let i = 50; i <= 500; i += scaleStep) {
-   scaleOptions.push({ label: `${i.toFixed(0)}%`, value: i });
-   }
-   manager.populateDropdown('ui-scale-select', scaleOptions, manager.appSettings.globalUiScale || 100);
-   
-   // 2. Playback Speed - uses speedStep
-   const speedOptions = [];
-   const speedStep = (manager.appSettings.speedStep || 0.05) * 100;
-   for (let i = 75; i <= 150; i += speedStep) {
-   speedOptions.push({ label: `${i.toFixed(0)}%`, value: (i / 100).toFixed(2) });
-   }
-   manager.populateDropdown('playback-speed-select', speedOptions, (manager.appSettings.playbackSpeed || 1.0).toFixed(2));
-   
-   // 3. Sequence Size - uses sequenceStep
-   const sizeOptions = [];
-   const seqStep = manager.appSettings.sequenceStep || 1;
-   for (let i = seqStep; i <= 50; i += seqStep) {
-   // Values stored in rem (e.g., 0.1rem, 0.2rem)
-   sizeOptions.push({ label: `${i} Units`, value: `${(i * 0.1).toFixed(1)}rem` }); 
-   }
-   manager.populateDropdown('seq-size-select', sizeOptions, manager.appSettings.sequenceSize || '1rem');
-   };
+    manager.initGeneralDropdowns = () => {
+        // UI Scale - uses uiScaleStep (e.g., 0.01 for 1%)
+        const scaleOptions = [];
+        const scaleStep = (manager.appSettings.uiScaleStep || 0.10) * 100; // Convert 0.10 to 10
+        for (let i = 50; i <= 500; i += scaleStep) {
+            scaleOptions.push({ label: `${i.toFixed(0)}%`, value: i });
+        }
+        manager.populateDropdown('ui-scale-select', scaleOptions, manager.appSettings.globalUiScale || 100);
+
+        // Playback Speed - uses speedStep (e.g., 0.05 for 5%)
+        const speedOptions = [];
+        const speedStep = (manager.appSettings.speedStep || 0.05) * 100;
+        for (let i = 75; i <= 150; i += speedStep) {
+            speedOptions.push({ label: `${i.toFixed(0)}%`, value: (i / 100).toFixed(2) });
+        }
+        manager.populateDropdown('playback-speed-select', speedOptions, (manager.appSettings.playbackSpeed || 1.0).toFixed(2));
+
+        // Sequence Size - Now dynamic based on sequenceStep
+        const sizeOptions = [];
+        const seqStep = manager.appSettings.sequenceStep || 1;
+        for (let i = seqStep; i <= 50; i += seqStep) {
+            sizeOptions.push({ label: `${i} Units`, value: `${i * 0.1}rem` }); 
+        }
+        manager.populateDropdown('seq-size-select', sizeOptions, manager.appSettings.sequenceSize || '1rem');
+    };
+
     // 2.5 Increment Selectors (Controls how much the other dropdowns jump)
     manager.initIncrementSelectors = () => {
         const pctOptions = [
@@ -291,11 +291,6 @@ export function initUI(manager) {
     manager.swipePrevTab = () => {
         const tabs = Array.from(manager.dom.tabs);
         const activeIdx = tabs.findIndex(t => t.classList.contains('active'));
-        if (activeIdx > 0) {
-            manager.switchTab(tabs[activeIdx - 1].dataset.tab);
-        }
-    };
->}ve'));
         if (activeIdx > 0) {
             manager.switchTab(tabs[activeIdx - 1].dataset.tab);
         }

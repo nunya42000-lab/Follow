@@ -1,113 +1,72 @@
-const CACHE_NAME = 'app-cache-v1';
-
-// Master file list extracted from the application structure
-const FILES_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/styles.css', // Assuming a standard stylesheet exists
-  '/app.js',
-  '/state.js',
-  '/constants.js',
-  '/renderer.js',
-  '/settings.js',
-  '/vision.js',
-  '/sensors.js',
-  '/voice-commander.js',
-  '/comments.js',
-  '/ui-core.js',
-  '/game-logic.js',
-  '/global-listeners.js',
-  '/gesture-engine-setup.js',
-  '/gesture-mappings.js',
-  '/firebase-setup.js',
-  '/ui-modals.js',
-  '/ui-controller.js',
-  '/ar_core.js',
-  '/audio-haptics.js',
-  '/gesture-groups.js'
+                const CACHE_NAME = 'omnigesture-v1.1.5'; // Increment this whenever you change code!
+const ASSETS = [
+    './',
+    './index.html',
+    './style.css',
+    './manifest.json',
+    // Core Logic
+    './app.js',
+    './state.js',
+    './constants.js',
+    './settings.js',
+    './game-logic.js',
+    // UI & Rendering
+    './renderer.js',
+    './settings-ui.js',
+    './ui-core.js',
+    './global-listeners.js',
+    // Subsystems
+    './audio-haptics.js',
+    './voice-commander.js',
+    './vision.js',
+    './ar_core.js',
+    './sensors.js',
+    './gesture-engine-setup.js',
+    './gesture-mappings.js',
+    './comments.js',
+    './firebase-setup.js'
 ];
 
-// 1. Install Event - Caches the master file list
+// 1. Install - Pre-cache all essential files
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('[Service Worker] Pre-caching offline assets');
-        return cache.addAll(FILES_TO_CACHE);
-      })
-      .then(() => self.skipWaiting())
-  );
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => {
+            console.log('SW: Pre-caching app shell');
+            return cache.addAll(ASSETS);
+        })
+    );
+    self.skipWaiting();
 });
 
-// 2. Activate Event - Cleans up old cache versions
+// 2. Activate - Clean up old cache versions
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keyList) => {
-      return Promise.all(keyList.map((key) => {
-        if (key !== CACHE_NAME) {
-          console.log('[Service Worker] Removing old cache', key);
-          return caches.delete(key);
-        }
-      }));
-    })
-  );
-  return self.clients.claim();
+    event.waitUntil(
+        caches.keys().then((keys) => {
+            return Promise.all(
+                keys.filter(key => key !== CACHE_NAME)
+                    .map(key => caches.delete(key))
+            );
+        })
+    );
+    self.clients.claim();
 });
 
-// 3. Fetch Event - Cache-First Strategy with Network Fallback
+// 3. Fetch - Stale-while-revalidate strategy
 self.addEventListener('fetch', (event) => {
-  // Skip cross-origin requests and Firebase database calls to avoid caching dynamic live data
-  if (!event.request.url.startsWith(self.location.origin) || event.request.url.includes('firestore')) {
-    return;
-  }
+    // Skip cross-origin requests (like Firebase)
+    if (!event.request.url.startsWith(self.location.origin)) return;
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      // Return cached file if found
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      // Otherwise, fetch from the network
-      return fetch(event.request).then((networkResponse) => {
-        // Optionally cache new successful requests dynamically
-        return caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, networkResponse.clone());
-          return networkResponse;
-        });
-      }).catch(() => {
-        // Optional: Return a fallback offline page/asset if network fails and it's not cached
-        console.log('[Service Worker] Fetch failed; returning offline page instead.');
-      });
-    })
-  );
-});
-all(
-            cacheNames.map(cacheName => {
-                if (cacheName !== CACHE_NAME) return caches.delete(cacheName);
-            })
-        ))
-    ).then(() => self.clients.claim());
-});
-
-self.addEventListener('fetch', event => {
-    if (event.request.method !== 'GET') return;
-    
     event.respondWith(
-        caches.match(event.request).then(cached => {
-            // Return cached content if available
-            if (cached) return cached;
-
-            // Otherwise fetch from network and cache it for next time
-            return fetch(event.request).then(networkResponse => {
-                if (!networkResponse || networkResponse.status !== 200 || networkResponse.type === 'error') {
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.match(event.request).then((cachedResponse) => {
+                const fetchedResponse = fetch(event.request).then((networkResponse) => {
+                    cache.put(event.request, networkResponse.clone());
                     return networkResponse;
-                }
-                const responseToCache = networkResponse.clone();
-                caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
-                return networkResponse;
-            }).catch(() => {
-                console.log('[SW] Offline & not found:', event.request.url);
+                });
+
+                // Return the cached version if we have it, 
+                // but still update the cache in the background
+                return cachedResponse || fetchedResponse;
             });
         })
     );

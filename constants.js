@@ -1,12 +1,26 @@
-
-  export const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 250, SPEED_DELETE_INTERVAL: 20, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v47', STORAGE_KEY_STATE: 'followMeAppState_v48', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } };
-
-// UPDATED DEFAULTS: Chunk=40 (Full), Delay=0
-export const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 40, simonInterSequenceDelay: 0 };
+//constants.js
+  import { GESTURE_GROUPS } from './gesture-groups.js';
+  export { GESTURE_GROUPS };
+  
+  // 9-Key Spatial: This is the new default mapping for 9-key profiles.
+  export const DEFAULT_9KEY_MAPPING = {
+  "1": "Double_tap_spatial_nw",
+  "2": "Double_tap_spatial_up",
+  "3": "Double_tap_spatial_ne",
+  "4": "Double_tap_spatial_left",
+  "5": "double_tap",
+  "6": "Double_tap_spatial_right",
+  "7": "Double_tap_spatial_sw",
+  "8": "Double_tap_spatial_down",
+  "9": "Double_tap_spatial_se"
+  };
+  
 export const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 40, simonInterSequenceDelay: 0 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
 // UPDATED DEFAULTS: Flash=True, Audio=False, PlaybackSpeed=1.0
 export const DEFAULT_APP = { 
-    globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, 
+    globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, speedStep: 0.05,     // Default 5%
+    uiScaleStep: 0.05,   // Default 5%
+    sequenceStep: 1,    
     isAutoplayEnabled: false, isUniqueRoundsAutoClearEnabled: true, 
     isAudioEnabled: false, 
     isHapticsEnabled: true, 
@@ -21,12 +35,10 @@ export const DEFAULT_APP = {
     isUpsideDownEnabled: false,
     devHideVoiceSettings: false,
     devHideHapticSettings: false,
-    // --- NEW TOGGLES ---
     isDeleteGestureEnabled: false, 
     isClearGestureEnabled: false,
     isAutoTimerEnabled: false,
     isAutoCounterEnabled: false,
-    
     isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, 
     activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, 
     isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, 
@@ -36,7 +48,7 @@ export const DEFAULT_APP = {
     runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), 
     isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, 
     selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en', 
-    isGestureInputEnabled: false, gestureMappings: {} 
+    isGestureInputEnabled: false, gestureMappings: {}, 
 };
 // DEFAULT MAPPINGS (Extracted to top level)
 export const DEFAULT_MAPPINGS = {
@@ -47,7 +59,7 @@ export const DEFAULT_MAPPINGS = {
     'k9_4': 'tap_2f_any', 'k9_5': 'double_tap_2f_any', 'k9_6': 'triple_tap_2f_any',
     'k9_7': 'tap_3f_any', 'k9_8': 'double_tap_3f_any', 'k9_9': 'triple_tap_3f_any',
 
-    // 12-Key: Basic Taps
+	    // 12-Key: Basic Taps
     'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
     
     // 12-Key: Multi-Touch
@@ -259,6 +271,10 @@ export const PREMADE_VOICE_PRESETS = {
      help_stealth_detail: "Solo Entradas (1-tecla) simplifica la entrada al asignar los 12 valores primarios (1-12) a una sola pulsación de tecla.",
      help_blackout_detail: "Modo Jefe (Blackout) oscurece toda la pantalla para eliminar la distracción visual. La aplicación sigue siendo completamente funcional, pero la interfaz de usuario está oculta.",
      help_gesture_detail: "Gestos BM: Un sistema de entrada 'sin mirar' para valores del 1 al 12."
+        }
+    };
+    
+lp_gesture_detail: "Gestos BM: Un sistema de entrada 'sin mirar' para valores del 1 al 12."
         }
     };
     

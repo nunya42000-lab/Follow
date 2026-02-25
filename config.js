@@ -3,6 +3,7 @@
    ======================================== */
 
 export const CONFIG = {
+    MAX_MACHINES: 10,
     INPUTS: {
         KEY9: 'key9',
         KEY12: 'key12',

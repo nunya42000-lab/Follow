@@ -1,94 +1,107 @@
 /* ========================================
-   FILE: constants.js
+   FILE: app.js
    ======================================== */
 
-import { GESTURE_GROUPS } from './gesture-groups.js';
-import { CONFIG, DEFAULT_PROFILE_SETTINGS, DEFAULT_APP } from './config.js';
+import { loadState, saveState, appSettings, getState, modules } from './state.js';
+import { CONFIG, DEFAULT_PROFILE_SETTINGS } from './constants.js';
+import { renderUI } from './renderer.js';
+import { SettingsManager } from './settings.js';
+import { VisionEngine } from './vision.js';
+import { SensorEngine } from './sensors.js';
+import { VoiceCommander } from './voice-commander.js';
+import { initComments } from './comments.js';
+import { showToast, updateAllChrome } from './ui-core.js';
+import { addValue, playDemo, handleBackspace } from './game-logic.js';
+import { initGlobalListeners } from './global-listeners.js';
+import { initGestureEngine } from './gesture-engine-setup.js';
+import { mapGestureToValue } from './gesture-mappings.js';
+import { db } from './firebase-setup.js';
+import { injectModals } from './ui-modals.js';
+import { initUIController } from './ui-controller.js';
 
-export { GESTURE_GROUPS, CONFIG, DEFAULT_PROFILE_SETTINGS, DEFAULT_APP };
+let isDeveloperMode = localStorage.getItem('isDeveloperMode') === 'true';
+let devClickCount = 0;
 
-export const DEFAULT_9KEY_MAPPING = {
-    "1": "Double_tap_spatial_nw",
-    "2": "Double_tap_spatial_up",
-    "3": "Double_tap_spatial_ne",
-    "4": "Double_tap_spatial_left",
-    "5": "double_tap",
-    "6": "Double_tap_spatial_right",
-    "7": "Double_tap_spatial_sw",
-    "8": "Double_tap_spatial_down",
-    "9": "Double_tap_spatial_se"
-};
+export const startApp = () => {
+    console.log("🛠️ System Boot Sequence Initiated...");
 
-export const PREMADE_PROFILES = {
-    'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' },
-    'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 40, simonInterSequenceDelay: 0 }, theme: 'default' },
-    'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' },
-    'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' },
-    'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }
-};
+    loadState();
+    injectModals();
 
-// Complete Default Mappings
-export const DEFAULT_MAPPINGS = {
-    'k9_1': 'tap', 'k9_2': 'double_tap', 'k9_3': 'triple_tap',
-    'k9_4': 'tap_2f_any', 'k9_5': 'double_tap_2f_any', 'k9_6': 'triple_tap_2f_any',
-    'k9_7': 'tap_3f_any', 'k9_8': 'double_tap_3f_any', 'k9_9': 'triple_tap_3f_any',
-    'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
-    'piano_C4': 'tap', 'piano_D4': 'double_tap', 'piano_E4': 'triple_tap'
-};
+    modules.settings = new SettingsManager(appSettings, {
+        onSave: saveState,
+        onUpdate: (type) => { 
+            if (type === 'mode_switch') {
+                const s = getState();
+                s.sequences = Array.from({ length: CONFIG.MAX_MACHINES || 10 }, () => []);
+                s.nextSequenceIndex = 0;
+                s.currentRound = 1;
+                renderUI();
+            } else {
+                updateAllChrome(); 
+                applyDeveloperVisibility();
+                updateDynamicIncrements();
+            }
+        },
+        onReset: () => { 
+            if (confirm("Factory Reset?")) {
+                localStorage.clear(); 
+                location.reload(); 
+            }
+        }
+    });
 
-export const DICTIONARY = {
-    'en': { correct: "Correct", wrong: "Wrong", stealth: "Stealth Active" },
-    'es': { correct: "Correcto", wrong: "Incorrecto", stealth: "Sigilo Activo" }
-};
-se, 
-    isVoiceInputEnabled: false, 
-    isWakeLockEnabled: true, 
-    isUpsideDownEnabled: false, 
-    devHideVoiceSettings: false, 
-    devHideHapticSettings: false, 
-    isDeleteGestureEnabled: false, 
-    isClearGestureEnabled: false, 
-    isAutoTimerEnabled: false, 
-    isAutoCounterEnabled: false, 
-    isLongPressAutoplayEnabled: true, 
-    isStealth1KeyEnabled: false, 
-    activeTheme: 'default', 
-    customThemes: {}, 
-    sensorAudioThresh: -85, 
-    sensorCamThresh: 30, 
-    isBlackoutFeatureEnabled: false, 
-    isBlackoutGesturesEnabled: false, 
-    isHapticMorseEnabled: false, 
-    showMicBtn: false, 
-    showCamBtn: false, 
-    autoInputMode: 'none', 
-    showTimer: false, 
-    showCounter: false, 
-    activeProfileId: 'profile_1', 
-    profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), 
-    runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), 
-    isPracticeModeEnabled: false, 
-    voicePitch: 1.0, 
-    voiceRate: 1.0, 
-    voiceVolume: 1.0, 
-    selectedVoice: null, 
-    voicePresets: {}, 
-    activeVoicePresetId: 'standard', 
-    generalLanguage: 'en', 
-    isGestureInputEnabled: false, 
-    gestureMappings: {}, 
-};
+    // Initialize remaining modules
+    modules.sensor = new SensorEngine((val) => { addValue(val); triggerKeypadVisuals(val); });
+    modules.vision = new VisionEngine((gst) => {
+        const val = mapGestureToValue(gst, appSettings.runtimeSettings.currentInput);
+        if (val) { addValue(val); triggerKeypadVisuals(val); }
+    });
 
-// DEFAULT MAPPINGS (Extracted to top level)
-export const DEFAULT_MAPPINGS = {
-    // 9-Key: Basic Taps
-    'k9_1': 'tap', 'k9_2': 'double_tap', 'k9_3': 'triple_tap',
-    // 9-Key: Multi-Touch (Defaults to _any for forgiveness)
-    'k9_4': 'tap_2f_any', 'k9_5': 'double_tap_2f_any', 'k9_6': 'triple_tap_2f_any',
-    'k9_7': 'tap_3f_any', 'k9_8': 'double_tap_3f_any', 'k9_9': 'triple_tap_3f_any',
+    initUIController();
+    initGlobalListeners(); 
+    initGestureEngine();
+    initDeveloperControls();
     
-    // 12-Key: Basic Taps
-    'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
+    updateAllChrome();
+    renderUI();
+    console.log("🚀 System Online.");
+};
+
+function triggerKeypadVisuals(val) {
+    const btn = document.querySelector(`button[data-value="${val}"]`);
+    if (btn) {
+        btn.classList.add('flash-active');
+        setTimeout(() => btn.classList.remove('flash-active'), 200);
+    }
+}
+
+function initDeveloperControls() {
+    const trigger = document.getElementById('dev-secret-trigger');
+    if (trigger) {
+        trigger.addEventListener('click', () => {
+            devClickCount++;
+            if (devClickCount >= 7) {
+                isDeveloperMode = true;
+                localStorage.setItem('isDeveloperMode', 'true');
+                showToast("Developer Access Granted");
+                applyDeveloperVisibility();
+            }
+        });
+    }
+}
+
+export function applyDeveloperVisibility() {
+    const trigger = document.getElementById('dev-secret-trigger');
+    if (isDeveloperMode && trigger) trigger.classList.add('text-blue-500', 'animate-pulse');
+}
+
+export function updateDynamicIncrements() {
+    const speedSlider = document.getElementById('playback-speed-slider');
+    if (speedSlider) speedSlider.step = appSettings.devSpeedIncrement || "0.05";
+}
+
+document.addEventListener('DOMContentLoaded', startApp);'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
     // 12-Key: Multi-Touch
     'k12_5': 'tap_2f_any', 'k12_6': 'double_tap_2f_any', 'k12_7': 'triple_tap_2f_any', 'k12_8': 'long_tap_2f_any',
     'k12_9': 'tap_3f_any', 'k12_10': 'double_tap_3f_any', 'k12_11': 'triple_tap_3f_any', 'k12_12': 'long_tap_3f_any',

@@ -20,8 +20,9 @@ export const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { 
 export const DEFAULT_APP = { 
     globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, speedStep: 0.05,     // Default 5%
     uiScaleStep: 0.05,   // Default 5%
-    sequenceStep: 1    
-    isAutoplayEnabled: false, isUniqueRoundsAutoClearEnabled: true, 
+    sequenceStep: 1,    
+    isAutoPlayEnabled: false,
+	isUniqueRoundsAutoClearEnabled: true, 
     isAudioEnabled: false, 
     isHapticsEnabled: true, 
     isFlashEnabled: true,  

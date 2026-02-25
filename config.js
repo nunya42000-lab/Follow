@@ -1,4 +1,6 @@
-// config.js
+/* ========================================
+   FILE: config.js
+   ======================================== */
 
 export const CONFIG = {
     INPUTS: {
@@ -27,28 +29,28 @@ export const DEFAULT_APP = {
     showWelcomeScreen: true, 
     gestureResizeMode: 'global', 
     playbackSpeed: 1.0, 
-    speedStep: 0.05,
-    uiScaleStep: 0.05,
-    sequenceStep: 1,    
+    speedStep: 0.05, 
+    uiScaleStep: 0.05, 
+    sequenceStep: 1, 
     isAutoplayEnabled: false, 
     isUniqueRoundsAutoClearEnabled: true, 
     isAudioEnabled: false, 
     isHapticsEnabled: true, 
-    isFlashEnabled: true,  
-    pauseSetting: 'none',
+    isFlashEnabled: true, 
+    pauseSetting: 'none', 
     isSpeedDeletingEnabled: true, 
     isSpeedGesturesEnabled: false, 
-    isVolumeGesturesEnabled: false,
+    isVolumeGesturesEnabled: false, 
     isArModeEnabled: false, 
     isVoiceInputEnabled: false, 
-    isWakeLockEnabled: true,
-    isUpsideDownEnabled: false,
-    devHideVoiceSettings: false,
-    devHideHapticSettings: false,
+    isWakeLockEnabled: true, 
+    isUpsideDownEnabled: false, 
+    devHideVoiceSettings: false, 
+    devHideHapticSettings: false, 
     isDeleteGestureEnabled: false, 
-    isClearGestureEnabled: false,
-    isAutoTimerEnabled: false,
-    isAutoCounterEnabled: false,
+    isClearGestureEnabled: false, 
+    isAutoTimerEnabled: false, 
+    isAutoCounterEnabled: false, 
     isLongPressAutoplayEnabled: true, 
     isStealth1KeyEnabled: false, 
     activeTheme: 'default', 
@@ -62,8 +64,8 @@ export const DEFAULT_APP = {
     showCamBtn: false, 
     autoInputMode: 'none', 
     showTimer: false, 
-    showCounter: false,
-    activeProfileId: 'profile_1',
+    showCounter: false, 
+    activeProfileId: 'profile_1', 
     isPracticeModeEnabled: false, 
     voicePitch: 1.0, 
     voiceRate: 1.0, 
@@ -73,5 +75,5 @@ export const DEFAULT_APP = {
     activeVoicePresetId: 'standard', 
     generalLanguage: 'en', 
     isGestureInputEnabled: false, 
-    gestureMappings: {}, 
-};<
+    gestureMappings: {}
+};

@@ -1,86 +1,118 @@
-//constants.js
-  import { GESTURE_GROUPS } from './gesture-groups.js';
-  export { GESTURE_GROUPS };
-  
-  // 9-Key Spatial: This is the new default mapping for 9-key profiles.
-  export const DEFAULT_9KEY_MAPPING = {
-  "1": "Double_tap_spatial_nw",
-  "2": "Double_tap_spatial_up",
-  "3": "Double_tap_spatial_ne",
-  "4": "Double_tap_spatial_left",
-  "5": "double_tap",
-  "6": "Double_tap_spatial_right",
-  "7": "Double_tap_spatial_sw",
-  "8": "Double_tap_spatial_down",
-  "9": "Double_tap_spatial_se"
-  };
-  
-export const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 40, simonInterSequenceDelay: 0 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
-// UPDATED DEFAULTS: Flash=True, Audio=False, PlaybackSpeed=1.0
-export const DEFAULT_APP = { 
-    globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, speedStep: 0.05,     // Default 5%
-    uiScaleStep: 0.05,   // Default 5%
-    sequenceStep: 1,    
-    isAutoplayEnabled: false, isUniqueRoundsAutoClearEnabled: true, 
-    isAudioEnabled: false, 
-    isHapticsEnabled: true, 
-    isFlashEnabled: true,  
-    pauseSetting: 'none',
-    isSpeedDeletingEnabled: true, 
-    isSpeedGesturesEnabled: false, 
-    isVolumeGesturesEnabled: false,
-    isArModeEnabled: false, 
-    isVoiceInputEnabled: false, 
-    isWakeLockEnabled: true,
-    isUpsideDownEnabled: false,
-    devHideVoiceSettings: false,
-    devHideHapticSettings: false,
-    isDeleteGestureEnabled: false, 
-    isClearGestureEnabled: false,
-    isAutoTimerEnabled: false,
-    isAutoCounterEnabled: false,
-    isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, 
-    activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, 
-    isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, 
-    showMicBtn: false, showCamBtn: false, autoInputMode: 'none', 
-    showTimer: false, showCounter: false,
-    activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), 
-    runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), 
-    isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, 
-    selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en', 
-    isGestureInputEnabled: false, gestureMappings: {}, 
+/* ========================================
+   FILE: constants.js
+   ======================================== */
+
+import { GESTURE_GROUPS } from './gesture-groups.js';
+import { CONFIG, DEFAULT_PROFILE_SETTINGS, DEFAULT_APP } from './config.js';
+
+export { GESTURE_GROUPS, CONFIG, DEFAULT_PROFILE_SETTINGS, DEFAULT_APP };
+
+export const DEFAULT_9KEY_MAPPING = {
+    "1": "Double_tap_spatial_nw",
+    "2": "Double_tap_spatial_up",
+    "3": "Double_tap_spatial_ne",
+    "4": "Double_tap_spatial_left",
+    "5": "double_tap",
+    "6": "Double_tap_spatial_right",
+    "7": "Double_tap_spatial_sw",
+    "8": "Double_tap_spatial_down",
+    "9": "Double_tap_spatial_se"
 };
+
+export const PREMADE_PROFILES = {
+    'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' },
+    'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 40, simonInterSequenceDelay: 0 }, theme: 'default' },
+    'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' },
+    'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' },
+    'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }
+};
+
+// Complete Default Mappings
+export const DEFAULT_MAPPINGS = {
+    'k9_1': 'tap', 'k9_2': 'double_tap', 'k9_3': 'triple_tap',
+    'k9_4': 'tap_2f_any', 'k9_5': 'double_tap_2f_any', 'k9_6': 'triple_tap_2f_any',
+    'k9_7': 'tap_3f_any', 'k9_8': 'double_tap_3f_any', 'k9_9': 'triple_tap_3f_any',
+    'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
+    'piano_C4': 'tap', 'piano_D4': 'double_tap', 'piano_E4': 'triple_tap'
+};
+
+export const DICTIONARY = {
+    'en': { correct: "Correct", wrong: "Wrong", stealth: "Stealth Active" },
+    'es': { correct: "Correcto", wrong: "Incorrecto", stealth: "Sigilo Activo" }
+};
+se, 
+    isVoiceInputEnabled: false, 
+    isWakeLockEnabled: true, 
+    isUpsideDownEnabled: false, 
+    devHideVoiceSettings: false, 
+    devHideHapticSettings: false, 
+    isDeleteGestureEnabled: false, 
+    isClearGestureEnabled: false, 
+    isAutoTimerEnabled: false, 
+    isAutoCounterEnabled: false, 
+    isLongPressAutoplayEnabled: true, 
+    isStealth1KeyEnabled: false, 
+    activeTheme: 'default', 
+    customThemes: {}, 
+    sensorAudioThresh: -85, 
+    sensorCamThresh: 30, 
+    isBlackoutFeatureEnabled: false, 
+    isBlackoutGesturesEnabled: false, 
+    isHapticMorseEnabled: false, 
+    showMicBtn: false, 
+    showCamBtn: false, 
+    autoInputMode: 'none', 
+    showTimer: false, 
+    showCounter: false, 
+    activeProfileId: 'profile_1', 
+    profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), 
+    runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), 
+    isPracticeModeEnabled: false, 
+    voicePitch: 1.0, 
+    voiceRate: 1.0, 
+    voiceVolume: 1.0, 
+    selectedVoice: null, 
+    voicePresets: {}, 
+    activeVoicePresetId: 'standard', 
+    generalLanguage: 'en', 
+    isGestureInputEnabled: false, 
+    gestureMappings: {}, 
+};
+
 // DEFAULT MAPPINGS (Extracted to top level)
 export const DEFAULT_MAPPINGS = {
     // 9-Key: Basic Taps
     'k9_1': 'tap', 'k9_2': 'double_tap', 'k9_3': 'triple_tap',
-    
     // 9-Key: Multi-Touch (Defaults to _any for forgiveness)
     'k9_4': 'tap_2f_any', 'k9_5': 'double_tap_2f_any', 'k9_6': 'triple_tap_2f_any',
     'k9_7': 'tap_3f_any', 'k9_8': 'double_tap_3f_any', 'k9_9': 'triple_tap_3f_any',
-
-	    // 12-Key: Basic Taps
-    'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
     
+    // 12-Key: Basic Taps
+    'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
     // 12-Key: Multi-Touch
     'k12_5': 'tap_2f_any', 'k12_6': 'double_tap_2f_any', 'k12_7': 'triple_tap_2f_any', 'k12_8': 'long_tap_2f_any',
     'k12_9': 'tap_3f_any', 'k12_10': 'double_tap_3f_any', 'k12_11': 'triple_tap_3f_any', 'k12_12': 'long_tap_3f_any',
-
-    // Piano: Directional Swipes (Unchanged)
-    'piano_C': 'swipe_nw', 'piano_D': 'swipe_left', 'piano_E': 'swipe_sw',
-    'piano_F': 'swipe_down', 'piano_G': 'swipe_se', 'piano_A': 'swipe_right', 'piano_B': 'swipe_ne',
     
-    // Piano: Multi-Finger Swipes
-    'piano_1': 'swipe_left_2f', 'piano_2': 'swipe_nw_2f', 'piano_3': 'swipe_up_2f',
-    'piano_4': 'swipe_ne_2f', 'piano_5': 'swipe_right_2f'
-};    
-export const DICTIONARY = {
-    'en': { correct: "Correct", wrong: "Wrong", stealth: "Stealth Active", reset: "Reset to Round 1", stop: "Playback Stopped 🛑" },
-    'es': { correct: "Correcto", wrong: "Incorrecto", stealth: "Modo Sigilo", reset: "Reiniciar Ronda 1", stop: "Detenido 🛑" }
+    // Piano Mode Basics
+    'piano_C4': 'tap', 'piano_D4': 'double_tap', 'piano_E4': 'triple_tap', 'piano_F4': 'long_tap',
+    'piano_G4': 'tap_2f_any', 'piano_A4': 'double_tap_2f_any', 'piano_B4': 'triple_tap_2f_any', 'piano_C5': 'long_tap_2f_any'
 };
-export const PREMADE_THEMES = {
-    'default': { name: "Default Dark", bgMain: "#000000", bgCard: "#121212", bubble: "#4f46e5", btn: "#1a1a1a", text: "#e5e5e5" },
-    'light': { name: "Light Mode", bgMain: "#f3f4f6", bgCard: "#ffffff", bubble: "#4f46e5", btn: "#e5e7eb", text: "#111827" },
+
+// DICTIONARY for Audio/TTS translations
+export const DICTIONARY = {
+    'en': {
+        correct: "Correct", 
+        wrong: "Wrong", 
+        stealth: "Stealth Active",
+        piano_mode: "Piano Mode Active"
+    },
+    'es': {
+        correct: "Correcto", 
+        wrong: "Incorrecto", 
+        stealth: "Sigilo Activo",
+        piano_mode: "Modo Piano Activo"
+    }
+};6", bgCard: "#ffffff", bubble: "#4f46e5", btn: "#e5e7eb", text: "#111827" },
     'matrix': { name: "The Matrix", bgMain: "#000000", bgCard: "#0f2b0f", bubble: "#003300", btn: "#001100", text: "#00ff41" },
     'dracula': { name: "Vampire", bgMain: "#282a36", bgCard: "#44475a", bubble: "#ff5555", btn: "#6272a4", text: "#f8f8f2" },
     'neon': { name: "Neon City", bgMain: "#0b0014", bgCard: "#180029", bubble: "#d900ff", btn: "#24003d", text: "#00eaff" },

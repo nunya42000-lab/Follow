@@ -1,131 +1,74 @@
-/* ========================================
-   FILE: app.js
-   ======================================== */
 
-import { loadState, saveState, appSettings, getState, modules } from './state.js';
-import { CONFIG, DEFAULT_PROFILE_SETTINGS } from './constants.js';
-import { renderUI } from './renderer.js';
-import { SettingsManager } from './settings.js';
-import { VisionEngine } from './vision.js';
-import { SensorEngine } from './sensors.js';
-import { VoiceCommander } from './voice-commander.js';
-import { initComments } from './comments.js';
-import { showToast, updateAllChrome } from './ui-core.js';
-import { addValue, playDemo, handleBackspace } from './game-logic.js';
-import { initGlobalListeners } from './global-listeners.js';
-import { initGestureEngine } from './gesture-engine-setup.js';
-import { mapGestureToValue } from './gesture-mappings.js';
-import { db } from './firebase-setup.js';
-import { injectModals } from './ui-modals.js';
-import { initUIController } from './ui-controller.js';
+  export const CONFIG = { MAX_MACHINES: 4, DEMO_DELAY_BASE_MS: 798, SPEED_DELETE_DELAY: 250, SPEED_DELETE_INTERVAL: 20, STORAGE_KEY_SETTINGS: 'followMeAppSettings_v47', STORAGE_KEY_STATE: 'followMeAppState_v48', INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' }, MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } };
 
-let isDeveloperMode = localStorage.getItem('isDeveloperMode') === 'true';
-let devClickCount = 0;
-
-export const startApp = () => {
-    console.log("🛠️ System Boot Sequence Initiated...");
-
-    loadState();
-    injectModals();
-
-    modules.settings = new SettingsManager(appSettings, {
-        onSave: saveState,
-        onUpdate: (type) => { 
-            if (type === 'mode_switch') {
-                const s = getState();
-                s.sequences = Array.from({ length: CONFIG.MAX_MACHINES || 10 }, () => []);
-                s.nextSequenceIndex = 0;
-                s.currentRound = 1;
-                renderUI();
-            } else {
-                updateAllChrome(); 
-                applyDeveloperVisibility();
-                updateDynamicIncrements();
-            }
-        },
-        onReset: () => { 
-            if (confirm("Factory Reset?")) {
-                localStorage.clear(); 
-                location.reload(); 
-            }
-        }
-    });
-
-    // Initialize remaining modules
-    modules.sensor = new SensorEngine((val) => { addValue(val); triggerKeypadVisuals(val); });
-    modules.vision = new VisionEngine((gst) => {
-        const val = mapGestureToValue(gst, appSettings.runtimeSettings.currentInput);
-        if (val) { addValue(val); triggerKeypadVisuals(val); }
-    });
-
-    initUIController();
-    initGlobalListeners(); 
-    initGestureEngine();
-    initDeveloperControls();
+// UPDATED DEFAULTS: Chunk=40 (Full), Delay=0
+export const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode: CONFIG.MODES.SIMON, sequenceLength: 20, machineCount: 1, simonChunkSize: 40, simonInterSequenceDelay: 0 };
+export const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 40, simonInterSequenceDelay: 0 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
+// UPDATED DEFAULTS: Flash=True, Audio=False, PlaybackSpeed=1.0
+export const DEFAULT_APP = { 
+    globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, 
+    isAutoplayEnabled: false, isUniqueRoundsAutoClearEnabled: true, 
+    isAudioEnabled: false, 
+    isHapticsEnabled: true, 
+    isFlashEnabled: true,  
+    pauseSetting: 'none',
+    isSpeedDeletingEnabled: true, 
+    isSpeedGesturesEnabled: false, 
+    isVolumeGesturesEnabled: false,
+    isArModeEnabled: false, 
+    isVoiceInputEnabled: false, 
+    isWakeLockEnabled: true,
+    isUpsideDownEnabled: false,
+    devHideVoiceSettings: false,
+    devHideHapticSettings: false,
+    // --- NEW TOGGLES ---
+    isDeleteGestureEnabled: false, 
+    isClearGestureEnabled: false,
+    isAutoTimerEnabled: false,
+    isAutoCounterEnabled: false,
     
-    updateAllChrome();
-    renderUI();
-    console.log("🚀 System Online.");
+    isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, 
+    activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, 
+    isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, 
+    showMicBtn: false, showCamBtn: false, autoInputMode: 'none', 
+    showTimer: false, showCounter: false,
+    activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), 
+    runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), 
+    isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, 
+    selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en', 
+    isGestureInputEnabled: false, gestureMappings: {} 
 };
+// DEFAULT MAPPINGS (Extracted to top level)
+export const DEFAULT_MAPPINGS = {
+    // 9-Key: Basic Taps
+    'k9_1': 'tap', 'k9_2': 'double_tap', 'k9_3': 'triple_tap',
+    
+    // 9-Key: Multi-Touch (Defaults to _any for forgiveness)
+    'k9_4': 'tap_2f_any', 'k9_5': 'double_tap_2f_any', 'k9_6': 'triple_tap_2f_any',
+    'k9_7': 'tap_3f_any', 'k9_8': 'double_tap_3f_any', 'k9_9': 'triple_tap_3f_any',
 
-function triggerKeypadVisuals(val) {
-    const btn = document.querySelector(`button[data-value="${val}"]`);
-    if (btn) {
-        btn.classList.add('flash-active');
-        setTimeout(() => btn.classList.remove('flash-active'), 200);
-    }
-}
-
-function initDeveloperControls() {
-    const trigger = document.getElementById('dev-secret-trigger');
-    if (trigger) {
-        trigger.addEventListener('click', () => {
-            devClickCount++;
-            if (devClickCount >= 7) {
-                isDeveloperMode = true;
-                localStorage.setItem('isDeveloperMode', 'true');
-                showToast("Developer Access Granted");
-                applyDeveloperVisibility();
-            }
-        });
-    }
-}
-
-export function applyDeveloperVisibility() {
-    const trigger = document.getElementById('dev-secret-trigger');
-    if (isDeveloperMode && trigger) trigger.classList.add('text-blue-500', 'animate-pulse');
-}
-
-export function updateDynamicIncrements() {
-    const speedSlider = document.getElementById('playback-speed-slider');
-    if (speedSlider) speedSlider.step = appSettings.devSpeedIncrement || "0.05";
-}
-
-document.addEventListener('DOMContentLoaded', startApp);'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
+    // 12-Key: Basic Taps
+    'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
+    
     // 12-Key: Multi-Touch
     'k12_5': 'tap_2f_any', 'k12_6': 'double_tap_2f_any', 'k12_7': 'triple_tap_2f_any', 'k12_8': 'long_tap_2f_any',
     'k12_9': 'tap_3f_any', 'k12_10': 'double_tap_3f_any', 'k12_11': 'triple_tap_3f_any', 'k12_12': 'long_tap_3f_any',
-    
-    // Piano Mode Basics
-    'piano_C4': 'tap', 'piano_D4': 'double_tap', 'piano_E4': 'triple_tap', 'piano_F4': 'long_tap',
-    'piano_G4': 'tap_2f_any', 'piano_A4': 'double_tap_2f_any', 'piano_B4': 'triple_tap_2f_any', 'piano_C5': 'long_tap_2f_any'
-};
 
-// DICTIONARY for Audio/TTS translations
+    // Piano: Directional Swipes (Unchanged)
+    'piano_C': 'swipe_nw', 'piano_D': 'swipe_left', 'piano_E': 'swipe_sw',
+    'piano_F': 'swipe_down', 'piano_G': 'swipe_se', 'piano_A': 'swipe_right', 'piano_B': 'swipe_ne',
+    
+    // Piano: Multi-Finger Swipes
+    'piano_1': 'swipe_left_2f', 'piano_2': 'swipe_nw_2f', 'piano_3': 'swipe_up_2f',
+    'piano_4': 'swipe_ne_2f', 'piano_5': 'swipe_right_2f'
+};    
 export const DICTIONARY = {
-    'en': {
-        correct: "Correct", 
-        wrong: "Wrong", 
-        stealth: "Stealth Active",
-        piano_mode: "Piano Mode Active"
-    },
-    'es': {
-        correct: "Correcto", 
-        wrong: "Incorrecto", 
-        stealth: "Sigilo Activo",
-        piano_mode: "Modo Piano Activo"
-    }
-};6", bgCard: "#ffffff", bubble: "#4f46e5", btn: "#e5e7eb", text: "#111827" },
+    'en': { correct: "Correct", wrong: "Wrong", stealth: "Stealth Active", reset: "Reset to Round 1", stop: "Playback Stopped 🛑" },
+    'es': { correct: "Correcto", wrong: "Incorrecto", stealth: "Modo Sigilo", reset: "Reiniciar Ronda 1", stop: "Detenido 🛑" }
+};
+export const PREMADE_THEMES = {
+    'default': { name: "Default Dark", bgMain: "#000000", bgCard: "#121212", bubble: "#4f46e5", btn: "#1a1a1a", text: "#e5e5e5" },
+    'light': { name: "Light Mode", bgMain: "#f3f4f6", bgCard: "#ffffff", bubble: "#4f46e5", btn: "#e5e7eb", text: "#111827" },
     'matrix': { name: "The Matrix", bgMain: "#000000", bgCard: "#0f2b0f", bubble: "#003300", btn: "#001100", text: "#00ff41" },
     'dracula': { name: "Vampire", bgMain: "#282a36", bgCard: "#44475a", bubble: "#ff5555", btn: "#6272a4", text: "#f8f8f2" },
     'neon': { name: "Neon City", bgMain: "#0b0014", bgCard: "#180029", bubble: "#d900ff", btn: "#24003d", text: "#00eaff" },
@@ -316,10 +259,6 @@ export const PREMADE_VOICE_PRESETS = {
      help_stealth_detail: "Solo Entradas (1-tecla) simplifica la entrada al asignar los 12 valores primarios (1-12) a una sola pulsación de tecla.",
      help_blackout_detail: "Modo Jefe (Blackout) oscurece toda la pantalla para eliminar la distracción visual. La aplicación sigue siendo completamente funcional, pero la interfaz de usuario está oculta.",
      help_gesture_detail: "Gestos BM: Un sistema de entrada 'sin mirar' para valores del 1 al 12."
-        }
-    };
-    
-lp_gesture_detail: "Gestos BM: Un sistema de entrada 'sin mirar' para valores del 1 al 12."
         }
     };
     

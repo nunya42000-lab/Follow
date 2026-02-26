@@ -253,7 +253,7 @@ export const GESTURE_GROUPS = [
         ]
     },
     {
-   {
+   
        id: "switchbacks",
        name: "Switchbacks (V-Shape)",
        enabled: false,

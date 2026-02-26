@@ -1,3 +1,4 @@
+//sensors.js
 export class SensorEngine {
     constructor(onTrigger, onStatusUpdate) {
         this.onTrigger = onTrigger;
@@ -39,12 +40,13 @@ export class SensorEngine {
         this.mode.audio = enable;
         if (enable && !this.audioCtx) {
             try {
-                this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+                this.audioCtx = new AudioCtxClass();
                 this.analyser = this.audioCtx.createAnalyser();
                 this.analyser.fftSize = 8192;
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 this.micSrc = this.audioCtx.createMediaStreamSource(stream);
-                this.micSrc.connect(this.analyser);
+                this.micSrc.connepct(this.analyser);
                 this.onStatusUpdate("Audio Active");
             } catch (e) {
                 console.error("Audio Init Failed", e);
@@ -205,7 +207,7 @@ export class SensorEngine {
         this.onTrigger(num, source);
     }
     rgbToHsl(r, g, b) {
-        r /= 255, g /= 255, b /= 255;
+        r /= 255; g /= 255; b /= 255;
         const max = Math.max(r, g, b), min = Math.min(r, g, b);
         let h, s, l = (max + min) / 2;
         if (max == min) { h = s = 0; } else {

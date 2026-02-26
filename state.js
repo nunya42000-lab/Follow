@@ -36,7 +36,7 @@ export let globalCounterActions = { increment: null, reset: null };
 
 // Getters
 export const getProfileSettings = () => appSettings.runtimeSettings;
-export const getState = () => appState['current_session'] || (appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 });
+export const getState = () => appState.current_session || (appState.current_session = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 });
 
 // Save / Load logic
 export function saveState() { 
@@ -69,13 +69,13 @@ export function loadState(applyUpsideDownFn) {
             if(!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS)); 
             if(appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
         } else { 
-            appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles['profile_1'].settings)); 
+            appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles.profile_1.settings)); 
         } 
         
         if(st) appState = JSON.parse(st); 
-        if(!appState['current_session']) appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
+        if(!appState.current_session) appState.current_session = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
         
-        appState['current_session'].currentRound = parseInt(appState['current_session'].currentRound) || 1;
+        appState.current_session.currentRound = parseInt(appState.current_session.currentRound) || 1;
         
         // Execute UI callback if provided to prevent circular dependencies
         if (typeof applyUpsideDownFn === 'function') {

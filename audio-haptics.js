@@ -1,4 +1,5 @@
 // audio-haptics.js
+/* global SpeechSynthesisUtterance */
 import { appSettings } from './state.js';
 import { DICTIONARY } from './constants.js';
 
@@ -60,7 +61,7 @@ export function speak(text) {
     window.speechSynthesis.cancel(); 
     
     const lang = appSettings.generalLanguage || 'en';
-    const dict = DICTIONARY[lang] || DICTIONARY['en'];
+    const dict = DICTIONARY[lang] || DICTIONARY.en;
     let msg = text;
     
     // Translation overrides

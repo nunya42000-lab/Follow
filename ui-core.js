@@ -3,10 +3,11 @@ import { appSettings } from './state.js';
 import { DICTIONARY } from './constants.js';
 import { PREMADE_THEMES } from './settings.js';
 import { renderUI } from './renderer.js'; // Imported to refresh the grid after chrome updates
+import { addValue, playDemo, handleBackspace } from './game-logic.js';
 
 export function showToast(msg) { 
     const lang = appSettings.generalLanguage || 'en';
-    const dict = DICTIONARY[lang] || DICTIONARY['en'];
+    const dict = DICTIONARY[lang] || DICTIONARY.en;
     
     if(msg === "Reset to Round 1") msg = dict.reset;
     if(msg === "Playback Stopped 🛑") msg = dict.stop;

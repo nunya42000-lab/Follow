@@ -1,7 +1,7 @@
 // audio-haptics.js
 /* global SpeechSynthesisUtterance */
 import { appSettings } from './state.js';
-import { DICTIONARY } from './constants.js';
+import { DICTIONARY } from './i18n.js';
 
 export function vibrate() { 
     if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10); 

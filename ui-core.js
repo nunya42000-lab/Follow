@@ -1,6 +1,6 @@
 // ui-core.js
 import { appSettings } from './state.js';
-import { DICTIONARY } from './constants.js';
+import { DICTIONARY } from './i18n.js';
 import { PREMADE_THEMES } from './settings.js';
 import { renderUI } from './renderer.js'; // Imported to refresh the grid after chrome updates
 import { addValue, playDemo, handleBackspace } from './game-logic.js';

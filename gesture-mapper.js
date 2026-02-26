@@ -3,7 +3,6 @@ import { getProfileSettings } from './state.js';
 import { addValue } from './game-logic.js';
 
 export function mapGestureToValue(gestureStr, currentInputType) {
-    // Example mapping - you can link this to DEFAULT_MAPPINGS from constants if needed
     const map = {
         'swipe_up': '1', 'swipe_right': '2', 'swipe_down': '3', 'swipe_left': '4',
         'tap': '5', 'double_tap': '6', 'long_press': '7', 'pinch': '8', 'rotate': '9'

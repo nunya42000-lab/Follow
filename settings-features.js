@@ -1,7 +1,9 @@
 //settings-features.js
 /* global SpeechSynthesisUtterance */
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-import { PREMADE_THEMES, PREMADE_VOICE_PRESETS, CRAYONS, LANG } from './constants.js';
+import { PREMADE_THEMES, CRAYONS } from './themes.js';
+import { PREMADE_VOICE_PRESETS} from './audio.js';
+import { LANG } from './i18n.js';
 
 export function initFeatures(manager) {
     

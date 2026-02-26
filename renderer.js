@@ -1,6 +1,6 @@
 // renderer.js
 import { appSettings, getState, getProfileSettings, blackoutState, isGesturePadVisible, practiceSequence, saveState, modules, voiceModule } from './state.js';
-import { CONFIG } from './constants.js';
+import { CONFIG } from './config.js';
 import { vibrate } from './audio-haptics.js';
 import { showToast } from './ui-core.js';
 import { startPracticeRound, playPracticeSequence } from './game-logic.js';

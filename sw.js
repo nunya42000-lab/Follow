@@ -8,7 +8,6 @@ const FILES_TO_CACHE = [
   '/styles.css', // Assuming a standard stylesheet exists
   '/app.js',
   '/state.js',
-  '/constants.js',
   '/renderer.js',
   '/settings.js',
   '/vision.js',

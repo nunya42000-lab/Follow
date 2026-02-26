@@ -1,5 +1,6 @@
 // state.js
-import { CONFIG, DEFAULT_PROFILE_SETTINGS, DEFAULT_APP } from './constants.js';
+import { CONFIG, DEFAULT_PROFILE_SETTINGS, } from './config.js';
+import { DEFAULT_APP } from './config.js';
 
 // Global App State and Settings
 export let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));

@@ -1,7 +1,7 @@
 // game-logic.js
 import { appSettings, getState, getProfileSettings, saveState, globalTimerActions, globalCounterActions } from './state.js';
 import * as SharedState from './state.js'; 
-import { CONFIG } from './constants.js';
+import { CONFIG } from './config.js';
 import { vibrate, vibrateMorse, speak } from './audio-haptics.js';
 import { showToast, disableInput } from './ui-core.js';
 import { renderUI } from './renderer.js';

@@ -1,5 +1,6 @@
-// settings-ui.js
-import { PREMADE_VOICE_PRESETS, PREMADE_THEMES } from './constants.js';
+// settings-ui.jsu
+import { PREMADE_VOICE_PRESETS } from './audio.js';
+import { PREMADE_THEMES } from './themes.js';
 
 export function initUI(manager) {
     

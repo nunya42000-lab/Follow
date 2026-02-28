@@ -23,13 +23,13 @@ export const analyzeGesturePath = (points) => {
     // 3. Path Complexity (Total Distance vs. Displacement)
     let totalDistance = 0;
     let maxDeviation = 0;
-    
+
     // Calculate path length and find the furthest point from the straight-line chord
     for (let i = 1; i < points.length; i++) {
         const p1 = points[i - 1];
         const p2 = points[i];
         totalDistance += Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
-        
+
         // Perpendicular distance from point i to the line [start -> end]
         const dev = getPerpendicularDistance(points[i], start, end);
         if (dev > maxDeviation) maxDeviation = dev;
@@ -117,17 +117,3 @@ function getDirection(dx, dy) {
         return dy > 0 ? 'down' : 'up';
     }
 }
-Collapsible functions o
-The inspector should run immediately and 
-change the color of the file names.
-The diagnostic hub should have a few
- tools along with a copy button for the 
-text it generates. The fix button needs 
-to make a comeback since the time machine is here.
-This recognizes js. It should probably
- understand HTML css Json and other programming langues. It 
-should be able to work with files in subfolder like this as well
-[Missing File] vision.js imports from missing file wasm/vision_bundle.js.
-I'm sure you can also come up with a few more improvements
-This should be able to restructure code perfectly by function into hundreds of 
-Little piece'sv or one giant block. 

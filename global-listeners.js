@@ -1,18 +1,37 @@
 // global-listeners.js
-import { appSettings, timers, gestureState, blackoutState, simpleTimer, globalTimerActions, getState, saveState } from './state.js';
-import { showToast, disableInput } from './ui-core.js';
-import { playDemo, handleBackspace } from './game-logic.js';
-import { vibrate } from './audio-haptics.js';
-import { renderUI } from './renderer.js';
+import {
+    appSettings,
+    timers,
+    gestureState,
+    blackoutState,
+    simpleTimer,
+    globalTimerActions,
+    getState,
+    saveState
+} from './state.js';
+import {
+    showToast,
+    disableInput
+} from './ui-core.js';
+import {
+    playDemo,
+    handleBackspace
+} from './game-logic.js';
+import {
+    vibrate
+} from './audio-haptics.js';
+import {
+    renderUI
+} from './renderer.js';
 
 export function initGlobalListeners() {
     // --- 1. Reset Round Counter Button ---
     document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => {
         b.addEventListener('click', () => {
-            if(confirm("Reset Round Counter to 1?")) { 
-                const s = getState(); 
-                s.currentRound = 1; 
-                s.sequences[0] = []; 
+            if (confirm("Reset Round Counter to 1?")) {
+                const s = getState();
+                s.currentRound = 1;
+                s.sequences[0] = [];
                 saveState();
                 renderUI();
                 showToast("Reset to Round 1");
@@ -24,25 +43,25 @@ export function initGlobalListeners() {
     document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
         let lpTriggered = false;
         let wasPlaying = false;
-        
+
         const handleDown = (e) => {
-            if(e.type === 'mousedown' && e.button !== 0) return;
+            if (e.type === 'mousedown' && e.button !== 0) return;
             lpTriggered = false;
             wasPlaying = false; // Add actual playback state check here if needed
-            
+
             if (appSettings.isLongPressAutoplayEnabled) {
                 timers.longPress = setTimeout(() => {
                     lpTriggered = true;
                     appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled;
                     showToast(`Autoplay: ${appSettings.isAutoplayEnabled ? "ON" : "OFF"}`);
                     // ignoreNextClick logic would apply here
-                    setTimeout(() => {}, 500); 
+                    setTimeout(() => {}, 500);
                 }, 800);
             }
         };
-        
+
         const handleUp = (e) => {
-            if(e && e.cancelable) {
+            if (e && e.cancelable) {
                 e.preventDefault();
                 e.stopPropagation();
             }
@@ -53,7 +72,9 @@ export function initGlobalListeners() {
         };
 
         b.addEventListener('mousedown', handleDown);
-        b.addEventListener('touchstart', handleDown, { passive: false });
+        b.addEventListener('touchstart', handleDown, {
+            passive: false
+        });
         b.addEventListener('mouseup', handleUp);
         b.addEventListener('touchend', handleUp);
         b.addEventListener('mouseleave', () => clearTimeout(timers.longPress));
@@ -70,14 +91,14 @@ export function initGlobalListeners() {
         };
 
         globalTimerActions.start = () => {
-            if(!simpleTimer.isRunning) {
+            if (!simpleTimer.isRunning) {
                 simpleTimer.startTime = Date.now();
                 simpleTimer.interval = setInterval(updateTimer, 100);
                 simpleTimer.isRunning = true;
             }
         };
         globalTimerActions.stop = () => {
-            if(simpleTimer.isRunning) {
+            if (simpleTimer.isRunning) {
                 clearInterval(simpleTimer.interval);
                 simpleTimer.elapsed += Date.now() - simpleTimer.startTime;
                 simpleTimer.isRunning = false;
@@ -91,7 +112,7 @@ export function initGlobalListeners() {
         };
 
         const toggleTimer = () => {
-            if(simpleTimer.isRunning) globalTimerActions.stop();
+            if (simpleTimer.isRunning) globalTimerActions.stop();
             else globalTimerActions.start();
             vibrate();
         };
@@ -102,49 +123,53 @@ export function initGlobalListeners() {
             vibrate();
         };
 
-        let tTimer; 
+        let tTimer;
         let tIsLong = false;
         const startT = (e) => {
-            if(e.type === 'mousedown' && e.button !== 0) return;
+            if (e.type === 'mousedown' && e.button !== 0) return;
             tIsLong = false;
-            tTimer = setTimeout(() => { 
-                tIsLong = true; 
-                resetTimerAction(); 
+            tTimer = setTimeout(() => {
+                tIsLong = true;
+                resetTimerAction();
             }, 600);
         };
         const endT = (e) => {
-            if(e) e.preventDefault();
+            if (e) e.preventDefault();
             clearTimeout(tTimer);
-            if(!tIsLong) toggleTimer();
+            if (!tIsLong) toggleTimer();
         };
 
         headerTimer.addEventListener('mousedown', startT);
-        headerTimer.addEventListener('touchstart', startT, {passive: false});
+        headerTimer.addEventListener('touchstart', startT, {
+            passive: false
+        });
         headerTimer.addEventListener('mouseup', endT);
         headerTimer.addEventListener('touchend', endT);
     }
 
     // --- 4. Boss Mode (Blackout) Device Shake Trigger ---
-    let lastX = 0, lastY = 0, lastZ = 0;
+    let lastX = 0,
+        lastY = 0,
+        lastZ = 0;
     window.addEventListener('devicemotion', (e) => {
         if (!appSettings.isBlackoutFeatureEnabled) return;
         const acc = e.accelerationIncludingGravity;
-        if(!acc) return;
-        
+        if (!acc) return;
+
         const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
-        if(delta > 25) { 
-            const now = Date.now(); 
-            if(now - blackoutState.lastShake > 1000) { 
-                blackoutState.isActive = !blackoutState.isActive; 
-                document.body.classList.toggle('blackout-active', blackoutState.isActive); 
-                showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back"); 
-                vibrate(); 
-                renderUI(); 
-                blackoutState.lastShake = now; 
-            } 
+        if (delta > 25) {
+            const now = Date.now();
+            if (now - blackoutState.lastShake > 1000) {
+                blackoutState.isActive = !blackoutState.isActive;
+                document.body.classList.toggle('blackout-active', blackoutState.isActive);
+                showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back");
+                vibrate();
+                renderUI();
+                blackoutState.lastShake = now;
+            }
         }
-        lastX = acc.x; 
-        lastY = acc.y; 
+        lastX = acc.x;
+        lastY = acc.y;
         lastZ = acc.z;
     });
 
@@ -153,12 +178,12 @@ export function initGlobalListeners() {
         if (e.ctrlKey && e.shiftKey && e.key === 'R') {
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                    for(let registration of registrations) {
-                        registration.unregister(); 
+                    for (let registration of registrations) {
+                        registration.unregister();
                     }
                 });
             }
-            window.location.reload(true); 
+            window.location.reload(true);
         }
     });
 }

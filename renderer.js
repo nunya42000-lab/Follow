@@ -1,70 +1,91 @@
 // renderer.js
-import { appSettings, getState, getProfileSettings, blackoutState, isGesturePadVisible, practiceSequence, saveState, modules, voiceModule } from './state.js';
-import { CONFIG } from './config.js';
-import { vibrate } from './audio-haptics.js';
-import { showToast } from './ui-core.js';
-import { startPracticeRound, playPracticeSequence } from './game-logic.js';
+import {
+    appSettings,
+    getState,
+    getProfileSettings,
+    blackoutState,
+    isGesturePadVisible,
+    practiceSequence,
+    saveState,
+    modules,
+    voiceModule
+} from './state.js';
+import {
+    CONFIG
+} from './config.js';
+import {
+    vibrate
+} from './audio-haptics.js';
+import {
+    showToast
+} from './ui-core.js';
+import {
+    startPracticeRound,
+    playPracticeSequence
+} from './game-logic.js';
 
 export function renderUI() {
-    const container = document.getElementById('sequence-container'); 
+    const container = document.getElementById('sequence-container');
     try {
         const gpWrap = document.getElementById('gesture-pad-wrapper');
         const pad = document.getElementById('gesture-pad');
         if (gpWrap) {
-            const isGlobalGestureOn = appSettings.isGestureInputEnabled; 
+            const isGlobalGestureOn = appSettings.isGestureInputEnabled;
             const isBossGestureOn = appSettings.isBlackoutFeatureEnabled && appSettings.isBlackoutGesturesEnabled && blackoutState.isActive;
 
             if ((isGlobalGestureOn && isGesturePadVisible) || isBossGestureOn) {
                 document.body.classList.add('input-gestures-mode');
                 gpWrap.classList.remove('hidden');
-                
+
                 if (isBossGestureOn) {
-                    gpWrap.style.zIndex = '10001'; 
-                    if(pad) {
-                        pad.style.opacity = '0.05'; 
+                    gpWrap.style.zIndex = '10001';
+                    if (pad) {
+                        pad.style.opacity = '0.05';
                         pad.style.borderColor = 'transparent';
                     }
                 } else {
-                    gpWrap.style.zIndex = ''; 
-                    if(pad) {
+                    gpWrap.style.zIndex = '';
+                    if (pad) {
                         pad.style.opacity = '1';
                         pad.style.borderColor = '';
                     }
                 }
 
-            } else { 
+            } else {
                 document.body.classList.remove('input-gestures-mode');
-                gpWrap.classList.add('hidden'); 
-                gpWrap.style.zIndex = ''; 
+                gpWrap.classList.add('hidden');
+                gpWrap.style.zIndex = '';
             }
         }
-    } catch(e) { console.error('Gesture UI error', e); }
+    } catch (e) {
+        console.error('Gesture UI error', e);
+    }
 
-    container.innerHTML = ''; 
+    container.innerHTML = '';
     const settings = getProfileSettings();
     const state = getState();
 
-    ['key9', 'key12', 'piano'].forEach(k => { 
-        const el = document.getElementById(`pad-${k}`); 
-        if(el) el.style.display = (settings.currentInput === k) ? 'block' : 'none'; 
+    ['key9', 'key12', 'piano'].forEach(k => {
+        const el = document.getElementById(`pad-${k}`);
+        if (el) el.style.display = (settings.currentInput === k) ? 'block' : 'none';
     });
-    
-    if(appSettings.isPracticeModeEnabled) {
+
+    if (appSettings.isPracticeModeEnabled) {
         const header = document.createElement('h2');
-        header.className = "text-2xl font-bold text-center w-full mt-4 mb-4"; 
+        header.className = "text-2xl font-bold text-center w-full mt-4 mb-4";
         header.style.color = "var(--text-main)";
         header.innerHTML = `Practice Mode (${settings.currentMode === CONFIG.MODES.SIMON ? 'Simon' : 'Unique'})<br><span class="text-sm opacity-70">Round ${state.currentRound}</span>`;
         container.appendChild(header);
 
-        if(practiceSequence.length === 0) { 
-            state.currentRound = 1; 
-            
+        if (practiceSequence.length === 0) {
+            state.currentRound = 1;
+
             const btn = document.createElement('button');
             btn.textContent = "START";
-            btn.className = "w-48 h-48 rounded-full bg-green-600 hover:bg-green-500 text-white text-3xl font-bold shadow-[0_0_40px_rgba(22,163,74,0.5)] transition-all transform hover:scale-105 active:scale-95 animate-pulse mx-auto block"; 
+            btn.className = "w-48 h-48 rounded-full bg-green-600 hover:bg-green-500 text-white text-3xl font-bold shadow-[0_0_40px_rgba(22,163,74,0.5)] transition-all transform hover:scale-105 active:scale-95 animate-pulse mx-auto block";
             btn.onclick = () => {
-                btn.style.display = 'none'; 
-                startPracticeRound();       
+                btn.style.display = 'none';
+                startPracticeRound();
             };
             container.appendChild(btn);
         } else {
@@ -76,14 +97,14 @@ export function renderUI() {
             replayBtn.className = "w-64 py-4 bg-yellow-600 hover:bg-yellow-500 text-white font-bold rounded-xl shadow-lg text-xl active:scale-95 transition-transform";
             replayBtn.onclick = () => {
                 showToast("Replaying... 👂");
-                playPracticeSequence(); 
+                playPracticeSequence();
             };
 
             const resetLvlBtn = document.createElement('button');
             resetLvlBtn.innerHTML = "⚠️ Reset to Level 1";
             resetLvlBtn.className = "text-xs text-red-400 hover:text-red-300 underline py-2";
             resetLvlBtn.onclick = () => {
-                if(confirm("Restart practice from Level 1?")) {
+                if (confirm("Restart practice from Level 1?")) {
                     practiceSequence.length = 0;
                     state.currentRound = 1;
                     renderUI();
@@ -96,9 +117,9 @@ export function renderUI() {
         }
         return;
     }
-    
+
     const activeSeqs = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);
-    if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
+    if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
         const roundNum = parseInt(state.currentRound) || 1;
         const header = document.createElement('h2');
         header.className = "text-xl font-bold text-center w-full mb-4 opacity-80";
@@ -107,21 +128,21 @@ export function renderUI() {
         container.appendChild(header);
     }
 
-    let gridCols = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 1 : Math.min(settings.machineCount, 4); 
+    let gridCols = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 1 : Math.min(settings.machineCount, 4);
     container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
-    
-    activeSeqs.forEach((seq, idx) => { 
-        const card = document.createElement('div'); 
-        card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)] relative group"; 
-        
+
+    activeSeqs.forEach((seq, idx) => {
+        const card = document.createElement('div');
+        card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)] relative group";
+
         if (settings.machineCount > 1) {
             const headerRow = document.createElement('div');
             headerRow.className = "flex justify-between items-center mb-2 pb-2 border-b border-custom border-opacity-20";
-            
+
             const title = document.createElement('span');
             title.className = "text-[10px] font-bold uppercase text-muted-custom tracking-wider";
             title.textContent = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? "SEQUENCE" : `MACHINE ${idx + 1}`;
-            
+
             const controls = document.createElement('div');
             controls.className = "flex space-x-3 opacity-60 hover:opacity-100 transition-opacity";
 
@@ -130,9 +151,9 @@ export function renderUI() {
             btnBack.className = "hover:text-red-400 text-sm font-bold";
             btnBack.onclick = (e) => {
                 e.stopPropagation();
-                if(state.sequences[idx] && state.sequences[idx].length > 0) {
+                if (state.sequences[idx] && state.sequences[idx].length > 0) {
                     state.sequences[idx].pop();
-                    if (state.nextSequenceIndex > 0) state.nextSequenceIndex--; 
+                    if (state.nextSequenceIndex > 0) state.nextSequenceIndex--;
                     vibrate();
                     renderUI();
                     saveState();
@@ -146,13 +167,13 @@ export function renderUI() {
                 btnTrash.title = "Remove Machine";
                 btnTrash.onclick = (e) => {
                     e.stopPropagation();
-                    if(confirm(`Remove Machine ${idx + 1} entirely?`)) {
+                    if (confirm(`Remove Machine ${idx + 1} entirely?`)) {
                         const countToRemove = state.sequences[idx].length;
                         state.sequences.splice(idx, 1);
                         settings.machineCount--;
-                        
+
                         const sel = document.getElementById('machines-select');
-                        if(sel) sel.value = settings.machineCount;
+                        if (sel) sel.value = settings.machineCount;
 
                         state.nextSequenceIndex = Math.max(0, state.nextSequenceIndex - countToRemove);
 
@@ -165,51 +186,54 @@ export function renderUI() {
                 controls.appendChild(btnTrash);
             }
 
-            controls.insertBefore(btnBack, controls.firstChild); 
+            controls.insertBefore(btnBack, controls.firstChild);
             headerRow.appendChild(title);
             headerRow.appendChild(controls);
             card.appendChild(headerRow);
         }
 
-        const numGrid = document.createElement('div'); 
-        if (settings.machineCount > 1) { numGrid.className = "grid grid-cols-4 gap-2 justify-items-center"; } else { numGrid.className = "flex flex-wrap gap-2 justify-center"; }
-        
-        (seq || []).forEach(num => { 
-            const span = document.createElement('span'); 
-            span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold"; 
-            
-            const scale = appSettings.uiScaleMultiplier || 1.0; 
+        const numGrid = document.createElement('div');
+        if (settings.machineCount > 1) {
+            numGrid.className = "grid grid-cols-4 gap-2 justify-items-center";
+        } else {
+            numGrid.className = "flex flex-wrap gap-2 justify-center";
+        }
+
+        (seq || []).forEach(num => {
+            const span = document.createElement('span');
+            span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold";
+
+            const scale = appSettings.uiScaleMultiplier || 1.0;
             const boxSize = 40 * scale;
-            span.style.width = boxSize + 'px'; 
-            span.style.height = boxSize + 'px'; 
-            
+            span.style.width = boxSize + 'px';
+            span.style.height = boxSize + 'px';
+
             const fontMult = appSettings.uiFontSizeMultiplier || 1.0;
             const fontSizePx = (boxSize * 0.5) * fontMult;
             span.style.fontSize = fontSizePx + 'px';
             span.textContent = num;
-            numGrid.appendChild(span); 
-        }); 
-        
-        card.appendChild(numGrid); 
-        container.appendChild(card); 
-    });
-    const hMic = document.getElementById('header-mic-btn'); 
-    const hCam = document.getElementById('header-cam-btn'); 
-    const hGest = document.getElementById('header-gesture-btn'); 
-    
-    if(hMic) { 
-        // Syncs UI if either the environmental sensor or voice commander is listening
-        const isSensorActive = modules.sensor && modules.sensor.mode.audio; 
-        const isVoiceActive = voiceModule && voiceModule.isListening; 
-        hMic.classList.toggle('header-btn-active', isSensorActive || isVoiceActive); 
-    } 
-    
-    if(hCam) hCam.classList.toggle('header-btn-active', document.body.classList.contains('ar-active')); 
-    if(hGest) hGest.classList.toggle('header-btn-active', isGesturePadVisible); 
-    
-    // --- RESTORED: Reset Button Visibility ---
-    document.querySelectorAll('.reset-button').forEach(b => { 
-        b.style.display = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 'block' : 'none'; 
-    }); 
-} // End of renderUI()
+            numGrid.appendChild(span);
+        });
 
+        card.appendChild(numGrid);
+        container.appendChild(card);
+    });
+    const hMic = document.getElementById('header-mic-btn');
+    const hCam = document.getElementById('header-cam-btn');
+    const hGest = document.getElementById('header-gesture-btn');
+
+    if (hMic) {
+        // Syncs UI if either the environmental sensor or voice commander is listening
+        const isSensorActive = modules.sensor && modules.sensor.mode.audio;
+        const isVoiceActive = voiceModule && voiceModule.isListening;
+        hMic.classList.toggle('header-btn-active', isSensorActive || isVoiceActive);
+    }
+
+    if (hCam) hCam.classList.toggle('header-btn-active', document.body.classList.contains('ar-active'));
+    if (hGest) hGest.classList.toggle('header-btn-active', isGesturePadVisible);
+
+    // --- RESTORED: Reset Button Visibility ---
+    document.querySelectorAll('.reset-button').forEach(b => {
+        b.style.display = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 'block' : 'none';
+    });
+} // End of renderUI()

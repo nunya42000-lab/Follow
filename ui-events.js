@@ -42,7 +42,9 @@ export function initGlobalListeners(handlers) {
     controlRows.forEach(row => {
         row.addEventListener('touchstart', (e) => {
             if (e.touches.length > 1) e.preventDefault();
-        }, { passive: false });
+        }, {
+            passive: false
+        });
     });
 
     // 4. Hard Reboot / Refresh Logic
@@ -56,25 +58,7 @@ export function initGlobalListeners(handlers) {
                 if (confirm("Force refresh application?")) {
                     if ('serviceWorker' in navigator) {
                         navigator.serviceWorker.getRegistrations().then(regs => {
-                            for(let reg of regs) reg.unregister();
-                        });
-                    }
-                    window.location.reload(true);
-                }
-            }
-            lastClick = now;
-        });
-    }
-}
-        let lastClick = 0;
-        footerTrigger.addEventListener('click', (e) => {
-            // Secret double-tap on footer to force reload if things get stuck
-            const now = Date.now();
-            if (now - lastClick < 300) {
-                if (confirm("Force refresh application?")) {
-                    if ('serviceWorker' in navigator) {
-                        navigator.serviceWorker.getRegistrations().then(regs => {
-                            for(let reg of regs) reg.unregister();
+                            for (let reg of regs) reg.unregister();
                         });
                     }
                     window.location.reload(true);

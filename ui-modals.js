@@ -1,12 +1,18 @@
 // ui-modals.js
-import { getSettingsModal } from './settings-modal.js';
-import { getDeveloperModal } from './developer-modal.js';
-import { getHelpModal } from './help-modal.js';
+import {
+    getSettingsModal
+} from './settings-modal.js';
+import {
+    getDeveloperModal
+} from './developer-modal.js';
+import {
+    getHelpModal
+} from './help-modal.js';
 
 export function injectModals() {
     const modalContainer = document.createElement('div');
     modalContainer.id = "injected-modals";
-    
+
     // Construct the inner HTML by combining the base modals and the imported ones
     modalContainer.innerHTML = `
         
@@ -166,7 +172,7 @@ export function injectModals() {
     ${getDeveloperModal()}
     ${getHelpModal()}
    `;
-   
-   // Inserts the modals right at the top of the body
-   document.body.insertBefore(modalContainer, document.body.firstChild);
+
+    // Inserts the modals right at the top of the body
+    document.body.insertBefore(modalContainer, document.body.firstChild);
 }

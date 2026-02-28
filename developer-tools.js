@@ -1,6 +1,12 @@
 // developer-tools.js
-import { appSettings, saveState, isDeveloperMode } from './state.js';
-import { showToast } from './ui-core.js';
+import {
+    appSettings,
+    saveState,
+    isDeveloperMode
+} from './state.js';
+import {
+    showToast
+} from './ui-core.js';
 
 export function applyDeveloperVisibility() {
     const voiceSection = document.getElementById('voice-settings-section');
@@ -26,7 +32,7 @@ export function applyDeveloperVisibility() {
 export function openDeveloperModal() {
     const modal = document.getElementById('developer-modal');
     if (!modal) return;
-    
+
     const container = document.getElementById('developer-controls-container');
     if (container && !container.hasChildNodes()) {
         const visibilitySection = document.createElement('div');
@@ -43,19 +49,19 @@ export function openDeveloperModal() {
             </div>
         `;
         container.appendChild(visibilitySection);
-        
+
         document.getElementById('dev-hide-voice-toggle')?.addEventListener('change', (e) => {
             appSettings.devHideVoiceSettings = e.target.checked;
             saveState();
             applyDeveloperVisibility();
         });
-        
+
         document.getElementById('dev-hide-haptic-toggle')?.addEventListener('change', (e) => {
             appSettings.devHideHapticSettings = e.target.checked;
             saveState();
             applyDeveloperVisibility();
         });
-        
+
         initDevTestBed();
     }
 
@@ -64,7 +70,7 @@ export function openDeveloperModal() {
         modal.classList.remove('opacity-0');
         modal.querySelector('div')?.classList.remove('scale-90');
     }, 10);
-    
+
     const mainVideo = document.querySelector('video');
     const devPreview = document.getElementById('dev-camera-preview');
     if (mainVideo && devPreview && mainVideo.srcObject) {

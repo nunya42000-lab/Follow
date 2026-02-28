@@ -1,13 +1,19 @@
 // ui-controller.js
-import { showToast } from './ui-core.js';
-import { applyDeveloperVisibility, updateDynamicIncrements, simulateSequence } from './app.js';
+import {
+    showToast
+} from './ui-core.js';
+import {
+    applyDeveloperVisibility,
+    updateDynamicIncrements,
+    simulateSequence
+} from './app.js';
 
 export function initUIController() {
     // Utility to toggle modal visibility with animations
     const toggleModal = (id, show = true) => {
         const modal = document.getElementById(id);
         if (!modal) return;
-        
+
         if (show) {
             modal.classList.remove('opacity-0', 'pointer-events-none');
             const inner = modal.querySelector('.transform');
@@ -78,12 +84,16 @@ export function initUIController() {
 
     devModalContent?.addEventListener('touchstart', (e) => {
         touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
+    }, {
+        passive: true
+    });
 
     devModalContent?.addEventListener('touchend', (e) => {
         touchEndX = e.changedTouches[0].screenX;
         handleDevSwipe();
-    }, { passive: true });
+    }, {
+        passive: true
+    });
 
     const handleDevSwipe = () => {
         const swipeThreshold = 50;

@@ -1,6 +1,10 @@
 // gesture-engine-setup.js
-import { analyzeGesturePath } from './gesture-math.js';
-import { showToast } from './ui-core.js';
+import {
+    analyzeGesturePath
+} from './gesture-math.js';
+import {
+    showToast
+} from './ui-core.js';
 
 /**
  * OmniGesture v114 Setup
@@ -19,12 +23,16 @@ export function initGestureEngine() {
         isTracking = true;
         activePoints = [];
         addPoint(e.touches[0]);
-    }, { passive: true });
+    }, {
+        passive: true
+    });
 
     document.addEventListener('touchmove', (e) => {
         if (!isTracking) return;
         addPoint(e.touches[0]);
-    }, { passive: true });
+    }, {
+        passive: true
+    });
 
     document.addEventListener('touchend', (e) => {
         if (!isTracking) return;
@@ -32,11 +40,13 @@ export function initGestureEngine() {
 
         // Run the math analysis
         const results = analyzeGesturePath(activePoints);
-        
+
         if (results) {
             processGestureResults(results);
         }
-    }, { passive: true });
+    }, {
+        passive: true
+    });
 
     /**
      * Helper to push formatted points into the stream
@@ -78,7 +88,7 @@ export function initGestureEngine() {
             // Default swipe reporting
             showToast(`${feedbackIcon} ${res.direction} ${res.type}`);
         }
-        
+
         // Update Developer Monitor
         const logContainer = document.getElementById('dev-log-container');
         if (logContainer) {

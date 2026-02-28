@@ -1,9 +1,13 @@
 // settings-ui.jsu
-import { PREMADE_VOICE_PRESETS } from './audio.js';
-import { PREMADE_THEMES } from './themes.js';
+import {
+    PREMADE_VOICE_PRESETS
+} from './audio.js';
+import {
+    PREMADE_THEMES
+} from './themes.js';
 
 export function initUI(manager) {
-    
+
     // 1. Generic Dropdown Builder
     manager.populateDropdown = (id, options, currentVal) => {
         const select = document.getElementById(id);
@@ -19,45 +23,73 @@ export function initUI(manager) {
     };
 
     // 2. Main Dropdown Initialization (Updated for dynamic increments)
-   manager.initGeneralDropdowns = () => {
-   // 1. UI Scale - uses uiScaleStep
-   const scaleOptions = [];
-   const scaleStep = (manager.appSettings.uiScaleStep || 0.10) * 100; 
-   for (let i = 50; i <= 500; i += scaleStep) {
-   scaleOptions.push({ label: `${i.toFixed(0)}%`, value: i });
-   }
-   manager.populateDropdown('ui-scale-select', scaleOptions, manager.appSettings.globalUiScale || 100);
-   
-   // 2. Playback Speed - uses speedStep
-   const speedOptions = [];
-   const speedStep = (manager.appSettings.speedStep || 0.05) * 100;
-   for (let i = 75; i <= 150; i += speedStep) {
-   speedOptions.push({ label: `${i.toFixed(0)}%`, value: (i / 100).toFixed(2) });
-   }
-   manager.populateDropdown('playback-speed-select', speedOptions, (manager.appSettings.playbackSpeed || 1.0).toFixed(2));
-   
-   // 3. Sequence Size - uses sequenceStep
-   const sizeOptions = [];
-   const seqStep = manager.appSettings.sequenceStep || 1;
-   for (let i = seqStep; i <= 50; i += seqStep) {
-   // Values stored in rem (e.g., 0.1rem, 0.2rem)
-   sizeOptions.push({ label: `${i} Units`, value: `${(i * 0.1).toFixed(1)}rem` }); 
-   }
-   manager.populateDropdown('seq-size-select', sizeOptions, manager.appSettings.sequenceSize || '1rem');
-   };
+    manager.initGeneralDropdowns = () => {
+        // 1. UI Scale - uses uiScaleStep
+        const scaleOptions = [];
+        const scaleStep = (manager.appSettings.uiScaleStep || 0.10) * 100;
+        for (let i = 50; i <= 500; i += scaleStep) {
+            scaleOptions.push({
+                label: `${i.toFixed(0)}%`,
+                value: i
+            });
+        }
+        manager.populateDropdown('ui-scale-select', scaleOptions, manager.appSettings.globalUiScale || 100);
+
+        // 2. Playback Speed - uses speedStep
+        const speedOptions = [];
+        const speedStep = (manager.appSettings.speedStep || 0.05) * 100;
+        for (let i = 75; i <= 150; i += speedStep) {
+            speedOptions.push({
+                label: `${i.toFixed(0)}%`,
+                value: (i / 100).toFixed(2)
+            });
+        }
+        manager.populateDropdown('playback-speed-select', speedOptions, (manager.appSettings.playbackSpeed || 1.0).toFixed(2));
+
+        // 3. Sequence Size - uses sequenceStep
+        const sizeOptions = [];
+        const seqStep = manager.appSettings.sequenceStep || 1;
+        for (let i = seqStep; i <= 50; i += seqStep) {
+            // Values stored in rem (e.g., 0.1rem, 0.2rem)
+            sizeOptions.push({
+                label: `${i} Units`,
+                value: `${(i * 0.1).toFixed(1)}rem`
+            });
+        }
+        manager.populateDropdown('seq-size-select', sizeOptions, manager.appSettings.sequenceSize || '1rem');
+    };
     // 2.5 Increment Selectors (Controls how much the other dropdowns jump)
     manager.initIncrementSelectors = () => {
-        const pctOptions = [
-            { label: '1%', value: 0.01 },
-            { label: '2%', value: 0.02 },
-            { label: '5%', value: 0.05 },
-            { label: '10%', value: 0.10 }
+        const pctOptions = [{
+                label: '1%',
+                value: 0.01
+            },
+            {
+                label: '2%',
+                value: 0.02
+            },
+            {
+                label: '5%',
+                value: 0.05
+            },
+            {
+                label: '10%',
+                value: 0.10
+            }
         ];
 
-        const unitOptions = [
-            { label: '1 Unit', value: 1 },
-            { label: '2 Units', value: 2 },
-            { label: '5 Units', value: 5 }
+        const unitOptions = [{
+                label: '1 Unit',
+                value: 1
+            },
+            {
+                label: '2 Units',
+                value: 2
+            },
+            {
+                label: '5 Units',
+                value: 5
+            }
         ];
 
         manager.populateDropdown('speed-step-select', pctOptions, manager.appSettings.speedStep || 0.05);
@@ -69,12 +101,13 @@ export function initUI(manager) {
     manager.populateThemeDropdown = () => {
         if (!manager.dom.themeSelect) return;
         manager.dom.themeSelect.innerHTML = '';
-        
+
         const grp1 = document.createElement('optgroup');
         grp1.label = "Premade Themes";
         Object.keys(PREMADE_THEMES).forEach(k => {
             const el = document.createElement('option');
-            el.value = k; el.textContent = PREMADE_THEMES[k].name;
+            el.value = k;
+            el.textContent = PREMADE_THEMES[k].name;
             grp1.appendChild(el);
         });
         manager.dom.themeSelect.appendChild(grp1);
@@ -84,7 +117,8 @@ export function initUI(manager) {
         if (manager.appSettings.customThemes) {
             Object.keys(manager.appSettings.customThemes).forEach(k => {
                 const el = document.createElement('option');
-                el.value = k; el.textContent = manager.appSettings.customThemes[k].name;
+                el.value = k;
+                el.textContent = manager.appSettings.customThemes[k].name;
                 grp2.appendChild(el);
             });
         }
@@ -101,7 +135,8 @@ export function initUI(manager) {
             if (manager.appSettings.savedConfigs) {
                 Object.keys(manager.appSettings.savedConfigs).forEach(k => {
                     const el = document.createElement('option');
-                    el.value = k; el.textContent = manager.appSettings.savedConfigs[k].name;
+                    el.value = k;
+                    el.textContent = manager.appSettings.savedConfigs[k].name;
                     grp.appendChild(el);
                 });
             }
@@ -114,12 +149,13 @@ export function initUI(manager) {
     manager.populateVoicePresetDropdown = () => {
         if (!manager.dom.voicePresetSelect) return;
         manager.dom.voicePresetSelect.innerHTML = '';
-        
+
         const grp1 = document.createElement('optgroup');
         grp1.label = "Built-in";
         Object.keys(PREMADE_VOICE_PRESETS).forEach(k => {
             const el = document.createElement('option');
-            el.value = k; el.textContent = PREMADE_VOICE_PRESETS[k].name;
+            el.value = k;
+            el.textContent = PREMADE_VOICE_PRESETS[k].name;
             grp1.appendChild(el);
         });
         manager.dom.voicePresetSelect.appendChild(grp1);
@@ -129,7 +165,8 @@ export function initUI(manager) {
         if (manager.appSettings.voicePresets) {
             Object.keys(manager.appSettings.voicePresets).forEach(k => {
                 const el = document.createElement('option');
-                el.value = k; el.textContent = manager.appSettings.voicePresets[k].name;
+                el.value = k;
+                el.textContent = manager.appSettings.voicePresets[k].name;
                 grp2.appendChild(el);
             });
         }
@@ -139,7 +176,7 @@ export function initUI(manager) {
 
     manager.populateVoiceList = () => {
         if (!window.speechSynthesis) return;
-        const voiceSelect = document.getElementById('voice-select'); 
+        const voiceSelect = document.getElementById('voice-select');
         if (!voiceSelect) return;
 
         let voices = window.speechSynthesis.getVoices();
@@ -175,18 +212,19 @@ export function initUI(manager) {
             keys.forEach((key, i) => {
                 const row = document.createElement('div');
                 row.className = "flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-700/50";
-                
+
                 const label = document.createElement('span');
                 label.className = "text-white/80 text-xs font-mono";
                 label.textContent = `${prefix} ${i + 1}`;
-                
+
                 const select = document.createElement('select');
                 select.className = "bg-black text-primary-app text-xs p-1 rounded border border-gray-700 outline-none";
                 select.dataset.key = key;
 
                 gestures.forEach(g => {
                     const opt = document.createElement('option');
-                    opt.value = g; opt.textContent = g.replace(/_/g, ' ').toUpperCase();
+                    opt.value = g;
+                    opt.textContent = g.replace(/_/g, ' ').toUpperCase();
                     select.appendChild(opt);
                 });
 
@@ -200,18 +238,94 @@ export function initUI(manager) {
         };
 
         const map9 = {
-            'k9_1': { gesture: 'tap' }, 'k9_2': { gesture: 'double_tap' }, 'k9_3': { gesture: 'triple_tap' },
-            'k9_4': { gesture: 'long_tap' }, 'k9_5': { gesture: 'tap_2f_any' }, 'k9_6': { gesture: 'double_tap_2f_any' },
-            'k9_7': { gesture: 'triple_tap_2f_any' }, 'k9_8': { gesture: 'long_tap_2f_any' }, 'k9_9': { gesture: 'tap_3f_any' }
+            'k9_1': {
+                gesture: 'tap'
+            },
+            'k9_2': {
+                gesture: 'double_tap'
+            },
+            'k9_3': {
+                gesture: 'triple_tap'
+            },
+            'k9_4': {
+                gesture: 'long_tap'
+            },
+            'k9_5': {
+                gesture: 'tap_2f_any'
+            },
+            'k9_6': {
+                gesture: 'double_tap_2f_any'
+            },
+            'k9_7': {
+                gesture: 'triple_tap_2f_any'
+            },
+            'k9_8': {
+                gesture: 'long_tap_2f_any'
+            },
+            'k9_9': {
+                gesture: 'tap_3f_any'
+            }
         };
         const map12 = {
-            'k12_1': { gesture: 'tap' }, 'k12_2': { gesture: 'double_tap' }, 'k12_3': { gesture: 'triple_tap' }, 'k12_4': { gesture: 'long_tap' },
-            'k12_5': { gesture: 'tap_2f_any' }, 'k12_6': { gesture: 'double_tap_2f_any' }, 'k12_7': { gesture: 'triple_tap_2f_any' }, 'k12_8': { gesture: 'long_tap_2f_any' },
-            'k12_9': { gesture: 'tap_3f_any' }, 'k12_10': { gesture: 'double_tap_3f_any' }, 'k12_11': { gesture: 'triple_tap_3f_any' }, 'k12_12': { gesture: 'long_tap_3f_any' }
+            'k12_1': {
+                gesture: 'tap'
+            },
+            'k12_2': {
+                gesture: 'double_tap'
+            },
+            'k12_3': {
+                gesture: 'triple_tap'
+            },
+            'k12_4': {
+                gesture: 'long_tap'
+            },
+            'k12_5': {
+                gesture: 'tap_2f_any'
+            },
+            'k12_6': {
+                gesture: 'double_tap_2f_any'
+            },
+            'k12_7': {
+                gesture: 'triple_tap_2f_any'
+            },
+            'k12_8': {
+                gesture: 'long_tap_2f_any'
+            },
+            'k12_9': {
+                gesture: 'tap_3f_any'
+            },
+            'k12_10': {
+                gesture: 'double_tap_3f_any'
+            },
+            'k12_11': {
+                gesture: 'triple_tap_3f_any'
+            },
+            'k12_12': {
+                gesture: 'long_tap_3f_any'
+            }
         };
         const mapPiano = {
-            'piano_C': { gesture: 'swipe_nw' }, 'piano_D': { gesture: 'swipe_left' }, 'piano_E': { gesture: 'swipe_sw' }, 'piano_F': { gesture: 'swipe_down' },
-            'piano_G': { gesture: 'swipe_se' }, 'piano_A': { gesture: 'swipe_right' }, 'piano_B': { gesture: 'swipe_ne' }
+            'piano_C': {
+                gesture: 'swipe_nw'
+            },
+            'piano_D': {
+                gesture: 'swipe_left'
+            },
+            'piano_E': {
+                gesture: 'swipe_sw'
+            },
+            'piano_F': {
+                gesture: 'swipe_down'
+            },
+            'piano_G': {
+                gesture: 'swipe_se'
+            },
+            'piano_A': {
+                gesture: 'swipe_right'
+            },
+            'piano_B': {
+                gesture: 'swipe_ne'
+            }
         };
 
         generateList(manager.dom.mapping9Container, Object.keys(map9), "Key", map9);
@@ -224,14 +338,31 @@ export function initUI(manager) {
         const container = manager.dom.morseContainer;
         if (!container) return;
 
-        const timingSettings = [
-            { label: 'Dot Length (ms)', key: 'morseDot', min: 20, max: 200, step: 5 },
-            { label: 'Dash Length (ms)', key: 'morseDash', min: 100, max: 600, step: 10 },
-            { label: 'Haptic Intensity', key: 'hapticStrength', min: 0, max: 1, step: 0.1 }
+        const timingSettings = [{
+                label: 'Dot Length (ms)',
+                key: 'morseDot',
+                min: 20,
+                max: 200,
+                step: 5
+            },
+            {
+                label: 'Dash Length (ms)',
+                key: 'morseDash',
+                min: 100,
+                max: 600,
+                step: 10
+            },
+            {
+                label: 'Haptic Intensity',
+                key: 'hapticStrength',
+                min: 0,
+                max: 1,
+                step: 0.1
+            }
         ];
 
         container.innerHTML = '<h4 class="text-xs font-bold text-white/40 mb-3 uppercase tracking-tighter">Haptic & Morse Timings</h4>';
-        
+
         timingSettings.forEach(s => {
             const val = manager.appSettings[s.key] !== undefined ? manager.appSettings[s.key] : (s.max / 2);
             const row = document.createElement('div');
@@ -250,7 +381,7 @@ export function initUI(manager) {
     // 7. Tabs Integration
     manager.switchTab = (tabId) => {
         if (!manager.dom.tabs || !manager.dom.contents) return;
-        
+
         manager.dom.tabs.forEach(t => {
             t.classList.remove('active', 'border-primary-app', 'text-primary-app');
             t.classList.add('border-transparent', 'text-white/60');
@@ -270,15 +401,19 @@ export function initUI(manager) {
     manager.setupTabSwipe = () => {
         const container = document.querySelector('.settings-content-area');
         if (!container) return;
-        
+
         let startX = 0;
-        container.addEventListener('touchstart', e => startX = e.changedTouches[0].screenX, {passive: true});
+        container.addEventListener('touchstart', e => startX = e.changedTouches[0].screenX, {
+            passive: true
+        });
         container.addEventListener('touchend', e => {
             if (e.target.closest('.no-swipe-zone') || e.target.closest('button')) return;
             let endX = e.changedTouches[0].screenX;
             if (startX - endX > 50) manager.swipeNextTab();
             if (endX - startX > 50) manager.swipePrevTab();
-        }, {passive: true});
+        }, {
+            passive: true
+        });
     };
 
     manager.swipeNextTab = () => {
@@ -295,9 +430,10 @@ export function initUI(manager) {
         if (activeIdx > 0) {
             manager.switchTab(tabs[activeIdx - 1].dataset.tab);
         }
-    
+
         if (activeIdx > 0) {
             manager.switchTab(tabs[activeIdx - 1].dataset.tab);
         }
-    
-};}
+
+    };
+}

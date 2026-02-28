@@ -1,5 +1,8 @@
 // voice-commander.js
-import { appSettings, getProfileSettings } from './state.js';
+import {
+    appSettings,
+    getProfileSettings
+} from './state.js';
 
 export class VoiceCommander {
     constructor(callbacks) {
@@ -40,8 +43,12 @@ export class VoiceCommander {
             if (this.isListening) {
                 clearTimeout(this.restartTimer);
                 this.restartTimer = setTimeout(() => {
-                    try { this.recognition.start(); } 
-                    catch (e) { this.isListening = false; this.updateUI(false); }
+                    try {
+                        this.recognition.start();
+                    } catch (e) {
+                        this.isListening = false;
+                        this.updateUI(false);
+                    }
                 }, 500);
             } else {
                 this.updateUI(false);
@@ -64,7 +71,9 @@ export class VoiceCommander {
         this.isListening = false;
         clearTimeout(this.restartTimer);
         if (this.recognition) {
-            try { this.recognition.stop(); } catch (e) {}
+            try {
+                this.recognition.stop();
+            } catch (e) {}
         }
         this.updateUI(false);
     }
@@ -86,7 +95,7 @@ export class VoiceCommander {
         let triggers = [];
 
         if (appSettings.voicePresets && appSettings.voicePresets[activePresetId]) {
-             triggers = appSettings.voicePresets[activePresetId].triggers.map(t => t.toLowerCase());
+            triggers = appSettings.voicePresets[activePresetId].triggers.map(t => t.toLowerCase());
         }
 
         if (!triggers || triggers.length === 0) {
@@ -95,20 +104,39 @@ export class VoiceCommander {
         }
 
         const actionMap = {
-            'play': () => { if(this.callbacks.onPlay) this.callbacks.onPlay(); },
-            'start': () => { if(this.callbacks.onPlay) this.callbacks.onPlay(); },
-            'stop': () => { if(this.callbacks.onStop) this.callbacks.onStop(); },
-            'delete': () => { if(this.callbacks.onBackspace) this.callbacks.onBackspace(); },
-            'back': () => { if(this.callbacks.onBackspace) this.callbacks.onBackspace(); },
-            'reproducir': () => { if(this.callbacks.onPlay) this.callbacks.onPlay(); },
-            'parar': () => { if(this.callbacks.onStop) this.callbacks.onStop(); },
-            'borrar': () => { if(this.callbacks.onBackspace) this.callbacks.onBackspace(); },
+            'play': () => {
+                if (this.callbacks.onPlay) this.callbacks.onPlay();
+            },
+            'start': () => {
+                if (this.callbacks.onPlay) this.callbacks.onPlay();
+            },
+            'stop': () => {
+                if (this.callbacks.onStop) this.callbacks.onStop();
+            },
+            'delete': () => {
+                if (this.callbacks.onBackspace) this.callbacks.onBackspace();
+            },
+            'back': () => {
+                if (this.callbacks.onBackspace) this.callbacks.onBackspace();
+            },
+            'reproducir': () => {
+                if (this.callbacks.onPlay) this.callbacks.onPlay();
+            },
+            'parar': () => {
+                if (this.callbacks.onStop) this.callbacks.onStop();
+            },
+            'borrar': () => {
+                if (this.callbacks.onBackspace) this.callbacks.onBackspace();
+            },
         };
 
         const words = transcript.split(/\s+/);
-        
+
         for (let word of words) {
-            if (actionMap[word]) { actionMap[word](); return; }
+            if (actionMap[word]) {
+                actionMap[word]();
+                return;
+            }
         }
 
         for (let i = 0; i < words.length; i++) {
@@ -117,23 +145,47 @@ export class VoiceCommander {
                 if (i + 1 < words.length) {
                     const nextWord = words[i + 1];
                     let parsedNum = parseInt(nextWord, 10);
-                    
+
                     if (isNaN(parsedNum)) {
-                         const numWords = { 
-                             'one': 1, 'two': 2, 'to': 2, 'too': 2, 'three': 3, 'tree': 3,
-                             'four': 4, 'for': 4, 'five': 5, 'six': 6, 'seven': 7,
-                             'eight': 8, 'ate': 8, 'nine': 9, 'ten': 10, 'eleven': 11, 'twelve': 12,
-                             'uno': 1, 'dos': 2, 'tres': 3, 'cuatro': 4, 'cinco': 5,
-                             'seis': 6, 'siete': 7, 'ocho': 8, 'nueve': 9, 'diez': 10, 'once': 11, 'doce': 12
-                         };
-                         parsedNum = numWords[nextWord];
+                        const numWords = {
+                            'one': 1,
+                            'two': 2,
+                            'to': 2,
+                            'too': 2,
+                            'three': 3,
+                            'tree': 3,
+                            'four': 4,
+                            'for': 4,
+                            'five': 5,
+                            'six': 6,
+                            'seven': 7,
+                            'eight': 8,
+                            'ate': 8,
+                            'nine': 9,
+                            'ten': 10,
+                            'eleven': 11,
+                            'twelve': 12,
+                            'uno': 1,
+                            'dos': 2,
+                            'tres': 3,
+                            'cuatro': 4,
+                            'cinco': 5,
+                            'seis': 6,
+                            'siete': 7,
+                            'ocho': 8,
+                            'nueve': 9,
+                            'diez': 10,
+                            'once': 11,
+                            'doce': 12
+                        };
+                        parsedNum = numWords[nextWord];
                     }
 
                     if (parsedNum !== undefined && !isNaN(parsedNum)) {
                         let maxNum = (settings.currentInput === 'key12') ? 12 : 9;
                         if (parsedNum >= 1 && parsedNum <= maxNum) {
                             if (this.callbacks.onAddValue) this.callbacks.onAddValue(parsedNum);
-                            return; 
+                            return;
                         }
                     }
                 }

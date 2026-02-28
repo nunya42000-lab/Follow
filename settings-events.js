@@ -1,6 +1,9 @@
 //settings-events.js
 export function initEvents(manager) {
-    const { dom, appSettings } = manager;
+    const {
+        dom,
+        appSettings
+    } = manager;
 
     // Helper: Bind a checkbox/toggle to appSettings
     const bindToggle = (element, settingKey) => {
@@ -83,13 +86,15 @@ export function initEvents(manager) {
         dom.settingsModal?.classList.add('hidden');
         manager.updateApp();
     });
-    
+
     // Share Modal
     dom.openShareInside?.addEventListener('click', () => manager.openShare());
     dom.closeShareBtn?.addEventListener('click', () => manager.closeShare());
 
     // Game Setup Modal
-    dom.setupModal?.addEventListener('click', (e) => { if (e.target === dom.setupModal) manager.closeSetup(); });
+    dom.setupModal?.addEventListener('click', (e) => {
+        if (e.target === dom.setupModal) manager.closeSetup();
+    });
     dom.closeSetupBtn?.addEventListener('click', () => manager.closeSetup());
 
     // Help Modal
@@ -115,7 +120,7 @@ export function initEvents(manager) {
     // 5. Voice & Speech Events
     dom.voicePresetSelect?.addEventListener('change', (e) => manager.applyVoicePreset(e.target.value));
     dom.voiceTestBtn?.addEventListener('click', () => manager.testVoice());
-    
+
     ['voicePitch', 'voiceRate', 'voiceVolume'].forEach(key => {
         dom[key]?.addEventListener('input', (e) => {
             appSettings[key] = parseFloat(e.target.value);
@@ -129,11 +134,11 @@ export function initEvents(manager) {
     dom.edCancel?.addEventListener('click', () => {
         dom.editorModal?.classList.add('hidden', 'opacity-0', 'pointer-events-none');
     });
-    
+
     dom.ftToggle?.addEventListener('click', () => {
         dom.ftContainer?.classList.toggle('hidden');
     });
-    
+
     ['ftHue', 'ftSat', 'ftLit'].forEach(id => {
         dom[id]?.addEventListener('input', () => manager.updateColorFromSliders());
     });
@@ -144,7 +149,7 @@ export function initEvents(manager) {
                 dom.targetBtns.forEach(b => b.classList.remove('active', 'bg-primary-app'));
                 e.currentTarget.classList.add('active', 'bg-primary-app');
                 manager.currentTargetKey = e.currentTarget.dataset.target;
-                
+
                 if (manager.tempTheme && manager.tempTheme[manager.currentTargetKey]) {
                     const [h, s, l] = manager.hexToHsl(manager.tempTheme[manager.currentTargetKey]);
                     if (dom.ftHue) dom.ftHue.value = h;
@@ -163,10 +168,10 @@ export function initEvents(manager) {
             const key = e.target.dataset.key;
             const val = parseFloat(e.target.value);
             appSettings[key] = val;
-            
+
             const valDisplay = document.getElementById(`val-${key}`);
             if (valDisplay) valDisplay.textContent = val;
-            
+
             manager.updateApp();
         }
     });
@@ -179,9 +184,13 @@ export function initEvents(manager) {
             if (e.target.tagName === 'SELECT' && e.target.dataset.key) {
                 const profileId = appSettings.activeGestureProfile || 'default';
                 if (!appSettings.gestureProfiles) appSettings.gestureProfiles = {};
-                if (!appSettings.gestureProfiles[profileId]) appSettings.gestureProfiles[profileId] = { map: {} };
-                
-                appSettings.gestureProfiles[profileId].map[e.target.dataset.key] = { gesture: e.target.value };
+                if (!appSettings.gestureProfiles[profileId]) appSettings.gestureProfiles[profileId] = {
+                    map: {}
+                };
+
+                appSettings.gestureProfiles[profileId].map[e.target.dataset.key] = {
+                    gesture: e.target.value
+                };
                 manager.updateApp();
             }
         });

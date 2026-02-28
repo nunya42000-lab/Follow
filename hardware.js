@@ -1,5 +1,7 @@
 // hardware.js
-import { appSettings } from './state.js';
+import {
+    appSettings
+} from './state.js';
 
 let wakeLockObj = null;
 

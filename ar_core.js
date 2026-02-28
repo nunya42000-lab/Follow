@@ -36,9 +36,13 @@ export class ARCore {
             this.video.setAttribute('playsinline', '');
             document.body.appendChild(this.video);
         }
-        
+
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'environment'
+                }
+            });
             this.video.srcObject = stream;
         } catch (e) {
             console.error("Camera denied:", e);
@@ -50,17 +54,21 @@ export class ARCore {
         if (!this.audioCtx) {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (!AudioContext) return;
-            
+
             this.audioCtx = new AudioContext();
             this.analyser = this.audioCtx.createAnalyser();
             this.analyser.fftSize = 256;
             this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
-            
+
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: true
+                });
                 const source = this.audioCtx.createMediaStreamSource(stream);
                 source.connect(this.analyser);
-            } catch(e) { console.warn("Audio denied"); }
+            } catch (e) {
+                console.warn("Audio denied");
+            }
         } else if (this.audioCtx.state === 'suspended') {
             await this.audioCtx.resume();
         }
@@ -97,7 +105,7 @@ export class ARCore {
         }
         if (this.audioCtx) this.audioCtx.suspend();
         cancelAnimationFrame(this.rafId);
-        
+
         // Cleanup DOM
         if (this.video) {
             this.video.remove();

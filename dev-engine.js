@@ -1,5 +1,7 @@
 // dev-engine.js
-import { appSettings } from './state.js';
+import {
+    appSettings
+} from './state.js';
 
 // State for the developer session
 export let isDeveloperMode = localStorage.getItem('isDeveloperMode') === 'true';
@@ -16,7 +18,9 @@ export function initDeveloperTrigger(showToast) {
     devTrigger.addEventListener('click', () => {
         // Reset count if too much time passes between clicks (3 seconds)
         clearTimeout(devClickTimer);
-        devClickTimer = setTimeout(() => { devClickCount = 0; }, 3000);
+        devClickTimer = setTimeout(() => {
+            devClickCount = 0;
+        }, 3000);
 
         if (isDeveloperMode) {
             showToast("Developer mode is already active.");

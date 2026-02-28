@@ -1,4 +1,4 @@
-//settings.js
+// settings.js
 import {
     injectModals
 } from './ui-modals.js';
@@ -33,21 +33,24 @@ import {
     initEvents
 } from './settings-events.js';
 
-
-export class SettingsManager{
+/**
+ * SettingsManager Class
+ * Handles the application configuration, UI updates, and profile management.
+ */
+export class SettingsManager {
     constructor(appSettings, callbacks, sensorEngine) {
-        // 1. Establish Core >State
+        // 1. Establish Core State
         this.appSettings = appSettings; 
         this.callbacks = callbacks; 
         this.sensorEngine = sensorEngine; 
         this.currentTargetKey = 'bubble';
         this.tempTheme = null;
 
-
         // 2. Build the DOM Cache
         this.dom = buildDomCache();
 
         // 3. Attach Dynamic Methods to 'this'
+        // These modules extend the class with UI, Feature, and Event logic
         initUI(this);
         initFeatures(this);
 
@@ -68,4 +71,34 @@ export class SettingsManager{
         // 6. Attach All Event Listeners
         initEvents(this);
     }
-}
+
+    /**
+     * Opens the settings modal overlay
+     */
+    openSettings() {
+        if (this.dom.settingsModal) {
+            this.dom.settingsModal.classList.remove('hidden');
+            this.updateUIFromSettings();
+        }
+    }
+
+    /**
+     * Closes the settings modal overlay
+     */
+    closeSettings() {
+        if (this.dom.settingsModal) {
+            this.dom.settingsModal.classList.add('hidden');
+        }
+    }
+
+    /**
+     * Updates header UI components based on current application settings
+     */
+    updateHeaderVisibility() {
+        const header = document.querySelector('header');
+        if (header) {
+            header.style.display = this.appSettings.showWelcomeScreen ? 'flex' : 'none';
+        }
+    }
+                }
+            

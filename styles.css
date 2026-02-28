@@ -1,4 +1,4 @@
-//styles.css
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 
 :root {
@@ -94,14 +94,12 @@ textarea,
     #app {
         padding-top: 0;
     }
-
     #sequence-container {
         flex-direction: row;
         flex-wrap: wrap;
         justify-content: center;
         gap: .5rem !important;
     }
-
     #sequence-container>div {
         margin: 0 !important;
     }
@@ -111,61 +109,6 @@ textarea,
     justify-content: flex-start !important;
     padding-top: 1rem;
     width: 100%;
-}
-
-/* Styling for the secret button trigger */
-#dev-secret-trigger {
-    font-weight: 800;
-    color: var(--text-main);
-    transition: all 0.2s ease;
-    cursor: pointer;
-    padding: 2px 8px;
-    border-radius: 4px;
-}
-
-#dev-secret-trigger:active {
-    background: var(--primary-app);
-    /* Flashes your theme color when tapped */
-    transform: scale(0.95);
-}
-
-/* Developer Modal Overlay */
-#developer-modal {
-    transition: opacity 0.3s ease-in-out;
-    backdrop-filter: blur(8px);
-    /* Gives it that modern frosted glass look */
-}
-
-/* Modal Content Animation */
-#developer-modal>div {
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* Smooth Slider Styling */
-#developer-controls-container input[type="range"] {
-    -webkit-appearance: none;
-    width: 100%;
-    height: 6px;
-    background: #2d2d2d;
-    border-radius: 5px;
-    outline: none;
-}
-
-#developer-controls-container input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    background: #4f46e5;
-    /* Match your app's primary color */
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid white;
-}
-
-/* Utility Hidden Class */
-.hidden {
-    display: none !important;
 }
 
 #input-footer {
@@ -309,22 +252,18 @@ textarea,
     left: calc((100% / 7)*1 - (10% / 2));
     width: 10%;
 }
-
 .black-2 {
     left: calc((100% / 7)*2 - (10% / 2));
     width: 10%;
 }
-
 .black-3 {
     left: calc((100% / 7)*4 - (10% / 2));
     width: 10%;
 }
-
 .black-4 {
     left: calc((100% / 7)*5 - (10% / 2));
     width: 10%;
 }
-
 .black-5 {
     left: calc((100% / 7)*6 - (10% / 2));
     width: 10%;
@@ -433,10 +372,8 @@ body.input-gestures-mode #gesture-pad-wrapper {
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 30;
-    /* Below Header (40) but above standard content */
-    background: rgba(0, 0, 0, 0.05);
-    /* Very subtle tint to indicate active area */
+    z-index: 30; /* Below Header (40) but above standard content */
+    background: rgba(0, 0, 0, 0.05); /* Very subtle tint to indicate active area */
 }
 
 /* Force the pad itself to fill the wrapper */
@@ -466,15 +403,13 @@ body.input-gestures-mode #gesture-indicator {
     width: 100vw;
     height: 100vh;
     object-fit: cover;
-    z-index: -1;
-    /* Behind everything */
+    z-index: -1; /* Behind everything */
     opacity: 1;
 }
 
 /* When AR is active, make the app transparent */
 body.ar-active {
-    background-color: rgba(0, 0, 0, 0.2) !important;
-    /* Slight tint for readability */
+    background-color: rgba(0, 0, 0, 0.2) !important; /* Slight tint for readability */
 }
 
 /* Make cards and buttons semi-transparent in AR mode */
@@ -491,7 +426,6 @@ body.ar-active .settings-modal-bg {
 body.ar-active header {
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 100%);
 }
-
 /* --- INPUTS ONLY (STEALTH) MODE STYLES --- */
 
 /* 1. Base Stealth Mode (Portrait) */
@@ -501,12 +435,10 @@ body.hide-controls .control-row {
 
 body.hide-controls #pad-key9 .btn-pad-number,
 body.hide-controls #pad-key12 .btn-pad-number {
-    height: 85px;
-    /* Bigger targets */
-    font-size: 2.2rem;
-    /* Bigger text */
+    height: 85px;             /* Bigger targets */
+    font-size: 2.2rem;        /* Bigger text */
     transition: all 0.3s ease;
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.4);
 }
 
 body.hide-controls #piano-keys {
@@ -516,43 +448,37 @@ body.hide-controls #piano-keys {
 
 /* 2. LANDSCAPE OVERRIDES ("Really Big") */
 @media (orientation: landscape) {
-
+    
     /* Remove the width limits so buttons stretch edge-to-edge */
     body.hide-controls #input-footer .max-w-md,
     body.hide-controls #input-footer .max-w-lg,
     body.hide-controls #input-footer .max-w-2xl {
-        max-width: 95vw !important;
-        /* Use 95% of screen width */
+        max-width: 95vw !important; /* Use 95% of screen width */
     }
 
     /* Make buttons huge but fit on screen vertically */
     body.hide-controls #pad-key9 .btn-pad-number,
     body.hide-controls #pad-key12 .btn-pad-number {
-        height: 18vh;
-        /* Responsive height (approx 1/5th screen height) */
-        font-size: 2.5rem;
-        /* Huge text */
-        width: 100%;
-        /* Force full width stretch */
+        height: 18vh;         /* Responsive height (approx 1/5th screen height) */
+        font-size: 2.5rem;    /* Huge text */
+        width: 100%;          /* Force full width stretch */
     }
-
+    
     /* Ensure footer doesn't have extra padding wasting space */
     body.hide-controls #input-footer {
         padding: 5px !important;
     }
-
+    
     /* Adjust piano for wide screens */
     body.hide-controls #piano-keys {
-        height: 50vh !important;
-        /* Use half the screen height */
+        height: 50vh !important; /* Use half the screen height */
     }
 }
-
 /* --- V2 DEVELOPER EDITION STYLES --- */
 
 /* Full Screen Mode: Add padding so header isn't hidden by status bar */
 body.fullscreen-mode #app {
-    padding-top: 4rem !important;
+    padding-top: 4rem !important; 
 }
 
 /* Gradient behind header for readability in full screen */

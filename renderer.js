@@ -25,7 +25,8 @@ import {
 
 export function renderUI() {
     const container = document.getElementById('sequence-container');
-    try {
+    const settings = getProfileSettings();
+try {
         const gpWrap = document.getElementById('gesture-pad-wrapper');
         const pad = document.getElementById('gesture-pad');
         if (gpWrap) {

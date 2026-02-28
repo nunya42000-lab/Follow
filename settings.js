@@ -33,14 +33,16 @@ import {
     initEvents
 } from './settings-events.js';
 
-export class app {
+
+export class SettingsManager {
     constructor(appSettings, callbacks, sensorEngine) {
         // 1. Establish Core >State
-        this.appSettings = appSettings;
-        this.callbacks = callbacks;
-        this.sensorEngine = sensorEngine;
+        this.appSettings = appSettings; 
+        this.callbacks = callbacks; 
+        this.sensorEngine = sensorEngine; 
         this.currentTargetKey = 'bubble';
         this.tempTheme = null;
+
 
         // 2. Build the DOM Cache
         this.dom = buildDomCache();

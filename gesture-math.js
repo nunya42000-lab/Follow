@@ -117,3 +117,17 @@ function getDirection(dx, dy) {
         return dy > 0 ? 'down' : 'up';
     }
 }
+Collapsible functions o
+The inspector should run immediately and 
+change the color of the file names.
+The diagnostic hub should have a few
+ tools along with a copy button for the 
+text it generates. The fix button needs 
+to make a comeback since the time machine is here.
+This recognizes js. It should probably
+ understand HTML css Json and other programming langues. It 
+should be able to work with files in subfolder like this as well
+[Missing File] vision.js imports from missing file wasm/vision_bundle.js.
+I'm sure you can also come up with a few more improvements
+This should be able to restructure code perfectly by function into hundreds of 
+Little piece'sv or one giant block. 

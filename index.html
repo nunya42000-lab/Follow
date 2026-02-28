@@ -1,8 +1,35 @@
 //index
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<script>
+  // Catch Standard Runtime & Import Errors
+  window.onerror = function(message, source, lineno, colno, error) {
+    const errDiv = document.createElement('div');
+    errDiv.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; background: #f85149; color: white; z-index: 99999; padding: 15px; font-family: monospace; font-size: 14px; box-sizing: border-box; word-wrap: break-word; border-bottom: 4px solid #b3261e;';
+    
+    // Extract just the filename to save screen space
+    const fileName = source ? source.split('/').pop() : 'Unknown File';
+    
+    errDiv.innerHTML = `<strong>🚨 FATAL ERROR:</strong><br><br>${message}<br><br><strong>File:</strong> ${fileName}<br><strong>Line:</strong> ${lineno}`;
+    
+    if (document.body) {
+        document.body.appendChild(errDiv);
+    } else {
+        window.onload = () => document.body.appendChild(errDiv);
+    }
+    return false; 
+  };
 
+  // Catch Promise/Async Errors (like failed fetches)
+  window.addEventListener('unhandledrejection', function(event) {
+    const errDiv = document.createElement('div');
+    errDiv.style.cssText = 'position: fixed; bottom: 0; left: 0; width: 100%; background: #d29922; color: black; z-index: 99999; padding: 15px; font-family: monospace; font-size: 14px; box-sizing: border-box; word-wrap: break-word; border-top: 4px solid #9e6a03;';
+    errDiv.innerHTML = `<strong>⚠️ ASYNC ERROR:</strong><br><br>${event.reason}`;
+    document.body.appendChild(errDiv);
+  });
+</script>
+
+<head>
    <script>
   window.onerror = function(msg, url, line) {
     alert("Error: " + msg + "\nLine: " + line);

@@ -1,9 +1,9 @@
 //settings.js
 import { injectModals } from './ui-modals.js';
-import { SettingsManager } from './settings.js';
+import { appSettings } from './state.js';
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-import { PREMADE_THEMES, } from './theme.js';
-import { PREMADE_VOICE_PRESETS } from './aueio.js
+import { PREMADE_THEMES } from './themes.js';
+import { PREMADE_VOICE_PRESETS } from './audio.js';
 import { buildDomCache } from './settings-dom.js';
 import { initUI } from './settings-ui.js';
 import { initFeatures } from './settings-features.js';

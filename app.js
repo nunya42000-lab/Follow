@@ -1,8 +1,7 @@
 // app.js
 import { loadState, saveState, appSettings, getState, modules } from './state.js';
-import { CONFIG, DEFAULT_PROFILE_SETTINGS } from './contig.js';
+import { CONFIG, DEFAULT_PROFILE_SETTINGS } from './config.js';
 import { renderUI } from './renderer.js';
-import { SettingsManager } from './settings.js';
 import { VisionEngine } from './vision.js';
 import { SensorEngine } from './sensors.js';
 import { VoiceCommander } from './voice-commander.js';
@@ -31,7 +30,7 @@ export const startApp = () => {
     injectModals();
 
     // 2. Initialize Settings Manager with full profile & lifecycle logic
-    modules.settings = new SettingsManager(appSettings, {
+    modules.settings = new appSettings(appSettings, {
         onSave: saveState,
         onUpdate: (type) => { 
             if(type === 'mode_switch') {

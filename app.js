@@ -69,7 +69,7 @@ export const startApp = () => {
     injectModals();
 
     // 2. Initialize Settings Manager with full profile & lifecycle logic
-    modules.settings = new app(appSettings, {
+    modules.settings = SettingsManager(appSettings, {
         onSave: saveState,
         onUpdate: (type) => {
             if (type === 'mode_switch') {

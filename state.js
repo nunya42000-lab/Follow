@@ -118,7 +118,7 @@ export function loadState(applyUpsideDownFn) {
             if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
             if (typeof appSettings.isUniqueRoundsAutoClearEnabled === 'undefined') appSettings.isUniqueRoundsAutoClearEnabled = true;
             if (typeof appSettings.showTimer === 'undefined') appSettings.showTimer = false;
-            if (typeof appSettings.showCounter === 'undefined') appSettings.showCounter = false;
+            if t(typeof appSettings.showCounter === 'undefined') appSettings.showCounter = false;
 
             if (!appSettings.voicePresets) appSettings.voicePresets = {};
             if (!appSettings.activeVoicePresetId) appSettings.activeVoicePresetId = 'standard';
@@ -128,7 +128,7 @@ export function loadState(applyUpsideDownFn) {
             if (!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS));
             if (appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
         } else {
-            appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles.profile_1.settings));
+            appSettings.runtimeSettings = JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS));
         }
 
         if (st) appState = JSON.parse(st);
@@ -147,9 +147,11 @@ export function loadState(applyUpsideDownFn) {
             applyUpsideDownFn();
         }
 
-    } catch (e) {
+ } catch (e) {
         console.error("Load failed", e);
         appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
+        // FIX: Also ensure runtimeSettings exists here
+        appSettings.runtimeSettings = JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS));
         saveState();
     }
 }

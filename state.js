@@ -10,7 +10,9 @@ export let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 export let appState = {};
 export let modules = {
     sensor: null,
-    settings: null
+    settings: null,
+    vision: null,      // Added for clarity
+    voiceModule: null  // Added for clarity
 };
 
 // Timers and hardware states
@@ -24,15 +26,18 @@ export let timers = {
     playback: null,
     tap: null
 };
+
 export let gestureState = {
     startDist: 0,
     startScale: 1,
     isPinching: false
 };
+
 export let blackoutState = {
     isActive: false,
     lastShake: 0
 };
+
 export let gestureInputState = {
     startX: 0,
     startY: 0,
@@ -42,7 +47,7 @@ export let gestureInputState = {
     tapCount: 0
 };
 
-// Game flags
+// Game and UI flags
 export let isDeleting = false;
 export let isDemoPlaying = false;
 export let isPlaybackPaused = false;
@@ -50,15 +55,14 @@ export let playbackResumeCallback = null;
 export let practiceSequence = [];
 export let practiceInputIndex = 0;
 export let ignoreNextClick = false;
-export let voiceModule = null;
 export let isGesturePadVisible = false;
 
-// Dev features
+// Developer features
 export let devClickCount = 0;
 export let isDeveloperMode = localStorage.getItem('isDeveloperMode') === 'true';
 export let devLongPressTimer;
 
-// Auto-logic globals
+// Auto-logic and Global Timers
 export let simpleTimer = {
     interval: null,
     startTime: 0,
@@ -66,17 +70,21 @@ export let simpleTimer = {
     isRunning: false
 };
 export let simpleCounter = 0;
+
 export let globalTimerActions = {
     start: null,
     stop: null,
     reset: null
 };
+
 export let globalCounterActions = {
     increment: null,
     reset: null
 };
 
-// Getters
+/**
+ * Getters for easy access to state fragments
+ */
 export const getProfileSettings = () => appSettings.runtimeSettings;
 export const getState = () => appState.current_session || (appState.current_session = {
     sequences: Array.from({
@@ -86,12 +94,17 @@ export const getState = () => appState.current_session || (appState.current_sess
     currentRound: 1
 });
 
-// Save / Load logic
+/**
+ * Persist current state to LocalStorage
+ */
 export function saveState() {
     localStorage.setItem(CONFIG.STORAGE_KEY_SETTINGS, JSON.stringify(appSettings));
     localStorage.setItem(CONFIG.STORAGE_KEY_STATE, JSON.stringify(appState));
 }
 
+/**
+ * Initialize application state from LocalStorage or Defaults
+ */
 export function loadState(applyUpsideDownFn) {
     try {
         const s = localStorage.getItem(CONFIG.STORAGE_KEY_SETTINGS);
@@ -99,6 +112,8 @@ export function loadState(applyUpsideDownFn) {
 
         if (s) {
             const loaded = JSON.parse(s);
+            
+            // Deep merge defaults with loaded settings to handle schema updates
             appSettings = {
                 ...DEFAULT_APP,
                 ...loaded,
@@ -112,45 +127,51 @@ export function loadState(applyUpsideDownFn) {
                 }
             };
 
-            // Apply defaults for missing fields
-            if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
-            if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
-            if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
-            if (typeof appSettings.isUniqueRoundsAutoClearEnabled === 'undefined') appSettings.isUniqueRoundsAutoClearEnabled = true;
-            if (typeof appSettings.showTimer === 'undefined') appSettings.showTimer = false;
-            if t(typeof appSettings.showCounter === 'undefined') appSettings.showCounter = false;
+            // Ensure runtimeSettings is initialized based on the active profile
+            const activeId = appSettings.activeProfileId || 'profile_1';
+            const activeProfile = appSettings.profiles[activeId] || appSettings.profiles['profile_1'];
+            
+            appSettings.runtimeSettings = {
+                ...DEFAULT_PROFILE_SETTINGS,
+                ...(activeProfile.settings || {}),
+                ...(loaded.runtimeSettings || {})
+            };
 
-            if (!appSettings.voicePresets) appSettings.voicePresets = {};
-            if (!appSettings.activeVoicePresetId) appSettings.activeVoicePresetId = 'standard';
-            if (!appSettings.generalLanguage) appSettings.generalLanguage = 'en';
-            if (!appSettings.gestureResizeMode) appSettings.gestureResizeMode = 'global';
+            // Handle legacy mode naming
+            if (appSettings.runtimeSettings.currentMode === 'unique_rounds') {
+                appSettings.runtimeSettings.currentMode = 'unique';
+            }
 
-            if (!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS));
-            if (appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
         } else {
+            // Fresh Install Logic
+            appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
             appSettings.runtimeSettings = JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS));
         }
 
-        if (st) appState = JSON.parse(st);
-        if (!appState.current_session) appState.current_session = {
-            sequences: Array.from({
-                length: CONFIG.MAX_MACHINES
-            }, () => []),
-            nextSequenceIndex: 0,
-            currentRound: 1
-        };
+        // Load Session State (History/Rounds)
+        if (st) {
+            appState = JSON.parse(st);
+        }
+        
+        if (!appState.current_session) {
+            appState.current_session = {
+                sequences: Array.from({ length: CONFIG.MAX_MACHINES }, () => []),
+                nextSequenceIndex: 0,
+                currentRound: 1
+            };
+        }
 
         appState.current_session.currentRound = parseInt(appState.current_session.currentRound) || 1;
 
-        // Execute UI callback if provided to prevent circular dependencies
+        // Trigger UI updates if required (e.g., orientation changes)
         if (typeof applyUpsideDownFn === 'function') {
             applyUpsideDownFn();
         }
 
- } catch (e) {
-        console.error("Load failed", e);
+    } catch (e) {
+        console.error("Critical State Load Failure:", e);
+        // Fallback to factory defaults on corruption
         appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
-        // FIX: Also ensure runtimeSettings exists here
         appSettings.runtimeSettings = JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS));
         saveState();
     }

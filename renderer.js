@@ -7,8 +7,7 @@ import {
     isGesturePadVisible,
     practiceSequence,
     saveState,
-    modules,
-    voiceModule
+    modules
 } from './state.js';
 import {
     CONFIG
@@ -225,7 +224,8 @@ export function renderUI() {
     if (hMic) {
         // Syncs UI if either the environmental sensor or voice commander is listening
         const isSensorActive = modules.sensor && modules.sensor.mode.audio;
-        const isVoiceActive = voiceModule && voiceModule.isListening;
+                const isVoiceActive = modules.voiceModule && modules.voiceModule.isListening;
+
         hMic.classList.toggle('header-btn-active', isSensorActive || isVoiceActive);
     }
 

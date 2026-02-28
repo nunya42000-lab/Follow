@@ -34,7 +34,7 @@ import {
 } from './settings-events.js';
 
 
-export class Settingsmanager{
+export class SettingsManager{
     constructor(appSettings, callbacks, sensorEngine) {
         // 1. Establish Core >State
         this.appSettings = appSettings; 

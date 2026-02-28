@@ -54,59 +54,37 @@ self.addEventListener('activate', (event) => {
   return self.clients.claim();
 });
 
-// 3. Fetch Event - Cache-First Strategy with Network Fallback
+// 3. Fetch Event - Unified Strategy
 self.addEventListener('fetch', (event) => {
-  // Skip cross-origin requests and Firebase database calls to avoid caching dynamic live data
-  if (!event.request.url.startsWith(self.location.origin) || event.request.url.includes('firestore')) {
-    return;
-  }
+    // 1. Filter requests: Skip non-GET and Firebase/Firestore
+    if (event.request.method !== 'GET' || 
+        !event.request.url.startsWith(self.location.origin) || 
+        event.request.url.includes('firestore')) {
+        return;
+    }
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      // Return cached file if found
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      // Otherwise, fetch from the network
-      return fetch(event.request).then((networkResponse) => {
-        // Optionally cache new successful requests dynamically
-        return caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, networkResponse.clone());
-          return networkResponse;
-        });
-      }).catch(() => {
-        // Optional: Return a fallback offline page/asset if network fails and it's not cached
-        console.log('[Service Worker] Fetch failed; returning offline page instead.');
-      });
-    })
-  );
-});
-(
-            cacheNames.map(cacheName => {
-                if (cacheName !== CACHE_NAME) return caches.delete(cacheName);
-            })
-        );
-    then(() => self.clients.claim());
-};
-
-self.addEventListener('fetch', event => {
-    if (event.request.method !== 'GET') return;
-    
     event.respondWith(
-        caches.match(event.request).then(cached => {
-            // Return cached content if available
-            if (cached) return cached;
+        caches.match(event.request).then((cachedResponse) => {
+            // Return cached file if found
+            if (cachedResponse) {
+                return cachedResponse;
+            }
 
-            // Otherwise fetch from network and cache it for next time
-            return fetch(event.request).then(networkResponse => {
+            // Otherwise, fetch from the network
+            return fetch(event.request).then((networkResponse) => {
+                // Validate response before caching
                 if (!networkResponse || networkResponse.status !== 200 || networkResponse.type === 'error') {
                     return networkResponse;
                 }
+
                 const responseToCache = networkResponse.clone();
-                caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
+                caches.open(CACHE_NAME).then((cache) => {
+                    cache.put(event.request, responseToCache);
+                });
+
                 return networkResponse;
             }).catch(() => {
-                console.log('[SW] Offline & not found:', event.request.url);
+                console.log('[Service Worker] Fetch failed and asset not cached.');
             });
         })
     );

@@ -25,8 +25,9 @@ import {
 
 export function renderUI() {
     const container = document.getElementById('sequence-container');
-    const settings = getProfileSettings();
-try {
+    const settings = getProfileSettings(); // DECLARATION 1 (KEEP)
+
+    try {
         const gpWrap = document.getElementById('gesture-pad-wrapper');
         const pad = document.getElementById('gesture-pad');
         if (gpWrap) {
@@ -61,8 +62,10 @@ try {
         console.error('Gesture UI error', e);
     }
 
+    if (!container) return;
     container.innerHTML = '';
-    const settings = getProfileSettings();
+
+    // FIX: Removed duplicate 'const settings' declaration from here
     const state = getState();
 
     ['key9', 'key12', 'piano'].forEach(k => {
@@ -135,7 +138,7 @@ try {
         const card = document.createElement('div');
         card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)] relative group";
 
-        if (settings.machineCount > 1) {
+        if (settings.machineCount > 1 || settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
             const headerRow = document.createElement('div');
             headerRow.className = "flex justify-between items-center mb-2 pb-2 border-b border-custom border-opacity-20";
 
@@ -218,15 +221,14 @@ try {
         card.appendChild(numGrid);
         container.appendChild(card);
     });
+
     const hMic = document.getElementById('header-mic-btn');
     const hCam = document.getElementById('header-cam-btn');
     const hGest = document.getElementById('header-gesture-btn');
 
     if (hMic) {
-        // Syncs UI if either the environmental sensor or voice commander is listening
         const isSensorActive = modules.sensor && modules.sensor.mode.audio;
-                const isVoiceActive = modules.voiceModule && modules.voiceModule.isListening;
-
+        const isVoiceActive = modules.voiceModule && modules.voiceModule.isListening;
         hMic.classList.toggle('header-btn-active', isSensorActive || isVoiceActive);
     }
 
@@ -237,4 +239,5 @@ try {
     document.querySelectorAll('.reset-button').forEach(b => {
         b.style.display = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 'block' : 'none';
     });
-} // End of renderUI()
+}
+    

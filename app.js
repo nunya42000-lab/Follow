@@ -1,19 +1,57 @@
 // app.js
-import { loadState, saveState, appSettings, getState, modules } from './state.js';
-import { CONFIG, DEFAULT_PROFILE_SETTINGS } from './config.js';
-import { renderUI } from './renderer.js';
-import { VisionEngine } from './vision.js';
-import { SensorEngine } from './sensors.js';
-import { VoiceCommander } from './voice-commander.js';
-import { initComments } from './comments.js';
-import { showToast, updateAllChrome } from './ui-core.js';
-import { addValue, playDemo, handleBackspace } from './game-logic.js';
-import { initGlobalListeners } from './global-listeners.js';
-import { initGestureEngine } from './gesture-engine-setup.js';
-import { mapGestureToValue } from './gesture-mappings.js';
-import { db } from './firebase-setup.js';
-import { injectModals } from './ui-modals.js';
-import { initUIController } from './ui-controller.js';
+import {
+    loadState,
+    saveState,
+    appSettings,
+    getState,
+    modules
+} from './state.js';
+import {
+    CONFIG,
+    DEFAULT_PROFILE_SETTINGS
+} from './config.js';
+import {
+    renderUI
+} from './renderer.js';
+import {
+    VisionEngine
+} from './vision.js';
+import {
+    SensorEngine
+} from './sensors.js';
+import {
+    VoiceCommander
+} from './voice-commander.js';
+import {
+    initComments
+} from './comments.js';
+import {
+    showToast,
+    updateAllChrome
+} from './ui-core.js';
+import {
+    addValue,
+    playDemo,
+    handleBackspace
+} from './game-logic.js';
+import {
+    initGlobalListeners
+} from './global-listeners.js';
+import {
+    initGestureEngine
+} from './gesture-engine-setup.js';
+import {
+    mapGestureToValue
+} from './gesture-mappings.js';
+import {
+    db
+} from './firebase-setup.js';
+import {
+    injectModals
+} from './ui-modals.js';
+import {
+    initUIController
+} from './ui-controller.js';
 
 /**
  * Global Application State
@@ -32,15 +70,17 @@ export const startApp = () => {
     // 2. Initialize Settings Manager with full profile & lifecycle logic
     modules.settings = new appSettings(appSettings, {
         onSave: saveState,
-        onUpdate: (type) => { 
-            if(type === 'mode_switch') {
+        onUpdate: (type) => {
+            if (type === 'mode_switch') {
                 const s = getState();
-                s.sequences = Array.from({length: CONFIG.MAX_MACHINES || 10}, () => []);
+                s.sequences = Array.from({
+                    length: CONFIG.MAX_MACHINES || 10
+                }, () => []);
                 s.nextSequenceIndex = 0;
                 s.currentRound = 1;
                 renderUI();
             } else {
-                updateAllChrome(); 
+                updateAllChrome();
                 applyDeveloperVisibility();
                 updateDynamicIncrements();
                 if (type && type.toLowerCase().includes('step')) {
@@ -48,69 +88,77 @@ export const startApp = () => {
                 }
             }
         },
-        onReset: () => { 
+        onReset: () => {
             if (confirm("Factory Reset? This will wipe all data and reload.")) {
-                localStorage.clear(); 
-                location.reload(); 
+                localStorage.clear();
+                location.reload();
             }
         },
-        onProfileSwitch: (id) => { 
-            appSettings.activeProfileId = id; 
-            appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings)); 
-            if(appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
-            saveState(); 
-            const s = getState(); 
-            s.sequences = Array.from({length: CONFIG.MAX_MACHINES || 10}, () => []); 
-            s.nextSequenceIndex = 0; 
+        onProfileSwitch: (id) => {
+            appSettings.activeProfileId = id;
+            appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings));
+            if (appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
+            saveState();
+            const s = getState();
+            s.sequences = Array.from({
+                length: CONFIG.MAX_MACHINES || 10
+            }, () => []);
+            s.nextSequenceIndex = 0;
             s.currentRound = 1;
             applyDeveloperVisibility();
             updateAllChrome();
-            renderUI(); 
+            renderUI();
             showToast(`Profile: ${appSettings.profiles[id].name}`);
         },
-        onProfileAdd: (name) => { 
-            const id = 'p_' + Date.now(); 
-            appSettings.profiles[id] = { name, settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }; 
-            appSettings.activeProfileId = id; 
-            appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings)); 
-            saveState(); 
-            renderUI(); 
+        onProfileAdd: (name) => {
+            const id = 'p_' + Date.now();
+            appSettings.profiles[id] = {
+                name,
+                settings: {
+                    ...DEFAULT_PROFILE_SETTINGS
+                },
+                theme: 'default'
+            };
+            appSettings.activeProfileId = id;
+            appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings));
+            saveState();
+            renderUI();
             showToast("Profile Added");
         },
-        onProfileRename: (name) => { 
-            if(appSettings.profiles[appSettings.activeProfileId]) { 
-                appSettings.profiles[appSettings.activeProfileId].name = name; 
-                saveState(); 
+        onProfileRename: (name) => {
+            if (appSettings.profiles[appSettings.activeProfileId]) {
+                appSettings.profiles[appSettings.activeProfileId].name = name;
+                saveState();
                 updateAllChrome();
-            } 
+            }
         },
-        onProfileDelete: () => { 
-            if(Object.keys(appSettings.profiles).length > 1) { 
-                delete appSettings.profiles[appSettings.activeProfileId]; 
-                appSettings.activeProfileId = Object.keys(appSettings.profiles)[0]; 
-                appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings)); 
-                saveState(); 
-                renderUI(); 
+        onProfileDelete: () => {
+            if (Object.keys(appSettings.profiles).length > 1) {
+                delete appSettings.profiles[appSettings.activeProfileId];
+                appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
+                appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings));
+                saveState();
+                renderUI();
                 showToast("Profile Deleted");
-            } else { 
-                alert("Must keep one profile."); 
-            } 
+            } else {
+                alert("Must keep one profile.");
+            }
         },
-        onProfileSave: () => { 
-            if(appSettings.profiles[appSettings.activeProfileId]) { 
-                appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings)); 
-                saveState(); 
-                showToast("Profile Saved!"); 
-            } 
+        onProfileSave: () => {
+            if (appSettings.profiles[appSettings.activeProfileId]) {
+                appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings));
+                saveState();
+                showToast("Profile Saved!");
+            }
         }
-    }, null); 
+    }, null);
 
     // 3. Hardware Engines
     modules.sensor = new SensorEngine(
-        (val, source) => { 
-             if (source === 'camera' && modules.vision && modules.vision.isActive) return;
-             addValue(val); 
-             triggerKeypadVisuals(val);
+        (val, source) => {
+            if (source === 'camera' && modules.vision && modules.vision.isActive) return;
+            addValue(val);
+            triggerKeypadVisuals(val);
         },
         (status) => {}
     );
@@ -135,23 +183,25 @@ export const startApp = () => {
             triggerKeypadVisuals(val);
         },
         onCommand: (cmd) => {
-            if(cmd === 'CMD_PLAY') playDemo();
-            if(cmd === 'CMD_CLEAR') { 
-                const s = getState(); 
-                s.sequences = Array.from({length: CONFIG.MAX_MACHINES || 10}, () => []); 
-                renderUI(); 
-                showToast("Buffer Cleared"); 
+            if (cmd === 'CMD_PLAY') playDemo();
+            if (cmd === 'CMD_CLEAR') {
+                const s = getState();
+                s.sequences = Array.from({
+                    length: CONFIG.MAX_MACHINES || 10
+                }, () => []);
+                renderUI();
+                showToast("Buffer Cleared");
             }
-            if(cmd === 'CMD_DELETE') handleBackspace();
-            if(cmd === 'CMD_SETTINGS') modules.settings.openSettings();
+            if (cmd === 'CMD_DELETE') handleBackspace();
+            if (cmd === 'CMD_SETTINGS') modules.settings.openSettings();
         }
     });
 
     // 4. Controller Initializations
-    initUIController();   // Tab swiping & Modal management
-    initGlobalListeners(); 
-    initGestureEngine();   // OmniGesture Engine v114
-    initComments(db);      // Firebase Feedback
+    initUIController(); // Tab swiping & Modal management
+    initGlobalListeners();
+    initGestureEngine(); // OmniGesture Engine v114
+    initComments(db); // Firebase Feedback
 
     // 5. Developer Feature Linkage
     initDeveloperControls();
@@ -159,11 +209,11 @@ export const startApp = () => {
     // 6. System Launch Lifecycle
     updateAllChrome();
     modules.settings.updateHeaderVisibility();
-    
+
     // Auto-Input Persistence
     if (appSettings.autoInputMode === 'mic' || appSettings.autoInputMode === 'both') modules.sensor.toggleAudio(true);
     if (appSettings.autoInputMode === 'cam' || appSettings.autoInputMode === 'both') modules.sensor.toggleCamera(true);
-    
+
     applyDeveloperVisibility();
     updateDynamicIncrements();
     renderUI();
@@ -176,9 +226,9 @@ export const startApp = () => {
  */
 function triggerKeypadVisuals(val) {
     const btn = document.querySelector(`#pad-${appSettings.runtimeSettings.currentInput} button[data-value="${val}"]`);
-    if(btn) { 
-        btn.classList.add('flash-active'); 
-        setTimeout(() => btn.classList.remove('flash-active'), 200); 
+    if (btn) {
+        btn.classList.add('flash-active');
+        setTimeout(() => btn.classList.remove('flash-active'), 200);
     }
 }
 
@@ -255,7 +305,7 @@ export function applyDeveloperVisibility() {
 
     }
     if (hapticSection) {
-         hapticSection.classList.toggle('hidden', appSettings.devHideHapticSettings);
+        hapticSection.classList.toggle('hidden', appSettings.devHideHapticSettings);
 
     }
 
@@ -285,7 +335,9 @@ export const simulateSequence = (type) => {
     if (type === 'sim-win') s.sequences[0] = [1, 2, 3, 4, 5];
     if (type === 'sim-loss') s.sequences[0] = [9, 9, 9, 9, 9];
     if (type === 'fill-history') {
-        for(let i=0; i<5; i++) s.sequences[i] = Array.from({length: 5}, () => Math.floor(Math.random() * 9) + 1);
+        for (let i = 0; i < 5; i++) s.sequences[i] = Array.from({
+            length: 5
+        }, () => Math.floor(Math.random() * 9) + 1);
     }
     renderUI();
     showToast(`Simulation: ${type}`);

@@ -10,8 +10,8 @@ import {
     CONFIG,
     DEFAULT_PROFILE_SETTINGS
 } from './config.js';
-import { SettingsManager} from './settings.js';
-    import {
+import { SettingsManager } from './settings.js';
+import {
     renderUI
 } from './renderer.js';
 import {
@@ -64,11 +64,11 @@ export const startApp = () => {
     console.log("🛠️ System Boot Sequence Initiated...");
 
     // 1. Core Data Load & DOM Injection
-    // injectModals MUST happen before we try to find any IDs
     loadState();
     injectModals();
 
-    // 2. Initialize Settings Manager with full profile & lifecycle logic
+    // 2. Initialize Settings Manager
+    // Use 'new' keyword and match the capitalized class name
     modules.settings = new SettingsManager(appSettings, {
         onSave: saveState,
         onUpdate: (type) => {
@@ -167,7 +167,11 @@ export const startApp = () => {
 
     modules.vision = new VisionEngine(
         (gesture) => {
-            const mappedVal = mapGestureToValue(gesture, appSettings.runtimeSettings.currentInput);
+            // Added optional chaining for safety
+            const currentInput = appSettings.runtimeSettings?.currentInput;
+            if (!currentInput) return;
+
+            const mappedVal = mapGestureToValue(gesture, currentInput);
             if (mappedVal) {
                 addValue(mappedVal);
                 triggerKeypadVisuals(mappedVal);
@@ -199,10 +203,10 @@ export const startApp = () => {
     });
 
     // 4. Controller Initializations
-    initUIController(); // Tab swiping & Modal management
+    initUIController();
     initGlobalListeners();
-    initGestureEngine(); // OmniGesture Engine v114
-    initComments(db); // Firebase Feedback
+    initGestureEngine();
+    initComments(db);
 
     // 5. Developer Feature Linkage
     initDeveloperControls();
@@ -211,7 +215,6 @@ export const startApp = () => {
     updateAllChrome();
     modules.settings.updateHeaderVisibility();
 
-    // Auto-Input Persistence
     if (appSettings.autoInputMode === 'mic' || appSettings.autoInputMode === 'both') modules.sensor.toggleAudio(true);
     if (appSettings.autoInputMode === 'cam' || appSettings.autoInputMode === 'both') modules.sensor.toggleCamera(true);
 
@@ -222,22 +225,17 @@ export const startApp = () => {
     console.log("🚀 System Online.");
 };
 
-/**
- * Visual feedback for input
- */
 function triggerKeypadVisuals(val) {
-    const btn = document.querySelector(`#pad-${appSettings.runtimeSettings.currentInput} button[data-value="${val}"]`);
+    const input = appSettings.runtimeSettings?.currentInput;
+    if (!input) return;
+    const btn = document.querySelector(`#pad-${input} button[data-value="${val}"]`);
     if (btn) {
         btn.classList.add('flash-active');
         setTimeout(() => btn.classList.remove('flash-active'), 200);
     }
 }
 
-/**
- * Initialize listeners for Developer Modal features
- */
 function initDeveloperControls() {
-    // Visibility Toggles
     const vToggle = document.getElementById('dev-hide-voice-toggle');
     const hToggle = document.getElementById('dev-hide-haptic-toggle');
 
@@ -259,7 +257,6 @@ function initDeveloperControls() {
         });
     }
 
-    // Increment Selectors (Speed, UI, Sequence Size)
     const selectors = {
         'dev-speed-inc-select': 'devSpeedIncrement',
         'dev-ui-inc-select': 'devUiIncrement',
@@ -278,7 +275,6 @@ function initDeveloperControls() {
         }
     });
 
-    // Secret Trigger (7-Tap Logic)
     const devTrigger = document.getElementById('dev-secret-trigger');
     if (devTrigger) {
         devTrigger.addEventListener('click', () => {
@@ -294,30 +290,17 @@ function initDeveloperControls() {
     }
 }
 
-/**
- * Logic to hide/show Voice and Haptic sections in the Playback UI
- */
 export function applyDeveloperVisibility() {
     const voiceSection = document.getElementById('voice-settings-section');
     const hapticSection = document.getElementById('morse-container');
 
-    if (voiceSection) {
-        voiceSection.classList.toggle('hidden', appSettings.devHideVoiceSettings);
+    if (voiceSection) voiceSection.classList.toggle('hidden', appSettings.devHideVoiceSettings);
+    if (hapticSection) hapticSection.classList.toggle('hidden', appSettings.devHideHapticSettings);
 
-    }
-    if (hapticSection) {
-        hapticSection.classList.toggle('hidden', appSettings.devHideHapticSettings);
-
-    }
-
-    // Update the visual state of the trigger
     const trigger = document.getElementById('dev-secret-trigger');
     if (isDeveloperMode && trigger) trigger.classList.add('text-blue-500', 'animate-pulse');
 }
 
-/**
- * Update slider step values based on Developer selections
- */
 export function updateDynamicIncrements() {
     const speedSlider = document.getElementById('playback-speed-slider');
     const uiSlider = document.getElementById('ui-scale-slider');
@@ -328,23 +311,17 @@ export function updateDynamicIncrements() {
     if (seqSlider) seqSlider.step = appSettings.devSeqIncrement || "1";
 }
 
-/**
- * Developer Simulation Tools
- */
 export const simulateSequence = (type) => {
     const s = getState();
     if (type === 'sim-win') s.sequences[0] = [1, 2, 3, 4, 5];
     if (type === 'sim-loss') s.sequences[0] = [9, 9, 9, 9, 9];
     if (type === 'fill-history') {
-        for (let i = 0; i < 5; i++) s.sequences[i] = Array.from({
-            length: 5
-        }, () => Math.floor(Math.random() * 9) + 1);
+        for (let i = 0; i < 5; i++) s.sequences[i] = Array.from({ length: 5 }, () => Math.floor(Math.random() * 9) + 1);
     }
     renderUI();
     showToast(`Simulation: ${type}`);
 };
 
-// Global Exposure
 window.applyDeveloperVisibility = applyDeveloperVisibility;
 window.simulateSequence = simulateSequence;
 window.updateDynamicIncrements = updateDynamicIncrements;

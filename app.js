@@ -10,7 +10,7 @@ import {
     CONFIG,
     DEFAULT_PROFILE_SETTINGS
 } from './config.js';
-import { app } from './settings.js';
+import { SettingsManager} from './settings.js';
     import {
     renderUI
 } from './renderer.js';

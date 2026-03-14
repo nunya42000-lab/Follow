@@ -39,16 +39,12 @@ const DEFAULT_APP = {
     isArModeEnabled: false, 
     isVoiceInputEnabled: false, 
     
-    // --- GESTURE & AUTO TOGGLES ---
+    // --- NEW TOGGLES ---
     isDeleteGestureEnabled: false, 
     isClearGestureEnabled: false,
     isAutoTimerEnabled: false,
     isAutoCounterEnabled: false,
-
-    // --- NEW PORTED TOGGLES ---
-    isWakeLockEnabled: false,       // Ported from wakelock.js
-    isUpsideDownEnabled: false,     // Ported from upsidedown.js
-    // --------------------------
+    // -------------------
 
     isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, 
     activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, 
@@ -61,7 +57,6 @@ const DEFAULT_APP = {
     selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en', 
     isGestureInputEnabled: false, gestureMappings: {} 
 };
-
 // DEFAULT MAPPINGS (Extracted to top level)
 const DEFAULT_MAPPINGS = {
     // 9-Key: Basic Taps
@@ -124,17 +119,10 @@ function loadState() {
     try { 
         const s = localStorage.getItem(CONFIG.STORAGE_KEY_SETTINGS); 
         const st = localStorage.getItem(CONFIG.STORAGE_KEY_STATE); 
-        
-        if (s) { 
+        if(s) { 
             const loaded = JSON.parse(s); 
-            appSettings = { 
-                ...DEFAULT_APP, 
-                ...loaded, 
-                profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, 
-                customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } 
-            }; 
+            appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } }; 
             
-            // Legacy fallbacks
             if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
             if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
             if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
@@ -142,39 +130,18 @@ function loadState() {
             if (typeof appSettings.showTimer === 'undefined') appSettings.showTimer = false;
             if (typeof appSettings.showCounter === 'undefined') appSettings.showCounter = false;
 
-            // --- NEW FEATURE FALLBACKS ---
-            if (typeof appSettings.isWakeLockEnabled === 'undefined') appSettings.isWakeLockEnabled = false;
-            if (typeof appSettings.isUpsideDownEnabled === 'undefined') appSettings.isUpsideDownEnabled = false;
-
             if (!appSettings.voicePresets) appSettings.voicePresets = {};
             if (!appSettings.activeVoicePresetId) appSettings.activeVoicePresetId = 'standard';
             if (!appSettings.generalLanguage) appSettings.generalLanguage = 'en';
             if (!appSettings.gestureResizeMode) appSettings.gestureResizeMode = 'global';
 
-            if (!appSettings.runtimeSettings) {
-                appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS)); 
-            }
-            if (appSettings.runtimeSettings.currentMode === 'unique_rounds') {
-                appSettings.runtimeSettings.currentMode = 'unique';
-            }
+            if(!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS)); 
+            if(appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
         } else { 
-            // If no settings exist, initialize with defaults
-            appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
             appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles['profile_1'].settings)); 
         } 
-
-        // Load State Logic
-        if (st) {
-            appState = JSON.parse(st); 
-        }
-
-        if (!appState['current_session']) {
-            appState['current_session'] = { 
-                sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), 
-                nextSequenceIndex: 0, 
-                currentRound: 1 
-            };
-        }
+        if(st) appState = JSON.parse(st); 
+        if(!appState['current_session']) appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
         
         appState['current_session'].currentRound = parseInt(appState['current_session'].currentRound) || 1;
         
@@ -183,8 +150,8 @@ function loadState() {
         appSettings = JSON.parse(JSON.stringify(DEFAULT_APP)); 
         saveState(); 
     } 
-                                                                                                                            
-                                       
+}
+
 
 function vibrate() { if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10); }
 
@@ -1491,47 +1458,26 @@ if(headerStealth) {
     } catch(e) {
         console.error("Listener Error:", e);
     }
-
-    // ==========================================
-// TOGGLEABLE WAKE LOCK & UPSIDE DOWN
-// ==========================================
-
-let wakeLockObj = null;
-
-window.applyWakeLock = async function() {
-    if (appSettings.isWakeLockEnabled && 'wakeLock' in navigator) {
-        try {
-            wakeLockObj = await navigator.wakeLock.request('screen');
-            console.log('☀️ Wake Lock active');
-        } catch (err) {
-            console.log('Wake Lock denied:', err);
+// Keep screen awake
+async function requestWakeLock() {
+    try {
+        if ('wakeLock' in navigator) {
+            let wakeLock = await navigator.wakeLock.request('screen');
+            console.log('Wake Lock active');
+            // Re-acquire if app minimizes and comes back
+            document.addEventListener('visibilitychange', async () => {
+                if (document.visibilityState === 'visible') {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            });
         }
-    } else if (!appSettings.isWakeLockEnabled && wakeLockObj) {
-        wakeLockObj.release().then(() => wakeLockObj = null);
-        console.log('🌙 Wake Lock released');
+    } catch (err) {
+        console.log('Wake Lock not supported/allowed');
     }
-};
-
-window.applyUpsideDown = function() {
-    if (appSettings.isUpsideDownEnabled) {
-        document.body.style.transform = 'rotate(180deg)';
-        document.body.style.transition = 'transform 0.3s ease'; 
-    } else {
-        document.body.style.transform = '';
-    }
-};
-
-// Auto-relock the screen if the user minimizes the app and comes back
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && appSettings.isWakeLockEnabled) {
-        window.applyWakeLock();
-    }
-});
-
-// Apply settings when the app starts
-window.applyWakeLock();
-window.applyUpsideDown();
-    
+}
+// Call this when the app starts
+requestWakeLock();
+        
 }
         
 document.addEventListener('DOMContentLoaded', startApp);

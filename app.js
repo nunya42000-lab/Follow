@@ -1470,26 +1470,47 @@ if(headerStealth) {
     } catch(e) {
         console.error("Listener Error:", e);
     }
-// Keep screen awake
-async function requestWakeLock() {
-    try {
-        if ('wakeLock' in navigator) {
-            let wakeLock = await navigator.wakeLock.request('screen');
-            console.log('Wake Lock active');
-            // Re-acquire if app minimizes and comes back
-            document.addEventListener('visibilitychange', async () => {
-                if (document.visibilityState === 'visible') {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                }
-            });
+
+    // ==========================================
+// TOGGLEABLE WAKE LOCK & UPSIDE DOWN
+// ==========================================
+
+let wakeLockObj = null;
+
+window.applyWakeLock = async function() {
+    if (appSettings.isWakeLockEnabled && 'wakeLock' in navigator) {
+        try {
+            wakeLockObj = await navigator.wakeLock.request('screen');
+            console.log('☀️ Wake Lock active');
+        } catch (err) {
+            console.log('Wake Lock denied:', err);
         }
-    } catch (err) {
-        console.log('Wake Lock not supported/allowed');
+    } else if (!appSettings.isWakeLockEnabled && wakeLockObj) {
+        wakeLockObj.release().then(() => wakeLockObj = null);
+        console.log('🌙 Wake Lock released');
     }
-}
-// Call this when the app starts
-requestWakeLock();
-        
+};
+
+window.applyUpsideDown = function() {
+    if (appSettings.isUpsideDownEnabled) {
+        document.body.style.transform = 'rotate(180deg)';
+        document.body.style.transition = 'transform 0.3s ease'; 
+    } else {
+        document.body.style.transform = '';
+    }
+};
+
+// Auto-relock the screen if the user minimizes the app and comes back
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && appSettings.isWakeLockEnabled) {
+        window.applyWakeLock();
+    }
+});
+
+// Apply settings when the app starts
+window.applyWakeLock();
+window.applyUpsideDown();
+    
 }
         
 document.addEventListener('DOMContentLoaded', startApp);

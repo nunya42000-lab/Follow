@@ -1535,4 +1535,3 @@ window.applyUpsideDown();
 }
         
 document.addEventListener('DOMContentLoaded', startApp);
-}

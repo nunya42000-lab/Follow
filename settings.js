@@ -277,7 +277,8 @@ export class SettingsManager {
             showWelcome: document.getElementById('show-welcome-toggle'), 
             blackoutToggle: document.getElementById('blackout-toggle'), // "Boss Mode"
             stealth1KeyToggle: document.getElementById('stealth-1key-toggle'), // "Inputs Only"
-            
+            wakeLockToggle: document.getElementById('wakelock-toggle'), // "Wake Lock"
+            upsideDownToggle: document.getElementById('upsidedown-toggle'), // "Upside Down"
             // Previously injected, now hardcoded
             longPressToggle: document.getElementById('long-press-autoplay-toggle'), // "AP Shortcut"
             blackoutGesturesToggle: document.getElementById('blackout-gestures-toggle'), // "Hand Gestures" (Previously BM Gestures)
@@ -340,6 +341,27 @@ export class SettingsManager {
                 this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
             });
         }
+               // --- NEW TOGGLE BINDINGS ---
+        if(this.dom.wakeLockToggle){
+            this.dom.wakeLockToggle.checked = !!this.appSettings.isWakeLockEnabled;
+            this.dom.wakeLockToggle.addEventListener('change', (e) => {
+                this.appSettings.isWakeLockEnabled = !!e.target.checked;
+                this.callbacks.onSave();
+                if (typeof applyWakeLock === 'function') applyWakeLock();
+                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+            });
+        }
+
+        if(this.dom.upsideDownToggle){
+            this.dom.upsideDownToggle.checked = !!this.appSettings.isUpsideDownEnabled;
+            this.dom.upsideDownToggle.addEventListener('change', (e) => {
+                this.appSettings.isUpsideDownEnabled = !!e.target.checked;
+                this.callbacks.onSave();
+                if (typeof applyUpsideDown === 'function') applyUpsideDown();
+                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+            });
+        }
+        // ---------------------------
         
     }
     populatePlaybackSpeedDropdown() {

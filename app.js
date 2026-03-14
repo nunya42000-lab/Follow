@@ -124,9 +124,15 @@ function loadState() {
     try { 
         const s = localStorage.getItem(CONFIG.STORAGE_KEY_SETTINGS); 
         const st = localStorage.getItem(CONFIG.STORAGE_KEY_STATE); 
-                if(s) { 
+        
+        if (s) { 
             const loaded = JSON.parse(s); 
-            appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } }; 
+            appSettings = { 
+                ...DEFAULT_APP, 
+                ...loaded, 
+                profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, 
+                customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } 
+            }; 
             
             // Legacy fallbacks
             if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
@@ -139,21 +145,36 @@ function loadState() {
             // --- NEW FEATURE FALLBACKS ---
             if (typeof appSettings.isWakeLockEnabled === 'undefined') appSettings.isWakeLockEnabled = false;
             if (typeof appSettings.isUpsideDownEnabled === 'undefined') appSettings.isUpsideDownEnabled = false;
-            // -----------------------------
 
             if (!appSettings.voicePresets) appSettings.voicePresets = {};
             if (!appSettings.activeVoicePresetId) appSettings.activeVoicePresetId = 'standard';
             if (!appSettings.generalLanguage) appSettings.generalLanguage = 'en';
             if (!appSettings.gestureResizeMode) appSettings.gestureResizeMode = 'global';
 
-            if(!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS)); 
-            if(appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
-        }
-    } else { 
+            if (!appSettings.runtimeSettings) {
+                appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS)); 
+            }
+            if (appSettings.runtimeSettings.currentMode === 'unique_rounds') {
+                appSettings.runtimeSettings.currentMode = 'unique';
+            }
+        } else { 
+            // If no settings exist, initialize with defaults
+            appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
             appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles['profile_1'].settings)); 
         } 
-        if(st) appState = JSON.parse(st); 
-        if(!appState['current_session']) appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 };
+
+        // Load State Logic
+        if (st) {
+            appState = JSON.parse(st); 
+        }
+
+        if (!appState['current_session']) {
+            appState['current_session'] = { 
+                sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), 
+                nextSequenceIndex: 0, 
+                currentRound: 1 
+            };
+        }
         
         appState['current_session'].currentRound = parseInt(appState['current_session'].currentRound) || 1;
         
@@ -162,8 +183,8 @@ function loadState() {
         appSettings = JSON.parse(JSON.stringify(DEFAULT_APP)); 
         saveState(); 
     } 
-}
-
+                                                                                                                            }
+                                       
 
 function vibrate() { if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10); }
 

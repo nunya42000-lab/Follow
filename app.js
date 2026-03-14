@@ -39,12 +39,16 @@ const DEFAULT_APP = {
     isArModeEnabled: false, 
     isVoiceInputEnabled: false, 
     
-    // --- NEW TOGGLES ---
+    // --- GESTURE & AUTO TOGGLES ---
     isDeleteGestureEnabled: false, 
     isClearGestureEnabled: false,
     isAutoTimerEnabled: false,
     isAutoCounterEnabled: false,
-    // -------------------
+
+    // --- NEW PORTED TOGGLES ---
+    isWakeLockEnabled: false,       // Ported from wakelock.js
+    isUpsideDownEnabled: false,     // Ported from upsidedown.js
+    // --------------------------
 
     isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, 
     activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, 
@@ -57,6 +61,7 @@ const DEFAULT_APP = {
     selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en', 
     isGestureInputEnabled: false, gestureMappings: {} 
 };
+
 // DEFAULT MAPPINGS (Extracted to top level)
 const DEFAULT_MAPPINGS = {
     // 9-Key: Basic Taps
@@ -119,16 +124,22 @@ function loadState() {
     try { 
         const s = localStorage.getItem(CONFIG.STORAGE_KEY_SETTINGS); 
         const st = localStorage.getItem(CONFIG.STORAGE_KEY_STATE); 
-        if(s) { 
+                if(s) { 
             const loaded = JSON.parse(s); 
             appSettings = { ...DEFAULT_APP, ...loaded, profiles: { ...DEFAULT_APP.profiles, ...(loaded.profiles || {}) }, customThemes: { ...DEFAULT_APP.customThemes, ...(loaded.customThemes || {}) } }; 
             
+            // Legacy fallbacks
             if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
             if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
             if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
             if (typeof appSettings.isUniqueRoundsAutoClearEnabled === 'undefined') appSettings.isUniqueRoundsAutoClearEnabled = true; 
             if (typeof appSettings.showTimer === 'undefined') appSettings.showTimer = false;
             if (typeof appSettings.showCounter === 'undefined') appSettings.showCounter = false;
+
+            // --- NEW FEATURE FALLBACKS ---
+            if (typeof appSettings.isWakeLockEnabled === 'undefined') appSettings.isWakeLockEnabled = false;
+            if (typeof appSettings.isUpsideDownEnabled === 'undefined') appSettings.isUpsideDownEnabled = false;
+            // -----------------------------
 
             if (!appSettings.voicePresets) appSettings.voicePresets = {};
             if (!appSettings.activeVoicePresetId) appSettings.activeVoicePresetId = 'standard';
@@ -137,7 +148,8 @@ function loadState() {
 
             if(!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS)); 
             if(appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
-        } else { 
+        }
+    } else { 
             appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles['profile_1'].settings)); 
         } 
         if(st) appState = JSON.parse(st); 

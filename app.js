@@ -183,7 +183,7 @@ function loadState() {
         appSettings = JSON.parse(JSON.stringify(DEFAULT_APP)); 
         saveState(); 
     } 
-                                                                                                                            }
+                                                                                                                            
                                        
 
 function vibrate() { if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10); }

@@ -923,7 +923,27 @@ const startApp = () => {
 
     modules.settings.sensorEngine = modules.sensor;
 modules.vision = new VisionEngine(
-   const ui = {
+
+    (gesture) => {
+            // This runs when the AI detects a hand gesture (e.g. "hand_5_up")
+            const settings = getProfileSettings();
+            const mappedVal = mapGestureToValue(gesture, settings.currentInput);
+            
+            if (mappedVal) {
+                addValue(mappedVal);
+                
+                // Visual Feedback
+                const btn = document.querySelector(`#pad-${settings.currentInput} button[data-value="${mappedVal}"]`);
+                if(btn) { 
+                    btn.classList.add('flash-active'); 
+                    setTimeout(() => btn.classList.remove('flash-active'), 200); 
+                }
+                showToast(`Hand: ${mappedVal} 🖐️`);
+            }
+        },
+        (status) => showToast(status) // Shows "Loading AI...", "Cam Blocked", etc.
+    );
+    const ui = {
         recordBtn: document.getElementById('recordBtn'),
         pauseBtn: document.getElementById('pauseBtn'),
         saveBtn: document.getElementById('saveBtn'),
@@ -991,26 +1011,6 @@ const headerCam = document.getElementById('header-cam');
         };
     }
 }
-
-    (gesture) => {
-            // This runs when the AI detects a hand gesture (e.g. "hand_5_up")
-            const settings = getProfileSettings();
-            const mappedVal = mapGestureToValue(gesture, settings.currentInput);
-            
-            if (mappedVal) {
-                addValue(mappedVal);
-                
-                // Visual Feedback
-                const btn = document.querySelector(`#pad-${settings.currentInput} button[data-value="${mappedVal}"]`);
-                if(btn) { 
-                    btn.classList.add('flash-active'); 
-                    setTimeout(() => btn.classList.remove('flash-active'), 200); 
-                }
-                showToast(`Hand: ${mappedVal} 🖐️`);
-            }
-        },
-        (status) => showToast(status) // Shows "Loading AI...", "Cam Blocked", etc.
-    );
     // --- FIX: INITIALIZE VOICE MODULE ---
     voiceModule = new VoiceCommander({
         onStatus: (msg) => showToast(msg),

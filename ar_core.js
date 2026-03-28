@@ -1,108 +1,123 @@
-// ar_core.js
-// The lightweight "Eye" of the system.
-export class ARCore {
-    constructor(callbacks) {
-        this.callbacks = callbacks || {};
-        this.video = null;
-        this.canvas = null;
-        this.ctx = null;
+class ARTool {
+    constructor(callbacks = {}) {
+        this.callbacks = callbacks;
         this.isActive = false;
-        this.audioCtx = null;
-        this.analyser = null;
-        this.dataArray = null;
-        this.rafId = null;
+        this.video = null;
+        this.mediaRecorder = null;
+        this.chunks = [];
+        this.currentVideoURL = null;
+        this.playbackSpeed = 1.0;
     }
 
-    async toggle(active) {
-        if (this.isActive === active) return;
-        this.isActive = active;
+    async start() {
+        this.isActive = true;
+        
+        // 1. Hide the rest of the PWA UI via CSS class
+        document.body.classList.add('ar-active');
 
-        if (active) {
-            await this.initVideo();
-            await this.initAudio();
-            this.loop();
-        } else {
+        // 2. Setup Video Element if it doesn't exist
+        if (!this.video) {
+            this.video = document.createElement('video');
+            this.video.id = "ar-video-overlay";
+            this.video.autoplay = true;
+            this.video.playsInline = true;
+            this.video.muted = true;
+            document.body.appendChild(this.video);
+        }
+
+        try {
+            this.stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'environment', width: { ideal: 1280 } },
+                audio: false 
+            });
+            this.video.srcObject = this.stream;
+            this.createARControls(); // Create the REC/PAUSE/SAVE buttons
+        } catch (e) {
+            console.error("Camera denied:", e);
             this.stop();
         }
     }
 
-    async initVideo() {
-        if (!this.video) {
-            this.video = document.createElement('video');
-            this.video.id = 'sensor-video-feed'; // ID matches Developer Tools
-            this.video.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; object-fit:cover; z-index:-1; opacity:0.6; pointer-events:none;";
-            this.video.autoplay = true;
-            this.video.playsInline = true;
-            this.video.setAttribute('playsinline', '');
-            document.body.appendChild(this.video);
-        }
+    createARControls() {
+        // Create a dedicated container for the camera UI
+        const ui = document.createElement('div');
+        ui.id = "ar-ui-layer";
+        ui.innerHTML = `
+            <div class="ar-speed-control">
+                <span>Speed: <span id="ar-speed-val">1.0</span>x</span>
+                <input type="range" id="ar-speed-slider" min="0.5" max="2.0" step="0.1" value="1.0">
+            </div>
+            <div class="ar-btns">
+                <button id="ar-rec-btn">REC</button>
+                <button id="ar-pause-btn" style="display:none;">PAUSE</button>
+                <button id="ar-save-btn" style="display:none;">SAVE</button>
+            </div>
+        `;
+        document.body.appendChild(ui);
+
+        const recBtn = ui.querySelector('#ar-rec-btn');
+        const pauseBtn = ui.querySelector('#ar-pause-btn');
+        const saveBtn = ui.querySelector('#ar-save-btn');
+        const slider = ui.querySelector('#ar-speed-slider');
+
+        // Recording Logic
+        const startRec = () => {
+            if (this.currentVideoURL) URL.revokeObjectURL(this.currentVideoURL);
+            this.chunks = [];
+            this.video.srcObject = this.stream;
+            this.video.muted = true;
+            pauseBtn.style.display = 'none';
+            saveBtn.style.display = 'none';
+
+            this.mediaRecorder = new MediaRecorder(this.stream);
+            this.mediaRecorder.ondataavailable = e => this.chunks.push(e.data);
+            this.mediaRecorder.onstop = () => {
+                const blob = new Blob(this.chunks, { type: 'video/mp4' });
+                this.currentVideoURL = URL.createObjectURL(blob);
+                this.video.srcObject = null;
+                this.video.src = this.currentVideoURL;
+                this.video.playbackRate = this.playbackSpeed;
+                this.video.play();
+                pauseBtn.style.display = 'block';
+                saveBtn.style.display = 'block';
+            };
+            this.mediaRecorder.start();
+        };
+
+        const stopRec = () => {
+            if (this.mediaRecorder && this.mediaRecorder.state === "recording") this.mediaRecorder.stop();
+        };
+
+        // Event Listeners
+        recBtn.addEventListener('mousedown', startRec);
+        window.addEventListener('mouseup', (e) => { if(e.target === recBtn) stopRec(); });
         
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            this.video.srcObject = stream;
-        } catch (e) {
-            console.error("Camera denied:", e);
-            alert("Camera permission required for AR tools.");
-        }
-    }
+        // Pause/Hold Logic
+        pauseBtn.addEventListener('mousedown', () => this.video.pause());
+        pauseBtn.addEventListener('mouseup', () => this.video.play());
 
-    async initAudio() {
-        if (!this.audioCtx) {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return;
-            
-            this.audioCtx = new AudioContext();
-            this.analyser = this.audioCtx.createAnalyser();
-            this.analyser.fftSize = 256;
-            this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
-            
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                const source = this.audioCtx.createMediaStreamSource(stream);
-                source.connect(this.analyser);
-            } catch(e) { console.warn("Audio denied"); }
-        } else if (this.audioCtx.state === 'suspended') {
-            await this.audioCtx.resume();
-        }
-    }
+        // Speed Logic
+        slider.oninput = (e) => {
+            this.playbackSpeed = parseFloat(e.target.value);
+            ui.querySelector('#ar-speed-val').innerText = this.playbackSpeed;
+            this.video.playbackRate = this.playbackSpeed;
+        };
 
-    loop() {
-        if (!this.isActive) return;
-
-        // 1. Process Audio
-        let audioVol = 0;
-        if (this.analyser) {
-            this.analyser.getByteFrequencyData(this.dataArray);
-            if (this.dataArray.length > 0) {
-                const avg = this.dataArray.reduce((a, b) => a + b) / this.dataArray.length;
-                audioVol = avg; // 0-255 range
-            }
-        }
-
-        // 2. Send Data to Dev UI
-        if (this.callbacks.onUpdate) {
-            this.callbacks.onUpdate({
-                audio: audioVol,
-                videoReady: !!(this.video && this.video.readyState === 4)
-            });
-        }
-
-        this.rafId = requestAnimationFrame(() => this.loop());
+        // Save Logic
+        saveBtn.onclick = () => {
+            const a = document.createElement('a');
+            a.href = this.currentVideoURL;
+            a.download = `skill_analysis_${Date.now()}.mp4`;
+            a.click();
+        };
     }
 
     stop() {
-        if (this.video && this.video.srcObject) {
-            this.video.srcObject.getTracks().forEach(t => t.stop());
-            this.video.srcObject = null;
-        }
-        if (this.audioCtx) this.audioCtx.suspend();
-        cancelAnimationFrame(this.rafId);
-        
-        // Cleanup DOM
-        if (this.video) {
-            this.video.remove();
-            this.video = null;
-        }
+        document.body.classList.remove('ar-active');
+        if (this.stream) this.stream.getTracks().forEach(t => t.stop());
+        if (this.video) this.video.remove();
+        const ui = document.getElementById('ar-ui-layer');
+        if (ui) ui.remove();
         this.isActive = false;
     }
 }

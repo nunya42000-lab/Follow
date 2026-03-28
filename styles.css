@@ -491,3 +491,136 @@ body.fullscreen-mode #aux-control-header {
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
 }
+/* --- AR PRECISION ANALYSIS TOOL --- */
+
+/* 1. CLOAKING: When AR is active, hide the entire PWA interface */
+body.ar-active > *:not(#ar-video-overlay):not(#ar-ui-layer) {
+    display: none !important;
+}
+
+/* Ensure the body doesn't scroll or bounce during recording */
+body.ar-active {
+    background: #000;
+    overflow: hidden;
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* 2. THE CAMERA CANVAS */
+#ar-video-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover; /* Fills screen like a native camera app */
+    z-index: 10;
+}
+
+/* 3. THE UI LAYER (Controls) */
+#ar-ui-layer {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    /* Extra padding for phone notches/home bars */
+    padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+    /* Dark gradient at bottom to make buttons pop */
+    background: linear-gradient(transparent, rgba(0,0,0,0.8) 70%);
+    gap: 25px;
+    z-index: 20;
+}
+
+/* Speed Slider Container */
+.ar-speed-control {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 12px 20px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 80%;
+    max-width: 300px;
+}
+
+#ar-speed-slider {
+    width: 100%;
+    accent-color: var(--seq-bubble);
+    margin-top: 8px;
+}
+
+/* Button Layout */
+.ar-btns {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+}
+
+/* REC BUTTON: The large hold-trigger */
+#ar-rec-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 5px solid #fff;
+    background: #ff3b30; /* Bright Record Red */
+    color: #fff;
+    font-weight: 900;
+    font-size: 1rem;
+    box-shadow: 0 0 15px rgba(255, 59, 48, 0.5);
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+#ar-rec-btn:active {
+    transform: scale(0.9);
+    background: #cc2f26;
+}
+
+/* PAUSE BUTTON: Appears during playback */
+#ar-pause-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 4px solid #ffcc00;
+    background: rgba(26, 26, 26, 0.9);
+    color: #ffcc00;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+#ar-pause-btn:active {
+    background: #ffcc00;
+    color: #000;
+}
+
+/* SAVE BUTTON: Minimalist label */
+#ar-save-btn {
+    padding: 12px 20px;
+    background: var(--seq-bubble);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+}
+
+/* HUD Text */
+#ar-status-text {
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: var(--text-main);
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}

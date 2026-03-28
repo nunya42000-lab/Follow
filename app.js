@@ -438,6 +438,43 @@ function addValue(value) {
         }
     }
 }
+async function toggleAR(isEnabled) {
+    const video = document.getElementById('camera-feed');
+    const body = document.body;
+
+    if (isEnabled) {
+        // 1. Prepare video attributes for PWA compatibility
+        video.setAttribute('autoplay', '');
+        video.setAttribute('muted', '');
+        video.setAttribute('playsinline', '');
+
+        // 2. Activate CSS layout
+        body.classList.add('ar-mode-active');
+
+        try {
+            // 3. Request camera access
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' },
+                audio: false
+            });
+            
+            video.srcObject = stream;
+            
+            // 4. Force playback to resolve black frames
+            await video.play();
+        } catch (err) {
+            console.error("Camera initialization failed:", err);
+            body.classList.remove('ar-mode-active');
+        }
+    } else {
+        // Deactivate AR
+        body.classList.remove('ar-mode-active');
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+        }
+    }
+}
 
 function handleBackspace(e) { 
     if(e) { e.preventDefault(); e.stopPropagation(); } 

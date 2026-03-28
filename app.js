@@ -923,7 +923,76 @@ const startApp = () => {
 
     modules.settings.sensorEngine = modules.sensor;
 modules.vision = new VisionEngine(
-        (gesture) => {
+   const ui = {
+        recordBtn: document.getElementById('recordBtn'),
+        pauseBtn: document.getElementById('pauseBtn'),
+        saveBtn: document.getElementById('saveBtn'),
+        speedSlider: document.getElementById('speedSlider'),
+        speedLabel: document.getElementById('speedLabel')
+    };
+
+    if (ui.recordBtn) {
+        const start = (e) => { e.preventDefault(); modules.vision.startRecording(); };
+        const stop = (e) => { e.preventDefault(); modules.vision.stopRecording(); };
+        ui.recordBtn.addEventListener('mousedown', start);
+        ui.recordBtn.addEventListener('touchstart', start);
+        window.addEventListener('mouseup', (e) => { if(e.target !== ui.pauseBtn) stop(); });
+        window.addEventListener('touchend', stop);
+    }
+
+    if (ui.pauseBtn) {
+        const hold = (e) => { e.preventDefault(); modules.vision.holdPause(); };
+        const release = (e) => { e.preventDefault(); modules.vision.releasePause(); };
+        ui.pauseBtn.addEventListener('mousedown', hold);
+        ui.pauseBtn.addEventListener('touchstart', hold);
+        ui.pauseBtn.addEventListener('mouseup', release);
+        ui.pauseBtn.addEventListener('touchend', release);
+    }
+
+    if (ui.speedSlider) {
+        ui.speedSlider.oninput = () => {
+            const val = ui.speedSlider.value;
+            if(ui.speedLabel) ui.speedLabel.innerText = val + "x";
+            modules.vision.setSpeed(val);
+        };
+    }
+
+    window.addEventListener('video-ready', (e) => {
+        if (ui.saveBtn) {
+            ui.saveBtn.style.display = 'block';
+            ui.saveBtn.onclick = () => {
+                const a = document.createElement('a');
+                a.href = e.detail;
+                a.download = `clip_${Date.now()}.mp4`;
+                a.click();
+            };
+        }
+    });       
+const headerCam = document.getElementById('header-cam');
+    if (headerCam) {
+        headerCam.onclick = async () => {
+            appState.arActive = !appState.arActive;
+            if (appState.arActive) {
+                document.body.classList.add('ar-active');
+                headerCam.classList.add('header-btn-active');
+                  const videoEl = await modules.vision.start();
+                document.body.prepend(videoEl); // Puts video in background
+                
+                // Show the camera controls (from your cam.html style)
+                document.querySelector('.ar-controls-overlay')?.style.setProperty('display', 'flex');
+                showToast("Analyzer Mode ON 📸");
+            } else {
+                document.body.classList.remove('ar-active');
+                headerCam.classList.remove('header-btn-active');
+                modules.vision.stop();
+                document.querySelector('.ar-controls-overlay')?.style.setProperty('display', 'none');
+                showToast("AR Mode OFF");
+            }
+        };
+    }
+}
+
+    (gesture) => {
             // This runs when the AI detects a hand gesture (e.g. "hand_5_up")
             const settings = getProfileSettings();
             const mappedVal = mapGestureToValue(gesture, settings.currentInput);

@@ -660,6 +660,50 @@ const startApp = () => {
         if (val) addValue(val);
     });
     voiceModule = new VoiceCommander({ onInput: addValue, onCommand: (cmd) => { if(cmd==='CMD_PLAY') playDemo(); } });
+    const headerCam = document.getElementById('header-cam-btn');
+if (headerCam) {
+    headerCam.onclick = async () => {
+        const isCurrentlyActive = document.body.classList.contains('ar-active');
+        
+        if (!isCurrentlyActive) {
+            // --- START AR MODE ---
+            try {
+                const videoEl = await modules.vision.start(); // Ensure VisionEngine returns the <video>
+                
+                if (videoEl) {
+                    videoEl.classList.add('ar-background-video');
+                    videoEl.setAttribute('autoplay', '');
+                    videoEl.setAttribute('muted', '');
+                    videoEl.setAttribute('playsinline', '');
+                    
+                    // Only prepend if it's not already there
+                    if (!document.querySelector('.ar-background-video')) {
+                        document.body.prepend(videoEl);
+                    }
+                    
+                    document.body.classList.add('ar-active');
+                    headerCam.classList.add('header-btn-active');
+                    showToast("AR Analyzer ON 📸");
+                }
+            } catch (err) {
+                console.error("Camera failed:", err);
+                showToast("Camera Denied ❌");
+            }
+        } else {
+            // --- STOP AR MODE ---
+            document.body.classList.remove('ar-active');
+            headerCam.classList.remove('header-btn-active');
+            
+            modules.vision.stop();
+            
+            // Clean up the element to save memory
+            const oldVideo = document.querySelector('.ar-background-video');
+            if (oldVideo) oldVideo.remove();
+            
+            showToast("AR Mode OFF");
+        }
+    };
+    }
     
     updateAllChrome();
     initComments(db);

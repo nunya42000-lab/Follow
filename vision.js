@@ -1,31 +1,32 @@
 /* ========================================
    FILE: vision.js
    ======================================== */
-
 export class VisionEngine {
     constructor() {
         this.video = document.createElement('video');
         this.video.autoplay = true;
         this.video.playsInline = true;
+        this.video.className = 'ar-background-video'; // Matches your CSS
         this.stream = null;
         this.recorder = null;
         this.chunks = [];
         this.currentVideoURL = null;
     }
 
-    async start(containerId) {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-
+    async start(containerId = null) {
         try {
             this.stream = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: "environment" },
                 audio: true
             });
             this.video.srcObject = this.stream;
-            container.appendChild(this.video);
             
-            // Setup MediaRecorder
+            // If a container is provided, append it; otherwise, app handles placement
+            if (containerId) {
+                const container = document.getElementById(containerId);
+                if (container) container.appendChild(this.video);
+            }
+
             this.recorder = new MediaRecorder(this.stream);
             this.recorder.ondataavailable = (e) => {
                 if (e.data.size > 0) this.chunks.push(e.data);
@@ -34,9 +35,9 @@ export class VisionEngine {
                 const blob = new Blob(this.chunks, { type: 'video/mp4' });
                 this.currentVideoURL = URL.createObjectURL(blob);
                 this.chunks = [];
-                // Dispatch event so app.js knows a recording is ready
                 window.dispatchEvent(new CustomEvent('video-ready', { detail: this.currentVideoURL }));
             };
+            return this.video;
         } catch (err) {
             console.error("Camera access denied:", err);
         }
@@ -55,17 +56,9 @@ export class VisionEngine {
         }
     }
 
-    holdPause() {
-        this.video.pause();
-    }
-
-    releasePause() {
-        this.video.play();
-    }
-
-    setSpeed(value) {
-        this.video.playbackRate = parseFloat(value);
-    }
+    holdPause() { this.video.pause(); }
+    releasePause() { this.video.play(); }
+    setSpeed(value) { this.video.playbackRate = parseFloat(value); }
 
     stop() {
         if (this.stream) {

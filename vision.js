@@ -12,21 +12,25 @@ export class VisionEngine {
         this.chunks = [];
         this.currentVideoURL = null;
     }
+async start() {
+    this.isActive = true;
+    this.stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" }, // Use back camera
+        audio: false
+    });
 
-    async start(containerId = null) {
-        try {
-            this.stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "environment" },
-                audio: true
-            });
-            this.video.srcObject = this.stream;
-            
-            // If a container is provided, append it; otherwise, app handles placement
-            if (containerId) {
-                const container = document.getElementById(containerId);
-                if (container) container.appendChild(this.video);
-            }
+    this.videoElement = document.createElement('video');
+    this.videoElement.srcObject = this.stream;
+    
+    // CRITICAL: These three lines prevent black screens on iOS/Android
+    this.videoElement.setAttribute('playsinline', true);
+    this.videoElement.muted = true;
+    this.videoElement.play();
 
+    return this.videoElement;
+}
+   
+    
             this.recorder = new MediaRecorder(this.stream);
             this.recorder.ondataavailable = (e) => {
                 if (e.data.size > 0) this.chunks.push(e.data);

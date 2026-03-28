@@ -688,3 +688,44 @@ body.ar-active .number-box {
     background: rgba(var(--seq-bubble-rgb), 0.7);
     backdrop-filter: blur(5px);
 }
+/* Standard state for the camera */
+#camera-feed {
+    display: none; /* Hidden by default */
+}
+
+/* Active AR Mode */
+body.ar-mode-active {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #000; /* Ensure black background if video fails */
+}
+
+body.ar-mode-active #camera-feed {
+    display: block !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999; /* Higher than any dashboard or settings panels */
+    object-fit: cover; /* Fills the screen; use 'contain' to see the full frame */
+}
+
+/* Hide all other primary containers when AR is active */
+body.ar-mode-active > *:not(#camera-feed):not(.ar-ui-overlay) {
+    display: none !important;
+}
+
+/* Specific UI elements you want to KEEP during AR (e.g., a 'Close' button) */
+.ar-ui-overlay {
+    display: none;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+}
+
+body.ar-mode-active .ar-ui-overlay {
+    display: block;
+}

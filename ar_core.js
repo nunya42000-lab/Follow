@@ -1,4 +1,4 @@
-class ARTool {
+class ARMode {
     constructor(callbacks = {}) {
         this.callbacks = callbacks;
         this.isActive = false;

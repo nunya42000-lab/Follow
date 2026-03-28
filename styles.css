@@ -661,3 +661,30 @@ body.ar-active #blackout-layer {
     justify-content: space-between;
     font-size: 12px;
 }
+/* Ensure the video sits at the very back */
+.ar-background-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    z-index: -1; /* Behind everything */
+    pointer-events: none;
+}
+
+/* Hide backgrounds when AR is active so we can see the "through" the app */
+body.ar-active {
+    background: transparent !important;
+}
+
+body.ar-active #sequence-container, 
+body.ar-active .main-app-wrapper {
+    background: transparent !important;
+}
+
+/* Optional: Make cards slightly see-through for the "HUD" look */
+body.ar-active .number-box {
+    background: rgba(var(--seq-bubble-rgb), 0.7);
+    backdrop-filter: blur(5px);
+}

@@ -1,123 +1,121 @@
 class ARMode {
-    constructor(callbacks = {}) {
-        this.callbacks = callbacks;
+    constructor() {
         this.isActive = false;
         this.video = null;
-        this.mediaRecorder = null;
+        this.stream = null;
+        this.recorder = null;
         this.chunks = [];
-        this.currentVideoURL = null;
-        this.playbackSpeed = 1.0;
+        this.debugLog = null;
+    }
+
+    log(msg) {
+        if (this.debugLog) this.debugLog.innerText = `AR: ${msg}`;
+        console.log(msg);
     }
 
     async start() {
+        if (this.isActive) return;
         this.isActive = true;
-        
-        // 1. Hide the rest of the PWA UI via CSS class
+
+        // Create Debug HUD
+        this.debugLog = document.createElement('div');
+        this.debugLog.style = "position:fixed; top:70px; left:10px; color:lime; font-family:monospace; z-index:10000; background:rgba(0,0,0,0.7); padding:5px; font-size:12px; pointer-events:none;";
+        document.body.appendChild(this.debugLog);
+        this.log("Initializing...");
+
+        // 1. Activate CSS Stealth (defined in styles.css)
         document.body.classList.add('ar-active');
 
-        // 2. Setup Video Element if it doesn't exist
-        if (!this.video) {
+        try {
+            // 2. Setup Video Element
             this.video = document.createElement('video');
             this.video.id = "ar-video-overlay";
             this.video.autoplay = true;
             this.video.playsInline = true;
             this.video.muted = true;
+            this.video.setAttribute('muted', '');
             document.body.appendChild(this.video);
-        }
 
-        try {
+            this.log("Requesting Camera...");
             this.stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: 'environment', width: { ideal: 1280 } },
+                video: { facingMode: { ideal: 'environment' } },
                 audio: false 
             });
+            
             this.video.srcObject = this.stream;
-            this.createARControls(); // Create the REC/PAUSE/SAVE buttons
+            await this.video.play();
+            this.log("Streaming Live");
+
+            this.createControls();
         } catch (e) {
-            console.error("Camera denied:", e);
+            this.log(`Error: ${e.message}`);
             this.stop();
         }
     }
 
-    createARControls() {
-        // Create a dedicated container for the camera UI
+    createControls() {
         const ui = document.createElement('div');
         ui.id = "ar-ui-layer";
         ui.innerHTML = `
-            <div class="ar-speed-control">
-                <span>Speed: <span id="ar-speed-val">1.0</span>x</span>
-                <input type="range" id="ar-speed-slider" min="0.5" max="2.0" step="0.1" value="1.0">
-            </div>
-            <div class="ar-btns">
-                <button id="ar-rec-btn">REC</button>
-                <button id="ar-pause-btn" style="display:none;">PAUSE</button>
-                <button id="ar-save-btn" style="display:none;">SAVE</button>
+            <div class="ar-controls-wrap">
+                <button id="ar-rec-trigger">HOLD TO ANALYZE</button>
+                <div class="ar-speed-row">
+                    <span>Speed: <span id="ar-speed-num">1.0</span>x</span>
+                    <input type="range" id="ar-speed-slide" min="0.2" max="1.5" step="0.1" value="1.0">
+                </div>
+                <button id="ar-close-btn">EXIT CAMERA</button>
             </div>
         `;
         document.body.appendChild(ui);
 
-        const recBtn = ui.querySelector('#ar-rec-btn');
-        const pauseBtn = ui.querySelector('#ar-pause-btn');
-        const saveBtn = ui.querySelector('#ar-save-btn');
-        const slider = ui.querySelector('#ar-speed-slider');
-
-        // Recording Logic
-        const startRec = () => {
-            if (this.currentVideoURL) URL.revokeObjectURL(this.currentVideoURL);
-            this.chunks = [];
-            this.video.srcObject = this.stream;
-            this.video.muted = true;
-            pauseBtn.style.display = 'none';
-            saveBtn.style.display = 'none';
-
-            this.mediaRecorder = new MediaRecorder(this.stream);
-            this.mediaRecorder.ondataavailable = e => this.chunks.push(e.data);
-            this.mediaRecorder.onstop = () => {
-                const blob = new Blob(this.chunks, { type: 'video/mp4' });
-                this.currentVideoURL = URL.createObjectURL(blob);
-                this.video.srcObject = null;
-                this.video.src = this.currentVideoURL;
-                this.video.playbackRate = this.playbackSpeed;
-                this.video.play();
-                pauseBtn.style.display = 'block';
-                saveBtn.style.display = 'block';
-            };
-            this.mediaRecorder.start();
-        };
-
-        const stopRec = () => {
-            if (this.mediaRecorder && this.mediaRecorder.state === "recording") this.mediaRecorder.stop();
-        };
-
-        // Event Listeners
-        recBtn.addEventListener('mousedown', startRec);
-        window.addEventListener('mouseup', (e) => { if(e.target === recBtn) stopRec(); });
+        const recBtn = ui.querySelector('#ar-rec-trigger');
+        const slider = ui.querySelector('#ar-speed-slide');
         
-        // Pause/Hold Logic
-        pauseBtn.addEventListener('mousedown', () => this.video.pause());
-        pauseBtn.addEventListener('mouseup', () => this.video.play());
+        // Record Logic
+        recBtn.onmousedown = recBtn.ontouchstart = (e) => {
+            e.preventDefault();
+            this.chunks = [];
+            this.video.src = "";
+            this.video.srcObject = this.stream;
+            this.video.play();
+            
+            this.recorder = new MediaRecorder(this.stream);
+            this.recorder.ondataavailable = (ev) => this.chunks.push(ev.data);
+            this.recorder.onstop = () => {
+                const blob = new Blob(this.chunks, { type: 'video/mp4' });
+                this.video.srcObject = null;
+                this.video.src = URL.createObjectURL(blob);
+                this.video.loop = true;
+                this.video.playbackRate = parseFloat(slider.value);
+                this.video.play();
+                this.log("Playback Mode");
+            };
+            this.recorder.start();
+            this.log("Recording...");
+        };
 
-        // Speed Logic
+        recBtn.onmouseup = recBtn.ontouchend = () => {
+            if (this.recorder && this.recorder.state === "recording") {
+                this.recorder.stop();
+            }
+        };
+
         slider.oninput = (e) => {
-            this.playbackSpeed = parseFloat(e.target.value);
-            ui.querySelector('#ar-speed-val').innerText = this.playbackSpeed;
-            this.video.playbackRate = this.playbackSpeed;
+            const val = e.target.value;
+            ui.querySelector('#ar-speed-num').innerText = val;
+            if (this.video) this.video.playbackRate = parseFloat(val);
         };
 
-        // Save Logic
-        saveBtn.onclick = () => {
-            const a = document.createElement('a');
-            a.href = this.currentVideoURL;
-            a.download = `skill_analysis_${Date.now()}.mp4`;
-            a.click();
-        };
+        ui.querySelector('#ar-close-btn').onclick = () => this.stop();
     }
 
     stop() {
+        this.isActive = false;
         document.body.classList.remove('ar-active');
-        if (this.stream) this.stream.getTracks().forEach(t => t.stop());
+        if (this.stream) this.stream.getTracks().forEach(track => track.stop());
         if (this.video) this.video.remove();
+        if (this.debugLog) this.debugLog.remove();
         const ui = document.getElementById('ar-ui-layer');
         if (ui) ui.remove();
-        this.isActive = false;
     }
 }

@@ -491,34 +491,62 @@ body.fullscreen-mode #aux-control-header {
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
 }
-/* --- AR ANALYSIS MODE (New Section) --- */
+/* =========================================
+   AR / CAMERA MODE STYLES 
+   ========================================= */
 
-/* Hide everything when AR is active */
-body.ar-active > *:not(#ar-video-overlay):not(#ar-ui-layer) {
-    display: none !important;
-}
-
-body.ar-active {
-    background: #000 !important;
-    overflow: hidden;
+/* 1. The Video Element */
+.ar-background-video {
     position: fixed;
-    width: 100vw; height: 100vh;
-}
-
-#ar-video-overlay {
-    display: block;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     object-fit: cover;
-    z-index: 10000; /* Higher than blackout layer */
-    background: black;
+    z-index: -1; /* Keep it behind the UI */
+    pointer-events: none;
+    opacity: 1;
 }
 
+/* 2. Main Body State when AR is ON */
+body.ar-active {
+    background: transparent !important;
+    overflow: hidden; /* Prevent scrolling while using camera */
+}
+
+/* 3. Hide Unnecessary UI / Blockers */
+body.ar-active #blackout-layer,
+body.ar-active #sequence-container {
+    display: none !important; 
+}
+
+/* Make main app wrappers transparent to see the video */
+body.ar-active .main-app-wrapper,
+body.ar-active #app {
+    background: transparent !important;
+}
+
+/* 4. AR "HUD" Styling for UI that stays visible */
+body.ar-active .card,
+body.ar-active .btn-input,
+body.ar-active .number-box,
+body.ar-active .settings-modal-bg {
+    background-color: rgba(18, 18, 18, 0.75) !important;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+body.ar-active header {
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+/* 5. AR Developer/Recording Overlays */
 #ar-ui-layer {
-    display: flex;
+    display: none; /* Hidden by default, JS toggles this */
     position: fixed;
-    bottom: 0; left: 0;
+    bottom: 0; 
+    left: 0;
     width: 100%;
     flex-direction: column;
     align-items: center;
@@ -528,6 +556,11 @@ body.ar-active {
     z-index: 10001;
 }
 
+body.ar-active #ar-ui-layer {
+    display: flex;
+}
+
+/* AR specific buttons inside the UI layer */
 .ar-speed-control {
     background: rgba(0,0,0,0.7);
     padding: 12px 20px;
@@ -538,6 +571,7 @@ body.ar-active {
     align-items: center;
     width: 80%;
     max-width: 300px;
+    color: white;
 }
 
 #ar-speed-slider { width: 100%; accent-color: var(--seq-bubble); margin-top: 10px; }
@@ -565,166 +599,4 @@ body.ar-active {
     font-size: 0.8rem;
 }
 
-#ar-save-btn {
-    padding: 12px 20px;
-    background: var(--seq-bubble);
-    border: none;
-    border-radius: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-}
 
-#ar-exit-btn {
-    position: fixed;
-    top: calc(1rem + env(safe-area-inset-top));
-    right: 1rem;
-    width: 40px; height: 40px;
-    background: rgba(0,0,0,0.5);
-    border: 1px solid var(--border);
-    color: white;
-    border-radius: 50%;
-    font-size: 1.2rem;
-    z-index: 10002;
-}
-
-#ar-status-text {
-    font-family: monospace;
-    font-size: 0.7rem;
-    letter-spacing: 2px;
-    color: #ffcc00;
-    margin-bottom: 5px;
-                     }
-/* 1. Hide the PWA UI when Camera is Active */
-body.ar-active #app, 
-body.ar-active #input-footer,
-body.ar-active #blackout-layer {
-    display: none !important;
-}
-
-/* 2. Fullscreen Video Background */
-#ar-video-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover;
-    z-index: 30; /* Below your header (z-40) */
-    background: #000;
-}
-
-/* 3. AR Specific Controls */
-#ar-ui-layer {
-    position: fixed;
-    bottom: 20px;
-    left: 0;
-    width: 100%;
-    z-index: 50; /* Above everything */
-    display: flex;
-    justify-content: center;
-}
-
-.ar-controls-wrap {
-    background: rgba(0, 0, 0, 0.8);
-    padding: 15px;
-    border-radius: 15px;
-    border: 1px solid #444;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 90%;
-    max-width: 300px;
-}
-
-#ar-rec-trigger {
-    background: #ef4444;
-    color: white;
-    font-weight: bold;
-    padding: 15px;
-    border-radius: 10px;
-    text-align: center;
-    border: none;
-    active: scale(0.95);
-}
-
-#ar-close-btn {
-    background: #374151;
-    color: #9ca3af;
-    font-size: 10px;
-    padding: 5px;
-    border-radius: 5px;
-}
-
-.ar-speed-row {
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-}
-/* Ensure the video sits at the very back */
-.ar-background-video {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover;
-    z-index: -1; /* Behind everything */
-    pointer-events: none;
-}
-
-/* Hide backgrounds when AR is active so we can see the "through" the app */
-body.ar-active {
-    background: transparent !important;
-}
-
-body.ar-active #sequence-container, 
-body.ar-active .main-app-wrapper {
-    background: transparent !important;
-}
-
-/* Optional: Make cards slightly see-through for the "HUD" look */
-body.ar-active .number-box {
-    background: rgba(var(--seq-bubble-rgb), 0.7);
-    backdrop-filter: blur(5px);
-}
-/* Standard state for the camera */
-#camera-feed {
-    display: none; /* Hidden by default */
-}
-
-/* Active AR Mode */
-body.ar-mode-active {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background: #000; /* Ensure black background if video fails */
-}
-
-body.ar-mode-active #camera-feed {
-    display: block !important;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 9999; /* Higher than any dashboard or settings panels */
-    object-fit: cover; /* Fills the screen; use 'contain' to see the full frame */
-}
-
-/* Hide all other primary containers when AR is active */
-body.ar-active #blackout-layer {
-    display: none !important; 
-}
-/* Specific UI elements you want to KEEP during AR (e.g., a 'Close' button) */
-.ar-ui-overlay {
-    display: none;
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 10000;
-}
-
-body.ar-mode-active .ar-ui-overlay {
-    display: block;
-}

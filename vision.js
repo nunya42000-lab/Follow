@@ -15,19 +15,26 @@ export class VisionEngine {
 async start() {
     this.isActive = true;
     this.stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" }, // Use back camera
+        video: { facingMode: "environment" },
         audio: false
     });
 
-    this.videoElement = document.createElement('video');
-    this.videoElement.srcObject = this.stream;
+    // Reuse the constructor's video element instead of creating a new one
+    this.video.srcObject = this.stream;
     
-    // CRITICAL: These three lines prevent black screens on iOS/Android
-    this.videoElement.setAttribute('playsinline', true);
-    this.videoElement.muted = true;
-    this.videoElement.play();
+    // CRITICAL: Ensure attributes are set correctly for iOS/Android
+    this.video.setAttribute('playsinline', ''); 
+    this.video.muted = true;
+    this.video.autoplay = true;
 
-    return this.videoElement;
+    // Await the play promise to handle potential autoplay blocks
+    try {
+        await this.video.play();
+    } catch (err) {
+        console.error("Video play interrupted:", err);
+    }
+
+    return this.video;
 }
    
     

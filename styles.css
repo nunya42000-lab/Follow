@@ -713,10 +713,9 @@ body.ar-mode-active #camera-feed {
 }
 
 /* Hide all other primary containers when AR is active */
-body.ar-mode-active > *:not(#camera-feed):not(.ar-ui-overlay) {
-    display: none !important;
+body.ar-active #blackout-layer {
+    display: none !important; 
 }
-
 /* Specific UI elements you want to KEEP during AR (e.g., a 'Close' button) */
 .ar-ui-overlay {
     display: none;

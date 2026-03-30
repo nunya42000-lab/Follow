@@ -38,7 +38,7 @@ const CONFIG = {
     SPEED_DELETE_INTERVAL: 20, 
     STORAGE_KEY_SETTINGS: 'followMeAppSettings_v47', 
     STORAGE_KEY_STATE: 'followMeAppState_v48', 
-    INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' } 
+    INPUTS: { KEY9: 'key9', KEY12: 'key12', PIANO: 'piano' },
     MODES: { SIMON: 'simon', UNIQUE_ROUNDS: 'unique' } 
 };
 

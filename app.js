@@ -1018,7 +1018,7 @@ const headerCam = document.getElementById('header-cam');
             }
         },
         (status) => showToast(status) // Shows "Loading AI...", "Cam Blocked", etc.
-    );
+    ;
     // --- FIX: INITIALIZE VOICE MODULE ---
     voiceModule = new VoiceCommander({
         onStatus: (msg) => showToast(msg),

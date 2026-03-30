@@ -922,8 +922,8 @@ const startApp = () => {
     );
 
     modules.settings.sensorEngine = modules.sensor;
-modules.vision = new VisionEngine(
-   const ui = {
+    // 1. Define the UI elements first
+    const ui = {
         recordBtn: document.getElementById('recordBtn'),
         pauseBtn: document.getElementById('pauseBtn'),
         saveBtn: document.getElementById('saveBtn'),
@@ -931,6 +931,25 @@ modules.vision = new VisionEngine(
         speedLabel: document.getElementById('speedLabel')
     };
 
+    // 2. Properly initialize the VisionEngine with its required callbacks
+    modules.vision = new VisionEngine(
+        (gesture) => {
+            const settings = getProfileSettings();
+            const mappedVal = mapGestureToValue(gesture, settings.currentInput);
+            if (mappedVal) {
+                addValue(mappedVal);
+                const btn = document.querySelector(`#pad-${settings.currentInput} button[data-value="${mappedVal}"]`);
+                if(btn) { 
+                    btn.classList.add('flash-active'); 
+                    setTimeout(() => btn.classList.remove('flash-active'), 200); 
+                }
+                showToast(`Hand: ${mappedVal} 🖐️`);
+            }
+        },
+        (status) => showToast(status)
+    );
+
+    // 3. Set up the Recording/UI Listeners
     if (ui.recordBtn) {
         const start = (e) => { e.preventDefault(); modules.vision.startRecording(); };
         const stop = (e) => { e.preventDefault(); modules.vision.stopRecording(); };
@@ -957,17 +976,6 @@ modules.vision = new VisionEngine(
         };
     }
 
-    window.addEventListener('video-ready', (e) => {
-        if (ui.saveBtn) {
-            ui.saveBtn.style.display = 'block';
-            ui.saveBtn.onclick = () => {
-                const a = document.createElement('a');
-                a.href = e.detail;
-                a.download = `clip_${Date.now()}.mp4`;
-                a.click();
-            };
-        }
-    });       
 const headerCam = document.getElementById('header-cam');
     if (headerCam) {
         headerCam.onclick = async () => {

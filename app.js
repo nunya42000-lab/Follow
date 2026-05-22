@@ -853,7 +853,31 @@ class VoiceCommander {
 }
 
 const startApp = () => {
+    // 1. Initialize Sensor Engine FIRST
+    modules.sensor = new SensorEngine(
+        (val, source) => addValue(val), 
+        (status) => showToast(status)
+    );
+
+    // 2. Initialize Settings Manager SECOND
+    // Now you can safely pass the sensor engine reference
+    modules.settings = new SettingsManager(
+        appSettings, 
+        { 
+            onSave: saveState, 
+            onUpdate: updateAllChrome,
+            onProfileSwitch: (id) => { /* your switch logic */ },
+            onProfileAdd: (name) => { /* your add logic */ },
+            onProfileRename: (name) => { /* your rename logic */ },
+            onProfileDelete: () => { /* your delete logic */ },
+            onProfileSave: () => { saveState(); },
+            onReset: () => { /* your reset logic */ }
+        },
+        modules.sensor // Injection happens here
+    );
+
     loadState();
+    // ... rest of your initialization ...
 
     // 1. System-Level Initialization
     if (appSettings.isUpsidedownEnabled) document.body.classList.add('upside-down');

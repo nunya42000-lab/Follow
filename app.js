@@ -1495,8 +1495,8 @@ if(headerStealth) {
 // Keep screen awake
 
 // Call this when the app starts
-requestWakeLock();
+
       
-}
+
       
 document.addEventListener('DOMContentLoaded', startApp);

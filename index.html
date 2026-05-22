@@ -528,74 +528,53 @@ window.onunhandledrejection = function (event) {
         </div>
     </div>
 </div>
-
 <div id="tab-mapping" class="tab-content">
-    <div class="p-3 mb-4 rounded-lg border border-custom bg-black bg-opacity-30">
-        <h4 class="font-bold text-sm mb-3 text-primary-app">Gesture Sensitivity 🎛️</h4>
 
-        <div class="mb-4">
-            <div class="flex justify-between mb-1">
-                <label class="text-xs font-bold">Tap Speed (ms)</label>
-                <span id="gesture-tap-val" class="text-xs font-mono">300ms</span>
-            </div>
-            <input type="range" id="gesture-tap-slider" min="100" max="800" step="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-            <p class="text-[10px] text-gray-400 mt-1">Faster time = harder to tap, easier to swipe. Slower time = easier to tap.</p>
-        </div>
+<div class="p-3 mb-4 rounded-lg border border-custom bg-black bg-opacity-30">
+<h4 class="font-bold text-sm mb-3 text-primary-app">Gesture Sensitivity 🎛️</h4>
 
-        <div>
-            <div class="flex justify-between mb-1">
-                <label class="text-xs font-bold">Swipe Distance (px)</label>
-                <span id="gesture-swipe-val" class="text-xs font-mono">30px</span>
-            </div>
-            <input type="range" id="gesture-swipe-slider" min="10" max="100" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-            <p class="text-[10px] text-gray-400 mt-1">Higher distance = fewer accidental swipes.</p>
-        </div>
-    </div>
-
-    <div class="space-y-4">
-        <div class="p-3 rounded-lg border border-custom settings-input">
-            <div class="font-bold mb-2">9-Key Mapping</div>
-            <div id="mapping-9-container" class="grid grid-cols-2 gap-2"></div>
-            <p class="text-xs opacity-75 mt-2">Choose the gesture for each value and the Morse feedback (dot/dash combos). Changes save automatically.</p>
-        </div>
-
-        <div class="p-3 rounded-lg border border-custom settings-input">
-            <div class="font-bold mb-2">12-Key Mapping</div>
-            <div id="mapping-12-container" class="grid grid-cols-2 gap-2"></div>
-            <p class="text-xs opacity-75 mt-2">12-key supports more swipe-based gestures by default.</p>
-        </div>
-
-        <div class="p-3 rounded-lg border border-custom settings-input">
-            <div class="font-bold mb-2">Piano Mapping</div>
-            <div id="mapping-piano-container" class="grid grid-cols-2 gap-2"></div>
-            <p class="text-xs opacity-75 mt-2">Piano keys map to swipe gestures and their Morse feedback. Piano is the only input that may produce letters A–G for values 6–12.</p>
-        </div>
-    </div>
-</div> </div> <div class="p-4 border-t border-custom flex justify-between items-center bg-opacity-20 bg-black">
-    <button data-action="restore-defaults" class="px-5 py-2 bg-red-800 hover:bg-red-700 text-white rounded text-sm font-bold transition shadow">Reset</button>
-    <button id="close-settings" class="px-8 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold transition shadow">Exit</button>
+<div class="mb-4">
+<div class="flex justify-between mb-1">
+<label class="text-xs font-bold">Tap Speed (ms)</label>
+<span id="gesture-tap-val" class="text-xs font-mono">300ms</span>
+</div>
+<input type="range" id="gesture-tap-slider" min="100" max="800" step="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+<p class="text-[10px] text-gray-400 mt-1">Faster time = harder to tap, easier to swipe. Slower time = easier to tap.</p>
 </div>
 
-</div> </div> <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-80 flex flex-col justify-end z-[70] transition-opacity duration-300 opacity-0 pointer-events-none">
-    <div class="share-sheet p-6 text-center flex flex-col items-center border-t border-gray-700 shadow-2xl transform translate-y-full transition-transform duration-300">
-        <div class="w-12 h-1 bg-gray-600 rounded-full mb-4"></div> 
-        <div class="bg-white p-2 rounded-lg mb-6 shadow-inner"><img src="qr.jpg" alt="QR Code" class="w-64 h-64 object-contain"></div>
-        <div class="flex items-center w-full mb-6">
-            <div class="share-app-icon mr-4">🌎</div>
-            <div class="text-left flex-grow">
-                <h3 class="text-lg font-bold">Follow Me</h3>
-                <p class="text-xs opacity-70 text-truncate w-48">https://nunya42000-lab.github.io/Follow/</p>
-            </div>
-            <button id="copy-link-button" class="p-2 bg-gray-700 rounded hover:bg-gray-600 text-white">📋</button>
-        </div>
-        <div class="grid grid-cols-4 gap-4 w-full">
-            <button id="native-share-button" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-xl">📤</div><span class="text-xs">Share</span></button>
-            <button id="chat-share-button" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-xl">💬</div><span class="text-xs">Chat</span></button>
-            <button id="email-share-button" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-yellow-600 rounded-full flex items-center justify-center text-xl">📧</div><span class="text-xs">Email</span></button>
-            <button id="close-share" class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100"><div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl">✕</div><span class="text-xs">Close</span></button>
-        </div>
-    </div>
+<div>
+<div class="flex justify-between mb-1">
+<label class="text-xs font-bold">Swipe Distance (px)</label>
+<span id="gesture-swipe-val" class="text-xs font-mono">30px</span>
 </div>
+<input type="range" id="gesture-swipe-slider" min="10" max="100" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+<p class="text-[10px] text-gray-400 mt-1">Higher distance = fewer accidental swipes.</p>
+</div>
+</div>
+<div class="space-y-4">
+
+<div class="p-3 rounded-lg border border-custom settings-input">
+<div class="font-bold mb-2">9-Key Mapping</div>
+<div id="mapping-9-container" class="grid grid-cols-2 gap-2"></div>
+<p class="text-xs opacity-75 mt-2">Choose the gesture for each value and the Morse feedback (dot/dash combos). Changes save automatically.</p>
+</div>
+
+<div class="p-3 rounded-lg border border-custom settings-input">
+<div class="font-bold mb-2">12-Key Mapping</div>
+<div id="mapping-12-container" class="grid grid-cols-2 gap-2"></div>
+<p class="text-xs opacity-75 mt-2">12-key supports more swipe-based gestures by default.</p>
+</div>
+
+<div class="p-3 rounded-lg border border-custom settings-input">
+<div class="font-bold mb-2">Piano Mapping</div>
+<div id="mapping-piano-container" class="grid grid-cols-2 gap-2"></div>
+<p class="text-xs opacity-75 mt-2">Piano keys map to swipe gestures and their Morse feedback. Piano is the only input that may produce letters A–G for values 6–12.</p>
+</div>
+</div>
+</div> </div> <div class="p-4 border-t border-custom flex justify-between items-center bg-opacity-20 bg-black"><button data-action="restore-defaults" class="px-5 py-2 bg-red-800 hover:bg-red-700 text-white rounded text-sm font-bold transition shadow">Reset</button><button id="close-settings" class="px-8 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold transition shadow">Exit</button></div>
+</div> </div> 
+
+
 
 <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
     <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">

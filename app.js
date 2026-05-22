@@ -861,20 +861,50 @@ const startApp = () => {
 
     // 2. Initialize Settings Manager SECOND
     // Now you can safely pass the sensor engine reference
-    modules.settings = new SettingsManager(
+     modules.settings = new SettingsManager(
         appSettings, 
         { 
-            onSave: saveState, 
-            onUpdate: updateAllChrome,
-            onProfileSwitch: (id) => { /* your switch logic */ },
-            onProfileAdd: (name) => { /* your add logic */ },
-            onProfileRename: (name) => { /* your rename logic */ },
-            onProfileDelete: () => { /* your delete logic */ },
-            onProfileSave: () => { saveState(); },
-            onReset: () => { /* your reset logic */ }
+            onSave: () => saveState(), 
+            onUpdate: () => updateAllChrome(),
+            onProfileSwitch: (id) => { 
+                appSettings.activeProfileId = id;
+                appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings));
+                saveState();
+                renderUI(); 
+            },
+            onProfileAdd: (name) => {
+                const id = 'p_' + Date.now();
+                appSettings.profiles[id] = { name: name, settings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), theme: 'default' };
+                saveState();
+            },
+            onProfileRename: (name) => {
+                appSettings.profiles[appSettings.activeProfileId].name = name;
+                saveState();
+            },
+            onProfileDelete: () => {
+                if (Object.keys(appSettings.profiles).length > 1) {
+                    delete appSettings.profiles[appSettings.activeProfileId];
+                    appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
+                    appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings));
+                    saveState();
+                    renderUI();
+                } else {
+                    alert("Cannot delete the last profile.");
+                }
+            },
+            onProfileSave: () => { 
+                appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings));
+                saveState(); 
+            },
+            onReset: () => { 
+                localStorage.clear();
+                window.location.reload(); 
+            }
         },
-        modules.sensor // Injection happens here
+        modules.sensor
     );
+ // Injection happens here
+  
 
     loadState();
     // ... rest of your initialization ...
@@ -890,19 +920,16 @@ const startApp = () => {
     modules.settings.sensorEngine = modules.sensor;
 
     // 2. Single Point of Truth: Vision Engine Initialization
-    modules.vision = new VisionEngine(
+        modules.vision = new VisionEngine(
         (gestureName) => {
             const settings = getProfileSettings();
             const mappedInput = mapGestureToValue(gestureName, settings.currentInput);
-            
             if (mappedInput !== null) {
                 addValue(mappedInput);
-                showToast(`Registered: ${gestureName}`);
-                document.body.style.backgroundColor = '#222';
-                setTimeout(() => document.body.style.backgroundColor = '', 100);
+                showToast(`Hand: ${mappedInput}`);
             }
         },
-        (statusMsg) => showToast(statusMsg)
+        (status) => showToast(status)
     );
 
     // 3. Voice Commander Setup

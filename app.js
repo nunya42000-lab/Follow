@@ -934,72 +934,7 @@ const startApp = () => {
     renderUI();
 };
 
-    loadState();
-    // ... rest of your initialization ...
-
-    // 1. System-Level Initialization
-    if (appSettings.isUpsidedownEnabled) document.body.classList.add('upside-down');
-    if (appSettings.isEcoModeEnabled) document.body.classList.add('eco-mode');
-    if (appSettings.isWakeLockEnabled && typeof requestWakeLock === 'function') requestWakeLock();
-    if (appSettings.isFullScreenEnabled && !document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-    }
-
-    modules.settings.sensorEngine = modules.sensor;
-
-    // 2. Single Point of Truth: Vision Engine Initialization
-        modules.vision = new VisionEngine(
-        (gestureName) => {
-            const settings = getProfileSettings();
-            const mappedInput = mapGestureToValue(gestureName, settings.currentInput);
-            if (mappedInput !== null) {
-                addValue(mappedInput);
-                showToast(`Hand: ${mappedInput}`);
-            }
-        },
-        (status) => showToast(status)
-    );
-
-    // 3. Voice Commander Setup
-    voiceModule = new VoiceCommander({
-        onStatus: (msg) => showToast(msg),
-        onInput: (val) => {
-            addValue(val);
-            const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
-            if(btn) { btn.classList.add('flash-active'); setTimeout(() => btn.classList.remove('flash-active'), 200); }
-            
-            // Blink Mic Feedback
-            const hMic = document.getElementById('header-mic-btn');
-            if(hMic) {
-                hMic.classList.remove('header-btn-active');
-                setTimeout(() => { if(voiceModule.isListening) hMic.classList.add('header-btn-active'); }, 300);
-            }
-        },
-        onCommand: (cmd) => {
-            if(cmd === 'CMD_PLAY') playDemo();
-            if(cmd === 'CMD_STOP') { isDemoPlaying = false; showToast("Stopped"); }
-            if(cmd === 'CMD_CLEAR') { 
-                const s = getState(); s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); 
-                renderUI(); showToast("Cleared"); 
-            }
-            if(cmd === 'CMD_DELETE') handleBackspace();
-            if(cmd === 'CMD_SETTINGS') modules.settings.openSettings();
-        }
-    });
-
-    // 4. Final Wiring
-    updateAllChrome();
-    initComments(db);
-    modules.settings.updateHeaderVisibility();
-    initGlobalListeners();
-    initGestureEngine();
-    setupARRecorder(); // New consolidated helper
-
-    if (appSettings.autoInputMode === 'mic' || appSettings.autoInputMode === 'both') modules.sensor.toggleAudio(true);
-    if (appSettings.autoInputMode === 'cam' || appSettings.autoInputMode === 'both') modules.sensor.toggleCamera(true);
     
-    renderUI();
-
 
 // Helper for AR Setup (Cleaned up from startApp)
 function setupARRecorder() {

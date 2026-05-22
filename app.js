@@ -106,7 +106,6 @@ const DICTIONARY = {
 
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
-let modules = { sensor: null, settings: null };
 let timers = { speedDelete: null, initialDelay: null, longPress: null, settingsLongPress: null, stealth: null, stealthAction: null, playback: null, tap: null };
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 let blackoutState = { isActive: false, lastShake: 0 }; 

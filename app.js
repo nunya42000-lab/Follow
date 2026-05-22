@@ -8,6 +8,9 @@ import { VisionEngine } from './vision.js';
 const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+// Add this explicit declaration
+let modules = { sensor: null, settings: null, vision: null };
+
 async function requestWakeLock() {
     try {
         if ('wakeLock' in navigator) {
@@ -865,24 +868,12 @@ class VoiceCommander {
 const startApp = () => {
     loadState();
 
-    // 1. System Level Initialization
-    if (appSettings.isUpsidedownEnabled) document.body.classList.add('upside-down');
-    if (appSettings.isEcoModeEnabled) document.body.classList.add('eco-mode');
-    
-    // 2. Safe WakeLock execution
-    if (appSettings.isWakeLockEnabled && typeof requestWakeLock === 'function') {
-        requestWakeLock();
-    }
-    if (appSettings.isFullScreenEnabled && !document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-    }
-
-    // 3. Initialize Sensor Engine FIRST
+   // 3. Initialize Sensor Engine FIRST
     modules.sensor = new SensorEngine(
         (val, source) => addValue(val), 
         (status) => showToast(status)
     );
-
+    
     // 4. Initialize Settings SECOND (safely passing the sensor)
     modules.settings = new SettingsManager(
         appSettings, 
@@ -927,9 +918,6 @@ const startApp = () => {
         modules.sensor
     );
     
-    // Secure reference backlink
-    modules.settings.sensorEngine = modules.sensor;
-
     // 5. Initialize Vision Engine
     modules.vision = new VisionEngine(
         (gestureName) => {
@@ -945,6 +933,20 @@ const startApp = () => {
         },
         (status) => showToast(status)
     );
+
+    // 1. System Level Initialization
+    if (appSettings.isUpsidedownEnabled) document.body.classList.add('upside-down');
+    if (appSettings.isEcoModeEnabled) document.body.classList.add('eco-mode');
+    
+    // 2. Safe WakeLock execution
+    if (appSettings.isWakeLockEnabled && typeof requestWakeLock === 'function') {
+        requestWakeLock();
+    }
+    if (appSettings.isFullScreenEnabled && !document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    }
+
+    
 
     // 6. Voice Commander Setup
     voiceModule = new VoiceCommander({

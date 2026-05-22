@@ -619,3 +619,12 @@ body.eco-mode * {
 }
 
 
+/* --- AR Mode UI Overrides --- */
+body.ar-active #input-footer {
+    display: none !important;
+}
+
+body.ar-active #ar-record-btn {
+    /* Overrides Tailwind's 'hidden' and restores its flex centering */
+    display: flex !important; 
+}

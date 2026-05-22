@@ -40,8 +40,13 @@ const DEFAULT_PROFILE_SETTINGS = { currentInput: CONFIG.INPUTS.KEY9, currentMode
 const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFAULT_PROFILE_SETTINGS }, theme: 'default' }, 'profile_2': { name: "2 Machines", settings: { ...DEFAULT_PROFILE_SETTINGS, machineCount: 2, simonChunkSize: 40, simonInterSequenceDelay: 0 }, theme: 'default' }, 'profile_3': { name: "Bananas", settings: { ...DEFAULT_PROFILE_SETTINGS, sequenceLength: 25 }, theme: 'default' }, 'profile_4': { name: "Piano", settings: { ...DEFAULT_PROFILE_SETTINGS, currentInput: CONFIG.INPUTS.PIANO }, theme: 'default' }, 'profile_5': { name: "15 Rounds", settings: { ...DEFAULT_PROFILE_SETTINGS, currentMode: CONFIG.MODES.UNIQUE_ROUNDS, sequenceLength: 15, currentInput: CONFIG.INPUTS.KEY12 }, theme: 'default' }};
 // UPDATED DEFAULTS: Flash=True, Audio=False, PlaybackSpeed=1.0
 const DEFAULT_APP = { 
-  globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, 
-  isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, 
+  globalUiScale: 100,
+  uiScaleMultiplier: 1.0,
+    showWelcomeScreen: true,
+    gestureResizeMode: 'global',
+    playbackSpeed: 1.0, 
+  isAutoplayEnabled: false,
+    isUniqueRoundsAutoClearEnabled: true, 
   isAudioEnabled: false, 
   isHapticsEnabled: true, 
   isFlashEnabled: true,  
@@ -54,8 +59,8 @@ const DEFAULT_APP = {
   arPlaybackSpeed: 1.0,
   
   // --- NEW TOGGLES ---
-  isDeleteGestureEnabled: false, 
-  isClearGestureEnabled: false,
+  isDeleteGestureEnabled: true, 
+  isClearGestureEnabled: true,
   isAutoTimerEnabled: false,
   isAutoCounterEnabled: false,
   // -------------------
@@ -64,16 +69,33 @@ isUpsidedownEnabled: false,
 isFullScreenEnabled: false,
 isEcoModeEnabled: false,
 
-  isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, 
-  activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, 
-  isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, 
-  showMicBtn: false, showCamBtn: false, autoInputMode: 'none', 
-  showTimer: false, showCounter: false,
-  activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), 
+  isLongPressAutoplayEnabled: true,
+  isStealth1KeyEnabled: false, 
+  activeTheme: 'default',
+    customThemes: {},
+    sensorAudioThresh: -85,
+    sensorCamThresh: 30, 
+  isBlackoutFeatureEnabled: false,
+    isBlackoutGesturesEnabled: false,
+    isHapticMorseEnabled: false, 
+  showMicBtn: false,
+    showCamBtn: false,
+    autoInputMode: 'none', 
+  showTimer: false,
+    showCounter: false,
+  activeProfileId: 'profile_1',
+    profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), 
   runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), 
-  isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, 
-  selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en', 
-  isGestureInputEnabled: false, gestureMappings: {} 
+  isPracticeModeEnabled: false,
+    voicePitch: 1.0,
+    voiceRate: 1.0,
+    voiceVolume: 1.0, 
+  selectedVoice: null,
+    voicePresets: {},
+    activeVoicePresetId: 'standard',
+    generalLanguage: 'en', 
+  isGestureInputEnabled: false,
+    gestureMappings: {} 
 };
 // DEFAULT MAPPINGS (Extracted to top level)
 const DEFAULT_MAPPINGS = {
@@ -194,19 +216,7 @@ function vibrateMorse(val) {
       else patternStr = "---" + ".".repeat(num-10);
   }
 
-  // 3. NEW: Tactile Preset Handler
-  if (patternStr.startsWith('__')) {
-      switch(patternStr) {
-          case '__TICK__': navigator.vibrate(15); break;           // Sharp click
-          case '__THUD__': navigator.vibrate(70); break;           // Heavy impact
-          case '__BUZZ__': navigator.vibrate(400); break;          // Long warning
-          case '__DBL__': navigator.vibrate([20, 50, 20]); break;  // Double tap
-          case '__TRPL__': navigator.vibrate([20, 40, 20, 40, 20]); break; // Triple tap
-          case '__HBEAT__': navigator.vibrate([60, 80, 150]); break; // Lub-dub
-          case '__RAMP__': navigator.vibrate([10, 20, 40, 80]); break; // Revving up
-      }
-      return;
-  }
+
 
   // 4. Standard Morse Logic (Legacy Support)
   const speed = appSettings.playbackSpeed || 1.0; 

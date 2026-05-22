@@ -17,7 +17,7 @@ async function requestWakeLock() {
             });
         }
     } catch (err) { console.warn('Wake Lock failed:', err); }
-},
+}
 
 // --- ENABLE OFFLINE PERSISTENCE ---
 enableIndexedDbPersistence(db).catch((err) => {

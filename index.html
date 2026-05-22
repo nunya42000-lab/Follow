@@ -162,6 +162,9 @@
             <button id="close-donate-btn" class="mt-6 w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold">Close</button>
         </div>
     </div>
+
+                                    
+          
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh] overflow-hidden border border-custom m-4">
             
@@ -176,7 +179,6 @@
                     <button id="open-comment-modal" class="text-xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="Feedback">💬</button>
                     <button id="open-help-button" class="text-xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="Help">❓</button>
                 </div>
-
             </div>
             
             <div class="flex border-b border-custom bg-black bg-opacity-20">
@@ -342,40 +344,37 @@
                                 </div>
                             </div>
 
-                            <div class="p-3 rounded-lg border border-custom settings-input">
-<div class="flex justify-between items-center h-full">
-<span class="font-bold text-sm">Wake Lock 💡</span>
-<input type="checkbox" id="wakelock-toggle" class="h-5 w-5 accent-indigo-500" checked>
-</div>
-</div>
-
 <div class="p-3 rounded-lg border border-custom settings-input">
-<div class="flex justify-between items-center h-full">
-<span class="font-bold text-sm">Upside Down 🙃</span>
-<input type="checkbox" id="upsidedown-toggle" class="h-5 w-5 accent-indigo-500">
-</div>
-</div>
-
+    <div class="flex justify-between items-center h-full">
+       <span class="font-bold text-sm">Wake Lock 💡</span>
+       <input type="checkbox" id="wakelock-toggle" class="h-5 w-5 accent-indigo-500" checked>
+   </div>
+   </div>
 <div class="p-3 rounded-lg border border-custom settings-input">
-<div class="flex justify-between items-center h-full">
-<span class="font-bold text-sm">Full Screen 🔲</span>
-<input type="checkbox" id="fullscreen-toggle" class="h-5 w-5 accent-indigo-500">
-</div>
-</div>
-
+    <div class="flex justify-between items-center h-full">
+       <span class="font-bold text-sm">Upside Down 🙃</span>
+       <input type="checkbox" id="upsidedown-toggle" class="h-5 w-5 accent-indigo-500">
+   </div>
+      </div>
 <div class="p-3 rounded-lg border border-custom settings-input">
-<div class="flex justify-between items-center h-full">
-<span class="font-bold text-sm">Eco Mode 🔋</span>
-<input type="checkbox" id="ecomode-toggle" class="h-5 w-5 accent-indigo-500">
-</div>
-</div>
-
+    <div class="flex justify-between items-center h-full">
+       <span class="font-bold text-sm">Full Screen 🔲</span>
+       <input type="checkbox" id="fullscreen-toggle" class="h-5 w-5 accent-indigo-500">
+   </div>
+     </div> 
 <div class="p-3 rounded-lg border border-custom settings-input">
-<div class="flex justify-between items-center h-full">
+    <div class="flex justify-between items-center h-full">
+       <span class="font-bold text-sm">Eco Mode 🔋</span>
+       <input type="checkbox" id="ecomode-toggle" class="h-5 w-5 accent-indigo-500">
+   </div>
+    </div>
+   
+   <div class="p-3 rounded-lg border border-custom settings-input">
+       <div class="flex justify-between items-center h-full">
 <span class="font-bold text-sm">Bigger Buttons 🥷</span>
-<input type="checkbox" id="stealth-1key-toggle" class="h-5 w-5 accent-indigo-500">
-</div>
-</div>
+ <input type="checkbox" id="stealth-1key-toggle" class="h-5 w-5 accent-indigo-500">
+   </div>
+   </div>
 
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
@@ -546,6 +545,10 @@
             <div class="p-4 border-t border-custom flex justify-between items-center bg-opacity-20 bg-black"><button data-action="restore-defaults" class="px-5 py-2 bg-red-800 hover:bg-red-700 text-white rounded text-sm font-bold transition shadow">Reset</button><button id="close-settings" class="px-8 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold transition shadow">Exit</button></div>
         </div>
     </div>
+        </div>                  
+
+                                
+                        
     <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-80 flex flex-col justify-end z-[70] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="share-sheet p-6 text-center flex flex-col items-center border-t border-gray-700 shadow-2xl transform translate-y-full transition-transform duration-300">
             <div class="w-12 h-1 bg-gray-600 rounded-full mb-4"></div> <div class="bg-white p-2 rounded-lg mb-6 shadow-inner"><img src="qr.jpg" alt="QR Code" class="w-64 h-64 object-contain"></div>

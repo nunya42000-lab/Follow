@@ -630,14 +630,26 @@ body.ar-active #ar-record-btn {
 }
 /* --- Full Screen Settings Modal Override --- */
 #settings-modal {
-    padding: 0 !important; 
+    /* Ensure the wrapper doesn't use flex-centering */
+    display: block !important;
+    background: rgba(0, 0, 0, 0.9);
 }
 
 #settings-modal .settings-modal-bg {
-    max-width: 100vw !important;
-    max-height: 100vh !important;
-    width: 100vw !important;
-    height: 100vh !important;
+    /* Pin to Top-Left and Bottom-Right */
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    
+    /* Remove constraints */
+    width: 100vw;
+    height: 100vh;
     border-radius: 0 !important;
-    border: none !important;
+    border: none;
+    margin: 0;
+    
+    /* Ensure scrolling happens inside the modal, not the page */
+    overflow-y: auto;
 }

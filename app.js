@@ -8,6 +8,16 @@ import { VisionEngine } from './vision.js';
 const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+async function requestWakeLock() {
+    try {
+        if ('wakeLock' in navigator) {
+            const wakeLock = await navigator.wakeLock.request('screen');
+            document.addEventListener('visibilitychange', async () => {
+                if (document.visibilityState === 'visible') await navigator.wakeLock.request('screen');
+            });
+        }
+    } catch (err) { console.warn('Wake Lock failed:', err); }
+},
 
 // --- ENABLE OFFLINE PERSISTENCE ---
 enableIndexedDbPersistence(db).catch((err) => {

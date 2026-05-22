@@ -163,8 +163,12 @@ window.onunhandledrejection = function (event) {
 <button id="close-donate-btn" class="mt-6 w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold">Close</button>
 </div>
 </div>
-<div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
-<div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh] overflow-hidden border border-custom m-4">
+
+<div id="settings-modal" class="fixed inset-0 z-[100] w-full h-full flex items-center justify-center p-4 bg-black/50 opacity-0 pointer-events-none transition-opacity">
+    <div class="settings-modal-bg w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl p-6">
+        </div>
+</div>
+
 
 <div class="no-swipe-zone p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
 <div class="flex items-center">

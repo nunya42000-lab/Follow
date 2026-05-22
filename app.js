@@ -999,7 +999,7 @@ const startApp = () => {
     if (appSettings.autoInputMode === 'cam' || appSettings.autoInputMode === 'both') modules.sensor.toggleCamera(true);
     
     renderUI();
-}
+
 
 // Helper for AR Setup (Cleaned up from startApp)
 function setupARRecorder() {

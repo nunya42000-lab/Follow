@@ -628,3 +628,16 @@ body.ar-active #ar-record-btn {
     /* Overrides Tailwind's 'hidden' and restores its flex centering */
     display: flex !important; 
 }
+/* --- Full Screen Settings Modal Override --- */
+#settings-modal {
+    padding: 0 !important; 
+}
+
+#settings-modal .settings-modal-bg {
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+    border: none !important;
+}

@@ -343,11 +343,39 @@
                             </div>
 
                             <div class="p-3 rounded-lg border border-custom settings-input">
-                                <div class="flex justify-between items-center h-full">
-                                    <span class="font-bold text-sm">Inputs Only 🥷</span>
-                                    <input type="checkbox" id="stealth-1key-toggle" class="h-5 w-5 accent-indigo-500">
-                                </div>
-                            </div>
+<div class="flex justify-between items-center h-full">
+<span class="font-bold text-sm">Wake Lock 💡</span>
+<input type="checkbox" id="wakelock-toggle" class="h-5 w-5 accent-indigo-500" checked>
+</div>
+</div>
+
+<div class="p-3 rounded-lg border border-custom settings-input">
+<div class="flex justify-between items-center h-full">
+<span class="font-bold text-sm">Upside Down 🙃</span>
+<input type="checkbox" id="upsidedown-toggle" class="h-5 w-5 accent-indigo-500">
+</div>
+</div>
+
+<div class="p-3 rounded-lg border border-custom settings-input">
+<div class="flex justify-between items-center h-full">
+<span class="font-bold text-sm">Full Screen 🔲</span>
+<input type="checkbox" id="fullscreen-toggle" class="h-5 w-5 accent-indigo-500">
+</div>
+</div>
+
+<div class="p-3 rounded-lg border border-custom settings-input">
+<div class="flex justify-between items-center h-full">
+<span class="font-bold text-sm">Eco Mode 🔋</span>
+<input type="checkbox" id="ecomode-toggle" class="h-5 w-5 accent-indigo-500">
+</div>
+</div>
+
+<div class="p-3 rounded-lg border border-custom settings-input">
+<div class="flex justify-between items-center h-full">
+<span class="font-bold text-sm">Bigger Buttons 🥷</span>
+<input type="checkbox" id="stealth-1key-toggle" class="h-5 w-5 accent-indigo-500">
+</div>
+</div>
 
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
@@ -442,6 +470,20 @@
                                 </select>
                             </div>
 
+
+<div class="grid grid-cols-2 gap-3">
+        <div>
+                <label class="block text-xs font-bold mb-1 text-muted-custom">AR Playback Speed</label>
+                <select id="ar-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                    <option value="0.5">50%</option>
+                    <option value="0.75">75%</option>
+                    <option value="1.0" selected>100%</option>
+                    <option value="1.25">125%</option>
+                    <option value="1.5">150%</option>
+                </select>
+            </div>
+            
+          
                             <div>
                                 <label class="block text-xs font-bold mb-1 text-muted-custom">Resize Gesture</label>
                                 <select id="gesture-mode-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">

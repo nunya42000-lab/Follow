@@ -1421,19 +1421,23 @@ if(headerStealth) {
                       }
                   }
                   showToast("AR Mode ON 📸");
-              } else {
-                  document.body.classList.remove('ar-active');
-                  headerCam.classList.remove('header-btn-active');
-                  if (modules.sensor) {
-                      modules.sensor.toggleCamera(false);
-                      if (modules.sensor.videoEl) {
-                          modules.sensor.videoEl.style.display = 'none';
-                      }
-                  }
-                  showToast("AR Mode OFF");
-              }
-          }; 
-      }
-  } catch(e) {
-      console.error("Listener Error:", e);  
+                              } else {
+                    document.body.classList.remove('ar-active');
+                    headerCam.classList.remove('header-btn-active');
+                    if (modules.sensor) {
+                        modules.sensor.toggleCamera(false);
+                        if (modules.sensor.videoEl) {
+                            modules.sensor.videoEl.style.display = 'none';
+                        }
+                    }
+                    showToast("AR Mode OFF");
+                }
+            }; 
+        }
+    } catch(e) {
+        console.error("Listener Error:", e);
+    }
+} // <-- THIS BRACE WAS MISSING! It closes initGlobalListeners()
+
+// The final boot trigger
 document.addEventListener('DOMContentLoaded', startApp);

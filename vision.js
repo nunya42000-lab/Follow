@@ -15,10 +15,6 @@ export class VisionEngine {
         this.history = []; 
         this.requiredFrames = 5;
         this.cooldown = 0;
-        
-        // Debug Canvas Elements
-        this.debugCanvas = null;
-        this.debugCtx = null;
     }
 
     async start() {
@@ -70,7 +66,7 @@ export class VisionEngine {
         }
     }
 
-    stop() {
+            stop() {
         this.isActive = false;
         
         // Cleanup Video
@@ -82,59 +78,47 @@ export class VisionEngine {
             this.video = null;
         }
 
-        // Cleanup Debug Canvas
+        // Cleanup Debug Canvas (New)
         if (this.debugCanvas) {
             this.debugCanvas.remove();
             this.debugCanvas = null;
             this.debugCtx = null;
         }
 
-        if (this.loopId) {
-            cancelAnimationFrame(this.loopId);
-            this.loopId = null;
-        }
-        
+        if (this.loopId) cancelAnimationFrame(this.loopId);
         this.onStatus("Vision Off 🌑");
-    }
+            }
+    
 
     predict() {
         if (!this.isActive || !this.recognizer || !this.video) return;
 
         const startTimeMs = Date.now();
         
-        // Only process if the video frame has actually updated
-        if (this.video.currentTime !== this.lastVideoTime) {
-            this.lastVideoTime = this.video.currentTime;
-            try {
-                const results = this.recognizer.recognizeForVideo(this.video, startTimeMs);
-                this.process(results);
-            } catch(e) { 
-                console.error("Vision Frame Error", e); 
-            }
+        try {
+            const results = this.recognizer.recognizeForVideo(this.video, startTimeMs);
+            this.process(results);
+        } catch(e) { 
+            console.error("Vision Frame Error", e); 
         }
 
-        if (this.isActive) {
-            this.loopId = requestAnimationFrame(() => this.predict());
-        }
+        this.loopId = requestAnimationFrame(() => this.predict());
     }
+// ... inside vision.js ...
 
     process(results) {
-        // 1. Draw Skeleton 
+        // 1. Draw Skeleton (This call is fine here)
         if (window.appSettings?.isSkeletonDebugEnabled) {
             this._drawDebugSkeleton(results);
         } else if (this.debugCanvas && this.debugCtx) {
             this.debugCtx.clearRect(0, 0, this.debugCanvas.width, this.debugCanvas.height);
         }
 
-        // Handle Cooldown
-        if (this.cooldown > 0) { 
-            this.cooldown--; 
-            return; 
-        }
+        if (this.cooldown > 0) { this.cooldown--; return; }
 
         let gesture = "none";
 
-        if (results.landmarks && results.landmarks.length > 0) {
+        if (results.landmarks.length > 0) {
             const lm = results.landmarks[0]; 
             const fingers = this.countFingers(lm);
             
@@ -153,19 +137,19 @@ export class VisionEngine {
             else gesture = `hand_${fingers}_${dir}`;
         }
 
-        // Debounce Logic
+        // Debounce Logic (Kept inside process!)
         this.history.push(gesture);
-        if (this.history.length > this.requiredFrames) {
-            this.history.shift();
-        }
+        if (this.history.length > this.requiredFrames) this.history.shift();
         
         const candidate = this.history[0];
-        if (candidate !== "none" && this.history.length === this.requiredFrames && this.history.every(g => g === candidate)) {
-            this.onTrigger(candidate, 'vision');
-            this.cooldown = 25; // Prevent rapid re-firing
+        if (candidate !== "none" && this.history.every(g => g === candidate)) {
+            this.onTrigger(candidate);
+            this.cooldown = 25; 
             this.history = [];
         }
-    }
+    } // <--- CLOSE process() HERE
+
+    // --- MOVE THESE FUNCTIONS OUTSIDE process() ---
 
     _drawDebugSkeleton(results) {
         if (!this.debugCanvas) {
@@ -229,6 +213,7 @@ export class VisionEngine {
     }
 
     countFingers(lm) {
+        // ... (keep existing countFingers code) ...
         let count = 0;
         if (lm[4].x < lm[3].x && lm[4].x < lm[2].x) count++;
         const w = lm[0]; 

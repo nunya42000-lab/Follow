@@ -866,7 +866,20 @@ class VoiceCommander {
 
 const startApp = () => {
     loadState();
+// Find your init() or boot() function
+function init() {
+    // --- ADD THIS HERE ---
+    const layer = document.getElementById('blackout-layer');
+    if (layer) {
+        layer.style.opacity = '0';
+        layer.style.display = 'none';
+        layer.classList.remove('blackout-active');
+    }
+    // --- END SAFETY VALVE ---
 
+    // ... rest of your existing initialization code
+}
+    
    // 3. Initialize Sensor Engine FIRST
     modules.sensor = new SensorEngine(
         (val, source) => addValue(val), 

@@ -272,7 +272,7 @@ textarea,
 }
 
 /* Modals & Overlays */
-#blackout-layer {
+/*#blackout-layer {
     position: fixed;
     top: 0;
     left: 0;
@@ -288,7 +288,7 @@ textarea,
 body.blackout-active #blackout-layer {
     display: block;
 }
-
+*/
 .share-sheet {
     background-color: #1e1e1e;
     border-radius: 1.5rem 1.5rem 0 0;

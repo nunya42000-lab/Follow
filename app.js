@@ -868,14 +868,69 @@ const startApp = () => {
     // 1. System Level Initialization
     if (appSettings.isUpsidedownEnabled) document.body.classList.add('upside-down');
     if (appSettings.isEcoModeEnabled) document.body.classList.add('eco-mode');
-    if (appSettings.isWakeLockEnabled && typeof requestWakeLock === 'function') requestWakeLock();
+    
+    // 2. Safe WakeLock execution
+    if (appSettings.isWakeLockEnabled && typeof requestWakeLock === 'function') {
+        requestWakeLock();
+    }
     if (appSettings.isFullScreenEnabled && !document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(() => {});
     }
 
+    // 3. Initialize Sensor Engine FIRST
+    modules.sensor = new SensorEngine(
+        (val, source) => addValue(val), 
+        (status) => showToast(status)
+    );
+
+    // 4. Initialize Settings SECOND (safely passing the sensor)
+    modules.settings = new SettingsManager(
+        appSettings, 
+        { 
+            onSave: () => saveState(), 
+            onUpdate: () => updateAllChrome(),
+            onProfileSwitch: (id) => { 
+                appSettings.activeProfileId = id;
+                appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings));
+                saveState();
+                renderUI(); 
+            },
+            onProfileAdd: (name) => {
+                const id = 'p_' + Date.now();
+                appSettings.profiles[id] = { name: name, settings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), theme: 'default' };
+                saveState();
+            },
+            onProfileRename: (name) => {
+                appSettings.profiles[appSettings.activeProfileId].name = name;
+                saveState();
+            },
+            onProfileDelete: () => {
+                if (Object.keys(appSettings.profiles).length > 1) {
+                    delete appSettings.profiles[appSettings.activeProfileId];
+                    appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
+                    appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings));
+                    saveState();
+                    renderUI();
+                } else {
+                    alert("Cannot delete the last profile.");
+                }
+            },
+            onProfileSave: () => { 
+                appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings));
+                saveState(); 
+            },
+            onReset: () => { 
+                localStorage.clear();
+                window.location.reload(); 
+            }
+        },
+        modules.sensor
+    );
+    
+    // Secure reference backlink
     modules.settings.sensorEngine = modules.sensor;
 
-    // 2. Initialize Vision Engine
+    // 5. Initialize Vision Engine
     modules.vision = new VisionEngine(
         (gestureName) => {
             const settings = getProfileSettings();
@@ -891,7 +946,7 @@ const startApp = () => {
         (status) => showToast(status)
     );
 
-    // 3. Voice Commander Setup
+    // 6. Voice Commander Setup
     voiceModule = new VoiceCommander({
         onStatus: (msg) => showToast(msg),
         onInput: (val) => {
@@ -899,7 +954,6 @@ const startApp = () => {
             const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
             if(btn) { btn.classList.add('flash-active'); setTimeout(() => btn.classList.remove('flash-active'), 200); }
             
-            // Blink Mic Feedback
             const hMic = document.getElementById('header-mic-btn');
             if(hMic) {
                 hMic.classList.remove('header-btn-active');
@@ -918,21 +972,23 @@ const startApp = () => {
         }
     });
 
-    // 4. Wiring and AR Setup
+    // 7. Final Wiring & Startup
     updateAllChrome();
     initComments(db);
     modules.settings.updateHeaderVisibility();
     initGlobalListeners();
     initGestureEngine();
     
-    // Consolidate AR logic once here
-    setupARLogic();
+    // AR Setup hook (Make sure setupARLogic() exists elsewhere in app.js)
+    if(typeof setupARLogic === 'function') setupARLogic();
 
+    // Re-engage auto hardware inputs
     if (appSettings.autoInputMode === 'mic' || appSettings.autoInputMode === 'both') modules.sensor.toggleAudio(true);
     if (appSettings.autoInputMode === 'cam' || appSettings.autoInputMode === 'both') modules.sensor.toggleCamera(true);
     
     renderUI();
 };
+
 
     
 

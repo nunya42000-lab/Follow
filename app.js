@@ -1490,10 +1490,9 @@ if(headerStealth) {
                 }
             }; 
         }
-    } catch(e) {
-        console.error("Listener Error:", e);
-    }
-} // <-- THIS BRACE WAS MISSING! It closes initGlobalListeners()
+  } catch(e) {
+      console.error("Listener Error:", e);
+  }
+}
 
-// The final boot trigger
 document.addEventListener('DOMContentLoaded', startApp);

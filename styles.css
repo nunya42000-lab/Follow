@@ -598,5 +598,24 @@ body.ar-active #ar-ui-layer {
     font-weight: 900;
     font-size: 0.8rem;
 }
+/* Flips the entire viewport */
+body.upside-down {
+    transform: rotate(180deg);
+    transform-origin: center center;
+    overflow: hidden; 
+}
+
+/* Eco Mode strips out heavy rendering layers and enforces pure black */
+body.eco-mode {
+    background-color: #000000 !important;
+}
+
+body.eco-mode * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+}
 
 

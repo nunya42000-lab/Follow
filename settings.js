@@ -1,4 +1,3 @@
-
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
 export const PREMADE_THEMES = {
@@ -309,9 +308,6 @@ export class SettingsManager {
             redeemMinus: document.getElementById('redeem-zoom-out'),
 
             openDonateBtn: document.getElementById('open-donate-btn'),
-
-
-            openDonateBtn: document.getElementById('open-donate-btn'),
             openRedeemSettingsBtn: document.getElementById('open-redeem-btn-settings'),
 
             donateModal: document.getElementById('donate-modal'), closeDonateBtn: document.getElementById('close-donate-btn'),
@@ -326,11 +322,26 @@ export class SettingsManager {
             gestureSwipeSlider: document.getElementById('gesture-swipe-slider'),
             gestureTapVal: document.getElementById('gesture-tap-val'),
             gestureSwipeVal: document.getElementById('gesture-swipe-val'),
+            
+            // --- NEW: General Setting & AR Elements ---
+            wakeLockToggle: document.getElementById('wakelock-toggle'),
+            upsideDownToggle: document.getElementById('upsidedown-toggle'),
+            fullScreenToggle: document.getElementById('fullscreen-toggle'),
+            ecoModeToggle: document.getElementById('ecomode-toggle'),
+            arSpeedSelect: document.getElementById('ar-speed-select')
         };
-        this.tempTheme = null; this.initListeners(); this.populateConfigDropdown(); this.populateThemeDropdown(); this.buildColorGrid(); this.populateVoicePresetDropdown();
+        
+        this.tempTheme = null; 
+        this.initListeners(); 
+        this.populateConfigDropdown(); 
+        this.populateThemeDropdown(); 
+        this.buildColorGrid(); 
+        this.populateVoicePresetDropdown();
         this.populatePlaybackSpeedDropdown();
-        this.populateUIScaleDropdown(); this.populateMappingUI();
+        this.populateUIScaleDropdown(); 
+        this.populateMappingUI();
         this.populateMorseUI();
+        
         if(this.dom.gestureToggle){
             this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
             this.dom.gestureToggle.addEventListener('change', (e) => {
@@ -340,8 +351,52 @@ export class SettingsManager {
                 this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
             });
         }
-        
+
+        // --- NEW: Bind General Setting Toggles ---
+        const bindToggle = (toggleElement, settingKey, applyCallback) => {
+            if (toggleElement) {
+                // Default Wake Lock to true, others to false
+                let defaultState = settingKey === 'isWakeLockEnabled' ? true : false;
+                toggleElement.checked = this.appSettings[settingKey] ?? defaultState;
+                
+                toggleElement.onchange = (e) => {
+                    this.appSettings[settingKey] = e.target.checked;
+                    this.callbacks.onSave();
+                    if (applyCallback) applyCallback();
+                };
+            }
+        };
+
+        bindToggle(this.dom.wakeLockToggle, 'isWakeLockEnabled', () => {
+            if (this.appSettings.isWakeLockEnabled && typeof requestWakeLock === 'function') requestWakeLock();
+        });
+
+        bindToggle(this.dom.upsideDownToggle, 'isUpsidedownEnabled', () => {
+            document.body.classList.toggle('upside-down', this.appSettings.isUpsidedownEnabled);
+        });
+
+        bindToggle(this.dom.ecoModeToggle, 'isEcoModeEnabled', () => {
+            document.body.classList.toggle('eco-mode', this.appSettings.isEcoModeEnabled);
+        });
+
+        bindToggle(this.dom.fullScreenToggle, 'isFullScreenEnabled', () => {
+            if (this.appSettings.isFullScreenEnabled && !document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(e => console.log(e));
+            } else if (!this.appSettings.isFullScreenEnabled && document.fullscreenElement) {
+                document.exitFullscreen().catch(e => console.log(e));
+            }
+        });
+
+        // --- NEW: Bind AR Speed Select ---
+        if (this.dom.arSpeedSelect) {
+            this.dom.arSpeedSelect.value = this.appSettings.arPlaybackSpeed || 1.0; 
+            this.dom.arSpeedSelect.onchange = (e) => {
+                this.appSettings.arPlaybackSpeed = parseFloat(e.target.value);
+                this.callbacks.onSave();
+            };
+        }
     }
+
     populatePlaybackSpeedDropdown() {
         if (!this.dom.playbackSpeed) return;
         this.dom.playbackSpeed.innerHTML = '';
@@ -851,6 +906,7 @@ export class SettingsManager {
     
     hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
+    
     populateMappingUI() {
         if (!this.dom) return;
         if (!this.appSettings) return;
@@ -913,40 +969,54 @@ export class SettingsManager {
             }
         }
 
-        // 2. DEFINE THE EXPANDED GESTURE LIST
-        const gestureList = [
-            // --- Taps ---
-            'tap', 'double_tap', 'triple_tap', 'long_tap',
-            
-            // --- Multi-Finger Taps ---
-            'tap_2f_any', 'double_tap_2f_any', 'triple_tap_2f_any', 'long_tap_2f_any',
-            'tap_3f_any', 'double_tap_3f_any', 'triple_tap_3f_any', 'long_tap_3f_any',
-            
-            // --- Standard Swipes ---
-            'swipe_up', 'swipe_down', 'swipe_left', 'swipe_right', 
-            'swipe_nw', 'swipe_ne', 'swipe_sw', 'swipe_se',
-            
-            // --- Long Swipes (Throw) ---
-            'swipe_long_up', 'swipe_long_down', 'swipe_long_left', 'swipe_long_right',
-            
-            // --- Multi-Finger Swipes ---
-            'swipe_up_2f', 'swipe_down_2f', 'swipe_left_2f', 'swipe_right_2f',
-            
-            // --- Shapes: Boomerangs (I-Shape / 180 flip) ---
-            'boomerang_up', 'boomerang_down', 'boomerang_left', 'boomerang_right',
-            
-            // --- Shapes: Switchbacks (V-Shape / < >) ---
-            'switchback_up', 'switchback_down', 'switchback_left', 'switchback_right',
-            
-            // --- Shapes: Corners (L-Shape) ---
-            'corner_cw', 'corner_ccw',
-            
-            // --- Shapes: Closed & Complex ---
-            'square_cw', 'square_ccw', 
-            'triangle_cw', 'triangle_ccw',
-            'u_shape_cw', 'u_shape_ccw',
-            'zigzag_right', 'zigzag_left'
-        ];
+        // 2. DEFINE THE EXPANDED GESTURE CATEGORIES (For Toggles)
+        const GESTURE_CATEGORIES = {
+            'Taps': ['tap', 'double_tap', 'triple_tap', 'long_tap'],
+            'Multi-Finger Taps': ['tap_2f_any', 'double_tap_2f_any', 'triple_tap_2f_any', 'long_tap_2f_any', 'tap_3f_any', 'double_tap_3f_any', 'triple_tap_3f_any', 'long_tap_3f_any'],
+            'Swipes': ['swipe_up', 'swipe_down', 'swipe_left', 'swipe_right', 'swipe_nw', 'swipe_ne', 'swipe_sw', 'swipe_se'],
+            'Long Swipes': ['swipe_long_up', 'swipe_long_down', 'swipe_long_left', 'swipe_long_right'],
+            'Multi-Finger Swipes': ['swipe_up_2f', 'swipe_down_2f', 'swipe_left_2f', 'swipe_right_2f'],
+            'Boomerangs': ['boomerang_up', 'boomerang_down', 'boomerang_left', 'boomerang_right'],
+            'Switchbacks': ['switchback_up', 'switchback_down', 'switchback_left', 'switchback_right'],
+            'Corners': ['corner_cw', 'corner_ccw'],
+            'Shapes': ['square_cw', 'square_ccw', 'triangle_cw', 'triangle_ccw', 'u_shape_cw', 'u_shape_ccw', 'zigzag_right', 'zigzag_left']
+        };
+
+        if (!this.appSettings.activeGestureFilters) {
+            this.appSettings.activeGestureFilters = ['Taps', 'Multi-Finger Taps', 'Swipes'];
+        }
+
+        const getAvailableGestures = () => {
+            let available = [];
+            this.appSettings.activeGestureFilters.forEach(cat => {
+                if (GESTURE_CATEGORIES[cat]) available.push(...GESTURE_CATEGORIES[cat]);
+            });
+            return available;
+        };
+
+        this.updateAllMappingDropdowns = () => {
+            const available = getAvailableGestures();
+            const dropdowns = document.querySelectorAll('.gesture-map-select');
+            dropdowns.forEach(select => {
+                const currentVal = select.value;
+                select.innerHTML = '';
+                
+                available.forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g;
+                    opt.textContent = g;
+                    select.appendChild(opt);
+                });
+                
+                if (!available.includes(currentVal) && currentVal) {
+                    const opt = document.createElement('option');
+                    opt.value = currentVal;
+                    opt.textContent = currentVal;
+                    select.appendChild(opt);
+                }
+                select.value = currentVal;
+            });
+        };
 
         // 3. BUILD UI (With Accordions)
         const buildSection = (type, title, keyPrefix, count, customKeys = null, isOpen = false) => {
@@ -979,7 +1049,6 @@ export class SettingsManager {
 
                 const grp1 = document.createElement('optgroup'); grp1.label = "Built-in";
                 
-                // Fallback logic for safety in this snippet:
                 const safePresets = (typeof GESTURE_PRESETS !== 'undefined') ? GESTURE_PRESETS : {};
 
                 Object.keys(safePresets).forEach(k => {
@@ -1026,7 +1095,7 @@ export class SettingsManager {
                     if(!name) return;
                     const id = 'cust_gest_' + Date.now();
                     const currentMap = {};
-                    listContainer.querySelectorAll('select').forEach(inp => currentMap[inp.dataset.key] = inp.value);
+                    listContainer.querySelectorAll('select.gesture-map-select').forEach(inp => currentMap[inp.dataset.key] = inp.value);
                     this.appSettings.gestureProfiles[id] = { name: name, type: type, map: currentMap };
                     this.callbacks.onSave();
                     populateSelect();
@@ -1036,7 +1105,7 @@ export class SettingsManager {
                     const val = select.value;
                     if(!val || val.indexOf('cust_') === -1) return alert("Select a custom profile to save (or use NEW).");
                     const currentMap = {};
-                    listContainer.querySelectorAll('select').forEach(inp => currentMap[inp.dataset.key] = inp.value);
+                    listContainer.querySelectorAll('select.gesture-map-select').forEach(inp => currentMap[inp.dataset.key] = inp.value);
                     this.appSettings.gestureProfiles[val].map = currentMap;
                     this.callbacks.onSave();
                     alert("Profile Saved!");
@@ -1084,16 +1153,32 @@ export class SettingsManager {
 
                     // 1. TOUCH GESTURE DROPDOWN
                     const dropTouch = document.createElement('select');
-                    dropTouch.className = "settings-input p-1 rounded text-[10px] h-10 border border-custom flex-1 w-0";
-                    dropTouch.dataset.key = keyId; // For saving presets
+                    dropTouch.className = "settings-input p-1 rounded text-[10px] h-10 border border-custom flex-1 w-0 gesture-map-select";
+                    dropTouch.dataset.key = keyId; 
 
-                    // Add default "Choose..." or iterate your gestureList
-                    gestureList.forEach(g => {
+                    // LOAD SAVED VALUES
+                    const mapping = (this.appSettings.gestureMappings && this.appSettings.gestureMappings[keyId]) 
+                        ? this.appSettings.gestureMappings[keyId] 
+                        : {};
+
+                    let savedGesture = mapping.gesture || 'tap';
+
+                    const availableGestures = getAvailableGestures();
+                    availableGestures.forEach(g => {
                         const opt = document.createElement('option');
                         opt.value = g;
                         opt.textContent = g; 
                         dropTouch.appendChild(opt);
                     });
+
+                    // Ensure saved gesture is injected if filtered out
+                    if (!availableGestures.includes(savedGesture) && savedGesture) {
+                        const opt = document.createElement('option');
+                        opt.value = savedGesture;
+                        opt.textContent = savedGesture;
+                        dropTouch.appendChild(opt);
+                    }
+                    dropTouch.value = savedGesture;
 
                     // 2. HAND GESTURE DROPDOWN
                     const dropHand = document.createElement('select');
@@ -1104,23 +1189,15 @@ export class SettingsManager {
                     defHand.textContent = "- Hand -";
                     dropHand.appendChild(defHand);
                     
-                    // Safe access to HAND_GESTURES_LIST
                     const handList = (typeof HAND_GESTURES_LIST !== 'undefined') ? HAND_GESTURES_LIST : [];
 
                     handList.forEach(g => {
                         const opt = document.createElement('option');
                         opt.value = g;
-                        // Format: hand_2_up -> 2 Fingers Up
                         opt.textContent = g.replace('hand_', '').replace('_', ' ').replace('fist', '✊ Fist').toUpperCase(); 
                         dropHand.appendChild(opt);
                     });
 
-                    // LOAD SAVED VALUES
-                    const mapping = (this.appSettings.gestureMappings && this.appSettings.gestureMappings[keyId]) 
-                        ? this.appSettings.gestureMappings[keyId] 
-                        : {};
-
-                    dropTouch.value = mapping.gesture || 'tap';
                     dropHand.value = mapping.hand || '';
 
                     // SAVE LISTENER
@@ -1146,13 +1223,10 @@ export class SettingsManager {
             select.onchange = () => {
                  const val = select.value;
                  if(!val) return;
-                 // Safe Preset Access again
                  const safePresets = (typeof GESTURE_PRESETS !== 'undefined') ? GESTURE_PRESETS : {};
                  
                  let data = safePresets[val] ? safePresets[val].map : (this.appSettings.gestureProfiles[val] ? this.appSettings.gestureProfiles[val].map : null);
                  if(data) {
-                     // Check if this is a simple string map (old presets) or object map (new presets)
-                     // Convert old string map to new object format for internal storage if needed
                      Object.keys(data).forEach(key => {
                          if(!this.appSettings.gestureMappings[key]) this.appSettings.gestureMappings[key] = {};
                          
@@ -1173,9 +1247,46 @@ export class SettingsManager {
             if(tabRoot) tabRoot.appendChild(details);
         };
 
-        buildSection('key9', '9-Key', 'k9_', 9, null, true); // Open first one by default
+        buildSection('key9', '9-Key', 'k9_', 9, null, true); 
         buildSection('key12', '12-Key', 'k12_', 12);
         buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
+
+        // --- NEW: FILTER CHECKBOX UI ---
+        if (tabRoot) {
+            const filterContainer = document.createElement('div');
+            filterContainer.className = "p-3 mt-4 mb-4 rounded-lg border border-custom bg-black bg-opacity-30";
+            filterContainer.innerHTML = `<h4 class="font-bold text-sm mb-3 text-primary-app">Visible Gesture Types 🔍</h4><div class="grid grid-cols-2 gap-2" id="gesture-filter-grid"></div>`;
+            tabRoot.appendChild(filterContainer);
+
+            const grid = document.getElementById('gesture-filter-grid');
+            if (grid) {
+                Object.keys(GESTURE_CATEGORIES).forEach(cat => {
+                    const lbl = document.createElement('label');
+                    lbl.className = "flex items-center space-x-2 text-xs font-bold text-gray-300 cursor-pointer";
+                    const cb = document.createElement('input');
+                    cb.type = "checkbox";
+                    cb.className = "accent-indigo-500 gesture-filter-toggle w-4 h-4";
+                    cb.dataset.category = cat;
+                    cb.checked = this.appSettings.activeGestureFilters.includes(cat);
+                    
+                    cb.onchange = (e) => {
+                        if (e.target.checked) {
+                            if (!this.appSettings.activeGestureFilters.includes(cat)) {
+                                this.appSettings.activeGestureFilters.push(cat);
+                            }
+                        } else {
+                            this.appSettings.activeGestureFilters = this.appSettings.activeGestureFilters.filter(c => c !== cat);
+                        }
+                        this.callbacks.onSave();
+                        this.updateAllMappingDropdowns();
+                    };
+                    
+                    lbl.appendChild(cb);
+                    lbl.appendChild(document.createTextNode(" " + cat));
+                    grid.appendChild(lbl);
+                });
+            }
+        }
     }
 
     populateMorseUI() {

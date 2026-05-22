@@ -1435,13 +1435,5 @@ if(headerStealth) {
           }; 
       }
   } catch(e) {
-      console.error("Listener Error:", e);
-  }
-// Keep screen awake
-
-// Call this when the app starts
-
-      
-
-      
+      console.error("Listener Error:", e);  
 document.addEventListener('DOMContentLoaded', startApp);

@@ -599,4 +599,19 @@ body.ar-active #ar-ui-layer {
     font-size: 0.8rem;
 }
 
+/* --- SYSTEM TOGGLES --- */
+
+/* Flips the entire UI 180 degrees */
+body.upside-down {
+    transform: rotate(180deg);
+}
+
+/* Eco Mode: Dims screen, disables hardware-heavy animations */
+body.eco-mode {
+    filter: brightness(0.65);
+}
+body.eco-mode * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+}
 

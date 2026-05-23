@@ -324,7 +324,12 @@ export class SettingsManager {
             gestureSwipeVal: document.getElementById('gesture-swipe-val'),
             
             // --- NEW: General Setting & AR Elements ---
-            wakeLockToggle: document.getElementById('wakelock-toggle'),
+                    bindToggle(this.dom.wakeLockToggle, 'isWakeLockEnabled', () => {
+            if (typeof window.toggleWakeLock === 'function') {
+                window.toggleWakeLock(this.appSettings.isWakeLockEnabled);
+            }
+        });
+
             upsideDownToggle: document.getElementById('upsidedown-toggle'),
             fullScreenToggle: document.getElementById('fullscreen-toggle'),
             ecoModeToggle: document.getElementById('ecomode-toggle'),

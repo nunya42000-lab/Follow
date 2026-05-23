@@ -95,7 +95,92 @@ const DEFAULT_MAPPINGS = {
   // Piano: Multi-Finger Swipes
   'piano_1': 'swipe_left_2f', 'piano_2': 'swipe_nw_2f', 'piano_3': 'swipe_up_2f',
   'piano_4': 'swipe_ne_2f', 'piano_5': 'swipe_right_2f'
-};    
+};  
+
+// 1. Define the Master Gesture Dictionary
+// This includes all the custom shapes your OmniGesture engine handles
+const GESTURE_DICTIONARY = [
+    { id: 'none', name: 'None', group: 'always' },
+    { id: 'tap', name: 'Tap', group: 'taps' },
+    { id: 'double_tap', name: 'Double Tap', group: 'taps' },
+    { id: 'swipe_up', name: 'Swipe Up ⬆️', group: 'basic' },
+    { id: 'swipe_down', name: 'Swipe Down ⬇️', group: 'basic' },
+    { id: 'swipe_left', name: 'Swipe Left ⬅️', group: 'basic' },
+    { id: 'swipe_right', name: 'Swipe Right ➡️', group: 'basic' },
+    { id: 'swipe_up_left', name: 'Swipe Up-Left ↖️', group: 'diagonal' },
+    { id: 'swipe_up_right', name: 'Swipe Up-Right ↗️', group: 'diagonal' },
+    { id: 'swipe_down_left', name: 'Swipe Down-Left ↙️', group: 'diagonal' },
+    { id: 'swipe_down_right', name: 'Swipe Down-Right ↘️', group: 'diagonal' },
+    { id: 'two_finger_up', name: '2-Finger Up ✌️⬆️', group: 'multi' },
+    { id: 'two_finger_down', name: '2-Finger Down ✌️⬇️', group: 'multi' },
+    { id: 'two_finger_left', name: '2-Finger Left ✌️⬅️', group: 'multi' },
+    { id: 'two_finger_right', name: '2-Finger Right ✌️➡️', group: 'multi' },
+    { id: 'boomerang_up', name: 'Boomerang Up 🪃', group: 'complex' },
+    { id: 'boomerang_down', name: 'Boomerang Down 🪃', group: 'complex' },
+    { id: 'double_boomerang', name: 'Double Boomer 🪃🪃', group: 'complex' },
+    { id: 'switchback', name: 'Switchback ⚡', group: 'complex' },
+    { id: 'zigzag', name: 'Zigzag 〰️', group: 'complex' },
+    { id: 'square', name: 'Square ⬜', group: 'complex' }
+];
+
+// 2. Load active groups from localStorage or set defaults
+let activeGestureGroups = JSON.parse(localStorage.getItem('activeGestureGroups')) || ['always', 'taps', 'basic', 'diagonal'];
+
+// 3. Rebuilder Function
+// Call this whenever the toggles change, OR when you initially generate your mapping inputs
+function renderGestureDropdowns() {
+    // Assuming your dynamically generated mapping selects have a class like 'gesture-select'
+    const mappingSelects = document.querySelectorAll('.gesture-select'); 
+    
+    mappingSelects.forEach(select => {
+        const currentValue = select.value; // Store the currently selected gesture
+        select.innerHTML = ''; // Nuke current options
+        
+        // Rebuild based on active groups
+        GESTURE_DICTIONARY.forEach(gesture => {
+            if (gesture.group === 'always' || activeGestureGroups.includes(gesture.group)) {
+                const option = document.createElement('option');
+                option.value = gesture.id;
+                option.textContent = gesture.name;
+                select.appendChild(option);
+            }
+        });
+
+        // Attempt to restore the user's selection. If they disabled the group it belongs to, fallback to 'none'
+        if (Array.from(select.options).some(opt => opt.value === currentValue)) {
+            select.value = currentValue;
+        } else {
+            select.value = 'none';
+            // Optional: trigger a change event here if your app auto-saves configs on change
+            select.dispatchEvent(new Event('change')); 
+        }
+    });
+}
+
+// 4. Initialize Toggles & Listeners
+function initGestureFilters() {
+    const toggles = document.querySelectorAll('.gesture-filter-toggle');
+    
+    toggles.forEach(toggle => {
+        // Set UI state to match saved config
+        toggle.checked = activeGestureGroups.includes(toggle.dataset.group);
+        
+        // Listen for changes
+        toggle.addEventListener('change', (e) => {
+            const group = e.target.dataset.group;
+            if (e.target.checked) {
+                if (!activeGestureGroups.includes(group)) activeGestureGroups.push(group);
+            } else {
+                activeGestureGroups = activeGestureGroups.filter(g => g !== group);
+            }
+            // Save & Re-render
+            localStorage.setItem('activeGestureGroups', JSON.stringify(activeGestureGroups));
+            renderGestureDropdowns();
+        });
+    });
+}
+
+// Don't forget to call initGestureFilters() when your settings modal initializes!
 const DICTIONARY = {
   'en': { correct: "Correct", wrong: "Wrong", stealth: "Stealth Active", reset: "Reset to Round 1", stop: "Playback Stopped 🛑" },
   'es': { correct: "Correcto", wrong: "Incorrecto", stealth: "Modo Sigilo", reset: "Reiniciar Ronda 1", stop: "Detenido 🛑" }
@@ -978,7 +1063,7 @@ const startApp = () => {
     modules.settings.updateHeaderVisibility();
     initGlobalListeners();
     initGestureEngine();
-    
+    initGestureFilters()
     // AR Setup hook (Make sure setupARLogic() exists elsewhere in app.js)
     if(typeof setupARLogic === 'function') setupARLogic();
 
@@ -1072,7 +1157,49 @@ function mapGestureToValue(kind, currentInput) {
       return false;
   };
 
-  // --- UPDATED LOGIC: Check Touch AND Hand defaults ---
+
+// --- Upside Down Toggle Logic ---
+const upsideDownToggle = document.getElementById('upsidedown-toggle');
+
+upsideDownToggle.addEventListener('change', (e) => {
+    if (e.target.checked) {
+        document.body.classList.add('is-upside-down');
+    } else {
+        document.body.classList.remove('is-upside-down');
+    }
+});
+
+// --- AR Mode UI Toggle Logic ---
+const arModeToggle = document.getElementById('ar-mode-toggle');
+const arRecordBtn = document.getElementById('ar-record-btn');
+
+arModeToggle.addEventListener('change', (e) => {
+    if (e.target.checked) {
+        // Add the CSS class that hides the keypads and strips footer backgrounds
+        document.body.classList.add('ar-mode-active');
+        
+        // Show the REC button
+        arRecordBtn.classList.remove('hidden');
+        arRecordBtn.classList.add('flex'); // Tailwind class to keep the text centered
+        
+        // Optional: Trigger your camera init function here
+         startARCamera(); 
+    } else {
+        // Restore standard UI
+        document.body.classList.remove('ar-mode-active');
+        
+        // Hide the REC button
+        arRecordBtn.classList.add('hidden');
+        arRecordBtn.classList.remove('flex');
+        
+        // Optional: Trigger your camera shutdown function here
+        stopARCamera();
+    }
+});
+
+
+
+    // --- UPDATED LOGIC: Check Touch AND Hand defaults ---
   const checkMatch = (key) => {
       const m = saved[key] || {};
       

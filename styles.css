@@ -600,33 +600,3 @@ body.ar-active #ar-ui-layer {
 }
 
 
-
-/* Upside Down Mode */
-body.is-upside-down {
-    transform: rotate(180deg);
-    /* Prevents scrollbar weirdness when the DOM flips */
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden; 
-}
-
-/* AR Mode Overrides */
-body.ar-mode-active #pad-key9,
-body.ar-mode-active #pad-key12,
-body.ar-mode-active #pad-piano {
-    /* Hide the keypads completely so the camera has a clear view */
-    display: none !important; 
-}
-
-body.ar-mode-active #input-footer {
-    /* Strips the background/shadows off the footer so it doesn't block the camera */
-    background: transparent !important;
-    box-shadow: none !important;
-    pointer-events: none; /* Lets you tap 'through' the empty footer space */
-}
-
-/* Re-enable pointer events just for the AR buttons inside the footer if needed */
-body.ar-mode-active #ar-playback-container {
-    pointer-events: auto;
-}
-

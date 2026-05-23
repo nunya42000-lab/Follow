@@ -611,10 +611,45 @@
                             <p class="text-xs opacity-75 mt-2">12-key supports more swipe-based gestures by default.</p>
                         </div>
                         <div class="p-3 rounded-lg border border-custom settings-input">
-                            <div class="font-bold mb-2">Piano Mapping</div>
-                            <div id="mapping-piano-container" class="grid grid-cols-2 gap-2"></div>
-                            <p class="text-xs opacity-75 mt-2">Piano keys map to swipe gestures and their Morse feedback. Piano is the only input that may produce letters A–G for values 6–12.</p>
-                        </div>
+    <div class="font-bold mb-2">Piano Mapping</div>
+    <div id="mapping-piano-container" class="grid grid-cols-2 gap-2"></div>
+    <p class="text-xs opacity-75 mt-2">Piano keys map to swipe gestures and their Morse feedback. Piano is the only input that may produce letters A–G for values 6–12.</p>
+</div>
+                    </div> <!-- Ends the space-y-4 div holding the mapping containers -->
+
+                    <!-- NEW: Gesture Filter Accordion -->
+                    <div class="mt-6 border-t border-custom pt-4">
+<details class="group bg-black bg-opacity-30 rounded-lg border border-custom transition-colors">
+    <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center outline-none">
+        <span class="text-primary-app">Gesture Filters 🎛️</span>
+        <span class="group-open:rotate-180 transition-transform">▼</span>
+    </summary>
+    <div class="p-3 pt-0 border-t border-custom mt-2 pt-3">
+        <p class="text-xs opacity-75 mb-3 text-muted-custom">Enable or disable gesture groups to declutter the mapping dropdowns.</p>
+        <div class="grid grid-cols-2 gap-3" id="gesture-group-toggles">
+            <div class="flex justify-between items-center p-2 rounded bg-white bg-opacity-5 border border-custom">
+                <span class="text-xs font-bold">Taps</span>
+                <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-indigo-500" data-group="taps">
+            </div>
+            <div class="flex justify-between items-center p-2 rounded bg-white bg-opacity-5 border border-custom">
+                <span class="text-xs font-bold">Basic Swipes</span>
+                <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-indigo-500" data-group="basic">
+            </div>
+            <div class="flex justify-between items-center p-2 rounded bg-white bg-opacity-5 border border-custom">
+                <span class="text-xs font-bold">Diagonal</span>
+                <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-indigo-500" data-group="diagonal">
+            </div>
+            <div class="flex justify-between items-center p-2 rounded bg-white bg-opacity-5 border border-custom">
+                <span class="text-xs font-bold">Multi-Finger</span>
+                <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-indigo-500" data-group="multi">
+            </div>
+            <div class="flex justify-between items-center p-2 rounded bg-white bg-opacity-5 border border-custom col-span-2">
+                <span class="text-xs font-bold">Complex (Boomerang, Switchback, etc.)</span>
+                <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-indigo-500" data-group="complex">
+            </div>
+        </div>
+    </div>
+</details>
                     </div>
                 </div>
             </div>

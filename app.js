@@ -8,15 +8,33 @@ import { VisionEngine } from './vision.js';
 const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-async function requestWakeLock() {
+let screenWakeLock = null;
+
+window.toggleWakeLock = async function(enable) {
     try {
         if ('wakeLock' in navigator) {
-            const wakeLock = await navigator.wakeLock.request('screen');
-            document.addEventListener('visibilitychange', async () => {
-                if (document.visibilityState === 'visible') await navigator.wakeLock.request('screen');
-            });
+            if (enable) {
+                screenWakeLock = await navigator.wakeLock.request('screen');
+                document.addEventListener('visibilitychange', reacquireWakeLock);
+                console.log('Wake Lock: ACTIVE 💡');
+            } else {
+                if (screenWakeLock) {
+                    await screenWakeLock.release();
+                    screenWakeLock = null;
+                }
+                document.removeEventListener('visibilitychange', reacquireWakeLock);
+                console.log('Wake Lock: RELEASED 🔋');
+            }
         }
-    } catch (err) { console.warn('Wake Lock failed:', err); }
+    } catch (err) { 
+        console.warn('Wake Lock failed:', err); 
+    }
+};
+
+async function reacquireWakeLock() {
+    if (document.visibilityState === 'visible' && appSettings.isWakeLockEnabled) {
+        try { screenWakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
+    }
 }
 
 // --- ENABLE OFFLINE PERSISTENCE ---
@@ -870,9 +888,10 @@ const startApp = () => {
     if (appSettings.isEcoModeEnabled) document.body.classList.add('eco-mode');
     
     // 2. Safe WakeLock execution
-    if (appSettings.isWakeLockEnabled && typeof requestWakeLock === 'function') {
-        requestWakeLock();
+    if (appSettings.isWakeLockEnabled && typeof window.toggleWakeLock === 'function') {
+        window.toggleWakeLock(true);
     }
+
     if (appSettings.isFullScreenEnabled && !document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(() => {});
     }

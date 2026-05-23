@@ -980,7 +980,7 @@ const startApp = () => {
     initGestureEngine();
     
     // AR Setup hook (Make sure setupARLogic() exists elsewhere in app.js)
-    if(typeof setupARLogic === 'function') setupARLogic();
+    setupARLogic();
 
     // Re-engage auto hardware inputs
     if (appSettings.autoInputMode === 'mic' || appSettings.autoInputMode === 'both') modules.sensor.toggleAudio(true);
@@ -989,6 +989,87 @@ const startApp = () => {
     renderUI();
 };
 
+function setupARLogic() {
+  const headerCam = document.getElementById('header-cam-btn');
+  const inputFooter = document.getElementById('input-footer');
+  const arRecordBtn = document.getElementById('ar-record-btn');
+  const arPlaybackContainer = document.getElementById('ar-playback-container');
+  const arPlaybackVideo = document.getElementById('ar-playback-video');
+  const arPlaybackClose = document.getElementById('ar-playback-close');
+  let mediaRecorder, recordedChunks = [];
+
+  if (headerCam) {
+      headerCam.onclick = () => {
+          const isArNow = document.body.classList.toggle('ar-active');
+          headerCam.classList.toggle('header-btn-active', isArNow);
+          
+          // Toggle UI Layout configurations safely
+          if (inputFooter) inputFooter.style.display = isArNow ? 'none' : '';
+          if (arRecordBtn) arRecordBtn.style.display = isArNow ? 'flex' : 'none';
+          
+          if (modules.sensor) {
+              modules.sensor.toggleCamera(isArNow);
+              if (modules.sensor.videoEl) {
+                  modules.sensor.videoEl.style.display = isArNow ? 'block' : 'none';
+                  modules.sensor.videoEl.className = isArNow ? 'ar-background-video' : '';
+              }
+          }
+          showToast(isArNow ? "AR Mode: Ready to Record 📸" : "AR Mode OFF");
+      };
+  }
+
+  if (arRecordBtn) {
+      // Handle Pointer Recording Lifecycle
+      arRecordBtn.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          recordedChunks = [];
+          const stream = modules.sensor?.videoEl?.srcObject;
+          if (!stream) return showToast("Camera stream not ready 🛑");
+          
+          try { 
+              mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' }); 
+          } catch(err) { 
+              mediaRecorder = new MediaRecorder(stream); 
+          }
+          
+          mediaRecorder.ondataavailable = (ev) => { 
+              if (ev.data.size > 0) recordedChunks.push(ev.data); 
+          };
+          
+          mediaRecorder.onstop = () => {
+              const blob = new Blob(recordedChunks, { type: 'video/webm' });
+              if (arPlaybackVideo && arPlaybackContainer) {
+                  arPlaybackVideo.src = URL.createObjectURL(blob);
+                  arPlaybackContainer.classList.remove('hidden');
+                  arPlaybackVideo.playbackRate = appSettings.arPlaybackSpeed || 1.0;
+                  arPlaybackVideo.play().catch(err => console.warn(err));
+              }
+          };
+          
+          mediaRecorder.start();
+          arRecordBtn.classList.add('bg-red-800', 'scale-90');
+          showToast("Recording Video... 🔴");
+      });
+
+      arRecordBtn.addEventListener('pointerup', (e) => {
+          e.preventDefault();
+          if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+              mediaRecorder.stop();
+          }
+          arRecordBtn.classList.remove('bg-red-800', 'scale-90');
+      });
+  }
+
+  arPlaybackClose?.addEventListener('click', () => {
+      if (arPlaybackVideo) {
+          arPlaybackVideo.pause(); 
+          arPlaybackVideo.src = "";
+      }
+      if (arPlaybackContainer) {
+          arPlaybackContainer.classList.add('hidden');
+      }
+  });
+}
 
     
 

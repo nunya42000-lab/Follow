@@ -1392,143 +1392,140 @@ gridHtml += `
     </select>
 `;
 
+populateMorseUI() {
+    const tab = document.getElementById('tab-playback');
+    if (!tab) return;
+    
+    let container = document.getElementById('morse-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'morse-container';
+        container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
+        tab.appendChild(container);
+    }
 
+    // Generate all Morse combinations (1-5 length)
+    const morseOptions = [];
+    const chars = ['.', '-'];
+    const generate = (current) => {
+        if (current.length > 0) morseOptions.push(current);
+        if (current.length >= 5) return;
+        chars.forEach(c => generate(current + c));
+    };
+    generate('');
+    
+    // Sort by length, then alphabet (dots before dashes)
+    morseOptions.sort((a, b) => a.length - b.length || a.localeCompare(b));
 
+    const labels = ["1", "2", "3", "4", "5", "6 C", "7 D", "8 E", "9 F", "10 G", "11 A", "12 B"];
+    let gridHtml = `<div class="grid grid-cols-4 gap-y-3 gap-x-2 items-center">`;
+    
+    labels.forEach((label, index) => {
+        const val = index + 1;
         
-        populateMorseUI() {
-        const tab = document.getElementById('tab-playback');
-        if (!tab) return;
+        let optionsHtml = `<optgroup label="Morse Patterns">`;
+        optionsHtml += morseOptions.map(m => `<option value="${m}">${m}</option>`).join('');
+        optionsHtml += `</optgroup>`;
+
+        gridHtml += `
+            <div class="text-right text-xs font-bold text-gray-400 pr-1 whitespace-nowrap">${label}</div>
+            <select class="bg-gray-800 text-white text-xs p-1 rounded border border-gray-600 focus:border-primary-app outline-none h-8 w-full font-mono tracking-widest text-center" data-morse-id="${val}">
+                ${optionsHtml}
+            </select>
+        `;
+    });
+    
+    gridHtml += `</div>`;
+
+    container.innerHTML = `
+        <h3 class="text-sm font-bold uppercase text-gray-400 mb-3">Haptic Output Mapping</h3>
+        ${gridHtml}
+        <p class="text-[10px] text-gray-500 mt-3 text-center">Custom dot/dash patterns for playback.</p>
+    `;
+
+    // Bind Listeners & Set Defaults
+    const selects = container.querySelectorAll('select');
+    selects.forEach(sel => {
+        const id = sel.dataset.morseId;
         
-        let container = document.getElementById('morse-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'morse-container';
-            container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
-            tab.appendChild(container);
+        if (this.appSettings.morseMappings && this.appSettings.morseMappings[id]) {
+            sel.value = this.appSettings.morseMappings[id];
+        } else {
+            let d = "";
+            const n = parseInt(id);
+            if (n <= 3) d = ".".repeat(n);
+            else if (n <= 6) d = "-" + ".".repeat(n-3);
+            else if (n <= 9) d = "--" + ".".repeat(n-6);
+            else d = "---" + ".".repeat(n-10);
+            sel.value = d;
         }
 
-        // Generate all Morse combinations (1-5 length)
-        const morseOptions = [];
-        const chars = ['.', '-'];
-        const generate = (current) => {
-            if (current.length > 0) morseOptions.push(current);
-            if (current.length >= 5) return;
-            chars.forEach(c => generate(current + c));
-        };
-        generate('');
-        
-        // Sort by length, then alphabet (dots before dashes)
-        morseOptions.sort((a, b) => a.length - b.length || a.localeCompare(b));
+        sel.onchange = () => {
+            if (!this.appSettings.morseMappings) this.appSettings.morseMappings = {};
+            this.appSettings.morseMappings[id] = sel.value;
+            this.callbacks.onSave();
 
-        const labels = ["1", "2", "3", "4", "5", "6 C", "7 D", "8 E", "9 F", "10 G", "11 A", "12 B"];
-        let gridHtml = `<div class="grid grid-cols-4 gap-y-3 gap-x-2 items-center">`;
-        
-        labels.forEach((label, index) => {
-            const val = index + 1;
-            
-            let optionsHtml = `<optgroup label="Morse Patterns">`;
-            optionsHtml += morseOptions.map(m => `<option value="${m}">${m}</option>`).join('');
-            optionsHtml += `</optgroup>`;
-
-            gridHtml += `
-                <div class="text-right text-xs font-bold text-gray-400 pr-1 whitespace-nowrap">${label}</div>
-                <select class="bg-gray-800 text-white text-xs p-1 rounded border border-gray-600 focus:border-primary-app outline-none h-8 w-full font-mono tracking-widest text-center" data-morse-id="${val}">
-                    ${optionsHtml}
-                </select>
-            `;
-        }); // <-- THIS CLOSING BRACE WAS MISSING
-        
-        gridHtml += `</div>`; // <-- CLOSING THE GRID CONTAINER
-
-        container.innerHTML = `
-            <h3 class="text-sm font-bold uppercase text-gray-400 mb-3">Haptic Output Mapping</h3>
-            ${gridHtml}
-            <p class="text-[10px] text-gray-500 mt-3 text-center">Custom dot/dash patterns for playback.</p>
-        `;
-
-        // Bind Listeners & Set Defaults (Now safely outside the label loop)
-        const selects = container.querySelectorAll('select');
-        selects.forEach(sel => {
-            const id = sel.dataset.morseId;
-            
-            if (this.appSettings.morseMappings && this.appSettings.morseMappings[id]) {
-                sel.value = this.appSettings.morseMappings[id];
-            } else {
-                let d = "";
-                const n = parseInt(id);
-                if (n <= 3) d = ".".repeat(n);
-                else if (n <= 6) d = "-" + ".".repeat(n-3);
-                else if (n <= 9) d = "--" + ".".repeat(n-6);
-                else d = "---" + ".".repeat(n-10);
-                sel.value = d;
-            };
-
-            sel.onchange = () => {
-                if (!this.appSettings.morseMappings) this.appSettings.morseMappings = {};
-                this.appSettings.morseMappings[id] = sel.value;
-                this.callbacks.onSave();
-
-                if (navigator.vibrate) {
-                    const pattern = [];
-                    const speed = this.appSettings.playbackSpeed || 1.0;
-                    const factor = 1.0 / speed; 
-                    const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor;
-                    
-                    for (let char of sel.value) {
-                        if(char === '.') pattern.push(DOT);
-                        if(char === '-') pattern.push(DASH);
-                        pattern.push(GAP);
-                    }
-                    if(pattern.length) navigator.vibrate(pattern);
+            if (navigator.vibrate) {
+                const pattern = [];
+                const speed = this.appSettings.playbackSpeed || 1.0;
+                const factor = 1.0 / speed; 
+                const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor;
+                
+                for (let char of sel.value) {
+                    if(char === '.') pattern.push(DOT);
+                    if(char === '-') pattern.push(DASH);
+                    pattern.push(GAP);
                 }
-            };
-        });
-    }
-    
-    applyDefaultGestureMappings() {
-        this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
-        
-        const defaults = {
-            // 9-KEY DEFAULT: TAPS
-            'k9_1': { gesture: 'tap' }, 
-            'k9_2': { gesture: 'double_tap' }, 
-            'k9_3': { gesture: 'triple_tap' }, 
-            'k9_4': { gesture: 'tap_2f_any' }, 
-            'k9_5': { gesture: 'double_tap_2f_any' }, 
-            'k9_6': { gesture: 'triple_tap_2f_any' }, 
-            'k9_7': { gesture: 'tap_3f_any' }, 
-            'k9_8': { gesture: 'double_tap_3f_any' }, 
-            'k9_9': { gesture: 'triple_tap_3f_any' },
-
-            // 12-KEY DEFAULT: TAPS
-            'k12_1': { gesture: 'tap' }, 
-            'k12_2': { gesture: 'double_tap' }, 
-            'k12_3': { gesture: 'triple_tap' }, 
-            'k12_4': { gesture: 'long_tap' }, 
-            'k12_5': { gesture: 'tap_2f_any' }, 
-            'k12_6': { gesture: 'double_tap_2f_any' }, 
-            'k12_7': { gesture: 'triple_tap_2f_any' }, 
-            'k12_8': { gesture: 'long_tap_2f_any' }, 
-            'k12_9': { gesture: 'tap_3f_any' }, 
-            'k12_10': { gesture: 'double_tap_3f_any' }, 
-            'k12_11': { gesture: 'triple_tap_3f_any' }, 
-            'k12_12': { gesture: 'long_tap_3f_any' },
-
-            // PIANO DEFAULT: SWIPES
-            'piano_C': { gesture: 'swipe_nw' }, 
-            'piano_D': { gesture: 'swipe_left' }, 
-            'piano_E': { gesture: 'swipe_sw' }, 
-            'piano_F': { gesture: 'swipe_down' }, 
-            'piano_G': { gesture: 'swipe_se' }, 
-            'piano_A': { gesture: 'swipe_right' }, 
-            'piano_B': { gesture: 'swipe_ne' }, 
-            'piano_1': { gesture: 'swipe_left_2f' }, 
-            'piano_2': { gesture: 'swipe_nw_2f' }, 
-            'piano_3': { gesture: 'swipe_up_2f' }, 
-            'piano_4': { gesture: 'swipe_ne_2f' }, 
-            'piano_5': { gesture: 'swipe_right_2f' }
+                if(pattern.length) navigator.vibrate(pattern);
+            }
         };
+    });
+}
 
-        this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
-    }
+applyDefaultGestureMappings() {
+    this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
+    
+    const defaults = {
+        // 9-KEY DEFAULT: TAPS
+        'k9_1': { gesture: 'tap' }, 
+        'k9_2': { gesture: 'double_tap' }, 
+        'k9_3': { gesture: 'triple_tap' }, 
+        'k9_4': { gesture: 'tap_2f_any' }, 
+        'k9_5': { gesture: 'double_tap_2f_any' }, 
+        'k9_6': { gesture: 'triple_tap_2f_any' }, 
+        'k9_7': { gesture: 'tap_3f_any' }, 
+        'k9_8': { gesture: 'double_tap_3f_any' }, 
+        'k9_9': { gesture: 'triple_tap_3f_any' },
+
+        // 12-KEY DEFAULT: TAPS
+        'k12_1': { gesture: 'tap' }, 
+        'k12_2': { gesture: 'double_tap' }, 
+        'k12_3': { gesture: 'triple_tap' }, 
+        'k12_4': { gesture: 'long_tap' }, 
+        'k12_5': { gesture: 'tap_2f_any' }, 
+        'k12_6': { gesture: 'double_tap_2f_any' }, 
+        'k12_7': { gesture: 'triple_tap_2f_any' }, 
+        'k12_8': { gesture: 'long_tap_2f_any' }, 
+        'k12_9': { gesture: 'tap_3f_any' }, 
+        'k12_10': { gesture: 'double_tap_3f_any' }, 
+        'k12_11': { gesture: 'triple_tap_3f_any' }, 
+        'k12_12': { gesture: 'long_tap_3f_any' },
+
+        // PIANO DEFAULT: SWIPES
+        'piano_C': { gesture: 'swipe_nw' }, 
+        'piano_D': { gesture: 'swipe_left' }, 
+        'piano_E': { gesture: 'swipe_sw' }, 
+        'piano_F': { gesture: 'swipe_down' }, 
+        'piano_G': { gesture: 'swipe_se' }, 
+        'piano_A': { gesture: 'swipe_right' }, 
+        'piano_B': { gesture: 'swipe_ne' }, 
+        'piano_1': { gesture: 'swipe_left_2f' }, 
+        'piano_2': { gesture: 'swipe_nw_2f' }, 
+        'piano_3': { gesture: 'swipe_up_2f' }, 
+        'piano_4': { gesture: 'swipe_ne_2f' }, 
+        'piano_5': { gesture: 'swipe_right_2f' }
+    };
+
+    this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
+}
 }

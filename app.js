@@ -1003,12 +1003,19 @@ const startApp = () => {
 function setupARLogic() {
   const headerCam = document.getElementById('header-cam-btn');
   const inputFooter = document.getElementById('input-footer');
-  const arRecordBtn = document.getElementById('ar-record-btn');
+  
   const arPlaybackContainer = document.getElementById('ar-playback-container');
   const arPlaybackVideo = document.getElementById('ar-playback-video');
   const arPlaybackClose = document.getElementById('ar-playback-close');
   let mediaRecorder, recordedChunks = [];
-
+const recBtn = document.getElementById('ar-record-btn');
+if (arModeEnabled) {
+    recBtn.classList.remove('hidden');
+    // Also ensure your ar-playback-container is unhidden if that's where the stream goes
+} else {
+    recBtn.classList.add('hidden');
+}
+    
   if (headerCam) {
     headerCam.onclick = () => {
         const isArNow = document.body.classList.toggle('ar-active');

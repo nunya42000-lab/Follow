@@ -539,7 +539,11 @@
                             <div>
                                 <label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
                                 <select id="ui-scale-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                    <option value="100">100%</option>
+                                    <option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+                                    <option value="100" selected>100%</option>
+                                    <option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+                                    <option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option>
+                              
                                 </select>
                             </div>
                         </div>
@@ -565,7 +569,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 gap-3">
+                        <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-bold mb-1 text-muted-custom">Resize Gesture</label>
                                 <select id="gesture-mode-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
@@ -574,6 +578,14 @@
                                     <option value="none">Disabled</option>
                                 </select>
                             </div>
+                        <div>
+                <label class="block text-xs font-bold mb-1 text-muted-custom">Voice Trigger</label>
+                <select id="voice-trigger-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                    <option value="add">ADD</option><option value="plus">PLUS</option><option value="press">PRESS</option>
+                    <option value="input">INPUT</option><option value="enter">ENTER</option><option value="set">SET</option>
+                    <option value="nexus">NEXUS</option><option value="track">TRACK</option>
+                </select>
+                        </div>
                         </div>
                     </div>
                 </div>

@@ -322,6 +322,7 @@ export class SettingsManager {
             gestureSwipeSlider: document.getElementById('gesture-swipe-slider'),
             gestureTapVal: document.getElementById('gesture-tap-val'),
             gestureSwipeVal: document.getElementById('gesture-swipe-val'),
+            voiceTriggerSelect: document.getElementById('voice-trigger-select'),
             
             // --- NEW: General Setting & AR Elements ---
                     
@@ -808,6 +809,14 @@ export class SettingsManager {
         
         // UPDATED: Matches the new dropdown generation logic (e.g. "1.00")
         if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = (this.appSettings.playbackSpeed || 1.0).toFixed(2);
+        if (this.dom.voiceTriggerSelect) {
+    this.dom.voiceTriggerSelect.value = this.appSettings.voiceTriggerWord || 'set';
+    this.dom.voiceTriggerSelect.onchange = (e) => {
+        this.appSettings.voiceTriggerWord = e.target.value;
+        this.callbacks.onSave();
+        if (typeof voiceModule !== 'undefined' && voiceModule) voiceModule.initEngine(); // Rebuild grammar
+    };
+        }
         
         if (this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
         if (this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000); //
@@ -1392,29 +1401,19 @@ const GESTURE_CATEGORIES = {
             const val = index + 1;
             
             // Build the select options
-            let optionsHtml = `<optgroup label="Tactile Textures">
-                <option value="__TICK__">🔹 Tick (Sharp)</option>
-                <option value="__THUD__">⬛ Thud (Heavy)</option>
-                <option value="__BUZZ__">🐝 Buzz (Long)</option>
-                <option value="__DBL__">✌️ Double Click</option>
-                <option value="__TRPL__">⚡ Triple Click</option>
-                <option value="__HBEAT__">❤️ Heartbeat</option>
-                <option value="__RAMP__">📈 Ramp Up</option>
-            </optgroup>
-            <optgroup label="Morse Patterns">`;
-            
-            optionsHtml += morseOptions.map(m => `<option value="${m}">${m}</option>`).join('');
-            optionsHtml += `</optgroup>`;
-            
+            // Build the select options (Scrubbed Tactile Textures)
+let optionsHtml = `<optgroup label="Morse Patterns">`;
+optionsHtml += morseOptions.map(m => `<option value="${m}">${m}</option>`).join('');
+optionsHtml += `</optgroup>`;
 
-            gridHtml += `
-                <div class="text-right text-xs font-bold text-gray-400 pr-1 whitespace-nowrap">${label}</div>
-                <select class="bg-gray-800 text-white text-xs p-1 rounded border border-gray-600 focus:border-primary-app outline-none h-8 w-full font-mono tracking-widest text-center" data-morse-id="${val}">
-                    ${optionsHtml}
-                </select>
-            `;
-        });
-        gridHtml += `</div>`;
+gridHtml += `
+    <div class="text-right text-xs font-bold text-gray-400 pr-1 whitespace-nowrap">${label}</div>
+    <select class="bg-gray-800 text-white text-xs p-1 rounded border border-gray-600 focus:border-primary-app outline-none h-8 w-full font-mono tracking-widest text-center" data-morse-id="${val}">
+        ${optionsHtml}
+    </select>
+`;
+
+            
         
         container.innerHTML = `
             <h3 class="text-sm font-bold uppercase text-gray-400 mb-3">Haptic Output Mapping</h3>
@@ -1453,19 +1452,7 @@ const GESTURE_CATEGORIES = {
                     const factor = 1.0 / speed; 
                     const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor;
                     
-                    // Check for preset
-                    if(sel.value.startsWith('__')) {
-                        switch(sel.value) {
-                            case '__TICK__': navigator.vibrate(15); break;
-                            case '__THUD__': navigator.vibrate(70); break;
-                            case '__BUZZ__': navigator.vibrate(400); break;
-                            case '__DBL__': navigator.vibrate([20,50,20]); break;
-                            case '__TRPL__': navigator.vibrate([20,40,20,40,20]); break;
-                            case '__HBEAT__': navigator.vibrate([60,80,150]); break;
-                            case '__RAMP__': navigator.vibrate([10,20,40,80]); break;
-                        }
-                        return;
-                    }
+                    
 
                     for (let char of sel.value) {
                         if(char === '.') pattern.push(DOT);

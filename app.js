@@ -67,7 +67,9 @@ const DEFAULT_APP = {
   isArModeEnabled: false, 
   isVoiceInputEnabled: false, 
   arPlaybackSpeed: 1.0,
-  
+voiceTriggerWord: 'set', // Default anchor
+gestureHoldFrames: 30, // Approx 1 to 1.5 seconds depending on framerate
+ 
   // --- NEW TOGGLES ---
   isDeleteGestureEnabled: false, 
   isClearGestureEnabled: false,

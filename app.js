@@ -212,19 +212,6 @@ function vibrateMorse(val) {
       else patternStr = "---" + ".".repeat(num-10);
   }
 
-  // 3. NEW: Tactile Preset Handler
-  if (patternStr.startsWith('__')) {
-      switch(patternStr) {
-          case '__TICK__': navigator.vibrate(15); break;           // Sharp click
-          case '__THUD__': navigator.vibrate(70); break;           // Heavy impact
-          case '__BUZZ__': navigator.vibrate(400); break;          // Long warning
-          case '__DBL__': navigator.vibrate([20, 50, 20]); break;  // Double tap
-          case '__TRPL__': navigator.vibrate([20, 40, 20, 40, 20]); break; // Triple tap
-          case '__HBEAT__': navigator.vibrate([60, 80, 150]); break; // Lub-dub
-          case '__RAMP__': navigator.vibrate([10, 20, 40, 80]); break; // Revving up
-      }
-      return;
-  }
 
   // 4. Standard Morse Logic (Legacy Support)
   const speed = appSettings.playbackSpeed || 1.0; 
@@ -761,126 +748,101 @@ function playDemo() {
   nextChunk();
 }
 
-/* --- UPDATED VOICE COMMANDER CLASS (Prefix Mode) --- */
 class VoiceCommander {
-  constructor(callbacks) {
-      this.callbacks = callbacks;
-      this.recognition = null;
-      this.isListening = false;
-      this.restartTimer = null;
-      
-      // Trigger words that must precede a number
-      this.prefixes = ['add', 'plus', 'press', 'enter', 'push', 'input'];
+    constructor(callbacks) {
+        this.callbacks = callbacks;
+        this.recognition = null;
+        this.isListening = false;
+        this.restartTimer = null;
+        
+        this.vocab = {
+            '1': '1', 'one': '1', 'won': '1', '2': '2', 'two': '2', 'to': '2', 'too': '2',
+            '3': '3', 'three': '3', 'tree': '3', '4': '4', 'four': '4', 'for': '4', 'fore': '4',
+            '5': '5', 'five': '5', '6': '6', 'six': '6', '7': '7', 'seven': '7',
+            '8': '8', 'eight': '8', 'ate': '8', '9': '9', 'nine': '9',
+            '10': '10', 'ten': '10', 'tin': '10', '11': '11', 'eleven': '11', '12': '12', 'twelve': '12',
+            'a': 'A', 'hey': 'A', 'b': 'B', 'bee': 'B', 'be': 'B', 'c': 'C', 'see': 'C', 'sea': 'C',
+            'd': 'D', 'dee': 'D', 'e': 'E', 'f': 'F', 'g': 'G', 'jee': 'G'
+        };
 
-      this.vocab = {
-          // Digits (Handle both words and numbers)
-          '1': '1', 'one': '1', 'won': '1',
-          '2': '2', 'two': '2', 'to': '2', 'too': '2',
-          '3': '3', 'three': '3', 'tree': '3',
-          '4': '4', 'four': '4', 'for': '4', 'fore': '4',
-          '5': '5', 'five': '5',
-          '6': '6', 'six': '6',
-          '7': '7', 'seven': '7',
-          '8': '8', 'eight': '8', 'ate': '8',
-          '9': '9', 'nine': '9',
-          '10': '10', 'ten': '10', 'tin': '10',
-          '11': '11', 'eleven': '11',
-          '12': '12', 'twelve': '12',
+        this.initEngine();
+    }
 
-          // Letters A-G (Piano Mode)
-          'a': 'A', 'hey': 'A',
-          'b': 'B', 'bee': 'B', 'be': 'B',
-          'c': 'C', 'see': 'C', 'sea': 'C',
-          'd': 'D', 'dee': 'D',
-          'e': 'E',
-          'f': 'F',
-          'g': 'G', 'jee': 'G',
+    initEngine() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
+            
+            this.recognition = new SpeechRec();
+            
+            if (SpeechGrammarList) {
+                const activeTrigger = appSettings.voiceTriggerWord || 'set';
+                const targets = Object.keys(this.vocab);
+                const whitelist = [activeTrigger, ...targets, 'play', 'start', 'stop', 'delete', 'clear', 'settings'].join(' | ');
+                const grammar = `#JSGF V1.0; grammar appCommands; public <command> = ${whitelist} ;`;
+                
+                const speechRecognitionList = new SpeechGrammarList();
+                speechRecognitionList.addFromString(grammar, 1);
+                this.recognition.grammars = speechRecognitionList;
+            }
 
-          // Global Commands (No prefix needed)
-          'play': 'CMD_PLAY', 'start': 'CMD_PLAY', 'go': 'CMD_PLAY', 'read': 'CMD_PLAY',
-          'stop': 'CMD_STOP', 'pause': 'CMD_STOP', 'halt': 'CMD_STOP',
-          'delete': 'CMD_DELETE', 'back': 'CMD_DELETE', 'undo': 'CMD_DELETE',
-          'clear': 'CMD_CLEAR', 'reset': 'CMD_CLEAR',
-          'settings': 'CMD_SETTINGS', 'menu': 'CMD_SETTINGS', 'options': 'CMD_SETTINGS'
-      };
+            this.recognition.continuous = true; 
+            this.recognition.lang = 'en-US';
+            this.recognition.interimResults = true;
+            this.recognition.maxAlternatives = 1;
 
-      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-          this.recognition = new SpeechRecognition();
-          this.recognition.continuous = false; 
-          this.recognition.lang = 'en-US';
-          this.recognition.interimResults = false;
-          this.recognition.maxAlternatives = 1;
+            this.recognition.onresult = (event) => this.handleResult(event);
+            this.recognition.onend = () => this.handleEnd();
+        }
+    }
 
-          this.recognition.onresult = (event) => this.handleResult(event);
-          this.recognition.onend = () => this.handleEnd();
-          this.recognition.onerror = (e) => console.log('Voice Error:', e.error);
-      } else {
-          console.warn("Voice Control not supported.");
-      }
-  }
+    toggle(active) {
+        if (!this.recognition) return;
+        if (active) {
+            this.isListening = true;
+            try { this.recognition.start(); } catch(e) {}
+            this.callbacks.onStatus(`Voice Active (Say '${appSettings.voiceTriggerWord.toUpperCase()}...') 🎙️`);
+        } else {
+            this.isListening = false;
+            try { this.recognition.stop(); } catch(e) {}
+            clearTimeout(this.restartTimer);
+            this.callbacks.onStatus("Voice Off 🔇");
+        }
+    }
 
-  toggle(active) {
-      if (!this.recognition) return;
-      if (active) {
-          this.isListening = true;
-          try { this.recognition.start(); } catch(e) {}
-          this.callbacks.onStatus("Voice Active (Say 'Add...') 🎙️");
-      } else {
-          this.isListening = false;
-          try { this.recognition.stop(); } catch(e) {}
-          clearTimeout(this.restartTimer);
-          this.callbacks.onStatus("Voice Off 🔇");
-      }
-  }
+    handleResult(event) {
+        const activeTrigger = (appSettings.voiceTriggerWord || 'set').toLowerCase();
+        
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+            const transcript = event.results[i][0].transcript.toLowerCase();
+            const words = transcript.split(/\s+/).filter(w => w !== "");
+            
+            const triggerIdx = words.lastIndexOf(activeTrigger);
 
-  handleResult(event) {
-      const last = event.results.length - 1;
-      const transcript = event.results[last][0].transcript.trim().toLowerCase();
-      console.log("Heard:", transcript);
-      
-      let processed = false; // Track if we did something
+            if (triggerIdx !== -1 && triggerIdx < words.length - 1) {
+                const nextWord = words[triggerIdx + 1];
+                const mappedValue = this.vocab[nextWord];
 
-      const words = transcript.split(' ');
-      
-      for (let i = 0; i < words.length; i++) {
-          const word = words[i];
-          
-          if (this.vocab[word] && this.vocab[word].startsWith('CMD_')) {
-              this.callbacks.onCommand(this.vocab[word]);
-              processed = true;
-              continue;
-          }
+                if (mappedValue) {
+                    this.callbacks.onInput(mappedValue);
+                    this.recognition.abort(); 
+                    return;
+                }
+            }
+        }
+    }
 
-          if (this.prefixes.includes(word)) {
-              const nextWord = words[i + 1];
-              if (nextWord) {
-                  const mapped = this.vocab[nextWord];
-                  if (mapped && !mapped.startsWith('CMD_')) {
-                      this.callbacks.onInput(mapped);
-                      processed = true;
-                      i++; 
-                  }
-              }
-          }
-      }
-
-      // Force restart if command processed to prevent mic lock-up
-      if (processed && this.isListening) {
-          try {
-              this.recognition.stop(); 
-          } catch(e) {}
-      }
-  }
-
-  handleEnd() {
-      if (this.isListening) {
-          this.restartTimer = setTimeout(() => {
-              try { this.recognition.start(); } catch(e) {}
-          }, 100);
-      }
-  }
+    handleEnd() {
+        if (this.isListening) {
+            this.restartTimer = setTimeout(() => {
+                try { this.recognition.start(); } catch(e) {}
+            }, 100);
+        }
+    }
 }
+
+
+
 
 const startApp = () => {
     loadState();
@@ -952,16 +914,44 @@ const startApp = () => {
     modules.settings.sensorEngine = modules.sensor;
 
     // 5. Initialize Vision Engine
+        // 5. Initialize Vision Engine
+    let gestureHistory = [];
+    let gestureCooldown = 0;
+
     modules.vision = new VisionEngine(
         (gestureName) => {
             const settings = getProfileSettings();
-            const mappedInput = mapGestureToValue(gestureName, settings.currentInput);
-            
-            if (mappedInput !== null) {
-                addValue(mappedInput);
-                showToast(`Hand: ${mappedInput} 🖐️`);
-                document.body.style.backgroundColor = '#222';
-                setTimeout(() => document.body.style.backgroundColor = '', 100);
+            const holdRequirement = appSettings.gestureHoldFrames || 60; // 60 frames = ~2 seconds
+
+            if (gestureCooldown > 0) {
+                gestureCooldown--;
+                return;
+            }
+
+            if (gestureName && gestureName !== "hand_fist" && gestureName !== "none") {
+                gestureHistory.push(gestureName);
+                
+                if (gestureHistory.length > holdRequirement) {
+                    gestureHistory.shift();
+                }
+
+                // Verify the gesture has been held consistently across all frames
+                const isStable = gestureHistory.length === holdRequirement && gestureHistory.every(g => g === gestureName);
+
+                if (isStable) {
+                    const mappedInput = mapGestureToValue(gestureName, settings.currentInput);
+                    if (mappedInput !== null) {
+                        addValue(mappedInput);
+                        showToast(`Hand: ${mappedInput} 🖐️`);
+                        document.body.style.backgroundColor = '#222';
+                        setTimeout(() => document.body.style.backgroundColor = '', 100);
+                        
+                        gestureCooldown = 60; // 2-second cooldown to prevent double-firing
+                        gestureHistory = []; // Flush buffer
+                    }
+                }
+            } else {
+                gestureHistory = []; // Flush if hand is lost or drops to a fist
             }
         },
         (status) => showToast(status)
@@ -1020,24 +1010,29 @@ function setupARLogic() {
   let mediaRecorder, recordedChunks = [];
 
   if (headerCam) {
-      headerCam.onclick = () => {
-          const isArNow = document.body.classList.toggle('ar-active');
-          headerCam.classList.toggle('header-btn-active', isArNow);
-          
-          // Toggle UI Layout configurations safely
-          if (inputFooter) inputFooter.style.display = isArNow ? 'none' : '';
-          if (arRecordBtn) arRecordBtn.style.display = isArNow ? 'flex' : 'none';
-          
-          if (modules.sensor) {
-              modules.sensor.toggleCamera(isArNow);
-              if (modules.sensor.videoEl) {
-                  modules.sensor.videoEl.style.display = isArNow ? 'block' : 'none';
-                  modules.sensor.videoEl.className = isArNow ? 'ar-background-video' : '';
-              }
-          }
-          showToast(isArNow ? "AR Mode: Ready to Record 📸" : "AR Mode OFF");
-      };
-  }
+    headerCam.onclick = () => {
+        const isArNow = document.body.classList.toggle('ar-active');
+        headerCam.classList.toggle('header-btn-active', isArNow);
+        
+        const inputFooter = document.getElementById('input-footer');
+        const arRecordBtn = document.getElementById('ar-record-btn');
+        
+        if (inputFooter) inputFooter.classList.toggle('hidden', isArNow);
+        
+        if (arRecordBtn) {
+            if (isArNow) {
+                arRecordBtn.classList.remove('hidden');
+                arRecordBtn.classList.add('flex');
+            } else {
+                arRecordBtn.classList.add('hidden');
+                arRecordBtn.classList.remove('flex');
+            }
+        }
+        
+        if (modules.sensor) modules.sensor.toggleCamera(isArNow);
+        showToast(isArNow ? "AR Mode: Ready to Record 📸" : "AR Mode OFF");
+    };
+}
 
   if (arRecordBtn) {
       // Handle Pointer Recording Lifecycle

@@ -1461,7 +1461,7 @@ gridHtml += `
                 else if (n <= 9) d = "--" + ".".repeat(n-6);
                 else d = "---" + ".".repeat(n-10);
                 sel.value = d;
-            }
+            };
 
             sel.onchange = () => {
                 if (!this.appSettings.morseMappings) this.appSettings.morseMappings = {};

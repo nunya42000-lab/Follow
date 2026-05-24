@@ -1365,7 +1365,7 @@ const GESTURE_CATEGORIES = {
                 });
             }
         }
-    }
+    };
 
     
         // Sort by length, then alphabet (dots before dashes)

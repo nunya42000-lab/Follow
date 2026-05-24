@@ -1366,61 +1366,6 @@ const GESTURE_CATEGORIES = {
             }
         }
     };
-
-    
-                // Sort by length, then alphabet (dots before dashes)
-        morseOptions.sort((a, b) => {
-            const lenDiff = a.length - b.length;
-            if (lenDiff !== 0) {
-                return lenDiff;
-            }
-            return a.localeCompare(b);
-        });
-
-        // Labels as requested
-        const labels = ["1", "2", "3", "4", "5", "6 C", "7 D", "8 E", "9 F", "10 G", "11 A", "12 B"];
-
-        let gridHtml = `<div class="grid grid-cols-4 gap-y-3 gap-x-2 items-center">`;
-        
-        labels.forEach((label, index) => {
-            const val = index + 1;
-            
-            // Build the select options
-            // Build the select options (Scrubbed Tactile Textures)
-let optionsHtml = `<optgroup label="Morse Patterns">`;
-optionsHtml += morseOptions.map(m => `<option value="${m}">${m}</option>`).join('');
-optionsHtml += `</optgroup>`;
-
-gridHtml += `
-    <div class="text-right text-xs font-bold text-gray-400 pr-1 whitespace-nowrap">${label}</div>
-    <select class="bg-gray-800 text-white text-xs p-1 rounded border border-gray-600 focus:border-primary-app outline-none h-8 w-full font-mono tracking-widest text-center" data-morse-id="${val}">
-        ${optionsHtml}
-    </select>
-`;
-
-populateMorseUI() {
-    const tab = document.getElementById('tab-playback');
-    if (!tab) return;
-    
-    let container = document.getElementById('morse-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'morse-container';
-        container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
-        tab.appendChild(container);
-    }
-
-    // Generate all Morse combinations (1-5 length)
-    const morseOptions = [];
-    const chars = ['.', '-'];
-    const generate = (current) => {
-        if (current.length > 0) morseOptions.push(current);
-        if (current.length >= 5) return;
-        chars.forEach(c => generate(current + c));
-    };
-    generate('');
-    
-    // Sort by length, then alphabet (dots before dashes)
     populateMorseUI() {
         const tab = document.getElementById('tab-playback');
         if (!tab) return;
@@ -1444,7 +1389,13 @@ populateMorseUI() {
         generate('');
         
         // Sort by length, then alphabet (dots before dashes)
-        morseOptions.sort((a, b) => a.length - b.length || a.localeCompare(b));
+        morseOptions.sort((a, b) => {
+            const lenDiff = a.length - b.length;
+            if (lenDiff !== 0) {
+                return lenDiff;
+            }
+            return a.localeCompare(b);
+        });
 
         const labels = ["1", "2", "3", "4", "5", "6 C", "7 D", "8 E", "9 F", "10 G", "11 A", "12 B"];
         let gridHtml = `<div class="grid grid-cols-4 gap-y-3 gap-x-2 items-center">`;
@@ -1558,5 +1509,6 @@ populateMorseUI() {
         this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
     }
 }
+
 
 

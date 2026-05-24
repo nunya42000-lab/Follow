@@ -218,12 +218,15 @@
             <button id="close-donate-btn" class="mt-6 w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold">Close</button>
         </div>
     </div>
-
-    <!-- Settings Modal -->
+    <!-- ========================================== -->
+    <!-- SETTINGS MODAL MAIN WRAPPER                -->
+    <!-- ========================================== -->
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-90 z-50 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300">
         
+        <!-- Modal Inner Card -->
         <div class="settings-modal-bg w-full max-w-md h-[90vh] rounded-2xl flex flex-col scale-90 transition-transform duration-300 shadow-2xl relative overflow-hidden mx-2">
             
+            <!-- 1. Settings Header (No Swipe Zone) -->
             <div class="flex justify-between items-center p-4 border-b border-custom shrink-0 no-swipe-zone bg-black bg-opacity-40">
                 <h2 class="text-xl font-black text-primary-app">⚙️ Control Panel</h2>
                 <div class="flex items-center gap-3">
@@ -232,6 +235,7 @@
                 </div>
             </div>
 
+            <!-- 2. Settings Tabs Navigation (No Swipe Zone) -->
             <div class="flex border-b border-custom shrink-0 overflow-x-auto no-scrollbar no-swipe-zone bg-black bg-opacity-20">
                 <button class="tab-btn active flex-1 py-3 px-2 text-xs font-bold text-gray-400 hover:text-white whitespace-nowrap border-b-2 border-transparent transition-colors" data-tab="game">Game</button>
                 <button class="tab-btn flex-1 py-3 px-2 text-xs font-bold text-gray-400 hover:text-white whitespace-nowrap border-b-2 border-transparent transition-colors" data-tab="playback">Play</button>
@@ -239,10 +243,15 @@
                 <button class="tab-btn flex-1 py-3 px-2 text-xs font-bold text-gray-400 hover:text-white whitespace-nowrap border-b-2 border-transparent transition-colors" data-tab="general">General</button>
             </div>
 
+            <!-- 3. Settings Content Area Wrapper (Scrollable) -->
             <div class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar relative">
                 
+                <!-- ========================================== -->
+                <!-- TAB 1: GAME SETTINGS                       -->
+                <!-- ========================================== -->
                 <div id="tab-game" class="tab-content active space-y-4">
                     
+                    <!-- Profile Management -->
                     <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
                         <label class="block text-xs font-bold mb-2 text-primary-app">Active Profile</label>
                         <div class="flex space-x-2">
@@ -256,6 +265,7 @@
                         </div>
                     </div>
 
+                    <!-- Core Rules -->
                     <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
                         <h4 class="font-bold text-sm mb-3 text-primary-app">Core Rules 📋</h4>
                         
@@ -299,6 +309,7 @@
                             </div>
                         </div>
                         
+                        <!-- Game Toggles -->
                         <div class="space-y-3 mt-4 pt-3 border-t border-gray-700">
                             <div class="flex justify-between items-center">
                                 <span class="text-xs font-bold text-gray-300">Auto-Clear (Unique Mode)</span>
@@ -318,11 +329,12 @@
                         </div>
                     </div>
 
+                    <!-- Hardcore Modifiers -->
                     <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
                         <h4 class="font-bold text-sm mb-3 text-red-400">Hardcore Modifiers ☠️</h4>
                         <div class="space-y-3">
                             <div class="flex justify-between items-center">
-                                <span class="text-xs font-bold text-gray-300">Larger Inputs (1-Key)</span>
+                                <span class="text-xs font-bold text-gray-300">Larger Inpute (1-Key)</span>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" id="stealth-1key-toggle" class="sr-only peer">
                                     <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-500"></div>
@@ -345,151 +357,331 @@
                         </div>
                     </div>
                 </div>
-                </div> </div> </div> ```
 
+                <!-- ========================================== -->
+                <!-- TAB 2: PLAYBACK SETTINGS                   -->
+                <!-- ========================================== -->
+                <div id="tab-playback" class="tab-content hidden space-y-4">
+                    
+                    <!-- Audio & Voice Section -->
+                    <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
+                        <h4 class="font-bold text-sm mb-3 text-primary-app flex justify-between items-center">
+                            <span>Audio & Voice 🗣️</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="audio-toggle" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
+                            </label>
+                        </h4>
 
-    <!-- PLAYBACK / PLAY SETTINGS TAB -->
-<div id="tab-playback" class="tab-content hidden p-1 space-y-4">
-    
-    <!-- Audio & Voice Section -->
-    <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
-        <h4 class="font-bold text-sm mb-3 text-primary-app flex justify-between items-center">
-            <span>Audio & Voice 🗣️</span>
-            <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="audio-toggle" class="sr-only peer">
-                <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
-            </label>
-        </h4>
+                        <!-- Voice Presets -->
+                        <div class="mb-3">
+                            <label class="block text-xs font-bold mb-1 text-muted-custom">Voice Preset</label>
+                            <div class="flex space-x-2">
+                                <select id="voice-preset-select" class="settings-input flex-1 p-2 rounded text-sm font-semibold shadow-sm"></select>
+                                <button id="voice-preset-add" class="bg-blue-600 hover:bg-blue-500 text-white px-2 rounded text-xs font-bold">+</button>
+                                <button id="voice-preset-save" class="bg-green-600 hover:bg-green-500 text-white px-2 rounded text-xs font-bold">💾</button>
+                            </div>
+                            <div class="flex space-x-2 mt-2">
+                                <button id="voice-preset-rename" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-1 rounded text-[10px] font-bold">RENAME</button>
+                                <button id="voice-preset-delete" class="flex-1 bg-red-900 hover:bg-red-800 text-white py-1 rounded text-[10px] font-bold">DELETE</button>
+                            </div>
+                        </div>
 
-        <!-- Voice Presets -->
-        <div class="mb-3">
-            <label class="block text-xs font-bold mb-1 text-muted-custom">Voice Preset</label>
-            <div class="flex space-x-2">
-                <select id="voice-preset-select" class="settings-input flex-1 p-2 rounded text-sm font-semibold shadow-sm"></select>
-                <button id="voice-preset-add" class="bg-blue-600 hover:bg-blue-500 text-white px-2 rounded text-xs font-bold">+</button>
-                <button id="voice-preset-save" class="bg-green-600 hover:bg-green-500 text-white px-2 rounded text-xs font-bold">💾</button>
-            </div>
-            <div class="flex space-x-2 mt-2">
-                <button id="voice-preset-rename" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-1 rounded text-[10px] font-bold">RENAME</button>
-                <button id="voice-preset-delete" class="flex-1 bg-red-900 hover:bg-red-800 text-white py-1 rounded text-[10px] font-bold">DELETE</button>
-            </div>
-        </div>
+                        <!-- Voice Sliders -->
+                        <div class="space-y-2 mb-3">
+                            <div class="flex justify-between items-center">
+                                <label class="text-[10px] font-bold text-gray-400">Pitch</label>
+                                <input type="range" id="voice-pitch" min="0.1" max="2.0" step="0.1" class="w-2/3 h-1 bg-gray-700 rounded-lg appearance-none">
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <label class="text-[10px] font-bold text-gray-400">Rate</label>
+                                <input type="range" id="voice-rate" min="0.1" max="2.0" step="0.1" class="w-2/3 h-1 bg-gray-700 rounded-lg appearance-none">
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <label class="text-[10px] font-bold text-gray-400">Volume</label>
+                                <input type="range" id="voice-volume" min="0.0" max="1.0" step="0.1" class="w-2/3 h-1 bg-gray-700 rounded-lg appearance-none">
+                            </div>
+                        </div>
+                        
+                        <button id="test-voice-btn" class="w-full bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white py-2 rounded text-xs font-bold transition">TEST VOICE 🔊</button>
+                    </div>
 
-        <!-- Voice Sliders -->
-        <div class="space-y-2 mb-3">
-            <div class="flex justify-between items-center">
-                <label class="text-[10px] font-bold text-gray-400">Pitch</label>
-                <input type="range" id="voice-pitch" min="0.1" max="2.0" step="0.1" class="w-2/3 h-1 bg-gray-700 rounded-lg appearance-none">
-            </div>
-            <div class="flex justify-between items-center">
-                <label class="text-[10px] font-bold text-gray-400">Rate</label>
-                <input type="range" id="voice-rate" min="0.1" max="2.0" step="0.1" class="w-2/3 h-1 bg-gray-700 rounded-lg appearance-none">
-            </div>
-            <div class="flex justify-between items-center">
-                <label class="text-[10px] font-bold text-gray-400">Volume</label>
-                <input type="range" id="voice-volume" min="0.0" max="1.0" step="0.1" class="w-2/3 h-1 bg-gray-700 rounded-lg appearance-none">
-            </div>
-        </div>
-        
-        <button id="test-voice-btn" class="w-full bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white py-2 rounded text-xs font-bold transition">TEST VOICE 🔊</button>
-    </div>
+                    <!-- Timing & Playback Section -->
+                    <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
+                        <h4 class="font-bold text-sm mb-3 text-primary-app">Timing & Flow ⏱️</h4>
+                        
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Playback Speed</label>
+                                <select id="playback-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"></select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">AR Playback Speed</label>
+                                <select id="ar-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="0.5">50%</option>
+                                    <option value="0.75">75%</option>
+                                    <option value="1.0" selected>100%</option>
+                                    <option value="1.25">125%</option>
+                                    <option value="1.5">150%</option>
+                                </select>
+                            </div>
+                        </div>
 
-    <!-- Timing & Playback Section -->
-    <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
-        <h4 class="font-bold text-sm mb-3 text-primary-app">Timing & Flow ⏱️</h4>
-        
-        <div class="grid grid-cols-2 gap-3 mb-3">
-            <div>
-                <label class="block text-xs font-bold mb-1 text-muted-custom">Playback Speed</label>
-                <!-- Options injected by populatePlaybackSpeedDropdown() -->
-                <select id="playback-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"></select>
-            </div>
-            <div>
-                <label class="block text-xs font-bold mb-1 text-muted-custom">AR Playback Speed</label>
-                <select id="ar-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                    <option value="0.5">50%</option>
-                    <option value="0.75">75%</option>
-                    <option value="1.0" selected>100%</option>
-                    <option value="1.25">125%</option>
-                    <option value="1.5">150%</option>
-                </select>
-            </div>
-        </div>
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Voice Trigger</label>
+                                <select id="voice-trigger-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="add">ADD</option>
+                                    <option value="plus">PLUS</option>
+                                    <option value="press">PRESS</option>
+                                    <option value="input">INPUT</option>
+                                    <option value="enter">ENTER</option>
+                                    <option value="set">SET</option>
+                                    <option value="nexus">NEXUS</option>
+                                    <option value="track">TRACK</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Pause Mode</label>
+                                <select id="pause-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="none">None</option>
+                                    <option value="manual">Manual</option>
+                                    <option value="auto">Auto-Pause</option>
+                                </select>
+                            </div>
+                        </div>
 
-        <div class="grid grid-cols-2 gap-3 mb-3">
-            <div>
-                <label class="block text-xs font-bold mb-1 text-muted-custom">Voice Trigger</label>
-                <select id="voice-trigger-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                    <option value="add">ADD</option>
-                    <option value="plus">PLUS</option>
-                    <option value="press">PRESS</option>
-                    <option value="input">INPUT</option>
-                    <option value="enter">ENTER</option>
-                    <option value="set">SET</option>
-                    <option value="nexus">NEXUS</option>
-                    <option value="track">TRACK</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-bold mb-1 text-muted-custom">Pause Mode</label>
-                <select id="pause-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                    <option value="none">None</option>
-                    <option value="manual">Manual</option>
-                    <option value="auto">Auto-Pause</option>
-                </select>
-            </div>
-        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Chunk Size</label>
+                                <select id="chunk-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="1">1 Item</option>
+                                    <option value="2">2 Items</option>
+                                    <option value="3">3 Items</option>
+                                    <option value="4">4 Items</option>
+                                    <option value="5">5 Items</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Inter-Delay (s)</label>
+                                <select id="delay-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="0">0.0s</option>
+                                    <option value="0.5">0.5s</option>
+                                    <option value="1.0">1.0s</option>
+                                    <option value="1.5">1.5s</option>
+                                    <option value="2.0">2.0s</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
 
-        <div class="grid grid-cols-2 gap-3">
-            <div>
-                <label class="block text-xs font-bold mb-1 text-muted-custom">Chunk Size</label>
-                <select id="chunk-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                    <option value="1">1 Item</option>
-                    <option value="2">2 Items</option>
-                    <option value="3">3 Items</option>
-                    <option value="4">4 Items</option>
-                    <option value="5">5 Items</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-bold mb-1 text-muted-custom">Inter-Delay (s)</label>
-                <select id="delay-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                    <option value="0">0.0s</option>
-                    <option value="0.5">0.5s</option>
-                    <option value="1.0">1.0s</option>
-                    <option value="1.5">1.5s</option>
-                    <option value="2.0">2.0s</option>
-                </select>
-            </div>
-        </div>
-    </div>
+                    <!-- Haptics Section -->
+                    <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="font-bold text-sm text-primary-app">Haptics 📳</h4>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="haptics-toggle" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
+                            </label>
+                        </div>
+                        
+                        <div class="flex justify-between items-center border-t border-gray-700 pt-3">
+                            <span class="text-xs font-bold text-gray-300">Morse Code Output</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="haptic-morse-toggle" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
 
-    <!-- Haptics Section -->
-    <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
-        <div class="flex justify-between items-center mb-3">
-            <h4 class="font-bold text-sm text-primary-app">Haptics 📳</h4>
-            <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="haptics-toggle" class="sr-only peer">
-                <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
-            </label>
-        </div>
-        
-        <div class="flex justify-between items-center border-t border-gray-700 pt-3">
-            <span class="text-xs font-bold text-gray-300">Morse Code Output</span>
-            <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="haptic-morse-toggle" class="sr-only peer">
-                <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
-            </label>
-        </div>
-    </div>
+                <!-- ========================================== -->
+                <!-- TAB 3: MAPPING SETTINGS                    -->
+                <!-- ========================================== -->
+                <!-- This container is dynamically populated by populateMappingUI() in settings.js -->
+                <div id="tab-mapping" class="tab-content hidden p-1 space-y-4"></div>
 
-    <!-- The Morse mapping grid will be injected here dynamically by populateMorseUI() -->
-    <!-- <div id="morse-container"></div> -->
-    
-</div>
-               
-                                
-    <!-- Share Modal -->                    
+                <!-- ========================================== -->
+                <!-- TAB 4: GENERAL SETTINGS                    -->
+                <!-- ========================================== -->
+                <div id="tab-general" class="tab-content hidden space-y-4">
+                    
+                    <!-- Display & Sizing -->
+                    <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
+                        <h4 class="font-bold text-sm mb-3 text-primary-app">Display & Sizing 🖥️</h4>
+                        
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Global UI Scale</label>
+                                <select id="ui-scale-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm"></select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Bubble Size</label>
+                                <select id="seq-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="50">50%</option>
+                                    <option value="75">75%</option>
+                                    <option value="100">100%</option>
+                                    <option value="125">125%</option>
+                                    <option value="150">150%</option>
+                                    <option value="200">200%</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Font Size</label>
+                                <select id="seq-font-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="50">50%</option>
+                                    <option value="75">75%</option>
+                                    <option value="100">100%</option>
+                                    <option value="125">125%</option>
+                                    <option value="150">150%</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Language</label>
+                                <select id="general-lang-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="en">🇺🇸 English</option>
+                                    <option value="es">🇲🇽 Español</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Input Settings -->
+                    <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
+                        <h4 class="font-bold text-sm mb-3 text-primary-app">Input Controls 🕹️</h4>
+                        
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Auto-Input Sensor</label>
+                                <select id="auto-input-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="none">Disabled</option>
+                                    <option value="mic">Microphone</option>
+                                    <option value="cam">Camera Flash</option>
+                                    <option value="both">Mic + Cam</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Gesture Pad Size</label>
+                                <select id="gesture-mode-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="global">Match Global UI</option>
+                                    <option value="fixed">Fixed Size</option>
+                                    <option value="large">Large Pad</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- System Toggles -->
+                        <div class="space-y-3 mt-4 pt-3 border-t border-gray-700">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-gray-300">Long-Press Autoplay</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="long-press-autoplay-toggle" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
+                                </label>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-gray-300">Quick Erase (Swipe Left)</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="speed-delete-toggle" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Header Visibility Toggles -->
+                    <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
+                        <h4 class="font-bold text-sm mb-3 text-primary-app">Menu Bar Icons 📌</h4>
+                        <p class="text-[10px] text-gray-500 mb-3">Select which quick-action buttons appear in the top header.</p>
+                        
+                        <div class="grid grid-cols-2 gap-y-3 gap-x-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-gray-300">Timer ⏱️</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="timer-toggle" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
+                                </label>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-gray-300">Counter #️⃣</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="counter-toggle" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
+                                </label>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-gray-300">Mic / Voice 🎤</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="voice-input-toggle" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
+                                </label>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-gray-300">AR Camera 📷</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="ar-mode-toggle" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
+                                </label>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-gray-300">Gesture Pad 🗒️</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="gesture-input-toggle" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Application Environment -->
+                    <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
+                        <h4 class="font-bold text-sm mb-3 text-primary-app">Environment 🌍</h4>
+                        
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-gray-300">Fullscreen Mode</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="fullscreen-toggle" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
+                                </label>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-gray-300">Upside-Down Layout</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="upsidedown-toggle" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
+                                </label>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-gray-300">Eco Mode (Battery Saver)</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="ecomode-toggle" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden system/developer tools (Kept bound but hidden to keep UI clean) -->
+                    <div class="hidden">
+                        <input type="checkbox" id="speed-gestures-toggle">
+                        <input type="checkbox" id="volume-gestures-toggle">
+                        <input type="checkbox" id="delete-gesture-toggle">
+                        <input type="checkbox" id="clear-gesture-toggle">
+                        <input type="checkbox" id="auto-timer-toggle">
+                        <input type="checkbox" id="auto-counter-toggle">
+                    </div>
+
+                </div> <!-- END GENERAL TAB -->
+
+            </div> <!-- CLOSE SCROLLABLE CONTENT AREA -->
+        </div> <!-- CLOSE MODAL BACKGROUND -->
+    </div> <!-- CLOSE MODAL OVERLAY -->
+
+                        
     <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-80 flex flex-col justify-end z-[70] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="share-sheet p-6 text-center flex flex-col items-center border-t border-gray-700 shadow-2xl transform translate-y-full transition-transform duration-300">
             <div class="w-12 h-1 bg-gray-600 rounded-full mb-4"></div> 

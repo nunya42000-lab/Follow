@@ -1368,8 +1368,14 @@ const GESTURE_CATEGORIES = {
     };
 
     
-        // Sort by length, then alphabet (dots before dashes)
-        morseOptions.sort((a, b) => a.length - b.length || a.localeCompare(b));
+                // Sort by length, then alphabet (dots before dashes)
+        morseOptions.sort((a, b) => {
+            const lenDiff = a.length - b.length;
+            if (lenDiff !== 0) {
+                return lenDiff;
+            }
+            return a.localeCompare(b);
+        });
 
         // Labels as requested
         const labels = ["1", "2", "3", "4", "5", "6 C", "7 D", "8 E", "9 F", "10 G", "11 A", "12 B"];

@@ -1463,7 +1463,7 @@ gridHtml += `
                 }
             };
         });
-    }
+    },
 
     applyDefaultGestureMappings() {
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};

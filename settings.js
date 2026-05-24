@@ -1392,7 +1392,10 @@ gridHtml += `
     </select>
 `;
 
-    populateMorseUI() {
+
+
+        
+        populateMorseUI() {
         const tab = document.getElementById('tab-playback');
         if (!tab) return;
         
@@ -1481,9 +1484,7 @@ gridHtml += `
             };
         });
     }
-            
-        
-        
+    
     applyDefaultGestureMappings() {
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
         

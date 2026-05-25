@@ -1009,12 +1009,12 @@ function setupARLogic() {
   const arPlaybackClose = document.getElementById('ar-playback-close');
   let mediaRecorder, recordedChunks = [];
 const recBtn = document.getElementById('ar-record-btn');
-if (isArModeEnabled) {
+if (appSettings.isArModeEnabled) {
     recBtn.classList.remove('hidden');
     // Also ensure your ar-playback-container is unhidden if that's where the stream goes
 } else {
     recBtn.classList.add('hidden');
-}
+} 
     
   if (headerCam) {
     headerCam.onclick = () => {

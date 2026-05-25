@@ -1040,7 +1040,7 @@ if (appSettings.isArModeEnabled) {
         showToast(isArNow ? "AR Mode: Ready to Record 📸" : "AR Mode OFF");
     };
 }
-
+const arRecordBtn = document.getElementById('ar-record-btn'); // make sure this ID matches your HTML
   if (arRecordBtn) {
       // Handle Pointer Recording Lifecycle
       arRecordBtn.addEventListener('pointerdown', (e) => {

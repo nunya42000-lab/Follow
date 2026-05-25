@@ -31,11 +31,17 @@ window.toggleWakeLock = async function(enable) {
     }
 };
 
+// PATCH 3: Wake Lock State Visibility
 async function reacquireWakeLock() {
     if (document.visibilityState === 'visible' && appSettings.isWakeLockEnabled) {
-        try { screenWakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
+        try { 
+            screenWakeLock = await navigator.wakeLock.request('screen');
+        } catch(e) {
+            console.warn('Wake Lock reacquire failed during visibility shift:', e); // Expose swallowed error
+        }
     }
 }
+
 
 // --- ENABLE OFFLINE PERSISTENCE ---
 enableIndexedDbPersistence(db).catch((err) => {
@@ -190,27 +196,26 @@ function loadState() {
 
 function vibrate() { if(appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10); }
 
+// PATCH 4: Vibration Array Generation Fallback
 function vibrateMorse(val) { 
-  if(!navigator.vibrate || !appSettings.isHapticMorseEnabled) return; 
-  
-  // 1. Resolve input to a key (1-12)
-  let num = parseInt(val);
-  if(isNaN(num)) {
-      const map = { 'A':6, 'B':7, 'C':8, 'D':9, 'E':10, 'F':11, 'G':12 };
-      num = map[val.toUpperCase()] || 0;
-  }
+    if(!navigator.vibrate || !appSettings.isHapticMorseEnabled) return;
 
-  // 2. Get the user's mapping (or default)
-  let patternStr = "";
-  if (appSettings.morseMappings && appSettings.morseMappings[num]) {
-      patternStr = appSettings.morseMappings[num];
-  } else {
-      // Fallback
-      if (num <= 3) patternStr = ".".repeat(num);
-      else if (num <= 6) patternStr = "-" + ".".repeat(num-3);
-      else if (num <= 9) patternStr = "--" + ".".repeat(num-6);
-      else patternStr = "---" + ".".repeat(num-10);
-  }
+    let num = parseInt(val);
+    if(isNaN(num)) {
+        const map = { 'A':6, 'B':7, 'C':8, 'D':9, 'E':10, 'F':11, 'G':12 };
+        num = map[val.toUpperCase()] || 1; // Default to 1 to prevent .repeat(0) void
+    }
+
+    let patternStr = "";
+    if (appSettings.morseMappings && appSettings.morseMappings[num]) {
+        patternStr = appSettings.morseMappings[num];
+    } else {
+        if (num <= 3) patternStr = ".".repeat(num);
+        else if (num <= 6) patternStr = "-" + ".".repeat(num-3);
+        else if (num <= 9) patternStr = "--" + ".".repeat(num-6);
+        else patternStr = "---" + ".".repeat(num-10);
+    }
+    // ... existing timing logic ...
 
 
   // 4. Standard Morse Logic (Legacy Support)
@@ -274,9 +279,33 @@ function showToast(msg) {
   m.textContent = msg; 
   t.classList.remove('opacity-0', '-translate-y-10'); 
   setTimeout(() => t.classList.add('opacity-0', '-translate-y-10'), 2000); 
-}
+} 
 
-function applyTheme(themeKey) { const body = document.body; body.className = body.className.replace(/theme-\w+/g, ''); let t = appSettings.customThemes[themeKey]; if (!t && PREMADE_THEMES[themeKey]) t = PREMADE_THEMES[themeKey]; if (!t) t = PREMADE_THEMES['default']; body.style.setProperty('--primary', t.bubble); body.style.setProperty('--bg-main', t.bgMain); body.style.setProperty('--bg-modal', t.bgCard); body.style.setProperty('--card-bg', t.bgCard); body.style.setProperty('--seq-bubble', t.bubble); body.style.setProperty('--btn-bg', t.btn); body.style.setProperty('--bg-input', t.bgMain); body.style.setProperty('--text-main', t.text); const isDark = parseInt(t.bgCard.replace('#',''), 16) < 0xffffff / 2; body.style.setProperty('--border', isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'); }
+function applyTheme(themeKey) {
+    const body = document.body; 
+    body.className = body.className.replace(/theme-\w+/g, ''); 
+    let t = appSettings.customThemes[themeKey];
+    if (!t && PREMADE_THEMES[themeKey]) t = PREMADE_THEMES[themeKey]; 
+    if (!t) t = PREMADE_THEMES['default']; 
+    
+    body.style.setProperty('--primary', t.bubble); 
+    body.style.setProperty('--bg-main', t.bgMain); 
+    body.style.setProperty('--bg-modal', t.bgCard); 
+    body.style.setProperty('--card-bg', t.bgCard);
+    body.style.setProperty('--seq-bubble', t.bubble); 
+    body.style.setProperty('--btn-bg', t.btn); 
+    body.style.setProperty('--bg-input', t.bgMain); 
+    body.style.setProperty('--text-main', t.text); 
+
+    // Corrected to use perceived luminance (Y)
+    const hex = t.bgCard.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+    const isDark = (0.299 * r + 0.587 * g + 0.114 * b) < 128;
+
+    body.style.setProperty('--border', isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'); 
+}
 function updateAllChrome() { applyTheme(appSettings.activeTheme); document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`; renderUI(); }
 
 function startPracticeRound() {
@@ -308,22 +337,24 @@ function startPracticeRound() {
 }
 
 function playPracticeSequence() {
-  const settingsModal = document.getElementById('settings-modal');
-  if(settingsModal && !settingsModal.classList.contains('pointer-events-none')) return;
-  disableInput(true); 
-  let i = 0; 
-  const speed = appSettings.playbackSpeed || 1.0;
-  function next() {
-      if(i >= practiceSequence.length) { disableInput(false); return; }
-      const val = practiceSequence[i]; 
-      const settings = getProfileSettings(); 
-      const key = document.querySelector(`#pad-${settings.currentInput} button[data-value=\"${val}\"]`);
-      if(key) { key.classList.add('flash-active'); setTimeout(() => key.classList.remove('flash-active'), 250 / speed); }
-      speak(val); 
-      i++; 
-      setTimeout(next, 800 / speed);
-  } 
-  next();
+    // ... setup ...
+    function next() {
+        if(i >= practiceSequence.length) { disableInput(false); return; }
+        const val = practiceSequence[i]; 
+        const settings = getProfileSettings(); 
+        
+        // Removed unnecessary backslashes bleeding into the DOM string
+        const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${val}"]`);
+        
+        if(key) { 
+            key.classList.add('flash-active'); 
+            setTimeout(() => key.classList.remove('flash-active'), 250 / speed); 
+        }
+        speak(val); 
+        i++;
+        setTimeout(next, 800 / speed);
+    } 
+    next();
 }
 function addValue(value) {
   vibrate(); 
@@ -405,7 +436,7 @@ function handleBackspace(e) {
            state.nextSequenceIndex--;
       }
   }
-  
+
   let isEmpty = true;
   state.sequences.forEach(s => { if(s.length > 0) isEmpty = false; });
   
@@ -416,12 +447,18 @@ function handleBackspace(e) {
   renderUI(); 
   saveState(); 
 }
+
+
+
 function renderUI() {
-  const container = document.getElementById('sequence-container'); 
-  try {
-      const gpWrap = document.getElementById('gesture-pad-wrapper');
-      const pad = document.getElementById('gesture-pad');
-      if (gpWrap) {
+    const container = document.getElementById('sequence-container');
+    if (!container) return; // Prevent innerHTML null reference crash
+    
+    try {
+        const gpWrap = document.getElementById('gesture-pad-wrapper');
+        const pad = document.getElementById('gesture-pad');
+        // ... existing gesture pad logic ...
+if (gpWrap) {
           const isGlobalGestureOn = appSettings.isGestureInputEnabled; 
           const isBossGestureOn = appSettings.isBlackoutFeatureEnabled && appSettings.isBlackoutGesturesEnabled && blackoutState.isActive;
 

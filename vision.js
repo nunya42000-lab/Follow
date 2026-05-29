@@ -10,11 +10,8 @@ export class VisionEngine {
         this.isActive = false;
         this.loopId = null;
         this.lastVideoTime = -1;
-        
-        // Debounce: Require gesture to hold for 5 frames to prevent flickering
-        this.history = []; 
-        this.requiredFrames = 5;
-        this.cooldown = 0;
+        // Removed the conflicting history and cooldown buffers here 
+        // to let app.js handle the 60-frame gesture hold requirement.
     }
 
     async start() {
@@ -28,7 +25,7 @@ export class VisionEngine {
                 this.recognizer = await GestureRecognizer.createFromOptions(vision, {
                     baseOptions: {
                         modelAssetPath: "./wasm/gesture_recognizer.task",
-                        delegate: "GPU"
+                        delegate: "GPU" // Offloads to the Tensor G2 efficiently
                     },
                     runningMode: "VIDEO",
                     numHands: 1
@@ -50,9 +47,13 @@ export class VisionEngine {
         document.body.appendChild(this.video);
 
         try {
-            // Front Camera
+            // Front Camera locked for Hand Tracking
             const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: "user", width: 320, height: 240 } 
+                video: { 
+                    facingMode: "user",
+                    width: { ideal: 640 },
+                    height: { ideal: 480 } 
+                } 
             });
             this.video.srcObject = stream;
             this.video.onloadeddata = () => {
@@ -66,7 +67,7 @@ export class VisionEngine {
         }
     }
 
-            stop() {
+    stop() {
         this.isActive = false;
         
         // Cleanup Video
@@ -78,7 +79,7 @@ export class VisionEngine {
             this.video = null;
         }
 
-        // Cleanup Debug Canvas (New)
+        // Cleanup Debug Canvas
         if (this.debugCanvas) {
             this.debugCanvas.remove();
             this.debugCanvas = null;
@@ -87,38 +88,41 @@ export class VisionEngine {
 
         if (this.loopId) cancelAnimationFrame(this.loopId);
         this.onStatus("Vision Off 🌑");
-            }
+    }
     
-
     predict() {
         if (!this.isActive || !this.recognizer || !this.video) return;
 
         const startTimeMs = Date.now();
         
-        try {
-            const results = this.recognizer.recognizeForVideo(this.video, startTimeMs);
-            this.process(results);
-        } catch(e) { 
-            console.error("Vision Frame Error", e); 
+        // Optimize CPU: Only process the frame if the video has actually updated
+        if (this.video.currentTime !== this.lastVideoTime) {
+            this.lastVideoTime = this.video.currentTime;
+            try {
+                const results = this.recognizer.recognizeForVideo(this.video, startTimeMs);
+                this.process(results);
+            } catch(e) { 
+                console.error("Vision Frame Error", e); 
+            }
         }
 
         this.loopId = requestAnimationFrame(() => this.predict());
     }
-// ... inside vision.js ...
 
     process(results) {
-        // 1. Draw Skeleton (This call is fine here)
-        if (window.appSettings?.isSkeletonDebugEnabled) {
+        // Safe check for external settings object
+        const isDebug = window.appSettings && window.appSettings.isSkeletonDebugEnabled;
+
+        // 1. Draw Skeleton
+        if (isDebug) {
             this._drawDebugSkeleton(results);
         } else if (this.debugCanvas && this.debugCtx) {
             this.debugCtx.clearRect(0, 0, this.debugCanvas.width, this.debugCanvas.height);
         }
 
-        if (this.cooldown > 0) { this.cooldown--; return; }
-
         let gesture = "none";
 
-        if (results.landmarks.length > 0) {
+        if (results.landmarks && results.landmarks.length > 0) {
             const lm = results.landmarks[0]; 
             const fingers = this.countFingers(lm);
             
@@ -137,19 +141,9 @@ export class VisionEngine {
             else gesture = `hand_${fingers}_${dir}`;
         }
 
-        // Debounce Logic (Kept inside process!)
-        this.history.push(gesture);
-        if (this.history.length > this.requiredFrames) this.history.shift();
-        
-        const candidate = this.history[0];
-        if (candidate !== "none" && this.history.every(g => g === candidate)) {
-            this.onTrigger(candidate);
-            this.cooldown = 25; 
-            this.history = [];
-        }
-    } // <--- CLOSE process() HERE
-
-    // --- MOVE THESE FUNCTIONS OUTSIDE process() ---
+        // Stream continuous results directly to app.js
+        this.onTrigger(gesture);
+    } 
 
     _drawDebugSkeleton(results) {
         if (!this.debugCanvas) {
@@ -213,7 +207,6 @@ export class VisionEngine {
     }
 
     countFingers(lm) {
-        // ... (keep existing countFingers code) ...
         let count = 0;
         if (lm[4].x < lm[3].x && lm[4].x < lm[2].x) count++;
         const w = lm[0]; 

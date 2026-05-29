@@ -28,10 +28,6 @@
 <body class="min-h-screen flex flex-col font-sans transition-colors duration-200">
     <div id="blackout-layer"></div>
     
-    <div id="ar-container" class="fixed inset-0 z-[-1] pointer-events-none hidden">
-        <video id="ar-background-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
-    </div>
-    
     <header id="aux-control-header" class="fixed top-0 left-0 right-0 z-40 p-2 pt-safe-top transition-transform duration-300 pointer-events-none">
         <div class="max-w-7xl mx-auto w-full flex justify-between items-start">
             <div class="flex gap-2 pointer-events-auto">
@@ -48,6 +44,7 @@
         </div>
     </header>
     
+    <!-- Quick Start Modal -->
     <div id="game-setup-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
             <div class="flex items-center justify-between border-b border-custom pb-3 mb-4 relative">
@@ -91,6 +88,7 @@
         </div>
     </div>
 
+    <!-- Theme Editor Modal -->
     <div id="theme-editor-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[100] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-md w-full transform scale-90 transition-transform duration-300 flex flex-col border border-custom max-h-[95vh] overflow-hidden">
             <h3 class="text-xl font-bold mb-4" data-i18n="theme_editor">🎨 Theme Editor</h3>
@@ -140,6 +138,7 @@
         </div>
     </div>
 
+    <!-- Redeem Barcode Modal -->
     <div id="redeem-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="relative w-full max-w-lg h-[95vh] flex flex-col items-center justify-center p-4">
             <button id="close-redeem-btn" class="absolute top-4 right-4 z-50 bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600">✕</button>
@@ -153,6 +152,33 @@
         </div>
     </div>
 
+    <!-- Calibration Modal -->
+    <div id="calibration-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[110] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-md w-full border border-custom">
+            <h3 class="text-xl font-bold mb-4">🎛️ Sensor Calibration</h3>
+            <div class="mb-6">
+                <div class="flex justify-between mb-1"><label class="font-bold text-sm">Audio Threshold</label><span id="audio-val-display" class="text-xs font-mono">-85dB</span></div>
+                <div class="h-6 w-full bg-gray-800 rounded relative mb-2 overflow-hidden border border-gray-600">
+                    <div id="calib-audio-bar" class="absolute top-0 left-0 h-full bg-green-500 transition-all duration-75" style="width: 0%"></div>
+                    <div id="calib-audio-marker" class="absolute top-0 h-full w-1 bg-white shadow" style="left: 20%"></div>
+                </div>
+                <input type="range" id="calib-audio-slider" min="-100" max="-30" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                <p class="text-[10px] text-gray-400 mt-1">Adjust until the bar stays below the white line when silent, but jumps past it when the machine beeps.</p>
+            </div>
+            <div class="mb-6">
+                <div class="flex justify-between mb-1"><label class="font-bold text-sm">Camera Sensitivity</label><span id="cam-val-display" class="text-xs font-mono">30</span></div>
+                <div class="h-6 w-full bg-gray-800 rounded relative mb-2 overflow-hidden border border-gray-600">
+                    <div id="calib-cam-bar" class="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-75" style="width: 0%"></div>
+                    <div id="calib-cam-marker" class="absolute top-0 h-full w-1 bg-white shadow" style="left: 30%"></div>
+                </div>
+                <input type="range" id="calib-cam-slider" min="5" max="100" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                <p class="text-[10px] text-gray-400 mt-1">Adjust until the bar stays below the line, but jumps past it when the screen flashes color.</p>
+            </div>
+            <div class="flex justify-end"><button id="close-calibration-btn" class="px-6 py-2 bg-primary-app text-white rounded font-bold">Done</button></div>
+        </div>
+    </div>
+
+    <!-- Donate Modal -->
     <div id="donate-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[140] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom flex flex-col text-center">
             <h3 class="text-2xl font-bold mb-2">Buy me a Coffee? ☕</h3>
@@ -193,6 +219,7 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh] overflow-hidden border border-custom m-4">
             
@@ -217,6 +244,7 @@
             </div>
             
             <div class="overflow-y-auto flex-grow p-5 space-y-4">
+                <!-- Game Tab -->
                 <div id="tab-mode" class="tab-content active">
                     <div class="mb-5 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
                         <label class="text-xs font-bold uppercase text-muted-custom mb-2 block" data-i18n="lbl_profiles">Profiles</label>
@@ -277,6 +305,7 @@
                     </div>
                 </div>
 
+                <!-- Playback Tab -->
                 <div id="tab-playback" class="tab-content">
                     <div class="space-y-3">
                         <div class="grid grid-cols-2 gap-3">
@@ -357,6 +386,7 @@
                     </div>
                 </div>
 
+                <!-- General Tab -->
                 <div id="tab-general" class="tab-content">
                     <div class="space-y-4">
                         <div class="p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
@@ -436,7 +466,7 @@
                             </div>
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
-                                    <span class="font-bold text-sm">Larger inpute 🥷</span>
+                                    <span class="font-bold text-sm">Bigger Buttons 🥷</span>
                                     <input type="checkbox" id="stealth-1key-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
@@ -539,33 +569,36 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-3 mt-4">
-                            <div>
-                                <label class="block text-xs font-bold mb-1 text-muted-custom">Resize Gesture</label>
-                                <select id="gesture-mode-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                    <option value="global">Global UI</option>
-                                    <option value="sequence">Cards Only</option>
-                                    <option value="none">Disabled</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1 text-muted-custom">Voice Trigger</label>
-                                <select id="voice-trigger-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-                                    <option value="add">ADD</option>
-                                    <option value="plus">PLUS</option>
-                                    <option value="press">PRESS</option>
-                                    <option value="input">INPUT</option>
-                                    <option value="enter">ENTER</option>
-                                    <option value="set">SET</option>
-                                    <option value="nexus">NEXUS</option>
-                                    <option value="track">TRACK</option>
-                                </select>
-                            </div>
-                        </div>
+                        <<div class="grid grid-cols-2 gap-3 mt-4">
+    <!-- Resize Gesture -->
+    <div>
+        <label class="block text-xs font-bold mb-1 text-muted-custom">Resize Gesture</label>
+        <select id="gesture-mode-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+            <option value="global">Global UI</option>
+            <option value="sequence">Cards Only</option>
+            <option value="none">Disabled</option>
+        </select>
+    </div>
+    <!-- Voice Trigger -->
+    <div>
+        <label class="block text-xs font-bold mb-1 text-muted-custom">Voice Trigger</label>
+        <select id="voice-trigger-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+            <option value="add">ADD</option>
+            <option value="plus">PLUS</option>
+            <option value="press">PRESS</option>
+            <option value="input">INPUT</option>
+            <option value="enter">ENTER</option>
+            <option value="set">SET</option>
+            <option value="nexus">NEXUS</option>
+            <option value="track">TRACK</option>
+        </select>
+    </div>
+</div>
 
                     </div>
                 </div>
                 
+                <!-- Mapping Tab -->
                 <div id="tab-mapping" class="tab-content">
                     <div class="p-3 mb-4 rounded-lg border border-custom bg-black bg-opacity-30">
                         <h4 class="font-bold text-sm mb-3 text-primary-app">Gesture Sensitivity 🎛️</h4>
@@ -612,6 +645,7 @@
         </div>
     </div>
                                 
+    <!-- Share Modal -->                    
     <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-80 flex flex-col justify-end z-[70] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="share-sheet p-6 text-center flex flex-col items-center border-t border-gray-700 shadow-2xl transform translate-y-full transition-transform duration-300">
             <div class="w-12 h-1 bg-gray-600 rounded-full mb-4"></div> 
@@ -633,6 +667,7 @@
         </div>
     </div>
 
+    <!-- Manual / Help Modal -->
     <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
             <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center">
@@ -804,6 +839,7 @@
         </div>
     </div>
 
+    <!-- Feedback Modal -->
     <div id="comment-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[120] transition-opacity duration-300 opacity-0 pointer-events-none hidden">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom">
              <h3 class="font-bold text-lg mb-4">Send Feedback 💬</h3>
@@ -817,6 +853,7 @@
         </div>
     </div>
 
+    <!-- Core App Layer -->
     <div id="app" class="max-w-7xl w-full mx-auto flex-grow pb-32">
         <main id="sequence-container" class="flex-grow mb-6 transition-all duration-300 pt-4 flex flex-col items-center justify-center"></main>
     </div>
@@ -827,15 +864,16 @@
         </div>
     </div>
 
+    <!-- Control/Keypad Footer -->
     <footer id="input-footer" class="fixed bottom-0 left-0 right-0 p-2 md:p-4 shadow-2xl z-40 safe-area-bottom transition-colors duration-200">
-        
         <div id="ar-playback-container" class="fixed inset-0 z-[100] hidden bg-black flex-col justify-center items-center touch-none">
-            <video id="ar-playback-video" class="w-full h-full object-contain" playsinline controls></video>
-            <button id="ar-close-playback-btn" class="absolute top-8 right-8 bg-red-600 hover:bg-red-500 text-white py-3 px-6 rounded-xl font-bold shadow-lg text-lg z-[101]">Close & Return</button>
+            <video id="ar-playback-video" class="w-full h-full object-contain" playsinline></video>
+            <button id="ar-playback-close" class="absolute top-8 right-8 bg-red-600 hover:bg-red-500 text-white py-3 px-6 rounded-xl font-bold shadow-lg text-lg z-[101]">Close & Return</button>
         </div>
 
         <button id="ar-record-btn" class="fixed bottom-10 left-1/2 -translate-x-1/2 w-20 h-20 bg-red-600 rounded-full border-4 border-white shadow-[0_0_20px_rgba(255,0,0,0.8)] z-50 hidden active:scale-95 transition-transform items-center justify-center text-white font-bold text-lg pointer-events-auto">REC</button>   
        
+        <!-- 9 Key Layout -->
         <div id="pad-key9" class="max-w-md mx-auto">
             <div class="grid grid-cols-3 gap-3 mb-2">
                 <button data-value="1" class="btn-input btn-pad-number">1</button>
@@ -856,6 +894,7 @@
             </div>
         </div>
 
+        <!-- 12 Key Layout -->
         <div id="pad-key12" class="max-w-lg mx-auto" style="display: none;">
             <div class="grid grid-cols-4 gap-3 mb-2">
                 <button data-value="1" class="btn-input btn-pad-number">1</button>
@@ -879,6 +918,7 @@
             </div>
         </div>
 
+        <!-- Piano Layout -->
         <div id="pad-piano" class="max-w-2xl mx-auto pt-0 pb-1" style="display:none;">
             <div id="piano-keys" class="relative h-40 w-full mb-2 border border-custom">
                 <div class="flex h-full w-full">

@@ -1025,70 +1025,71 @@ const startApp = () => {
 function setupARLogic() {
   const headerCam = document.getElementById('header-cam-btn');
   const inputFooter = document.getElementById('input-footer');
-  const arRecordBtn = document.getElementById('ar-record-btn'); // Moved up safely
+  const arRecordBtn = document.getElementById('ar-record-btn');
   const arBackgroundVideo = document.getElementById('ar-background-video');
   const arPlaybackContainer = document.getElementById('ar-playback-container');
   const arPlaybackVideo = document.getElementById('ar-playback-video');
   
   let mediaRecorder, recordedChunks = [];
 
-  // Now this initial check runs perfectly fine without crashing
-  if (arRecordBtn) {
-      if (appSettings.isArModeEnabled) {
-          arRecordBtn.classList.remove('hidden');
-          arRecordBtn.classList.add('flex');
+  // Reusable function to handle UI layout synchronization smoothly
+  async function syncARState(isTargetActive) {
+      document.body.classList.toggle('ar-active', isTargetActive);
+      if (headerCam) headerCam.classList.toggle('header-btn-active', isTargetActive);
+      
+      if (inputFooter) {
+          if (isTargetActive) inputFooter.classList.add('hidden');
+          else inputFooter.classList.remove('hidden');
+      }
+      
+      if (arRecordBtn) {
+          if (isTargetActive) {
+              arRecordBtn.classList.remove('hidden');
+              arRecordBtn.classList.add('flex');
+          } else {
+              arRecordBtn.classList.add('hidden');
+              arRecordBtn.classList.remove('flex');
+          }
+      }
+      
+      if (isTargetActive) {
+          document.body.style.backgroundColor = "transparent";
+          document.getElementById('ar-container')?.classList.remove('hidden');
+          try {
+              const stream = await navigator.mediaDevices.getUserMedia({ 
+                  video: { facingMode: "environment" } 
+              });
+              if (arBackgroundVideo) {
+                  arBackgroundVideo.srcObject = stream;
+                  arBackgroundVideo.play();
+              }
+          } catch (err) {
+              console.error("AR Camera runtime initialization error:", err);
+              showToast("Camera Access Denied ❌");
+          }
       } else {
-          arRecordBtn.classList.add('hidden');
-          arRecordBtn.classList.remove('flex');
+          document.body.style.backgroundColor = "";
+          document.getElementById('ar-container')?.classList.add('hidden');
+          if (arBackgroundVideo && arBackgroundVideo.srcObject) {
+              arBackgroundVideo.srcObject.getTracks().forEach(track => track.stop());
+              arBackgroundVideo.srcObject = null;
+          }
       }
   }
-    
+
+  // Handle Cold Start Configuration check immediately on module registration
+  if (appSettings.isArModeEnabled) {
+      syncARState(true);
+  }
+
   if (headerCam) {
-    headerCam.onclick = async () => {
-        const isArActive = document.body.classList.contains('ar-active');
-        const newState = !isArActive;
-        appSettings.isArModeEnabled = newState;
+    headerCam.onclick = () => {
+        const currentToggleState = !appSettings.isArModeEnabled;
+        appSettings.isArModeEnabled = currentToggleState;
+        saveState(); // Update persistence boundary
         
-        headerCam.classList.toggle('header-btn-active', newState);
-        document.body.classList.toggle('ar-active', newState);
-        
-        if (inputFooter) inputFooter.classList.toggle('hidden', newState);
-        
-        if (arRecordBtn) {
-            if (newState) {
-                arRecordBtn.classList.remove('hidden');
-                arRecordBtn.classList.add('flex');
-            } else {
-                arRecordBtn.classList.add('hidden');
-                arRecordBtn.classList.remove('flex');
-            }
-        }
-        
-        if (newState) {
-            document.body.style.backgroundColor = "transparent";
-            document.getElementById('ar-container')?.classList.remove('hidden');
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "environment" } 
-                });
-                if (arBackgroundVideo) {
-                    arBackgroundVideo.srcObject = stream;
-                    arBackgroundVideo.play();
-                }
-                showToast("AR Mode: Ready to Record 📸");
-            } catch (err) {
-                console.error("AR Camera error:", err);
-                showToast("Camera Access Denied ❌");
-            }
-        } else {
-            document.body.style.backgroundColor = "";
-            document.getElementById('ar-container')?.classList.add('hidden');
-            if (arBackgroundVideo && arBackgroundVideo.srcObject) {
-                arBackgroundVideo.srcObject.getTracks().forEach(track => track.stop());
-                arBackgroundVideo.srcObject = null;
-            }
-            showToast("AR Mode OFF");
-        }
+        syncARState(currentToggleState);
+        showToast(currentToggleState ? "AR Mode: Ready to Record 📸" : "AR Mode OFF");
     };
   }
 
@@ -1146,6 +1147,7 @@ function setupARLogic() {
       });
   }
 }
+
 
 // --- NEW: Default Hand Definitions ---
 const DEFAULT_HAND_MAPPINGS = {

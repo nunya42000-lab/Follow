@@ -1022,11 +1022,12 @@ const startApp = () => {
   
   renderUI();
 };
+
 function setupARLogic() {
   const headerCam = document.getElementById('header-cam-btn');
   const inputFooter = document.getElementById('input-footer');
   const arRecordBtn = document.getElementById('ar-record-btn');
-  const arBackgroundVideo = document.getElementById('ar-background-video');
+  const arBackgroundVideo = document.getElementById('ar-background-video'); // Matched ID perfectly
   const arPlaybackContainer = document.getElementById('ar-playback-container');
   const arPlaybackVideo = document.getElementById('ar-playback-video');
   
@@ -1061,7 +1062,7 @@ function setupARLogic() {
               });
               if (arBackgroundVideo) {
                   arBackgroundVideo.srcObject = stream;
-                  arBackgroundVideo.play();
+                  arBackgroundVideo.play().catch(e => console.warn(e));
               }
           } catch (err) {
               console.error("AR Camera runtime initialization error:", err);

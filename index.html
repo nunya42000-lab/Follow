@@ -842,7 +842,6 @@
         </div>
     </div>
 
-
     <!-- Core App Layer -->
     <div id="app" class="max-w-7xl w-full mx-auto flex-grow pb-32">
         <main id="sequence-container" class="flex-grow mb-6 transition-all duration-300 pt-4 flex flex-col items-center justify-center"></main>
@@ -856,13 +855,6 @@
 
     <!-- Control/Keypad Footer -->
     <footer id="input-footer" class="fixed bottom-0 left-0 right-0 p-2 md:p-4 shadow-2xl z-40 safe-area-bottom transition-colors duration-200">
-        <div id="ar-playback-container" class="fixed inset-0 z-[100] hidden bg-black flex-col justify-center items-center touch-none">
-            <video id="ar-playback-video" class="w-full h-full object-contain" playsinline></video>
-            <button id="ar-playback-close" class="absolute top-8 right-8 bg-red-600 hover:bg-red-500 text-white py-3 px-6 rounded-xl font-bold shadow-lg text-lg z-[101]">Close & Return</button>
-        </div>
-
-        <button id="ar-record-btn" class="fixed bottom-10 left-1/2 -translate-x-1/2 w-20 h-20 bg-red-600 rounded-full border-4 border-white shadow-[0_0_20px_rgba(255,0,0,0.8)] z-50 hidden active:scale-95 transition-transform items-center justify-center text-white font-bold text-lg pointer-events-auto">REC</button>   
-      
         <!-- 9 Key Layout -->
         <div id="pad-key9" class="max-w-md mx-auto">
             <div class="grid grid-cols-3 gap-3 mb-2">
@@ -935,16 +927,19 @@
         </div>
     </footer>
 
+    <!-- INDEPENDENT AR PORTAL ELEMENTS (Moved out of footer) -->
+    <div id="ar-playback-container" class="fixed inset-0 z-[100] hidden bg-black flex-col justify-center items-center touch-none">
+        <video id="ar-playback-video" class="w-full h-full object-contain" playsinline controls></video>
+        <button id="ar-close-playback-btn" class="absolute top-8 right-8 bg-red-600 hover:bg-red-500 text-white py-3 px-6 rounded-xl font-bold shadow-lg text-lg z-[101]">Close & Return</button>
+    </div>
+
+    <button id="ar-record-btn" class="fixed bottom-10 left-1/2 -translate-x-1/2 w-20 h-20 bg-red-600 rounded-full border-4 border-white shadow-[0_0_20px_rgba(255,0,0,0.8)] z-50 hidden active:scale-95 transition-transform items-center justify-center text-white font-bold text-lg pointer-events-auto">REC</button>   
+
     <div id="toast-notification" class="fixed top-20 left-1/2 -translate-x-1/2 bg-primary-app text-white px-6 py-3 rounded-xl shadow-lg z-[99] transition-all duration-300 opacity-0 transform -translate-y-10"><span id="toast-message"></span></div>
     
     <script type="module" src="gestures.js"></script>
     <script type="module" src="app.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('SW Registered', reg))
-                .catch(err => console.log('SW Failed', err));
-        }
-    </script>
 </body>
 </html>
+
+   

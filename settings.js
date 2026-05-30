@@ -792,7 +792,7 @@ export class SettingsManager {
         this.dom.promptDisplay.value = promptText;
     }
 
-    updateUIFromSettings() {
+        updateUIFromSettings() {
         const ps = this.appSettings.runtimeSettings;
         if (this.dom.input) this.dom.input.value = ps.currentInput;
         if (this.dom.mode) this.dom.mode.value = ps.currentMode;
@@ -810,12 +810,12 @@ export class SettingsManager {
         // UPDATED: Matches the new dropdown generation logic (e.g. "1.00")
         if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = (this.appSettings.playbackSpeed || 1.0).toFixed(2);
         if (this.dom.voiceTriggerSelect) {
-    this.dom.voiceTriggerSelect.value = this.appSettings.voiceTriggerWord || 'set';
-    this.dom.voiceTriggerSelect.onchange = (e) => {
-        this.appSettings.voiceTriggerWord = e.target.value;
-        this.callbacks.onSave();
-        if (typeof voiceModule !== 'undefined' && voiceModule) voiceModule.initEngine(); // Rebuild grammar
-    };
+            this.dom.voiceTriggerSelect.value = this.appSettings.voiceTriggerWord || 'set';
+            this.dom.voiceTriggerSelect.onchange = (e) => {
+                this.appSettings.voiceTriggerWord = e.target.value;
+                this.callbacks.onSave();
+                if (typeof voiceModule !== 'undefined' && voiceModule) voiceModule.initEngine(); // Rebuild grammar
+            };
         }
         
         if (this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
@@ -866,6 +866,13 @@ export class SettingsManager {
         if (this.dom.blackoutGesturesToggle) this.dom.blackoutGesturesToggle.checked = !!this.appSettings.isHandGesturesEnabled;
         
         if (this.dom.gestureToggle) this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+
+        // --- FIXED: Formats dynamic assignment value cleanly to strings like "1.0" or "0.75"
+        if (this.dom.arSpeedSelect) {
+            const speedVal = this.appSettings.arPlaybackSpeed || 1.0;
+            this.dom.arSpeedSelect.value = String(speedVal);
+        }
+
         const lang = this.appSettings.generalLanguage || 'en';
         if (this.dom.quickLang) this.dom.quickLang.value = lang;
         if (this.dom.generalLang) this.dom.generalLang.value = lang;
@@ -1509,6 +1516,3 @@ const GESTURE_CATEGORIES = {
         this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
     }
 }
-
-
-

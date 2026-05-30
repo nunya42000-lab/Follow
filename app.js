@@ -1022,12 +1022,11 @@ const startApp = () => {
   
   renderUI();
 };
-
 function setupARLogic() {
   const headerCam = document.getElementById('header-cam-btn');
   const inputFooter = document.getElementById('input-footer');
   const arRecordBtn = document.getElementById('ar-record-btn');
-  const arBackgroundVideo = document.getElementById('ar-background-video'); // Matched ID perfectly
+  const arBackgroundVideo = document.getElementById('ar-background-video');
   const arPlaybackContainer = document.getElementById('ar-playback-container');
   const arPlaybackVideo = document.getElementById('ar-playback-video');
   
@@ -1035,6 +1034,9 @@ function setupARLogic() {
 
   // Reusable function to handle UI layout synchronization smoothly
   async function syncARState(isTargetActive) {
+      // Sync the state tracking variable directly
+      appSettings.isArModeEnabled = isTargetActive;
+      
       document.body.classList.toggle('ar-active', isTargetActive);
       if (headerCam) headerCam.classList.toggle('header-btn-active', isTargetActive);
       
@@ -1059,6 +1061,7 @@ function setupARLogic() {
           try {
               const stream = await navigator.mediaDevices.getUserMedia({ 
                   video: { facingMode: "environment" } 
+                // Requests the rear camera sensor
               });
               if (arBackgroundVideo) {
                   arBackgroundVideo.srcObject = stream;
@@ -1078,18 +1081,18 @@ function setupARLogic() {
       }
   }
 
-  // Handle Cold Start Configuration check immediately on module registration
+  // Cold Start Check: If toggled ON in settings initially, spin it up instantly
   if (appSettings.isArModeEnabled) {
       syncARState(true);
   }
 
   if (headerCam) {
     headerCam.onclick = () => {
+        // Fix: Determine status based explicitly on the app state tracker rather than body tags
         const currentToggleState = !appSettings.isArModeEnabled;
-        appSettings.isArModeEnabled = currentToggleState;
-        saveState(); // Update persistence boundary
         
         syncARState(currentToggleState);
+        saveState(); // Commit to persistence cleanly
         showToast(currentToggleState ? "AR Mode: Ready to Record 📸" : "AR Mode OFF");
     };
   }
@@ -1116,6 +1119,8 @@ function setupARLogic() {
               if (arPlaybackVideo && arPlaybackContainer) {
                   arPlaybackVideo.src = URL.createObjectURL(blob);
                   arPlaybackContainer.classList.remove('hidden');
+                  
+                  // Sets standard playback speed statically from preferences on video load
                   arPlaybackVideo.playbackRate = appSettings.arPlaybackSpeed || 1.0;
                   arPlaybackVideo.play().catch(err => console.warn(err));
               }

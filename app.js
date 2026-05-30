@@ -76,7 +76,7 @@ const DEFAULT_APP = {
   isVolumeGesturesEnabled: false,
   isArModeEnabled: false, 
   isVoiceInputEnabled: false, 
-  arPlaybackSpeed: 1.0,
+  arPlaybackSpeed: 1.00,
   voiceTriggerWord: 'set', // Default anchor
   gestureHoldFrames: 30, // Approx 1 to 1.5 seconds depending on framerate
  

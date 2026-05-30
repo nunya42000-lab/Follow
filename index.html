@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
    <script>
@@ -27,7 +26,11 @@
 </head>
 <body class="min-h-screen flex flex-col font-sans transition-colors duration-200">
     <div id="blackout-layer"></div>
-    
+   
+    <div id="ar-container" class="fixed inset-0 z-[-1] pointer-events-none hidden">
+        <video id="ar-background-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
+    </div>
+
     <header id="aux-control-header" class="fixed top-0 left-0 right-0 z-40 p-2 pt-safe-top transition-transform duration-300 pointer-events-none">
         <div class="max-w-7xl mx-auto w-full flex justify-between items-start">
             <div class="flex gap-2 pointer-events-auto">
@@ -43,6 +46,8 @@
             </div>
         </div>
     </header>
+
+    
     
     <!-- Quick Start Modal -->
     <div id="game-setup-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
@@ -152,31 +157,7 @@
         </div>
     </div>
 
-    <!-- Calibration Modal -->
-    <div id="calibration-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[110] transition-opacity duration-300 opacity-0 pointer-events-none">
-        <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-md w-full border border-custom">
-            <h3 class="text-xl font-bold mb-4">🎛️ Sensor Calibration</h3>
-            <div class="mb-6">
-                <div class="flex justify-between mb-1"><label class="font-bold text-sm">Audio Threshold</label><span id="audio-val-display" class="text-xs font-mono">-85dB</span></div>
-                <div class="h-6 w-full bg-gray-800 rounded relative mb-2 overflow-hidden border border-gray-600">
-                    <div id="calib-audio-bar" class="absolute top-0 left-0 h-full bg-green-500 transition-all duration-75" style="width: 0%"></div>
-                    <div id="calib-audio-marker" class="absolute top-0 h-full w-1 bg-white shadow" style="left: 20%"></div>
-                </div>
-                <input type="range" id="calib-audio-slider" min="-100" max="-30" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                <p class="text-[10px] text-gray-400 mt-1">Adjust until the bar stays below the white line when silent, but jumps past it when the machine beeps.</p>
-            </div>
-            <div class="mb-6">
-                <div class="flex justify-between mb-1"><label class="font-bold text-sm">Camera Sensitivity</label><span id="cam-val-display" class="text-xs font-mono">30</span></div>
-                <div class="h-6 w-full bg-gray-800 rounded relative mb-2 overflow-hidden border border-gray-600">
-                    <div id="calib-cam-bar" class="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-75" style="width: 0%"></div>
-                    <div id="calib-cam-marker" class="absolute top-0 h-full w-1 bg-white shadow" style="left: 30%"></div>
-                </div>
-                <input type="range" id="calib-cam-slider" min="5" max="100" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                <p class="text-[10px] text-gray-400 mt-1">Adjust until the bar stays below the line, but jumps past it when the screen flashes color.</p>
-            </div>
-            <div class="flex justify-end"><button id="close-calibration-btn" class="px-6 py-2 bg-primary-app text-white rounded font-bold">Done</button></div>
-        </div>
-    </div>
+
 
     <!-- Donate Modal -->
     <div id="donate-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[140] transition-opacity duration-300 opacity-0 pointer-events-none">
@@ -218,6 +199,8 @@
             <button id="close-donate-btn" class="mt-6 w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold">Close</button>
         </div>
     </div>
+
+
 
     <!-- Settings Modal -->
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
@@ -644,6 +627,9 @@
             </div>
         </div>
     </div>
+
+
+
                                 
     <!-- Share Modal -->                    
     <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-80 flex flex-col justify-end z-[70] transition-opacity duration-300 opacity-0 pointer-events-none">
@@ -667,7 +653,10 @@
         </div>
     </div>
 
-    <!-- Manual / Help Modal -->
+<!-- Manual / Help Modal -->
+
+
+    
     <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
             <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center">
@@ -839,7 +828,7 @@
         </div>
     </div>
 
-    <!-- Feedback Modal -->
+<!-- Feedback Modal -->
     <div id="comment-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[120] transition-opacity duration-300 opacity-0 pointer-events-none hidden">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom">
              <h3 class="font-bold text-lg mb-4">Send Feedback 💬</h3>
@@ -852,6 +841,7 @@
              </div>
         </div>
     </div>
+
 
     <!-- Core App Layer -->
     <div id="app" class="max-w-7xl w-full mx-auto flex-grow pb-32">
@@ -872,7 +862,7 @@
         </div>
 
         <button id="ar-record-btn" class="fixed bottom-10 left-1/2 -translate-x-1/2 w-20 h-20 bg-red-600 rounded-full border-4 border-white shadow-[0_0_20px_rgba(255,0,0,0.8)] z-50 hidden active:scale-95 transition-transform items-center justify-center text-white font-bold text-lg pointer-events-auto">REC</button>   
-       
+      
         <!-- 9 Key Layout -->
         <div id="pad-key9" class="max-w-md mx-auto">
             <div class="grid grid-cols-3 gap-3 mb-2">

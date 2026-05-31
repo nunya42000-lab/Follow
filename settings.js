@@ -603,7 +603,19 @@ export class SettingsManager {
         // NEW HEADER TOGGLE LISTENERS
         bind(this.dom.timerToggle, 'showTimer', true);
         bind(this.dom.counterToggle, 'showCounter', true);
-        bind(this.dom.arModeToggle, 'isArModeEnabled', true);
+        if (this.dom.arModeToggle) {
+            this.dom.arModeToggle.onchange = (e) => {
+                this.appSettings.isArModeEnabled = e.target.checked;
+                this.callbacks.onSave();
+                
+                // FIX: Physically trigger the camera engine to start/stop when the settings toggle is flipped
+                const headerCam = document.getElementById('header-cam-btn');
+                const isActuallyActive = document.body.classList.contains('ar-active');
+                if (headerCam && (e.target.checked !== isActuallyActive)) {
+                    headerCam.click();
+                }
+            };
+        }
         bind(this.dom.voiceInputToggle, 'isVoiceInputEnabled', true);
         if (this.dom.mode) { this.dom.mode.onchange = () => { this.appSettings.runtimeSettings.currentMode = this.dom.mode.value; this.callbacks.onSave(); this.callbacks.onUpdate('mode_switch'); this.generatePrompt(); }; }
         if (this.dom.input) this.dom.input.addEventListener('change', () => this.generatePrompt());

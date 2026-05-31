@@ -1088,14 +1088,15 @@ function setupARLogic() {
 
   if (headerCam) {
     headerCam.onclick = () => {
-        // Fix: Determine status based explicitly on the app state tracker rather than body tags
-        const currentToggleState = !appSettings.isArModeEnabled;
+        // FIX: Always derive intent from the actual physical screen state, not the data variable
+        const currentToggleState = !document.body.classList.contains('ar-active');
         
         syncARState(currentToggleState);
-        saveState(); // Commit to persistence cleanly
+        saveState(); 
         showToast(currentToggleState ? "AR Mode: Ready to Record 📸" : "AR Mode OFF");
     };
   }
+
 
   if (arRecordBtn) {
       arRecordBtn.addEventListener('pointerdown', (e) => {

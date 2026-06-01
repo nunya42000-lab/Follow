@@ -403,22 +403,31 @@ export class SettingsManager {
                 window.toggleWakeLock(this.appSettings.isWakeLockEnabled);
             }
         });
-        bindToggle(this.dom.upsideDownToggle, 'isUpsidedownEnabled', () => {
-            document.body.classList.toggle('upside-down', this.appSettings.isUpsidedownEnabled);
-        });
+                // INSIDE settings.js -> initListeners()
+        if (this.dom.fullscreenToggle) {
+            this.dom.fullscreenToggle.onchange = (e) => {
+                // ONLY save the visibility preference
+                this.appSettings.showFullscreenBtn = e.target.checked;
+                this.updateHeaderVisibility();
+                this.callbacks.onSave();
+            };
+        }
+
+        if (this.dom.upsidedownToggle) {
+            this.dom.upsidedownToggle.onchange = (e) => {
+                // ONLY save the visibility preference
+                this.appSettings.showUpsideDownBtn = e.target.checked;
+                this.updateHeaderVisibility();
+                this.callbacks.onSave();
+            };
+        }
+
 
         bindToggle(this.dom.ecoModeToggle, 'isEcoModeEnabled', () => {
             document.body.classList.toggle('eco-mode', this.appSettings.isEcoModeEnabled);
         });
 
-        bindToggle(this.dom.fullScreenToggle, 'isFullScreenEnabled', () => {
-            if (this.appSettings.isFullScreenEnabled && !document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(e => console.log(e));
-            } else if (!this.appSettings.isFullScreenEnabled && document.fullscreenElement) {
-                document.exitFullscreen().catch(e => console.log(e));
-            }
-        });
-
+        
         // --- NEW: Bind AR Speed Select ---
         if (this.dom.arSpeedSelect) {
             this.dom.arSpeedSelect.value = this.appSettings.arPlaybackSpeed || 1.0; 
@@ -1046,6 +1055,13 @@ populateMappingAccordions() {
         if (this.dom.blackoutGesturesToggle) this.dom.blackoutGesturesToggle.checked = !!this.appSettings.isHandGesturesEnabled;
         
         if (this.dom.gestureToggle) this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+        // INSIDE settings.js -> updateUIFromSettings()
+        if (this.dom.fullscreenToggle) {
+            this.dom.fullscreenToggle.checked = !!this.appSettings.showFullscreenBtn;
+        }
+        if (this.dom.upsidedownToggle) {
+            this.dom.upsidedownToggle.checked = !!this.appSettings.showUpsideDownBtn;
+        }
 
         // --- FIXED: Formats dynamic assignment value cleanly to strings like "1.0" or "0.75"
         if (this.dom.arSpeedSelect) {

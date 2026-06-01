@@ -945,44 +945,77 @@ const startApp = () => {
   let gestureHistory = [];
   let gestureCooldown = 0;
 
-  modules.vision = new VisionEngine(
-      (gestureName) => {
+        modules.vision = new VisionEngine(
+      (gestureData) => {
           const settings = getProfileSettings();
-          const holdRequirement = appSettings.gestureHoldFrames || 60; // 60 frames = ~2 seconds
-
-          if (gestureCooldown > 0) {
+          
+          // 1. Handle Cooldown to prevent rapid double-firing while holding the pose
+          if (typeof gestureCooldown !== 'undefined' && gestureCooldown > 0) {
               gestureCooldown--;
               return;
           }
 
-          if (gestureName && gestureName !== "hand_fist" && gestureName !== "none") {
-              gestureHistory.push(gestureName);
-              
-              if (gestureHistory.length > holdRequirement) {
-                  gestureHistory.shift();
+          // 2. Validate incoming gesture object from the new OmniGesture v2.0 Engine
+          if (!gestureData || gestureData === "none") {
+              return; // Ignore empty frames
+          }
+
+          // Extract the integer ID and text label
+          const gestureId = typeof gestureData === 'object' ? gestureData.id : gestureData;
+          const gestureLabel = typeof gestureData === 'object' ? gestureData.label : "Gesture";
+
+          // --- 3. GLOBAL HAND SIGNALS (Clear / Undo) ---
+          if (appSettings.isHandSignalsEnabled) {
+              if (gestureId === 104) { // 104 = Chef Kiss
+                  showToast("Hand Signal: Clear 🧹");
+                  // Call your existing clear function here
+                  if (typeof resetCurrentMachine === 'function') resetCurrentMachine();
+                  gestureCooldown = 60; 
+                  return;
+              } 
+              if (gestureId === 105) { // 105 = OK Sign
+                  showToast("Hand Signal: Undo 🔙");
+                  if (typeof handleBackspace === 'function') handleBackspace();
+                  gestureCooldown = 60;
+                  return;
               }
+          }
 
-              // Verify the gesture has been held consistently across all frames
-              const isStable = gestureHistory.length === holdRequirement && gestureHistory.every(g => g === gestureName);
+          // --- 4. DYNAMIC INPUT MAPPING ---
+          let mappedInput = null;
 
-              if (isStable) {
-                  const mappedInput = mapGestureToValue(gestureName, settings.currentInput);
-                  if (mappedInput !== null) {
-                      addValue(mappedInput);
-                      showToast(`Hand: ${mappedInput} 🖐️`);
-                      document.body.style.backgroundColor = '#222';
-                      setTimeout(() => document.body.style.backgroundColor = '', 100);
-                      
-                      gestureCooldown = 60; // 2-second cooldown to prevent double-firing
-                      gestureHistory = []; // Flush buffer
+          // Check the dynamic assignments configured in settings.js
+          if (appSettings.mappings) {
+              for (const [key, mapData] of Object.entries(appSettings.mappings)) {
+                  // Ensure we only match keys for the currently active layout
+                  const prefix = settings.currentInput === 'key9' ? 'k9_' : 
+                                 settings.currentInput === 'key12' ? 'k12_' : 'piano_';
+                  
+                  if (key.startsWith(prefix) && parseInt(mapData.handGesture) === gestureId) {
+                      mappedInput = key.replace(prefix, ''); // Isolates the specific number/note
+                      break;
                   }
               }
-          } else {
-              gestureHistory = []; // Flush if hand is lost or drops to a fist
+          } else if (typeof mapGestureToValue === 'function') {
+              // Legacy fallback just in case mappings object isn't fully initialized
+              mappedInput = mapGestureToValue(gestureId, settings.currentInput);
+          }
+
+          // --- 5. TRIGGER INPUT ---
+          if (mappedInput !== null) {
+              addValue(mappedInput);
+              showToast(`Hand: ${mappedInput} (${gestureLabel}) 🖐️`);
+              
+              document.body.style.backgroundColor = '#222';
+              setTimeout(() => document.body.style.backgroundColor = '', 100);
+              
+              // 60-frame cooldown (approx 2 seconds) locks the engine to require a fresh movement
+              gestureCooldown = 60; 
           }
       },
       (status) => showToast(status)
   );
+
 
   // 6. Voice Commander Setup
   voiceModule = new VoiceCommander({
@@ -1175,6 +1208,35 @@ const DEFAULT_HAND_MAPPINGS = {
   'piano_1': 'hand_1_down', 'piano_2': 'hand_2_down', 'piano_3': 'hand_3_down',
   'piano_4': 'hand_4_down', 'piano_5': 'hand_5_down'
 };
+    // --- NEW: Header Button Logic ---
+    const headerFullscreenBtn = document.getElementById('header-fullscreen-btn');
+    if (headerFullscreenBtn) {
+        headerFullscreenBtn.onclick = () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.warn(`Fullscreen error: ${err.message}`);
+                });
+                headerFullscreenBtn.classList.add('ring-2', 'ring-emerald-500');
+            } else {
+                document.exitFullscreen();
+                headerFullscreenBtn.classList.remove('ring-2', 'ring-emerald-500');
+            }
+        };
+    }
+
+    const headerUpsideDownBtn = document.getElementById('header-upsidedown-btn');
+    if (headerUpsideDownBtn) {
+        headerUpsideDownBtn.onclick = () => {
+            document.body.classList.toggle('rotate-180');
+            if (document.body.classList.contains('rotate-180')) {
+                headerUpsideDownBtn.classList.add('ring-2', 'ring-emerald-500');
+                showToast("Upside Down Mode: ON 🙃");
+            } else {
+                headerUpsideDownBtn.classList.remove('ring-2', 'ring-emerald-500');
+                showToast("Upside Down Mode: OFF");
+            }
+        };
+    }
 
 function mapGestureToValue(kind, currentInput) {
   const saved = appSettings.gestureMappings || {};

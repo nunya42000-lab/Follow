@@ -525,66 +525,61 @@ populateMappingAccordions() {
 
     bindMappingEvents() {
         // 1. Tab Switching Logic
-        const tabs = document.querySelectorAll('.mapping-subtab-btn');
-        tabs.forEach(tab => {
-            tab.addEventListener('click', (e) => {
+        document.querySelectorAll('.mapping-subtab-btn').forEach(tab => {
+            tab.onclick = (e) => {
                 const keyId = e.target.dataset.key;
                 const target = e.target.dataset.target;
-                
                 const parent = e.target.closest('details');
-                const localTabs = parent.querySelectorAll('.mapping-subtab-btn');
-                const touchPanel = parent.querySelector(`#panel-touch-${keyId}`);
-                const handPanel = parent.querySelector(`#panel-hand-${keyId}`);
-
-                // Reset tabs in this specific accordion
-                localTabs.forEach(t => {
+                
+                // Hide all panels & reset tabs in this accordion
+                parent.querySelectorAll('.mapping-subtab-btn').forEach(t => {
                     t.classList.remove('active', 'text-blue-400', 'text-emerald-400', 'border-b-2', 'border-blue-400', 'border-emerald-400');
                     t.classList.add('text-gray-500');
                 });
-
-                // Activate clicked tab
+                parent.querySelectorAll('.mapping-panel').forEach(p => p.classList.add('hidden'));
+                
+                // Show the clicked tab & panel
                 e.target.classList.remove('text-gray-500');
                 if (target === 'touch') {
                     e.target.classList.add('active', 'text-blue-400', 'border-b-2', 'border-blue-400');
-                    touchPanel.classList.remove('hidden');
-                    handPanel.classList.add('hidden');
+                    parent.querySelector(`#panel-touch-${keyId}`).classList.remove('hidden');
                 } else {
                     e.target.classList.add('active', 'text-emerald-400', 'border-b-2', 'border-emerald-400');
-                    handPanel.classList.remove('hidden');
-                    touchPanel.classList.add('hidden');
+                    parent.querySelector(`#panel-hand-${keyId}`).classList.remove('hidden');
                 }
-            });
+            };
         });
 
-        // 2. Load Values and Save on Change
-        const selects = document.querySelectorAll('.mapping-select');
-        selects.forEach(select => {
+        // 2. Load Values from Save State
+        document.querySelectorAll('.mapping-select').forEach(select => {
             const keyId = select.dataset.key;
             const type = select.dataset.type;
             
-            // Ensure data structure exists safely
-            if (!this.appSettings.mappings) this.appSettings.mappings = {};
-            if (!this.appSettings.mappings[keyId]) this.appSettings.mappings[keyId] = { touch: 'none', handGesture: 'none', morse: '' };
-
-            // Populate the dropdown with the currently saved value
-            if (type === 'touch') {
-                select.value = this.appSettings.mappings[keyId].touch || 'none';
-            } else if (type === 'hand') {
-                select.value = this.appSettings.mappings[keyId].handGesture || 'none';
+            // Set the dropdown to match the saved appSettings
+            if (this.appSettings.mappings && this.appSettings.mappings[keyId]) {
+                if (type === 'touch' && this.appSettings.mappings[keyId].touch) {
+                    select.value = this.appSettings.mappings[keyId].touch;
+                } else if (type === 'hand' && this.appSettings.mappings[keyId].handGesture !== undefined) {
+                    select.value = this.appSettings.mappings[keyId].handGesture;
+                }
             }
 
-            // Save new value directly to engine when changed
-            select.addEventListener('change', (e) => {
+            // 3. Save Changes instantly
+            select.onchange = (e) => {
+                if (!this.appSettings.mappings) this.appSettings.mappings = {};
+                if (!this.appSettings.mappings[keyId]) this.appSettings.mappings[keyId] = { touch: 'none', handGesture: 'none', morse: '' };
+                
                 if (type === 'touch') {
                     this.appSettings.mappings[keyId].touch = e.target.value;
-                } else if (type === 'hand') {
-                    // Hand gestures use integer IDs, so parse it
+                } else {
+                    // Hand gestures must be parsed as Integers (except 'none')
                     this.appSettings.mappings[keyId].handGesture = e.target.value === 'none' ? 'none' : parseInt(e.target.value, 10);
                 }
-                this.callbacks.onSave(); // Trigger the save to localStorage
-            });
+                this.callbacks.onSave();
+            };
         });
     }
+
 
     populatePlaybackSpeedDropdown() {
         if (!this.dom.playbackSpeed) return;

@@ -886,19 +886,47 @@ const startApp = () => {
   loadState();
 
   // 1. System Level Initialization
-  if (appSettings.isUpsidedownEnabled) document.body.classList.add('upside-down');
+  // (Removed the automatic upside-down and fullscreen boot triggers from here)
   if (appSettings.isEcoModeEnabled) document.body.classList.add('eco-mode');
   
+  // --- NEW HEADER BUTTON ACTIONS ---
+  // Full Screen Header Button Action
+  const headerFullscreenBtn = document.getElementById('header-fullscreen-btn');
+  if (headerFullscreenBtn) {
+      headerFullscreenBtn.onclick = () => {
+          if (!document.fullscreenElement) {
+              document.documentElement.requestFullscreen().catch(err => {
+                  console.warn(`Fullscreen error: ${err.message}`);
+              });
+              headerFullscreenBtn.classList.add('ring-2', 'ring-emerald-500');
+          } else {
+              document.exitFullscreen();
+              headerFullscreenBtn.classList.remove('ring-2', 'ring-emerald-500');
+          }
+      };
+  }
+
+  // Upside Down Header Button Action
+  const headerUpsideDownBtn = document.getElementById('header-upsidedown-btn');
+  if (headerUpsideDownBtn) {
+      headerUpsideDownBtn.onclick = () => {
+          document.body.classList.toggle('rotate-180');
+          if (document.body.classList.contains('rotate-180')) {
+              headerUpsideDownBtn.classList.add('ring-2', 'ring-emerald-500');
+              showToast("Upside Down Mode: ON 🙃");
+          } else {
+              headerUpsideDownBtn.classList.remove('ring-2', 'ring-emerald-500');
+              showToast("Upside Down Mode: OFF");
+          }
+      };
+  }
+    
   // 2. Safe WakeLock execution
   if (appSettings.isWakeLockEnabled && typeof window.toggleWakeLock === 'function') {
       window.toggleWakeLock(true);
   }
 
-  if (appSettings.isFullScreenEnabled && !document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
-  }
-
-  // 4. Initialize Settings SECOND (PATCH: Safely initialize without legacy sensor)
+  // 4. Initialize Settings
   modules.settings = new SettingsManager(
       appSettings, 
       { 
@@ -910,6 +938,8 @@ const startApp = () => {
               saveState();
               renderUI(); 
           },
+          // ... rest of your profile callbacks ...
+
           onProfileAdd: (name) => {
               const id = 'p_' + Date.now();
               appSettings.profiles[id] = { name: name, settings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), theme: 'default' };

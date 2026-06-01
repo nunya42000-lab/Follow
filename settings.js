@@ -444,6 +444,128 @@ populateMappingAccordions() {
         </details>`;
     });
 }
+    renderMappingUI() {
+        const container = document.getElementById('mapping-accordion-container');
+        if (!container) return;
+        
+        container.innerHTML = ''; // Clear existing DOM
+
+        // Map out the 3 layout configurations
+        const groups = [
+            { id: 'key9', title: '9-Key Layout', keys: Array.from({length: 9}, (_, i) => `k9_${i+1}`) },
+            { id: 'key12', title: '12-Key Layout', keys: Array.from({length: 12}, (_, i) => `k12_${i+1}`) },
+            { id: 'piano', title: 'Piano Layout', keys: ['piano_C', 'piano_D', 'piano_E', 'piano_F', 'piano_G', 'piano_A', 'piano_B', 'piano_1', 'piano_2', 'piano_3', 'piano_4', 'piano_5'] }
+        ];
+
+        const touchOptionsHTML = TOUCH_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('');
+        const handOptionsHTML = VISUAL_HAND_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('');
+
+        groups.forEach(group => {
+            // Group Header
+            container.innerHTML += `<h3 class="font-bold text-sm mt-6 mb-2 text-primary-app border-b border-gray-700 pb-1">${group.title}</h3>`;
+            
+            group.keys.forEach(keyId => {
+                let displayName = keyId.replace('k9_', 'Key ').replace('k12_', 'Key ').replace('piano_', 'Note ');
+
+                const accordion = `
+                    <details class="group bg-gray-900 rounded-lg border border-gray-700 open:bg-gray-800 transition-colors shadow-sm mb-2">
+                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white outline-none">
+                            <span class="flex items-center gap-2">
+                                <span class="bg-gray-700 w-16 h-6 flex items-center justify-center rounded text-xs text-blue-300 font-mono border border-gray-600">${displayName}</span>
+                            </span>
+                            <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+                        </summary>
+                        
+                        <div class="p-3 border-t border-gray-700 mt-1 bg-black/20">
+                            <div class="flex border-b border-gray-700 mb-3">
+                                <button type="button" class="mapping-subtab-btn active flex-1 py-2 text-xs font-bold text-blue-400 border-b-2 border-blue-400 transition-colors" data-key="${keyId}" data-target="touch">👆 Touch</button>
+                                <button type="button" class="mapping-subtab-btn flex-1 py-2 text-xs font-bold text-gray-500 hover:text-green-400 transition-colors" data-key="${keyId}" data-target="hand">🖐️ Hand Tracking</button>
+                            </div>
+                            
+                            <div id="panel-touch-${keyId}" class="mapping-panel block space-y-2">
+                                <select id="map-touch-${keyId}" class="mapping-select settings-input w-full p-2.5 rounded text-sm font-semibold shadow-sm border border-gray-600 bg-gray-950 text-white outline-none focus:border-blue-500 transition-colors" data-type="touch" data-key="${keyId}">
+                                    ${touchOptionsHTML}
+                                </select>
+                            </div>
+                            
+                            <div id="panel-hand-${keyId}" class="mapping-panel hidden space-y-2">
+                                <select id="map-hand-${keyId}" class="mapping-select settings-input w-full p-2.5 rounded text-sm font-semibold shadow-sm border border-gray-600 bg-gray-950 text-emerald-400 outline-none focus:border-emerald-500 transition-colors" data-type="hand" data-key="${keyId}">
+                                    ${handOptionsHTML}
+                                </select>
+                            </div>
+                        </div>
+                    </details>
+                `;
+                container.innerHTML += accordion;
+            });
+        });
+
+        // Attach event listeners for tabs and dropdown saves
+        this.bindMappingEvents();
+    }
+
+    bindMappingEvents() {
+        // 1. Tab Switching Logic
+        const tabs = document.querySelectorAll('.mapping-subtab-btn');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const keyId = e.target.dataset.key;
+                const target = e.target.dataset.target;
+                
+                const parent = e.target.closest('details');
+                const localTabs = parent.querySelectorAll('.mapping-subtab-btn');
+                const touchPanel = parent.querySelector(`#panel-touch-${keyId}`);
+                const handPanel = parent.querySelector(`#panel-hand-${keyId}`);
+
+                // Reset tabs in this specific accordion
+                localTabs.forEach(t => {
+                    t.classList.remove('active', 'text-blue-400', 'text-emerald-400', 'border-b-2', 'border-blue-400', 'border-emerald-400');
+                    t.classList.add('text-gray-500');
+                });
+
+                // Activate clicked tab
+                e.target.classList.remove('text-gray-500');
+                if (target === 'touch') {
+                    e.target.classList.add('active', 'text-blue-400', 'border-b-2', 'border-blue-400');
+                    touchPanel.classList.remove('hidden');
+                    handPanel.classList.add('hidden');
+                } else {
+                    e.target.classList.add('active', 'text-emerald-400', 'border-b-2', 'border-emerald-400');
+                    handPanel.classList.remove('hidden');
+                    touchPanel.classList.add('hidden');
+                }
+            });
+        });
+
+        // 2. Load Values and Save on Change
+        const selects = document.querySelectorAll('.mapping-select');
+        selects.forEach(select => {
+            const keyId = select.dataset.key;
+            const type = select.dataset.type;
+            
+            // Ensure data structure exists safely
+            if (!this.appSettings.mappings) this.appSettings.mappings = {};
+            if (!this.appSettings.mappings[keyId]) this.appSettings.mappings[keyId] = { touch: 'none', handGesture: 'none', morse: '' };
+
+            // Populate the dropdown with the currently saved value
+            if (type === 'touch') {
+                select.value = this.appSettings.mappings[keyId].touch || 'none';
+            } else if (type === 'hand') {
+                select.value = this.appSettings.mappings[keyId].handGesture || 'none';
+            }
+
+            // Save new value directly to engine when changed
+            select.addEventListener('change', (e) => {
+                if (type === 'touch') {
+                    this.appSettings.mappings[keyId].touch = e.target.value;
+                } else if (type === 'hand') {
+                    // Hand gestures use integer IDs, so parse it
+                    this.appSettings.mappings[keyId].handGesture = e.target.value === 'none' ? 'none' : parseInt(e.target.value, 10);
+                }
+                this.callbacks.onSave(); // Trigger the save to localStorage
+            });
+        });
+    }
 
     populatePlaybackSpeedDropdown() {
         if (!this.dom.playbackSpeed) return;
@@ -862,7 +984,9 @@ populateMappingAccordions() {
         if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !this.appSettings.showWelcomeScreen;
         if (this.dom.showWelcome) this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
         if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.isHapticMorseEnabled;
-        
+            // Add this to your updateUIFromSettings or initialization method:
+    this.renderMappingUI();
+            
         // UPDATED: Matches the new dropdown generation logic (e.g. "1.00")
         if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = (this.appSettings.playbackSpeed || 1.0).toFixed(2);
         if (this.dom.voiceTriggerSelect) {

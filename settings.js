@@ -43,7 +43,9 @@ const HAND_GESTURES_LIST = [
     'hand_4_up', 'hand_4_down', 'hand_4_left', 'hand_4_right',
     'hand_5_up', 'hand_5_down', 'hand_5_left', 'hand_5_right'
 ];
-    
+    const TOUCH_GESTURES = [{value:'tap', label:'👆 Tap'}, {value:'swipe_up', label:'⬆️ Up'}, {value:'swipe_down', label:'⬇️ Down'}];
+const HAND_GESTURES = [{value:'105', label:'👌 OK Sign'}, {value:'104', label:'🤌 Chef Kiss'}, {value:'1', label:'✊ Fist'}];
+
 const GESTURE_PRESETS = {
     // ================= 9-KEY PROFILES =================
     '9_taps': {
@@ -400,6 +402,22 @@ export class SettingsManager {
             };
         }
     }
+populateMappingAccordions() {
+    const container = document.getElementById('mapping-accordion-container');
+    container.innerHTML = '';
+    ['k9_1', 'k9_2', 'k9_3'].forEach(key => {
+        container.innerHTML += `
+        <details class="group bg-gray-900 p-3 rounded border">
+            <summary class="font-bold cursor-pointer">Key ${key}</summary>
+            <div class="flex border-b mb-2">
+                <button class="tab-touch active p-2 text-xs" data-k="${key}">👆 Touch</button>
+                <button class="tab-hand p-2 text-xs" data-k="${key}">🖐️ Hand</button>
+            </div>
+            <select class="select-touch w-full p-2 bg-black">${TOUCH_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('')}</select>
+            <select class="select-hand hidden w-full p-2 bg-black">${HAND_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('')}</select>
+        </details>`;
+    });
+}
 
     populatePlaybackSpeedDropdown() {
         if (!this.dom.playbackSpeed) return;

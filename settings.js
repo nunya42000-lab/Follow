@@ -265,9 +265,11 @@ const LANG = {
 
 export class SettingsManager {
     constructor(appSettings, callbacks, sensorEngine) {
-        this.appSettings = appSettings; this.callbacks = callbacks; this.sensorEngine = sensorEngine; this.currentTargetKey = 'bubble';
-        
-        // Removed dynamic injections - UI is now hardcoded in index.html for cleaner layout
+        this.appSettings = appSettings;
+        this.callbacks = callbacks;
+        this.sensorEngine = sensorEngine;
+        this.currentTargetKey = 'bubble';
+
 
         // 2. Build the DOM cache
         this.dom = {
@@ -372,6 +374,14 @@ export class SettingsManager {
         this.populateMappingUI();
         this.populateMorseUI();
         
+        // ... [Your existing DOM caching code is here] ...
+
+    
+        this.updateUIFromSettings();
+        this.populateVoices();
+
+        // 🟢 ADD THIS LINE: Force the Mapping Tab to build and populate immediately
+        this.renderMappingUI(); 
         if(this.dom.gestureToggle){
             this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
             this.dom.gestureToggle.addEventListener('change', (e) => {

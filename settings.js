@@ -43,8 +43,34 @@ const HAND_GESTURES_LIST = [
     'hand_4_up', 'hand_4_down', 'hand_4_left', 'hand_4_right',
     'hand_5_up', 'hand_5_down', 'hand_5_left', 'hand_5_right'
 ];
-    const TOUCH_GESTURES = [{value:'tap', label:'👆 Tap'}, {value:'swipe_up', label:'⬆️ Up'}, {value:'swipe_down', label:'⬇️ Down'}];
-const HAND_GESTURES = [{value:'105', label:'👌 OK Sign'}, {value:'104', label:'🤌 Chef Kiss'}, {value:'1', label:'✊ Fist'}];
+    const TOUCH_GESTURES = [
+    { value: 'none', label: '🚫 Unassigned' },
+    { value: 'tap', label: '👆 Single Tap' },
+    { value: 'double_tap', label: '👆👆 Double Taps' }, // Named per your correction
+    { value: 'triple_tap', label: '👆👆👆 Triple Tap' },
+    { value: 'long_tap', label: '⏱️ Long Press' },
+    { value: 'swipe_up', label: '⬆️ Swipe Up' },
+    { value: 'swipe_down', label: '⬇️ Swipe Down' },
+    { value: 'swipe_left', label: '⬅️ Swipe Left' },
+    { value: 'swipe_right', label: '➡️ Swipe Right' }
+];
+
+const VISUAL_HAND_GESTURES = [
+    { value: 'none', label: '🚫 Unassigned' },
+    { value: '105', label: '👌 OK Sign (Pinch)' },
+    { value: '104', label: '🤌 Chef Kiss (All)' },
+    { value: '100', label: '🤏 Basic Pinch' },
+    { value: '16', label: '☝️ 1 Finger (Index)' },
+    { value: '24', label: '✌️ 2 Fingers (Peace)' },
+    { value: '28', label: '3️⃣ 3 Fingers' },
+    { value: '30', label: '4️⃣ 4 Fingers' },
+    { value: '62', label: '🖐️ 5 Fingers (Palm)' },
+    { value: '0', label: '✊ Fist' },
+    { value: '18', label: '🤘 Rock On' },
+    { value: '34', label: '🤙 Shaka' },
+    { value: '50', label: '🤟 Spider-Man / ILY' },
+    { value: '48', label: '🫵 Gun / L-Shape' }
+];
 
 const GESTURE_PRESETS = {
     // ================= 9-KEY PROFILES =================

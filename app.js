@@ -1018,12 +1018,15 @@ const startApp = () => {
 
 
   // 6. Voice Commander Setup
-  voiceModule = new VoiceCommander({
+    voiceModule = new VoiceCommander({
       onStatus: (msg) => showToast(msg),
       onInput: (val) => {
           addValue(val);
           const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
-          if(btn) { btn.classList.add('flash-active'); setTimeout(() => btn.classList.remove('flash-active'), 200); }
+          if(btn) { 
+              btn.classList.add('flash-active'); 
+              setTimeout(() => btn.classList.remove('flash-active'), 200); 
+          }
           
           const hMic = document.getElementById('header-mic-btn');
           if(hMic) {
@@ -1032,16 +1035,36 @@ const startApp = () => {
           }
       },
       onCommand: (cmd) => {
-          if(cmd === 'CMD_PLAY') playDemo();
-          if(cmd === 'CMD_STOP') { isDemoPlaying = false; showToast("Stopped"); }
-          if(cmd === 'CMD_CLEAR') { 
-              const s = getState(); s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); 
-              renderUI(); showToast("Cleared"); 
+          // NEW: Gatekeeper check for the General Tab "Voice Commands" checkbox
+          if (!appSettings.isVoiceCommandsEnabled) {
+              console.log("Action voice commands are disabled in settings. Ignoring:", cmd);
+              return; 
           }
-          if(cmd === 'CMD_DELETE') handleBackspace();
-          if(cmd === 'CMD_SETTINGS') modules.settings.openSettings();
+
+          if(cmd === 'CMD_PLAY') {
+              playDemo();
+              showToast("Voice: Playing ▶️");
+          }
+          if(cmd === 'CMD_STOP') { 
+              isDemoPlaying = false; 
+              showToast("Voice: Stopped 🛑"); 
+          }
+          if(cmd === 'CMD_CLEAR') { 
+              const s = getState(); 
+              s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); 
+              renderUI(); 
+              showToast("Voice: Cleared All 💥"); 
+          }
+          if(cmd === 'CMD_DELETE') {
+              handleBackspace();
+              showToast("Voice: Backspace 🔙");
+          }
+          if(cmd === 'CMD_SETTINGS') {
+              modules.settings.openSettings();
+          }
       }
   });
+
 
   // 7. Final Wiring & Startup
   updateAllChrome();

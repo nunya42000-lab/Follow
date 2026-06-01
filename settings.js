@@ -378,7 +378,7 @@ export class SettingsManager {
 
     
         this.updateUIFromSettings();
-        this.populateVoices();
+        
 
         // 🟢 ADD THIS LINE: Force the Mapping Tab to build and populate immediately
         this.renderMappingUI(); 

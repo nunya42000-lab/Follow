@@ -436,7 +436,7 @@ export class SettingsManager {
         bindToggle(this.dom.ecoModeToggle, 'isEcoModeEnabled', () => {
             document.body.classList.toggle('eco-mode', this.appSettings.isEcoModeEnabled);
         });
-    bindMappingEvents() {
+    bindMappingEvents() => {
         // 1. Master Tab Switching Logic (Touch vs. Hand)
         const btnTouch = document.getElementById('btn-map-touch');
         const btnHand = document.getElementById('btn-map-hand');

@@ -523,7 +523,7 @@ populateMappingAccordions() {
         // Attach event listeners for tabs and dropdown saves
         this.bindMappingEvents();
     }
-bindMappingEvents() => {
+bindMappingEvents() {
         // 1. Master Tab Switching Logic (Touch vs. Hand)
         const btnTouch = document.getElementById('btn-map-touch');
         const btnHand = document.getElementById('btn-map-hand');

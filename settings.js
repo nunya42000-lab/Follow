@@ -436,72 +436,7 @@ export class SettingsManager {
         bindToggle(this.dom.ecoModeToggle, 'isEcoModeEnabled', () => {
             document.body.classList.toggle('eco-mode', this.appSettings.isEcoModeEnabled);
         });
-    bindMappingEvents() => {
-        // 1. Master Tab Switching Logic (Touch vs. Hand)
-        const btnTouch = document.getElementById('btn-map-touch');
-        const btnHand = document.getElementById('btn-map-hand');
-        const secTouch = document.getElementById('section-map-touch');
-        const secHand = document.getElementById('section-map-hand');
-
-        if (btnTouch && btnHand) {
-            btnTouch.onclick = () => {
-                // Activate Touch Tab
-                btnTouch.classList.add('text-blue-400', 'border-b-2', 'border-blue-400');
-                btnTouch.classList.remove('text-gray-500');
-                // Deactivate Hand Tab
-                btnHand.classList.remove('text-emerald-400', 'border-b-2', 'border-emerald-400');
-                btnHand.classList.add('text-gray-500');
-                // Switch Content
-                secTouch.classList.remove('hidden');
-                secHand.classList.add('hidden');
-            };
-
-            btnHand.onclick = () => {
-                // Activate Hand Tab
-                btnHand.classList.add('text-emerald-400', 'border-b-2', 'border-emerald-400');
-                btnHand.classList.remove('text-gray-500');
-                // Deactivate Touch Tab
-                btnTouch.classList.remove('text-blue-400', 'border-b-2', 'border-blue-400');
-                btnTouch.classList.add('text-gray-500');
-                // Switch Content
-                secHand.classList.remove('hidden');
-                secTouch.classList.add('hidden');
-            };
-        }
-
-        // 2. Data Binding & Saving for ALL Layouts (9-Key, 12-Key, Piano)
-        document.querySelectorAll('.mapping-select').forEach(select => {
-            const keyId = select.dataset.key; // Grabs 'k9_1', 'k12_5', 'piano_C', etc.
-            const type = select.dataset.type; // Grabs 'touch' or 'hand'
-            
-            // A. Populate the drop-downs on load
-            if (this.appSettings.mappings && this.appSettings.mappings[keyId]) {
-                if (type === 'touch' && this.appSettings.mappings[keyId].touch) {
-                    select.value = this.appSettings.mappings[keyId].touch;
-                } else if (type === 'hand' && this.appSettings.mappings[keyId].handGesture !== undefined) {
-                    select.value = this.appSettings.mappings[keyId].handGesture;
-                }
-            }
-
-            // B. Toggle / Save settings instantly on change
-            select.onchange = (e) => {
-                // Ensure the safety net structure exists
-                if (!this.appSettings.mappings) this.appSettings.mappings = {};
-                if (!this.appSettings.mappings[keyId]) {
-                    this.appSettings.mappings[keyId] = { touch: 'none', handGesture: 'none', morse: '' };
-                }
-                
-                if (type === 'touch') {
-                    this.appSettings.mappings[keyId].touch = e.target.value;
-                } else {
-                    // Vision Engine requires integers for the gesture IDs (e.g., 105, 104)
-                    this.appSettings.mappings[keyId].handGesture = e.target.value === 'none' ? 'none' : parseInt(e.target.value, 10);
-                }
-                
-                this.callbacks.onSave(); // Push changes to LocalStorage/memory immediately
-            };
-        });
-    }
+    
 
         
         // --- NEW: Bind AR Speed Select ---
@@ -588,7 +523,72 @@ populateMappingAccordions() {
         // Attach event listeners for tabs and dropdown saves
         this.bindMappingEvents();
     }
+bindMappingEvents() => {
+        // 1. Master Tab Switching Logic (Touch vs. Hand)
+        const btnTouch = document.getElementById('btn-map-touch');
+        const btnHand = document.getElementById('btn-map-hand');
+        const secTouch = document.getElementById('section-map-touch');
+        const secHand = document.getElementById('section-map-hand');
 
+        if (btnTouch && btnHand) {
+            btnTouch.onclick = () => {
+                // Activate Touch Tab
+                btnTouch.classList.add('text-blue-400', 'border-b-2', 'border-blue-400');
+                btnTouch.classList.remove('text-gray-500');
+                // Deactivate Hand Tab
+                btnHand.classList.remove('text-emerald-400', 'border-b-2', 'border-emerald-400');
+                btnHand.classList.add('text-gray-500');
+                // Switch Content
+                secTouch.classList.remove('hidden');
+                secHand.classList.add('hidden');
+            };
+
+            btnHand.onclick = () => {
+                // Activate Hand Tab
+                btnHand.classList.add('text-emerald-400', 'border-b-2', 'border-emerald-400');
+                btnHand.classList.remove('text-gray-500');
+                // Deactivate Touch Tab
+                btnTouch.classList.remove('text-blue-400', 'border-b-2', 'border-blue-400');
+                btnTouch.classList.add('text-gray-500');
+                // Switch Content
+                secHand.classList.remove('hidden');
+                secTouch.classList.add('hidden');
+            };
+        }
+
+        // 2. Data Binding & Saving for ALL Layouts (9-Key, 12-Key, Piano)
+        document.querySelectorAll('.mapping-select').forEach(select => {
+            const keyId = select.dataset.key; // Grabs 'k9_1', 'k12_5', 'piano_C', etc.
+            const type = select.dataset.type; // Grabs 'touch' or 'hand'
+            
+            // A. Populate the drop-downs on load
+            if (this.appSettings.mappings && this.appSettings.mappings[keyId]) {
+                if (type === 'touch' && this.appSettings.mappings[keyId].touch) {
+                    select.value = this.appSettings.mappings[keyId].touch;
+                } else if (type === 'hand' && this.appSettings.mappings[keyId].handGesture !== undefined) {
+                    select.value = this.appSettings.mappings[keyId].handGesture;
+                }
+            }
+
+            // B. Toggle / Save settings instantly on change
+            select.onchange = (e) => {
+                // Ensure the safety net structure exists
+                if (!this.appSettings.mappings) this.appSettings.mappings = {};
+                if (!this.appSettings.mappings[keyId]) {
+                    this.appSettings.mappings[keyId] = { touch: 'none', handGesture: 'none', morse: '' };
+                }
+                
+                if (type === 'touch') {
+                    this.appSettings.mappings[keyId].touch = e.target.value;
+                } else {
+                    // Vision Engine requires integers for the gesture IDs (e.g., 105, 104)
+                    this.appSettings.mappings[keyId].handGesture = e.target.value === 'none' ? 'none' : parseInt(e.target.value, 10);
+                }
+                
+                this.callbacks.onSave(); // Push changes to LocalStorage/memory immediately
+            };
+        });
+    }
     bindMappingEvents() {
         // 1. Tab Switching Logic
         document.querySelectorAll('.mapping-subtab-btn').forEach(tab => {

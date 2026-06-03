@@ -1312,27 +1312,15 @@ if (this.dom.toneHeaderBtn) {
     
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
     
-    populateMappingUI() {
+      populateMappingUI() {
         if (!this.dom) return;
         if (!this.appSettings) return;
         
         if (!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
             this.applyDefaultGestureMappings();
         }
-
         
         if (!this.appSettings.gestureProfiles) this.appSettings.gestureProfiles = {};
-// Replace the hardcoded activeHandGroup logic with this:
-const activeHandGroups = [];
-this.dom.filterToggles.forEach(toggle => {
-    if (toggle.checked) {
-        const groupName = toggle.dataset.group;
-        const foundGroup = HAND_GROUPS.find(g => g.name === groupName);
-        if (foundGroup) activeHandGroups.push(...foundGroup.items);
-    }
-});
-
-// Now use 'activeHandGroups' instead of 'activeHandGroup.items' when building your <option> tags
 
         // 1. REBUILD SENSITIVITY CONTROLS
         const tabRoot = document.getElementById('tab-mapping');
@@ -1343,7 +1331,7 @@ this.dom.filterToggles.forEach(toggle => {
             tabRoot.innerHTML = `
                 <div class="p-3 mb-4 rounded-lg border border-custom bg-black bg-opacity-30">
                     <h4 class="font-bold text-sm mb-3 text-primary-app">Gesture Sensitivity 🎛️</h4>
-                    <div class="mb-4">
+  <div class="mb-4">
                         <div class="flex justify-between mb-1">
                             <label class="text-xs font-bold">Tap Speed (ms)</label>
                             <span id="gesture-tap-val" class="text-xs font-mono">${this.appSettings.gestureTapDelay || 300}ms</span>

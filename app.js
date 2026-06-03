@@ -788,6 +788,125 @@ const schedule = (fn, delay) => {
 }
 nextChunk();
 }
+class ToneEngine {
+    constructor(onInputCallback) {
+        this.onInput = onInputCallback;
+        this.audioCtx = null;
+        this.analyser = null;
+        this.micSrc = null;
+        this.isActive = false;
+        this.loopId = null;
+        
+        // Frequencies for standard 1-9 (and up to 12)
+        this.TONES = [
+            { n: 1, f: 261 }, { n: 2, f: 293 }, { n: 3, f: 329 }, 
+            { n: 4, f: 349 }, { n: 5, f: 392 }, { n: 6, f: 440 }, 
+            { n: 7, f: 493 }, { n: 8, f: 523 }, { n: 9, f: 587 },
+            { n: 10, f: 659}, { n: 11, f: 698}, { n: 12, f: 784} 
+        ];
+        
+        this.audioThresh = -70; // Adjust decibel threshold if needed
+        this.currentTone = null;
+        this.toneStartTime = 0;
+        this.lastToneEndTime = 0;
+    }
+
+    async start() {
+        if (this.isActive) return;
+        try {
+            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            this.analyser = this.audioCtx.createAnalyser();
+            this.analyser.fftSize = 8192;
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.micSrc = this.audioCtx.createMediaStreamSource(stream);
+            this.micSrc.connect(this.analyser);
+            
+            this.isActive = true;
+            this.lastToneEndTime = 0; // Reset timing on start
+            this.loop();
+            console.log("🎵 Tone Cadence Engine: LISTENING");
+        } catch (e) {
+            console.error("Tone Engine failed to get microphone access:", e);
+        }
+    }
+
+    stop() {
+        this.isActive = false;
+        if (this.loopId) cancelAnimationFrame(this.loopId);
+        if (this.audioCtx && this.audioCtx.state === 'running') {
+            this.audioCtx.suspend();
+        }
+        if (this.micSrc) {
+            this.micSrc.mediaStream.getTracks().forEach(t => t.stop());
+            this.micSrc.disconnect();
+        }
+        this.currentTone = null;
+        console.log("🛑 Tone Cadence Engine: STOPPED");
+    }
+
+    loop() {
+        if (!this.isActive) return;
+        
+        const buffer = new Float32Array(this.analyser.frequencyBinCount);
+        this.analyser.getFloatFrequencyData(buffer);
+        
+        let maxVal = -Infinity;
+        let maxIdx = -1;
+        const hzPerBin = this.audioCtx.sampleRate / 2 / buffer.length;
+        
+        // Scan frequencies between roughly 200Hz and 900Hz
+        const startBin = Math.floor(200 / hzPerBin);
+        const endBin = Math.floor(900 / hzPerBin);
+        
+        for (let i = startBin; i < endBin; i++) {
+            if (buffer[i] > maxVal) {
+                maxVal = buffer[i];
+                maxIdx = i;
+            }
+        }
+        
+        const now = Date.now();
+        
+        if (maxVal > this.audioThresh) {
+            const freq = maxIdx * hzPerBin;
+            // Find a matching frequency (within a 4% tolerance)
+            const match = this.TONES.find(t => Math.abs(t.f - freq) < (t.f * 0.04));
+            
+            if (match) {
+                if (!this.currentTone) {
+                    this.currentTone = match.n;
+                    this.toneStartTime = now;
+                } else if (this.currentTone !== match.n) {
+                    this.currentTone = match.n;
+                    this.toneStartTime = now;
+                }
+            }
+        } else {
+            // Volume dropped below threshold (Silence)
+            if (this.currentTone) {
+                const toneDuration = now - this.toneStartTime;
+                const silenceDuration = this.toneStartTime - this.lastToneEndTime;
+                
+                // STRICT TIMING CHECKS
+                // Note must be around 0.2s (allowing 100ms - 350ms for hardware variation)
+                const isToneValid = toneDuration >= 100 && toneDuration <= 350;
+                
+                // Silence must be around 0.8s (allowing 600ms - 1100ms) OR it is the very first note
+                const isSilenceValid = this.lastToneEndTime === 0 || (silenceDuration >= 600 && silenceDuration <= 1100);
+
+                if (isToneValid && isSilenceValid) {
+                    // Cadence matched perfectly, inject the input!
+                    this.onInput(this.currentTone);
+                }
+                
+                this.lastToneEndTime = now;
+                this.currentTone = null;
+            }
+        }
+        
+        this.loopId = requestAnimationFrame(() => this.loop());
+    }
+}
 
 class VoiceCommander {
   constructor(callbacks) {
@@ -970,6 +1089,11 @@ const startApp = () => {
           }
       }
   );
+// This directly pipes the detected cadence tones into your existing input logic
+const toneEngine = new ToneEngine((val) => {
+    addValue(val); // Injects the number exactly as if a button was tapped
+    showToast(`🎵 Tone Detected: ${val}`);
+});
 
   // 5. Initialize Vision Engine
   let gestureHistory = [];

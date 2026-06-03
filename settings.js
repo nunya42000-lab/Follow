@@ -276,6 +276,23 @@ export class SettingsManager {
             editorModal: document.getElementById('theme-editor-modal'), editorGrid: document.getElementById('color-grid'), ftContainer: document.getElementById('fine-tune-container'), ftToggle: document.getElementById('toggle-fine-tune'), ftPreview: document.getElementById('fine-tune-preview'), ftHue: document.getElementById('ft-hue'), ftSat: document.getElementById('ft-sat'), ftLit: document.getElementById('ft-lit'),
             targetBtns: document.querySelectorAll('.target-btn'), edName: document.getElementById('theme-name-input'), edPreview: document.getElementById('theme-preview-box'), edPreviewBtn: document.getElementById('preview-btn'), edPreviewCard: document.getElementById('preview-card'), edSave: document.getElementById('save-theme-btn'), edCancel: document.getElementById('cancel-theme-btn'),
             openEditorBtn: document.getElementById('open-theme-editor'),
+toneCadenceToggle: document.getElementById('tone-cadence-toggle'),
+toneHeaderBtn: document.getElementById('tone-header-btn'),
+// Add the actual header buttons to the DOM cache
+headerFullscreenBtn: document.getElementById('fullscreen-btn'), // Check your HTML for the exact ID of the header button
+headerUpsideDownBtn: document.getElementById('upsidedown-btn'), // Check your HTML for the exact ID of the header button
+// Add to your constructor's dom cache
+this.dom.filterToggles = document.querySelectorAll('.gesture-filter-toggle');
+
+// Add this function to SettingsManager
+bindGestureFilters() {
+    this.dom.filterToggles.forEach(toggle => {
+        toggle.addEventListener('change', () => {
+            // Re-run the mapping population engine whenever a box is toggled
+            this.populateMappingUI();
+        });
+    });
+}
 
             // Voice Preset DOM
             voicePresetSelect: document.getElementById('voice-preset-select'),
@@ -806,6 +823,80 @@ bindMappingEvents() {
         if (this.dom.voicePitch) this.dom.voicePitch.oninput = updateVoiceLive;
         if (this.dom.voiceRate) this.dom.voiceRate.oninput = updateVoiceLive;
         if (this.dom.voiceVolume) this.dom.voiceVolume.oninput = updateVoiceLive;
+// 1. Settings Menu Toggle
+if (this.dom.toneCadenceToggle) {
+    this.dom.toneCadenceToggle.checked = !!this.appSettings.isToneCadenceEnabled;
+    this.dom.toneCadenceToggle.addEventListener('change', (e) => {
+        this.appSettings.isToneCadenceEnabled = e.target.checked;
+        this.callbacks.onSave();
+        this.updateHeaderVisibility(); // Triggers the header button to show/hide
+    });
+}
+if (this.dom.fullScreenToggle) {
+    // SET INITIAL STATE
+    this.dom.fullScreenToggle.checked = !!this.appSettings.showFullscreenBtn;
+    
+    this.dom.fullScreenToggle.onchange = (e) => {
+        this.appSettings.showFullscreenBtn = e.target.checked;
+        this.updateHeaderVisibility();
+        this.callbacks.onSave();
+    };
+}
+
+if (this.dom.upsideDownToggle) {
+    // SET INITIAL STATE
+    this.dom.upsideDownToggle.checked = !!this.appSettings.showUpsideDownBtn;
+    
+    this.dom.upsideDownToggle.onchange = (e) => {
+        this.appSettings.showUpsideDownBtn = e.target.checked;
+        this.updateHeaderVisibility();
+        this.callbacks.onSave();
+    };
+}
+if (this.dom.fullScreenToggle) {
+    // SET INITIAL STATE
+    this.dom.fullScreenToggle.checked = !!this.appSettings.showFullscreenBtn;
+    
+    this.dom.fullScreenToggle.onchange = (e) => {
+        this.appSettings.showFullscreenBtn = e.target.checked;
+        this.updateHeaderVisibility();
+        this.callbacks.onSave();
+    };
+}
+
+if (this.dom.upsideDownToggle) {
+    // SET INITIAL STATE
+    this.dom.upsideDownToggle.checked = !!this.appSettings.showUpsideDownBtn;
+    
+    this.dom.upsideDownToggle.onchange = (e) => {
+        this.appSettings.showUpsideDownBtn = e.target.checked;
+        this.updateHeaderVisibility();
+        this.callbacks.onSave();
+    };
+}
+
+// 2. Header Button Activation
+if (this.dom.toneHeaderBtn) {
+    this.dom.toneHeaderBtn.addEventListener('click', () => {
+        const isActive = this.dom.toneHeaderBtn.classList.contains('bg-indigo-600');
+        
+        if (isActive) {
+            // Turn off
+            this.dom.toneHeaderBtn.classList.remove('bg-indigo-600', 'text-white');
+            this.dom.toneHeaderBtn.classList.add('bg-indigo-900/40', 'text-indigo-300');
+            this.dom.toneHeaderBtn.textContent = '🎵 Tones Off';
+            toneEngine.stop();
+            showToast("Tone Listening Disabled");
+        } else {
+            // Turn on
+            this.dom.toneHeaderBtn.classList.add('bg-indigo-600', 'text-white');
+            this.dom.toneHeaderBtn.classList.remove('bg-indigo-900/40', 'text-indigo-300');
+            this.dom.toneHeaderBtn.textContent = '🎵 Tones ON';
+            toneEngine.start();
+            showToast("Listening for Tones...");
+        }
+    });
+}
 
         // Voice Preset Management
         if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.onchange = (e) => { this.appSettings.activeVoicePresetId = e.target.value; this.applyVoicePreset(e.target.value); };
@@ -1149,7 +1240,28 @@ bindMappingEvents() {
     }
 
     // NEW METHOD: Manages the Auto-Hiding Header Bar
-    updateHeaderVisibility() {
+updateHeaderVisibility() {
+    // ... (your existing visibility logic for gesture/boss mode) ...
+
+    // Unhide Fullscreen Header Button if enabled
+    if (this.dom.headerFullscreenBtn) {
+        if (this.appSettings.showFullscreenBtn) {
+            this.dom.headerFullscreenBtn.classList.remove('hidden');
+        } else {
+            this.dom.headerFullscreenBtn.classList.add('hidden');
+        }
+    }
+
+    // Unhide Upside Down Header Button if enabled
+    if (this.dom.headerUpsideDownBtn) {
+        if (this.appSettings.showUpsideDownBtn) {
+            this.dom.headerUpsideDownBtn.classList.remove('hidden');
+        } else {
+            this.dom.headerUpsideDownBtn.classList.add('hidden');
+        }
+    }
+}
+
         const header = document.getElementById('aux-control-header');
         const timerBtn = document.getElementById('header-timer-btn');
         const counterBtn = document.getElementById('header-counter-btn');
@@ -1181,6 +1293,9 @@ bindMappingEvents() {
         if(stealthBtn) stealthBtn.classList.toggle('hidden', !showStealth);
         // Toggle new Hand Button
         if(handBtn) handBtn.classList.toggle('hidden', !showHand);
+if (this.dom.toneHeaderBtn) {
+    this.dom.toneHeaderBtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
+}
 
         // Check if header should be hidden entirely
         if (!showTimer && !showCounter && !showMic && !showCam && !showGesture && !showStealth && !showHand) {
@@ -1202,6 +1317,17 @@ bindMappingEvents() {
         }
         
         if (!this.appSettings.gestureProfiles) this.appSettings.gestureProfiles = {};
+// Replace the hardcoded activeHandGroup logic with this:
+const activeHandGroups = [];
+this.dom.filterToggles.forEach(toggle => {
+    if (toggle.checked) {
+        const groupName = toggle.dataset.group;
+        const foundGroup = HAND_GROUPS.find(g => g.name === groupName);
+        if (foundGroup) activeHandGroups.push(...foundGroup.items);
+    }
+});
+
+// Now use 'activeHandGroups' instead of 'activeHandGroup.items' when building your <option> tags
 
         // 1. REBUILD SENSITIVITY CONTROLS
         const tabRoot = document.getElementById('tab-mapping');

@@ -264,35 +264,39 @@ const LANG = {
 };
 
 export class SettingsManager {
+    
+    // FIXED: Class methods must go outside the constructor!
+    bindGestureFilters() {
+        if (!this.dom.filterToggles) return;
+        this.dom.filterToggles.forEach(toggle => {
+            toggle.addEventListener('change', () => {
+                // Re-run the mapping population engine whenever a box is toggled
+                this.populateMappingUI();
+            });
+        });
+    }
+
     constructor(appSettings, callbacks, sensorEngine) {
         this.appSettings = appSettings;
         this.callbacks = callbacks;
         this.sensorEngine = sensorEngine;
         this.currentTargetKey = 'bubble';
 
-
         // 2. Build the DOM cache
         this.dom = {
             editorModal: document.getElementById('theme-editor-modal'), editorGrid: document.getElementById('color-grid'), ftContainer: document.getElementById('fine-tune-container'), ftToggle: document.getElementById('toggle-fine-tune'), ftPreview: document.getElementById('fine-tune-preview'), ftHue: document.getElementById('ft-hue'), ftSat: document.getElementById('ft-sat'), ftLit: document.getElementById('ft-lit'),
             targetBtns: document.querySelectorAll('.target-btn'), edName: document.getElementById('theme-name-input'), edPreview: document.getElementById('theme-preview-box'), edPreviewBtn: document.getElementById('preview-btn'), edPreviewCard: document.getElementById('preview-card'), edSave: document.getElementById('save-theme-btn'), edCancel: document.getElementById('cancel-theme-btn'),
             openEditorBtn: document.getElementById('open-theme-editor'),
-toneCadenceToggle: document.getElementById('tone-cadence-toggle'),
-toneHeaderBtn: document.getElementById('tone-header-btn'),
-// Add the actual header buttons to the DOM cache
-headerFullscreenBtn: document.getElementById('fullscreen-btn'), // Check your HTML for the exact ID of the header button
-headerUpsideDownBtn: document.getElementById('upsidedown-btn'), // Check your HTML for the exact ID of the header button
-// Add to your constructor's dom cache
-this.dom.filterToggles = document.querySelectorAll('.gesture-filter-toggle');
+            
+            // FIXED: These are now properly formatted as comma-separated object properties
+            filterToggles: document.querySelectorAll('.gesture-filter-toggle'),
+            toneCadenceToggle: document.getElementById('tone-cadence-toggle'),
+            toneHeaderBtn: document.getElementById('tone-header-btn'),
+            headerFullscreenBtn: document.getElementById('fullscreen-btn'), 
+            headerUpsideDownBtn: document.getElementById('upsidedown-btn'),
 
-// Add this function to SettingsManager
-bindGestureFilters() {
-    this.dom.filterToggles.forEach(toggle => {
-        toggle.addEventListener('change', () => {
-            // Re-run the mapping population engine whenever a box is toggled
-            this.populateMappingUI();
-        });
-    });
-}
+            // Voice Preset DOM
+
 
             // Voice Preset DOM
             voicePresetSelect: document.getElementById('voice-preset-select'),
@@ -382,6 +386,7 @@ bindGestureFilters() {
         
         this.tempTheme = null; 
         this.initListeners(); 
+        this.bindGestureFilters();
         this.populateConfigDropdown(); 
         this.populateThemeDropdown(); 
         this.buildColorGrid(); 

@@ -129,8 +129,8 @@ const DEFAULT_MAPPINGS = {
 };    
 
 const DICTIONARY = {
-  'en': { correct: "Correct", wrong: "Wrong", stealth: "Larger inpute Active", reset: "Reset to Round 1", stop: "Playback Stopped 🛑" },
-  'es': { correct: "Correcto", wrong: "Incorrecto", stealth: "Modo Sigilo", reset: "Reiniciar Ronda 1", stop: "Detenido 🛑" }
+  'en': { correct: "Correct", wrong: "Wrong", stealth: "Bigger Buttons Active", reset: "Reset to Round 1", stop: "Playback Stopped 🛑" },
+  'es': { correct: "Correcto", wrong: "Incorrecto", stealth: "Botones Más Grandes", reset: "Reiniciar Ronda 1", stop: "Detenido 🛑" }
 };
 
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
@@ -250,8 +250,7 @@ function speak(text) {
   let msg = text;
   if(text === "Correct") msg = dict.correct;
   if(text === "Wrong") msg = dict.wrong;
-  if(text === "Larger inpute Active") msg = dict.stealth;
-  const u = new SpeechSynthesisUtterance(msg); 
+  if(text === "Bigger Buttons Active") msg = dict.stealth;  const u = new SpeechSynthesisUtterance(msg); 
   if(lang === 'es') u.lang = 'es-MX'; else u.lang = 'en-US';
   if(appSettings.selectedVoice){
       const voices = window.speechSynthesis.getVoices();
@@ -269,10 +268,9 @@ function speak(text) {
 function showToast(msg) { 
   const lang = appSettings.generalLanguage || 'en';
   const dict = DICTIONARY[lang] || DICTIONARY['en'];
-  if(msg === "Reset to Round 1") msg = dict.reset;
+if(msg === "Reset to Round 1") msg = dict.reset;
   if(msg === "Playback Stopped 🛑") msg = dict.stop;
-  if(msg === "Larger inpute Active") msg = dict.stealth;
-  const t = document.getElementById('toast-notification'); 
+  if(msg === "Bigger Buttons Active") msg = dict.stealth;  const t = document.getElementById('toast-notification'); 
   const m = document.getElementById('toast-message'); 
   if(!t || !m) return; 
   m.textContent = msg; 
@@ -1622,11 +1620,17 @@ function initGlobalListeners() {
       document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => {
           b.addEventListener('click', () => { if(confirm("Reset Round Counter to 1?")) { const s = getState(); s.currentRound = 1; s.sequences[0] = []; s.nextSequenceIndex = 0; renderUI(); saveState(); showToast("Reset to Round 1"); } });
       });
-      document.querySelectorAll('button[data-action="open-settings"]').forEach(b => {
-          b.addEventListener('click', () => { if(isDemoPlaying) { isDemoPlaying = false; const pb = document.querySelector('button[data-action="play-demo"]'); if(pb) pb.textContent = "▶"; showToast("Playback Stopped 🛑"); return; } modules.settings.openSettings(); });
-          const start = () => { timers.settingsLongPress = setTimeout(() => { modules.settings.toggleRedeem(true); ignoreNextClick = true; setTimeout(() => ignoreNextClick = false, 500); }, 1000); };
-          const end = () => clearTimeout(timers.settingsLongPress);
-          b.addEventListener('touchstart', start, {passive:true}); b.addEventListener('touchend', end); b.addEventListener('mousedown', start); b.addEventListener('mouseup', end);
+            document.querySelectorAll('button[data-action="open-settings"]').forEach(b => {
+          b.addEventListener('click', () => { 
+              if(isDemoPlaying) { 
+                  isDemoPlaying = false; 
+                  const pb = document.querySelector('button[data-action="play-demo"]'); 
+                  if(pb) pb.textContent = "▶"; 
+                  showToast("Playback Stopped 🛑"); 
+                  return; 
+              } 
+              modules.settings.openSettings(); 
+          });
       });
 
       document.querySelectorAll('button[data-action="backspace"]').forEach(b => {
@@ -1721,18 +1725,19 @@ function initGlobalListeners() {
           };
       }
       
-      const headerStealth = document.getElementById('header-stealth-btn');
+            const headerStealth = document.getElementById('header-stealth-btn');
       if(headerStealth) {
         headerStealth.onclick = () => {
             document.body.classList.toggle('hide-controls');
             const isActive = document.body.classList.contains('hide-controls');
             headerStealth.classList.toggle('header-btn-active', isActive);
-            showToast(isActive ? "Larger inpute Active" : "Controls Visible");
+            showToast(isActive ? "Bigger Buttons Active" : "Controls Visible");
             
             // Force layout recalculation for the new huge buttons
             setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
         };
       }
+
       
       if(headerTimer) {
           headerTimer.textContent = "00:00"; 

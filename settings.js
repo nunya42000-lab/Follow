@@ -286,8 +286,9 @@ toneHeaderBtn: document.getElementById('tone-header-btn'),
 headerFullscreenBtn: document.getElementById('fullscreen-btn'), // Check your HTML for the exact ID of the header button
 headerUpsideDownBtn: document.getElementById('upsidedown-btn'), // Check your HTML for the exact ID of the header button
 // Add to your constructor's dom cache
-this.dom.filterToggles = document.querySelectorAll('.gesture-filter-toggle');
 
+
+this.dom.filterToggles = document.querySelectorAll('.gesture-filter-toggle');
 // Add this function to SettingsManager
 bindGestureFilters() {
     this.dom.filterToggles.forEach(toggle => {

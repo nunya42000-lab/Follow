@@ -1,6 +1,6 @@
 // gesture_groups.js
 
-export const GESTURE_GROUPS = [
+export const HAND_GESTURE_GROUPS = [
     {
         id: "hand_poses",
         name: "Hand Static Poses",
@@ -56,11 +56,12 @@ export const GESTURE_GROUPS = [
             { id: "302", name: "👈 Swipe Left" },
             { id: "303", name: "👉 Swipe Right" }
         ]
-    },
+  ]  },
+     export const TOUCH_GESTURE_GROUPS = [
     {
         id: "taps_1f",
         name: "1 Finger Regular Taps",
-        enabled: true,
+        enbled: true,
         gestures: [
             { id: "tap", name: "tap" },
             { id: "double_tap", name: "double tap" },

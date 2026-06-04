@@ -406,28 +406,23 @@ filterToggles: document.querySelectorAll('.gesture-filter-toggle'),
             });
         }
 
-        // --- NEW: Bind General Setting Toggles ---
-        const bindToggle = (toggleElement, settingKey, applyCallback) => {
-            if (toggleElement) {
-                // Default Wake Lock to true, others to false
-                let defaultState = settingKey === 'isWakeLockEnabled' ? true : false;
-                toggleElement.checked = this.appSettings[settingKey] ?? defaultState;
-                
-                toggleElement.onchange = (e) => {
-                    this.appSettings[settingKey] = e.target.checked;
-                    this.callbacks.onSave();
-                    if (applyCallback) applyCallback();
-                };
-            }
-        };
 
-        
-        bindToggle(this.dom.wakeLockToggle, 'isWakeLockEnabled', () => {
-            if (typeof window.toggleWakeLock === 'function') {
-                window.toggleWakeLock(this.appSettings.isWakeLockEnabled);
-            }
-        });
-
+populateMappingAccordions() {
+    const container = document.getElementById('mapping-accordion-container');
+    container.innerHTML = '';
+    ['k9_1', 'k9_2', 'k9_3'].forEach(key => {
+        container.innerHTML += `
+        <details class="group bg-gray-900 p-3 rounded border">
+            <summary class="font-bold cursor-pointer">Key ${key}</summary>
+            <div class="flex border-b mb-2">
+                <button class="tab-touch active p-2 text-xs" data-k="${key}">👆 Touch</button>
+                <button class="tab-hand p-2 text-xs" data-k="${key}">🖐️ Hand</button>
+            </div>
+            <select class="select-touch w-full p-2 bg-black">${TOUCH_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('')}</select>
+            <select class="select-hand hidden w-full p-2 bg-black">${HAND_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('')}</select>
+        </details>`;
+    });
+}
 
 renderMappingUI() {
     const container = document.getElementById('mapping-accordion-container');
@@ -573,23 +568,28 @@ renderMappingUI() {
 
         // Attach event listeners for tabs and dropdown saves
         
-populateMappingAccordions() {
-    const container = document.getElementById('mapping-accordion-container');
-    container.innerHTML = '';
-    ['k9_1', 'k9_2', 'k9_3'].forEach(key => {
-        container.innerHTML += `
-        <details class="group bg-gray-900 p-3 rounded border">
-            <summary class="font-bold cursor-pointer">Key ${key}</summary>
-            <div class="flex border-b mb-2">
-                <button class="tab-touch active p-2 text-xs" data-k="${key}">👆 Touch</button>
-                <button class="tab-hand p-2 text-xs" data-k="${key}">🖐️ Hand</button>
-            </div>
-            <select class="select-touch w-full p-2 bg-black">${TOUCH_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('')}</select>
-            <select class="select-hand hidden w-full p-2 bg-black">${HAND_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('')}</select>
-        </details>`;
-    });
-}
+
+    // --- NEW: Bind General Setting Toggles ---
+    const bindToggle = (toggleElement, settingKey, applyCallback) => {
+        if (toggleElement) {
+            // Default Wake Lock to true, others to false
+            let defaultState = settingKey === 'isWakeLockEnabled' ? true : false;
+            toggleElement.checked = this.appSettings[settingKey] ?? defaultState;
+            
+            toggleElement.onchange = (e) => {
+                this.appSettings[settingKey] = e.target.checked;
+                this.callbacks.onSave();
+                if (applyCallback) applyCallback();
+            };
+        }
+    };
     
+    
+bindToggle(this.dom.wakeLockToggle, 'isWakeLockEnabled', () => {
+    if (typeof window.toggleWakeLock === 'function') {
+        window.toggleWakeLock(this.appSettings.isWakeLockEnabled);
+    }
+});
     bindMappingEvents() {
         // 1. Tab Switching Logic
         document.querySelectorAll('.mapping-subtab-btn').forEach(tab => {
@@ -817,23 +817,7 @@ if (this.dom.toneCadenceToggle) {
         this.updateHeaderVisibility(); // Triggers the header button to show/hide
     });
 }
-         /* INSIDE settings.js -> initListeners() */
-if (this.dom.fullscreenToggle) {
-    this.dom.fullscreenToggle.onchange = (e) => {
-        // ONLY save the visibility preference
-        this.appSettings.showFullscreenBtn = e.target.checked;
-        this.updateHeaderVisibility();
-        this.callbacks.onSave();
-    };
-}
-if (this.dom.upsidedownToggle) {
-    this.dom.upsidedownToggle.onchange = (e) => {
-        // ONLY save the visibility preference
-        this.appSettings.showUpsideDownBtn = e.target.checked;
-        this.updateHeaderVisibility();
-        this.callbacks.onSave();
-    };
-}
+
 
 
         if (this.dom.upsidedownToggle) {
@@ -861,17 +845,7 @@ if (this.dom.upsidedownToggle) {
             };
         }
     }
- 
-if (this.dom.fullScreenToggle) {
-    // SET INITIAL STATE
-    this.dom.fullScreenToggle.checked = !!this.appSettings.showFullscreenBtn;
-    
-    this.dom.fullScreenToggle.onchange = (e) => {
-        this.appSettings.showFullscreenBtn = e.target.checked;
-        this.updateHeaderVisibility();
-        this.callbacks.onSave();
-    };
-}
+
 
 if (this.dom.upsideDownToggle) {
     // SET INITIAL STATE
@@ -1922,4 +1896,4 @@ const GESTURE_CATEGORIES = {
 
         this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
     }
-}
+}}

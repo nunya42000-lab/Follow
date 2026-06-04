@@ -1,4 +1,8 @@
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+import { HAND_GESTURE_GROUPS, TOUCH_GESTURE_GROUPS } from './gesture_groups.js';
+
+// ... Inside your SettingsManager class, update the mapping render routine:
+
 
 export const PREMADE_THEMES = {
     'default': { name: "Default Dark", bgMain: "#000000", bgCard: "#121212", bubble: "#4f46e5", btn: "#1a1a1a", text: "#e5e5e5" },
@@ -264,39 +268,35 @@ const LANG = {
 };
 
 export class SettingsManager {
-    
-    // FIXED: Class methods must go outside the constructor!
-    bindGestureFilters() {
-        if (!this.dom.filterToggles) return;
-        this.dom.filterToggles.forEach(toggle => {
-            toggle.addEventListener('change', () => {
-                // Re-run the mapping population engine whenever a box is toggled
-                this.populateMappingUI();
-            });
-        });
-    }
-
     constructor(appSettings, callbacks, sensorEngine) {
         this.appSettings = appSettings;
         this.callbacks = callbacks;
         this.sensorEngine = sensorEngine;
         this.currentTargetKey = 'bubble';
 
+
         // 2. Build the DOM cache
         this.dom = {
             editorModal: document.getElementById('theme-editor-modal'), editorGrid: document.getElementById('color-grid'), ftContainer: document.getElementById('fine-tune-container'), ftToggle: document.getElementById('toggle-fine-tune'), ftPreview: document.getElementById('fine-tune-preview'), ftHue: document.getElementById('ft-hue'), ftSat: document.getElementById('ft-sat'), ftLit: document.getElementById('ft-lit'),
             targetBtns: document.querySelectorAll('.target-btn'), edName: document.getElementById('theme-name-input'), edPreview: document.getElementById('theme-preview-box'), edPreviewBtn: document.getElementById('preview-btn'), edPreviewCard: document.getElementById('preview-card'), edSave: document.getElementById('save-theme-btn'), edCancel: document.getElementById('cancel-theme-btn'),
             openEditorBtn: document.getElementById('open-theme-editor'),
-            
-            // FIXED: These are now properly formatted as comma-separated object properties
-            filterToggles: document.querySelectorAll('.gesture-filter-toggle'),
-            toneCadenceToggle: document.getElementById('tone-cadence-toggle'),
-            toneHeaderBtn: document.getElementById('tone-header-btn'),
-            headerFullscreenBtn: document.getElementById('fullscreen-btn'), 
-            headerUpsideDownBtn: document.getElementById('upsidedown-btn'),
+toneCadenceToggle: document.getElementById('tone-cadence-toggle'),
+toneHeaderBtn: document.getElementById('tone-header-btn'),
+// Add the actual header buttons to the DOM cache
+headerFullscreenBtn: document.getElementById('fullscreen-btn'), // Check your HTML for the exact ID of the header button
+headerUpsideDownBtn: document.getElementById('upsidedown-btn'), // Check your HTML for the exact ID of the header button
+// Add to your constructor's dom cache
+this.dom.filterToggles = document.querySelectorAll('.gesture-filter-toggle');
 
-            // Voice Preset DOM
-
+// Add this function to SettingsManager
+bindGestureFilters() {
+    this.dom.filterToggles.forEach(toggle => {
+        toggle.addEventListener('change', () => {
+            // Re-run the mapping population engine whenever a box is toggled
+            this.populateMappingUI();
+        });
+    });
+}
 
             // Voice Preset DOM
             voicePresetSelect: document.getElementById('voice-preset-select'),
@@ -386,7 +386,6 @@ export class SettingsManager {
         
         this.tempTheme = null; 
         this.initListeners(); 
-        this.bindGestureFilters();
         this.populateConfigDropdown(); 
         this.populateThemeDropdown(); 
         this.buildColorGrid(); 
@@ -435,15 +434,24 @@ export class SettingsManager {
                 window.toggleWakeLock(this.appSettings.isWakeLockEnabled);
             }
         });
-                // INSIDE settings.js -> initListeners()
-        if (this.dom.fullscreenToggle) {
-            this.dom.fullscreenToggle.onchange = (e) => {
-                // ONLY save the visibility preference
-                this.appSettings.showFullscreenBtn = e.target.checked;
-                this.updateHeaderVisibility();
-                this.callbacks.onSave();
-            };
-        }
+/* INSIDE settings.js -> initListeners() */
+if (this.dom.fullscreenToggle) {
+    this.dom.fullscreenToggle.onchange = (e) => {
+        // ONLY save the visibility preference
+        this.appSettings.showFullscreenBtn = e.target.checked;
+        this.updateHeaderVisibility();
+        this.callbacks.onSave();
+    };
+}
+if (this.dom.upsidedownToggle) {
+    this.dom.upsidedownToggle.onchange = (e) => {
+        // ONLY save the visibility preference
+        this.appSettings.showUpsideDownBtn = e.target.checked;
+        this.updateHeaderVisibility();
+        this.callbacks.onSave();
+    };
+}
+
 
         if (this.dom.upsidedownToggle) {
             this.dom.upsidedownToggle.onchange = (e) => {
@@ -486,61 +494,148 @@ populateMappingAccordions() {
         </details>`;
     });
 }
-    renderMappingUI() {
-        const container = document.getElementById('mapping-accordion-container');
-        if (!container) return;
+
+renderMappingUI() {
+    const container = document.getElementById('mapping-accordion-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    // Target mapping input slots (e.g. 9-key, 12-key, or piano bindings)
+    const targetKeys = ['k9_1', 'k9_2', 'k9_3', 'k9_4', 'k9_5', 'k9_6', 'k9_7', 'k9_8', 'k9_9', 'k12_1', 'piano_C']; 
+
+    targetKeys.forEach(key => {
+        const details = document.createElement('details');
+        details.className = "group bg-gray-900 rounded-lg border border-gray-700 open:bg-gray-800 transition-colors mb-3";
         
-        container.innerHTML = ''; // Clear existing DOM
+        const summary = document.createElement('summary');
+        summary.className = "cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white outline-none";
+        summary.innerHTML = `<span>Input Control: ${key.toUpperCase().replace('_', ' ')}</span><span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>`;
+        details.appendChild(summary);
 
-        // Map out the 3 layout configurations
-        const groups = [
-            { id: 'key9', title: '9-Key Layout', keys: Array.from({length: 9}, (_, i) => `k9_${i+1}`) },
-            { id: 'key12', title: '12-Key Layout', keys: Array.from({length: 12}, (_, i) => `k12_${i+1}`) },
-            { id: 'piano', title: 'Piano Layout', keys: ['piano_C', 'piano_D', 'piano_E', 'piano_F', 'piano_G', 'piano_A', 'piano_B', 'piano_1', 'piano_2', 'piano_3', 'piano_4', 'piano_5'] }
-        ];
+        const contentDiv = document.createElement('div');
+        contentDiv.className = "p-3 border-t border-gray-700 bg-black/20";
 
-        const touchOptionsHTML = TOUCH_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('');
-        const handOptionsHTML = VISUAL_HAND_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('');
+        // --- SUB-TAB BUTTON BAR (TOUCH & HAND TABS) ---
+        const tabBar = document.createElement('div');
+        tabBar.className = "flex border-b border-gray-700 mb-3 space-x-2";
+        tabBar.innerHTML = `
+            <button class="tab-btn-sub active text-xs font-bold py-1 px-3 text-white border-b-2 border-emerald-500" data-subtab="touch-${key}">👇 Touch Gestures</button>
+            <button class="tab-btn-sub text-xs font-bold py-1 px-3 text-gray-400" data-subtab="hand-${key}">🖐️ Hand Gestures</button>
+        `;
+        contentDiv.appendChild(tabBar);
 
-        groups.forEach(group => {
-            // Group Header
-            container.innerHTML += `<h3 class="font-bold text-sm mt-6 mb-2 text-primary-app border-b border-gray-700 pb-1">${group.title}</h3>`;
+        // --- PANEL 1: TOUCH GESTURES (Categorized Optgroups) ---
+        const touchPanel = document.createElement('div');
+        touchPanel.id = `panel-touch-${key}`;
+        touchPanel.className = "sub-tab-content space-y-2";
+        touchPanel.innerHTML = `<label class="text-[11px] text-gray-400 block font-bold uppercase">Assign Touch Gesture</label>`;
+        
+        const touchSelect = document.createElement('select');
+        touchSelect.className = "w-full p-2 bg-gray-950 text-white rounded border border-gray-600 text-sm font-medium focus:outline-none focus:border-emerald-500";
+        touchSelect.dataset.key = key;
+        touchSelect.dataset.type = "touch";
+        
+        // Add default unassigned selection choice
+        touchSelect.innerHTML = `<option value="">(None / Unassigned)</option>`;
+        
+        // Loop through your imported touch categories
+        TOUCH_GESTURE_GROUPS.forEach(group => {
+            const optGroup = document.createElement('optgroup');
+            optGroup.label = `${group.name}${!group.enabled ? ' (Disabled)' : ''}`;
             
-            group.keys.forEach(keyId => {
-                let displayName = keyId.replace('k9_', 'Key ').replace('k12_', 'Key ').replace('piano_', 'Note ');
-
-                const accordion = `
-                    <details class="group bg-gray-900 rounded-lg border border-gray-700 open:bg-gray-800 transition-colors shadow-sm mb-2">
-                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white outline-none">
-                            <span class="flex items-center gap-2">
-                                <span class="bg-gray-700 w-16 h-6 flex items-center justify-center rounded text-xs text-blue-300 font-mono border border-gray-600">${displayName}</span>
-                            </span>
-                            <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
-                        </summary>
-                        
-                        <div class="p-3 border-t border-gray-700 mt-1 bg-black/20">
-                            <div class="flex border-b border-gray-700 mb-3">
-                                <button type="button" class="mapping-subtab-btn active flex-1 py-2 text-xs font-bold text-blue-400 border-b-2 border-blue-400 transition-colors" data-key="${keyId}" data-target="touch">👆 Touch</button>
-                                <button type="button" class="mapping-subtab-btn flex-1 py-2 text-xs font-bold text-gray-500 hover:text-green-400 transition-colors" data-key="${keyId}" data-target="hand">🖐️ Hand Tracking</button>
-                            </div>
-                            
-                            <div id="panel-touch-${keyId}" class="mapping-panel block space-y-2">
-                                <select id="map-touch-${keyId}" class="mapping-select settings-input w-full p-2.5 rounded text-sm font-semibold shadow-sm border border-gray-600 bg-gray-950 text-white outline-none focus:border-blue-500 transition-colors" data-type="touch" data-key="${keyId}">
-                                    ${touchOptionsHTML}
-                                </select>
-                            </div>
-                            
-                            <div id="panel-hand-${keyId}" class="mapping-panel hidden space-y-2">
-                                <select id="map-hand-${keyId}" class="mapping-select settings-input w-full p-2.5 rounded text-sm font-semibold shadow-sm border border-gray-600 bg-gray-950 text-emerald-400 outline-none focus:border-emerald-500 transition-colors" data-type="hand" data-key="${keyId}">
-                                    ${handOptionsHTML}
-                                </select>
-                            </div>
-                        </div>
-                    </details>
-                `;
-                container.innerHTML += accordion;
+            group.gestures.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.id;
+                opt.textContent = g.name;
+                optGroup.appendChild(opt);
             });
+            touchSelect.appendChild(optGroup);
         });
+        
+        // Hook existing mapping states if available
+        if (this.appSettings.touchMappings && this.appSettings.touchMappings[key]) {
+            touchSelect.value = this.appSettings.touchMappings[key];
+        }
+        touchPanel.appendChild(touchSelect);
+        contentDiv.appendChild(touchPanel);
+
+        // --- PANEL 2: HAND GESTURES (Categorized Optgroups) ---
+        const handPanel = document.createElement('div');
+        handPanel.id = `panel-hand-${key}`;
+        handPanel.className = "sub-tab-content space-y-2 hidden";
+        handPanel.innerHTML = `<label class="text-[11px] text-gray-400 block font-bold uppercase">Assign Hand Gesture</label>`;
+        
+        const handSelect = document.createElement('select');
+        handSelect.className = "w-full p-2 bg-gray-950 text-white rounded border border-gray-600 text-sm font-medium focus:outline-none focus:border-emerald-500";
+        handSelect.dataset.key = key;
+        handSelect.dataset.type = "hand";
+        
+        handSelect.innerHTML = `<option value="">(None / Unassigned)</option>`;
+        
+        // Loop through your imported hand categories
+        HAND_GESTURE_GROUPS.forEach(group => {
+            const optGroup = document.createElement('optgroup');
+            optGroup.label = group.name;
+            
+            group.gestures.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.id;
+                opt.textContent = g.name;
+                optGroup.appendChild(opt);
+            });
+            handSelect.appendChild(optGroup);
+        });
+
+        if (this.appSettings.gestureMappings && this.appSettings.gestureMappings[key]) {
+            handSelect.value = this.appSettings.gestureMappings[key];
+        }
+        handPanel.appendChild(handSelect);
+        contentDiv.appendChild(handPanel);
+
+        // --- EVENT BINDINGS FOR AUTO-SAVING SELECTIONS ---
+        const handleSelectionChange = (e) => {
+            const currentControlKey = e.target.dataset.key;
+            const mappingType = e.target.dataset.type; // 'touch' or 'hand'
+            
+            if (mappingType === "touch") {
+                if (!this.appSettings.touchMappings) this.appSettings.touchMappings = {};
+                this.appSettings.touchMappings[currentControlKey] = e.target.value;
+            } else {
+                if (!this.appSettings.gestureMappings) this.appSettings.gestureMappings = {};
+                this.appSettings.gestureMappings[currentControlKey] = e.target.value;
+            }
+            this.callbacks.onSave(); // Save update state to local profile/Firebase persistence
+        };
+
+        touchSelect.onchange = handleSelectionChange;
+        handSelect.onchange = handleSelectionChange;
+
+        // --- TAB SELECTION TOGGLE BEHAVIOR ---
+        tabBar.querySelectorAll('button').forEach(btn => {
+            btn.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                tabBar.querySelectorAll('button').forEach(b => {
+                    b.classList.remove('text-white', 'border-b-2', 'border-emerald-500');
+                    b.classList.add('text-gray-400');
+                });
+                
+                btn.classList.add('text-white', 'border-b-2', 'border-emerald-500');
+                btn.classList.remove('text-gray-400');
+
+                touchPanel.classList.add('hidden');
+                handPanel.classList.add('hidden');
+
+                const targetId = btn.getAttribute('data-subtab');
+                contentDiv.querySelector(`#panel-${targetId}`).classList.remove('hidden');
+            };
+        });
+
+        details.appendChild(contentDiv);
+        container.appendChild(details);
+    });
+}
 
         // Attach event listeners for tabs and dropdown saves
         this.bindMappingEvents();
@@ -1244,8 +1339,24 @@ if (this.dom.toneHeaderBtn) {
         this.updateHeaderVisibility();
     }
 
-    // NEW METHOD: Manages the Auto-Hiding Header Bar
-    updateHeaderVisibility() {
+    // NEW METHOD: Manages the Auto-Hiding HeaderupdateHeaderVisibility() {
+    // Find the header elements by their IDs established in your app initialization code
+    const hFullscreen = document.getElementById('header-fullscreen-btn') || document.getElementById('fullscreen-btn');
+    const hUpsideDown = document.getElementById('header-upsidedown-btn') || document.getElementById('upsidedown-btn');
+    
+    if (hFullscreen) {
+    hFullscreen.style.display = this.appSettings.showFullscreenBtn ? 'inline-flex' : 'none';
+    // Force removal of hidden utility classes if using Tailwind
+    if(this.appSettings.showFullscreenBtn) hFullscreen.classList.remove('hidden');
+    }
+    if (hUpsideDown) {
+    hUpsideDown.style.display = this.appSettings.showUpsideDownBtn ? 'inline-flex' : 'none';
+    if(this.appSettings.showUpsideDownBtn) hUpsideDown.classList.remove('hidden');
+    }
+    }
+    
+}
+
         const header = document.getElementById('aux-control-header');
         const timerBtn = document.getElementById('header-timer-btn');
         const counterBtn = document.getElementById('header-counter-btn');
@@ -1268,24 +1379,6 @@ if (this.dom.toneHeaderBtn) {
         // Use proper variable for Hand Tracking
         const showHand = !!this.appSettings.isHandGesturesEnabled;
 
-        // Unhide Fullscreen Header Button if enabled
-        if (this.dom.headerFullscreenBtn) {
-            if (this.appSettings.showFullscreenBtn) {
-                this.dom.headerFullscreenBtn.classList.remove('hidden');
-            } else {
-                this.dom.headerFullscreenBtn.classList.add('hidden');
-            }
-        }
-
-        // Unhide Upside Down Header Button if enabled
-        if (this.dom.headerUpsideDownBtn) {
-            if (this.appSettings.showUpsideDownBtn) {
-                this.dom.headerUpsideDownBtn.classList.remove('hidden');
-            } else {
-                this.dom.headerUpsideDownBtn.classList.add('hidden');
-            }
-        }
-
         // Toggle visibility
         if(timerBtn) timerBtn.classList.toggle('hidden', !showTimer);
         if(counterBtn) counterBtn.classList.toggle('hidden', !showCounter);
@@ -1295,10 +1388,9 @@ if (this.dom.toneHeaderBtn) {
         if(stealthBtn) stealthBtn.classList.toggle('hidden', !showStealth);
         // Toggle new Hand Button
         if(handBtn) handBtn.classList.toggle('hidden', !showHand);
-        
-        if (this.dom.toneHeaderBtn) {
-            this.dom.toneHeaderBtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
-        }
+if (this.dom.toneHeaderBtn) {
+    this.dom.toneHeaderBtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
+}
 
         // Check if header should be hidden entirely
         if (!showTimer && !showCounter && !showMic && !showCam && !showGesture && !showStealth && !showHand) {
@@ -1309,10 +1401,9 @@ if (this.dom.toneHeaderBtn) {
     }
     
     hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
-    
     hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
     
-      populateMappingUI() {
+    populateMappingUI() {
         if (!this.dom) return;
         if (!this.appSettings) return;
         
@@ -1321,6 +1412,17 @@ if (this.dom.toneHeaderBtn) {
         }
         
         if (!this.appSettings.gestureProfiles) this.appSettings.gestureProfiles = {};
+// Replace the hardcoded activeHandGroup logic with this:
+const activeHandGroups = [];
+this.dom.filterToggles.forEach(toggle => {
+    if (toggle.checked) {
+        const groupName = toggle.dataset.group;
+        const foundGroup = HAND_GROUPS.find(g => g.name === groupName);
+        if (foundGroup) activeHandGroups.push(...foundGroup.items);
+    }
+});
+
+// Now use 'activeHandGroups' instead of 'activeHandGroup.items' when building your <option> tags
 
         // 1. REBUILD SENSITIVITY CONTROLS
         const tabRoot = document.getElementById('tab-mapping');
@@ -1331,7 +1433,7 @@ if (this.dom.toneHeaderBtn) {
             tabRoot.innerHTML = `
                 <div class="p-3 mb-4 rounded-lg border border-custom bg-black bg-opacity-30">
                     <h4 class="font-bold text-sm mb-3 text-primary-app">Gesture Sensitivity 🎛️</h4>
-  <div class="mb-4">
+                    <div class="mb-4">
                         <div class="flex justify-between mb-1">
                             <label class="text-xs font-bold">Tap Speed (ms)</label>
                             <span id="gesture-tap-val" class="text-xs font-mono">${this.appSettings.gestureTapDelay || 300}ms</span>

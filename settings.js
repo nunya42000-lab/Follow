@@ -288,10 +288,8 @@ headerUpsideDownBtn: document.getElementById('upsidedown-btn'), // Check your HT
 // Add to your constructor's dom cache
 
 
-this.dom.filterToggles = document.querySelectorAll('.gesture-filter-toggle');
 // Add this function to SettingsManager
-bindGestureFilters() {
-    this.dom.filterToggles.forEach(toggle => {
+bindGestureFilters() {this.dom.filterToggles: document.querySelectorAll('.gesture-filter-toggle')
         toggle.addEventListener('change', () => {
             // Re-run the mapping population engine whenever a box is toggled
             this.populateMappingUI();

@@ -289,13 +289,6 @@ headerUpsideDownBtn: document.getElementById('upsidedown-btn'), // Check your HT
 
 
 // Add this function to SettingsManager
-bindGestureFilters() {this.dom.filterToggles: document.querySelectorAll('.gesture-filter-toggle')
-        toggle.addEventListener('change', () => {
-            // Re-run the mapping population engine whenever a box is toggled
-            this.populateMappingUI();
-        });
-    });
-}
 
             // Voice Preset DOM
             voicePresetSelect: document.getElementById('voice-preset-select'),
@@ -762,6 +755,13 @@ bindMappingEvents() {
         });
     }
 
+bindGestureFilters() {this.dom.filterToggles: document.querySelectorAll('.gesture-filter-toggle')
+        toggle.addEventListener('change', () => {
+            // Re-run the mapping population engine whenever a box is toggled
+            this.populateMappingUI();
+        });
+    });
+}
 
     populatePlaybackSpeedDropdown() {
         if (!this.dom.playbackSpeed) return;

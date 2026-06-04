@@ -386,7 +386,8 @@ headerUpsideDownBtn: document.getElementById('upsidedown-btn'), // Check your HT
         this.populateUIScaleDropdown(); 
         this.populateMappingUI();
         this.populateMorseUI();
-        
+        this.bindMappingEvents();
+    
         // ... [Your existing DOM caching code is here] ...
 
     
@@ -630,8 +631,7 @@ renderMappingUI() {
 }
 
         // Attach event listeners for tabs and dropdown saves
-        this.bindMappingEvents();
-    }
+        
 bindMappingEvents() {
         // 1. Master Tab Switching Logic (Touch vs. Hand)
         const btnTouch = document.getElementById('btn-map-touch');

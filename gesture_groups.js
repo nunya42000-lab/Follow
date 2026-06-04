@@ -1,4 +1,4 @@
-// gesture-groups.js
+// gesture_groups.js
 
 export const GESTURE_GROUPS = [
     {

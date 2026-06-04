@@ -426,7 +426,7 @@ filterToggles: document.querySelectorAll('.gesture-filter-toggle'),
             if (typeof window.toggleWakeLock === 'function') {
                 window.toggleWakeLock(this.appSettings.isWakeLockEnabled);
             }
-        });
+        }),
 populateMappingAccordions() {
     const container = document.getElementById('mapping-accordion-container');
     container.innerHTML = '';

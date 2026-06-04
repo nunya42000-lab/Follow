@@ -56,7 +56,7 @@ export const HAND_GESTURE_GROUPS = [
             { id: "302", name: "👈 Swipe Left" },
             { id: "303", name: "👉 Swipe Right" }
         ]
-  ]  },
+    },]
      export const TOUCH_GESTURE_GROUPS = [
     {
         id: "taps_1f",

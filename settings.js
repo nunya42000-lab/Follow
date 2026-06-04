@@ -754,6 +754,7 @@ bindMappingEvents() {
             };
         });
     }
+}
 
 bindGestureFilters() {this.dom.filterToggles: document.querySelectorAll('.gesture-filter-toggle')
         toggle.addEventListener('change', () => {
@@ -762,7 +763,6 @@ bindGestureFilters() {this.dom.filterToggles: document.querySelectorAll('.gestur
         });
     });
 }
-
     populatePlaybackSpeedDropdown() {
         if (!this.dom.playbackSpeed) return;
         this.dom.playbackSpeed.innerHTML = '';

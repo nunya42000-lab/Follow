@@ -1006,37 +1006,7 @@ const startApp = () => {
   // (Removed the automatic upside-down and fullscreen boot triggers from here)
   if (appSettings.isEcoModeEnabled) document.body.classList.add('eco-mode');
   
-  // --- NEW HEADER BUTTON ACTIONS ---
-  // Full Screen Header Button Action
-  const headerfullscreenbtn = document.getElementById('header-fullscreen-btn');
-  if (headerfullscreenbtn) {
-      headerfullscreenbtn.onclick = () => {
-          if (!document.fullscreenElement) {
-              document.documentElement.requestFullscreen().catch(err => {
-                  console.warn(`Fullscreen error: ${err.message}`);
-              });
-              headerfullscreenbtn.classList.add('ring-2', 'ring-emerald-500');
-          } else {
-              document.exitFullscreen();
-              headerfullscreenbtn.classList.remove('ring-2', 'ring-emerald-500');
-          }
-      };
-  }
 
-  // Upside Down Header Button Action
-  const headerupsidedownbtn = document.getElementById('header-upsidedown-btn');
-  if (headerupsidedownbtn) {
-      headerupsidedownbtn.onclick = () => {
-          document.body.classList.toggle('rotate-180');
-          if (document.body.classList.contains('rotate-180')) {
-              headerupsidedownbtn.classList.add('ring-2', 'ring-emerald-500');
-              showToast("Upside Down Mode: ON 🙃");
-          } else {
-              headerupsidedownbtn.classList.remove('ring-2', 'ring-emerald-500');
-              showToast("Upside Down Mode: OFF");
-          }
-      };
-  }
     
   // 2. Safe WakeLock execution
   if (appSettings.isWakeLockEnabled && typeof window.toggleWakeLock === 'function') {
@@ -1696,7 +1666,37 @@ function initGlobalListeners() {
               }
           };
       }
+      // --- NEW HEADER BUTTON ACTIONS ---
+      // Full Screen Header Button Action
+      const headerfullscreenbtn = document.getElementById('header-fullscreen-btn');
+      if (headerfullscreenbtn) {
+      headerfullscreenbtn.onclick = () => {
+      if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+      console.warn(`Fullscreen error: ${err.message}`);
+      });
+      headerfullscreenbtn.classList.add('ring-2', 'ring-emerald-500');
+      } else {
+      document.exitFullscreen();
+      headerfullscreenbtn.classList.remove('ring-2', 'ring-emerald-500');
+      }
+      };
+      }
       
+      // Upside Down Header Button Action
+      const headerupsidedownbtn = document.getElementById('header-upsidedown-btn');
+      if (headerupsidedownbtn) {
+      headerupsidedownbtn.onclick = () => {
+      document.body.classList.toggle('rotate-180');
+      if (document.body.classList.contains('rotate-180')) {
+      headerupsidedownbtn.classList.add('ring-2', 'ring-emerald-500');
+      showToast("Upside Down Mode: ON 🙃");
+      } else {
+      headerupsidedownbtn.classList.remove('ring-2', 'ring-emerald-500');
+      showToast("Upside Down Mode: OFF");
+      }
+      };
+      }
             const headerStealth = document.getElementById('header-stealth-btn');
       if(headerStealth) {
         headerStealth.onclick = () => {
@@ -1801,6 +1801,7 @@ function initGlobalListeners() {
 }
 
 // The final boot trigger
+document.addEventListener('DOMContentLoaded', startApp); final boot trigger
 document.addEventListener('DOMContentLoaded', startApp);Counter.addEventListener('mouseup', endC); headerCounter.addEventListener('touchend', endC); headerCounter.addEventListener('mouseleave', () => clearTimeout(cTimer));
       }
 

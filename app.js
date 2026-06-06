@@ -1801,41 +1801,4 @@ function initGlobalListeners() {
 }
 
 // The final boot trigger
-document.addEventListener('DOMContentLoaded', startApp); final boot trigger
-document.addEventListener('DOMContentLoaded', startApp);Counter.addEventListener('mouseup', endC); headerCounter.addEventListener('touchend', endC); headerCounter.addEventListener('mouseleave', () => clearTimeout(cTimer));
-      }
-
-      if(headerMic) { 
-          headerMic.onclick = () => { 
-              if(!voiceModule) return;
-              const isActive = !voiceModule.isListening;
-              voiceModule.toggle(isActive);
-              headerMic.classList.toggle('header-btn-active', isActive);
-          }; 
-      }
-
-      if(headerGesture) {
-          headerGesture.onclick = () => {
-              isGesturePadVisible = !isGesturePadVisible;
-              headerGesture.classList.toggle('header-btn-active', isGesturePadVisible);
-              const gpWrap = document.getElementById('gesture-pad-wrapper');
-              if(gpWrap) {
-                  if(isGesturePadVisible) {
-                      gpWrap.classList.remove('hidden');
-                      showToast("Pad Visible 🗒️");
-                  } else {
-                      gpWrap.classList.add('hidden');
-                      showToast("Pad Hidden");
-                  }
-              }
-              renderUI();
-          };
-      }
-      
-    } catch(e) {
-        console.error("Listener Error:", e);
-    }
-}
-
-// The final boot trigger
 document.addEventListener('DOMContentLoaded', startApp);

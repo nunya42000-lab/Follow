@@ -81,15 +81,15 @@ const DEFAULT_APP = {
   gestureHoldFrames: 30, // Approx 1 to 1.5 seconds depending on framerate
  
   // --- NEW TOGGLES ---
-  isDeleteGestureEnabled: false, 
-  isClearGestureEnabled: false,
+  isDeleteGestureEnabled: true, 
+  isClearGestureEnabled: true,
   isAutoTimerEnabled: false,
   isAutoCounterEnabled: false,
   // -------------------
   isWakeLockEnabled: true,
   isUpsidedownEnabled: false,
   isFullScreenEnabled: false,
-  isEcoModeEnabled: false,
+  isEcoModeEnabled: true,
 
   isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, 
   activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, 

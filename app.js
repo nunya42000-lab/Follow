@@ -1008,17 +1008,17 @@ const startApp = () => {
   
   // --- NEW HEADER BUTTON ACTIONS ---
   // Full Screen Header Button Action
-  const headerFullscreenBtn = document.getElementById('header-fullscreen-btn');
-  if (headerFullscreenBtn) {
-      headerFullscreenBtn.onclick = () => {
+  const headerfullscreenbtn = document.getElementById('header-fullscreen-btn');
+  if (headerfullscreenbtn) {
+      headerfullscreenbtn.onclick = () => {
           if (!document.fullscreenElement) {
               document.documentElement.requestFullscreen().catch(err => {
                   console.warn(`Fullscreen error: ${err.message}`);
               });
-              headerFullscreenBtn.classList.add('ring-2', 'ring-emerald-500');
+              headerfullscreenbtn.classList.add('ring-2', 'ring-emerald-500');
           } else {
               document.exitFullscreen();
-              headerFullscreenBtn.classList.remove('ring-2', 'ring-emerald-500');
+              headerfullscreenbtn.classList.remove('ring-2', 'ring-emerald-500');
           }
       };
   }
@@ -1383,35 +1383,7 @@ const DEFAULT_HAND_MAPPINGS = {
   'piano_1': 'hand_1_down', 'piano_2': 'hand_2_down', 'piano_3': 'hand_3_down',
   'piano_4': 'hand_4_down', 'piano_5': 'hand_5_down'
 };
-    // --- NEW: Header Button Logic ---
-    const header-fullscreen-btn = document.getElementById('header-fullscreen-btn');
-    if (header-fullscreen-btn) {
-        header-fullscreen-btn.onclick = () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.warn(`Fullscreen error: ${err.message}`);
-                });
-                header-fullscreen-btn.classList.add('ring-2', 'ring-emerald-500');
-            } else {
-                document.exitFullscreen();
-                header-fullscreen-btn.classList.remove('ring-2', 'ring-emerald-500');
-            }
-        };
-    }
 
-    const header-upsidedown-btn = document.getElementById('header-upsidedown-btn');
-    if (header-upsidedown-btn) {
-        header-upsidedown-btn.onclick = () => {
-            document.body.classList.toggle('rotate-180');
-            if (document.body.classList.contains('rotate-180')) {
-                header-upsidedown-btn.classList.add('ring-2', 'ring-emerald-500');
-                showToast("Upside Down Mode: ON 🙃");
-            } else {
-                header-upsidedown-btn.classList.remove('ring-2', 'ring-emerald-500');
-                showToast("Upside Down Mode: OFF");
-            }
-        };
-    }
 
 function mapGestureToValue(kind, currentInput) {
   const saved = appSettings.gestureMappings || {};
@@ -1794,6 +1766,42 @@ function initGlobalListeners() {
           const endC = (e) => { if(e) e.preventDefault(); clearTimeout(cTimer); if(!cIsLong) increment(); };
           headerCounter.addEventListener('mousedown', startC); headerCounter.addEventListener('touchstart', startC, {passive:true});
           headerCounter.addEventListener('mouseup', endC); headerCounter.addEventListener('touchend', endC); headerCounter.addEventListener('mouseleave', () => clearTimeout(cTimer));
+      }
+
+      if(headerMic) { 
+          headerMic.onclick = () => { 
+              if(!voiceModule) return;
+              const isActive = !voiceModule.isListening;
+              voiceModule.toggle(isActive);
+              headerMic.classList.toggle('header-btn-active', isActive);
+          }; 
+      }
+
+      if(headerGesture) {
+          headerGesture.onclick = () => {
+              isGesturePadVisible = !isGesturePadVisible;
+              headerGesture.classList.toggle('header-btn-active', isGesturePadVisible);
+              const gpWrap = document.getElementById('gesture-pad-wrapper');
+              if(gpWrap) {
+                  if(isGesturePadVisible) {
+                      gpWrap.classList.remove('hidden');
+                      showToast("Pad Visible 🗒️");
+                  } else {
+                      gpWrap.classList.add('hidden');
+                      showToast("Pad Hidden");
+                  }
+              }
+              renderUI();
+          };
+      }
+      
+    } catch(e) {
+        console.error("Listener Error:", e);
+    }
+}
+
+// The final boot trigger
+document.addEventListener('DOMContentLoaded', startApp);Counter.addEventListener('mouseup', endC); headerCounter.addEventListener('touchend', endC); headerCounter.addEventListener('mouseleave', () => clearTimeout(cTimer));
       }
 
       if(headerMic) { 

@@ -36,9 +36,9 @@
             <div class="flex gap-2 pointer-events-auto">
                 <button id="header-timer-btn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">⏱️</button>
                 <button id="header-mic-btn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🎤</button>
-                <button id="header-gesture-btn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🗒️</button>
+                <button id="header-voice-btn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🗒️</button>
                 <button id="header-hand-btn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🖐️</button>
-            <button id="tone-header-btn" class="hidden header-btn bg-indigo-900/40 text-indigo-300 border border-indigo-500/50 rounded px-4 py-1.5 font-bold text-xs shadow-sm hover:bg-indigo-800 transition-colors">🎵</button>
+            <button id="header-tone-btn" class="hidden header-btn bg-indigo-900/40 text-indigo-300 border border-indigo-500/50 rounded px-4 py-1.5 font-bold text-xs shadow-sm hover:bg-indigo-800 transition-colors">🎵</button>
             </div>
             <div class="flex gap-2 pointer-events-auto">
                 <button id="header-stealth-btn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">⌨️</button>
@@ -383,142 +383,169 @@
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
+                           
                             <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
                                 <span class="font-bold text-sm" data-i18n="timer_toggle">Timer ⏱️</span>
                                 <input type="checkbox" id="timer-toggle" class="h-6 w-6 accent-indigo-500">
                             </div>
+                          
                             <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
                                 <span class="font-bold text-sm text-muted-custom">Auto Timer 🚀</span>
                                 <input type="checkbox" id="auto-timer-toggle" class="h-6 w-6 accent-indigo-500">
                             </div>
+                          
                             <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
                                 <span class="font-bold text-sm" data-i18n="counter_toggle">Counter #</span>
                                 <input type="checkbox" id="counter-toggle" class="h-6 w-6 accent-indigo-500">
                             </div>
+                           
                             <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
                                 <span class="font-bold text-sm text-muted-custom">Auto Counter ➕</span>
                                 <input type="checkbox" id="auto-counter-toggle" class="h-6 w-6 accent-indigo-500">
                             </div>
-                            <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
-                                <span class="font-bold text-sm">Haptics 📳</span>
-                                <input type="checkbox" id="haptics-toggle" class="h-6 w-6 accent-indigo-500">
+                          
+                           <div class="p-3 rounded-lg border border-custom settings-input">
+                                <div class="flex justify-between items-center h-full">
+                                    <span class="font-bold text-sm">Voice Input 🎤</span>
+                                    <input type="checkbox" id="voice-input-toggle" class="h-5 w-5 accent-indigo-500">
+                                </div>
                             </div>
-                            <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
-                                <span class="font-bold text-sm">Show Intro</span>
-                                <input type="checkbox" id="show-welcome-toggle" class="h-6 w-6 accent-indigo-500">
-                            </div>
+                           
                             <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
                                 <div><label class="font-bold text-sm block">Voice Commands</label><span class="text-[10px] text-gray-500">Enable spoken 'clear'/'back'</span></div>
                                 <input type="checkbox" id="voice-commands-toggle" class="h-6 w-6 rounded accent-indigo-500">
                             </div>
+                          
+                             <div class="p-3 rounded-lg border border-custom settings-input">
+                                <div class="flex justify-between items-center h-full">
+                                    <span class="font-bold text-sm text-muted-custom">Hand Gestures</span>
+                                    <input type="checkbox" id="hand-gestures-toggle" class="h-5 w-5 accent-indigo-500">
+                                </div>
+                            </div>
+                           
                             <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
                                 <div><label class="font-bold text-sm block">Hand Signals</label><span class="text-[10px] text-gray-500">Gesture 'clear'/'undo'</span></div>
                                 <input type="checkbox" id="hand-signals-toggle" class="h-6 w-6 rounded accent-indigo-500">
                             </div>
+                           
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
                                     <span class="font-bold text-sm">Boss Mode 🌑</span>
                                     <input type="checkbox" id="blackout-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
-                            <div class="flex justify-between items-center p-3 rounded-lg border border-indigo-500/30 bg-black/40 mt-2">
-                            <div>
-                            <div class="font-bold text-sm text-indigo-400">Tone Cadence Mode 🎵</div>
-                            <div class="text-[10px] text-gray-500">Listens for 0.2s note / 0.8s silence</div>
-                            </div>
-                            <input type="checkbox" id="tone-cadence-toggle" class="h-5 w-5 accent-indigo-500 cursor-pointer">
-                            </div>
-                            <div class="p-3 rounded-lg border border-custom settings-input">
-                                <div class="flex justify-between items-center h-full">
-                                    <span class="font-bold text-sm text-muted-custom">BM Gestures</span>
-                                    <input type="checkbox" id="blackout-gestures-toggle" class="h-5 w-5 accent-indigo-500">
-                                </div>
-                            </div>
-                            <div class="p-3 rounded-lg border border-custom settings-input">
-                                <div class="flex justify-between items-center h-full">
-                                   <span class="font-bold text-sm">Wake Lock 💡</span>
-                                   <input type="checkbox" id="wakelock-toggle" class="h-5 w-5 accent-indigo-500" checked>
-                               </div>
-                            </div>
-                            <div class="p-3 rounded-lg border border-custom settings-input">
-                                <div class="flex justify-between items-center h-full">
-                                   <span class="font-bold text-sm">Upside Down 🙃</span>
-                                   <input type="checkbox" id="upsidedown-toggle" class="h-5 w-5 accent-indigo-500">
-                               </div>
-                            </div>
-                            <div class="p-3 rounded-lg border border-custom settings-input">
-                                <div class="flex justify-between items-center h-full">
-                                   <span class="font-bold text-sm">Full Screen 🔲</span>
-                                   <input type="checkbox" id="fullscreen-toggle" class="h-5 w-5 accent-indigo-500">
-                               </div>
-                            </div> 
-                            <div class="p-3 rounded-lg border border-custom settings-input">
-                                <div class="flex justify-between items-center h-full">
-                                   <span class="font-bold text-sm">Eco Mode 🔋</span>
-                                   <input type="checkbox" id="ecomode-toggle" class="h-5 w-5 accent-indigo-500">
-                               </div>
-                            </div>
-                            <div class="p-3 rounded-lg border border-custom settings-input">
-                                <div class="flex justify-between items-center h-full">
-                                    <span class="font-bold text-sm">Bigger Buttons 🥷</span>
-                                    <input type="checkbox" id="stealth-1key-toggle" class="h-5 w-5 accent-indigo-500">
-                                </div>
-                            </div>
-                            <div class="p-3 rounded-lg border border-custom settings-input">
+                           
+                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
                                     <span class="font-bold text-sm text-muted-custom">Gesture Input</span>
                                     <input type="checkbox" id="gesture-input-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
+                        
+                         
+                        
+                           <div class="p-3 rounded-lg border border-custom settings-input">
+                                <div class="flex justify-between items-center h-full">
+                                    <span class="font-bold text-sm">Tone Cadence Mode 🎵</span>
+                                    <input type="checkbox" id="tone-cadence-toggle" class="h-5 w-5 accent-indigo-500">
+                                </div>
+                            </div>
+                           
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
                                     <span class="font-bold text-sm">AR Mode 📸</span>
                                     <input type="checkbox" id="ar-mode-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
-                            <div class="p-3 rounded-lg border border-custom settings-input">
+                        
+                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
-                                    <span class="font-bold text-sm">Voice Input 🎤</span>
-                                    <input type="checkbox" id="voice-input-toggle" class="h-5 w-5 accent-indigo-500">
+                                    <span class="font-bold text-sm">Bigger Buttons 🥷</span>
+                                    <input type="checkbox" id="bigger-buttons-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
+                           
+                            <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+                                <span class="font-bold text-sm">Haptics 📳</span>
+                                <input type="checkbox" id="haptics-toggle" class="h-6 w-6 accent-indigo-500">
+                            </div>
+                         
+                            <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+                                <span class="font-bold text-sm">Show Intro</span>
+                                <input type="checkbox" id="show-welcome-toggle" class="h-6 w-6 accent-indigo-500">
+                            </div>
+                           
+                            <div class="p-3 rounded-lg border border-custom settings-input">
+                                <div class="flex justify-between items-center h-full">
+                                   <span class="font-bold text-sm">Wake Lock 💡</span>
+                                   <input type="checkbox" id="wakelock-toggle" class="h-5 w-5 accent-indigo-500" checked>
+                               </div>
+                            </div>
+                          
+                            <div class="p-3 rounded-lg border border-custom settings-input">
+                                <div class="flex justify-between items-center h-full">
+                                   <span class="font-bold text-sm">Upside Down 🙃</span>
+                                   <input type="checkbox" id="upsidedown-toggle" class="h-5 w-5 accent-indigo-500">
+                               </div>
+                            </div>
+                          
+                            <div class="p-3 rounded-lg border border-custom settings-input">
+                                <div class="flex justify-between items-center h-full">
+                                   <span class="font-bold text-sm">Full Screen 🔲</span>
+                                   <input type="checkbox" id="fullscreen-toggle" class="h-5 w-5 accent-indigo-500">
+                               </div>
+                            </div> 
+                          
+                            <div class="p-3 rounded-lg border border-custom settings-input">
+                                <div class="flex justify-between items-center h-full">
+                                   <span class="font-bold text-sm">Eco Mode 🔋</span>
+                                   <input type="checkbox" id="ecomode-toggle" class="h-5 w-5 accent-indigo-500">
+                               </div>
+                            </div>
+                         
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
                                     <span class="font-bold text-sm">Quick Erase</span>
                                     <input type="checkbox" id="speed-delete-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
+                         
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
                                     <span class="font-bold text-sm">AP Shortcut</span>
                                     <input type="checkbox" id="long-press-autoplay-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
+                          
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
                                     <span class="font-bold text-sm">Vol. Gesture 🔊</span>
                                     <input type="checkbox" id="volume-gestures-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
+                         
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
                                     <span class="font-bold text-sm">Speed Gesture ⚡</span>
                                     <input type="checkbox" id="speed-gestures-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
+                          
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
                                     <span class="font-bold text-sm">Delete Gesture 🧹</span>
                                     <input type="checkbox" id="delete-gesture-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
+                         
                             <div class="p-3 rounded-lg border border-custom settings-input">
                                 <div class="flex justify-between items-center h-full">
                                     <span class="font-bold text-sm">Clear Gesture 💥</span>
                                     <input type="checkbox" id="clear-gesture-toggle" class="h-5 w-5 accent-indigo-500">
                                 </div>
                             </div>
-                        </div>
+                    
+                       </div>
                             
                         <div class="grid grid-cols-2 gap-3 pt-2">
                             <div>

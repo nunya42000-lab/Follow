@@ -87,7 +87,7 @@ const DEFAULT_APP = {
   isAutoCounterEnabled: false,
   // -------------------
   isWakeLockEnabled: true,
-  isUpsidedownEnabled: false,
+  isupsidedownEnabled: false,
   isFullScreenEnabled: false,
   isEcoModeEnabled: false,
 
@@ -649,7 +649,7 @@ activeSeqs.forEach((seq, idx) => {
 
 const hMic = document.getElementById('header-mic-btn');
 const hCam = document.getElementById('header-cam-btn');
-const hGest = document.getElementById('header-gesture-btn'); 
+const hGest = document.getElementById('header-voice-btn'); 
 
 // PATCH: Removed legacy sensor hooks for the mic icon
 if(hMic) {
@@ -1008,31 +1008,31 @@ const startApp = () => {
   
   // --- NEW HEADER BUTTON ACTIONS ---
   // Full Screen Header Button Action
-  const headerFullscreenBtn = document.getElementById('header-fullscreen-btn');
-  if (headerFullscreenBtn) {
-      headerFullscreenBtn.onclick = () => {
+  const header-fullscreen-btn = document.getElementById('header-fullscreen-btn');
+  if (header-fullscreen-btn) {
+      header-fullscreen-btn.onclick = () => {
           if (!document.fullscreenElement) {
               document.documentElement.requestFullscreen().catch(err => {
                   console.warn(`Fullscreen error: ${err.message}`);
               });
-              headerFullscreenBtn.classList.add('ring-2', 'ring-emerald-500');
+              header-fullscreen-btn.classList.add('ring-2', 'ring-emerald-500');
           } else {
               document.exitFullscreen();
-              headerFullscreenBtn.classList.remove('ring-2', 'ring-emerald-500');
+              header-fullscreen-btn.classList.remove('ring-2', 'ring-emerald-500');
           }
       };
   }
 
   // Upside Down Header Button Action
-  const headerUpsideDownBtn = document.getElementById('header-upsidedown-btn');
-  if (headerUpsideDownBtn) {
-      headerUpsideDownBtn.onclick = () => {
+  const header-upsidedown-btn = document.getElementById('header-upsidedown-btn');
+  if (header-upsidedown-btn) {
+      header-upsidedown-btn.onclick = () => {
           document.body.classList.toggle('rotate-180');
           if (document.body.classList.contains('rotate-180')) {
-              headerUpsideDownBtn.classList.add('ring-2', 'ring-emerald-500');
+              header-upsidedown-btn.classList.add('ring-2', 'ring-emerald-500');
               showToast("Upside Down Mode: ON 🙃");
           } else {
-              headerUpsideDownBtn.classList.remove('ring-2', 'ring-emerald-500');
+              header-upsidedown-btn.classList.remove('ring-2', 'ring-emerald-500');
               showToast("Upside Down Mode: OFF");
           }
       };
@@ -1384,30 +1384,30 @@ const DEFAULT_HAND_MAPPINGS = {
   'piano_4': 'hand_4_down', 'piano_5': 'hand_5_down'
 };
     // --- NEW: Header Button Logic ---
-    const headerFullscreenBtn = document.getElementById('header-fullscreen-btn');
-    if (headerFullscreenBtn) {
-        headerFullscreenBtn.onclick = () => {
+    const header-fullscreen-btn = document.getElementById('header-fullscreen-btn');
+    if (header-fullscreen-btn) {
+        header-fullscreen-btn.onclick = () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
                     console.warn(`Fullscreen error: ${err.message}`);
                 });
-                headerFullscreenBtn.classList.add('ring-2', 'ring-emerald-500');
+                header-fullscreen-btn.classList.add('ring-2', 'ring-emerald-500');
             } else {
                 document.exitFullscreen();
-                headerFullscreenBtn.classList.remove('ring-2', 'ring-emerald-500');
+                header-fullscreen-btn.classList.remove('ring-2', 'ring-emerald-500');
             }
         };
     }
 
-    const headerUpsideDownBtn = document.getElementById('header-upsidedown-btn');
-    if (headerUpsideDownBtn) {
-        headerUpsideDownBtn.onclick = () => {
+    const header-upsidedown-btn = document.getElementById('header-upsidedown-btn');
+    if (header-upsidedown-btn) {
+        header-upsidedown-btn.onclick = () => {
             document.body.classList.toggle('rotate-180');
             if (document.body.classList.contains('rotate-180')) {
-                headerUpsideDownBtn.classList.add('ring-2', 'ring-emerald-500');
+                header-upsidedown-btn.classList.add('ring-2', 'ring-emerald-500');
                 showToast("Upside Down Mode: ON 🙃");
             } else {
-                headerUpsideDownBtn.classList.remove('ring-2', 'ring-emerald-500');
+                header-upsidedown-btn.classList.remove('ring-2', 'ring-emerald-500');
                 showToast("Upside Down Mode: OFF");
             }
         };
@@ -1705,7 +1705,7 @@ function initGlobalListeners() {
       const headerCounter = document.getElementById('header-counter-btn');
       const headerMic = document.getElementById('header-mic-btn');
       const headerCam = document.getElementById('header-cam-btn');
-      const headerGesture = document.getElementById('header-gesture-btn'); 
+      const headerGesture = document.getElementById('header-voice-btn'); 
       const headerHand = document.getElementById('header-hand-btn');
 
       if(headerHand) {

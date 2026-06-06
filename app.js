@@ -1668,31 +1668,31 @@ function initGlobalListeners() {
       }
       // --- NEW HEADER BUTTON ACTIONS ---
       // Full Screen Header Button Action
-      const headerfullscreenbtn = document.getElementById('header-fullscreen-btn');
-      if (headerfullscreenbtn) {
-      headerfullscreenbtn.onclick = () => {
+      const headerfullscreen = document.getElementById('header-fullscreen-btn');
+      if (headerfullscreen) {
+      headerfullscreen.onclick = () => {
       if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(err => {
       console.warn(`Fullscreen error: ${err.message}`);
       });
-      headerfullscreenbtn.classList.add('ring-2', 'ring-emerald-500');
+      headerfullscreen.classList.add('ring-2', 'ring-emerald-500');
       } else {
       document.exitFullscreen();
-      headerfullscreenbtn.classList.remove('ring-2', 'ring-emerald-500');
+      headerfullscreen.classList.remove('ring-2', 'ring-emerald-500');
       }
       };
       }
       
       // Upside Down Header Button Action
-      const headerupsidedownbtn = document.getElementById('header-upsidedown-btn');
-      if (headerupsidedownbtn) {
-      headerupsidedownbtn.onclick = () => {
+      const headerupsidedown = document.getElementById('header-upsidedown-btn');
+      if (headerupsidedown) {
+      headerupsidedown.onclick = () => {
       document.body.classList.toggle('rotate-180');
       if (document.body.classList.contains('rotate-180')) {
-      headerupsidedownbtn.classList.add('ring-2', 'ring-emerald-500');
+      headerupsidedown.classList.add('ring-2', 'ring-emerald-500');
       showToast("Upside Down Mode: ON 🙃");
       } else {
-      headerupsidedownbtn.classList.remove('ring-2', 'ring-emerald-500');
+      headerupsidedown.classList.remove('ring-2', 'ring-emerald-500');
       showToast("Upside Down Mode: OFF");
       }
       };

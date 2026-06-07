@@ -26,7 +26,7 @@ async function reacquireWakeLock() {
     }
 }
 
-window.upsidedownToggle = async function(enable) {
+window.toggleWakeLock = async function(enable) {
     try {
         if ('wakeLock' in navigator) {
             if (enable) {
@@ -647,9 +647,9 @@ activeSeqs.forEach((seq, idx) => {
     card.appendChild(numGrid); container.appendChild(card); 
 });
 
-const hMic = document.getElementById('headervoicebtn');
-const hCam = document.getElementById('headerarcambtn');
-const hGest = document.getElementById('headertouchbtn'); 
+const hMic = document.getElementById('header-mic-btn');
+const hCam = document.getElementById('header-cam-btn');
+const hGest = document.getElementById('header-gesture-btn'); 
 
 // PATCH: Removed legacy sensor hooks for the mic icon
 if(hMic) {
@@ -1008,39 +1008,39 @@ const startApp = () => {
   
   // --- NEW HEADER BUTTON ACTIONS ---
   // Full Screen Header Button Action
-  const headerfullscreenbtn = document.getElementById('headerfullscreenbtn');
-  if (headerfullscreenbtn) {
-      headerfullscreenbtn.onclick = () => {
+  const headerFullscreenBtn = document.getElementById('header-fullscreen-btn');
+  if (headerFullscreenBtn) {
+      headerFullscreenBtn.onclick = () => {
           if (!document.fullscreenElement) {
               document.documentElement.requestFullscreen().catch(err => {
                   console.warn(`Fullscreen error: ${err.message}`);
               });
-              headerfullscreenbtn.classList.add('ring-2', 'ring-emerald-500');
+              headerFullscreenBtn.classList.add('ring-2', 'ring-emerald-500');
           } else {
               document.exitFullscreen();
-              headerfullscreenbtn.classList.remove('ring-2', 'ring-emerald-500');
+              headerFullscreenBtn.classList.remove('ring-2', 'ring-emerald-500');
           }
       };
   }
 
-
-  const headerupsidedownbtn = document.getElementById('headerupsidedownbtn');
-  if (headerupsidedownbtn) {
-      headerupsidedownbtn.onclick = () => {
+  // Upside Down Header Button Action
+  const headerUpsideDownBtn = document.getElementById('header-upsidedown-btn');
+  if (headerUpsideDownBtn) {
+      headerUpsideDownBtn.onclick = () => {
           document.body.classList.toggle('rotate-180');
           if (document.body.classList.contains('rotate-180')) {
-              headerupsidedownbtn.classList.add('ring-2', 'ring-emerald-500');
+              headerUpsideDownBtn.classList.add('ring-2', 'ring-emerald-500');
               showToast("Upside Down Mode: ON 🙃");
           } else {
-              headerupsidedownbtn.classList.remove('ring-2', 'ring-emerald-500');
+              headerUpsideDownBtn.classList.remove('ring-2', 'ring-emerald-500');
               showToast("Upside Down Mode: OFF");
           }
       };
   }
     
   // 2. Safe WakeLock execution
-  if (appSettings.isWakeLockEnabled && typeof window.wakelockToggle === 'function') {
-      window.wakelockToggle(true);
+  if (appSettings.isWakeLockEnabled && typeof window.toggleWakeLock === 'function') {
+      window.toggleWakeLock(true);
   }
 
   // 4. Initialize Settings
@@ -1180,7 +1180,7 @@ const toneEngine = new ToneEngine((val) => {
               setTimeout(() => btn.classList.remove('flash-active'), 200); 
           }
           
-          const hMic = document.getElementById('headervoicebtn');
+          const hMic = document.getElementById('header-mic-btn');
           if(hMic) {
               hMic.classList.remove('header-btn-active');
               setTimeout(() => { if(voiceModule.isListening) hMic.classList.add('header-btn-active'); }, 300);
@@ -1231,7 +1231,7 @@ const toneEngine = new ToneEngine((val) => {
   renderUI();
 };
 function setupARLogic() {
-  const headerCam = document.getElementById('headerarcambtn');
+  const headerCam = document.getElementById('header-cam-btn');
   const inputFooter = document.getElementById('input-footer');
   const arRecordBtn = document.getElementById('ar-record-btn');
   const arBackgroundVideo = document.getElementById('ar-background-video');
@@ -1290,7 +1290,9 @@ function setupARLogic() {
   }
 
   // Cold Start Check: If toggled ON in settings initially, spin it up instantly
-
+  if (appSettings.isArModeEnabled) {
+      syncARState(true);
+  }
 
   if (headerCam) {
     headerCam.onclick = () => {
@@ -1381,9 +1383,35 @@ const DEFAULT_HAND_MAPPINGS = {
   'piano_1': 'hand_1_down', 'piano_2': 'hand_2_down', 'piano_3': 'hand_3_down',
   'piano_4': 'hand_4_down', 'piano_5': 'hand_5_down'
 };
+    // --- NEW: Header Button Logic ---
+    const headerFullscreenBtn = document.getElementById('header-fullscreen-btn');
+    if (headerFullscreenBtn) {
+        headerFullscreenBtn.onclick = () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.warn(`Fullscreen error: ${err.message}`);
+                });
+                headerFullscreenBtn.classList.add('ring-2', 'ring-emerald-500');
+            } else {
+                document.exitFullscreen();
+                headerFullscreenBtn.classList.remove('ring-2', 'ring-emerald-500');
+            }
+        };
+    }
 
-
-
+    const headerUpsideDownBtn = document.getElementById('header-upsidedown-btn');
+    if (headerUpsideDownBtn) {
+        headerUpsideDownBtn.onclick = () => {
+            document.body.classList.toggle('rotate-180');
+            if (document.body.classList.contains('rotate-180')) {
+                headerUpsideDownBtn.classList.add('ring-2', 'ring-emerald-500');
+                showToast("Upside Down Mode: ON 🙃");
+            } else {
+                headerUpsideDownBtn.classList.remove('ring-2', 'ring-emerald-500');
+                showToast("Upside Down Mode: OFF");
+            }
+        };
+    }
 
 function mapGestureToValue(kind, currentInput) {
   const saved = appSettings.gestureMappings || {};
@@ -1673,12 +1701,12 @@ function initGlobalListeners() {
       }
       
       // --- HEADER BUTTONS ---
-      const headerTimer = document.getElementById('headertimerbtn');
-      const headerCounter = document.getElementById('headercounterbtn');
-      const headerMic = document.getElementById('headervoicebtn');
-      const headerCam = document.getElementById('headerarcambtn');
-      const headerGesture = document.getElementById('headertouchbtn'); 
-      const headerHand = document.getElementById('headerhandbtn');
+      const headerTimer = document.getElementById('header-timer-btn');
+      const headerCounter = document.getElementById('header-counter-btn');
+      const headerMic = document.getElementById('header-mic-btn');
+      const headerCam = document.getElementById('header-cam-btn');
+      const headerGesture = document.getElementById('header-gesture-btn'); 
+      const headerHand = document.getElementById('header-hand-btn');
 
       if(headerHand) {
           headerHand.onclick = () => {
@@ -1697,7 +1725,7 @@ function initGlobalListeners() {
           };
       }
       
-            const headerStealth = document.getElementById('headerbiggerbtn');
+            const headerStealth = document.getElementById('header-stealth-btn');
       if(headerStealth) {
         headerStealth.onclick = () => {
             document.body.classList.toggle('hide-controls');

@@ -290,10 +290,10 @@ export class SettingsManager {
             
             // FIXED: These are now properly formatted as comma-separated object properties
             filterToggles: document.querySelectorAll('.gesture-filter-toggle'),
-            toneCadenceToggle: document.getElementById('toneToggle'),
-            headerbiggerbtn: document.getElementById('header-tone-btn'),
-            headerfullscreenbtn: document.getElementById('headerfullscreenbtn'), 
-            headerupsidedownbtn: document.getElementById('headerupsidedownbtn'),
+            toneCadenceToggle: document.getElementById('tone-cadence-toggle'),
+            toneHeaderBtn: document.getElementById('tone-header-btn'),
+            headerFullscreenBtn: document.getElementById('fullscreen-btn'), 
+            headerUpsideDownBtn: document.getElementById('upsidedown-btn'),
 
             // Voice Preset DOM
 
@@ -313,27 +313,27 @@ export class SettingsManager {
             // Inputs
             input: document.getElementById('input-select'), mode: document.getElementById('mode-select'), practiceMode: document.getElementById('practice-mode-toggle'), machines: document.getElementById('machines-select'), seqLength: document.getElementById('seq-length-select'),
             autoClear: document.getElementById('autoclear-toggle'), autoplay: document.getElementById('autoplay-toggle'), flash: document.getElementById('flash-toggle'),
-            pause: document.getElementById('pause-select'), audio: document.getElementById('audio-toggle'), hapticMorse: document.getElementById('haptic-morse-toggle'), playbackSpeed: document.getElementById('playback-speed-select'), chunk: document.getElementById('chunk-select'), delay: document.getElementById('delay-select'), haptics: document.getElementById('hapticsToggle'), 
-            speedGesturesToggle: document.getElementById('speedToggle'),
-            volumeGesturesToggle: document.getElementById('volgesToggle'),
-            deleteGestureToggle: document.getElementById('deleteToggle'),
-            clearGestureToggle: document.getElementById('clearToggle'),
-            autoTimerToggle: document.getElementById('autotimerToggle'),
-            autoCounterToggle: document.getElementById('autocounterToggle'),
-            arcamToggle: document.getElementById('arcamToggle'),
-            voiceToggle: document.getElementById('voiceToggle'),
+            pause: document.getElementById('pause-select'), audio: document.getElementById('audio-toggle'), hapticMorse: document.getElementById('haptic-morse-toggle'), playbackSpeed: document.getElementById('playback-speed-select'), chunk: document.getElementById('chunk-select'), delay: document.getElementById('delay-select'), haptics: document.getElementById('haptics-toggle'), 
+            speedGesturesToggle: document.getElementById('speed-gestures-toggle'),
+            volumeGesturesToggle: document.getElementById('volume-gestures-toggle'),
+            deleteGestureToggle: document.getElementById('delete-gesture-toggle'),
+            clearGestureToggle: document.getElementById('clear-gesture-toggle'),
+            autoTimerToggle: document.getElementById('auto-timer-toggle'),
+            autoCounterToggle: document.getElementById('auto-counter-toggle'),
+            arModeToggle: document.getElementById('ar-mode-toggle'),
+            voiceInputToggle: document.getElementById('voice-input-toggle'),
             // RENAMED ITEMS BINDINGS
-            speedDelete: document.getElementById('speeddeletToggle'), // "Quick Erase"
-            showWelcome: document.getElementById('introToggle'), 
-            bossToggle: document.getElementById('bossToggle'), // "Boss Mode"
-            biggerToggle: document.getElementById('biggerToggle'), // "Inputs Only"
+            speedDelete: document.getElementById('speed-delete-toggle'), // "Quick Erase"
+            showWelcome: document.getElementById('show-welcome-toggle'), 
+            blackoutToggle: document.getElementById('blackout-toggle'), // "Boss Mode"
+            stealth1KeyToggle: document.getElementById('stealth-1key-toggle'), // "Inputs Only"
             
             // Previously injected, now hardcoded
-            longPressToggle: document.getElementById('apshortcutToggle'), // "AP Shortcut"
-            blackoutGesturesToggle: document.getElementById('bmgToggle'), // "Hand Gestures" (Previously BM Gestures)
-            timerToggle: document.getElementById('timerToggle'),
-            counterToggle: document.getElementById('counterToggle'),
-            gestureToggle: document.getElementById('touchToggle'),
+            longPressToggle: document.getElementById('long-press-autoplay-toggle'), // "AP Shortcut"
+            blackoutGesturesToggle: document.getElementById('blackout-gestures-toggle'), // "Hand Gestures" (Previously BM Gestures)
+            timerToggle: document.getElementById('timer-toggle'),
+            counterToggle: document.getElementById('counter-toggle'),
+            gestureToggle: document.getElementById('gesture-input-toggle'),
             uiScale: document.getElementById('ui-scale-select'), 
             seqSize: document.getElementById('seq-size-select'), 
             seqFontSize: document.getElementById('seq-font-size-select'), // <--- NEW FONT SIZE
@@ -345,7 +345,7 @@ export class SettingsManager {
             contents: document.querySelectorAll('.tab-content'),
 
             helpModal: document.getElementById('help-modal'), setupModal: document.getElementById('game-setup-modal'), shareModal: document.getElementById('share-modal'), closeSetupBtn: document.getElementById('close-game-setup-modal'), quickSettings: document.getElementById('quick-open-settings'), quickHelp: document.getElementById('quick-open-help'),
-            quickAutoplay: document.getElementById('quick-autoplay-toggle'), quickAudio: document.getElementById('quick-audio-toggle'), dontShowWelcome: document.getElementById('dont-introToggle'),
+            quickAutoplay: document.getElementById('quick-autoplay-toggle'), quickAudio: document.getElementById('quick-audio-toggle'), dontShowWelcome: document.getElementById('dont-show-welcome-toggle'),
             quickResizeUp: document.getElementById('quick-resize-up'), quickResizeDown: document.getElementById('quick-resize-down'),
 
             openShareInside: document.getElementById('open-share-button'), closeShareBtn: document.getElementById('close-share'), closeHelpBtn: document.getElementById('close-help'), closeHelpBtnBottom: document.getElementById('close-help-btn-bottom'), openHelpBtn: document.getElementById('open-help-button'), promptDisplay: document.getElementById('prompt-display'), copyPromptBtn: document.getElementById('copy-prompt-btn'), generatePromptBtn: document.getElementById('generate-prompt-btn'),
@@ -378,9 +378,9 @@ export class SettingsManager {
             // --- NEW: General Setting & AR Elements ---
                     
 
-            upsidedownToggle: document.getElementById('upsidedownToggle'),
-            fullscreenToggle: document.getElementById('fullscreenToggle'),
-            ecoToggle: document.getElementById('ecoToggle'),
+            upsideDownToggle: document.getElementById('upsidedown-toggle'),
+            fullScreenToggle: document.getElementById('fullscreen-toggle'),
+            ecoModeToggle: document.getElementById('ecomode-toggle'),
             arSpeedSelect: document.getElementById('ar-speed-select')
         };
         
@@ -430,9 +430,9 @@ export class SettingsManager {
         };
 
         
-        bindToggle(this.dom.wakelockToggle, 'isWakeLockEnabled', () => {
-            if (typeof window.wakelockToggle === 'function') {
-                window.wakelockToggle(this.appSettings.isWakeLockEnabled);
+        bindToggle(this.dom.wakeLockToggle, 'isWakeLockEnabled', () => {
+            if (typeof window.toggleWakeLock === 'function') {
+                window.toggleWakeLock(this.appSettings.isWakeLockEnabled);
             }
         });
                 // INSIDE settings.js -> initListeners()
@@ -455,7 +455,7 @@ export class SettingsManager {
         }
 
 
-        bindToggle(this.dom.ecoToggle, 'isEcoModeEnabled', () => {
+        bindToggle(this.dom.ecoModeToggle, 'isEcoModeEnabled', () => {
             document.body.classList.toggle('eco-mode', this.appSettings.isEcoModeEnabled);
         });
     
@@ -831,49 +831,49 @@ bindMappingEvents() {
 // 1. Settings Menu Toggle
 if (this.dom.toneCadenceToggle) {
     this.dom.toneCadenceToggle.checked = !!this.appSettings.isToneCadenceEnabled;
-	    this.dom.toneCadenceToggle.addEventListener('change', (e) => {
+    this.dom.toneCadenceToggle.addEventListener('change', (e) => {
         this.appSettings.isToneCadenceEnabled = e.target.checked;
         this.callbacks.onSave();
         this.updateHeaderVisibility(); // Triggers the header button to show/hide
     });
 }
-if (this.dom.fullscreenToggle) {
+if (this.dom.fullScreenToggle) {
     // SET INITIAL STATE
-    this.dom.fullscreenToggle.checked = !!this.appSettings.showFullscreenBtn;
+    this.dom.fullScreenToggle.checked = !!this.appSettings.showFullscreenBtn;
     
-    this.dom.fullscreenToggle.onchange = (e) => {
+    this.dom.fullScreenToggle.onchange = (e) => {
         this.appSettings.showFullscreenBtn = e.target.checked;
         this.updateHeaderVisibility();
         this.callbacks.onSave();
     };
 }
 
-if (this.dom.upsidedownToggle) {
+if (this.dom.upsideDownToggle) {
     // SET INITIAL STATE
-    this.dom.upsidedownToggle.checked = !!this.appSettings.showUpsideDownBtn;
+    this.dom.upsideDownToggle.checked = !!this.appSettings.showUpsideDownBtn;
     
-    this.dom.upsidedownToggle.onchange = (e) => {
+    this.dom.upsideDownToggle.onchange = (e) => {
         this.appSettings.showUpsideDownBtn = e.target.checked;
         this.updateHeaderVisibility();
         this.callbacks.onSave();
     };
 }
-if (this.dom.fullscreenToggle) {
+if (this.dom.fullScreenToggle) {
     // SET INITIAL STATE
-    this.dom.fullscreenToggle.checked = !!this.appSettings.showFullscreenBtn;
+    this.dom.fullScreenToggle.checked = !!this.appSettings.showFullscreenBtn;
     
-    this.dom.fullscreenToggle.onchange = (e) => {
+    this.dom.fullScreenToggle.onchange = (e) => {
         this.appSettings.showFullscreenBtn = e.target.checked;
         this.updateHeaderVisibility();
         this.callbacks.onSave();
     };
 }
 
-if (this.dom.upsidedownToggle) {
+if (this.dom.upsideDownToggle) {
     // SET INITIAL STATE
-    this.dom.upsidedownToggle.checked = !!this.appSettings.showUpsideDownBtn;
+    this.dom.upsideDownToggle.checked = !!this.appSettings.showUpsideDownBtn;
     
-    this.dom.upsidedownToggle.onchange = (e) => {
+    this.dom.upsideDownToggle.onchange = (e) => {
         this.appSettings.showUpsideDownBtn = e.target.checked;
         this.updateHeaderVisibility();
         this.callbacks.onSave();
@@ -881,22 +881,22 @@ if (this.dom.upsidedownToggle) {
 }
 
 // 2. Header Button Activation
-if (this.dom.headerbiggerbtn) {
-    this.dom.headerbiggerbtn.addEventListener('click', () => {
-        const isActive = this.dom.headerbiggerbtn.classList.contains('bg-indigo-600');
+if (this.dom.toneHeaderBtn) {
+    this.dom.toneHeaderBtn.addEventListener('click', () => {
+        const isActive = this.dom.toneHeaderBtn.classList.contains('bg-indigo-600');
         
         if (isActive) {
             // Turn off
-            this.dom.headerbiggerbtn.classList.remove('bg-indigo-600', 'text-white');
-            this.dom.headerbiggerbtn.classList.add('bg-indigo-900/40', 'text-indigo-300');
-            this.dom.headerbiggerbtn.textContent = '🎵 Tones Off';
+            this.dom.toneHeaderBtn.classList.remove('bg-indigo-600', 'text-white');
+            this.dom.toneHeaderBtn.classList.add('bg-indigo-900/40', 'text-indigo-300');
+            this.dom.toneHeaderBtn.textContent = '🎵 Tones Off';
             toneEngine.stop();
             showToast("Tone Listening Disabled");
         } else {
             // Turn on
-            this.dom.headerbiggerbtn.classList.add('bg-indigo-600', 'text-white');
-            this.dom.headerbiggerbtn.classList.remove('bg-indigo-900/40', 'text-indigo-300');
-            this.dom.headerbiggerbtn.textContent = '🎵 Tones ON';
+            this.dom.toneHeaderBtn.classList.add('bg-indigo-600', 'text-white');
+            this.dom.toneHeaderBtn.classList.remove('bg-indigo-900/40', 'text-indigo-300');
+            this.dom.toneHeaderBtn.textContent = '🎵 Tones ON';
             toneEngine.start();
             showToast("Listening for Tones...");
         }
@@ -945,24 +945,20 @@ if (this.dom.headerbiggerbtn) {
         // NEW HEADER TOGGLE LISTENERS
         bind(this.dom.timerToggle, 'showTimer', true);
         bind(this.dom.counterToggle, 'showCounter', true);
-                if (this.dom.arcamToggle) {
-            this.dom.arcamToggle.onchange = (e) => {
+        if (this.dom.arModeToggle) {
+            this.dom.arModeToggle.onchange = (e) => {
                 this.appSettings.isArModeEnabled = e.target.checked;
-                this.updateHeaderVisibility(); // Just show/hide the button
                 this.callbacks.onSave();
-            };
-        }
-
                 
                 // FIX: Physically trigger the camera engine to start/stop when the settings toggle is flipped
-                const headerCam = document.getElementById('headerarcambtn');
+                const headerCam = document.getElementById('header-cam-btn');
                 const isActuallyActive = document.body.classList.contains('ar-active');
                 if (headerCam && (e.target.checked !== isActuallyActive)) {
                     headerCam.click();
                 }
             };
         }
-        bind(this.dom.voiceToggle, 'isVoiceInputEnabled', true);
+        bind(this.dom.voiceInputToggle, 'isVoiceInputEnabled', true);
         if (this.dom.mode) { this.dom.mode.onchange = () => { this.appSettings.runtimeSettings.currentMode = this.dom.mode.value; this.callbacks.onSave(); this.callbacks.onUpdate('mode_switch'); this.generatePrompt(); }; }
         if (this.dom.input) this.dom.input.addEventListener('change', () => this.generatePrompt());
         if (this.dom.machines) this.dom.machines.addEventListener('change', () => this.generatePrompt());
@@ -985,8 +981,8 @@ if (this.dom.headerbiggerbtn) {
         bind(this.dom.chunk, 'simonChunkSize', false, true); bind(this.dom.flash, 'isFlashEnabled', true); 
         bind(this.dom.pause, 'pauseSetting', true);
         if (this.dom.delay) this.dom.delay.onchange = (e) => { this.appSettings.runtimeSettings.simonInterSequenceDelay = parseFloat(e.target.value) * 1000; this.callbacks.onSave(); this.generatePrompt(); };
-        bind(this.dom.haptics, 'isHapticsEnabled', true); bind(this.dom.speedDelete, 'isSpeedDeletingEnabled', true); bind(this.dom.biggerToggle, 'isStealth1KeyEnabled', true);
-        bind(this.dom.bossToggle, 'isBlackoutFeatureEnabled', true); 
+        bind(this.dom.haptics, 'isHapticsEnabled', true); bind(this.dom.speedDelete, 'isSpeedDeletingEnabled', true); bind(this.dom.stealth1KeyToggle, 'isStealth1KeyEnabled', true);
+        bind(this.dom.blackoutToggle, 'isBlackoutFeatureEnabled', true); 
         bind(this.dom.speedGesturesToggle, 'isSpeedGesturesEnabled', true);
         bind(this.dom.volumeGesturesToggle, 'isVolumeGesturesEnabled', true);
         bind(this.dom.deleteGestureToggle, 'isDeleteGestureEnabled', true);
@@ -1185,9 +1181,9 @@ if (this.dom.headerbiggerbtn) {
         if (this.dom.voiceVolume) this.dom.voiceVolume.value = this.appSettings.voiceVolume || 1.0;
         if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
         if (this.dom.practiceMode) this.dom.practiceMode.checked = this.appSettings.isPracticeModeEnabled;
-        if (this.dom.biggerToggle) this.dom.biggerToggle.checked = this.appSettings.isStealth1KeyEnabled;
-        if (this.dom.arcamToggle) this.dom.arcamToggle.checked = !!this.appSettings.isArModeEnabled;
-        if (this.dom.voiceToggle) this.dom.voiceToggle.checked = !!this.appSettings.isVoiceInputEnabled;    
+        if (this.dom.stealth1KeyToggle) this.dom.stealth1KeyToggle.checked = this.appSettings.isStealth1KeyEnabled;
+        if (this.dom.arModeToggle) this.dom.arModeToggle.checked = !!this.appSettings.isArModeEnabled;
+        if (this.dom.voiceInputToggle) this.dom.voiceInputToggle.checked = !!this.appSettings.isVoiceInputEnabled;    
         if (this.dom.longPressToggle) this.dom.longPressToggle.checked = (typeof this.appSettings.isLongPressAutoplayEnabled === 'undefined') ? true : this.appSettings.isLongPressAutoplayEnabled;
         if (this.dom.timerToggle) this.dom.timerToggle.checked = !!this.appSettings.showTimer; 
         if (this.dom.counterToggle) this.dom.counterToggle.checked = !!this.appSettings.showCounter; 
@@ -1220,7 +1216,7 @@ if (this.dom.headerbiggerbtn) {
         }
             
         if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
-        if (this.dom.bossToggle) this.dom.bossToggle.checked = this.appSettings.isBlackoutFeatureEnabled;
+        if (this.dom.blackoutToggle) this.dom.blackoutToggle.checked = this.appSettings.isBlackoutFeatureEnabled;
         
         // --- CRITICAL FIX: Map to the correct variable name ---
         if (this.dom.blackoutGesturesToggle) this.dom.blackoutGesturesToggle.checked = !!this.appSettings.isHandGesturesEnabled;
@@ -1251,14 +1247,14 @@ if (this.dom.headerbiggerbtn) {
     // NEW METHOD: Manages the Auto-Hiding Header Bar
     updateHeaderVisibility() {
         const header = document.getElementById('aux-control-header');
-        const timerBtn = document.getElementById('headertimerbtn');
-        const counterBtn = document.getElementById('headercounterbtn');
-        const micBtn = document.getElementById('headervoicebtn');
-        const camBtn = document.getElementById('headerarcambtn');
-        const gestureBtn = document.getElementById('headertouchbtn');
-        const stealthBtn = document.getElementById('headerbiggerbtn');
+        const timerBtn = document.getElementById('header-timer-btn');
+        const counterBtn = document.getElementById('header-counter-btn');
+        const micBtn = document.getElementById('header-mic-btn');
+        const camBtn = document.getElementById('header-cam-btn');
+        const gestureBtn = document.getElementById('header-gesture-btn');
+        const stealthBtn = document.getElementById('header-stealth-btn');
         // New Hand Button
-        const handBtn = document.getElementById('headerhandbtn');
+        const handBtn = document.getElementById('header-hand-btn');
 
         if (!header) return;
 
@@ -1273,20 +1269,20 @@ if (this.dom.headerbiggerbtn) {
         const showHand = !!this.appSettings.isHandGesturesEnabled;
 
         // Unhide Fullscreen Header Button if enabled
-        if (this.dom.headerfullscreenbtn) {
+        if (this.dom.headerFullscreenBtn) {
             if (this.appSettings.showFullscreenBtn) {
-                this.dom.headerfullscreenbtn.classList.remove('hidden');
+                this.dom.headerFullscreenBtn.classList.remove('hidden');
             } else {
-                this.dom.headerfullscreenbtn.classList.add('hidden');
+                this.dom.headerFullscreenBtn.classList.add('hidden');
             }
         }
 
         // Unhide Upside Down Header Button if enabled
-        if (this.dom.headerupsidedownbtn) {
+        if (this.dom.headerUpsideDownBtn) {
             if (this.appSettings.showUpsideDownBtn) {
-                this.dom.headerupsidedownbtn.classList.remove('hidden');
+                this.dom.headerUpsideDownBtn.classList.remove('hidden');
             } else {
-                this.dom.headerupsidedownbtn.classList.add('hidden');
+                this.dom.headerUpsideDownBtn.classList.add('hidden');
             }
         }
 
@@ -1300,8 +1296,8 @@ if (this.dom.headerbiggerbtn) {
         // Toggle new Hand Button
         if(handBtn) handBtn.classList.toggle('hidden', !showHand);
         
-        if (this.dom.headerbiggerbtn) {
-            this.dom.headerbiggerbtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
+        if (this.dom.toneHeaderBtn) {
+            this.dom.toneHeaderBtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
         }
 
         // Check if header should be hidden entirely
@@ -1902,11 +1898,7 @@ const GESTURE_CATEGORIES = {
             'piano_4': { gesture: 'swipe_ne_2f' }, 
             'piano_5': { gesture: 'swipe_right_2f' }
         };
-		this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
+
+        this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
     }
-} = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
-    }
-} || {});
-    }
-}    }
 }

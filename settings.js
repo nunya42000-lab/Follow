@@ -1898,3 +1898,5 @@ const GESTURE_CATEGORIES = {
             'piano_4': { gesture: 'swipe_ne_2f' }, 
             'piano_5': { gesture: 'swipe_right_2f' }
         };
+	}
+}	

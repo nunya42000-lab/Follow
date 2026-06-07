@@ -1898,15 +1898,3 @@ const GESTURE_CATEGORIES = {
             'piano_4': { gesture: 'swipe_ne_2f' }, 
             'piano_5': { gesture: 'swipe_right_2f' }
         };
-
-        this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
-    }
-}          'piano_5': { gesture: 'swipe_right_2f' }
-        };
-
-        this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
-    }
-} || {});
-    }
-}    }
-}

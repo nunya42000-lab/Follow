@@ -945,10 +945,14 @@ if (this.dom.headerbiggerbtn) {
         // NEW HEADER TOGGLE LISTENERS
         bind(this.dom.timerToggle, 'showTimer', true);
         bind(this.dom.counterToggle, 'showCounter', true);
-        if (this.dom.arcamToggle) {
+                if (this.dom.arcamToggle) {
             this.dom.arcamToggle.onchange = (e) => {
                 this.appSettings.isArModeEnabled = e.target.checked;
+                this.updateHeaderVisibility(); // Just show/hide the button
                 this.callbacks.onSave();
+            };
+        }
+
                 
                 // FIX: Physically trigger the camera engine to start/stop when the settings toggle is flipped
                 const headerCam = document.getElementById('headerarcambtn');

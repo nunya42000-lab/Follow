@@ -1290,9 +1290,7 @@ function setupARLogic() {
   }
 
   // Cold Start Check: If toggled ON in settings initially, spin it up instantly
-  if (appSettings.isArModeEnabled) {
-      syncARState(true);
-  }
+
 
   if (headerCam) {
     headerCam.onclick = () => {

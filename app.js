@@ -1803,45 +1803,4 @@ function initGlobalListeners() {
 }
 
 // The final boot trigger
-document.addEventListener('DOMContentLoaded', startApp);stener('DOMContentLoaded', startApp);', startApp);eader-btn-active', isGesturePadVisible);
-              const gpWrap = document.getElementById('gesture-pad-wrapper');
-              if(gpWrap) {
-                  if(isGesturePadVisible) {
-                      gpWrap.classList.remove('hidden');
-                      showToast("Pad Visible 🗒️");
-                  } else {
-                      gpWrap.classList.add('hidden');
-                      showToast("Pad Hidden");
-                  }
-              }
-              renderUI();
-          };
-      }
-      
-    } catch(e) {
-        console.error("Listener Error:", e);
-    }
-}
-
-// The final boot trigger
-document.addEventListener('DOMContentLoaded', startApp);pWrap = document.getElementById('gesture-pad-wrapper');
-              if(gpWrap) {
-                  if(isGesturePadVisible) {
-                      gpWrap.classList.remove('hidden');
-                      showToast("Pad Visible 🗒️");
-                  } else {
-                      gpWrap.classList.add('hidden');
-                      showToast("Pad Hidden");
-                  }
-              }
-              renderUI();
-          };
-      }
-      
-    } catch(e) {
-        console.error("Listener Error:", e);
-    }
-}
-
-// The final boot trigger
 document.addEventListener('DOMContentLoaded', startApp);

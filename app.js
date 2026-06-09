@@ -26,7 +26,7 @@ async function reacquireWakeLock() {
     }
 }
 
-window.toggleWakeLock = async function(enable) {
+window.upsidedownToggle = async function(enable) {
     try {
         if ('wakeLock' in navigator) {
             if (enable) {
@@ -647,9 +647,9 @@ activeSeqs.forEach((seq, idx) => {
     card.appendChild(numGrid); container.appendChild(card); 
 });
 
-const hMic = document.getElementById('header-mic-btn');
-const hCam = document.getElementById('header-cam-btn');
-const hGest = document.getElementById('header-gesture-btn'); 
+const hMic = document.getElementById('headervoicebtn');
+const hCam = document.getElementById('headerarcambtn');
+const hGest = document.getElementById('headertouchbtn'); 
 
 // PATCH: Removed legacy sensor hooks for the mic icon
 if(hMic) {
@@ -1008,39 +1008,39 @@ const startApp = () => {
   
   // --- NEW HEADER BUTTON ACTIONS ---
   // Full Screen Header Button Action
-  const headerFullscreenBtn = document.getElementById('header-fullscreen-btn');
-  if (headerFullscreenBtn) {
-      headerFullscreenBtn.onclick = () => {
+  const headerfullscreenbtn = document.getElementById('headerfullscreenbtn');
+  if (headerfullscreenbtn) {
+      headerfullscreenbtn.onclick = () => {
           if (!document.fullscreenElement) {
               document.documentElement.requestFullscreen().catch(err => {
                   console.warn(`Fullscreen error: ${err.message}`);
               });
-              headerFullscreenBtn.classList.add('ring-2', 'ring-emerald-500');
+              headerfullscreenbtn.classList.add('ring-2', 'ring-emerald-500');
           } else {
               document.exitFullscreen();
-              headerFullscreenBtn.classList.remove('ring-2', 'ring-emerald-500');
+              headerfullscreenbtn.classList.remove('ring-2', 'ring-emerald-500');
           }
       };
   }
 
-  // Upside Down Header Button Action
-  const headerUpsideDownBtn = document.getElementById('header-upsidedown-btn');
-  if (headerUpsideDownBtn) {
-      headerUpsideDownBtn.onclick = () => {
+
+  const headerupsidedownbtn = document.getElementById('headerupsidedownbtn');
+  if (headerupsidedownbtn) {
+      headerupsidedownbtn.onclick = () => {
           document.body.classList.toggle('rotate-180');
           if (document.body.classList.contains('rotate-180')) {
-              headerUpsideDownBtn.classList.add('ring-2', 'ring-emerald-500');
+              headerupsidedownbtn.classList.add('ring-2', 'ring-emerald-500');
               showToast("Upside Down Mode: ON 🙃");
           } else {
-              headerUpsideDownBtn.classList.remove('ring-2', 'ring-emerald-500');
+              headerupsidedownbtn.classList.remove('ring-2', 'ring-emerald-500');
               showToast("Upside Down Mode: OFF");
           }
       };
   }
     
   // 2. Safe WakeLock execution
-  if (appSettings.isWakeLockEnabled && typeof window.toggleWakeLock === 'function') {
-      window.toggleWakeLock(true);
+  if (appSettings.isWakeLockEnabled && typeof window.wakelockToggle === 'function') {
+      window.wakelockToggle(true);
   }
 
   // 4. Initialize Settings
@@ -1087,11 +1087,97 @@ const startApp = () => {
           }
       }
   );
-// This directly pipes the detected cadence tones into your existing input logic
+// ==========================================
+// BULLETPROOF SIMON TONE TRACKER
+// Filters out user echoes & rebuilds the sequence flawlessly
+// ==========================================
+class SmartCadenceTracker {
+    constructor(onNewNote, onReset) {
+        this.onNewNote = onNewNote;
+        this.onReset = onReset;
+        this.knownSeq = [];
+        this.turnIndex = 0;
+        this.lastToneTime = 0;
+        this.countOffBuffer = [];
+        this.TURN_TIMEOUT_MS = 1800; // 1.8 seconds of silence = End of Turn gap
+    }
+
+    handleTone(note) {
+        const now = Date.now();
+        const elapsed = now - this.lastToneTime;
+        this.lastToneTime = now;
+
+        // 1. Turn Boundary Detection (Long pause resets pointer to start of sequence)
+        if (elapsed > this.TURN_TIMEOUT_MS) {
+            this.turnIndex = 0;
+            this.countOffBuffer = []; 
+        }
+
+        // 2. Count-off Detection (1,2,3,4,5,6,7,8,9 in order)
+        this.countOffBuffer.push(note);
+        if (this.countOffBuffer.length > 9) this.countOffBuffer.shift();
+
+        if (this.countOffBuffer.join(',') === "1,2,3,4,5,6,7,8,9") {
+            showToast("Count-Off Complete. Tracking Ready 🎯");
+            this.knownSeq = [];
+            this.turnIndex = 0;
+            this.countOffBuffer = [];
+            this.onReset();
+            return; // Ignore the '9' so it doesn't trigger the UI
+        }
+
+        // 3. Simon Logic: Track overlaps and extract ONLY the new note
+        if (this.turnIndex < this.knownSeq.length) {
+            // We are verifying an existing part of the sequence
+            if (note == this.knownSeq[this.turnIndex]) {
+                // Match! Move forward quietly.
+                this.turnIndex++;
+            } else {
+                // Mismatch!
+                if (this.turnIndex === 0) {
+                    // Mismatch on the FIRST note of a round. This means the game restarted!
+                    showToast("New Sequence Started 🔄");
+                    this.knownSeq = [note];
+                    this.turnIndex = 1;
+                    this.onReset();
+                    this.onNewNote(note);
+                } else {
+                    // Mismatch mid-turn (e.g., user hit wrong button or background noise). 
+                    // Ignore it so the tracker doesn't blow up.
+                    console.log(`Ignored stray tone: expected ${this.knownSeq[this.turnIndex]}, got ${note}`);
+                }
+            }
+        } else if (this.turnIndex === this.knownSeq.length) {
+            // We reached the end of the known sequence. This is a BRAND NEW note!
+            this.knownSeq.push(note);
+            this.turnIndex++;
+            this.onNewNote(note);
+        }
+    }
+}
+
+// Initialize the tracker with our UI hooks
+const smartTracker = new SmartCadenceTracker(
+    (val) => {
+        addValue(val);
+        showToast(`🎵 Tone Added: ${val}`);
+    },
+    () => {
+        // Wipes the board clean for a new game / count-off completion
+        const state = getState();
+        state.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []);
+        state.nextSequenceIndex = 0;
+        state.currentRound = 1;
+        renderUI();
+        saveState();
+    }
+);
+
+// Bind it to the original Tone Engine listener
 const toneEngine = new ToneEngine((val) => {
-    addValue(val); // Injects the number exactly as if a button was tapped
-    showToast(`🎵 Tone Detected: ${val}`);
+    smartTracker.handleTone(val);
 });
+
 
   // 5. Initialize Vision Engine
   let gestureHistory = [];
@@ -1180,7 +1266,7 @@ const toneEngine = new ToneEngine((val) => {
               setTimeout(() => btn.classList.remove('flash-active'), 200); 
           }
           
-          const hMic = document.getElementById('header-mic-btn');
+          const hMic = document.getElementById('headervoicebtn');
           if(hMic) {
               hMic.classList.remove('header-btn-active');
               setTimeout(() => { if(voiceModule.isListening) hMic.classList.add('header-btn-active'); }, 300);
@@ -1242,8 +1328,7 @@ function setupARLogic() {
 
   // Reusable function to handle UI layout synchronization smoothly
   async function syncARState(isTargetActive) {
-      // Sync the state tracking variable directly
-      appSettings.isArModeEnabled = isTargetActive;
+      // We removed the line that overwrote appSettings.isArModeEnabled here!
       
       document.body.classList.toggle('ar-active', isTargetActive);
       if (headerCam) headerCam.classList.toggle('header-btn-active', isTargetActive);
@@ -1289,21 +1374,20 @@ function setupARLogic() {
       }
   }
 
-  // Cold Start Check: If toggled ON in settings initially, spin it up instantly
-  if (appSettings.isArModeEnabled) {
-      syncARState(true);
-  }
+  // (Removed the Cold Start block that used to be here)
 
   if (headerCam) {
     headerCam.onclick = () => {
-        // FIX: Always derive intent from the actual physical screen state, not the data variable
+        // Always derive intent from the actual physical screen state
         const currentToggleState = !document.body.classList.contains('ar-active');
         
         syncARState(currentToggleState);
-        saveState(); 
         showToast(currentToggleState ? "AR Mode: Ready to Record 📸" : "AR Mode OFF");
     };
   }
+
+  // ... (leave the rest of your arRecordBtn and arPlaybackClose logic alone) ...
+
 
 
   if (arRecordBtn) {
@@ -1383,35 +1467,9 @@ const DEFAULT_HAND_MAPPINGS = {
   'piano_1': 'hand_1_down', 'piano_2': 'hand_2_down', 'piano_3': 'hand_3_down',
   'piano_4': 'hand_4_down', 'piano_5': 'hand_5_down'
 };
-    // --- NEW: Header Button Logic ---
-    const headerFullscreenBtn = document.getElementById('header-fullscreen-btn');
-    if (headerFullscreenBtn) {
-        headerFullscreenBtn.onclick = () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.warn(`Fullscreen error: ${err.message}`);
-                });
-                headerFullscreenBtn.classList.add('ring-2', 'ring-emerald-500');
-            } else {
-                document.exitFullscreen();
-                headerFullscreenBtn.classList.remove('ring-2', 'ring-emerald-500');
-            }
-        };
-    }
 
-    const headerUpsideDownBtn = document.getElementById('header-upsidedown-btn');
-    if (headerUpsideDownBtn) {
-        headerUpsideDownBtn.onclick = () => {
-            document.body.classList.toggle('rotate-180');
-            if (document.body.classList.contains('rotate-180')) {
-                headerUpsideDownBtn.classList.add('ring-2', 'ring-emerald-500');
-                showToast("Upside Down Mode: ON 🙃");
-            } else {
-                headerUpsideDownBtn.classList.remove('ring-2', 'ring-emerald-500');
-                showToast("Upside Down Mode: OFF");
-            }
-        };
-    }
+
+
 
 function mapGestureToValue(kind, currentInput) {
   const saved = appSettings.gestureMappings || {};
@@ -1701,12 +1759,12 @@ function initGlobalListeners() {
       }
       
       // --- HEADER BUTTONS ---
-      const headerTimer = document.getElementById('header-timer-btn');
-      const headerCounter = document.getElementById('header-counter-btn');
-      const headerMic = document.getElementById('header-mic-btn');
-      const headerCam = document.getElementById('header-cam-btn');
-      const headerGesture = document.getElementById('header-gesture-btn'); 
-      const headerHand = document.getElementById('header-hand-btn');
+      const headerTimer = document.getElementById('headertimerbtn');
+      const headerCounter = document.getElementById('headercounterbtn');
+      const headerMic = document.getElementById('headervoicebtn');
+      const headerCam = document.getElementById('headerarcambtn');
+      const headerGesture = document.getElementById('headertouchbtn'); 
+      const headerHand = document.getElementById('headerhandbtn');
 
       if(headerHand) {
           headerHand.onclick = () => {
@@ -1725,7 +1783,7 @@ function initGlobalListeners() {
           };
       }
       
-            const headerStealth = document.getElementById('header-stealth-btn');
+            const headerStealth = document.getElementById('headerbiggerbtn');
       if(headerStealth) {
         headerStealth.onclick = () => {
             document.body.classList.toggle('hide-controls');

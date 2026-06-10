@@ -985,18 +985,18 @@ initListeners() {
             };
         }
 
-        if (this.dom.headerbiggerbtn) {
-            this.dom.headerbiggerbtn.addEventListener('click', () => {
-                const isActive = this.dom.headerbiggerbtn.classList.contains('bg-indigo-600');
+        if (this.dom.headertonebtn) {
+            this.dom.headertonebtn.addEventListener('click', () => {
+                const isActive = this.dom.headertonebtn.classList.contains('bg-indigo-600');
                 if (isActive) {
-                    this.dom.headerbiggerbtn.classList.remove('bg-indigo-600', 'text-white');
-                    this.dom.headerbiggerbtn.classList.add('bg-indigo-900/40', 'text-indigo-300');
-                    this.dom.headerbiggerbtn.textContent = '🎵 Tones Off';
+                    this.dom.headertonebtn.classList.remove('bg-indigo-600', 'text-white');
+                    this.dom.headertonebtn.classList.add('bg-indigo-900/40', 'text-indigo-300');
+                    this.dom.headertonebtn.textContent = '🎵 Tones Off';
                     if (typeof toneEngine !== 'undefined') toneEngine.stop();
                 } else {
-                    this.dom.headerbiggerbtn.classList.add('bg-indigo-600', 'text-white');
-                    this.dom.headerbiggerbtn.classList.remove('bg-indigo-900/40', 'text-indigo-300');
-                    this.dom.headerbiggerbtn.textContent = '🎵 Tones ON';
+                    this.dom.headertonebtn.classList.add('bg-indigo-600', 'text-white');
+                    this.dom.headertonebtn.classList.remove('bg-indigo-900/40', 'text-indigo-300');
+                    this.dom.headertonebtn.textContent = '🎵 Tones ON';
                     if (typeof toneEngine !== 'undefined') toneEngine.start();
                 }
             });

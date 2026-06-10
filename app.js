@@ -103,41 +103,6 @@ const DEFAULT_APP = {
   isGestureInputEnabled: false, gestureMappings: {} 
 };
 
-const PREMADE_THEMES = {
-    'default': { name: "Default Dark", bgMain: "#000000", bgCard: "#121212", bubble: "#4f46e5", btn: "#1a1a1a", text: "#e5e5e5" },
-    'light': { name: "Light Mode", bgMain: "#f3f4f6", bgCard: "#ffffff", bubble: "#4f46e5", btn: "#e5e7eb", text: "#111827" },
-    'matrix': { name: "The Matrix", bgMain: "#000000", bgCard: "#0f2b0f", bubble: "#003300", btn: "#001100", text: "#00ff41" },
-    'dracula': { name: "Vampire", bgMain: "#282a36", bgCard: "#44475a", bubble: "#ff5555", btn: "#6272a4", text: "#f8f8f2" },
-    'neon': { name: "Neon City", bgMain: "#0b0014", bgCard: "#180029", bubble: "#d900ff", btn: "#24003d", text: "#00eaff" },
-    'retro': { name: "Retro PC", bgMain: "#fdf6e3", bgCard: "#eee8d5", bubble: "#cb4b16", btn: "#93a1a1", text: "#586e75" },
-    'steampunk': { name: "Steampunk", bgMain: "#100c08", bgCard: "#2b1d16", bubble: "#b87333", btn: "#422a18", text: "#d5c5a3" },
-    'ocean': { name: "Ocean Blue", bgMain: "#0f172a", bgCard: "#1e293b", bubble: "#0ea5e9", btn: "#334155", text: "#e2e8f0" },
-    'cyber': { name: "Cyberpunk", bgMain: "#050505", bgCard: "#1a1625", bubble: "#d946ef", btn: "#2d1b4e", text: "#f0abfc" },
-    'volcano': { name: "Volcano", bgMain: "#1a0505", bgCard: "#450a0a", bubble: "#b91c1c", btn: "#7f1d1d", text: "#fecaca" },
-    'forest': { name: "Deep Forest", bgMain: "#021408", bgCard: "#064e3b", bubble: "#166534", btn: "#14532d", text: "#dcfce7" },
-    'sunset': { name: "Sunset", bgMain: "#1a021c", bgCard: "#701a75", bubble: "#fb923c", btn: "#86198f", text: "#fff7ed" },
-    'halloween': { name: "Halloween 🎃", bgMain: "#1a0500", bgCard: "#2e0a02", bubble: "#ff6600", btn: "#4a1005", text: "#ffbf00" },
-    'liberty': { name: "Liberty 🗽", bgMain: "#0d1b1e", bgCard: "#1c3f44", bubble: "#2e8b57", btn: "#143136", text: "#d4af37" },
-    'shamrock': { name: "Shamrock ☘️", bgMain: "#021a02", bgCard: "#053305", bubble: "#00c92c", btn: "#0a450a", text: "#e0ffe0" },
-    'midnight': { name: "Midnight 🌑", bgMain: "#000000", bgCard: "#111111", bubble: "#3b82f6", btn: "#1f1f1f", text: "#ffffff" },
-    'candy': { name: "Candy 🍬", bgMain: "#260516", bgCard: "#4a0a2f", bubble: "#ff69b4", btn: "#701046", text: "#ffe4e1" },
-    'bumblebee': { name: "Bumblebee 🐝", bgMain: "#1a1600", bgCard: "#332b00", bubble: "#fbbf24", btn: "#4d4100", text: "#ffffff" },
-    'blueprint': { name: "Blueprint 📐", bgMain: "#0f2e52", bgCard: "#1b4d8a", bubble: "#ffffff", btn: "#2563eb", text: "#ffffff" },
-    'rose': { name: "Rose Gold 🌹", bgMain: "#1f1212", bgCard: "#3d2323", bubble: "#e1adac", btn: "#5c3333", text: "#ffe4e1" },
-    'hacker': { name: "Terminal 💻", bgMain: "#0c0c0c", bgCard: "#1a1a1a", bubble: "#00ff00", btn: "#0f380f", text: "#00ff00" },
-    'royal': { name: "Royal 👑", bgMain: "#120024", bgCard: "#2e0059", bubble: "#9333ea", btn: "#4c1d95", text: "#ffd700" }
-};
-
-const PREMADE_VOICE_PRESETS = {
-    'standard': { name: "Standard", pitch: 1.0, rate: 1.0, volume: 1.0 },
-    'speed': { name: "Speed Reader", pitch: 1.0, rate: 1.8, volume: 1.0 },
-    'slow': { name: "Slow Motion", pitch: 0.9, rate: 0.6, volume: 1.0 },
-    'deep': { name: "Deep Voice", pitch: 0.6, rate: 0.9, volume: 1.0 },
-    'high': { name: "Chipmunk", pitch: 1.8, rate: 1.1, volume: 1.0 },
-    'robot': { name: "Robot", pitch: 0.5, rate: 0.8, volume: 1.0 },
-    'announcer': { name: "Announcer", pitch: 0.8, rate: 1.1, volume: 1.0 },
-    'whisper': { name: "Quiet", pitch: 1.2, rate: 0.8, volume: 0.4 }
-};
 // DEFAULT MAPPINGS (Extracted to top level)
 const DEFAULT_MAPPINGS = {
   // 9-Key: Basic Taps
@@ -1604,37 +1569,36 @@ function initGestureEngine() {
               }
           }
       },
-  onContinuous: (data) => {
-  // 1. Log to verify what the engine is actually seeing
-  console.log("Continuous Gesture:", data.type, "Fingers:", data.fingers);
-  
-  // 2. DELETE: 1-Finger Squiggle
-  // Ensure it specifically checks for fingers === 1
-  if (data.type === 'squiggle' && data.fingers === 1) {
-  if (appSettings.isDeleteGestureEnabled) { 
-  handleBackspace(); 
-  showToast("Deleted ⌫"); 
-  vibrate(); 
-  }
-  return;
-  }
-  
-  // 3. CLEAR: 2-Finger Squiggle
-  // Ensure it specifically checks for fingers === 2
-  if (data.type === 'squiggle' && data.fingers === 2) {
-  if (appSettings.isClearGestureEnabled) { 
-  const s = getState(); 
-  s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); 
-  s.nextSequenceIndex = 0; 
-  renderUI(); 
-  saveState(); 
-  showToast("CLEARED 💥"); 
-  vibrate(); 
-  }
-  return;
-  }
-  
-          // ---------------------------------------
+      onContinuous: (data) => {
+    // 1. Log to verify what the engine is actually seeing
+    console.log("Continuous Gesture:", data.type, "Fingers:", data.fingers);
+
+    // 2. DELETE: 1-Finger Squiggle
+    // Ensure it specifically checks for fingers === 1
+    if (data.type === 'squiggle' && data.fingers === 1) {
+        if (appSettings.isDeleteGestureEnabled) { 
+            handleBackspace(); 
+            showToast("Deleted ⌫"); 
+            vibrate(); 
+        }
+        return;
+    }
+
+    // 3. CLEAR: 2-Finger Squiggle
+    // Ensure it specifically checks for fingers === 2
+    if (data.type === 'squiggle' && data.fingers === 2) {
+        if (appSettings.isClearGestureEnabled) { 
+            const s = getState(); 
+            s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); 
+            s.nextSequenceIndex = 0; 
+            renderUI(); 
+            saveState(); 
+            showToast("CLEARED 💥"); 
+            vibrate(); 
+        }
+        return;
+    }
+
 
           if (data.type === 'twist' && data.fingers === 3 && appSettings.isVolumeGesturesEnabled) {
               let newVol = appSettings.voiceVolume || 1.0; newVol += (data.value * 0.05); 
@@ -1643,289 +1607,6 @@ function initGestureEngine() {
           if (data.type === 'twist' && data.fingers === 2 && appSettings.isSpeedGesturesEnabled) {
               let newSpeed = appSettings.playbackSpeed || 1.0; newSpeed += (data.value * 0.05);
               appSettings.playbackSpeed = Math.min(2.0, Math.max(0.5, newSpeed)); saveState(); showToast(`Speed: ${(appSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
-          }
-          if (data.type === 'pinch') {
-              const mode = appSettings.gestureResizeMode || 'global';
-              if (mode === 'none') return;
-              if (!gestureState.isPinching) { gestureState.isPinching = true; gestureState.startGlobal = appSettings.globalUiScale; gestureState.startSeq = appSettings.uiScaleMultiplier; }
-              clearTimeout(gestureState.resetTimer); gestureState.resetTimer = setTimeout(() => { gestureState.isPinching = false; }, 250);
-              if (mode === 'sequence') {
-                  let raw = gestureState.startSeq * data.scale; let newScale = Math.round(raw * 10) / 10;
-                  if (newScale !== appSettings.uiScaleMultiplier) { appSettings.uiScaleMultiplier = Math.min(2.5, Math.max(0.5, newScale)); renderUI(); showToast(`Cards: ${(appSettings.uiScaleMultiplier * 100).toFixed(0)}% 🔍`); }
-              } else {
-                  let raw = gestureState.startGlobal * data.scale; let newScale = Math.round(raw / 10) * 10;
-                  if (newScale !== appSettings.globalUiScale) { appSettings.globalUiScale = Math.min(200, Math.max(50, newScale)); updateAllChrome(); showToast(`UI: ${appSettings.globalUiScale}% 🔍`); }
-              }
-          }
-      }
-  });
-  modules.gestureEngine = engine;
-
-  // Initial Update
-  updateEngineConstraints();
-
-  // Hook into renderUI so constraints update when you switch inputs
-  const originalRender = renderUI;
-  renderUI = function() {
-      originalRender();
-      updateEngineConstraints();
-  };
-}
-
-function initGlobalListeners() {
-  try {
-      // --- BUTTON LISTENERS ---
-      document.querySelectorAll('.btn-pad-number').forEach(b => {
-          const press = (e) => { 
-              if(e) { e.preventDefault(); e.stopPropagation(); } 
-              if(ignoreNextClick) return; 
-              addValue(b.dataset.value); 
-              b.classList.add('flash-active'); 
-              setTimeout(() => b.classList.remove('flash-active'), 150); 
-          };
-          b.addEventListener('mousedown', press); 
-          b.addEventListener('touchstart', press, { passive: false });
-          b.addEventListener('touchend', () => clearTimeout(timers.stealth));
-      });
-
-      document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
-          let wasPlaying = false; let lpTriggered = false;
-          const handleDown = (e) => { 
-              if(e && e.cancelable) { e.preventDefault(); e.stopPropagation(); } 
-              wasPlaying = isDemoPlaying; lpTriggered = false;
-              if(wasPlaying) { isDemoPlaying = false; b.textContent = "▶"; showToast("Playback Stopped 🛑"); return; }
-              if (appSettings.isLongPressAutoplayEnabled) {
-                  timers.longPress = setTimeout(() => {
-                      lpTriggered = true;
-                      appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled;
-                      modules.settings.updateUIFromSettings();
-                      showToast(`Autoplay: ${appSettings.isAutoplayEnabled ? "ON" : "OFF"}`);
-                      ignoreNextClick = true; setTimeout(() => ignoreNextClick = false, 500);
-                  }, 800);
-              }
-          };
-          const handleUp = (e) => {
-              if(e && e.cancelable) { e.preventDefault(); e.stopPropagation(); } 
-              clearTimeout(timers.longPress);
-              if (!wasPlaying && !lpTriggered) { playDemo(); }
-          };
-          b.addEventListener('mousedown', handleDown); b.addEventListener('touchstart', handleDown, { passive: false });
-          b.addEventListener('mouseup', handleUp); b.addEventListener('touchend', handleUp); b.addEventListener('mouseleave', () => clearTimeout(timers.longPress));
-      });
-
-      document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => {
-          b.addEventListener('click', () => { if(confirm("Reset Round Counter to 1?")) { const s = getState(); s.currentRound = 1; s.sequences[0] = []; s.nextSequenceIndex = 0; renderUI(); saveState(); showToast("Reset to Round 1"); } });
-      });
-            document.querySelectorAll('button[data-action="open-settings"]').forEach(b => {
-          b.addEventListener('click', () => { 
-              if(isDemoPlaying) { 
-                  isDemoPlaying = false; 
-                  const pb = document.querySelector('button[data-action="play-demo"]'); 
-                  if(pb) pb.textContent = "▶"; 
-                  showToast("Playback Stopped 🛑"); 
-                  return; 
-              } 
-              modules.settings.openSettings(); 
-          });
-      });
-
-      document.querySelectorAll('button[data-action="backspace"]').forEach(b => {
-          const startDelete = (e) => { 
-              if(e) { e.preventDefault(); e.stopPropagation(); } 
-              handleBackspace(null); 
-              if(!appSettings.isSpeedDeletingEnabled) return; 
-              isDeleting = false; 
-              timers.initialDelay = setTimeout(() => { isDeleting = true; timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL); }, CONFIG.SPEED_DELETE_DELAY); 
-          }; 
-          const stopDelete = () => { clearTimeout(timers.initialDelay); clearInterval(timers.speedDelete); setTimeout(() => isDeleting = false, 50); }; 
-          b.addEventListener('mousedown', startDelete); b.addEventListener('touchstart', startDelete, { passive: false }); b.addEventListener('mouseup', stopDelete); b.addEventListener('mouseleave', stopDelete); b.addEventListener('touchend', stopDelete); b.addEventListener('touchcancel', stopDelete); 
-      });
-
-      if(appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
-      
-      const handlePause = (e) => { if(isDemoPlaying) { isPlaybackPaused = true; showToast("Paused ⏸️"); } };
-      const handleResume = (e) => { if(isPlaybackPaused) { isPlaybackPaused = false; showToast("Resumed ▶️"); if(playbackResumeCallback) { const fn = playbackResumeCallback; playbackResumeCallback = null; fn(); } } };
-      document.body.addEventListener('mousedown', handlePause); document.body.addEventListener('touchstart', handlePause, {passive:true});
-      document.body.addEventListener('mouseup', handleResume); document.body.addEventListener('touchend', handleResume);
-      
-      document.getElementById('close-settings').addEventListener('click', () => { if(appSettings.isPracticeModeEnabled) { setTimeout(startPracticeRound, 500); } });
-
-      // --- BOSS MODE SHAKE & GRID ---
-      let lastX=0, lastY=0, lastZ=0;
-      window.addEventListener('devicemotion', (e) => {
-          if(!appSettings.isBlackoutFeatureEnabled) return; 
-          const acc = e.accelerationIncludingGravity; if(!acc) return;
-          const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
-          
-          if(delta > 25) { 
-              const now = Date.now();
-              if(now - blackoutState.lastShake > 1000) {
-                  blackoutState.isActive = !blackoutState.isActive;
-                  document.body.classList.toggle('blackout-active', blackoutState.isActive);
-                  showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back");
-                  vibrate();
-                  renderUI(); 
-                  blackoutState.lastShake = now;
-              }
-          }
-          lastX = acc.x; lastY = acc.y; lastZ = acc.z;
-      });
-                                                                                                                 
-      const bl = document.getElementById('blackout-layer');
-      if(bl) {
-           bl.addEventListener('touchstart', (e) => {
-               if (appSettings.isBlackoutGesturesEnabled) return;
-               if (e.touches.length === 1) {
-                   e.preventDefault(); 
-                   const t = e.touches[0]; const w = window.innerWidth; const h = window.innerHeight;
-                   let col = Math.floor(t.clientX / (w / 3)); if (col > 2) col = 2;
-                   const settings = getProfileSettings();
-                   let val = null;
-                   if (settings.currentInput === 'key9') {
-                       let row = Math.floor(t.clientY / (h / 3)); if (row > 2) row = 2;
-                       val = (row * 3) + col + 1;
-                   } else {
-                       let row = Math.floor(t.clientY / (h / 4)); if (row > 3) row = 3;
-                       const index = (row * 3) + col; 
-                       if (settings.currentInput === 'piano') {
-                           const map = ['1','2','3', '4','5','C', 'D','E','F', 'G','A','B']; val = map[index];
-                       } else { val = index + 1; }
-                   }
-                   if (val !== null) { addValue(val.toString()); if(navigator.vibrate) navigator.vibrate(20); }
-               }
-           }, { passive: false });
-      }
-      
-      // --- HEADER BUTTONS ---
-      const headerTimer = document.getElementById('headertimerbtn');
-      const headerCounter = document.getElementById('headercounterbtn');
-      const headerMic = document.getElementById('headervoicebtn');
-      const headerCam = document.getElementById('headerarcambtn');
-      const headerGesture = document.getElementById('headertouchbtn'); 
-      const headerHand = document.getElementById('headerhandbtn');
-
-      if(headerHand) {
-          headerHand.onclick = () => {
-              if(!modules.vision) return;
-              
-              // Toggle State
-              const isActive = !modules.vision.isActive;
-              
-              if (isActive) {
-                  modules.vision.start();
-                  headerHand.classList.add('header-btn-active');
-              } else {
-                  modules.vision.stop();
-                  headerHand.classList.remove('header-btn-active');
-              }
-          };
-      }
-      
-            const headerStealth = document.getElementById('headerbiggerbtn');
-      if(headerStealth) {
-        headerStealth.onclick = () => {
-            document.body.classList.toggle('hide-controls');
-            const isActive = document.body.classList.contains('hide-controls');
-            headerStealth.classList.toggle('header-btn-active', isActive);
-            showToast(isActive ? "Bigger Buttons Active" : "Controls Visible");
-            
-            // Force layout recalculation for the new huge buttons
-            setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
-        };
-      }
-
-      
-      if(headerTimer) {
-          headerTimer.textContent = "00:00"; 
-          headerTimer.style.fontSize = "0.75rem"; 
-          const formatTime = (ms) => {
-              const totalSec = Math.floor(ms / 1000); const m = Math.floor(totalSec / 60); const s = totalSec % 60;
-              return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-          };
-          const updateTimer = () => {
-              const now = Date.now(); const diff = now - simpleTimer.startTime + simpleTimer.elapsed;
-              headerTimer.textContent = formatTime(diff);
-          };
-          globalTimerActions.start = () => {
-              if(!simpleTimer.isRunning) {
-                  simpleTimer.startTime = Date.now();
-                  simpleTimer.interval = setInterval(updateTimer, 100);
-                  simpleTimer.isRunning = true;
-              }
-          };
-          globalTimerActions.stop = () => {
-              if(simpleTimer.isRunning) {
-                  clearInterval(simpleTimer.interval);
-                  simpleTimer.elapsed += Date.now() - simpleTimer.startTime;
-                  simpleTimer.isRunning = false;
-              }
-          };
-          globalTimerActions.reset = () => {
-              clearInterval(simpleTimer.interval);
-              simpleTimer.isRunning = false;
-              simpleTimer.elapsed = 0;
-              headerTimer.textContent = "00:00";
-          };
-          const toggleTimer = () => {
-              if(simpleTimer.isRunning) globalTimerActions.stop(); else globalTimerActions.start();
-              vibrate();
-          };
-          const resetTimer = () => { globalTimerActions.reset(); showToast("Timer Reset"); vibrate(); };
-          let tTimer; let tIsLong = false;
-          const startT = (e) => { if(e.type === 'mousedown' && e.button !== 0) return; tIsLong = false; tTimer = setTimeout(() => { tIsLong = true; resetTimer(); }, 600); };
-          const endT = (e) => { if(e) e.preventDefault(); clearTimeout(tTimer); if(!tIsLong) toggleTimer(); };
-          headerTimer.addEventListener('mousedown', startT); headerTimer.addEventListener('touchstart', startT, {passive:true});
-          headerTimer.addEventListener('mouseup', endT); headerTimer.addEventListener('touchend', endT); headerTimer.addEventListener('mouseleave', () => clearTimeout(tTimer));
-      }
-
-      if(headerCounter) {
-          headerCounter.textContent = simpleCounter.toString(); headerCounter.style.fontSize = "1.2rem";
-          const updateCounter = () => { headerCounter.textContent = simpleCounter; };
-          globalCounterActions.increment = () => { simpleCounter++; updateCounter(); };
-          globalCounterActions.reset = () => { simpleCounter = 0; updateCounter(); };
-          const increment = () => { globalCounterActions.increment(); vibrate(); };
-          const resetCounter = () => { globalCounterActions.reset(); showToast("Counter Reset"); vibrate(); };
-          let cTimer; let cIsLong = false;
-          const startC = (e) => { if(e.type === 'mousedown' && e.button !== 0) return; cIsLong = false; cTimer = setTimeout(() => { cIsLong = true; resetCounter(); }, 600); };
-          const endC = (e) => { if(e) e.preventDefault(); clearTimeout(cTimer); if(!cIsLong) increment(); };
-          headerCounter.addEventListener('mousedown', startC); headerCounter.addEventListener('touchstart', startC, {passive:true});
-          headerCounter.addEventListener('mouseup', endC); headerCounter.addEventListener('touchend', endC); headerCounter.addEventListener('mouseleave', () => clearTimeout(cTimer));
-      }
-
-      if(headerMic) { 
-          headerMic.onclick = () => { 
-              if(!voiceModule) return;
-              const isActive = !voiceModule.isListening;
-              voiceModule.toggle(isActive);
-              headerMic.classList.toggle('header-btn-active', isActive);
-          }; 
-      }
-
-      if(headerGesture) {
-          headerGesture.onclick = () => {
-              isGesturePadVisible = !isGesturePadVisible;
-              headerGesture.classList.toggle('header-btn-active', isGesturePadVisible);
-              const gpWrap = document.getElementById('gesture-pad-wrapper');
-              if(gpWrap) {
-                  if(isGesturePadVisible) {
-                      gpWrap.classList.remove('hidden');
-                      showToast("Pad Visible 🗒️");
-                  } else {
-                      gpWrap.classList.add('hidden');
-                      showToast("Pad Hidden");
-                  }
-              }
-              renderUI();
-          };
-      }
-      
-    } catch(e) {
-        console.error("Listener Error:", e);
-    }
-}
-
-// The final boot trigger
-document.addEventListener('DOMContentLoaded', startApp);howToast(`Speed: ${(appSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
           }
           if (data.type === 'pinch') {
               const mode = appSettings.gestureResizeMode || 'global';

@@ -1470,47 +1470,6 @@ updateHeaderVisibility() {
     }
 }
 
-updateHeaderVisibility() {
-    const header = document.getElementById('aux-control-header');
-    if (!header) return;
-
-    // Toggle hidden classes based strictly on appSettings properties
-    if (this.dom.headertimerbtn) this.dom.headertimerbtn.classList.toggle('hidden', !this.appSettings.showTimer);
-    if (this.dom.headercounterbtn) this.dom.headercounterbtn.classList.toggle('hidden', !this.appSettings.showCounter);
-    if (this.dom.headervoicebtn) this.dom.headervoicebtn.classList.toggle('hidden', !this.appSettings.isVoiceInputEnabled);
-    if (this.dom.headertonebtn) this.dom.headertonebtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
-    if (this.dom.headertouchbtn) this.dom.headertouchbtn.classList.toggle('hidden', !this.appSettings.isGestureInputEnabled);
-    if (this.dom.headerhandbtn) this.dom.headerhandbtn.classList.toggle('hidden', !this.appSettings.isHandGesturesEnabled);
-    if (this.dom.headerarcambtn) this.dom.headerarcambtn.classList.toggle('hidden', !this.appSettings.isArModeEnabled);
-    if (this.dom.headerbiggerbtn) this.dom.headerbiggerbtn.classList.toggle('hidden', !this.appSettings.isStealth1KeyEnabled);
-    if (this.dom.headerfullscreenbtn) this.dom.headerfullscreenbtn.classList.toggle('hidden', !this.appSettings.showFullscreenBtn);
-    if (this.dom.headerupsidedownbtn) this.dom.headerupsidedownbtn.classList.toggle('hidden', !this.appSettings.showUpsideDownBtn);
-
-    // Check if AT LEAST ONE header button is supposed to be visible
-    const anyVisible = [
-        this.appSettings.showTimer, 
-        this.appSettings.showCounter, 
-        this.appSettings.isVoiceInputEnabled,
-        this.appSettings.isToneCadenceEnabled, 
-        this.appSettings.isGestureInputEnabled, 
-        this.appSettings.isHandGesturesEnabled, 
-        this.appSettings.isArModeEnabled, 
-        this.appSettings.isStealth1KeyEnabled, 
-        this.appSettings.showFullscreenBtn, 
-        this.appSettings.showUpsideDownBtn
-    ].some(val => !!val);
-
-    // Hide or show the entire header container based on if it's empty
-    if (!anyVisible) {
-        header.classList.add('header-hidden');
-        header.classList.remove('pointer-events-auto'); // Ensures it doesn't block clicks when invisible
-    } else {
-        header.classList.remove('header-hidden');
-        header.classList.add('pointer-events-auto');
-    }
-}
-
-
     hexToHsl(hex) { 
         let r = 0, g = 0, b = 0; 
         if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } 
@@ -1997,6 +1956,61 @@ updateHeaderVisibility() {
                     const speed = this.appSettings.playbackSpeed || 1.0;
                     const factor = 1.0 / speed; 
                     const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor;
+                    
+                    for (let char of sel.value) {
+                        if(char === '.') pattern.push(DOT);
+                        if(char === '-') pattern.push(DASH);
+                        pattern.push(GAP);
+                    }
+                    if(pattern.length) navigator.vibrate(pattern);
+                }
+            };
+        });
+    }
+
+    applyDefaultGestureMappings() {
+        this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
+        
+        const defaults = {
+            'k9_1': { gesture: 'tap' }, 
+            'k9_2': { gesture: 'double_tap' }, 
+            'k9_3': { gesture: 'triple_tap' }, 
+            'k9_4': { gesture: 'tap_2f_any' }, 
+            'k9_5': { gesture: 'double_tap_2f_any' }, 
+            'k9_6': { gesture: 'triple_tap_2f_any' }, 
+            'k9_7': { gesture: 'tap_3f_any' }, 
+            'k9_8': { gesture: 'double_tap_3f_any' }, 
+            'k9_9': { gesture: 'triple_tap_3f_any' },
+
+            'k12_1': { gesture: 'tap' }, 
+            'k12_2': { gesture: 'double_tap' }, 
+            'k12_3': { gesture: 'triple_tap' }, 
+            'k12_4': { gesture: 'long_tap' }, 
+            'k12_5': { gesture: 'tap_2f_any' }, 
+            'k12_6': { gesture: 'double_tap_2f_any' }, 
+            'k12_7': { gesture: 'triple_tap_2f_any' }, 
+            'k12_8': { gesture: 'long_tap_2f_any' }, 
+            'k12_9': { gesture: 'tap_3f_any' }, 
+            'k12_10': { gesture: 'double_tap_3f_any' }, 
+            'k12_11': { gesture: 'triple_tap_3f_any' }, 
+            'k12_12': { gesture: 'long_tap_3f_any' },
+
+            'piano_C': { gesture: 'swipe_nw' }, 
+            'piano_D': { gesture: 'swipe_left' }, 
+            'piano_E': { gesture: 'swipe_sw' }, 
+            'piano_F': { gesture: 'swipe_down' }, 
+            'piano_G': { gesture: 'swipe_se' }, 
+            'piano_A': { gesture: 'swipe_right' }, 
+            'piano_B': { gesture: 'swipe_ne' }, 
+            'piano_1': { gesture: 'swipe_left_2f' }, 
+            'piano_2': { gesture: 'swipe_nw_2f' }, 
+            'piano_3': { gesture: 'swipe_up_2f' }, 
+            'piano_4': { gesture: 'swipe_ne_2f' }, 
+            'piano_5': { gesture: 'swipe_right_2f' }
+        };
+        this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
+    }
+}ctor, GAP = 100 * factor;
                     
                     for (let char of sel.value) {
                         if(char === '.') pattern.push(DOT);

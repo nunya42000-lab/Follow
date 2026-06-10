@@ -263,113 +263,110 @@ const LANG = {
     }
 };
 
-export class SettingsManager {    
-    constructor(appSettings, callbacks) {
+export class SettingsManager {
+    
+    // FIXED: Class methods must go outside the constructor!
+    bindGestureFilters() {
+        if (!this.dom.filterToggles) return;
+        this.dom.filterToggles.forEach(toggle => {
+            toggle.addEventListener('change', () => {
+                // Re-run the mapping population engine whenever a box is toggled
+                this.populateMappingUI();
+            });
+        });
+    }
+
+    constructor(appSettings, callbacks, sensorEngine) {
         this.appSettings = appSettings;
         this.callbacks = callbacks;
+        this.sensorEngine = sensorEngine;
         this.currentTargetKey = 'bubble';
 
-this.dom = {
-    // -- Toggles (Matching your 26 grid items exactly) --
-    timerToggle: document.getElementById('timerToggle'),
-    autotimerToggle: document.getElementById('autotimerToggle'),
-    counterToggle: document.getElementById('counterToggle'),
-    autocounterToggle: document.getElementById('autocounterToggle'),
-    hapticsToggle: document.getElementById('hapticsToggle'),
-    introToggle: document.getElementById('introToggle'),
-    upsidedownToggle: document.getElementById('upsidedownToggle'),
-    fullscreenToggle: document.getElementById('fullscreenToggle'),
-    ecoToggle: document.getElementById('ecoToggle'),
-    wakelockToggle: document.getElementById('wakelockToggle'),
-    voiceToggle: document.getElementById('voiceToggle'),
-    voicecommandsToggle: document.getElementById('voicecommandsToggle'),
-    toneToggle: document.getElementById('toneToggle'),
-    touchToggle: document.getElementById('touchToggle'),
-    bossToggle: document.getElementById('bossToggle'),
-    newToggle: document.getElementById('newToggle'),
-    biggerToggle: document.getElementById('biggerToggle'),
-    arcamToggle: document.getElementById('arcamToggle'),
-    handToggle: document.getElementById('handToggle'),
-    handsignalsToggle: document.getElementById('handsignalsToggle'),
-    speeddeleteToggle: document.getElementById('speeddeleteToggle'),
-    apshortcutToggle: document.getElementById('apshortcutToggle'),
-    volgesToggle: document.getElementById('volgesToggle'),
-    speedToggle: document.getElementById('speedToggle'),
-    deleteToggle: document.getElementById('deleteToggle'),
-    clearToggle: document.getElementById('clearToggle'),
-    
-    // -- Header Buttons (Matching your 10 header items exactly) --
-    headertimerbtn: document.getElementById('headertimerbtn'),
-    headercounterbtn: document.getElementById('headercounterbtn'),
-    headervoicebtn: document.getElementById('headervoicebtn'),
-    headertonebtn: document.getElementById('headertonebtn'),
-    headertouchbtn: document.getElementById('headertouchbtn'),
-    headerhandbtn: document.getElementById('headerhandbtn'),
-    headerarcambtn: document.getElementById('headerarcambtn'),
-    headerbiggerbtn: document.getElementById('headerbiggerbtn'),
-    headerfullscreenbtn: document.getElementById('headerfullscreenbtn'),
-    headerupsidedownbtn: document.getElementById('headerupsidedownbtn'),          
-            // Voice Settings
+        // 2. Build the DOM cache
+        this.dom = {
+            editorModal: document.getElementById('theme-editor-modal'), editorGrid: document.getElementById('color-grid'), ftContainer: document.getElementById('fine-tune-container'), ftToggle: document.getElementById('toggle-fine-tune'), ftPreview: document.getElementById('fine-tune-preview'), ftHue: document.getElementById('ft-hue'), ftSat: document.getElementById('ft-sat'), ftLit: document.getElementById('ft-lit'),
+            targetBtns: document.querySelectorAll('.target-btn'), edName: document.getElementById('theme-name-input'), edPreview: document.getElementById('theme-preview-box'), edPreviewBtn: document.getElementById('preview-btn'), edPreviewCard: document.getElementById('preview-card'), edSave: document.getElementById('save-theme-btn'), edCancel: document.getElementById('cancel-theme-btn'),
+            openEditorBtn: document.getElementById('open-theme-editor'),
+            
+            // FIXED: These are now properly formatted as comma-separated object properties
+            filterToggles: document.querySelectorAll('.gesture-filter-toggle'),
+            toneCadenceToggle: document.getElementById('toneToggle'),
+            headerbiggerbtn: document.getElementById('header-tone-btn'),
+            headerfullscreenbtn: document.getElementById('headerfullscreenbtn'), 
+            headerupsidedownbtn: document.getElementById('headerupsidedownbtn'),
+
+            // Voice Preset DOM
+
+
+            // Voice Preset DOM
             voicePresetSelect: document.getElementById('voice-preset-select'),
             voicePresetAdd: document.getElementById('voice-preset-add'),
             voicePresetSave: document.getElementById('voice-preset-save'),
             voicePresetRename: document.getElementById('voice-preset-rename'),
             voicePresetDelete: document.getElementById('voice-preset-delete'),
-            voicePitch: document.getElementById('voice-pitch'), 
-            voiceRate: document.getElementById('voice-rate'), 
-            voiceVolume: document.getElementById('voice-volume'), 
-            voiceTestBtn: document.getElementById('test-voice-btn'),
-            voiceTriggerSelect: document.getElementById('voice-trigger-select'),
+
+            voicePitch: document.getElementById('voice-pitch'), voiceRate: document.getElementById('voice-rate'), voiceVolume: document.getElementById('voice-volume'), voiceTestBtn: document.getElementById('test-voice-btn'),
+
+            settingsModal: document.getElementById('settings-modal'), themeSelect: document.getElementById('theme-select'), themeAdd: document.getElementById('theme-add'), themeRename: document.getElementById('theme-rename'), themeDelete: document.getElementById('theme-delete'), themeSave: document.getElementById('theme-save'),
+            configSelect: document.getElementById('config-select'), quickConfigSelect: document.getElementById('quick-config-select'), configAdd: document.getElementById('config-add'), configRename: document.getElementById('config-rename'), configDelete: document.getElementById('config-delete'), configSave: document.getElementById('config-save'),
+
+            // Inputs
+            input: document.getElementById('input-select'), mode: document.getElementById('mode-select'), practiceMode: document.getElementById('practice-mode-toggle'), machines: document.getElementById('machines-select'), seqLength: document.getElementById('seq-length-select'),
+            autoClear: document.getElementById('autoclear-toggle'), autoplay: document.getElementById('autoplay-toggle'), flash: document.getElementById('flash-toggle'),
+            pause: document.getElementById('pause-select'), audio: document.getElementById('audio-toggle'), hapticMorse: document.getElementById('haptic-morse-toggle'), playbackSpeed: document.getElementById('playback-speed-select'), chunk: document.getElementById('chunk-select'), delay: document.getElementById('delay-select'), haptics: document.getElementById('hapticsToggle'), 
+            speedGesturesToggle: document.getElementById('speedToggle'),
+            volumeGesturesToggle: document.getElementById('volgesToggle'),
+            deleteGestureToggle: document.getElementById('deleteToggle'),
+            clearGestureToggle: document.getElementById('clearToggle'),
+            autoTimerToggle: document.getElementById('autotimerToggle'),
+            autoCounterToggle: document.getElementById('autocounterToggle'),
+            arcamToggle: document.getElementById('arcamToggle'),
+            voiceToggle: document.getElementById('voiceToggle'),
+            // RENAMED ITEMS BINDINGS
+            speedDelete: document.getElementById('speeddeletToggle'), // "Quick Erase"
+            showWelcome: document.getElementById('introToggle'), 
+            bossToggle: document.getElementById('bossToggle'), // "Boss Mode"
+            biggerToggle: document.getElementById('biggerToggle'), // "Inputs Only"
             
-            // Selects & Modals
-            settingsModal: document.getElementById('settings-modal'), 
-            themeSelect: document.getElementById('theme-select'), 
-            themeAdd: document.getElementById('theme-add'), 
-            themeRename: document.getElementById('theme-rename'), 
-            themeDelete: document.getElementById('theme-delete'), 
-            themeSave: document.getElementById('theme-save'),
-            configSelect: document.getElementById('config-select'), 
-            quickConfigSelect: document.getElementById('quick-config-select'), 
-            configAdd: document.getElementById('config-add'), 
-            configRename: document.getElementById('config-rename'), 
-            configDelete: document.getElementById('config-delete'), 
-            configSave: document.getElementById('config-save'),
-            input: document.getElementById('input-select'), 
-            mode: document.getElementById('mode-select'), 
-            machines: document.getElementById('machines-select'), 
-            seqLength: document.getElementById('seq-length-select'),
-            pause: document.getElementById('pause-select'), 
-            playbackSpeed: document.getElementById('playback-speed-select'), 
-            arSpeedSelect: document.getElementById('ar-speed-select'),
-            chunk: document.getElementById('chunk-select'), 
-            delay: document.getElementById('delay-select'), 
+            // Previously injected, now hardcoded
+            longPressToggle: document.getElementById('apshortcutToggle'), // "AP Shortcut"
+            blackoutGesturesToggle: document.getElementById('bmgToggle'), // "Hand Gestures" (Previously BM Gestures)
+            timerToggle: document.getElementById('timerToggle'),
+            counterToggle: document.getElementById('counterToggle'),
+            gestureToggle: document.getElementById('touchToggle'),
             uiScale: document.getElementById('ui-scale-select'), 
             seqSize: document.getElementById('seq-size-select'), 
-            seqFontSize: document.getElementById('seq-font-size-select'), 
-            gestureMode: document.getElementById('gesture-mode-select'), 
-            quickLang: document.getElementById('quick-lang-select'), 
-            generalLang: document.getElementById('general-lang-select'), 
-            autoInput: document.getElementById('auto-input-select'), // Added based on autoInput logic
-            closeSettingsBtn: document.getElementById('close-settings'),
+            seqFontSize: document.getElementById('seq-font-size-select'), // <--- NEW FONT SIZE
+            gestureMode: document.getElementById('gesture-mode-select'), autoInput: document.getElementById('auto-input-select'),
+            quickLang: document.getElementById('quick-lang-select'), generalLang: document.getElementById('general-lang-select'), closeSettingsBtn: document.getElementById('close-settings'),
+
+            // TABS
             tabs: document.querySelectorAll('.tab-btn'),
             contents: document.querySelectorAll('.tab-content'),
+
+            helpModal: document.getElementById('help-modal'), setupModal: document.getElementById('game-setup-modal'), shareModal: document.getElementById('share-modal'), closeSetupBtn: document.getElementById('close-game-setup-modal'), quickSettings: document.getElementById('quick-open-settings'), quickHelp: document.getElementById('quick-open-help'),
+            quickAutoplay: document.getElementById('quick-autoplay-toggle'), quickAudio: document.getElementById('quick-audio-toggle'), dontShowWelcome: document.getElementById('dont-introToggle'),
+            quickResizeUp: document.getElementById('quick-resize-up'), quickResizeDown: document.getElementById('quick-resize-down'),
+
+            openShareInside: document.getElementById('open-share-button'), closeShareBtn: document.getElementById('close-share'), closeHelpBtn: document.getElementById('close-help'), closeHelpBtnBottom: document.getElementById('close-help-btn-bottom'), openHelpBtn: document.getElementById('open-help-button'), promptDisplay: document.getElementById('prompt-display'), copyPromptBtn: document.getElementById('copy-prompt-btn'), generatePromptBtn: document.getElementById('generate-prompt-btn'),
+			restoreBtn: document.querySelector('button[data-action="restore-defaults"]'),
+			nukeBtn: document.querySelector('button[data-action="nuke-app"]'), // <--- ADD THIS LINE
+            calibModal: document.getElementById('calibration-modal'), openCalibBtn: document.getElementById('open-calibration-btn'), closeCalibBtn: document.getElementById('close-calibration-btn'), calibAudioSlider: document.getElementById('calib-audio-slider'), calibCamSlider: document.getElementById('calib-cam-slider'), calibAudioBar: document.getElementById('calib-audio-bar'), calibCamBar: document.getElementById('calib-cam-bar'), calibAudioMarker: document.getElementById('calib-audio-marker'), calibCamMarker: document.getElementById('calib-cam-marker'), calibAudioVal: document.getElementById('audio-val-display'), calibCamVal: document.getElementById('cam-val-display'),
+            redeemModal: document.getElementById('redeem-modal'), 
+            openRedeemBtn: document.getElementById('open-redeem-btn'), 
+            closeRedeemBtn: document.getElementById('close-redeem-btn'),
+            redeemImg: document.getElementById('redeem-img'),
+            redeemPlus: document.getElementById('redeem-zoom-in'),
+            redeemMinus: document.getElementById('redeem-zoom-out'),
+
+            openDonateBtn: document.getElementById('open-donate-btn'),
+            openRedeemSettingsBtn: document.getElementById('open-redeem-btn-settings'),
+
+            donateModal: document.getElementById('donate-modal'), closeDonateBtn: document.getElementById('close-donate-btn'),
+            btnCashMain: document.getElementById('btn-cashapp-main'), btnPaypalMain: document.getElementById('btn-paypal-main'),
+            copyLinkBtn: document.getElementById('copy-link-button'), nativeShareBtn: document.getElementById('native-share-button'),
+            chatShareBtn: document.getElementById('chat-share-button'), emailShareBtn: document.getElementById('email-share-button'),
             
-            // Help & Setup Modals
-            helpModal: document.getElementById('help-modal'), 
-            setupModal: document.getElementById('game-setup-modal'), 
-            closeSetupBtn: document.getElementById('close-game-setup-modal'), 
-            quickSettings: document.getElementById('quick-open-settings'), 
-            quickHelp: document.getElementById('quick-open-help'),
-            quickResizeUp: document.getElementById('quick-resize-up'), 
-            quickResizeDown: document.getElementById('quick-resize-down'),
-            closeHelpBtn: document.getElementById('close-help'), 
-            closeHelpBtnBottom: document.getElementById('close-help-btn-bottom'), 
-            openHelpBtn: document.getElementById('open-help-button'), 
-            promptDisplay: document.getElementById('prompt-display'), 
-            copyPromptBtn: document.getElementById('copy-prompt-btn'), 
-            generatePromptBtn: document.getElementById('generate-prompt-btn'),
-            
-            // Mapping Containers & Sliders
             mapping9Container: document.getElementById('mapping-9-container'),
             mapping12Container: document.getElementById('mapping-12-container'),
             mappingPianoContainer: document.getElementById('mapping-piano-container'),
@@ -377,32 +374,16 @@ this.dom = {
             gestureSwipeSlider: document.getElementById('gesture-swipe-slider'),
             gestureTapVal: document.getElementById('gesture-tap-val'),
             gestureSwipeVal: document.getElementById('gesture-swipe-val'),
+            voiceTriggerSelect: document.getElementById('voice-trigger-select'),
             
-            // Share & Socials
-            shareModal: document.getElementById('share-modal'), 
-            openShareInside: document.getElementById('open-share-button'), 
-            closeShareBtn: document.getElementById('close-share'), 
-            redeemModal: document.getElementById('redeem-modal'), 
-            openRedeemBtn: document.getElementById('open-redeem-btn'), 
-            closeRedeemBtn: document.getElementById('close-redeem-btn'),
-            redeemImg: document.getElementById('redeem-img'),
-            redeemPlus: document.getElementById('redeem-zoom-in'),
-            redeemMinus: document.getElementById('redeem-zoom-out'),
-            openDonateBtn: document.getElementById('open-donate-btn'),
-            openRedeemSettingsBtn: document.getElementById('open-redeem-btn-settings'),
-            donateModal: document.getElementById('donate-modal'), 
-            closeDonateBtn: document.getElementById('close-donate-btn'),
-            btnCashMain: document.getElementById('btn-cashapp-main'), 
-            btnPaypalMain: document.getElementById('btn-paypal-main'),
-            copyLinkBtn: document.getElementById('copy-link-button'), 
-            nativeShareBtn: document.getElementById('native-share-button'),
-            chatShareBtn: document.getElementById('chat-share-button'), 
-            emailShareBtn: document.getElementById('email-share-button'),    
-            
-            // System
-            restoreBtn: document.querySelector('button[data-action="restore-defaults"]'),
-            nukeBtn: document.querySelector('button[data-action="nuke-app"]')
-        };     
+            // --- NEW: General Setting & AR Elements ---
+                    
+
+            upsidedownToggle: document.getElementById('upsidedownToggle'),
+            fullscreenToggle: document.getElementById('fullscreenToggle'),
+            ecoToggle: document.getElementById('ecoToggle'),
+            arSpeedSelect: document.getElementById('ar-speed-select')
+        };
         
         this.tempTheme = null; 
         this.initListeners(); 
@@ -416,11 +397,29 @@ this.dom = {
         this.populateUIScaleDropdown(); 
         this.populateMappingUI();
         this.populateMorseUI();
-        this.updateUIFromSettings();
-        this.renderMappingUI(); 
+        
+        // ... [Your existing DOM caching code is here] ...
 
+    
+        this.updateUIFromSettings();
+        
+
+        // 🟢 ADD THIS LINE: Force the Mapping Tab to build and populate immediately
+        this.renderMappingUI(); 
+        if(this.dom.gestureToggle){
+            this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+            this.dom.gestureToggle.addEventListener('change', (e) => {
+                this.appSettings.isGestureInputEnabled = !!e.target.checked;
+                this.callbacks.onSave();
+                this.updateHeaderVisibility(); 
+                this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
+            });
+        }
+
+        // --- NEW: Bind General Setting Toggles ---
         const bindToggle = (toggleElement, settingKey, applyCallback) => {
             if (toggleElement) {
+                // Default Wake Lock to true, others to false
                 let defaultState = settingKey === 'isWakeLockEnabled' ? true : false;
                 toggleElement.checked = this.appSettings[settingKey] ?? defaultState;
                 
@@ -432,16 +431,39 @@ this.dom = {
             }
         };
 
+        
         bindToggle(this.dom.wakelockToggle, 'isWakeLockEnabled', () => {
             if (typeof window.wakelockToggle === 'function') {
                 window.wakelockToggle(this.appSettings.isWakeLockEnabled);
             }
         });
+                // INSIDE settings.js -> initListeners()
+        if (this.dom.fullscreenToggle) {
+            this.dom.fullscreenToggle.onchange = (e) => {
+                // ONLY save the visibility preference
+                this.appSettings.showFullscreenBtn = e.target.checked;
+                this.updateHeaderVisibility();
+                this.callbacks.onSave();
+            };
+        }
+
+        if (this.dom.upsidedownToggle) {
+            this.dom.upsidedownToggle.onchange = (e) => {
+                // ONLY save the visibility preference
+                this.appSettings.showUpsideDownBtn = e.target.checked;
+                this.updateHeaderVisibility();
+                this.callbacks.onSave();
+            };
+        }
+
 
         bindToggle(this.dom.ecoToggle, 'isEcoModeEnabled', () => {
             document.body.classList.toggle('eco-mode', this.appSettings.isEcoModeEnabled);
         });
+    
 
+        
+        // --- NEW: Bind AR Speed Select ---
         if (this.dom.arSpeedSelect) {
             this.dom.arSpeedSelect.value = this.appSettings.arPlaybackSpeed || 1.0; 
             this.dom.arSpeedSelect.onchange = (e) => {
@@ -450,23 +472,40 @@ this.dom = {
             };
         }
     }
-
+populateMappingAccordions() {
+    const container = document.getElementById('mapping-accordion-container');
+    container.innerHTML = '';
+    ['k9_1', 'k9_2', 'k9_3'].forEach(key => {
+        container.innerHTML += `
+        <details class="group bg-gray-900 p-3 rounded border">
+            <summary class="font-bold cursor-pointer">Key ${key}</summary>
+            <div class="flex border-b mb-2">
+                <button class="tab-touch active p-2 text-xs" data-k="${key}">👆 Touch</button>
+                <button class="tab-hand p-2 text-xs" data-k="${key}">🖐️ Hand</button>
+            </div>
+            <select class="select-touch w-full p-2 bg-black">${TOUCH_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('')}</select>
+            <select class="select-hand hidden w-full p-2 bg-black">${HAND_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('')}</select>
+        </details>`;
+    });
+}
     renderMappingUI() {
         const container = document.getElementById('mapping-accordion-container');
         if (!container) return;
         
-        container.innerHTML = ''; 
+        container.innerHTML = ''; // Clear existing DOM
 
+        // Map out the 3 layout configurations
         const groups = [
             { id: 'key9', title: '9-Key Layout', keys: Array.from({length: 9}, (_, i) => `k9_${i+1}`) },
             { id: 'key12', title: '12-Key Layout', keys: Array.from({length: 12}, (_, i) => `k12_${i+1}`) },
             { id: 'piano', title: 'Piano Layout', keys: ['piano_C', 'piano_D', 'piano_E', 'piano_F', 'piano_G', 'piano_A', 'piano_B', 'piano_1', 'piano_2', 'piano_3', 'piano_4', 'piano_5'] }
         ];
 
-        const touchOptionsHTML = (typeof TOUCH_GESTURES !== 'undefined' ? TOUCH_GESTURES : []).map(g => `<option value="${g.value}">${g.label}</option>`).join('');
-        const handOptionsHTML = (typeof VISUAL_HAND_GESTURES !== 'undefined' ? VISUAL_HAND_GESTURES : []).map(g => `<option value="${g.value}">${g.label}</option>`).join('');
+        const touchOptionsHTML = TOUCH_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('');
+        const handOptionsHTML = VISUAL_HAND_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('');
 
         groups.forEach(group => {
+            // Group Header
             container.innerHTML += `<h3 class="font-bold text-sm mt-6 mb-2 text-primary-app border-b border-gray-700 pb-1">${group.title}</h3>`;
             
             group.keys.forEach(keyId => {
@@ -505,10 +544,11 @@ this.dom = {
             });
         });
 
+        // Attach event listeners for tabs and dropdown saves
         this.bindMappingEvents();
     }
-
-    bindMappingEvents() {
+bindMappingEvents() {
+        // 1. Master Tab Switching Logic (Touch vs. Hand)
         const btnTouch = document.getElementById('btn-map-touch');
         const btnHand = document.getElementById('btn-map-hand');
         const secTouch = document.getElementById('section-map-touch');
@@ -516,28 +556,36 @@ this.dom = {
 
         if (btnTouch && btnHand) {
             btnTouch.onclick = () => {
+                // Activate Touch Tab
                 btnTouch.classList.add('text-blue-400', 'border-b-2', 'border-blue-400');
                 btnTouch.classList.remove('text-gray-500');
+                // Deactivate Hand Tab
                 btnHand.classList.remove('text-emerald-400', 'border-b-2', 'border-emerald-400');
                 btnHand.classList.add('text-gray-500');
-                if (secTouch) secTouch.classList.remove('hidden');
-                if (secHand) secHand.classList.add('hidden');
+                // Switch Content
+                secTouch.classList.remove('hidden');
+                secHand.classList.add('hidden');
             };
 
             btnHand.onclick = () => {
+                // Activate Hand Tab
                 btnHand.classList.add('text-emerald-400', 'border-b-2', 'border-emerald-400');
                 btnHand.classList.remove('text-gray-500');
+                // Deactivate Touch Tab
                 btnTouch.classList.remove('text-blue-400', 'border-b-2', 'border-blue-400');
                 btnTouch.classList.add('text-gray-500');
-                if (secHand) secHand.classList.remove('hidden');
-                if (secTouch) secTouch.classList.add('hidden');
+                // Switch Content
+                secHand.classList.remove('hidden');
+                secTouch.classList.add('hidden');
             };
         }
 
+        // 2. Data Binding & Saving for ALL Layouts (9-Key, 12-Key, Piano)
         document.querySelectorAll('.mapping-select').forEach(select => {
-            const keyId = select.dataset.key; 
-            const type = select.dataset.type; 
+            const keyId = select.dataset.key; // Grabs 'k9_1', 'k12_5', 'piano_C', etc.
+            const type = select.dataset.type; // Grabs 'touch' or 'hand'
             
+            // A. Populate the drop-downs on load
             if (this.appSettings.mappings && this.appSettings.mappings[keyId]) {
                 if (type === 'touch' && this.appSettings.mappings[keyId].touch) {
                     select.value = this.appSettings.mappings[keyId].touch;
@@ -546,7 +594,9 @@ this.dom = {
                 }
             }
 
+            // B. Toggle / Save settings instantly on change
             select.onchange = (e) => {
+                // Ensure the safety net structure exists
                 if (!this.appSettings.mappings) this.appSettings.mappings = {};
                 if (!this.appSettings.mappings[keyId]) {
                     this.appSettings.mappings[keyId] = { touch: 'none', handGesture: 'none', morse: '' };
@@ -555,51 +605,107 @@ this.dom = {
                 if (type === 'touch') {
                     this.appSettings.mappings[keyId].touch = e.target.value;
                 } else {
+                    // Vision Engine requires integers for the gesture IDs (e.g., 105, 104)
                     this.appSettings.mappings[keyId].handGesture = e.target.value === 'none' ? 'none' : parseInt(e.target.value, 10);
                 }
                 
-                this.callbacks.onSave(); 
+                this.callbacks.onSave(); // Push changes to LocalStorage/memory immediately
+            };
+        });
+    }
+    bindMappingEvents() {
+        // 1. Tab Switching Logic
+        document.querySelectorAll('.mapping-subtab-btn').forEach(tab => {
+            tab.onclick = (e) => {
+                const keyId = e.target.dataset.key;
+                const target = e.target.dataset.target;
+                const parent = e.target.closest('details');
+                
+                // Hide all panels & reset tabs in this accordion
+                parent.querySelectorAll('.mapping-subtab-btn').forEach(t => {
+                    t.classList.remove('active', 'text-blue-400', 'text-emerald-400', 'border-b-2', 'border-blue-400', 'border-emerald-400');
+                    t.classList.add('text-gray-500');
+                });
+                parent.querySelectorAll('.mapping-panel').forEach(p => p.classList.add('hidden'));
+                
+                // Show the clicked tab & panel
+                e.target.classList.remove('text-gray-500');
+                if (target === 'touch') {
+                    e.target.classList.add('active', 'text-blue-400', 'border-b-2', 'border-blue-400');
+                    parent.querySelector(`#panel-touch-${keyId}`).classList.remove('hidden');
+                } else {
+                    e.target.classList.add('active', 'text-emerald-400', 'border-b-2', 'border-emerald-400');
+                    parent.querySelector(`#panel-hand-${keyId}`).classList.remove('hidden');
+                }
+            };
+        });
+
+        // 2. Load Values from Save State
+        document.querySelectorAll('.mapping-select').forEach(select => {
+            const keyId = select.dataset.key;
+            const type = select.dataset.type;
+            
+            // Set the dropdown to match the saved appSettings
+            if (this.appSettings.mappings && this.appSettings.mappings[keyId]) {
+                if (type === 'touch' && this.appSettings.mappings[keyId].touch) {
+                    select.value = this.appSettings.mappings[keyId].touch;
+                } else if (type === 'hand' && this.appSettings.mappings[keyId].handGesture !== undefined) {
+                    select.value = this.appSettings.mappings[keyId].handGesture;
+                }
+            }
+
+            // 3. Save Changes instantly
+            select.onchange = (e) => {
+                if (!this.appSettings.mappings) this.appSettings.mappings = {};
+                if (!this.appSettings.mappings[keyId]) this.appSettings.mappings[keyId] = { touch: 'none', handGesture: 'none', morse: '' };
+                
+                if (type === 'touch') {
+                    this.appSettings.mappings[keyId].touch = e.target.value;
+                } else {
+                    // Hand gestures must be parsed as Integers (except 'none')
+                    this.appSettings.mappings[keyId].handGesture = e.target.value === 'none' ? 'none' : parseInt(e.target.value, 10);
+                }
+                this.callbacks.onSave();
             };
         });
     }
 
-    bindGestureFilters() {
-        if (!this.dom.filterToggles) return;
-        this.dom.filterToggles.forEach(toggle => {
-            toggle.addEventListener('change', () => {
-                this.populateMappingUI();
-            });
-        });
-    }
 
     populatePlaybackSpeedDropdown() {
         if (!this.dom.playbackSpeed) return;
         this.dom.playbackSpeed.innerHTML = '';
+        // Range 75% to 150% in 5% increments
         for (let i = 75; i <= 150; i += 5) {
             const opt = document.createElement('option');
-            opt.value = (i / 100).toFixed(2);
+            const val = (i / 100).toFixed(2);
+            opt.value = val;
             opt.textContent = i + '%';
             this.dom.playbackSpeed.appendChild(opt);
         }
+        // Set current value
         this.dom.playbackSpeed.value = (this.appSettings.playbackSpeed || 1.0).toFixed(2);
     }
-
-    populateARSpeedDropdown() {
-        if (!this.dom.arSpeedSelect) return;
-        this.dom.arSpeedSelect.innerHTML = '';
-        const speeds = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
-        speeds.forEach(speed => {
-            const opt = document.createElement('option');
-            opt.value = speed;
-            opt.textContent = speed.toFixed(2) + 'x';
-            this.dom.arSpeedSelect.appendChild(opt);
-        });
-        this.dom.arSpeedSelect.value = String(this.appSettings.arPlaybackSpeed || 1.0);
-    }
+populateARSpeedDropdown() {
+    if (!this.dom.arSpeedSelect) return;
+    this.dom.arSpeedSelect.innerHTML = '';
+    // Create standard playback speeds from 0.25x to 2.0x
+    const speeds = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+    speeds.forEach(speed => {
+        const opt = document.createElement('option');
+        opt.value = speed;
+        opt.textContent = speed.toFixed(2) + 'x';
+        this.dom.arSpeedSelect.appendChild(opt);
+    });
+    
+    // Ensure the value is properly cast to a string for the select box
+    const speedVal = this.appSettings.arPlaybackSpeed || 1.0;
+    this.dom.arSpeedSelect.value = String(speedVal);
+}
 
     populateUIScaleDropdown() {
         if (!this.dom.uiScale) return;
         this.dom.uiScale.innerHTML = '';
+        // Range 50% to 500% in 10% increments
         for (let i = 50; i <= 500; i += 10) {
             const opt = document.createElement('option');
             opt.value = i;
@@ -615,14 +721,12 @@ this.dom = {
 
         const grp1 = document.createElement('optgroup');
         grp1.label = "Built-in";
-        if (typeof PREMADE_VOICE_PRESETS !== 'undefined') {
-            Object.keys(PREMADE_VOICE_PRESETS).forEach(k => {
-                const el = document.createElement('option');
-                el.value = k;
-                el.textContent = PREMADE_VOICE_PRESETS[k].name;
-                grp1.appendChild(el);
-            });
-        }
+        Object.keys(PREMADE_VOICE_PRESETS).forEach(k => {
+            const el = document.createElement('option');
+            el.value = k;
+            el.textContent = PREMADE_VOICE_PRESETS[k].name;
+            grp1.appendChild(el);
+        });
         this.dom.voicePresetSelect.appendChild(grp1);
 
         const grp2 = document.createElement('optgroup');
@@ -636,11 +740,12 @@ this.dom = {
             });
         }
         this.dom.voicePresetSelect.appendChild(grp2);
+
         this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
     }
 
     applyVoicePreset(id) {
-        let preset = this.appSettings.voicePresets[id] || (typeof PREMADE_VOICE_PRESETS !== 'undefined' ? PREMADE_VOICE_PRESETS[id] : null) || {pitch: 1, rate: 1, volume: 1};
+        let preset = this.appSettings.voicePresets[id] || PREMADE_VOICE_PRESETS[id] || PREMADE_VOICE_PRESETS['standard'];
         this.appSettings.voicePitch = preset.pitch;
         this.appSettings.voiceRate = preset.rate;
         this.appSettings.voiceVolume = preset.volume;
@@ -648,100 +753,14 @@ this.dom = {
         this.callbacks.onSave();
     }
 
-    buildColorGrid() { 
-        if (!this.dom.editorGrid || typeof CRAYONS === 'undefined') return; 
-        this.dom.editorGrid.innerHTML = ''; 
-        CRAYONS.forEach(color => { 
-            const btn = document.createElement('div'); 
-            btn.style.backgroundColor = color; 
-            btn.className = "w-full h-6 rounded cursor-pointer border border-gray-700 hover:scale-125 transition-transform shadow-sm"; 
-            btn.onclick = () => this.applyColorToTarget(color); 
-            this.dom.editorGrid.appendChild(btn); 
-        }); 
-    }
-
-    applyColorToTarget(hex) { 
-        if (!this.tempTheme) return; 
-        this.tempTheme[this.currentTargetKey] = hex; 
-        const [h, s, l] = this.hexToHsl(hex); 
-        if (this.dom.ftHue) this.dom.ftHue.value = h; 
-        if (this.dom.ftSat) this.dom.ftSat.value = s; 
-        if (this.dom.ftLit) this.dom.ftLit.value = l; 
-        if (this.dom.ftPreview) this.dom.ftPreview.style.backgroundColor = hex; 
-        if (this.dom.ftContainer && this.dom.ftContainer.classList.contains('hidden')) { 
-            this.dom.ftContainer.classList.remove('hidden'); 
-            if (this.dom.ftToggle) this.dom.ftToggle.style.display = 'none'; 
-        } 
-        this.updatePreview(); 
-    }
-
-    updateColorFromSliders() { 
-        if (!this.dom.ftHue || !this.dom.ftSat || !this.dom.ftLit) return;
-        const h = parseInt(this.dom.ftHue.value); 
-        const s = parseInt(this.dom.ftSat.value); 
-        const l = parseInt(this.dom.ftLit.value); 
-        const hex = this.hslToHex(h, s, l); 
-        if (this.dom.ftPreview) this.dom.ftPreview.style.backgroundColor = hex; 
-        if (this.tempTheme) { 
-            this.tempTheme[this.currentTargetKey] = hex; 
-            this.updatePreview(); 
-        } 
-    }
-
-    openThemeEditor() { 
-        if (!this.dom.editorModal || typeof PREMADE_THEMES === 'undefined') return; 
-        const activeId = this.appSettings.activeTheme; 
-        const source = this.appSettings.customThemes[activeId] || PREMADE_THEMES[activeId] || PREMADE_THEMES['default']; 
-        this.tempTheme = { ...source }; 
-        if (this.dom.edName) this.dom.edName.value = this.tempTheme.name; 
-        if (this.dom.targetBtns) {
-            this.dom.targetBtns.forEach(b => b.classList.remove('active', 'bg-primary-app')); 
-            if (this.dom.targetBtns[2]) this.dom.targetBtns[2].classList.add('active', 'bg-primary-app'); 
-        }
-        this.currentTargetKey = 'bubble'; 
-        const [h, s, l] = this.hexToHsl(this.tempTheme.bubble); 
-        if (this.dom.ftHue) this.dom.ftHue.value = h; 
-        if (this.dom.ftSat) this.dom.ftSat.value = s; 
-        if (this.dom.ftLit) this.dom.ftLit.value = l; 
-        if (this.dom.ftPreview) this.dom.ftPreview.style.backgroundColor = this.tempTheme.bubble; 
-        this.updatePreview(); 
-        this.dom.editorModal.classList.remove('opacity-0', 'pointer-events-none'); 
-        this.dom.editorModal.querySelector('div').classList.remove('scale-90'); 
-    }
-
-    updatePreview() { 
-        const t = this.tempTheme; 
-        if (!this.dom.edPreview || !t) return; 
-        this.dom.edPreview.style.backgroundColor = t.bgMain; 
-        this.dom.edPreview.style.color = t.text; 
-        if (this.dom.edPreviewCard) {
-            this.dom.edPreviewCard.style.backgroundColor = t.bgCard; 
-            this.dom.edPreviewCard.style.color = t.text; 
-            this.dom.edPreviewCard.style.border = '1px solid rgba(255,255,255,0.1)'; 
-        }
-        if (this.dom.edPreviewBtn) {
-            this.dom.edPreviewBtn.style.backgroundColor = t.bubble; 
-            this.dom.edPreviewBtn.style.color = t.text; 
-        }
-    }
-
-    testVoice() { 
-        if (window.speechSynthesis) { 
-            window.speechSynthesis.cancel(); 
-            const u = new SpeechSynthesisUtterance("Testing 1 2 3."); 
-            if (this.appSettings.selectedVoice) { 
-                const v = window.speechSynthesis.getVoices().find(voice => voice.name === this.appSettings.selectedVoice); 
-                if (v) u.voice = v; 
-            } 
-            if (this.dom.voicePitch) u.pitch = parseFloat(this.dom.voicePitch.value); 
-            if (this.dom.voiceRate) u.rate = parseFloat(this.dom.voiceRate.value); 
-            if (this.dom.voiceVolume) u.volume = parseFloat(this.dom.voiceVolume.value); 
-            window.speechSynthesis.speak(u); 
-        } 
-    }
-
+    buildColorGrid() { if (!this.dom.editorGrid) return; this.dom.editorGrid.innerHTML = ''; CRAYONS.forEach(color => { const btn = document.createElement('div'); btn.style.backgroundColor = color; btn.className = "w-full h-6 rounded cursor-pointer border border-gray-700 hover:scale-125 transition-transform shadow-sm"; btn.onclick = () => this.applyColorToTarget(color); this.dom.editorGrid.appendChild(btn); }); }
+    applyColorToTarget(hex) { if (!this.tempTheme) return; this.tempTheme[this.currentTargetKey] = hex; const [h, s, l] = this.hexToHsl(hex); this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l; this.dom.ftPreview.style.backgroundColor = hex; if (this.dom.ftContainer.classList.contains('hidden')) { this.dom.ftContainer.classList.remove('hidden'); this.dom.ftToggle.style.display = 'none'; } this.updatePreview(); }
+    updateColorFromSliders() { const h = parseInt(this.dom.ftHue.value); const s = parseInt(this.dom.ftSat.value); const l = parseInt(this.dom.ftLit.value); const hex = this.hslToHex(h, s, l); this.dom.ftPreview.style.backgroundColor = hex; if (this.tempTheme) { this.tempTheme[this.currentTargetKey] = hex; this.updatePreview(); } }
+    openThemeEditor() { if (!this.dom.editorModal) return; const activeId = this.appSettings.activeTheme; const source = this.appSettings.customThemes[activeId] || PREMADE_THEMES[activeId] || PREMADE_THEMES['default']; this.tempTheme = { ...source }; this.dom.edName.value = this.tempTheme.name; this.dom.targetBtns.forEach(b => b.classList.remove('active', 'bg-primary-app')); this.dom.targetBtns[2].classList.add('active', 'bg-primary-app'); this.currentTargetKey = 'bubble'; const [h, s, l] = this.hexToHsl(this.tempTheme.bubble); this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l; this.dom.ftPreview.style.backgroundColor = this.tempTheme.bubble; this.updatePreview(); this.dom.editorModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.editorModal.querySelector('div').classList.remove('scale-90'); }
+    updatePreview() { const t = this.tempTheme; if (!this.dom.edPreview) return; this.dom.edPreview.style.backgroundColor = t.bgMain; this.dom.edPreview.style.color = t.text; this.dom.edPreviewCard.style.backgroundColor = t.bgCard; this.dom.edPreviewCard.style.color = t.text; this.dom.edPreviewCard.style.border = '1px solid rgba(255,255,255,0.1)'; this.dom.edPreviewBtn.style.backgroundColor = t.bubble; this.dom.edPreviewBtn.style.color = t.text; }
+    testVoice() { if (window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("Testing 1 2 3."); if (this.appSettings.selectedVoice) { const v = window.speechSynthesis.getVoices().find(voice => voice.name === this.appSettings.selectedVoice); if (v) u.voice = v; } let p = parseFloat(this.dom.voicePitch.value); let r = parseFloat(this.dom.voiceRate.value); let v = parseFloat(this.dom.voiceVolume.value); u.pitch = p; u.rate = r; u.volume = v; window.speechSynthesis.speak(u); } }
+    
     setLanguage(lang) {
-        if (typeof LANG === 'undefined') return;
         const t = LANG[lang];
         if (!t) return;
         document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -755,88 +774,61 @@ this.dom = {
         this.callbacks.onSave();
     }
 
-    openShare() { 
-        if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); 
-        if (this.dom.shareModal) { 
-            this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); 
-            setTimeout(() => {
-                const sheet = this.dom.shareModal.querySelector('.share-sheet');
-                if (sheet) sheet.classList.add('active');
-            }, 10); 
-        } 
-    }
+    openShare() { if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); if (this.dom.shareModal) { this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => this.dom.shareModal.querySelector('.share-sheet').classList.add('active'), 10); } }
+    closeShare() { if (this.dom.shareModal) { this.dom.shareModal.querySelector('.share-sheet').classList.remove('active'); setTimeout(() => this.dom.shareModal.classList.add('opacity-0', 'pointer-events-none'), 300); } }
+    openCalibration() { if (this.dom.calibModal) { this.dom.calibModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.calibModal.style.pointerEvents = 'auto'; this.sensorEngine.toggleAudio(true); this.sensorEngine.toggleCamera(true); this.sensorEngine.setCalibrationCallback((data) => { if (this.dom.calibAudioBar) { const pct = ((data.audio - (-100)) / ((-30) - (-100))) * 100; this.dom.calibAudioBar.style.width = `${Math.max(0, Math.min(100, pct))}%`; } if (this.dom.calibCamBar) { const pct = Math.min(100, data.camera); this.dom.calibCamBar.style.width = `${pct}%`; } }); } }
+    closeCalibration() { if (this.dom.calibModal) { this.dom.calibModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.calibModal.style.pointerEvents = 'none'; this.sensorEngine.setCalibrationCallback(null); this.sensorEngine.toggleAudio(this.appSettings.isAudioEnabled); this.sensorEngine.toggleCamera(this.appSettings.autoInputMode === 'cam' || this.appSettings.autoInputMode === 'both'); } }
 
-    closeShare() { 
-        if (this.dom.shareModal) { 
-            const sheet = this.dom.shareModal.querySelector('.share-sheet');
-            if (sheet) sheet.classList.remove('active'); 
-            setTimeout(() => this.dom.shareModal.classList.add('opacity-0', 'pointer-events-none'), 300); 
-        } 
-    }
-
-    toggleRedeem(show) { 
-        if (this.dom.redeemModal) {
-            if (show) { 
-                this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); 
-                this.dom.redeemModal.style.pointerEvents = 'auto'; 
-            } else { 
-                this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); 
-                this.dom.redeemModal.style.pointerEvents = 'none'; 
-            } 
-        }
-    }
-
-    toggleDonate(show) { 
-        if (this.dom.donateModal) {
-            if (show) { 
-                this.dom.donateModal.classList.remove('opacity-0', 'pointer-events-none'); 
-                this.dom.donateModal.style.pointerEvents = 'auto'; 
-            } else { 
-                this.dom.donateModal.classList.add('opacity-0', 'pointer-events-none'); 
-                this.dom.donateModal.style.pointerEvents = 'none'; 
-            } 
-        }
-    }
-
-    setupTabSwipe(modal) {
+    toggleRedeem(show) { if (show) { if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.style.pointerEvents = 'auto'; } } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.style.pointerEvents = 'none'; } } }
+    toggleDonate(show) { if (show) { if (this.dom.donateModal) { this.dom.donateModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'auto'; } } else { if (this.dom.donateModal) { this.dom.donateModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'none'; } } }
+        setupTabSwipe(modal) {
+        // Find the inner card
         const content = modal.querySelector('.settings-modal-bg');
         if (!content) return;
 
-        let startX = 0, startY = 0, isSwipeIgnored = false;
+        let startX = 0;
+        let startY = 0;
+        let isSwipeIgnored = false;
 
         content.addEventListener('touchstart', (e) => {
+            // CRITICAL FIX: If the touch starts in the header or on a button, IGNORE IT.
+            // This ensures clicks pass through instantly without being treated as swipes.
             if (e.target.closest('.no-swipe-zone') || e.target.closest('button')) {
                 isSwipeIgnored = true;
                 return;
             }
+
             isSwipeIgnored = false;
             startX = e.changedTouches[0].screenX;
             startY = e.changedTouches[0].screenY;
         }, { passive: true });
 
         content.addEventListener('touchend', (e) => {
-            if (isSwipeIgnored) return;
+            if (isSwipeIgnored) return; // Exit immediately if we marked this touch as ignored
 
             const endX = e.changedTouches[0].screenX;
             const endY = e.changedTouches[0].screenY;
             const diffX = endX - startX;
             const diffY = endY - startY;
 
+            // Threshold: >50px movement, and significantly more horizontal than vertical
             if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY) * 2) {
+                
                 const tabs = Array.from(modal.querySelectorAll('.tab-btn'));
                 const activeIdx = tabs.findIndex(t => t.classList.contains('active'));
 
                 if (activeIdx === -1) return;
 
-                if (diffX < 0 && activeIdx < tabs.length - 1) {
-                    tabs[activeIdx + 1].click();
-                } else if (diffX > 0 && activeIdx > 0) {
-                    tabs[activeIdx - 1].click();
+                if (diffX < 0) {
+                    // Swipe Left -> Next Tab
+                    if (activeIdx < tabs.length - 1) tabs[activeIdx + 1].click();
+                } else {
+                    // Swipe Right -> Prev Tab
+                    if (activeIdx > 0) tabs[activeIdx - 1].click();
                 }
             }
         }, { passive: true });
     }
-
 initListeners() {
     // Simple helper to bind a checkbox toggle to a global appSetting property
     const bindToggle = (el, prop, updateHeader = false) => {
@@ -1101,8 +1093,8 @@ initListeners() {
         bind(this.dom.timerToggle, 'showTimer', true);
         bind(this.dom.counterToggle, 'showCounter', true);
         
-        if (this.dom.arModeToggle) {
-            this.dom.arModeToggle.onchange = (e) => {
+        if (this.dom.arcamToggle) {
+            this.dom.arcamToggle.onchange = (e) => {
                 this.appSettings.isArModeEnabled = e.target.checked;
                 this.updateHeaderVisibility(); 
                 this.callbacks.onSave();
@@ -1143,10 +1135,10 @@ initListeners() {
         bind(this.dom.haptics, 'isHapticsEnabled', true); 
         bind(this.dom.speedDelete, 'isSpeedDeletingEnabled', true); 
         bind(this.dom.biggerToggle, 'isStealth1KeyEnabled', true);
-        bind(this.dom.speedGesturesToggle, 'isSpeedGesturesEnabled', true);
-        bind(this.dom.volumeGesturesToggle, 'isVolumeGesturesEnabled', true);
-        bind(this.dom.deleteGestureToggle, 'isDeleteGestureEnabled', true);
-        bind(this.dom.clearGestureToggle, 'isClearGestureEnabled', true);
+        bind(this.dom.speedToggle, 'isSpeedGesturesEnabled', true);
+        bind(this.dom.volgesToggle, 'isVolumeGesturesEnabled', true);
+        bind(this.dom.deleteToggle, 'isDeleteGestureEnabled', true);
+        bind(this.dom.clearToggle, 'isClearGestureEnabled', true);
         bind(this.dom.autoTimerToggle, 'isAutoTimerEnabled', true);
         bind(this.dom.autoCounterToggle, 'isAutoCounterEnabled', true);
         bind(this.dom.practiceMode, 'isPracticeModeEnabled', true);
@@ -1156,9 +1148,9 @@ initListeners() {
         if (this.dom.seqFontSize) this.dom.seqFontSize.onchange = (e) => { this.appSettings.uiFontSizeMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onSave(); this.callbacks.onUpdate(); };
         
         // STANDARD HAND GESTURES INTEGRATION
-        if (this.dom.handGesturesToggle) {
-            this.dom.handGesturesToggle.checked = !!this.appSettings.isHandGesturesEnabled;
-            this.dom.handGesturesToggle.onchange = (e) => {
+        if (this.dom.handToggle) {
+            this.dom.handToggle.checked = !!this.appSettings.isHandGesturesEnabled;
+            this.dom.handToggle.onchange = (e) => {
                 this.appSettings.isHandGesturesEnabled = e.target.checked;
                 this.updateHeaderVisibility(); 
                 this.callbacks.onSave();
@@ -1295,80 +1287,11 @@ initListeners() {
             };
         }
     }
-
-    populateConfigDropdown() { 
-        const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { 
-            const o = document.createElement('option'); 
-            o.value = id; 
-            o.textContent = this.appSettings.profiles[id].name; 
-            return o; 
-        }); 
-        if (this.dom.configSelect) { 
-            this.dom.configSelect.innerHTML = ''; 
-            createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); 
-            this.dom.configSelect.value = this.appSettings.activeProfileId; 
-        } 
-        if (this.dom.quickConfigSelect) { 
-            this.dom.quickConfigSelect.innerHTML = ''; 
-            createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); 
-            this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; 
-        } 
-    }
-
-    populateThemeDropdown() { 
-        const s = this.dom.themeSelect; 
-        if (!s || typeof PREMADE_THEMES === 'undefined') return; 
-        s.innerHTML = ''; 
-        const grp1 = document.createElement('optgroup'); 
-        grp1.label = "Built-in"; 
-        Object.keys(PREMADE_THEMES).forEach(k => { 
-            const el = document.createElement('option'); 
-            el.value = k; 
-            el.textContent = PREMADE_THEMES[k].name; 
-            grp1.appendChild(el); 
-        }); 
-        s.appendChild(grp1); 
-        const grp2 = document.createElement('optgroup'); 
-        grp2.label = "My Themes"; 
-        if (this.appSettings.customThemes) {
-            Object.keys(this.appSettings.customThemes).forEach(k => { 
-                const el = document.createElement('option'); 
-                el.value = k; 
-                el.textContent = this.appSettings.customThemes[k].name; 
-                grp2.appendChild(el); 
-            }); 
-        }
-        s.appendChild(grp2); 
-        s.value = this.appSettings.activeTheme; 
-    }
-
-    openSettings() { 
-        this.populateConfigDropdown(); 
-        this.populateThemeDropdown(); 
-        this.updateUIFromSettings(); 
-        if (this.dom.settingsModal) {
-            this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); 
-            this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); 
-        }
-    }
-
-    openSetup() { 
-        this.populateConfigDropdown(); 
-        this.updateUIFromSettings(); 
-        if (this.dom.setupModal) {
-            this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); 
-            this.dom.setupModal.querySelector('div').classList.remove('scale-90'); 
-        }
-    }
-
-    closeSetup() { 
-        this.callbacks.onSave(); 
-        if (this.dom.setupModal) {
-            this.dom.setupModal.classList.add('opacity-0'); 
-            this.dom.setupModal.querySelector('div').classList.add('scale-90'); 
-            setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); 
-        }
-    }
+    populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
+    populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
+    openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); }
+    openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); }
+    closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); }
 
     generatePrompt() {
         if (!this.dom.promptDisplay) return;
@@ -1379,7 +1302,6 @@ initListeners() {
         const chunk = ps.simonChunkSize || 3;
         const delay = (ps.simonInterSequenceDelay / 1000) || 0;
         let instructions = "";
-        
         if (machines > 1) {
             instructions = `MODE: MULTI-MACHINE AUTOPLAY (${machines} Machines).\nYOUR JOB:\n1. I will speak a batch of ${machines} numbers at once.\n2. You must immediately SORT them:\n   - 1st number -> Machine 1\n   - 2nd number -> Machine 2\n   - 3rd number -> Machine 3 (if active), etc.\n3. IMMEDIATELY after hearing the numbers, you must READ BACK the sequences for all machines.\n\nREADBACK RULES (Interleaved Chunking):\n- Recite the history in chunks of ${chunk}.\n- Order: Machine 1 (Chunk 1) -> Machine 2 (Chunk 1) -> ... -> Machine 1 (Chunk 2) -> Machine 2 (Chunk 2)...\n- Do not stop between machines. Flow through the list.\n- Pause ${delay} seconds between machine switches.`;
         } else {
@@ -1389,126 +1311,179 @@ initListeners() {
                 instructions = `MODE: UNIQUE (Random/Non-Repeating).\n- Every round is a fresh random sequence.\n- I will speak a number. You simply repeat that number to confirm.\n- Keep a running list. If I say "Review", read the whole list.`;
             }
         }
-        
         const promptText = `Act as a professional Sequence Caller for a memory skill game. \nYou are the "Caller" (App). I am the "Player" (User).\n\nSETTINGS:\n- Max Number: ${max}\n- Playback Speed: ${speed}x (Speak fast)\n- Active Machines: ${machines}\n- Chunk Size: ${chunk}\n\n${instructions}\n\nYOUR RULES:\n1. Speak clearly but quickly. No fluff. No conversational filler.\n2. If I get it wrong, correct me immediately.\n3. If I say "Status", tell me the current round/sequence length.\n\nSTART IMMEDIATELY upon my next input. Waiting for signal.`;
         this.dom.promptDisplay.value = promptText;
     }
 
-updateUIFromSettings() {
-    const ps = this.appSettings.runtimeSettings;
-    if (!ps) return;
+        updateUIFromSettings() {
+        const ps = this.appSettings.runtimeSettings;
+        if (this.dom.input) this.dom.input.value = ps.currentInput;
+        if (this.dom.mode) this.dom.mode.value = ps.currentMode;
+        if (this.dom.machines) this.dom.machines.value = ps.machineCount;
+        if (this.dom.seqLength) this.dom.seqLength.value = ps.sequenceLength;
+        if (this.dom.autoClear) this.dom.autoClear.checked = this.appSettings.isUniqueRoundsAutoClearEnabled;
+        if (this.dom.autoplay) this.dom.autoplay.checked = this.appSettings.isAutoplayEnabled;
+        if (this.dom.audio) this.dom.audio.checked = this.appSettings.isAudioEnabled;
+        if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = this.appSettings.isAutoplayEnabled;
+        if (this.dom.quickAudio) this.dom.quickAudio.checked = this.appSettings.isAudioEnabled;
+        if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !this.appSettings.showWelcomeScreen;
+        if (this.dom.showWelcome) this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
+        if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.isHapticMorseEnabled;
+            // Add this to your updateUIFromSettings or initialization method:
+    this.renderMappingUI();
+            
+        // UPDATED: Matches the new dropdown generation logic (e.g. "1.00")
+        if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = (this.appSettings.playbackSpeed || 1.0).toFixed(2);
+        if (this.dom.voiceTriggerSelect) {
+            this.dom.voiceTriggerSelect.value = this.appSettings.voiceTriggerWord || 'set';
+            this.dom.voiceTriggerSelect.onchange = (e) => {
+                this.appSettings.voiceTriggerWord = e.target.value;
+                this.callbacks.onSave();
+                if (typeof voiceModule !== 'undefined' && voiceModule) voiceModule.initEngine(); // Rebuild grammar
+            };
+        }
+        
+        if (this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
+        if (this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000); //
+        if (this.dom.voicePitch) this.dom.voicePitch.value = this.appSettings.voicePitch || 1.0;
+        if (this.dom.voiceRate) this.dom.voiceRate.value = this.appSettings.voiceRate || 1.0;
+        if (this.dom.voiceVolume) this.dom.voiceVolume.value = this.appSettings.voiceVolume || 1.0;
+        if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
+        if (this.dom.practiceMode) this.dom.practiceMode.checked = this.appSettings.isPracticeModeEnabled;
+        if (this.dom.biggerToggle) this.dom.biggerToggle.checked = this.appSettings.isStealth1KeyEnabled;
+        if (this.dom.arcamToggle) this.dom.arcamToggle.checked = !!this.appSettings.isArModeEnabled;
+        if (this.dom.voiceToggle) this.dom.voiceToggle.checked = !!this.appSettings.isVoiceInputEnabled;    
+        if (this.dom.longPressToggle) this.dom.longPressToggle.checked = (typeof this.appSettings.isLongPressAutoplayEnabled === 'undefined') ? true : this.appSettings.isLongPressAutoplayEnabled;
+        if (this.dom.timerToggle) this.dom.timerToggle.checked = !!this.appSettings.showTimer; 
+        if (this.dom.counterToggle) this.dom.counterToggle.checked = !!this.appSettings.showCounter; 
+        if (this.dom.calibAudioSlider) this.dom.calibAudioSlider.value = this.appSettings.sensorAudioThresh || -85;
+        if (this.dom.calibCamSlider) this.dom.calibCamSlider.value = this.appSettings.sensorCamThresh || 30;
+        if (this.dom.haptics) this.dom.haptics.checked = (typeof this.appSettings.isHapticsEnabled === 'undefined') ? true : this.appSettings.isHapticsEnabled;
+        if (this.dom.speedDelete) this.dom.speedDelete.checked = (typeof this.appSettings.isSpeedDeletingEnabled === 'undefined') ? true : this.appSettings.isSpeedDeletingEnabled;
+        if (this.dom.speedGesturesToggle) this.dom.speedGesturesToggle.checked = !!this.appSettings.isSpeedGesturesEnabled;
+        if (this.dom.volumeGesturesToggle) this.dom.volumeGesturesToggle.checked = !!this.appSettings.isVolumeGesturesEnabled;
+        if (this.dom.deleteGestureToggle) this.dom.deleteGestureToggle.checked = !!this.appSettings.isDeleteGestureEnabled;
+        if (this.dom.clearGestureToggle) this.dom.clearGestureToggle.checked = !!this.appSettings.isClearGestureEnabled;
+        if (this.dom.autoTimerToggle) this.dom.autoTimerToggle.checked = !!this.appSettings.isAutoTimerEnabled;
+        if (this.dom.autoCounterToggle) this.dom.autoCounterToggle.checked = !!this.appSettings.isAutoCounterEnabled;    
+        // UPDATED: Matches the new 50-500 range logic
+        if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
+        
+        if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
+        if (this.dom.seqFontSize) this.dom.seqFontSize.value = Math.round((this.appSettings.uiFontSizeMultiplier || 1.0) * 100);
+        
+        // NEW: Load Sensitivity
+        if (this.dom.gestureTapSlider) {
+            const tapVal = this.appSettings.gestureTapDelay || 300;
+            this.dom.gestureTapSlider.value = tapVal;
+            this.dom.gestureTapVal.textContent = tapVal + 'ms';
+        }
+        if (this.dom.gestureSwipeSlider) {
+            const swipeVal = this.appSettings.gestureSwipeDist || 30;
+            this.dom.gestureSwipeSlider.value = swipeVal;
+            this.dom.gestureSwipeVal.textContent = swipeVal + 'px';
+        }
+            
+        if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
+        if (this.dom.bossToggle) this.dom.bossToggle.checked = this.appSettings.isBlackoutFeatureEnabled;
+        
+        // --- CRITICAL FIX: Map to the correct variable name ---
+        if (this.dom.blackoutGesturesToggle) this.dom.blackoutGesturesToggle.checked = !!this.appSettings.isHandGesturesEnabled;
+        
+        if (this.dom.gestureToggle) this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+        // INSIDE settings.js -> updateUIFromSettings()
+        if (this.dom.fullscreenToggle) {
+            this.dom.fullscreenToggle.checked = !!this.appSettings.showFullscreenBtn;
+        }
+        if (this.dom.upsidedownToggle) {
+            this.dom.upsidedownToggle.checked = !!this.appSettings.showUpsideDownBtn;
+        }
 
-    // Apply visual states to the toggles
-    if (this.dom.timerToggle) this.dom.timerToggle.checked = !!this.appSettings.showTimer;
-    if (this.dom.autotimerToggle) this.dom.autotimerToggle.checked = !!this.appSettings.isAutoTimerEnabled;
-    if (this.dom.counterToggle) this.dom.counterToggle.checked = !!this.appSettings.showCounter;
-    if (this.dom.autocounterToggle) this.dom.autocounterToggle.checked = !!this.appSettings.isAutoCounterEnabled;
-    if (this.dom.hapticsToggle) this.dom.hapticsToggle.checked = (typeof this.appSettings.isHapticsEnabled === 'undefined') ? true : this.appSettings.isHapticsEnabled;
-    if (this.dom.introToggle) this.dom.introToggle.checked = !!this.appSettings.showWelcomeScreen;
-    if (this.dom.upsidedownToggle) this.dom.upsidedownToggle.checked = !!this.appSettings.showUpsideDownBtn;
-    if (this.dom.fullscreenToggle) this.dom.fullscreenToggle.checked = !!this.appSettings.showFullscreenBtn;
-    if (this.dom.ecoToggle) this.dom.ecoToggle.checked = !!this.appSettings.isEcoModeEnabled;
-    if (this.dom.wakelockToggle) this.dom.wakelockToggle.checked = (typeof this.appSettings.isWakeLockEnabled === 'undefined') ? true : this.appSettings.isWakeLockEnabled;
-    if (this.dom.voiceToggle) this.dom.voiceToggle.checked = !!this.appSettings.isVoiceInputEnabled;
-    if (this.dom.voicecommandsToggle) this.dom.voicecommandsToggle.checked = !!this.appSettings.isVoiceCommandsEnabled;
-    if (this.dom.toneToggle) this.dom.toneToggle.checked = !!this.appSettings.isToneCadenceEnabled;
-    if (this.dom.touchToggle) this.dom.touchToggle.checked = !!this.appSettings.isGestureInputEnabled;
-    if (this.dom.bossToggle) this.dom.bossToggle.checked = !!this.appSettings.isBossModeEnabled;
-    if (this.dom.newToggle) this.dom.newToggle.checked = !!this.appSettings.isNewFeatureEnabled;
-    if (this.dom.biggerToggle) this.dom.biggerToggle.checked = !!this.appSettings.isStealth1KeyEnabled;
-    if (this.dom.arcamToggle) this.dom.arcamToggle.checked = !!this.appSettings.isArModeEnabled;
-    if (this.dom.handToggle) this.dom.handToggle.checked = !!this.appSettings.isHandGesturesEnabled;
-    if (this.dom.handsignalsToggle) this.dom.handsignalsToggle.checked = !!this.appSettings.isHandSignalsEnabled;
-    if (this.dom.speeddeleteToggle) this.dom.speeddeleteToggle.checked = (typeof this.appSettings.isSpeedDeletingEnabled === 'undefined') ? true : this.appSettings.isSpeedDeletingEnabled;
-    if (this.dom.apshortcutToggle) this.dom.apshortcutToggle.checked = !!this.appSettings.isApShortcutEnabled;
-    if (this.dom.volgesToggle) this.dom.volgesToggle.checked = !!this.appSettings.isVolumeGesturesEnabled;
-    if (this.dom.speedToggle) this.dom.speedToggle.checked = !!this.appSettings.isSpeedGesturesEnabled;
-    if (this.dom.deleteToggle) this.dom.deleteToggle.checked = !!this.appSettings.isDeleteGestureEnabled;
-    if (this.dom.clearToggle) this.dom.clearToggle.checked = !!this.appSettings.isClearGestureEnabled;
+        // --- FIXED: Formats dynamic assignment value cleanly to strings like "1.0" or "0.75"
+        if (this.dom.arSpeedSelect) {
+            const speedVal = this.appSettings.arPlaybackSpeed || 1.0;
+            this.dom.arSpeedSelect.value = String(speedVal);
+        }
 
-    // Trigger the header to reflect these current states
-    this.updateHeaderVisibility();
-} // <--- THIS WAS MISSING!
-
-updateHeaderVisibility() {
-    const header = document.getElementById('aux-control-header');
-    if (!header) return;
-
-    // Toggle hidden classes based strictly on appSettings properties
-    if (this.dom.headertimerbtn) this.dom.headertimerbtn.classList.toggle('hidden', !this.appSettings.showTimer);
-    if (this.dom.headercounterbtn) this.dom.headercounterbtn.classList.toggle('hidden', !this.appSettings.showCounter);
-    if (this.dom.headervoicebtn) this.dom.headervoicebtn.classList.toggle('hidden', !this.appSettings.isVoiceInputEnabled);
-    if (this.dom.headertonebtn) this.dom.headertonebtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
-    if (this.dom.headertouchbtn) this.dom.headertouchbtn.classList.toggle('hidden', !this.appSettings.isGestureInputEnabled);
-    if (this.dom.headerhandbtn) this.dom.headerhandbtn.classList.toggle('hidden', !this.appSettings.isHandGesturesEnabled);
-    if (this.dom.headerarcambtn) this.dom.headerarcambtn.classList.toggle('hidden', !this.appSettings.isArModeEnabled);
-    if (this.dom.headerbiggerbtn) this.dom.headerbiggerbtn.classList.toggle('hidden', !this.appSettings.isStealth1KeyEnabled);
-    if (this.dom.headerfullscreenbtn) this.dom.headerfullscreenbtn.classList.toggle('hidden', !this.appSettings.showFullscreenBtn);
-    if (this.dom.headerupsidedownbtn) this.dom.headerupsidedownbtn.classList.toggle('hidden', !this.appSettings.showUpsideDownBtn);
-
-    // Check if AT LEAST ONE header button is supposed to be visible
-    const anyVisible = [
-        this.appSettings.showTimer, 
-        this.appSettings.showCounter, 
-        this.appSettings.isVoiceInputEnabled,
-        this.appSettings.isToneCadenceEnabled, 
-        this.appSettings.isGestureInputEnabled, 
-        this.appSettings.isHandGesturesEnabled, 
-        this.appSettings.isArModeEnabled, 
-        this.appSettings.isStealth1KeyEnabled, 
-        this.appSettings.showFullscreenBtn, 
-        this.appSettings.showUpsideDownBtn
-    ].some(val => !!val);
-
-    // Hide or show the entire header container based on if it's empty
-    if (!anyVisible) {
-        header.classList.add('header-hidden');
-        header.classList.remove('pointer-events-auto'); // Ensures it doesn't block clicks when invisible
-    } else {
-        header.classList.remove('header-hidden');
-        header.classList.add('pointer-events-auto');
-    }
-}
-
-    hexToHsl(hex) { 
-        let r = 0, g = 0, b = 0; 
-        if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } 
-        else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } 
-        r /= 255; g /= 255; b /= 255; 
-        let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; 
-        if (delta === 0) h = 0; 
-        else if (cmax === r) h = ((g - b) / delta) % 6; 
-        else if (cmax === g) h = (b - r) / delta + 2; 
-        else h = (r - g) / delta + 4; 
-        h = Math.round(h * 60); 
-        if (h < 0) h += 360; 
-        l = (cmax + cmin) / 2; 
-        s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); 
-        s = +(s * 100).toFixed(1); 
-        l = +(l * 100).toFixed(1); 
-        return [h, s, l]; 
-    }
-
-    hslToHex(h, s, l) { 
-        s /= 100; l /= 100; 
-        let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; 
-        if (0 <= h && h < 60) { r = c; g = x; b = 0; } 
-        else if (60 <= h && h < 120) { r = x; g = c; b = 0; } 
-        else if (120 <= h && h < 180) { r = 0; g = c; b = x; } 
-        else if (180 <= h && h < 240) { r = 0; g = x; b = c; } 
-        else if (240 <= h && h < 300) { r = x; g = 0; b = c; } 
-        else { r = c; g = 0; b = x; } 
-        r = Math.round((r + m) * 255).toString(16); 
-        g = Math.round((g + m) * 255).toString(16); 
-        b = Math.round((b + m) * 255).toString(16); 
-        if (r.length === 1) r = "0" + r; 
-        if (g.length === 1) g = "0" + g; 
-        if (b.length === 1) b = "0" + b; 
-        return "#" + r + g + b; 
+        const lang = this.appSettings.generalLanguage || 'en';
+        if (this.dom.quickLang) this.dom.quickLang.value = lang;
+        if (this.dom.generalLang) this.dom.generalLang.value = lang;
+        this.setLanguage(lang);
+        
+        this.updateHeaderVisibility();
     }
 
-    populateMappingUI() {
-        if (!this.dom || !this.appSettings) return;
+    // NEW METHOD: Manages the Auto-Hiding Header Bar
+    updateHeaderVisibility() {
+        const header = document.getElementById('aux-control-header');
+        const timerBtn = document.getElementById('headertimerbtn');
+        const counterBtn = document.getElementById('headercounterbtn');
+        const micBtn = document.getElementById('headervoicebtn');
+        const camBtn = document.getElementById('headerarcambtn');
+        const gestureBtn = document.getElementById('headertouchbtn');
+        const stealthBtn = document.getElementById('headerbiggerbtn');
+        // New Hand Button
+        const handBtn = document.getElementById('headerhandbtn');
+
+        if (!header) return;
+
+        // Get all settings
+        const showTimer = !!this.appSettings.showTimer;
+        const showCounter = !!this.appSettings.showCounter;
+        const showMic = !!this.appSettings.isVoiceInputEnabled;
+        const showCam = !!this.appSettings.isArModeEnabled;
+        const showGesture = !!this.appSettings.isGestureInputEnabled;
+        const showStealth = !!this.appSettings.isStealth1KeyEnabled;
+        // Use proper variable for Hand Tracking
+        const showHand = !!this.appSettings.isHandGesturesEnabled;
+
+        // Unhide Fullscreen Header Button if enabled
+        if (this.dom.headerfullscreenbtn) {
+            if (this.appSettings.showFullscreenBtn) {
+                this.dom.headerfullscreenbtn.classList.remove('hidden');
+            } else {
+                this.dom.headerfullscreenbtn.classList.add('hidden');
+            }
+        }
+
+        // Unhide Upside Down Header Button if enabled
+        if (this.dom.headerupsidedownbtn) {
+            if (this.appSettings.showUpsideDownBtn) {
+                this.dom.headerupsidedownbtn.classList.remove('hidden');
+            } else {
+                this.dom.headerupsidedownbtn.classList.add('hidden');
+            }
+        }
+
+        // Toggle visibility
+        if(timerBtn) timerBtn.classList.toggle('hidden', !showTimer);
+        if(counterBtn) counterBtn.classList.toggle('hidden', !showCounter);
+        if(micBtn) micBtn.classList.toggle('hidden', !showMic);
+        if(camBtn) camBtn.classList.toggle('hidden', !showCam);
+        if(gestureBtn) gestureBtn.classList.toggle('hidden', !showGesture);
+        if(stealthBtn) stealthBtn.classList.toggle('hidden', !showStealth);
+        // Toggle new Hand Button
+        if(handBtn) handBtn.classList.toggle('hidden', !showHand);
+        
+        if (this.dom.headerbiggerbtn) {
+            this.dom.headerbiggerbtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
+        }
+
+        // Check if header should be hidden entirely
+        if (!showTimer && !showCounter && !showMic && !showCam && !showGesture && !showStealth && !showHand) {
+            header.classList.add('header-hidden');
+        } else {
+            header.classList.remove('header-hidden');
+        }
+    }
+    
+    hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
+    
+    hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }
+    
+      populateMappingUI() {
+        if (!this.dom) return;
+        if (!this.appSettings) return;
         
         if (!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
             this.applyDefaultGestureMappings();
@@ -1516,20 +1491,22 @@ updateHeaderVisibility() {
         
         if (!this.appSettings.gestureProfiles) this.appSettings.gestureProfiles = {};
 
+        // 1. REBUILD SENSITIVITY CONTROLS
         const tabRoot = document.getElementById('tab-mapping');
         if (tabRoot) {
             tabRoot.className = "tab-content p-1 space-y-4";
             
+            // Re-inject the slider HTML
             tabRoot.innerHTML = `
                 <div class="p-3 mb-4 rounded-lg border border-custom bg-black bg-opacity-30">
                     <h4 class="font-bold text-sm mb-3 text-primary-app">Gesture Sensitivity 🎛️</h4>
-                    <div class="mb-4">
+  <div class="mb-4">
                         <div class="flex justify-between mb-1">
                             <label class="text-xs font-bold">Tap Speed (ms)</label>
                             <span id="gesture-tap-val" class="text-xs font-mono">${this.appSettings.gestureTapDelay || 300}ms</span>
                         </div>
                         <input type="range" id="gesture-tap-slider" min="100" max="800" step="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer" value="${this.appSettings.gestureTapDelay || 300}">
-                        <p class="text-[10px] text-gray-400 mt-1">Faster time = harder to tap, easier to swipe.</p>
+                        <p class="text-[10px] text-gray-400 mt-1">Faster time = harder to tap, easier to swipe. Slower time = easier to tap.</p>
                     </div>
                     <div>
                         <div class="flex justify-between mb-1">
@@ -1542,6 +1519,7 @@ updateHeaderVisibility() {
                 </div>
             `;
             
+            // Re-bind listeners for sliders
             const tapSlider = document.getElementById('gesture-tap-slider');
             const swipeSlider = document.getElementById('gesture-swipe-slider');
             const tapVal = document.getElementById('gesture-tap-val');
@@ -1565,21 +1543,84 @@ updateHeaderVisibility() {
             }
         }
 
-        const GESTURE_CATEGORIES = {
-            'Taps': ['tap', 'double_tap', 'triple_tap', 'long_tap'],
-            'Spatial Taps': ['Double_tap_spatial_any', 'Double_tap_spatial_up', 'Double_tap_spatial_down', 'Double_tap_spatial_left', 'Double_tap_spatial_right', 'Double_tap_spatial_nw', 'Double_tap_spatial_ne', 'Double_tap_spatial_sw', 'Double_tap_spatial_se', 'triple_tap_spatial_line_any', 'triple_tap_spatial_line_up', 'triple_tap_spatial_line_down', 'triple_tap_spatial_line_left', 'triple_tap_spatial_line_right', 'triple_tap_spatial_corner_ne', 'triple_tap_spatial_corner_nw', 'triple_tap_spatial_corner_se', 'triple_tap_spatial_corner_sw', 'triple_tap_spatial_corner_en', 'triple_tap_spatial_corner_wn', 'triple_tap_spatial_corner_es', 'triple_tap_spatial_corner_ws', 'triple_tap_spatial_boomerang_any', 'triple_tap_spatial_boomerang_up', 'triple_tap_spatial_boomerang_down', 'triple_tap_spatial_boomerang_left', 'triple_tap_spatial_boomerang_right'],
-            'Multi-Finger Taps': ['tap_2f', 'tap_2f_vertical', 'tap_2f_horizontal', 'tap_2f_diagonal_se', 'tap_2f_diagonal_sw', 'double_tap_2f', 'double_tap_2f_vertical', 'double_tap_2f_horizontal', 'double_tap_2f_diagonal_se', 'double_tap_2f_diagonal_sw', 'triple_tap_2f', 'triple_tap_2f_vertical', 'triple_tap_2f_horizontal', 'triple_tap_2f_diagonal_se', 'triple_tap_2f_diagonal_sw', 'long_tap_2f', 'long_tap_2f_vertical', 'long_tap_2f_horizontal', 'long_tap_2f_diagonal_se', 'long_tap_2f_diagonal_sw', 'tap_3f', 'tap_3f_vertical', 'tap_3f_horizontal', 'tap_3f_diagonal_se', 'tap_3f_diagonal_sw', 'double_tap_3f', 'double_tap_3f_vertical', 'double_tap_3f_horizontal', 'double_tap_3f_diagonal_se', 'double_tap_3f_diagonal_sw', 'triple_tap_3f', 'triple_tap_3f_vertical', 'triple_tap_3f_horizontal', 'triple_tap_3f_diagonal_se', 'triple_tap_3f_diagonal_sw', 'long_tap_3f', 'long_tap_3f_vertical', 'long_tap_3f_horizontal', 'long_tap_3f_diagonal_se', 'long_tap_3f_diagonal_sw'],
-            'Swipes': ['swipe_any', 'swipe_up', 'swipe_down', 'swipe_left', 'swipe_right', 'swipe_nw', 'swipe_ne', 'swipe_sw', 'swipe_se'],
-            'Long Swipes': ['swipe_long_any', 'swipe_long_up', 'swipe_long_down', 'swipe_long_left', 'swipe_long_right', 'swipe_long_nw', 'swipe_long_ne', 'swipe_long_sw', 'swipe_long_se'],
-            'Multi-Finger Swipes': ['swipe_any_2f', 'swipe_up_2f', 'swipe_down_2f', 'swipe_left_2f', 'swipe_right_2f', 'swipe_nw_2f', 'swipe_ne_2f', 'swipe_sw_2f', 'swipe_se_2f', 'swipe_any_3f', 'swipe_up_3f', 'swipe_down_3f', 'swipe_left_3f', 'swipe_right_3f', 'swipe_nw_3f', 'swipe_ne_3f', 'swipe_sw_3f', 'swipe_se_3f', 'pinch_swipe_any_2f', 'pinch_swipe_up_2f', 'pinch_swipe_down_2f', 'pinch_swipe_left_2f', 'pinch_swipe_right_2f', 'expand_swipe_any_2f', 'expand_swipe_up_2f', 'expand_swipe_down_2f', 'expand_swipe_left_2f', 'expand_swipe_right_2f'],
-            'Boomerangs': ['boomerang_any', 'boomerang_up', 'boomerang_down', 'boomerang_left', 'boomerang_right', 'boomerang_nw', 'boomerang_ne', 'boomerang_sw', 'boomerang_se', 'boomerang_any_2f', 'boomerang_up_2f', 'boomerang_down_2f', 'boomerang_left_2f', 'boomerang_right_2f', 'boomerang_any_3f', 'boomerang_up_3f', 'boomerang_down_3f', 'boomerang_left_3f', 'boomerang_right_3f', 'long_boomerang_any', 'long_boomerang_up', 'long_boomerang_down', 'long_boomerang_left', 'long_boomerang_right', 'long_boomerang_any_2f', 'long_boomerang_up_2f', 'long_boomerang_down_2f', 'long_boomerang_left_2f', 'long_boomerang_right_2f'],
-            'Switchbacks': ['switchback_any', 'switchback_any_cw', 'switchback_any_ccw', 'switchback_up_cw', 'switchback_down_cw', 'switchback_left_cw', 'switchback_right_cw', 'switchback_nw_cw', 'switchback_ne_cw', 'switchback_sw_cw', 'switchback_se_cw', 'switchback_up_ccw', 'switchback_down_ccw', 'switchback_left_ccw', 'switchback_right_ccw', 'switchback_nw_ccw', 'switchback_ne_ccw', 'switchback_sw_ccw', 'switchback_se_ccw'],
-            'Zigzags': ['zigzag_any', 'zigzag_any_cw', 'zigzag_any_ccw', 'zigzag_up_cw', 'zigzag_down_cw', 'zigzag_left_cw', 'zigzag_right_cw', 'zigzag_nw_cw', 'zigzag_ne_cw', 'zigzag_sw_cw', 'zigzag_se_cw', 'zigzag_up_ccw', 'zigzag_down_ccw', 'zigzag_left_ccw', 'zigzag_right_ccw', 'zigzag_nw_ccw', 'zigzag_ne_ccw', 'zigzag_sw_ccw', 'zigzag_se_ccw'],
-            'Corners & Shapes': ['corner_any', 'corner_cw', 'corner_ccw', 'corner_up_cw', 'corner_right_cw', 'corner_down_cw', 'corner_left_cw', 'corner_up_ccw', 'corner_left_ccw', 'corner_down_ccw', 'corner_right_ccw', 'triangle_any', 'triangle_cw', 'triangle_ccw', 'triangle_up_cw', 'triangle_right_cw', 'triangle_down_cw', 'triangle_left_cw', 'triangle_up_ccw', 'triangle_left_ccw', 'triangle_down_ccw', 'triangle_right_ccw', 'u_shape_any', 'u_shape_cw', 'u_shape_ccw', 'u_shape_up_cw', 'u_shape_right_cw', 'u_shape_down_cw', 'u_shape_left_cw', 'u_shape_up_ccw', 'u_shape_left_ccw', 'u_shape_down_ccw', 'u_shape_right_ccw', 'square_any', 'square_cw', 'square_ccw', 'square_up_cw', 'square_right_cw', 'square_down_cw', 'square_left_cw', 'square_up_ccw', 'square_left_ccw', 'square_down_ccw', 'square_right_ccw'],
-            'Motion Gestures': ['motion_tap_swipe_any', 'motion_tap_swipe_up', 'motion_tap_swipe_down', 'motion_tap_swipe_left', 'motion_tap_swipe_right', 'motion_tap_swipe_nw', 'motion_tap_swipe_ne', 'motion_tap_swipe_sw', 'motion_tap_swipe_se', 'motion_tap_swipe_long_any', 'motion_tap_swipe_long_up', 'motion_tap_swipe_long_down', 'motion_tap_swipe_long_left', 'motion_tap_swipe_long_right', 'motion_tap_swipe_long_nw', 'motion_tap_swipe_long_ne', 'motion_tap_swipe_long_sw', 'motion_tap_swipe_long_se', 'motion_tap_boomerang_any', 'motion_tap_boomerang_up', 'motion_tap_boomerang_down', 'motion_tap_boomerang_left', 'motion_tap_boomerang_right', 'motion_tap_boomerang_nw', 'motion_tap_boomerang_ne', 'motion_tap_boomerang_sw', 'motion_tap_boomerang_se', 'motion_tap_corner_any', 'motion_tap_corner_cw', 'motion_tap_corner_ccw', 'motion_tap_corner_up_cw', 'motion_tap_corner_right_cw', 'motion_tap_corner_left_cw', 'motion_tap_corner_down_cw', 'motion_tap_corner_up_ccw', 'motion_tap_corner_right_ccw', 'motion_tap_corner_left_ccw', 'motion_tap_corner_down_ccw'],
-            'Flicks': ['Flick_any', 'Flick_up', 'Flick_down', 'Flick_left', 'Flick_right', 'Flick_nw', 'Flick_ne', 'Flick_sw', 'Flick_se'],
-            'Pausing Curves': ['Pausing_swipe_any', 'Pausing_swipe_up', 'Pausing_swipe_down', 'Pausing_swipe_left', 'Pausing_swipe_right', 'Pausing_swipe_nw', 'Pausing_swipe_ne', 'Pausing_swipe_sw', 'Pausing_swipe_se', 'Pausing_boomerang_any', 'Pausing_boomerang_up', 'Pausing_boomerang_down', 'Pausing_boomerang_left', 'Pausing_boomerang_right', 'Pausing_boomerang_nw', 'Pausing_boomerang_ne', 'Pausing_boomerang_sw', 'Pausing_boomerang_se', 'Pausing_Switchback_any', 'Pausing_Switchback_cw', 'Pausing_Switchback_ccw', 'Pausing_Switchback_up_cw', 'Pausing_Switchback_down_cw', 'Pausing_Switchback_left_cw', 'Pausing_Switchback_right_cw', 'Pausing_Switchback_nw_cw', 'Pausing_Switchback_ne_cw', 'Pausing_Switchback_sw_cw', 'Pausing_Switchback_se_cw', 'Pausing_Switchback_up_ccw', 'Pausing_Switchback_down_ccw', 'Pausing_Switchback_left_ccw', 'Pausing_Switchback_right_ccw', 'Pausing_Switchback_nw_ccw', 'Pausing_Switchback_ne_ccw', 'Pausing_Switchback_sw_ccw', 'Pausing_Switchback_se_ccw', 'Pausing_corner_any', 'Pausing_corner_cw', 'Pausing_corner_ccw', 'Pausing_corner_up_cw', 'Pausing_corner_right_cw', 'Pausing_corner_down_cw', 'Pausing_corner_left_cw', 'Pausing_corner_up_ccw', 'Pausing_corner_left_ccw', 'Pausing_corner_down_ccw', 'Pausing_corner_right_ccw']
-        };
+      // --- UPDATED GESTURE CATEGORIES (All inclusive from gesture-groups.js) ---
+const GESTURE_CATEGORIES = {
+    'Taps': [
+        'tap', 'double_tap', 'triple_tap', 'long_tap'
+    ],
+    'Spatial Taps': [
+        'Double_tap_spatial_any', 'Double_tap_spatial_up', 'Double_tap_spatial_down', 
+        'Double_tap_spatial_left', 'Double_tap_spatial_right', 'Double_tap_spatial_nw', 
+        'Double_tap_spatial_ne', 'Double_tap_spatial_sw', 'Double_tap_spatial_se',
+        'triple_tap_spatial_line_any', 'triple_tap_spatial_line_up', 'triple_tap_spatial_line_down', 
+        'triple_tap_spatial_line_left', 'triple_tap_spatial_line_right', 'triple_tap_spatial_corner_ne', 
+        'triple_tap_spatial_corner_nw', 'triple_tap_spatial_corner_se', 'triple_tap_spatial_corner_sw', 
+        'triple_tap_spatial_corner_en', 'triple_tap_spatial_corner_wn', 'triple_tap_spatial_corner_es', 
+        'triple_tap_spatial_corner_ws', 'triple_tap_spatial_boomerang_any', 'triple_tap_spatial_boomerang_up', 
+        'triple_tap_spatial_boomerang_down', 'triple_tap_spatial_boomerang_left', 'triple_tap_spatial_boomerang_right'
+    ],
+    'Multi-Finger Taps': [
+        'tap_2f', 'tap_2f_vertical', 'tap_2f_horizontal', 'tap_2f_diagonal_se', 'tap_2f_diagonal_sw', 
+        'double_tap_2f', 'double_tap_2f_vertical', 'double_tap_2f_horizontal', 'double_tap_2f_diagonal_se', 'double_tap_2f_diagonal_sw', 
+        'triple_tap_2f', 'triple_tap_2f_vertical', 'triple_tap_2f_horizontal', 'triple_tap_2f_diagonal_se', 'triple_tap_2f_diagonal_sw', 
+        'long_tap_2f', 'long_tap_2f_vertical', 'long_tap_2f_horizontal', 'long_tap_2f_diagonal_se', 'long_tap_2f_diagonal_sw',
+        'tap_3f', 'tap_3f_vertical', 'tap_3f_horizontal', 'tap_3f_diagonal_se', 'tap_3f_diagonal_sw', 
+        'double_tap_3f', 'double_tap_3f_vertical', 'double_tap_3f_horizontal', 'double_tap_3f_diagonal_se', 'double_tap_3f_diagonal_sw', 
+        'triple_tap_3f', 'triple_tap_3f_vertical', 'triple_tap_3f_horizontal', 'triple_tap_3f_diagonal_se', 'triple_tap_3f_diagonal_sw', 
+        'long_tap_3f', 'long_tap_3f_vertical', 'long_tap_3f_horizontal', 'long_tap_3f_diagonal_se', 'long_tap_3f_diagonal_sw'
+    ],
+    'Swipes': [
+        'swipe_any', 'swipe_up', 'swipe_down', 'swipe_left', 'swipe_right', 'swipe_nw', 'swipe_ne', 'swipe_sw', 'swipe_se'
+    ],
+    'Long Swipes': [
+        'swipe_long_any', 'swipe_long_up', 'swipe_long_down', 'swipe_long_left', 'swipe_long_right', 'swipe_long_nw', 'swipe_long_ne', 'swipe_long_sw', 'swipe_long_se'
+    ],
+    'Multi-Finger Swipes': [
+        'swipe_any_2f', 'swipe_up_2f', 'swipe_down_2f', 'swipe_left_2f', 'swipe_right_2f', 'swipe_nw_2f', 'swipe_ne_2f', 'swipe_sw_2f', 'swipe_se_2f',
+        'swipe_any_3f', 'swipe_up_3f', 'swipe_down_3f', 'swipe_left_3f', 'swipe_right_3f', 'swipe_nw_3f', 'swipe_ne_3f', 'swipe_sw_3f', 'swipe_se_3f',
+        'pinch_swipe_any_2f', 'pinch_swipe_up_2f', 'pinch_swipe_down_2f', 'pinch_swipe_left_2f', 'pinch_swipe_right_2f', 
+        'expand_swipe_any_2f', 'expand_swipe_up_2f', 'expand_swipe_down_2f', 'expand_swipe_left_2f', 'expand_swipe_right_2f'
+    ],
+    'Boomerangs': [
+        'boomerang_any', 'boomerang_up', 'boomerang_down', 'boomerang_left', 'boomerang_right', 'boomerang_nw', 'boomerang_ne', 'boomerang_sw', 'boomerang_se',
+        'boomerang_any_2f', 'boomerang_up_2f', 'boomerang_down_2f', 'boomerang_left_2f', 'boomerang_right_2f',
+        'boomerang_any_3f', 'boomerang_up_3f', 'boomerang_down_3f', 'boomerang_left_3f', 'boomerang_right_3f',
+        'long_boomerang_any', 'long_boomerang_up', 'long_boomerang_down', 'long_boomerang_left', 'long_boomerang_right',
+        'long_boomerang_any_2f', 'long_boomerang_up_2f', 'long_boomerang_down_2f', 'long_boomerang_left_2f', 'long_boomerang_right_2f'
+    ],
+    'Switchbacks': [
+        'switchback_any', 'switchback_any_cw', 'switchback_any_ccw', 
+        'switchback_up_cw', 'switchback_down_cw', 'switchback_left_cw', 'switchback_right_cw', 'switchback_nw_cw', 'switchback_ne_cw', 'switchback_sw_cw', 'switchback_se_cw',
+        'switchback_up_ccw', 'switchback_down_ccw', 'switchback_left_ccw', 'switchback_right_ccw', 'switchback_nw_ccw', 'switchback_ne_ccw', 'switchback_sw_ccw', 'switchback_se_ccw'
+    ],
+    'Zigzags': [
+        'zigzag_any', 'zigzag_any_cw', 'zigzag_any_ccw', 
+        'zigzag_up_cw', 'zigzag_down_cw', 'zigzag_left_cw', 'zigzag_right_cw', 'zigzag_nw_cw', 'zigzag_ne_cw', 'zigzag_sw_cw', 'zigzag_se_cw',
+        'zigzag_up_ccw', 'zigzag_down_ccw', 'zigzag_left_ccw', 'zigzag_right_ccw', 'zigzag_nw_ccw', 'zigzag_ne_ccw', 'zigzag_sw_ccw', 'zigzag_se_ccw'
+    ],
+    'Corners & Shapes': [
+        'corner_any', 'corner_cw', 'corner_ccw', 'corner_up_cw', 'corner_right_cw', 'corner_down_cw', 'corner_left_cw', 'corner_up_ccw', 'corner_left_ccw', 'corner_down_ccw', 'corner_right_ccw',
+        'triangle_any', 'triangle_cw', 'triangle_ccw', 'triangle_up_cw', 'triangle_right_cw', 'triangle_down_cw', 'triangle_left_cw', 'triangle_up_ccw', 'triangle_left_ccw', 'triangle_down_ccw', 'triangle_right_ccw',
+        'u_shape_any', 'u_shape_cw', 'u_shape_ccw', 'u_shape_up_cw', 'u_shape_right_cw', 'u_shape_down_cw', 'u_shape_left_cw', 'u_shape_up_ccw', 'u_shape_left_ccw', 'u_shape_down_ccw', 'u_shape_right_ccw',
+        'square_any', 'square_cw', 'square_ccw', 'square_up_cw', 'square_right_cw', 'square_down_cw', 'square_left_cw', 'square_up_ccw', 'square_left_ccw', 'square_down_ccw', 'square_right_ccw'
+    ],
+    'Motion Gestures': [
+        'motion_tap_swipe_any', 'motion_tap_swipe_up', 'motion_tap_swipe_down', 'motion_tap_swipe_left', 'motion_tap_swipe_right', 'motion_tap_swipe_nw', 'motion_tap_swipe_ne', 'motion_tap_swipe_sw', 'motion_tap_swipe_se',
+        'motion_tap_swipe_long_any', 'motion_tap_swipe_long_up', 'motion_tap_swipe_long_down', 'motion_tap_swipe_long_left', 'motion_tap_swipe_long_right', 'motion_tap_swipe_long_nw', 'motion_tap_swipe_long_ne', 'motion_tap_swipe_long_sw', 'motion_tap_swipe_long_se',
+        'motion_tap_boomerang_any', 'motion_tap_boomerang_up', 'motion_tap_boomerang_down', 'motion_tap_boomerang_left', 'motion_tap_boomerang_right', 'motion_tap_boomerang_nw', 'motion_tap_boomerang_ne', 'motion_tap_boomerang_sw', 'motion_tap_boomerang_se',
+        'motion_tap_corner_any', 'motion_tap_corner_cw', 'motion_tap_corner_ccw', 'motion_tap_corner_up_cw', 'motion_tap_corner_right_cw', 'motion_tap_corner_left_cw', 'motion_tap_corner_down_cw', 'motion_tap_corner_up_ccw', 'motion_tap_corner_right_ccw', 'motion_tap_corner_left_ccw', 'motion_tap_corner_down_ccw'
+    ],
+    'Flicks': [
+        'Flick_any', 'Flick_up', 'Flick_down', 'Flick_left', 'Flick_right', 'Flick_nw', 'Flick_ne', 'Flick_sw', 'Flick_se'
+    ],
+    'Pausing Curves': [
+        'Pausing_swipe_any', 'Pausing_swipe_up', 'Pausing_swipe_down', 'Pausing_swipe_left', 'Pausing_swipe_right', 'Pausing_swipe_nw', 'Pausing_swipe_ne', 'Pausing_swipe_sw', 'Pausing_swipe_se',
+        'Pausing_boomerang_any', 'Pausing_boomerang_up', 'Pausing_boomerang_down', 'Pausing_boomerang_left', 'Pausing_boomerang_right', 'Pausing_boomerang_nw', 'Pausing_boomerang_ne', 'Pausing_boomerang_sw', 'Pausing_boomerang_se',
+        'Pausing_Switchback_any', 'Pausing_Switchback_cw', 'Pausing_Switchback_ccw', 'Pausing_Switchback_up_cw', 'Pausing_Switchback_down_cw', 'Pausing_Switchback_left_cw', 'Pausing_Switchback_right_cw', 'Pausing_Switchback_nw_cw', 'Pausing_Switchback_ne_cw', 'Pausing_Switchback_sw_cw', 'Pausing_Switchback_se_cw', 'Pausing_Switchback_up_ccw', 'Pausing_Switchback_down_ccw', 'Pausing_Switchback_left_ccw', 'Pausing_Switchback_right_ccw', 'Pausing_Switchback_nw_ccw', 'Pausing_Switchback_ne_ccw', 'Pausing_Switchback_sw_ccw', 'Pausing_Switchback_se_ccw',
+        'Pausing_corner_any', 'Pausing_corner_cw', 'Pausing_corner_ccw', 'Pausing_corner_up_cw', 'Pausing_corner_right_cw', 'Pausing_corner_down_cw', 'Pausing_corner_left_cw', 'Pausing_corner_up_ccw', 'Pausing_corner_left_ccw', 'Pausing_corner_down_ccw', 'Pausing_corner_right_ccw'
+    ]
+};
+
 
         if (!this.appSettings.activeGestureFilters) {
             this.appSettings.activeGestureFilters = ['Taps', 'Multi-Finger Taps', 'Swipes'];
@@ -1617,6 +1658,7 @@ updateHeaderVisibility() {
             });
         };
 
+        // 3. BUILD UI (With Accordions)
         const buildSection = (type, title, keyPrefix, count, customKeys = null, isOpen = false) => {
             const details = document.createElement('details');
             details.className = "group rounded-lg border border-custom bg-black bg-opacity-20 mb-3 open:bg-opacity-40 transition-all";
@@ -1630,6 +1672,7 @@ updateHeaderVisibility() {
             const contentDiv = document.createElement('div');
             contentDiv.className = "p-3 pt-0 border-t border-gray-700 mt-2";
             
+            // --- PROFILE SELECTOR INSIDE ACCORDION ---
             const profileHeader = document.createElement('div');
             profileHeader.innerHTML = `<label class="text-xs font-bold uppercase text-muted-custom block mb-1 mt-2">Active Preset</label>`;
             contentDiv.appendChild(profileHeader);
@@ -1674,6 +1717,7 @@ updateHeaderVisibility() {
             populateSelect();
             contentDiv.appendChild(select);
 
+            // --- BUTTONS ---
             const btnGrid = document.createElement('div');
             btnGrid.className = "grid grid-cols-2 gap-2 mb-4"; 
             
@@ -1681,7 +1725,7 @@ updateHeaderVisibility() {
                 const b = document.createElement('button');
                 b.textContent = txt;
                 b.className = `py-2 text-xs bg-${color}-600 hover:bg-${color}-500 rounded text-white font-bold transition shadow`;
-                b.onclick = (e) => { e.stopPropagation(); onClick(); }; 
+                b.onclick = (e) => { e.stopPropagation(); onClick(); }; // Stop propagation so accordion doesn't close
                 return b;
             };
 
@@ -1729,6 +1773,7 @@ updateHeaderVisibility() {
             );
             contentDiv.appendChild(btnGrid);
 
+            // --- LIST ---
             const listContainer = document.createElement('div');
             listContainer.className = "space-y-2 border-t border-custom pt-3 max-h-60 overflow-y-auto";
             contentDiv.appendChild(listContainer);
@@ -1746,10 +1791,12 @@ updateHeaderVisibility() {
                     lbl.className = "text-sm font-bold w-8 h-10 flex items-center justify-center bg-gray-800 rounded border border-gray-600 shrink-0";
                     lbl.textContent = k;
 
+                    // 1. TOUCH GESTURE DROPDOWN
                     const dropTouch = document.createElement('select');
                     dropTouch.className = "settings-input p-1 rounded text-[10px] h-10 border border-custom flex-1 w-0 gesture-map-select";
                     dropTouch.dataset.key = keyId; 
 
+                    // LOAD SAVED VALUES
                     const mapping = (this.appSettings.gestureMappings && this.appSettings.gestureMappings[keyId]) 
                         ? this.appSettings.gestureMappings[keyId] 
                         : {};
@@ -1764,6 +1811,7 @@ updateHeaderVisibility() {
                         dropTouch.appendChild(opt);
                     });
 
+                    // Ensure saved gesture is injected if filtered out
                     if (!availableGestures.includes(savedGesture) && savedGesture) {
                         const opt = document.createElement('option');
                         opt.value = savedGesture;
@@ -1772,6 +1820,7 @@ updateHeaderVisibility() {
                     }
                     dropTouch.value = savedGesture;
 
+                    // 2. HAND GESTURE DROPDOWN
                     const dropHand = document.createElement('select');
                     dropHand.className = "settings-input p-1 rounded text-[10px] h-10 border border-custom flex-1 w-0 bg-blue-900 bg-opacity-20";
                     
@@ -1791,6 +1840,7 @@ updateHeaderVisibility() {
 
                     dropHand.value = mapping.hand || '';
 
+                    // SAVE LISTENER
                     const save = () => {
                         if(!this.appSettings.gestureMappings[keyId]) this.appSettings.gestureMappings[keyId] = {};
                         this.appSettings.gestureMappings[keyId].gesture = dropTouch.value;
@@ -1841,6 +1891,7 @@ updateHeaderVisibility() {
         buildSection('key12', '12-Key', 'k12_', 12);
         buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
 
+        // --- NEW: FILTER CHECKBOX UI ---
         if (tabRoot) {
             const filterContainer = document.createElement('div');
             filterContainer.className = "p-3 mt-4 mb-4 rounded-lg border border-custom bg-black bg-opacity-30";
@@ -1876,8 +1927,7 @@ updateHeaderVisibility() {
                 });
             }
         }
-    }
-
+    };
     populateMorseUI() {
         const tab = document.getElementById('tab-playback');
         if (!tab) return;
@@ -1890,6 +1940,7 @@ updateHeaderVisibility() {
             tab.appendChild(container);
         }
 
+        // Generate all Morse combinations (1-5 length)
         const morseOptions = [];
         const chars = ['.', '-'];
         const generate = (current) => {
@@ -1899,9 +1950,12 @@ updateHeaderVisibility() {
         };
         generate('');
         
+        // Sort by length, then alphabet (dots before dashes)
         morseOptions.sort((a, b) => {
             const lenDiff = a.length - b.length;
-            if (lenDiff !== 0) return lenDiff;
+            if (lenDiff !== 0) {
+                return lenDiff;
+            }
             return a.localeCompare(b);
         });
 
@@ -1910,6 +1964,7 @@ updateHeaderVisibility() {
         
         labels.forEach((label, index) => {
             const val = index + 1;
+            
             let optionsHtml = `<optgroup label="Morse Patterns">`;
             optionsHtml += morseOptions.map(m => `<option value="${m}">${m}</option>`).join('');
             optionsHtml += `</optgroup>`;
@@ -1930,6 +1985,7 @@ updateHeaderVisibility() {
             <p class="text-[10px] text-gray-500 mt-3 text-center">Custom dot/dash patterns for playback.</p>
         `;
 
+        // Bind Listeners & Set Defaults
         const selects = container.querySelectorAll('select');
         selects.forEach(sel => {
             const id = sel.dataset.morseId;
@@ -1967,11 +2023,12 @@ updateHeaderVisibility() {
             };
         });
     }
-
+    
     applyDefaultGestureMappings() {
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
         
         const defaults = {
+            // 9-KEY DEFAULT: TAPS
             'k9_1': { gesture: 'tap' }, 
             'k9_2': { gesture: 'double_tap' }, 
             'k9_3': { gesture: 'triple_tap' }, 
@@ -1982,6 +2039,7 @@ updateHeaderVisibility() {
             'k9_8': { gesture: 'double_tap_3f_any' }, 
             'k9_9': { gesture: 'triple_tap_3f_any' },
 
+            // 12-KEY DEFAULT: TAPS
             'k12_1': { gesture: 'tap' }, 
             'k12_2': { gesture: 'double_tap' }, 
             'k12_3': { gesture: 'triple_tap' }, 
@@ -1995,6 +2053,7 @@ updateHeaderVisibility() {
             'k12_11': { gesture: 'triple_tap_3f_any' }, 
             'k12_12': { gesture: 'long_tap_3f_any' },
 
+            // PIANO DEFAULT: SWIPES
             'piano_C': { gesture: 'swipe_nw' }, 
             'piano_D': { gesture: 'swipe_left' }, 
             'piano_E': { gesture: 'swipe_sw' }, 
@@ -2008,6 +2067,6 @@ updateHeaderVisibility() {
             'piano_4': { gesture: 'swipe_ne_2f' }, 
             'piano_5': { gesture: 'swipe_right_2f' }
         };
-        this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
+		this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
     }
 }

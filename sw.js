@@ -7,12 +7,6 @@ const CACHE_NAME = 'follow-me-v65-robust';
 const CRITICAL_ASSETS = [
     './',
     './index.html',
-    './styles.css',
-    './app.js',
-    './settings.js',
-    './sensors.js',
-    './gestures.js',
-    './comments.js',
     './manifest.json',
     './vision.js',
     './wasm/vision_bundle.js',

@@ -2641,7 +2641,7 @@ bindToggle(this.dom.clear-gesture-toggle, 'isClearGestureEnabled');
 
     // Special Overrides
     if (this.dom.show-welcome-toggle) {
-        this.dom.show-welcome-toggle.onchange = (e) => { 
+        this.dom.showwelcometoggle.onchange = (e) => { 
             this.appSettings.showWelcomeScreen = e.target.checked; 
             this.callbacks.onSave(); 
         };
@@ -4641,7 +4641,7 @@ class VisionEngine {
         this.video.setAttribute("autoplay", "");
         this.video.setAttribute("playsinline", "");
         this.video.style.display = "none";
-        document.body.appendChild(this.video);
+        docum.( ent.body.appendChild(this.video);
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ 

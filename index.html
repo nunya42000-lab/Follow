@@ -6,7 +6,7 @@ window.onunhandledrejection = function(event) { alert("Promise Error: " + event.
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Follow Me</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
+<meta name="thef_rme-color" content="#000000">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap">
 <style> body { touch-action: none; overscroll-behavior: none; } </style>
@@ -25,7 +25,7 @@ body { touch-action: none; overscroll-behavior: none; }
 body { background-color: var(--bg-main); color: var(--text-main); transition: background-color .3s, color .3s; min-height: 100vh; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
 input, textarea, .selectable-text { -webkit-user-select: text !important; user-select: text !important; -webkit-touch-callout: default !important; cursor: auto; touch-action: auto; }
 .settings-modal-bg { background-color: var(--card-bg) !important; color: var(--text-main) !important; border: 1px solid var(--border); }
-.settings-input { background-color: var(--bg-main) !important; color: var(--text-main) !important; border: 1px solid var(--border) !important; }
+.settings-input { background -gestures-toggle: var(--bg-main) !important; color: var(--text-main) !important; border: 1px solid var(--border) !important; }
 .bg-primary-app { background-color: var(--seq-bubble) !important; color: var(--text-main); }
 .text-primary-app { color: var(--seq-bubble) !important; }
 .tab-btn { padding: 10px; flex: 1; text-align: center; font-weight: 700; font-size: .9rem; border-bottom: 2px solid transparent; opacity: .6; cursor: pointer; transition: all .2s; }
@@ -2622,7 +2622,6 @@ bindToggle(this.dom.tone-cadence-toggle, 'isToneCadenceEnabled', true);
 bindToggle(this.dom.gesture-input-toggle, 'isGestureInputEnabled', true);
 bindToggle(this.dom.hand-gestures-toggle, 'isHandGesturesEnabled', true);
 bindToggle(this.dom.ar-mode-toggle, 'isArModeEnabled', true);
-bindToggle(this.dom.stealth-1key-toggle, 'isStealth1KeyEnabled', true);
 bindToggle(this.dom.fullscreen-toggle, 'showFullscreenBtn', true);
 bindToggle(this.dom.upsidedown-toggle, 'showUpsideDownBtn', true);
 bindToggle(this.dom.auto-timer-toggle, 'isAutoTimerEnabled');

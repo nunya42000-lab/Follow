@@ -113,13 +113,13 @@ body.eco-mode * { animation-duration: 0.01ms !important; transition-duration: 0.
 <button id="header-timer-btn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">⏱️</button>
 <button id="header-counter-btn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">#</button>
 <button id="header-mic-btn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🎤</button>
-<button id="headertoneCadenceBtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🎵</button>
+<button id="header-tonecadence-btn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🎵</button>
 <button id="header-gesture-btn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🗒️</button>
 <button id="header-hand-btn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🖐️</button>
 <button id="header-cam-btn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">📷</button>
 <button id="header-stealth-btn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">⌨️</button>
-<button id="headerfullscreenbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔲</button>
-<button id="headerupsidedownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🙃</button>
+<button id="header-fullscreen-btn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔲</button>
+<button id="header-upsidedown-btn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🙃</button>
 </div></div></header>
 <div id="game-setup-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
 <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
@@ -477,11 +477,11 @@ body.eco-mode * { animation-duration: 0.01ms !important; transition-duration: 0.
     <input type="checkbox" id="voice-input-toggle" class="h-5 w-5 accent-indigo-500"></div>
     <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
     <span class="font-bold text-sm text-muted-custom">Voice Commands</span>
-    <input type="checkbox" id="voicecommandsToggle" class="h-6 w-6 rounded accent-indigo-500"></div>
+    <input type="checkbox" id="voice-commands-toggle" class="h-6 w-6 rounded accent-indigo-500"></div>
     
     <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
     <span class="font-bold text-sm text-muted-custom">Tone Cadence Mode 🎵</span>
-    <input type="checkbox" id="toneCadenceToggle" class="h-5 w-5 accent-indigo-500"></div>
+    <input type="checkbox" id="tone-cadence-toggle" class="h-5 w-5 accent-indigo-500"></div>
     <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
     <span class="font-bold text-sm text-muted-custom">Touch Gestures</span>
     <input type="checkbox" id="gesture-input-toggle" class="h-5 w-5 accent-indigo-500"></div>
@@ -502,10 +502,10 @@ body.eco-mode * { animation-duration: 0.01ms !important; transition-duration: 0.
     
     <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
     <span class="font-bold text-sm text-muted-custom">Hand Gestures🖐️</span>
-    <input type="checkbox" id="handGesturesToggle" class="h-5 w-5 accent-indigo-500"></div>
+    <input type="checkbox" id="hand-gestures-toggle" class="h-5 w-5 accent-indigo-500"></div>
     <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
     <span class="font-bold text-sm text-muted-custom">Hand Signals🖐️</span>
-    <input type="checkbox" id="handsignalsToggle" class="h-6 w-6 rounded accent-indigo-500"></div>
+    <input type="checkbox" id="hand-signals-toggle" class="h-6 w-6 rounded accent-indigo-500"></div>
     
     <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
     <span class="font-bold text-sm text-muted-custom">Quick Erase</span>
@@ -2031,7 +2031,7 @@ const DICTIONARY = {
     en: { correct: "Correct", wrong: "Wrong", stealth: "Bigger Buttons Active", reset: "Reset to Round 1", stop: "Playback Stopped" },
     es: { correct: "Correcto", wrong: "Incorrecto", stealth: "Botones Grandes Activos", reset: "Volver a la Ronda 1", stop: "Reproducción Detenida" }
 };
-
+class SettingsManager {    
 constructor(appSettings, callbacks) {
     this.appSettings = appSettings;
     this.callbacks = callbacks;
@@ -2049,15 +2049,15 @@ this.dom = {
     ecomode-toggle: document.getElementById('ecomode-toggle'),
     wakelock-toggle: document.getElementById('wakelock-toggle'),
     voice-input-toggle: document.getElementById('voice-input-toggle'),
-    voicecommandsToggle: document.getElementById('voicecommandsToggle'),
-    toneCadenceToggle: document.getElementById('toneCadenceToggle'),
+    voice-commands-toggle: document.getElementById('voice-commands-toggle'),
+    tone-cadence-toggle: document.getElementById('tone-cadence-toggle'),
     gesture-input-toggle: document.getElementById('gesture-input-toggle'),
     blackout-toggle: document.getElementById('blackout-toggle'),
     newToggle: document.getElementById('newToggle'),
     stealth-1key-toggle: document.getElementById('stealth-1key-toggle'),
     ar-mode-toggle: document.getElementById('ar-mode-toggle'),
-    handGesturesToggle: document.getElementById('handGesturesToggle'),
-    handsignalsToggle: document.getElementById('handsignalsToggle'),
+    hand-gestures-toggle: document.getElementById('hand-gestures-toggle'),
+    hand-signals-toggle: document.getElementById('hand-signals-toggle'),
     speed-delete-toggle: document.getElementById('speed-delete-toggle'),
     long-press-autoplay-toggle: document.getElementById('long-press-autoplay-toggle'),
     volume-gestures-toggle: document.getElementById('volume-gestures-toggle'),
@@ -2068,13 +2068,13 @@ this.dom = {
 	header-timer-btn: document.getElementById('header-timer-btn'),
     header-counter-btn: document.getElementById('header-counter-btn'),
     header-mic-btn: document.getElementById('header-mic-btn'),
-    headertoneCadenceBtn: document.getElementById('headertoneCadenceBtn'),
+    header-tonecadence-btn: document.getElementById('header-tonecadence-btn'),
     header-gesture-btn: document.getElementById('header-gesture-btn'),
     header-hand-btn: document.getElementById('header-hand-btn'),
     header-cam-btn: document.getElementById('header-cam-btn'),
     header-stealth-btn: document.getElementById('header-stealth-btn'),
-    headerfullscreenbtn: document.getElementById('headerfullscreenbtn'),
-    headerupsidedownbtn: document.getElementById('headerupsidedownbtn'),          
+    header-fullscreen-btn: document.getElementById('header-fullscreen-btn'),
+    header-upsidedown-btn: document.getElementById('header-upsidedown-btn'),          
             // Voice Settings
             voicePresetSelect: document.getElementById('voice-preset-select'),
             voicePresetAdd: document.getElementById('voice-preset-add'),
@@ -2618,9 +2618,9 @@ initListeners() {
     bindToggle(this.dom.timer-toggle, 'showTimer', true);
     bindToggle(this.dom.counter-toggle, 'showCounter', true);
     bindToggle(this.dom.voice-input-toggle, 'isVoiceInputEnabled', true);
-    bindToggle(this.dom.toneCadenceToggle, 'isToneCadenceEnabled', true);
+    bindToggle(this.dom.tone-cadence-toggle, 'isToneCadenceEnabled', true);
     bindToggle(this.dom.gesture-input-toggle, 'isGestureInputEnabled', true);
-    bindToggle(this.dom.handGesturesToggle, 'isHandGesturesEnabled', true);
+    bindToggle(this.dom.hand-gestures-toggle, 'isHandGesturesEnabled', true);
     bindToggle(this.dom.ar-mode-toggle, 'isArModeEnabled', true);
     bindToggle(this.dom.stealth-1key-toggle, 'isStealth1KeyEnabled', true);
     bindToggle(this.dom.fullscreen-toggle, 'showFullscreenBtn', true);
@@ -2631,10 +2631,10 @@ initListeners() {
     bindToggle(this.dom.auto-counter-toggle, 'isAutoCounterEnabled');
     bindToggle(this.dom.haptics-toggle, 'isHapticsEnabled');
     bindToggle(this.dom.ecomode-toggle, 'isEcoModeEnabled');
-    bindToggle(this.dom.voicecommandsToggle, 'isVoiceCommandsEnabled');
+    bindToggle(this.dom.voice-commands-toggle, 'isVoiceCommandsEnabled');
     bindToggle(this.dom.blackout-toggle, 'isBossModeEnabled');
     bindToggle(this.dom.newToggle, 'isNewFeatureEnabled'); // Placeholder
-    bindToggle(this.dom.handsignalsToggle, 'isHandSignalsEnabled');
+    bindToggle(this.dom.hand-signals-toggle, 'isHandSignalsEnabled');
     bindToggle(this.dom.speed-delete-toggle, 'isSpeedDeletingEnabled');
     bindToggle(this.dom.long-press-autoplay-toggle, 'isApShortcutEnabled');
     bindToggle(this.dom.volume-gestures-toggle, 'isVolumeGesturesEnabled');
@@ -2724,9 +2724,9 @@ initListeners() {
         if (this.dom.voiceVolume) this.dom.voiceVolume.oninput = updateVoiceLive;
 
         // Toggles
-        if (this.dom.toneCadenceToggle) {
-            this.dom.toneCadenceToggle.checked = !!this.appSettings.isToneCadenceEnabled;
-            this.dom.toneCadenceToggle.addEventListener('change', (e) => {
+        if (this.dom.tone-cadence-toggle) {
+            this.dom.tone-cadence-toggle.checked = !!this.appSettings.isToneCadenceEnabled;
+            this.dom.tone-cadence-toggle.addEventListener('change', (e) => {
                 this.appSettings.isToneCadenceEnabled = e.target.checked;
                 this.callbacks.onSave();
                 this.updateHeaderVisibility(); 
@@ -2751,18 +2751,18 @@ initListeners() {
             };
         }
 
-        if (this.dom.headertoneCadenceBtn) {
-            this.dom.headertoneCadenceBtn.addEventListener('click', () => {
-                const isActive = this.dom.headertoneCadenceBtn.classList.contains('bg-indigo-600');
+        if (this.dom.header-tonecadence-btn) {
+            this.dom.header-tonecadence-btn.addEventListener('click', () => {
+                const isActive = this.dom.header-tonecadence-btn.classList.contains('bg-indigo-600');
                 if (isActive) {
-                    this.dom.headertoneCadenceBtn.classList.remove('bg-indigo-600', 'text-white');
-                    this.dom.headertoneCadenceBtn.classList.add('bg-indigo-900/40', 'text-indigo-300');
-                    this.dom.headertoneCadenceBtn.textContent = '🎵 Tones Off';
+                    this.dom.header-tonecadence-btn.classList.remove('bg-indigo-600', 'text-white');
+                    this.dom.header-tonecadence-btn.classList.add('bg-indigo-900/40', 'text-indigo-300');
+                    this.dom.header-tonecadence-btn.textContent = '🎵 Tones Off';
                     if (typeof toneEngine !== 'undefined') toneEngine.stop();
                 } else {
-                    this.dom.headertoneCadenceBtn.classList.add('bg-indigo-600', 'text-white');
-                    this.dom.headertoneCadenceBtn.classList.remove('bg-indigo-900/40', 'text-indigo-300');
-                    this.dom.headertoneCadenceBtn.textContent = '🎵 Tones ON';
+                    this.dom.header-tonecadence-btn.classList.add('bg-indigo-600', 'text-white');
+                    this.dom.header-tonecadence-btn.classList.remove('bg-indigo-900/40', 'text-indigo-300');
+                    this.dom.header-tonecadence-btn.textContent = '🎵 Tones ON';
                     if (typeof toneEngine !== 'undefined') toneEngine.start();
                 }
             });
@@ -2922,9 +2922,9 @@ initListeners() {
         if (this.dom.seqFontSize) this.dom.seqFontSize.onchange = (e) => { this.appSettings.uiFontSizeMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onSave(); this.callbacks.onUpdate(); };
         
         // STANDARD HAND GESTURES INTEGRATION
-        if (this.dom.handGesturesToggle) {
-            this.dom.handGesturesToggle.checked = !!this.appSettings.isHandGesturesEnabled;
-            this.dom.handGesturesToggle.onchange = (e) => {
+        if (this.dom.hand-gestures-toggle) {
+            this.dom.hand-gestures-toggle.checked = !!this.appSettings.isHandGesturesEnabled;
+            this.dom.hand-gestures-toggle.onchange = (e) => {
                 this.appSettings.isHandGesturesEnabled = e.target.checked;
                 this.updateHeaderVisibility(); 
                 this.callbacks.onSave();
@@ -3176,15 +3176,15 @@ updateUIFromSettings() {
     if (this.dom.ecomode-toggle) this.dom.ecomode-toggle.checked = !!this.appSettings.isEcoModeEnabled;
     if (this.dom.wakelock-toggle) this.dom.wakelock-toggle.checked = (typeof this.appSettings.isWakeLockEnabled === 'undefined') ? true : this.appSettings.isWakeLockEnabled;
     if (this.dom.voice-input-toggle) this.dom.voice-input-toggle.checked = !!this.appSettings.isVoiceInputEnabled;
-    if (this.dom.voicecommandsToggle) this.dom.voicecommandsToggle.checked = !!this.appSettings.isVoiceCommandsEnabled;
-    if (this.dom.toneCadenceToggle) this.dom.toneCadenceToggle.checked = !!this.appSettings.isToneCadenceEnabled;
+    if (this.dom.voice-commands-toggle) this.dom.voice-commands-toggle.checked = !!this.appSettings.isVoiceCommandsEnabled;
+    if (this.dom.tone-cadence-toggle) this.dom.tone-cadence-toggle.checked = !!this.appSettings.isToneCadenceEnabled;
     if (this.dom.gesture-input-toggle) this.dom.gesture-input-toggle.checked = !!this.appSettings.isGestureInputEnabled;
     if (this.dom.blackout-toggle) this.dom.blackout-toggle.checked = !!this.appSettings.isBossModeEnabled;
     if (this.dom.newToggle) this.dom.newToggle.checked = !!this.appSettings.isNewFeatureEnabled;
     if (this.dom.stealth-1key-toggle) this.dom.stealth-1key-toggle.checked = !!this.appSettings.isStealth1KeyEnabled;
     if (this.dom.ar-mode-toggle) this.dom.ar-mode-toggle.checked = !!this.appSettings.isArModeEnabled;
-    if (this.dom.handGesturesToggle) this.dom.handGesturesToggle.checked = !!this.appSettings.isHandGesturesEnabled;
-    if (this.dom.handsignalsToggle) this.dom.handsignalsToggle.checked = !!this.appSettings.isHandSignalsEnabled;
+    if (this.dom.hand-gestures-toggle) this.dom.hand-gestures-toggle.checked = !!this.appSettings.isHandGesturesEnabled;
+    if (this.dom.hand-signals-toggle) this.dom.hand-signals-toggle.checked = !!this.appSettings.isHandSignalsEnabled;
     if (this.dom.speed-delete-toggle) this.dom.speed-delete-toggle.checked = (typeof this.appSettings.isSpeedDeletingEnabled === 'undefined') ? true : this.appSettings.isSpeedDeletingEnabled;
     if (this.dom.long-press-autoplay-toggle) this.dom.long-press-autoplay-toggle.checked = !!this.appSettings.isApShortcutEnabled;
     if (this.dom.volume-gestures-toggle) this.dom.volume-gestures-toggle.checked = !!this.appSettings.isVolumeGesturesEnabled;
@@ -3204,13 +3204,13 @@ updateHeaderVisibility() {
     if (this.dom.header-timer-btn) this.dom.header-timer-btn.classList.toggle('hidden', !this.appSettings.showTimer);
     if (this.dom.header-counter-btn) this.dom.header-counter-btn.classList.toggle('hidden', !this.appSettings.showCounter);
     if (this.dom.header-mic-btn) this.dom.header-mic-btn.classList.toggle('hidden', !this.appSettings.isVoiceInputEnabled);
-    if (this.dom.headertoneCadenceBtn) this.dom.headertoneCadenceBtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
+    if (this.dom.header-tonecadence-btn) this.dom.header-tonecadence-btn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
     if (this.dom.header-gesture-btn) this.dom.header-gesture-btn.classList.toggle('hidden', !this.appSettings.isGestureInputEnabled);
     if (this.dom.header-hand-btn) this.dom.header-hand-btn.classList.toggle('hidden', !this.appSettings.isHandGesturesEnabled);
     if (this.dom.header-cam-btn) this.dom.header-cam-btn.classList.toggle('hidden', !this.appSettings.isArModeEnabled);
     if (this.dom.header-stealth-btn) this.dom.header-stealth-btn.classList.toggle('hidden', !this.appSettings.isStealth1KeyEnabled);
-    if (this.dom.headerfullscreenbtn) this.dom.headerfullscreenbtn.classList.toggle('hidden', !this.appSettings.showFullscreenBtn);
-    if (this.dom.headerupsidedownbtn) this.dom.headerupsidedownbtn.classList.toggle('hidden', !this.appSettings.showUpsideDownBtn);
+    if (this.dom.header-fullscreen-btn) this.dom.header-fullscreen-btn.classList.toggle('hidden', !this.appSettings.showFullscreenBtn);
+    if (this.dom.header-upsidedown-btn) this.dom.header-upsidedown-btn.classList.toggle('hidden', !this.appSettings.showUpsideDownBtn);
 
     // Check if AT LEAST ONE header button is supposed to be visible
     const anyVisible = [
@@ -5949,29 +5949,29 @@ function processHandData(landmarks) {
 const startApp = () => {
   loadState();
   if (appSettings.isEcoModeEnabled) document.body.classList.add('eco-mode');
-  const headerfullscreenbtn = document.getElementById('headerfullscreenbtn');
-  if (headerfullscreenbtn) {
-      headerfullscreenbtn.onclick = () => {
+  const header-fullscreen-btn = document.getElementById('header-fullscreen-btn');
+  if (header-fullscreen-btn) {
+      header-fullscreen-btn.onclick = () => {
           if (!document.fullscreenElement) {
               document.documentElement.requestFullscreen().catch(err => {
                   console.warn(`Fullscreen error: ${err.message}`);
               });
-              headerfullscreenbtn.classList.add('ring-2', 'ring-emerald-500');
+              header-fullscreen-btn.classList.add('ring-2', 'ring-emerald-500');
           } else {
               document.exitFullscreen();
-              headerfullscreenbtn.classList.remove('ring-2', 'ring-emerald-500');
+              header-fullscreen-btn.classList.remove('ring-2', 'ring-emerald-500');
           }
       };
   }
-  const headerupsidedownbtn = document.getElementById('headerupsidedownbtn');
-  if (headerupsidedownbtn) {
-      headerupsidedownbtn.onclick = () => {
+  const header-upsidedown-btn = document.getElementById('header-upsidedown-btn');
+  if (header-upsidedown-btn) {
+      header-upsidedown-btn.onclick = () => {
           document.body.classList.toggle('rotate-180');
           if (document.body.classList.contains('rotate-180')) {
-              headerupsidedownbtn.classList.add('ring-2', 'ring-emerald-500');
+              header-upsidedown-btn.classList.add('ring-2', 'ring-emerald-500');
               showToast("Upside Down Mode: ON 🙃");
           } else {
-              headerupsidedownbtn.classList.remove('ring-2', 'ring-emerald-500');
+              header-upsidedown-btn.classList.remove('ring-2', 'ring-emerald-500');
               showToast("Upside Down Mode: OFF");
           }
       };
@@ -6140,6 +6140,246 @@ function escapeHtml(text){if(!text)return"";return text.replace(/&/g,"&amp;").re
   initGlobalListeners();
   initGestureEngine();
   setupARLogic(); 
+  renderUI();
+};
+document.addEventListener('DOMContentLoaded', startApp);
+</script>
+</body>
+</html>iner)return;if(snapshot.empty){listContainer.innerHTML='<p class="text-center text-gray-500 text-xs">No comments yet.</p>';return;}listContainer.innerHTML="";snapshot.forEach(doc=>{const data=doc.data();const el=document.createElement('div');el.className="p-3 mb-2 rounded-lg bg-black bg-opacity-20 border border-gray-700";el.innerHTML=`<p class="font-bold text-primary-app text-xs">${escapeHtml(data.username)}</p><p class="text-gray-300 text-sm">${escapeHtml(data.message)}</p>`;listContainer.appendChild(el);});});}
+function escapeHtml(text){if(!text)return"";return text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
+  // 7. Final Wiring & Startup
+  updateAllChrome();
+  initComments(db);
+  modules.settings.updateHeaderVisibility();
+  initGlobalListeners();
+  initGestureEngine();
+  setupARLogic(); 
+  renderUI();
+};
+document.addEventListener('DOMContentLoaded', startApp);
+</script>
+</body>
+</html>body>
+</html>tener('DOMContentLoaded', startApp);
+</script>
+</body>
+</html>peHtml(text){if(!text)return"";return text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
+
+  // 7. Final Wiring & Startup
+  updateAllChrome();
+  initComments(db);
+  modules.settings.updateHeaderVisibility();
+  initGlobalListeners();
+  initGestureEngine();
+  setupARLogic();
+  
+  renderUI();
+};
+document.addEventListener('DOMContentLoaded', startApp);
+</script>
+</body>
+</html>).replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
+
+  // 7. Final Wiring & Startup
+  updateAllChrome();
+  initComments(db);
+  modules.settings.updateHeaderVisibility();
+  initGlobalListeners();
+  initGestureEngine();
+  setupARLogic();
+  
+  renderUI();
+};
+document.addEventListener('DOMContentLoaded', startApp);
+</script>
+</body>
+</html>nbtn.onclick = () => {
+          document.body.classList.toggle('rotate-180');
+          if (document.body.classList.contains('rotate-180')) {
+              headerupsidedownbtn.classList.add('ring-2', 'ring-emerald-500');
+              showToast("Upside Down Mode: ON 🙃");
+          } else {
+              headerupsidedownbtn.classList.remove('ring-2', 'ring-emerald-500');
+              showToast("Upside Down Mode: OFF");
+          }
+      };
+  }
+  if (appSettings.isWakeLockEnabled && typeof window.wakelockToggle === 'function') {
+      window.wakelockToggle(true);
+  }
+  modules.settings = new SettingsManager(
+      appSettings, 
+      { 
+          onSave: () => saveState(), 
+          onUpdate: () => updateAllChrome(),
+          onProfileSwitch: (id) => { 
+              appSettings.activeProfileId = id;
+              appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings));
+              saveState();
+              renderUI(); 
+          },
+
+          onProfileAdd: (name) => {
+              const id = 'p_' + Date.now();
+              appSettings.profiles[id] = { name: name, settings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), theme: 'default' };
+              saveState();
+          },
+          onProfileRename: (name) => {
+              appSettings.profiles[appSettings.activeProfileId].name = name;
+              saveState();
+          },
+          onProfileDelete: () => {
+              if (Object.keys(appSettings.profiles).length > 1) {
+                  delete appSettings.profiles[appSettings.activeProfileId];
+                  appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
+                  appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings));
+                  saveState();
+                  renderUI();
+              } else {
+                  alert("Cannot delete the last profile.");
+              }
+          },
+          onProfileSave: () => { 
+              appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings));
+              saveState(); 
+          },
+          onReset: () => { 
+              localStorage.clear();
+              window.location.reload(); 
+          }
+      }
+  );
+const smartTracker = new SmartCadenceTracker(
+    (val) => {
+        addValue(val);
+        showToast(`🎵 Tone Added: ${val}`);
+    },
+    () => {
+        // Wipes the board clean for a new game / count-off completion
+        const state = getState();
+        state.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []);
+        state.nextSequenceIndex = 0;
+        state.currentRound = 1;
+        renderUI();
+        saveState();
+    }
+);
+const toneEngine = new ToneEngine((val) => {
+    smartTracker.handleTone(val);
+});
+  let gestureHistory = [];
+  let gestureCooldown = 0;
+        modules.vision = new VisionEngine(
+      (gestureData) => {
+          const settings = getProfileSettings();
+          if (typeof gestureCooldown !== 'undefined' && gestureCooldown > 0) {
+              gestureCooldown--;
+              return;
+          }
+          if (!gestureData || gestureData === "none") {
+              return; // Ignore empty frames
+          }
+          const gestureId = typeof gestureData === 'object' ? gestureData.id : gestureData;
+          const gestureLabel = typeof gestureData === 'object' ? gestureData.label : "Gesture";
+          if (appSettings.isHandSignalsEnabled) {
+              if (gestureId === 104) { // 104 = Chef Kiss
+                  showToast("Hand Signal: Clear 🧹");
+                  // Call your existing clear function here
+                  if (typeof resetCurrentMachine === 'function') resetCurrentMachine();
+                  gestureCooldown = 60; 
+                  return;
+              } 
+              if (gestureId === 105) { // 105 = OK Sign
+                  showToast("Hand Signal: Undo 🔙");
+                  if (typeof handleBackspace === 'function') handleBackspace();
+                  gestureCooldown = 60;
+                  return;
+              }
+          }
+          let mappedInput = null;
+          if (appSettings.mappings) {
+              for (const [key, mapData] of Object.entries(appSettings.mappings)) {
+                  // Ensure we only match keys for the currently active layout
+                  const prefix = settings.currentInput === 'key9' ? 'k9_' : 
+                                 settings.currentInput === 'key12' ? 'k12_' : 'piano_';                
+                  if (key.startsWith(prefix) && parseInt(mapData.handGesture) === gestureId) {
+                      mappedInput = key.replace(prefix, ''); // Isolates the specific number/note
+                      break;
+                  }
+              }
+          } else if (typeof mapGestureToValue === 'function') {
+              // Legacy fallback just in case mappings object isn't fully initialized
+              mappedInput = mapGestureToValue(gestureId, settings.currentInput);
+          }
+          if (mappedInput !== null) {
+              addValue(mappedInput);
+              showToast(`Hand: ${mappedInput} (${gestureLabel}) 🖐️`);
+              document.body.style.backgroundColor = '#222';
+              setTimeout(() => document.body.style.backgroundColor = '', 100);
+              gestureCooldown = 60; 
+          }
+      },
+      (status) => showToast(status)
+  );
+
+    voiceModule = new VoiceCommander({
+      onStatus: (msg) => showToast(msg),
+      onInput: (val) => {
+          addValue(val);
+          const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
+          if(btn) { 
+              btn.classList.add('flash-active'); 
+              setTimeout(() => btn.classList.remove('flash-active'), 200); 
+          }
+          
+          const hMic = document.getElementById('headervoicebtn');
+          if(hMic) {
+              hMic.classList.remove('header-btn-active');
+              setTimeout(() => { if(voiceModule.isListening) hMic.classList.add('header-btn-active'); }, 300);
+          }
+      },
+      onCommand: (cmd) => {
+          // NEW: Gatekeeper check for the General Tab "Voice Commands" checkbox
+          if (!appSettings.isVoiceCommandsEnabled) {
+              console.log("Action voice commands are disabled in settings. Ignoring:", cmd);
+              return; 
+          }
+
+          if(cmd === 'CMD_PLAY') {
+              playDemo();
+              showToast("Voice: Playing ▶️");
+          }
+          if(cmd === 'CMD_STOP') { 
+              isDemoPlaying = false; 
+              showToast("Voice: Stopped 🛑"); 
+          }
+          if(cmd === 'CMD_CLEAR') { 
+              const s = getState(); 
+              s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); 
+              renderUI(); 
+              showToast("Voice: Cleared All 💥"); 
+          }
+          if(cmd === 'CMD_DELETE') {
+              handleBackspace();
+              showToast("Voice: Backspace 🔙");
+          }
+          if(cmd === 'CMD_SETTINGS') {
+              modules.settings.openSettings();
+          }
+      }
+  });
+function initComments(db){const modal=document.getElementById('comment-modal');const openBtn=document.getElementById('open-comment-modal');const closeBtn=document.getElementById('close-comment-modal');const submitBtn=document.getElementById('submit-comment-btn');const listContainer=document.getElementById('comments-list-container');const nameInput=document.getElementById('comment-username');const msgInput=document.getElementById('comment-message');const toggle=(show)=>{if(!modal)return;if(show){modal.classList.remove('hidden');setTimeout(()=>{modal.classList.remove('opacity-0','pointer-events-none');modal.querySelector('div').classList.remove('scale-90');},10);}else{modal.querySelector('div').classList.add('scale-90');modal.classList.add('opacity-0');setTimeout(()=>{modal.classList.add('pointer-events-none');modal.classList.add('hidden');},300);}};if(openBtn)openBtn.onclick=()=>toggle(true);if(closeBtn)closeBtn.onclick=()=>toggle(false);if(submitBtn){submitBtn.onclick=async()=>{const username=nameInput.value.trim();const message=msgInput.value.trim();if(!username||!message){alert("Please enter name and message.");return;}submitBtn.disabled=true;submitBtn.innerText="Sending...";try{await addDoc(collection(db,"comments"),{username,message,timestamp:serverTimestamp()});msgInput.value="";submitBtn.innerText="Sent!";setTimeout(()=>{submitBtn.disabled=false;submitBtn.innerText="Send";},2000);}catch(e){console.error("Error sending comment",e);submitBtn.innerText="Error";submitBtn.disabled=false;}};}const q=query(collection(db,"comments"),orderBy("timestamp","desc"),limit(50));onSnapshot(q,(snapshot)=>{if(!listContainer)return;if(snapshot.empty){listContainer.innerHTML='<p class="text-center text-gray-500 text-xs">No comments yet.</p>';return;}listContainer.innerHTML="";snapshot.forEach(doc=>{const data=doc.data();const el=document.createElement('div');el.className="p-3 mb-2 rounded-lg bg-black bg-opacity-20 border border-gray-700";el.innerHTML=`<p class="font-bold text-primary-app text-xs">${escapeHtml(data.username)}</p><p class="text-gray-300 text-sm">${escapeHtml(data.message)}</p>`;listContainer.appendChild(el);});});}
+
+function escapeHtml(text){if(!text)return"";return text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
+
+  // 7. Final Wiring & Startup
+  updateAllChrome();
+  initComments(db);
+  modules.settings.updateHeaderVisibility();
+  initGlobalListeners();
+  initGestureEngine();
+  setupARLogic();
+  
   renderUI();
 };
 document.addEventListener('DOMContentLoaded', startApp);

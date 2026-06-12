@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><script>
+l<!DOCTYPE html><html lang="en"><head><script>
 window.onerror = function(msg, url, line) { alert("Error: " + msg + "\nLine: " + line); };
 window.onunhandledrejection = function(event) { alert("Promise Error: " + event.reason); };
 </script>
@@ -2038,43 +2038,43 @@ constructor(appSettings, callbacks) {
     this.currentTargetKey = 'bubble';
 
 this.dom = {
-	timer-toggle: document.getElementById('timer-toggle'),
-    auto-timer-toggle: document.getElementById('auto-timer-toggle'),
-    counter-toggle: document.getElementById('counter-toggle'),
-    auto-counter-toggle: document.getElementById('auto-counter-toggle'),
-    haptics-toggle: document.getElementById('haptics-toggle'),
-    show-welcome-toggle: document.getElementById('show-welcome-toggle'),
-    upsidedown-toggle: document.getElementById('upsidedown-toggle'),
-    fullscreen-toggle: document.getElementById('fullscreen-toggle'),
-    ecomode-toggle: document.getElementById('ecomode-toggle'),
-    wakelock-toggle: document.getElementById('wakelock-toggle'),
-    voice-input-toggle: document.getElementById('voice-input-toggle'),
-    voice-commands-toggle: document.getElementById('voice-commands-toggle'),
-    tone-cadence-toggle: document.getElementById('tone-cadence-toggle'),
-    gesture-input-toggle: document.getElementById('gesture-input-toggle'),
-    blackout-toggle: document.getElementById('blackout-toggle'),
+timertoggle: document.getElementById('timer-toggle'),
+    autotimertoggle: document.getElementById('auto-timer-toggle'),
+    countertoggle: document.getElementById('counter-toggle'),
+    autocountertoggle: document.getElementById('auto-counter-toggle'),
+    hapticstoggle: document.getElementById('haptics-toggle'),
+    showwelcometoggle: document.getElementById('show-welcome-toggle'),
+    upsidedowntoggle: document.getElementById('upsidedown-toggle'),
+    fullscreentoggle: document.getElementById('fullscreen-toggle'),
+    ecomodetoggle: document.getElementById('ecomode-toggle'),
+    wakelocktoggle: document.getElementById('wakelock-toggle'),
+    voiceinputtoggle: document.getElementById('voice-input-toggle'),
+    voicecommandstoggle: document.getElementById('voice-commands-toggle'),
+    tonecadencetoggle: document.getElementById('tone-cadence-toggle'),
+    gestureinputtoggle: document.getElementById('gesture-input-toggle'),
+    blackouttoggle: document.getElementById('blackout-toggle'),
     newToggle: document.getElementById('newToggle'),
-    stealth-1key-toggle: document.getElementById('stealth-1key-toggle'),
-    ar-mode-toggle: document.getElementById('ar-mode-toggle'),
-    hand-gestures-toggle: document.getElementById('hand-gestures-toggle'),
-    hand-signals-toggle: document.getElementById('hand-signals-toggle'),
-    speed-delete-toggle: document.getElementById('speed-delete-toggle'),
-    long-press-autoplay-toggle: document.getElementById('long-press-autoplay-toggle'),
-    volume-gestures-toggle: document.getElementById('volume-gestures-toggle'),
-    speed-gestures-toggle: document.getElementById('speed-gestures-toggle'),
-    delete-gesture-toggle: document.getElementById('delete-gesture-toggle'),
-    clear-gesture-toggle: document.getElementById('clear-gesture-toggle'),
+    stealth1keytoggle: document.getElementById('stealth-1key-toggle'),
+    armodetoggle: document.getElementById('ar-mode-toggle'),
+    handgesturestoggle: document.getElementById('hand-gestures-toggle'),
+    handsignalstoggle: document.getElementById('hand-signals-toggle'),
+    speeddeletetoggle: document.getElementById('speed-delete-toggle'),
+    longpressautoplaytoggle: document.getElementById('long-press-autoplay-toggle'),
+    volumegesturestoggle: document.getElementById('volume-gestures-toggle'),
+    speedgesturestoggle: document.getElementById('speed-gestures-toggle'),
+    deletegesturetoggle: document.getElementById('delete-gesture-toggle'),
+    cleargesturetoggle: document.getElementById('clear-gesture-toggle'),
     
-	header-timer-btn: document.getElementById('header-timer-btn'),
-    header-counter-btn: document.getElementById('header-counter-btn'),
-    header-mic-btn: document.getElementById('header-mic-btn'),
-    header-tonecadence-btn: document.getElementById('header-tonecadence-btn'),
-    header-gesture-btn: document.getElementById('header-gesture-btn'),
-    header-hand-btn: document.getElementById('header-hand-btn'),
-    header-cam-btn: document.getElementById('header-cam-btn'),
-    header-stealth-btn: document.getElementById('header-stealth-btn'),
-    header-fullscreen-btn: document.getElementById('header-fullscreen-btn'),
-    header-upsidedown-btn: document.getElementById('header-upsidedown-btn'),          
+	headertimerbtn: document.getElementById('header-timer-btn'),
+    headercounterbtn: document.getElementById('header-counter-btn'),
+    headermicbtn: document.getElementById('header-mic-btn'),
+    headertonecadencebtn: document.getElementById('header-tonecadence-btn'),
+    headergesturebtn: document.getElementById('header-gesture-btn'),
+    headerhandbtn: document.getElementById('header-hand-btn'),
+    headercambtn: document.getElementById('header-cam-btn'),
+    headerstealthbtn: document.getElementById('header-stealth-btn'),
+    headerfullscreenbtn: document.getElementById('header-fullscreen-btn'),
+    headerupsidedownbtn: document.getElementById('header-upsidedown-btn'),          
             // Voice Settings
             voicePresetSelect: document.getElementById('voice-preset-select'),
             voicePresetAdd: document.getElementById('voice-preset-add'),
@@ -2614,33 +2614,31 @@ initListeners() {
         };
     };
 
-    // Header Visibility Triggers (These 10 affect the header)
-    bindToggle(this.dom.timer-toggle, 'showTimer', true);
-    bindToggle(this.dom.counter-toggle, 'showCounter', true);
-    bindToggle(this.dom.voice-input-toggle, 'isVoiceInputEnabled', true);
-    bindToggle(this.dom.tone-cadence-toggle, 'isToneCadenceEnabled', true);
-    bindToggle(this.dom.gesture-input-toggle, 'isGestureInputEnabled', true);
-    bindToggle(this.dom.hand-gestures-toggle, 'isHandGesturesEnabled', true);
-    bindToggle(this.dom.ar-mode-toggle, 'isArModeEnabled', true);
-    bindToggle(this.dom.stealth-1key-toggle, 'isStealth1KeyEnabled', true);
-    bindToggle(this.dom.fullscreen-toggle, 'showFullscreenBtn', true);
-    bindToggle(this.dom.upsidedown-toggle, 'showUpsideDownBtn', true);
-
-    // Standard App Settings Triggers
-    bindToggle(this.dom.auto-timer-toggle, 'isAutoTimerEnabled');
-    bindToggle(this.dom.auto-counter-toggle, 'isAutoCounterEnabled');
-    bindToggle(this.dom.haptics-toggle, 'isHapticsEnabled');
-    bindToggle(this.dom.ecomode-toggle, 'isEcoModeEnabled');
-    bindToggle(this.dom.voice-commands-toggle, 'isVoiceCommandsEnabled');
-    bindToggle(this.dom.blackout-toggle, 'isBossModeEnabled');
-    bindToggle(this.dom.newToggle, 'isNewFeatureEnabled'); // Placeholder
-    bindToggle(this.dom.hand-signals-toggle, 'isHandSignalsEnabled');
-    bindToggle(this.dom.speed-delete-toggle, 'isSpeedDeletingEnabled');
-    bindToggle(this.dom.long-press-autoplay-toggle, 'isApShortcutEnabled');
-    bindToggle(this.dom.volume-gestures-toggle, 'isVolumeGesturesEnabled');
-    bindToggle(this.dom.speed-gestures-toggle, 'isSpeedGesturesEnabled');
-    bindToggle(this.dom.delete-gesture-toggle, 'isDeleteGestureEnabled');
-    bindToggle(this.dom.clear-gesture-toggle, 'isClearGestureEnabled');
+// Header Visibility Triggers (These 10 affect the header)
+bindToggle(this.dom.timer-toggle, 'showTimer', true);
+bindToggle(this.dom.counter-toggle, 'showCounter', true);
+bindToggle(this.dom.voice-input-toggle, 'isVoiceInputEnabled', true);
+bindToggle(this.dom.tone-cadence-toggle, 'isToneCadenceEnabled', true);
+bindToggle(this.dom.gesture-input-toggle, 'isGestureInputEnabled', true);
+bindToggle(this.dom.hand-gestures-toggle, 'isHandGesturesEnabled', true);
+bindToggle(this.dom.ar-mode-toggle, 'isArModeEnabled', true);
+bindToggle(this.dom.stealth-1key-toggle, 'isStealth1KeyEnabled', true);
+bindToggle(this.dom.fullscreen-toggle, 'showFullscreenBtn', true);
+bindToggle(this.dom.upsidedown-toggle, 'showUpsideDownBtn', true);
+bindToggle(this.dom.auto-timer-toggle, 'isAutoTimerEnabled');
+bindToggle(this.dom.auto-counter-toggle, 'isAutoCounterEnabled');
+bindToggle(this.dom.haptics-toggle, 'isHapticsEnabled');
+bindToggle(this.dom.ecomode-toggle, 'isEcoModeEnabled');
+bindToggle(this.dom.voice-commands-toggle, 'isVoiceCommandsEnabled');
+bindToggle(this.dom.blackout-toggle, 'isBossModeEnabled');
+bindToggle(this.dom.newToggle, 'isNewFeatureEnabled'); // Placeholder
+bindToggle(this.dom.hand-signals-toggle, 'isHandSignalsEnabled');
+bindToggle(this.dom.speed-delete-toggle, 'isSpeedDeletingEnabled');
+bindToggle(this.dom.long-press-autoplay-toggle, 'isApShortcutEnabled');
+bindToggle(this.dom.volume-gestures-toggle, 'isVolumeGesturesEnabled');
+bindToggle(this.dom.speed-gestures-toggle, 'isSpeedGesturesEnabled');
+bindToggle(this.dom.delete-gesture-toggle, 'isDeleteGestureEnabled');
+bindToggle(this.dom.clear-gesture-toggle, 'isClearGestureEnabled');
 
     // Special Overrides
     if (this.dom.show-welcome-toggle) {
@@ -5793,7 +5791,6 @@ function initGlobalListeners() {
       if(headerHand) {
           headerHand.onclick = () => {
               if(!modules.vision) return;            
-              // Toggle State
               const isActive = !modules.vision.isActive;
               if (isActive) {
                   modules.vision.start();
@@ -5811,78 +5808,77 @@ function initGlobalListeners() {
             const isActive = document.body.classList.contains('hide-controls');
             headerStealth.classList.toggle('header-btn-active', isActive);
             showToast(isActive ? "Bigger Buttons Active" : "Controls Visible");
-            // Force layout recalculation for the new huge buttons
             setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
         };
       }      
-      if(headerTimer) {
-          headerTimer.textContent = "00:00"; 
-          headerTimer.style.fontSize = "0.75rem"; 
-          const formatTime = (ms) => {
-              const totalSec = Math.floor(ms / 1000); const m = Math.floor(totalSec / 60); const s = totalSec % 60;
-              return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-          };
-          const updateTimer = () => {
-              const now = Date.now(); const diff = now - simpleTimer.startTime + simpleTimer.elapsed;
-              headerTimer.textContent = formatTime(diff);
-          };
-          globalTimerActions.start = () => {
-              if(!simpleTimer.isRunning) {
-                  simpleTimer.startTime = Date.now();
-                  simpleTimer.interval = setInterval(updateTimer, 100);
-                  simpleTimer.isRunning = true;
-              }
-          };
-          globalTimerActions.stop = () => {
-              if(simpleTimer.isRunning) {
-                  clearInterval(simpleTimer.interval);
-                  simpleTimer.elapsed += Date.now() - simpleTimer.startTime;
-                  simpleTimer.isRunning = false;
-              }
-          };
-          globalTimerActions.reset = () => {
-              clearInterval(simpleTimer.interval);
-              simpleTimer.isRunning = false;
-              simpleTimer.elapsed = 0;
-              headerTimer.textContent = "00:00";
-          };
-          const toggleTimer = () => {
-              if(simpleTimer.isRunning) globalTimerActions.stop(); else globalTimerActions.start();
-              vibrate();
-          };
-          const resetTimer = () => { globalTimerActions.reset(); showToast("Timer Reset"); vibrate(); };
-          let tTimer; let tIsLong = false;
-          const startT = (e) => { if(e.type === 'mousedown' && e.button !== 0) return; tIsLong = false; tTimer = setTimeout(() => { tIsLong = true; resetTimer(); }, 600); };
-          const endT = (e) => { if(e) e.preventDefault(); clearTimeout(tTimer); if(!tIsLong) toggleTimer(); };
-          headerTimer.addEventListener('mousedown', startT); headerTimer.addEventListener('touchstart', startT, {passive:true});
-          headerTimer.addEventListener('mouseup', endT); headerTimer.addEventListener('touchend', endT); headerTimer.addEventListener('mouseleave', () => clearTimeout(tTimer));
-      }
-      if(headerCounter) {
-          headerCounter.textContent = simpleCounter.toString(); headerCounter.style.fontSize = "1.2rem";
-          const updateCounter = () => { headerCounter.textContent = simpleCounter; };
-          globalCounterActions.increment = () => { simpleCounter++; updateCounter(); };
-          globalCounterActions.reset = () => { simpleCounter = 0; updateCounter(); };
-          const increment = () => { globalCounterActions.increment(); vibrate(); };
-          const resetCounter = () => { globalCounterActions.reset(); showToast("Counter Reset"); vibrate(); };
-          let cTimer; let cIsLong = false;
-          const startC = (e) => { if(e.type === 'mousedown' && e.button !== 0) return; cIsLong = false; cTimer = setTimeout(() => { cIsLong = true; resetCounter(); }, 600); };
-          const endC = (e) => { if(e) e.preventDefault(); clearTimeout(cTimer); if(!cIsLong) increment(); };
-          headerCounter.addEventListener('mousedown', startC); headerCounter.addEventListener('touchstart', startC, {passive:true});
-          headerCounter.addEventListener('mouseup', endC); headerCounter.addEventListener('touchend', endC); headerCounter.addEventListener('mouseleave', () => clearTimeout(cTimer));
-      }
-      if(headerMic) { 
-          headerMic.onclick = () => { 
-              if(!voiceModule) return;
-              const isActive = !voiceModule.isListening;
-              voiceModule.toggle(isActive);
-              headerMic.classList.toggle('header-btn-active', isActive);
-          }; 
-      }
-      if(headerGesture) {
-          headerGesture.onclick = () => {
-              isGesturePadVisible = !isGesturePadVisible;
-              headerGesture.classList.toggle('header-btn-active', isGesturePadVisible);
-              const gpWrap = document.getElementById('gesture-pad-wrapper');
+if(headerTimer) {
+headerTimer.textContent = "00:00"; 
+headerTimer.style.fontSize = "0.75rem"; 
+const formatTime = (ms) => {
+const totalSec = Math.floor(ms / 1000); const m = Math.floor(totalSec / 60); const s = totalSec % 60;
+return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+};
+const updateTimer = () => {
+const now = Date.now(); const diff = now - simpleTimer.startTime + simpleTimer.elapsed;
+headerTimer.textContent = formatTime(diff);
+};
+globalTimerActions.start = () => {
+if(!simpleTimer.isRunning) {
+simpleTimer.startTime = Date.now();
+simpleTimer.interval = setInterval(updateTimer, 100);
+simpleTimer.isRunning = true;
+}
+};
+globalTimerActions.stop = () => {
+if(simpleTimer.isRunning) {
+clearInterval(simpleTimer.interval);
+simpleTimer.elapsed += Date.now() - simpleTimer.startTime;
+simpleTimer.isRunning = false;
+}
+};
+globalTimerActions.reset = () => {
+clearInterval(simpleTimer.interval);
+simpleTimer.isRunning = false;
+simpleTimer.elapsed = 0;
+headerTimer.textContent = "00:00";
+};
+const toggleTimer = () => {
+if(simpleTimer.isRunning) globalTimerActions.stop(); else globalTimerActions.start();
+vibrate();
+};
+const resetTimer = () => { globalTimerActions.reset(); showToast("Timer Reset"); vibrate(); };
+let tTimer; let tIsLong = false;
+const startT = (e) => { if(e.type === 'mousedown' && e.button !== 0) return; tIsLong = false; tTimer = setTimeout(() => { tIsLong = true; resetTimer(); }, 600); };
+const endT = (e) => { if(e) e.preventDefault(); clearTimeout(tTimer); if(!tIsLong) toggleTimer(); };
+headerTimer.addEventListener('mousedown', startT); headerTimer.addEventListener('touchstart', startT, {passive:true});
+headerTimer.addEventListener('mouseup', endT); headerTimer.addEventListener('touchend', endT); headerTimer.addEventListener('mouseleave', () => clearTimeout(tTimer));
+}
+if(headerCounter) {
+headerCounter.textContent = simpleCounter.toString(); headerCounter.style.fontSize = "1.2rem";
+const updateCounter = () => { headerCounter.textContent = simpleCounter; };
+globalCounterActions.increment = () => { simpleCounter++; updateCounter(); };
+globalCounterActions.reset = () => { simpleCounter = 0; updateCounter(); };
+const increment = () => { globalCounterActions.increment(); vibrate(); };
+const resetCounter = () => { globalCounterActions.reset(); showToast("Counter Reset"); vibrate(); };
+let cTimer; let cIsLong = false;
+const startC = (e) => { if(e.type === 'mousedown' && e.button !== 0) return; cIsLong = false; cTimer = setTimeout(() => { cIsLong = true; resetCounter(); }, 600); };
+const endC = (e) => { if(e) e.preventDefault(); clearTimeout(cTimer); if(!cIsLong) increment(); };
+headerCounter.addEventListener('mousedown', startC); headerCounter.addEventListener('touchstart', startC, {passive:true});
+headerCounter.addEventListener('mouseup', endC); headerCounter.addEventListener('touchend', endC); headerCounter.addEventListener('mouseleave', () => clearTimeout(cTimer));
+}
+if(headerMic) { 
+headerMic.onclick = () => { 
+if(!voiceModule) return;
+const isActive = !voiceModule.isListening;
+voiceModule.toggle(isActive);
+headerMic.classList.toggle('header-btn-active', isActive);
+}; 
+}
+if(headerGesture) {
+headerGesture.onclick = () => {
+isGesturePadVisible = !isGesturePadVisible;
+headerGesture.classList.toggle('header-btn-active', isGesturePadVisible);
+const gpWrap = document.getElementById('gesture-pad-wrapper');
               if(gpWrap) {
                   if(isGesturePadVisible) {
                       gpWrap.classList.remove('hidden');
@@ -6026,7 +6022,6 @@ const smartTracker = new SmartCadenceTracker(
         showToast(`🎵 Tone Added: ${val}`);
     },
     () => {
-        // Wipes the board clean for a new game / count-off completion
         const state = getState();
         state.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []);
         state.nextSequenceIndex = 0;
@@ -6055,7 +6050,6 @@ const toneEngine = new ToneEngine((val) => {
           if (appSettings.isHandSignalsEnabled) {
               if (gestureId === 104) { // 104 = Chef Kiss
                   showToast("Hand Signal: Clear 🧹");
-                  // Call your existing clear function here
                   if (typeof resetCurrentMachine === 'function') resetCurrentMachine();
                   gestureCooldown = 60; 
                   return;
@@ -6083,304 +6077,57 @@ const toneEngine = new ToneEngine((val) => {
               mappedInput = mapGestureToValue(gestureId, settings.currentInput);
           }
           if (mappedInput !== null) {
-              addValue(mappedInput);
-              showToast(`Hand: ${mappedInput} (${gestureLabel}) 🖐️`);
-              document.body.style.backgroundColor = '#222';
-              setTimeout(() => document.body.style.backgroundColor = '', 100);
-              gestureCooldown = 60; 
-          }
-      },
-      (status) => showToast(status)
-  );
-    voiceModule = new VoiceCommander({
-      onStatus: (msg) => showToast(msg),
-      onInput: (val) => {
-          addValue(val);
-          const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
-          if(btn) { 
-              btn.classList.add('flash-active'); 
-              setTimeout(() => btn.classList.remove('flash-active'), 200); 
-          }          
-          const hMic = document.getElementById('header-mic-btn');
-          if(hMic) {
-              hMic.classList.remove('header-btn-active');
-              setTimeout(() => { if(voiceModule.isListening) hMic.classList.add('header-btn-active'); }, 300);
-          }
-      },
-      onCommand: (cmd) => {
-          // NEW: Gatekeeper check for the General Tab "Voice Commands" checkbox
-          if (!appSettings.isVoiceCommandsEnabled) {
-              console.log("Action voice commands are disabled in settings. Ignoring:", cmd);
-              return; 
-          }
-          if(cmd === 'CMD_PLAY') {
-              playDemo();
-              showToast("Voice: Playing ▶️");
-          }
-          if(cmd === 'CMD_STOP') { 
-              isDemoPlaying = false; 
-              showToast("Voice: Stopped 🛑"); 
-          }
-          if(cmd === 'CMD_CLEAR') { 
-              const s = getState(); 
-              s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); 
-              renderUI(); 
-              showToast("Voice: Cleared All 💥"); 
-          }
-          if(cmd === 'CMD_DELETE') { handleBackspace(); showToast("Voice: Backspace 🔙"); }
-          if(cmd === 'CMD_SETTINGS') { modules.settings.openSettings(); }
-      }
-  });
-function initComments(db){const modal=document.getElementById('comment-modal');const openBtn=document.getElementById('open-comment-modal');const closeBtn=document.getElementById('close-comment-modal');const submitBtn=document.getElementById('submit-comment-btn');const listContainer=document.getElementById('comments-list-container');const nameInput=document.getElementById('comment-username');const msgInput=document.getElementById('comment-message');const toggle=(show)=>{if(!modal)return;if(show){modal.classList.remove('hidden');setTimeout(()=>{modal.classList.remove('opacity-0','pointer-events-none');modal.querySelector('div').classList.remove('scale-90');},10);}else{modal.querySelector('div').classList.add('scale-90');modal.classList.add('opacity-0');setTimeout(()=>{modal.classList.add('pointer-events-none');modal.classList.add('hidden');},300);}};if(openBtn)openBtn.onclick=()=>toggle(true);if(closeBtn)closeBtn.onclick=()=>toggle(false);if(submitBtn){submitBtn.onclick=async()=>{const username=nameInput.value.trim();const message=msgInput.value.trim();if(!username||!message){alert("Please enter name and message.");return;}submitBtn.disabled=true;submitBtn.innerText="Sending...";try{await addDoc(collection(db,"comments"),{username,message,timestamp:serverTimestamp()});msgInput.value="";submitBtn.innerText="Sent!";setTimeout(()=>{submitBtn.disabled=false;submitBtn.innerText="Send";},2000);}catch(e){console.error("Error sending comment",e);submitBtn.innerText="Error";submitBtn.disabled=false;}};}const q=query(collection(db,"comments"),orderBy("timestamp","desc"),limit(50));onSnapshot(q,(snapshot)=>{if(!listContainer)return;if(snapshot.empty){listContainer.innerHTML='<p class="text-center text-gray-500 text-xs">No comments yet.</p>';return;}listContainer.innerHTML="";snapshot.forEach(doc=>{const data=doc.data();const el=document.createElement('div');el.className="p-3 mb-2 rounded-lg bg-black bg-opacity-20 border border-gray-700";el.innerHTML=`<p class="font-bold text-primary-app text-xs">${escapeHtml(data.username)}</p><p class="text-gray-300 text-sm">${escapeHtml(data.message)}</p>`;listContainer.appendChild(el);});});}
-function escapeHtml(text){if(!text)return"";return text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
-  // 7. Final Wiring & Startup
-  updateAllChrome();
-  initComments(db);
-  modules.settings.updateHeaderVisibility();
-  initGlobalListeners();
-  initGestureEngine();
-  setupARLogic(); 
-  renderUI();
-};
-document.addEventListener('DOMContentLoaded', startApp);
-</script>
-</body>
-</html>iner)return;if(snapshot.empty){listContainer.innerHTML='<p class="text-center text-gray-500 text-xs">No comments yet.</p>';return;}listContainer.innerHTML="";snapshot.forEach(doc=>{const data=doc.data();const el=document.createElement('div');el.className="p-3 mb-2 rounded-lg bg-black bg-opacity-20 border border-gray-700";el.innerHTML=`<p class="font-bold text-primary-app text-xs">${escapeHtml(data.username)}</p><p class="text-gray-300 text-sm">${escapeHtml(data.message)}</p>`;listContainer.appendChild(el);});});}
-function escapeHtml(text){if(!text)return"";return text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
-  // 7. Final Wiring & Startup
-  updateAllChrome();
-  initComments(db);
-  modules.settings.updateHeaderVisibility();
-  initGlobalListeners();
-  initGestureEngine();
-  setupARLogic(); 
-  renderUI();
-};
-document.addEventListener('DOMContentLoaded', startApp);
-</script>
-</body>
-</html>body>
-</html>tener('DOMContentLoaded', startApp);
-</script>
-</body>
-</html>peHtml(text){if(!text)return"";return text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
-
-  // 7. Final Wiring & Startup
-  updateAllChrome();
-  initComments(db);
-  modules.settings.updateHeaderVisibility();
-  initGlobalListeners();
-  initGestureEngine();
-  setupARLogic();
-  
-  renderUI();
-};
-document.addEventListener('DOMContentLoaded', startApp);
-</script>
-</body>
-</html>).replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
-
-  // 7. Final Wiring & Startup
-  updateAllChrome();
-  initComments(db);
-  modules.settings.updateHeaderVisibility();
-  initGlobalListeners();
-  initGestureEngine();
-  setupARLogic();
-  
-  renderUI();
-};
-document.addEventListener('DOMContentLoaded', startApp);
-</script>
-</body>
-</html>nbtn.onclick = () => {
-          document.body.classList.toggle('rotate-180');
-          if (document.body.classList.contains('rotate-180')) {
-              headerupsidedownbtn.classList.add('ring-2', 'ring-emerald-500');
-              showToast("Upside Down Mode: ON 🙃");
-          } else {
-              headerupsidedownbtn.classList.remove('ring-2', 'ring-emerald-500');
-              showToast("Upside Down Mode: OFF");
-          }
-      };
-  }
-  if (appSettings.isWakeLockEnabled && typeof window.wakelockToggle === 'function') {
-      window.wakelockToggle(true);
-  }
-  modules.settings = new SettingsManager(
-      appSettings, 
-      { 
-          onSave: () => saveState(), 
-          onUpdate: () => updateAllChrome(),
-          onProfileSwitch: (id) => { 
-              appSettings.activeProfileId = id;
-              appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings));
-              saveState();
-              renderUI(); 
-          },
-
-          onProfileAdd: (name) => {
-              const id = 'p_' + Date.now();
-              appSettings.profiles[id] = { name: name, settings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), theme: 'default' };
-              saveState();
-          },
-          onProfileRename: (name) => {
-              appSettings.profiles[appSettings.activeProfileId].name = name;
-              saveState();
-          },
-          onProfileDelete: () => {
-              if (Object.keys(appSettings.profiles).length > 1) {
-                  delete appSettings.profiles[appSettings.activeProfileId];
-                  appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
-                  appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings));
-                  saveState();
-                  renderUI();
-              } else {
-                  alert("Cannot delete the last profile.");
-              }
-          },
-          onProfileSave: () => { 
-              appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings));
-              saveState(); 
-          },
-          onReset: () => { 
-              localStorage.clear();
-              window.location.reload(); 
-          }
-      }
-  );
-const smartTracker = new SmartCadenceTracker(
-    (val) => {
-        addValue(val);
-        showToast(`🎵 Tone Added: ${val}`);
-    },
-    () => {
-        // Wipes the board clean for a new game / count-off completion
-        const state = getState();
-        state.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []);
-        state.nextSequenceIndex = 0;
-        state.currentRound = 1;
-        renderUI();
-        saveState();
-    }
+addValue(mappedInput);
+showToast(`Hand: ${mappedInput} (${gestureLabel}) 🖐️`);
+document.body.style.backgroundColor = '#222';
+setTimeout(() => document.body.style.backgroundColor = '', 100);
+gestureCooldown = 60; 
+}
+},
+(status) => showToast(status)
 );
-const toneEngine = new ToneEngine((val) => {
-    smartTracker.handleTone(val);
+voiceModule = new VoiceCommander({
+onStatus: (msg) => showToast(msg),
+onInput: (val) => {
+addValue(val);
+const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
+if(btn) { 
+btn.classList.add('flash-active'); 
+setTimeout(() => btn.classList.remove('flash-active'), 200); 
+}          
+const hMic = document.getElementById('header-mic-btn');
+if(hMic) {
+hMic.classList.remove('header-btn-active');
+setTimeout(() => { if(voiceModule.isListening) hMic.classList.add('header-btn-active'); }, 300);
+}
+},
+onCommand: (cmd) => {
+// NEW: Gatekeeper check for the General Tab "Voice Commands" checkbox
+if (!appSettings.isVoiceCommandsEnabled) {
+console.log("Action voice commands are disabled in settings. Ignoring:", cmd);
+return; 
+}
+if(cmd === 'CMD_PLAY') {
+playDemo();
+showToast("Voice: Playing ▶️");
+}
+if(cmd === 'CMD_STOP') { 
+isDemoPlaying = false; 
+showToast("Voice: Stopped 🛑"); 
+}
+if(cmd === 'CMD_CLEAR') { 
+const s = getState(); 
+s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); 
+renderUI(); 
+showToast("Voice: Cleared All 💥"); 
+}
+if(cmd === 'CMD_DELETE') { handleBackspace(); showToast("Voice: Backspace 🔙"); }
+if(cmd === 'CMD_SETTINGS') { modules.settings.openSettings(); }
+}
 });
-  let gestureHistory = [];
-  let gestureCooldown = 0;
-        modules.vision = new VisionEngine(
-      (gestureData) => {
-          const settings = getProfileSettings();
-          if (typeof gestureCooldown !== 'undefined' && gestureCooldown > 0) {
-              gestureCooldown--;
-              return;
-          }
-          if (!gestureData || gestureData === "none") {
-              return; // Ignore empty frames
-          }
-          const gestureId = typeof gestureData === 'object' ? gestureData.id : gestureData;
-          const gestureLabel = typeof gestureData === 'object' ? gestureData.label : "Gesture";
-          if (appSettings.isHandSignalsEnabled) {
-              if (gestureId === 104) { // 104 = Chef Kiss
-                  showToast("Hand Signal: Clear 🧹");
-                  // Call your existing clear function here
-                  if (typeof resetCurrentMachine === 'function') resetCurrentMachine();
-                  gestureCooldown = 60; 
-                  return;
-              } 
-              if (gestureId === 105) { // 105 = OK Sign
-                  showToast("Hand Signal: Undo 🔙");
-                  if (typeof handleBackspace === 'function') handleBackspace();
-                  gestureCooldown = 60;
-                  return;
-              }
-          }
-          let mappedInput = null;
-          if (appSettings.mappings) {
-              for (const [key, mapData] of Object.entries(appSettings.mappings)) {
-                  // Ensure we only match keys for the currently active layout
-                  const prefix = settings.currentInput === 'key9' ? 'k9_' : 
-                                 settings.currentInput === 'key12' ? 'k12_' : 'piano_';                
-                  if (key.startsWith(prefix) && parseInt(mapData.handGesture) === gestureId) {
-                      mappedInput = key.replace(prefix, ''); // Isolates the specific number/note
-                      break;
-                  }
-              }
-          } else if (typeof mapGestureToValue === 'function') {
-              // Legacy fallback just in case mappings object isn't fully initialized
-              mappedInput = mapGestureToValue(gestureId, settings.currentInput);
-          }
-          if (mappedInput !== null) {
-              addValue(mappedInput);
-              showToast(`Hand: ${mappedInput} (${gestureLabel}) 🖐️`);
-              document.body.style.backgroundColor = '#222';
-              setTimeout(() => document.body.style.backgroundColor = '', 100);
-              gestureCooldown = 60; 
-          }
-      },
-      (status) => showToast(status)
-  );
-
-    voiceModule = new VoiceCommander({
-      onStatus: (msg) => showToast(msg),
-      onInput: (val) => {
-          addValue(val);
-          const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
-          if(btn) { 
-              btn.classList.add('flash-active'); 
-              setTimeout(() => btn.classList.remove('flash-active'), 200); 
-          }
-          
-          const hMic = document.getElementById('headervoicebtn');
-          if(hMic) {
-              hMic.classList.remove('header-btn-active');
-              setTimeout(() => { if(voiceModule.isListening) hMic.classList.add('header-btn-active'); }, 300);
-          }
-      },
-      onCommand: (cmd) => {
-          // NEW: Gatekeeper check for the General Tab "Voice Commands" checkbox
-          if (!appSettings.isVoiceCommandsEnabled) {
-              console.log("Action voice commands are disabled in settings. Ignoring:", cmd);
-              return; 
-          }
-
-          if(cmd === 'CMD_PLAY') {
-              playDemo();
-              showToast("Voice: Playing ▶️");
-          }
-          if(cmd === 'CMD_STOP') { 
-              isDemoPlaying = false; 
-              showToast("Voice: Stopped 🛑"); 
-          }
-          if(cmd === 'CMD_CLEAR') { 
-              const s = getState(); 
-              s.sequences = Array.from({length: CONFIG.MAX_MACHINES}, () => []); 
-              renderUI(); 
-              showToast("Voice: Cleared All 💥"); 
-          }
-          if(cmd === 'CMD_DELETE') {
-              handleBackspace();
-              showToast("Voice: Backspace 🔙");
-          }
-          if(cmd === 'CMD_SETTINGS') {
-              modules.settings.openSettings();
-          }
-      }
-  });
 function initComments(db){const modal=document.getElementById('comment-modal');const openBtn=document.getElementById('open-comment-modal');const closeBtn=document.getElementById('close-comment-modal');const submitBtn=document.getElementById('submit-comment-btn');const listContainer=document.getElementById('comments-list-container');const nameInput=document.getElementById('comment-username');const msgInput=document.getElementById('comment-message');const toggle=(show)=>{if(!modal)return;if(show){modal.classList.remove('hidden');setTimeout(()=>{modal.classList.remove('opacity-0','pointer-events-none');modal.querySelector('div').classList.remove('scale-90');},10);}else{modal.querySelector('div').classList.add('scale-90');modal.classList.add('opacity-0');setTimeout(()=>{modal.classList.add('pointer-events-none');modal.classList.add('hidden');},300);}};if(openBtn)openBtn.onclick=()=>toggle(true);if(closeBtn)closeBtn.onclick=()=>toggle(false);if(submitBtn){submitBtn.onclick=async()=>{const username=nameInput.value.trim();const message=msgInput.value.trim();if(!username||!message){alert("Please enter name and message.");return;}submitBtn.disabled=true;submitBtn.innerText="Sending...";try{await addDoc(collection(db,"comments"),{username,message,timestamp:serverTimestamp()});msgInput.value="";submitBtn.innerText="Sent!";setTimeout(()=>{submitBtn.disabled=false;submitBtn.innerText="Send";},2000);}catch(e){console.error("Error sending comment",e);submitBtn.innerText="Error";submitBtn.disabled=false;}};}const q=query(collection(db,"comments"),orderBy("timestamp","desc"),limit(50));onSnapshot(q,(snapshot)=>{if(!listContainer)return;if(snapshot.empty){listContainer.innerHTML='<p class="text-center text-gray-500 text-xs">No comments yet.</p>';return;}listContainer.innerHTML="";snapshot.forEach(doc=>{const data=doc.data();const el=document.createElement('div');el.className="p-3 mb-2 rounded-lg bg-black bg-opacity-20 border border-gray-700";el.innerHTML=`<p class="font-bold text-primary-app text-xs">${escapeHtml(data.username)}</p><p class="text-gray-300 text-sm">${escapeHtml(data.message)}</p>`;listContainer.appendChild(el);});});}
-
 function escapeHtml(text){if(!text)return"";return text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
-
-  // 7. Final Wiring & Startup
-  updateAllChrome();
-  initComments(db);
-  modules.settings.updateHeaderVisibility();
-  initGlobalListeners();
-  initGestureEngine();
-  setupARLogic();
-  
-  renderUI();
+updateAllChrome(); initComments(db); modules.settings.updateHeaderVisibility(); initGlobalListeners(); initGestureEngine(); setupARLogic();  renderUI();
 };
 document.addEventListener('DOMContentLoaded', startApp);
 </script>

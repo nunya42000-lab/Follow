@@ -4,8 +4,6 @@ import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.co
 import { SettingsManager, PREMADE_THEMES, PREMADE_VOICE_PRESETS } from './settings.js';
 import { initComments } from './comments.js';
 import { VisionEngine } from './vision.js';
-// PATCHED: import db from firebase-setup to avoid duplication
-import { db } from './firebase-setup.js';
 
 // --- AR DOM GLOBALS ---
 const arRecordBtn = document.getElementById('ar-record-btn');
@@ -13,12 +11,50 @@ const arPlaybackContainer = document.getElementById('ar-playback-container');
 const arPlaybackVideo = document.getElementById('ar-playback-video');
 const arBackgroundVideo = document.getElementById('ar-background-video');
 
-// PATCHED: removed duplicate firebase config; using imported db
-// const firebaseConfig = { ... }; // removed
+const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+let screenWakeLock = null;
+
+async function reacquireWakeLock() {
+    if (document.visibilityState === 'visible' && appSettings.isWakeLockEnabled) {
+        try { 
+            screenWakeLock = await navigator.wakeLock.request('screen');
+        } catch(e) {
+            console.warn('Wake Lock reacquire failed during visibility shift:', e);
+        }
+    }
+}
+
+window.upsidedownToggle = async function(enable) {
+    try {
+        if ('wakeLock' in navigator) {
+            if (enable) {
+                screenWakeLock = await navigator.wakeLock.request('screen');
+                document.addEventListener('visibilitychange', reacquireWakeLock);
+                console.log('Wake Lock: ACTIVE 💡');
+            } else {
+                if (screenWakeLock) {
+                    await screenWakeLock.release();
+                    screenWakeLock = null;
+                }
+                document.removeEventListener('visibilitychange', reacquireWakeLock);
+                console.log('Wake Lock: RELEASED 🔋');
+            }
+        }
+    } catch (err) { 
+        console.warn('Wake Lock failed:', err); 
+    }
+};
 
 // --- ENABLE OFFLINE PERSISTENCE ---
-// enableIndexedDbPersistence(db).catch(...) // moved to firebase-setup.js
-
+enableIndexedDbPersistence(db).catch((err) => {
+  if (err.code === 'failed-precondition') {
+      console.log('Multiple tabs open, persistence can only be enabled in one.');
+  } else if (err.code === 'unimplemented') {
+      console.log('Browser does not support persistence');
+  }
+});
 // ----------------------------------
 
 // --- CONFIG ---
@@ -64,9 +100,7 @@ const DEFAULT_APP = {
   runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), 
   isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, 
   selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en', 
-  isGestureInputEnabled: false, gestureMappings: {},
-  // PATCHED: added missing property for tone cadence
-  isToneCadenceEnabled: false
+  isGestureInputEnabled: false, gestureMappings: {} 
 };
 
 // DEFAULT MAPPINGS (Extracted to top level)
@@ -93,26 +127,6 @@ const DEFAULT_MAPPINGS = {
   'piano_1': 'swipe_left_2f', 'piano_2': 'swipe_nw_2f', 'piano_3': 'swipe_up_2f',
   'piano_4': 'swipe_ne_2f', 'piano_5': 'swipe_right_2f'
 };    
-
-// PATCHED: Moved DEFAULT_HAND_MAPPINGS before mapGestureToValue
-const DEFAULT_HAND_MAPPINGS = {
-  // 9-Key Defaults
-  'k9_1': 'hand_1_up', 'k9_2': 'hand_2_up', 'k9_3': 'hand_3_up',
-  'k9_4': 'hand_4_up', 'k9_5': 'hand_5_up', 'k9_6': 'hand_1_down',
-  'k9_7': 'hand_2_down', 'k9_8': 'hand_3_down', 'k9_9': 'hand_4_down',
-
-  // 12-Key Defaults
-  'k12_1': 'hand_1_up', 'k12_2': 'hand_2_up', 'k12_3': 'hand_3_up',
-  'k12_4': 'hand_4_up', 'k12_5': 'hand_5_up', 'k12_6': 'hand_1_down',
-  'k12_7': 'hand_2_down', 'k12_8': 'hand_3_down', 'k12_9': 'hand_4_down',
-  'k12_10': 'hand_5_down', 'k12_11': 'hand_1_right', 'k12_12': 'hand_1_left',
-
-  // Piano Defaults
-  'piano_C': 'hand_1_up', 'piano_D': 'hand_2_up', 'piano_E': 'hand_3_up',
-  'piano_F': 'hand_4_up', 'piano_G': 'hand_5_up', 'piano_A': 'hand_1_right', 'piano_B': 'hand_1_left',
-  'piano_1': 'hand_1_down', 'piano_2': 'hand_2_down', 'piano_3': 'hand_3_down',
-  'piano_4': 'hand_4_down', 'piano_5': 'hand_5_down'
-};
 
 const DICTIONARY = {
   'en': { correct: "Correct", wrong: "Wrong", stealth: "Bigger Buttons Active", reset: "Reset to Round 1", stop: "Playback Stopped 🛑" },
@@ -142,51 +156,6 @@ let simpleCounter = 0;
 let globalTimerActions = { start: null, stop: null, reset: null };
 let globalCounterActions = { increment: null, reset: null };
 
-let screenWakeLock = null; // PATCHED: moved up for visibility
-
-// PATCHED: wakeLockToggle renamed and properly implemented
-window.wakeLockToggle = async function(enable) {
-    try {
-        if ('wakeLock' in navigator) {
-            if (enable) {
-                screenWakeLock = await navigator.wakeLock.request('screen');
-                // PATCHED: add listener only once using a flag or remove previous
-                if (!window._wakeLockListenerAdded) {
-                    document.addEventListener('visibilitychange', reacquireWakeLock);
-                    window._wakeLockListenerAdded = true;
-                }
-                console.log('Wake Lock: ACTIVE 💡');
-            } else {
-                if (screenWakeLock) {
-                    await screenWakeLock.release();
-                    screenWakeLock = null;
-                }
-                if (window._wakeLockListenerAdded) {
-                    document.removeEventListener('visibilitychange', reacquireWakeLock);
-                    window._wakeLockListenerAdded = false;
-                }
-                console.log('Wake Lock: RELEASED 🔋');
-            }
-        }
-    } catch (err) { 
-        console.warn('Wake Lock failed:', err); 
-    }
-};
-
-// PATCHED: keep reacquire function
-async function reacquireWakeLock() {
-    if (document.visibilityState === 'visible' && appSettings.isWakeLockEnabled) {
-        try { 
-            screenWakeLock = await navigator.wakeLock.request('screen');
-        } catch(e) {
-            console.warn('Wake Lock reacquire failed during visibility shift:', e);
-        }
-    }
-}
-
-// remove old upsidedownToggle definition (it's now wakeLockToggle)
-// window.upsidedownToggle = ... (removed)
-
 const getProfileSettings = () => appSettings.runtimeSettings;
 const getState = () => appState['current_session'] || (appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 });
 function saveState() { localStorage.setItem(CONFIG.STORAGE_KEY_SETTINGS, JSON.stringify(appSettings)); localStorage.setItem(CONFIG.STORAGE_KEY_STATE, JSON.stringify(appState)); }
@@ -205,8 +174,6 @@ function loadState() {
           if (typeof appSettings.isUniqueRoundsAutoClearEnabled === 'undefined') appSettings.isUniqueRoundsAutoClearEnabled = true; 
           if (typeof appSettings.showTimer === 'undefined') appSettings.showTimer = false;
           if (typeof appSettings.showCounter === 'undefined') appSettings.showCounter = false;
-          // PATCHED: ensure new property
-          if (typeof appSettings.isToneCadenceEnabled === 'undefined') appSettings.isToneCadenceEnabled = false;
 
           if (!appSettings.voicePresets) appSettings.voicePresets = {};
           if (!appSettings.activeVoicePresetId) appSettings.activeVoicePresetId = 'standard';
@@ -486,10 +453,9 @@ function handleBackspace(e) {
   saveState(); 
 }
 
-// PATCHED: renderUI with fixed grid columns
 function renderUI() {
     const container = document.getElementById('sequence-container');
-    if (!container) return;
+    if (!container) return; // Prevent innerHTML null reference crash
     
     try {
         const gpWrap = document.getElementById('gesture-pad-wrapper');
@@ -592,9 +558,7 @@ if(settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
 }
 
 let gridCols = (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) ? 1 : Math.min(settings.machineCount, 4); 
-// PATCHED: use inline style for grid columns
-container.className = `grid gap-4 w-full max-w-5xl mx-auto`;
-container.style.gridTemplateColumns = `repeat(${gridCols}, 1fr)`;
+container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
 
 activeSeqs.forEach((seq, idx) => { 
     const card = document.createElement('div'); 
@@ -687,7 +651,7 @@ const hMic = document.getElementById('headervoicebtn');
 const hCam = document.getElementById('headerarcambtn');
 const hGest = document.getElementById('headertouchbtn'); 
 
-// PATCHED: removed legacy sensor hooks for the mic icon
+// PATCH: Removed legacy sensor hooks for the mic icon
 if(hMic) {
     const isVoiceActive = voiceModule && voiceModule.isListening;
     hMic.classList.toggle('header-btn-active', isVoiceActive);
@@ -1011,33 +975,6 @@ class VoiceCommander {
           const transcript = event.results[i][0].transcript.toLowerCase();
           const words = transcript.split(/\s+/).filter(w => w !== "");
           
-          // PATCHED: Check for commands first
-          if (words.includes('play') || words.includes('start')) {
-              this.callbacks.onCommand('CMD_PLAY');
-              this.recognition.abort();
-              return;
-          }
-          if (words.includes('stop')) {
-              this.callbacks.onCommand('CMD_STOP');
-              this.recognition.abort();
-              return;
-          }
-          if (words.includes('clear')) {
-              this.callbacks.onCommand('CMD_CLEAR');
-              this.recognition.abort();
-              return;
-          }
-          if (words.includes('delete')) {
-              this.callbacks.onCommand('CMD_DELETE');
-              this.recognition.abort();
-              return;
-          }
-          if (words.includes('settings')) {
-              this.callbacks.onCommand('CMD_SETTINGS');
-              this.recognition.abort();
-              return;
-          }
-
           const triggerIdx = words.lastIndexOf(activeTrigger);
 
           if (triggerIdx !== -1 && triggerIdx < words.length - 1) {
@@ -1102,9 +1039,8 @@ const startApp = () => {
   }
     
   // 2. Safe WakeLock execution
-  // PATCHED: call correct function name
-  if (appSettings.isWakeLockEnabled && typeof window.wakeLockToggle === 'function') {
-      window.wakeLockToggle(true);
+  if (appSettings.isWakeLockEnabled && typeof window.wakelockToggle === 'function') {
+      window.wakelockToggle(true);
   }
 
   // 4. Initialize Settings
@@ -1242,8 +1178,6 @@ const toneEngine = new ToneEngine((val) => {
     smartTracker.handleTone(val);
 });
 
-// PATCHED: expose toneEngine globally
-window.toneEngine = toneEngine;
 
   // 5. Initialize Vision Engine
   let gestureHistory = [];
@@ -1369,8 +1303,6 @@ window.toneEngine = toneEngine;
       }
   });
 
-// PATCHED: expose voiceModule globally for settings
-window.voiceModule = voiceModule;
 
   // 7. Final Wiring & Startup
   updateAllChrome();
@@ -1517,7 +1449,27 @@ function setupARLogic() {
 
 
 // --- NEW: Default Hand Definitions ---
-// PATCHED: moved DEFAULT_HAND_MAPPINGS to top; removed duplicate
+const DEFAULT_HAND_MAPPINGS = {
+  // 9-Key Defaults
+  'k9_1': 'hand_1_up', 'k9_2': 'hand_2_up', 'k9_3': 'hand_3_up',
+  'k9_4': 'hand_4_up', 'k9_5': 'hand_5_up', 'k9_6': 'hand_1_down',
+  'k9_7': 'hand_2_down', 'k9_8': 'hand_3_down', 'k9_9': 'hand_4_down',
+
+  // 12-Key Defaults
+  'k12_1': 'hand_1_up', 'k12_2': 'hand_2_up', 'k12_3': 'hand_3_up',
+  'k12_4': 'hand_4_up', 'k12_5': 'hand_5_up', 'k12_6': 'hand_1_down',
+  'k12_7': 'hand_2_down', 'k12_8': 'hand_3_down', 'k12_9': 'hand_4_down',
+  'k12_10': 'hand_5_down', 'k12_11': 'hand_1_right', 'k12_12': 'hand_1_left',
+
+  // Piano Defaults
+  'piano_C': 'hand_1_up', 'piano_D': 'hand_2_up', 'piano_E': 'hand_3_up',
+  'piano_F': 'hand_4_up', 'piano_G': 'hand_5_up', 'piano_A': 'hand_1_right', 'piano_B': 'hand_1_left',
+  'piano_1': 'hand_1_down', 'piano_2': 'hand_2_down', 'piano_3': 'hand_3_down',
+  'piano_4': 'hand_4_down', 'piano_5': 'hand_5_down'
+};
+
+
+
 
 function mapGestureToValue(kind, currentInput) {
   const saved = appSettings.gestureMappings || {};

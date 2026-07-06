@@ -288,13 +288,15 @@ export class SettingsManager {
             targetBtns: document.querySelectorAll('.target-btn'), edName: document.getElementById('theme-name-input'), edPreview: document.getElementById('theme-preview-box'), edPreviewBtn: document.getElementById('preview-btn'), edPreviewCard: document.getElementById('preview-card'), edSave: document.getElementById('save-theme-btn'), edCancel: document.getElementById('cancel-theme-btn'),
             openEditorBtn: document.getElementById('open-theme-editor'),
             
-            // PATCHED: fixed header button bindings
+            // FIXED: These are now properly formatted as comma-separated object properties
             filterToggles: document.querySelectorAll('.gesture-filter-toggle'),
             toneCadenceToggle: document.getElementById('toneToggle'),
-            headertonebtn: document.getElementById('headertonebtn'),  // was incorrectly mapped to headerbiggerbtn
-            headerbiggerbtn: document.getElementById('headerbiggerbtn'), // actual stealth button
+            headerbiggerbtn: document.getElementById('header-tone-btn'),
             headerfullscreenbtn: document.getElementById('headerfullscreenbtn'), 
             headerupsidedownbtn: document.getElementById('headerupsidedownbtn'),
+
+            // Voice Preset DOM
+
 
             // Voice Preset DOM
             voicePresetSelect: document.getElementById('voice-preset-select'),
@@ -321,14 +323,14 @@ export class SettingsManager {
             arcamToggle: document.getElementById('arcamToggle'),
             voiceToggle: document.getElementById('voiceToggle'),
             // RENAMED ITEMS BINDINGS
-            speedDelete: document.getElementById('speeddeleteToggle'), // "Quick Erase"
+            speedDelete: document.getElementById('speeddeletToggle'), // "Quick Erase"
             showWelcome: document.getElementById('introToggle'), 
             bossToggle: document.getElementById('bossToggle'), // "Boss Mode"
             biggerToggle: document.getElementById('biggerToggle'), // "Inputs Only"
             
-            // PATCHED: this now points to the correct property
+            // Previously injected, now hardcoded
             longPressToggle: document.getElementById('apshortcutToggle'), // "AP Shortcut"
-            // REMOVED blackoutGesturesToggle - no longer needed; use handToggle
+            blackoutGesturesToggle: document.getElementById('bmgToggle'), // "Hand Gestures" (Previously BM Gestures)
             timerToggle: document.getElementById('timerToggle'),
             counterToggle: document.getElementById('counterToggle'),
             gestureToggle: document.getElementById('touchToggle'),
@@ -347,8 +349,8 @@ export class SettingsManager {
             quickResizeUp: document.getElementById('quick-resize-up'), quickResizeDown: document.getElementById('quick-resize-down'),
 
             openShareInside: document.getElementById('open-share-button'), closeShareBtn: document.getElementById('close-share'), closeHelpBtn: document.getElementById('close-help'), closeHelpBtnBottom: document.getElementById('close-help-btn-bottom'), openHelpBtn: document.getElementById('open-help-button'), promptDisplay: document.getElementById('prompt-display'), copyPromptBtn: document.getElementById('copy-prompt-btn'), generatePromptBtn: document.getElementById('generate-prompt-btn'),
-            restoreBtn: document.querySelector('button[data-action="restore-defaults"]'),
-            nukeBtn: document.querySelector('button[data-action="nuke-app"]'), // <--- ADD THIS LINE
+			restoreBtn: document.querySelector('button[data-action="restore-defaults"]'),
+			nukeBtn: document.querySelector('button[data-action="nuke-app"]'), // <--- ADD THIS LINE
             calibModal: document.getElementById('calibration-modal'), openCalibBtn: document.getElementById('open-calibration-btn'), closeCalibBtn: document.getElementById('close-calibration-btn'), calibAudioSlider: document.getElementById('calib-audio-slider'), calibCamSlider: document.getElementById('calib-cam-slider'), calibAudioBar: document.getElementById('calib-audio-bar'), calibCamBar: document.getElementById('calib-cam-bar'), calibAudioMarker: document.getElementById('calib-audio-marker'), calibCamMarker: document.getElementById('calib-cam-marker'), calibAudioVal: document.getElementById('audio-val-display'), calibCamVal: document.getElementById('cam-val-display'),
             redeemModal: document.getElementById('redeem-modal'), 
             openRedeemBtn: document.getElementById('open-redeem-btn'), 
@@ -375,23 +377,12 @@ export class SettingsManager {
             voiceTriggerSelect: document.getElementById('voice-trigger-select'),
             
             // --- NEW: General Setting & AR Elements ---
+                    
+
             upsidedownToggle: document.getElementById('upsidedownToggle'),
             fullscreenToggle: document.getElementById('fullscreenToggle'),
             ecoToggle: document.getElementById('ecoToggle'),
-            arSpeedSelect: document.getElementById('ar-speed-select'),
-            // PATCHED: handToggle is the correct checkbox for hand gestures
-            handToggle: document.getElementById('handToggle'),
-            // Added for voice commands toggle
-            voiceCommandsToggle: document.getElementById('voicecommandsToggle'),
-            // Added for hand signals
-            handSignalsToggle: document.getElementById('handsignalsToggle'),
-            // Added for tone cadence
-            toneCadenceToggle: document.getElementById('toneToggle'),
-            // Added for Boss Mode gestures (blackout gestures) - we reuse handToggle? No, separate.
-            // Actually there is no separate bmgToggle; we use handToggle for hand gestures.
-            // But the "Boss Mode" checkbox is separate. For blackout gestures we need a separate toggle? 
-            // In the original code, isBlackoutGesturesEnabled was used. We'll keep it but map to a new element if exists.
-            // Since there is no bmgToggle in HTML, we'll skip it.
+            arSpeedSelect: document.getElementById('ar-speed-select')
         };
         
         this.tempTheme = null; 
@@ -414,7 +405,7 @@ export class SettingsManager {
         
 
         // 🟢 ADD THIS LINE: Force the Mapping Tab to build and populate immediately
-        this.populateMappingUI(); // PATCHED: removed renderMappingUI call
+        this.renderMappingUI(); 
         if(this.dom.gestureToggle){
             this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
             this.dom.gestureToggle.addEventListener('change', (e) => {
@@ -498,10 +489,65 @@ populateMappingAccordions() {
     });
 }
     renderMappingUI() {
-        // PATCHED: this method is no longer used; we use populateMappingUI exclusively.
-        // We keep it empty to avoid errors if called.
+        const container = document.getElementById('mapping-accordion-container');
+        if (!container) return;
+        
+        container.innerHTML = ''; // Clear existing DOM
+
+        // Map out the 3 layout configurations
+        const groups = [
+            { id: 'key9', title: '9-Key Layout', keys: Array.from({length: 9}, (_, i) => `k9_${i+1}`) },
+            { id: 'key12', title: '12-Key Layout', keys: Array.from({length: 12}, (_, i) => `k12_${i+1}`) },
+            { id: 'piano', title: 'Piano Layout', keys: ['piano_C', 'piano_D', 'piano_E', 'piano_F', 'piano_G', 'piano_A', 'piano_B', 'piano_1', 'piano_2', 'piano_3', 'piano_4', 'piano_5'] }
+        ];
+
+        const touchOptionsHTML = TOUCH_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('');
+        const handOptionsHTML = VISUAL_HAND_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('');
+
+        groups.forEach(group => {
+            // Group Header
+            container.innerHTML += `<h3 class="font-bold text-sm mt-6 mb-2 text-primary-app border-b border-gray-700 pb-1">${group.title}</h3>`;
+            
+            group.keys.forEach(keyId => {
+                let displayName = keyId.replace('k9_', 'Key ').replace('k12_', 'Key ').replace('piano_', 'Note ');
+
+                const accordion = `
+                    <details class="group bg-gray-900 rounded-lg border border-gray-700 open:bg-gray-800 transition-colors shadow-sm mb-2">
+                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white outline-none">
+                            <span class="flex items-center gap-2">
+                                <span class="bg-gray-700 w-16 h-6 flex items-center justify-center rounded text-xs text-blue-300 font-mono border border-gray-600">${displayName}</span>
+                            </span>
+                            <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+                        </summary>
+                        
+                        <div class="p-3 border-t border-gray-700 mt-1 bg-black/20">
+                            <div class="flex border-b border-gray-700 mb-3">
+                                <button type="button" class="mapping-subtab-btn active flex-1 py-2 text-xs font-bold text-blue-400 border-b-2 border-blue-400 transition-colors" data-key="${keyId}" data-target="touch">👆 Touch</button>
+                                <button type="button" class="mapping-subtab-btn flex-1 py-2 text-xs font-bold text-gray-500 hover:text-green-400 transition-colors" data-key="${keyId}" data-target="hand">🖐️ Hand Tracking</button>
+                            </div>
+                            
+                            <div id="panel-touch-${keyId}" class="mapping-panel block space-y-2">
+                                <select id="map-touch-${keyId}" class="mapping-select settings-input w-full p-2.5 rounded text-sm font-semibold shadow-sm border border-gray-600 bg-gray-950 text-white outline-none focus:border-blue-500 transition-colors" data-type="touch" data-key="${keyId}">
+                                    ${touchOptionsHTML}
+                                </select>
+                            </div>
+                            
+                            <div id="panel-hand-${keyId}" class="mapping-panel hidden space-y-2">
+                                <select id="map-hand-${keyId}" class="mapping-select settings-input w-full p-2.5 rounded text-sm font-semibold shadow-sm border border-gray-600 bg-gray-950 text-emerald-400 outline-none focus:border-emerald-500 transition-colors" data-type="hand" data-key="${keyId}">
+                                    ${handOptionsHTML}
+                                </select>
+                            </div>
+                        </div>
+                    </details>
+                `;
+                container.innerHTML += accordion;
+            });
+        });
+
+        // Attach event listeners for tabs and dropdown saves
+        this.bindMappingEvents();
     }
-    bindMappingEvents() {
+bindMappingEvents() {
         // 1. Master Tab Switching Logic (Touch vs. Hand)
         const btnTouch = document.getElementById('btn-map-touch');
         const btnHand = document.getElementById('btn-map-hand');
@@ -798,8 +844,8 @@ initListeners() {
     bindToggle(this.dom.timerToggle, 'showTimer', true);
     bindToggle(this.dom.counterToggle, 'showCounter', true);
     bindToggle(this.dom.voiceToggle, 'isVoiceInputEnabled', true);
-    bindToggle(this.dom.toneCadenceToggle, 'isToneCadenceEnabled', true);
-    bindToggle(this.dom.gestureToggle, 'isGestureInputEnabled', true);
+    bindToggle(this.dom.toneToggle, 'isToneCadenceEnabled', true);
+    bindToggle(this.dom.touchToggle, 'isGestureInputEnabled', true);
     bindToggle(this.dom.handToggle, 'isHandGesturesEnabled', true);
     bindToggle(this.dom.arcamToggle, 'isArModeEnabled', true);
     bindToggle(this.dom.biggerToggle, 'isStealth1KeyEnabled', true);
@@ -807,30 +853,24 @@ initListeners() {
     bindToggle(this.dom.upsidedownToggle, 'showUpsideDownBtn', true);
 
     // Standard App Settings Triggers
-    bindToggle(this.dom.autoTimerToggle, 'isAutoTimerEnabled');
-    bindToggle(this.dom.autoCounterToggle, 'isAutoCounterEnabled');
+    bindToggle(this.dom.autotimerToggle, 'isAutoTimerEnabled');
+    bindToggle(this.dom.autocounterToggle, 'isAutoCounterEnabled');
     bindToggle(this.dom.hapticsToggle, 'isHapticsEnabled');
     bindToggle(this.dom.ecoToggle, 'isEcoModeEnabled');
-    bindToggle(this.dom.voiceCommandsToggle, 'isVoiceCommandsEnabled');
-    bindToggle(this.dom.bossToggle, 'isBlackoutFeatureEnabled');
-    // bindToggle(this.dom.newToggle, 'isNewFeatureEnabled'); // Placeholder - not in DOM
-    bindToggle(this.dom.handSignalsToggle, 'isHandSignalsEnabled');
-    bindToggle(this.dom.speedDelete, 'isSpeedDeletingEnabled');
-    // PATCHED: correct property for AP Shortcut
-    if (this.dom.longPressToggle) {
-        this.dom.longPressToggle.onchange = (e) => {
-            this.appSettings.isLongPressAutoplayEnabled = e.target.checked;
-            this.callbacks.onSave();
-        };
-    }
-    bindToggle(this.dom.volumeGesturesToggle, 'isVolumeGesturesEnabled');
-    bindToggle(this.dom.speedGesturesToggle, 'isSpeedGesturesEnabled');
-    bindToggle(this.dom.deleteGestureToggle, 'isDeleteGestureEnabled');
-    bindToggle(this.dom.clearGestureToggle, 'isClearGestureEnabled');
+    bindToggle(this.dom.voicecommandsToggle, 'isVoiceCommandsEnabled');
+    bindToggle(this.dom.bossToggle, 'isBossModeEnabled');
+    bindToggle(this.dom.newToggle, 'isNewFeatureEnabled'); // Placeholder
+    bindToggle(this.dom.handsignalsToggle, 'isHandSignalsEnabled');
+    bindToggle(this.dom.speeddeleteToggle, 'isSpeedDeletingEnabled');
+    bindToggle(this.dom.apshortcutToggle, 'isApShortcutEnabled');
+    bindToggle(this.dom.volgesToggle, 'isVolumeGesturesEnabled');
+    bindToggle(this.dom.speedToggle, 'isSpeedGesturesEnabled');
+    bindToggle(this.dom.deleteToggle, 'isDeleteGestureEnabled');
+    bindToggle(this.dom.clearToggle, 'isClearGestureEnabled');
 
     // Special Overrides
-    if (this.dom.showWelcome) {
-        this.dom.showWelcome.onchange = (e) => { 
+    if (this.dom.introToggle) {
+        this.dom.introToggle.onchange = (e) => { 
             this.appSettings.showWelcomeScreen = e.target.checked; 
             this.callbacks.onSave(); 
         };
@@ -916,14 +956,6 @@ initListeners() {
                 this.appSettings.isToneCadenceEnabled = e.target.checked;
                 this.callbacks.onSave();
                 this.updateHeaderVisibility(); 
-                // PATCHED: use window.toneEngine
-                if (window.toneEngine) {
-                    if (e.target.checked) {
-                        window.toneEngine.start();
-                    } else {
-                        window.toneEngine.stop();
-                    }
-                }
             });
         }
 
@@ -947,15 +979,17 @@ initListeners() {
 
         if (this.dom.headertonebtn) {
             this.dom.headertonebtn.addEventListener('click', () => {
-                // PATCHED: toggle tone engine via global
-                if (window.toneEngine) {
-                    if (window.toneEngine.isActive) {
-                        window.toneEngine.stop();
-                        this.dom.headertonebtn.classList.remove('header-btn-active');
-                    } else {
-                        window.toneEngine.start();
-                        this.dom.headertonebtn.classList.add('header-btn-active');
-                    }
+                const isActive = this.dom.headertonebtn.classList.contains('bg-indigo-600');
+                if (isActive) {
+                    this.dom.headertonebtn.classList.remove('bg-indigo-600', 'text-white');
+                    this.dom.headertonebtn.classList.add('bg-indigo-900/40', 'text-indigo-300');
+                    this.dom.headertonebtn.textContent = '🎵 Tones Off';
+                    if (typeof toneEngine !== 'undefined') toneEngine.stop();
+                } else {
+                    this.dom.headertonebtn.classList.add('bg-indigo-600', 'text-white');
+                    this.dom.headertonebtn.classList.remove('bg-indigo-900/40', 'text-indigo-300');
+                    this.dom.headertonebtn.textContent = '🎵 Tones ON';
+                    if (typeof toneEngine !== 'undefined') toneEngine.start();
                 }
             });
         }
@@ -1055,7 +1089,7 @@ initListeners() {
         bind(this.dom.machines, 'machineCount', false, true); 
         bind(this.dom.seqLength, 'sequenceLength', false, true); 
         bind(this.dom.autoClear, 'isUniqueRoundsAutoClearEnabled', true);
-        // PATCHED: removed duplicate longPressToggle binding; handled above
+        bind(this.dom.longPressToggle, 'isLongPressAutoplayEnabled', true);
         bind(this.dom.timerToggle, 'showTimer', true);
         bind(this.dom.counterToggle, 'showCounter', true);
         
@@ -1101,10 +1135,10 @@ initListeners() {
         bind(this.dom.haptics, 'isHapticsEnabled', true); 
         bind(this.dom.speedDelete, 'isSpeedDeletingEnabled', true); 
         bind(this.dom.biggerToggle, 'isStealth1KeyEnabled', true);
-        bind(this.dom.speedGesturesToggle, 'isSpeedGesturesEnabled', true);
-        bind(this.dom.volumeGesturesToggle, 'isVolumeGesturesEnabled', true);
-        bind(this.dom.deleteGestureToggle, 'isDeleteGestureEnabled', true);
-        bind(this.dom.clearGestureToggle, 'isClearGestureEnabled', true);
+        bind(this.dom.speedToggle, 'isSpeedGesturesEnabled', true);
+        bind(this.dom.volgesToggle, 'isVolumeGesturesEnabled', true);
+        bind(this.dom.deleteToggle, 'isDeleteGestureEnabled', true);
+        bind(this.dom.clearToggle, 'isClearGestureEnabled', true);
         bind(this.dom.autoTimerToggle, 'isAutoTimerEnabled', true);
         bind(this.dom.autoCounterToggle, 'isAutoCounterEnabled', true);
         bind(this.dom.practiceMode, 'isPracticeModeEnabled', true);
@@ -1295,7 +1329,8 @@ initListeners() {
         if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !this.appSettings.showWelcomeScreen;
         if (this.dom.showWelcome) this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
         if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.isHapticMorseEnabled;
-        // PATCHED: removed renderMappingUI call here (it's now in constructor)
+            // Add this to your updateUIFromSettings or initialization method:
+    this.renderMappingUI();
             
         // UPDATED: Matches the new dropdown generation logic (e.g. "1.00")
         if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = (this.appSettings.playbackSpeed || 1.0).toFixed(2);
@@ -1304,8 +1339,7 @@ initListeners() {
             this.dom.voiceTriggerSelect.onchange = (e) => {
                 this.appSettings.voiceTriggerWord = e.target.value;
                 this.callbacks.onSave();
-                // PATCHED: use window.voiceModule
-                if (window.voiceModule) window.voiceModule.initEngine();
+                if (typeof voiceModule !== 'undefined' && voiceModule) voiceModule.initEngine(); // Rebuild grammar
             };
         }
         
@@ -1319,7 +1353,6 @@ initListeners() {
         if (this.dom.biggerToggle) this.dom.biggerToggle.checked = this.appSettings.isStealth1KeyEnabled;
         if (this.dom.arcamToggle) this.dom.arcamToggle.checked = !!this.appSettings.isArModeEnabled;
         if (this.dom.voiceToggle) this.dom.voiceToggle.checked = !!this.appSettings.isVoiceInputEnabled;    
-        // PATCHED: correct property for AP shortcut
         if (this.dom.longPressToggle) this.dom.longPressToggle.checked = (typeof this.appSettings.isLongPressAutoplayEnabled === 'undefined') ? true : this.appSettings.isLongPressAutoplayEnabled;
         if (this.dom.timerToggle) this.dom.timerToggle.checked = !!this.appSettings.showTimer; 
         if (this.dom.counterToggle) this.dom.counterToggle.checked = !!this.appSettings.showCounter; 
@@ -1354,8 +1387,8 @@ initListeners() {
         if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
         if (this.dom.bossToggle) this.dom.bossToggle.checked = this.appSettings.isBlackoutFeatureEnabled;
         
-        // PATCHED: removed blackoutGesturesToggle; handToggle is used for hand gestures
-        if (this.dom.handToggle) this.dom.handToggle.checked = !!this.appSettings.isHandGesturesEnabled;
+        // --- CRITICAL FIX: Map to the correct variable name ---
+        if (this.dom.blackoutGesturesToggle) this.dom.blackoutGesturesToggle.checked = !!this.appSettings.isHandGesturesEnabled;
         
         if (this.dom.gestureToggle) this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
         // INSIDE settings.js -> updateUIFromSettings()
@@ -1389,8 +1422,8 @@ initListeners() {
         const camBtn = document.getElementById('headerarcambtn');
         const gestureBtn = document.getElementById('headertouchbtn');
         const stealthBtn = document.getElementById('headerbiggerbtn');
+        // New Hand Button
         const handBtn = document.getElementById('headerhandbtn');
-        const toneBtn = document.getElementById('headertonebtn');
 
         if (!header) return;
 
@@ -1401,8 +1434,8 @@ initListeners() {
         const showCam = !!this.appSettings.isArModeEnabled;
         const showGesture = !!this.appSettings.isGestureInputEnabled;
         const showStealth = !!this.appSettings.isStealth1KeyEnabled;
+        // Use proper variable for Hand Tracking
         const showHand = !!this.appSettings.isHandGesturesEnabled;
-        const showTone = !!this.appSettings.isToneCadenceEnabled;
 
         // Unhide Fullscreen Header Button if enabled
         if (this.dom.headerfullscreenbtn) {
@@ -1429,11 +1462,15 @@ initListeners() {
         if(camBtn) camBtn.classList.toggle('hidden', !showCam);
         if(gestureBtn) gestureBtn.classList.toggle('hidden', !showGesture);
         if(stealthBtn) stealthBtn.classList.toggle('hidden', !showStealth);
+        // Toggle new Hand Button
         if(handBtn) handBtn.classList.toggle('hidden', !showHand);
-        if(toneBtn) toneBtn.classList.toggle('hidden', !showTone);
         
+        if (this.dom.headerbiggerbtn) {
+            this.dom.headerbiggerbtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
+        }
+
         // Check if header should be hidden entirely
-        if (!showTimer && !showCounter && !showMic && !showCam && !showGesture && !showStealth && !showHand && !showTone) {
+        if (!showTimer && !showCounter && !showMic && !showCam && !showGesture && !showStealth && !showHand) {
             header.classList.add('header-hidden');
         } else {
             header.classList.remove('header-hidden');
@@ -1972,67 +2009,6 @@ const GESTURE_CATEGORIES = {
 
                 if (navigator.vibrate) {
                     const pattern = [];
-                    const speed = this.appSettings.playbackSpeed || 1.0;
-                    const factor = 1.0 / speed; 
-                    const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor;
-                    
-                    for (let char of sel.value) {
-                        if(char === '.') pattern.push(DOT);
-                        if(char === '-') pattern.push(DASH);
-                        pattern.push(GAP);
-                    }
-                    if(pattern.length) navigator.vibrate(pattern);
-                }
-            };
-        });
-    }
-    
-    applyDefaultGestureMappings() {
-        this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
-        
-        const defaults = {
-            // 9-KEY DEFAULT: TAPS
-            'k9_1': { gesture: 'tap' }, 
-            'k9_2': { gesture: 'double_tap' }, 
-            'k9_3': { gesture: 'triple_tap' }, 
-            'k9_4': { gesture: 'tap_2f_any' }, 
-            'k9_5': { gesture: 'double_tap_2f_any' }, 
-            'k9_6': { gesture: 'triple_tap_2f_any' }, 
-            'k9_7': { gesture: 'tap_3f_any' }, 
-            'k9_8': { gesture: 'double_tap_3f_any' }, 
-            'k9_9': { gesture: 'triple_tap_3f_any' },
-
-            // 12-KEY DEFAULT: TAPS
-            'k12_1': { gesture: 'tap' }, 
-            'k12_2': { gesture: 'double_tap' }, 
-            'k12_3': { gesture: 'triple_tap' }, 
-            'k12_4': { gesture: 'long_tap' }, 
-            'k12_5': { gesture: 'tap_2f_any' }, 
-            'k12_6': { gesture: 'double_tap_2f_any' }, 
-            'k12_7': { gesture: 'triple_tap_2f_any' }, 
-            'k12_8': { gesture: 'long_tap_2f_any' }, 
-            'k12_9': { gesture: 'tap_3f_any' }, 
-            'k12_10': { gesture: 'double_tap_3f_any' }, 
-            'k12_11': { gesture: 'triple_tap_3f_any' }, 
-            'k12_12': { gesture: 'long_tap_3f_any' },
-
-            // PIANO DEFAULT: SWIPES
-            'piano_C': { gesture: 'swipe_nw' }, 
-            'piano_D': { gesture: 'swipe_left' }, 
-            'piano_E': { gesture: 'swipe_sw' }, 
-            'piano_F': { gesture: 'swipe_down' }, 
-            'piano_G': { gesture: 'swipe_se' }, 
-            'piano_A': { gesture: 'swipe_right' }, 
-            'piano_B': { gesture: 'swipe_ne' }, 
-            'piano_1': { gesture: 'swipe_left_2f' }, 
-            'piano_2': { gesture: 'swipe_nw_2f' }, 
-            'piano_3': { gesture: 'swipe_up_2f' }, 
-            'piano_4': { gesture: 'swipe_ne_2f' }, 
-            'piano_5': { gesture: 'swipe_right_2f' }
-        };
-        this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
-    }
-};
                     const speed = this.appSettings.playbackSpeed || 1.0;
                     const factor = 1.0 / speed; 
                     const DOT = 100 * factor, DASH = 300 * factor, GAP = 100 * factor;

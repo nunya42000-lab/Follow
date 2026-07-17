@@ -54,7 +54,7 @@ window.upsidedownToggle = async function(enable) {
 async function initFirebaseAndComments() {
     try {
         const { initializeApp } = await import("https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js");
-        const { getFirestore, enableIndexedDbPersistence } = await import("https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js");
+        const { getFirestore, enableIndexedDbPersistence, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js");
         const fbApp = initializeApp(firebaseConfig);
         db = getFirestore(fbApp);
         enableIndexedDbPersistence(db).catch((err) => {
@@ -64,12 +64,54 @@ async function initFirebaseAndComments() {
                 console.log('Browser does not support persistence');
             }
         });
-        const { initComments } = await import('./comments.js');
-        initComments(db);
+
+        // Merged from comments.js (was a separate file, now consolidated here). Only the
+        // Firebase-dependent parts live here - opening/closing the comment modal is wired
+        // unconditionally in settings.js regardless of whether this succeeds.
+        const submitBtn = document.getElementById('submit-comment-btn');
+        const listContainer = document.getElementById('comments-list-container');
+        const nameInput = document.getElementById('comment-username');
+        const msgInput = document.getElementById('comment-message');
+        if (submitBtn) {
+            submitBtn.onclick = async () => {
+                const username = nameInput.value.trim();
+                const message = msgInput.value.trim();
+                if (!username || !message) { alert("Please enter name and message."); return; }
+                submitBtn.disabled = true;
+                submitBtn.innerText = "Sending...";
+                try {
+                    await addDoc(collection(db, "comments"), { username, message, timestamp: serverTimestamp() });
+                    msgInput.value = "";
+                    submitBtn.innerText = "Sent!";
+                    setTimeout(() => { submitBtn.disabled = false; submitBtn.innerText = "Send"; }, 2000);
+                } catch (e) {
+                    console.error("Error sending comment", e);
+                    submitBtn.innerText = "Error";
+                    submitBtn.disabled = false;
+                }
+            };
+        }
+        const q = query(collection(db, "comments"), orderBy("timestamp", "desc"), limit(50));
+        onSnapshot(q, (snapshot) => {
+            if (!listContainer) return;
+            if (snapshot.empty) {
+                listContainer.innerHTML = '<p class="text-center text-gray-500 text-xs">No comments yet.</p>';
+                return;
+            }
+            listContainer.innerHTML = "";
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const el = document.createElement('div');
+                el.className = "p-3 mb-2 rounded-lg bg-black bg-opacity-20 border border-gray-700";
+                el.innerHTML = `<p class="font-bold text-primary-app text-xs">${escapeHtml(data.username)}</p><p class="text-gray-300 text-sm">${escapeHtml(data.message)}</p>`;
+                listContainer.appendChild(el);
+            });
+        });
     } catch (err) {
         console.warn('Firebase/comments unavailable (offline or blocked) - rest of the app is unaffected:', err.message);
     }
 }
+function escapeHtml(text) { if (!text) return ""; return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
 // ----------------------------------
 
 // --- CONFIG ---
@@ -82,7 +124,7 @@ const PREMADE_PROFILES = { 'profile_1': { name: "Follow Me", settings: { ...DEFA
 const DEFAULT_APP = { 
   globalUiScale: 100, uiScaleMultiplier: 1.0, showWelcomeScreen: true, gestureResizeMode: 'global', playbackSpeed: 1.0, 
   isAutoplayEnabled: true, isUniqueRoundsAutoClearEnabled: true, 
-  isAudioEnabled: false, 
+  isAudioEnabled: true, 
   isHapticsEnabled: true, 
   isFlashEnabled: true,  
   pauseSetting: 'none',
@@ -107,7 +149,7 @@ const DEFAULT_APP = {
   isEcoModeEnabled: true,
 
   isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, 
-  activeTheme: 'default', customThemes: {}, sensorAudioThresh: -85, sensorCamThresh: 30, 
+  activeTheme: 'default', customThemes: {}, isRandomThemeEnabled: false, sensorAudioThresh: -85, sensorCamThresh: 30, 
   isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, 
   showMicBtn: false, showCamBtn: false, autoInputMode: 'none', 
   showTimer: false, showCounter: false,
@@ -1471,6 +1513,12 @@ const toneEngine = new ToneEngine((val) => {
 
 
   // 7. Final Wiring & Startup
+  if (appSettings.isRandomThemeEnabled) {
+      const allThemeKeys = [...Object.keys(PREMADE_THEMES), ...Object.keys(appSettings.customThemes || {})];
+      if (allThemeKeys.length > 0) {
+          appSettings.activeTheme = allThemeKeys[Math.floor(Math.random() * allThemeKeys.length)];
+      }
+  }
   updateAllChrome();
   initFirebaseAndComments(); // fire-and-forget: comments/Firebase load in the background and never block the app
   modules.settings.updateHeaderVisibility();
@@ -1724,6 +1772,11 @@ function initGestureEngine() {
   const engine = new GestureEngine(document.body, {
       tapDelay: appSettings.gestureTapDelay || 300,
       swipeThreshold: appSettings.gestureSwipeDist || 30,
+      longPressTime: appSettings.gestureLongPressTime || 300,
+      tapPrecision: appSettings.gestureTapPrecision || 30,
+      spatialThreshold: appSettings.gestureSpatialThreshold || 10,
+      longSwipeThreshold: appSettings.gestureLongSwipeThreshold || 150,
+      multiSwipeThreshold: appSettings.gestureMultiSwipeThreshold || 10,
       debug: false
   }, {
       onGesture: (data) => {

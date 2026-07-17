@@ -7,7 +7,7 @@
 // FIX: gesture_groups.js was never imported by ANYTHING in the whole project, even though it's
 // exactly the categorized gesture data the "Populate Gesture Menus" filter toggles need in order
 // to actually filter the hand-mapping dropdown options.
-import { HAND_GESTURE_GROUPS } from './gesture_groups.js';
+import { HAND_GESTURE_GROUPS } from './gestures.js';
 
 export const PREMADE_THEMES = {
     'default': { name: "Default Dark", bgMain: "#000000", bgCard: "#121212", bubble: "#4f46e5", btn: "#1a1a1a", text: "#e5e5e5" },
@@ -470,7 +470,7 @@ export class SettingsManager {
 
             voicePitch: document.getElementById('voice-pitch'), voiceRate: document.getElementById('voice-rate'), voiceVolume: document.getElementById('voice-volume'), voiceTestBtn: document.getElementById('test-voice-btn'), voiceNameSelect: document.getElementById('voice-name-select'),
 
-            settingsModal: document.getElementById('settings-modal'), themeSelect: document.getElementById('theme-select'), themeAdd: document.getElementById('theme-add'), themeRename: document.getElementById('theme-rename'), themeDelete: document.getElementById('theme-delete'), themeSave: document.getElementById('theme-save'),
+            settingsModal: document.getElementById('settings-modal'), themeSelect: document.getElementById('theme-select'), themeAdd: document.getElementById('theme-add'), themeRename: document.getElementById('theme-rename'), themeDelete: document.getElementById('theme-delete'), themeSave: document.getElementById('theme-save'), randomThemeToggle: document.getElementById('randomThemeToggle'),
             configSelect: document.getElementById('config-select'), quickConfigSelect: document.getElementById('quick-config-select'), configAdd: document.getElementById('config-add'), configRename: document.getElementById('config-rename'), configDelete: document.getElementById('config-delete'), configSave: document.getElementById('config-save'),
 
             // Inputs
@@ -1099,6 +1099,40 @@ initListeners() {
         console.error('Developer Mode wiring failed:', e);
     }
 
+    // FIX: comment modal open/close used to only get wired inside initComments(), which only
+    // runs after Firebase successfully loads (it's an async, gracefully-degrading dynamic
+    // import - see app.js). That means the Feedback button only worked on page loads where
+    // Firebase happened to succeed, and did nothing on loads where it was slow, blocked, or
+    // offline - "works when it feels like it." Opening/closing the modal has nothing to do with
+    // Firebase, so it's wired here, unconditionally; only the actual submit/list-comments logic
+    // (which genuinely needs a database) stays gated behind Firebase in initComments().
+    try {
+        const openCommentBtn = document.getElementById('open-comment-modal');
+        const closeCommentBtn = document.getElementById('close-comment-modal');
+        const commentModal = document.getElementById('comment-modal');
+        const toggleCommentModal = (show) => {
+            if (!commentModal) return;
+            if (show) {
+                commentModal.classList.remove('hidden');
+                setTimeout(() => {
+                    commentModal.classList.remove('opacity-0', 'pointer-events-none');
+                    commentModal.querySelector('div')?.classList.remove('scale-90');
+                }, 10);
+            } else {
+                commentModal.querySelector('div')?.classList.add('scale-90');
+                commentModal.classList.add('opacity-0');
+                setTimeout(() => {
+                    commentModal.classList.add('pointer-events-none');
+                    commentModal.classList.add('hidden');
+                }, 300);
+            }
+        };
+        if (openCommentBtn) openCommentBtn.onclick = () => toggleCommentModal(true);
+        if (closeCommentBtn) closeCommentBtn.onclick = () => toggleCommentModal(false);
+    } catch (e) {
+        console.error('Comment modal wiring failed:', e);
+    }
+
     // Simple helper to bind a checkbox toggle to a global appSetting property
     const bindToggle = (el, prop, updateHeader = false) => {
         if (!el) return;
@@ -1127,6 +1161,7 @@ initListeners() {
     bindToggle(this.dom.autoCounterToggle, 'isAutoCounterEnabled'); // FIX: was this.dom.autocounterToggle (case mismatch, dead)
     bindToggle(this.dom.haptics, 'isHapticsEnabled'); // FIX: was this.dom.hapticsToggle (never cached, dead)
     bindToggle(this.dom.ecoToggle, 'isEcoModeEnabled');
+    bindToggle(this.dom.randomThemeToggle, 'isRandomThemeEnabled');
     bindToggle(this.dom.voicecommandsToggle, 'isVoiceCommandsEnabled'); // FIX: voicecommandsToggle is now actually cached
     bindToggle(this.dom.bossToggle, 'isBlackoutFeatureEnabled'); // FIX: was writing 'isBossModeEnabled', a prop nothing ever reads; the real blackout logic reads isBlackoutFeatureEnabled
     bindToggle(this.dom.handsignalsToggle, 'isHandSignalsEnabled'); // FIX: handsignalsToggle is now actually cached
@@ -1704,6 +1739,7 @@ initListeners() {
         if (this.dom.handsignalsToggle) this.dom.handsignalsToggle.checked = !!this.appSettings.isHandSignalsEnabled;
         if (this.dom.voicecommandsToggle) this.dom.voicecommandsToggle.checked = !!this.appSettings.isVoiceCommandsEnabled;
         if (this.dom.wakelockToggle) this.dom.wakelockToggle.checked = (typeof this.appSettings.isWakeLockEnabled === 'undefined') ? true : this.appSettings.isWakeLockEnabled;
+        if (this.dom.randomThemeToggle) this.dom.randomThemeToggle.checked = !!this.appSettings.isRandomThemeEnabled;
         if (this.dom.newToggle) this.dom.newToggle.checked = !!this.appSettings.isPositionSwapEnabled;
         // INSIDE settings.js -> updateUIFromSettings()
         if (this.dom.fullscreenToggle) {
@@ -1846,6 +1882,29 @@ initListeners() {
                     this.callbacks.onSave();
                 };
             }
+
+            // 5 more previously-hardcoded gesture engine parameters, now exposed the same way.
+            const moreSliders = [
+                { id: 'gesture-longpress-slider', valId: 'gesture-longpress-val', prop: 'gestureLongPressTime', unit: 'ms', def: 300 },
+                { id: 'gesture-tapprecision-slider', valId: 'gesture-tapprecision-val', prop: 'gestureTapPrecision', unit: 'px', def: 30 },
+                { id: 'gesture-spatial-slider', valId: 'gesture-spatial-val', prop: 'gestureSpatialThreshold', unit: 'px', def: 10 },
+                { id: 'gesture-longswipe-slider', valId: 'gesture-longswipe-val', prop: 'gestureLongSwipeThreshold', unit: 'px', def: 150 },
+                { id: 'gesture-multiswipe-slider', valId: 'gesture-multiswipe-val', prop: 'gestureMultiSwipeThreshold', unit: 'px', def: 10 },
+            ];
+            moreSliders.forEach(({ id, valId, prop, unit, def }) => {
+                const slider = document.getElementById(id);
+                const valEl = document.getElementById(valId);
+                if (!slider) return;
+                const current = this.appSettings[prop] || def;
+                slider.value = current;
+                if (valEl) valEl.textContent = current + unit;
+                slider.oninput = (e) => {
+                    const val = parseInt(e.target.value);
+                    this.appSettings[prop] = val;
+                    if (valEl) valEl.textContent = val + unit;
+                    this.callbacks.onSave();
+                };
+            });
         }
         // FIX: bindMappingEvents() used to only be called from renderMappingUI(), which always
         // returns immediately (its target container #mapping-accordion-container doesn't exist

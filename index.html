@@ -376,6 +376,10 @@
                                 <button id="theme-rename" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button>
                                 <button id="theme-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
                             </div>
+                            <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-700">
+                                <span class="font-bold text-sm text-muted-custom">Random Theme 🎲</span>
+                                <input type="checkbox" id="randomThemeToggle" class="h-6 w-6 accent-indigo-500">
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
@@ -823,6 +827,31 @@
                         <input type="range" id="gesture-swipe-slider" min="10" max="100" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
                         <p class="text-[10px] text-gray-400 mt-1">Higher distance = fewer accidental swipes.</p>
                     </div>
+                    <div class="mt-4">
+                        <div class="flex justify-between mb-1"><label class="text-xs font-bold">Long Press Time (ms)</label><span id="gesture-longpress-val" class="text-xs font-mono">300ms</span></div>
+                        <input type="range" id="gesture-longpress-slider" min="150" max="800" step="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                        <p class="text-[10px] text-gray-400 mt-1">How long you must hold before it counts as a long press instead of a tap.</p>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex justify-between mb-1"><label class="text-xs font-bold">Tap Wiggle Room (px)</label><span id="gesture-tapprecision-val" class="text-xs font-mono">30px</span></div>
+                        <input type="range" id="gesture-tapprecision-slider" min="10" max="60" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                        <p class="text-[10px] text-gray-400 mt-1">How far your finger can drift during a tap before it's read as a swipe instead. Higher = more forgiving of shaky taps.</p>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex justify-between mb-1"><label class="text-xs font-bold">Spatial Tap Precision (px)</label><span id="gesture-spatial-val" class="text-xs font-mono">10px</span></div>
+                        <input type="range" id="gesture-spatial-slider" min="5" max="30" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                        <p class="text-[10px] text-gray-400 mt-1">How close together spatial taps (corner/direction taps) must land to register as the same spot.</p>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex justify-between mb-1"><label class="text-xs font-bold">Long Swipe Distance (px)</label><span id="gesture-longswipe-val" class="text-xs font-mono">150px</span></div>
+                        <input type="range" id="gesture-longswipe-slider" min="80" max="300" step="10" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                        <p class="text-[10px] text-gray-400 mt-1">Distance needed for a swipe to count as "long" rather than regular.</p>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex justify-between mb-1"><label class="text-xs font-bold">Multi-Finger Swipe Sync (px)</label><span id="gesture-multiswipe-val" class="text-xs font-mono">10px</span></div>
+                        <input type="range" id="gesture-multiswipe-slider" min="5" max="30" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                        <p class="text-[10px] text-gray-400 mt-1">How closely multiple fingers must move together to count as one multi-finger swipe. Lower = stricter.</p>
+                    </div>
                 </div>
 
                 <div id="gesture-filter-toggles" class="grid grid-cols-2 gap-4 p-4 border border-emerald-500/20 bg-black/30 rounded-xl">
@@ -948,14 +977,19 @@
                         <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Top Menu Icons</strong>
                         <ul class="space-y-2 text-xs opacity-90">
                             <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">⏱️</span> <strong>Timer:</strong> Stopwatch controls for tracking time limits.</li>
+                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">#</span> <strong>Counter:</strong> Manual tally tracker.</li>
                             <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🎤</span> <strong>Mic:</strong> Toggle voice command listening.</li>
+                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🎵</span> <strong>Tone Cadence:</strong> Toggle hum/whistle note input (9-Key only).</li>
                             <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🗒️</span> <strong>Gesture Pad:</strong> Open the touch-swipe input area.</li>
                             <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🖐️</span> <strong>Hand Tracking:</strong> Activate AI front-camera gesture tracking.</li>
-                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">⌨️</span> <strong>Larger inpute:</strong> Hide the UI to maximize touch targets.</li>
-                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📷</span> <strong>AR Mode:</strong> Turn background transparent via rear camera.</li>
-                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">#</span> <strong>Counter:</strong> Manual tally tracker.</li>
+                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📷</span> <strong>AR Mode:</strong> Turn background transparent via rear camera (needs HTTPS).</li>
+                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">⌨️</span> <strong>Bigger Buttons:</strong> Hide the UI and make every key perfectly square for maximum touch targets.</li>
+                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔄</span> <strong>Position Swap:</strong> Move the input keypad from the bottom of the screen to the top.</li>
+                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔲</span> <strong>Full Screen:</strong> Hide the browser's address bar and UI chrome.</li>
+                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🙃</span> <strong>Upside Down:</strong> Flip the entire interface 180° (for a partner facing you).</li>
                         </ul>
                     </div>
+                    <p class="text-[10px] text-gray-500 italic">Each icon above only appears in the header once its matching toggle is turned on in Settings → General.</p>
                 </div>
 
                 <div id="tab-help-settings" class="tab-content space-y-3">
@@ -1008,6 +1042,7 @@
                                 <div><strong>Auto Counter:</strong> Increments on input.</div>
                                 <div><strong>Haptics 📳:</strong> Vibrate on button press.</div>
                                 <div><strong>Show Intro:</strong> Launch setup modal on boot.</div>
+                                <div><strong>Random Theme 🎲:</strong> Picks a random built-in or custom theme each time the app opens.</div>
                                 <div><strong>Boss Mode 🌑:</strong> Shake to black out screen.</div>
                                 <div><strong>BM Gestures:</strong> Touch-input while blacked out.</div>
                                 <div><strong>Wake Lock 💡:</strong> Prevents screen sleeping.</div>
@@ -1071,7 +1106,8 @@
                             <p>Opens from the wrench icon in the top-left of the Settings header. Holds the more technical, fine-tuning controls:</p>
                             <p><strong>Tap Speed (ms):</strong> How fast you must release your finger for it to count as a tap. Higher = easier to tap, harder to swipe.</p>
                             <p><strong>Swipe Distance (px):</strong> How far your finger must drag before it triggers a swipe. Higher = prevents accidental swipes.</p>
-                            <p><strong>Populate Gesture Menus:</strong> Controls which categories of hand gestures (Poses, Pinches, Finger Counts, Advanced Shapes) show up as options across all three Hand tab accordions.</p>
+                            <p><strong>Long Press Time, Tap Wiggle Room, Spatial Tap Precision, Long Swipe Distance, Multi-Finger Swipe Sync:</strong> Five more fine-tuning sliders for the touch engine - each has its own explanation directly under its slider.</p>
+                            <p><strong>Populate Hand/Touch Gesture Menus:</strong> Two separate filter groups. Hand controls which pose categories (Poses, Pinches, Finger Counts, Advanced Shapes) show up in the Hand tab's dropdowns; Touch controls which of the 13 touch categories (Taps, Swipes, Boomerangs, etc.) show up in the Touch tab's dropdowns.</p>
                             <p><strong>Haptic Output Mapping:</strong> Customize the dot/dash vibration pattern for each of the 12 possible values, used when the Playback tab's Morse toggle is on.</p>
                         </div>
                     </details>
@@ -1080,21 +1116,23 @@
                 <div id="tab-help-vision" class="tab-content space-y-4">
                     <div class="bg-blue-900/30 p-3 rounded-lg border border-blue-500/30">
                         <strong class="text-blue-300 block mb-1">🖐️ Front Camera AI Tracking</strong>
-                        <p class="text-xs opacity-90">Control the app without touching the screen. Click the 🖐️ icon in the header to activate the offline AI engine.</p>
+                        <p class="text-xs opacity-90">Control the app without touching the screen. Turn on "Hand Gestures" in Settings → General, then click the 🖐️ icon in the header to activate the camera.</p>
                     </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-white/5 p-3 rounded border border-white/10">
-                            <strong class="block text-green-400 text-sm mb-2">Inputs 1 - 5</strong>
-                            <div class="text-center text-3xl mb-2">☝️</div>
-                            <p class="text-[10px] opacity-80 text-center">Point fingers <strong>UP</strong>.<br>(Palm facing camera)</p>
-                        </div>
-                        <div class="bg-white/5 p-3 rounded border border-white/10">
-                            <strong class="block text-red-400 text-sm mb-2">Inputs 6 - 9</strong>
-                            <div class="text-center text-3xl mb-2">👇</div>
-                            <p class="text-[10px] opacity-80 text-center">Point fingers <strong>DOWN</strong>.<br>(Flop wrist downward)</p>
-                        </div>
+                    <div class="text-xs space-y-2 opacity-90 bg-black/20 p-3 rounded">
+                        <p><strong>🎛️ Per-Key Mapping (customizable):</strong></p>
+                        <p class="opacity-80">Each keypad value can be assigned its own hand pose - Settings → Mapping → Hand tab → open the 9-Key/12-Key/Piano accordion for your layout. Apply a Quick Preset (like "Finger Counts") to assign every key at once, or set individual keys by hand. Which pose categories show up in those dropdowns (Poses, Pinches, Finger Counts, Advanced Shapes) is controlled in 🛠️ Developer Mode.</p>
                     </div>
-                    <div class="text-xs space-y-2 opacity-80 bg-black/20 p-3 rounded mt-2">
+                    <div class="text-xs space-y-2 opacity-80 bg-black/20 p-3 rounded">
+                        <p><strong>✋ Hand Signals (global, separate from key mapping):</strong></p>
+                        <ul class="list-disc pl-4 space-y-1">
+                            <li><strong>🤌 Chef Kiss:</strong> Clear the round.</li>
+                            <li><strong>👌 OK Sign:</strong> Delete (backspace).</li>
+                            <li><strong>🤘 Rock On:</strong> Play.</li>
+                            <li><strong>✊ Fist:</strong> Stop.</li>
+                        </ul>
+                        <p class="opacity-70">These four work from any key mapping and fire regardless of which hand orientation (palm or knuckles facing the camera) you show. Turn on "Hand Signals" in Settings → General to enable them - it requires Hand Gestures to also be on.</p>
+                    </div>
+                    <div class="text-xs space-y-2 opacity-80 bg-black/20 p-3 rounded">
                         <p><strong>💡 Tracking Rules:</strong></p>
                         <ul class="list-disc pl-4 space-y-1">
                             <li><strong>Hold Steady:</strong> You must hold the gesture still for a fraction of a second to lock it in. This prevents accidental multi-inputs.</li>
@@ -1107,7 +1145,7 @@
                 <div id="tab-help-gestures" class="tab-content space-y-4">
                     <div class="bg-gray-800 p-2 rounded border border-gray-600">
                         <strong class="text-white text-xs block mb-1">The Gesture Pad</strong>
-                        <p class="text-[10px] opacity-70">These touch commands work on the transparent "Gesture Pad" (opened via the 🗒️ icon) or when Boss Mode Gestures are enabled.</p>
+                        <p class="text-[10px] opacity-70">These touch commands work on the transparent "Gesture Pad" (opened via the 🗒️ icon) or when Boss Mode Gestures are enabled. Assign any of them to a keypad value in Settings → Mapping → Touch tab; a Quick Preset can assign a whole layout at once.</p>
                     </div>
                     <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
                         <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white">
@@ -1137,6 +1175,12 @@
                 </div>
 
                 <div id="tab-help-voice" class="tab-content">
+                    <div class="bg-blue-900/30 p-3 rounded-lg border border-blue-500/30 mb-4">
+                        <strong class="text-blue-300 block mb-1">🎤 In-App Voice Input</strong>
+                        <p class="text-xs opacity-90 mb-2">Turn on "Voice Input" in Settings → General, then tap the 🎤 header icon to start listening. Say your Voice Trigger word (default "Set"), then a number, letter, or command in the same breath.</p>
+                        <p class="text-xs opacity-90"><strong>Examples:</strong> "Set 1 2 3" enters those values. "Set Play" plays back. Requires "Voice Commands" also on in Settings → General.</p>
+                        <p class="text-xs opacity-90 mt-2"><strong>Commands:</strong> play / start / go &nbsp;•&nbsp; stop / pause &nbsp;•&nbsp; clear / reset &nbsp;•&nbsp; delete / backspace / undo / back &nbsp;•&nbsp; settings / options</p>
+                    </div>
                     <h4 class="font-bold text-lg text-primary-app mb-2">AI Assistant Prompt 🤖</h4>
                     <p class="mb-4 opacity-90 text-xs">Copy this prompt into an AI Audio Assistant (like ChatGPT Voice) to play with a dynamic AI caller that adapts to your current configuration.</p>
                     <div class="relative">

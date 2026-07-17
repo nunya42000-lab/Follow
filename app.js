@@ -1,9 +1,11 @@
 import { GestureEngine } from './gestures.js';
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 import { SettingsManager, PREMADE_THEMES, PREMADE_VOICE_PRESETS } from './settings.js';
-import { initComments } from './comments.js';
 import { VisionEngine } from './vision.js';
+// NOTE: Firebase (initializeApp/getFirestore) and comments.js used to be imported statically
+// here. A static import that fails (CORS block, ad-blocker, offline, network hiccup) fails the
+// ENTIRE module before a single line of app.js runs - which silently took down the whole app,
+// not just the comments feature. They're now loaded dynamically in initFirebaseAndComments()
+// below, inside a try/catch, so a Firebase outage only disables comments.
 
 // --- AR DOM GLOBALS ---
 const arRecordBtn = document.getElementById('ar-record-btn');
@@ -12,8 +14,7 @@ const arPlaybackVideo = document.getElementById('ar-playback-video');
 const arBackgroundVideo = document.getElementById('ar-background-video');
 
 const firebaseConfig = { apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4", authDomain: "follow-me-app-de3e9.firebaseapp.com", projectId: "follow-me-app-de3e9", storageBucket: "follow-me-app-de3e9.firebasestorage.app", messagingSenderId: "957006680126", appId: "1:957006680126:web:6d679717d9277fd9ae816f" };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+let db = null; // Firestore instance for the comments feature only; stays null if Firebase can't be reached
 let screenWakeLock = null;
 
 async function reacquireWakeLock() {
@@ -47,14 +48,28 @@ window.upsidedownToggle = async function(enable) {
     }
 };
 
-// --- ENABLE OFFLINE PERSISTENCE ---
-enableIndexedDbPersistence(db).catch((err) => {
-  if (err.code === 'failed-precondition') {
-      console.log('Multiple tabs open, persistence can only be enabled in one.');
-  } else if (err.code === 'unimplemented') {
-      console.log('Browser does not support persistence');
-  }
-});
+// --- FIREBASE / COMMENTS (loaded on demand, see call site in startApp) ---
+// Loads Firebase + comments.js dynamically so a network/CORS failure only disables comments,
+// instead of failing the whole app.js module the way a static import failure would.
+async function initFirebaseAndComments() {
+    try {
+        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js");
+        const { getFirestore, enableIndexedDbPersistence } = await import("https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js");
+        const fbApp = initializeApp(firebaseConfig);
+        db = getFirestore(fbApp);
+        enableIndexedDbPersistence(db).catch((err) => {
+            if (err.code === 'failed-precondition') {
+                console.log('Multiple tabs open, persistence can only be enabled in one.');
+            } else if (err.code === 'unimplemented') {
+                console.log('Browser does not support persistence');
+            }
+        });
+        const { initComments } = await import('./comments.js');
+        initComments(db);
+    } catch (err) {
+        console.warn('Firebase/comments unavailable (offline or blocked) - rest of the app is unaffected:', err.message);
+    }
+}
 // ----------------------------------
 
 // --- CONFIG ---
@@ -96,6 +111,12 @@ const DEFAULT_APP = {
   isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, 
   showMicBtn: false, showCamBtn: false, autoInputMode: 'none', 
   showTimer: false, showCounter: false,
+  // --- Settings that previously had no default (toggle wiring fix) ---
+  isHandGesturesEnabled: false,
+  isHandSignalsEnabled: false,
+  isVoiceCommandsEnabled: false,
+  isToneCadenceEnabled: false,
+  isPositionSwapEnabled: false,
   activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), 
   runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), 
   isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, 
@@ -453,6 +474,31 @@ function handleBackspace(e) {
   saveState(); 
 }
 
+// Position Swap: moves #input-footer from the bottom to the top of the screen
+// (just below the aux header, if visible) and gives #app enough top clearance
+// to match. Heights are measured live rather than hardcoded, so this adapts
+// automatically to the 9-key/12-key/piano pad and to whether the header is showing.
+function applyPositionSwapOffsets(isActive) {
+    const footer = document.getElementById('input-footer');
+    const app = document.getElementById('app');
+    const header = document.getElementById('aux-control-header');
+    if (!footer || !app) return;
+
+    if (isActive) {
+        const headerVisible = header && !header.classList.contains('header-hidden');
+        const headerH = headerVisible ? header.offsetHeight : 0;
+        footer.style.top = headerH + 'px';
+        footer.style.bottom = 'auto';
+        app.style.paddingTop = (footer.offsetHeight + headerH + 16) + 'px';
+        app.style.paddingBottom = '2rem';
+    } else {
+        footer.style.top = '';
+        footer.style.bottom = '';
+        app.style.paddingTop = '';
+        app.style.paddingBottom = '';
+    }
+}
+
 function renderUI() {
     const container = document.getElementById('sequence-container');
     if (!container) return; // Prevent innerHTML null reference crash
@@ -498,6 +544,11 @@ function renderUI() {
       const el = document.getElementById(`pad-${k}`); 
       if(el) el.style.display = (settings.currentInput === k) ? 'block' : 'none'; 
   });
+
+  // Keep Position Swap offsets correct if the visible pad (and therefore its height) just changed
+  if (document.body.classList.contains('layout-swapped')) {
+      setTimeout(() => applyPositionSwapOffsets(true), 0);
+  }
   
   if(appSettings.isPracticeModeEnabled) {
       const header = document.createElement('h2');
@@ -1183,6 +1234,14 @@ const toneEngine = new ToneEngine((val) => {
   let gestureHistory = [];
   let gestureCooldown = 0;
 
+  // GRACEFUL DEGRADATION: VisionEngine lives in its own <script type="module"> tag because it
+  // imports a local WASM bundle (./wasm/vision_bundle.js) that isn't part of this single-file
+  // build. If that file isn't present alongside this HTML, VisionEngine never gets defined on
+  // window, and hand-tracking is simply disabled - everything else in the app still works.
+  if (typeof VisionEngine !== 'function') {
+      console.warn('VisionEngine unavailable (wasm/vision_bundle.js not found) - hand tracking disabled.');
+      modules.vision = { isActive: false, start(){ showToast('Hand tracking unavailable (missing wasm/vision_bundle.js) ❌'); }, stop(){} };
+  } else {
         modules.vision = new VisionEngine(
       (gestureData) => {
           const settings = getProfileSettings();
@@ -1202,8 +1261,10 @@ const toneEngine = new ToneEngine((val) => {
           const gestureId = typeof gestureData === 'object' ? gestureData.id : gestureData;
           const gestureLabel = typeof gestureData === 'object' ? gestureData.label : "Gesture";
 
-          // --- 3. GLOBAL HAND SIGNALS (Clear / Undo) ---
-          if (appSettings.isHandSignalsEnabled) {
+          // --- 3. GLOBAL HAND SIGNALS (Delete / Clear / Play / Stop) ---
+          // Gatekeeper: requires BOTH the master "Hand Gestures" camera toggle
+          // AND the "Hand Signals" sub-toggle to be on (mirrors Voice Input + Voice Commands below).
+          if (appSettings.isHandGesturesEnabled && appSettings.isHandSignalsEnabled) {
               if (gestureId === 104) { // 104 = Chef Kiss
                   showToast("Hand Signal: Clear 🧹");
                   // Call your existing clear function here
@@ -1212,8 +1273,20 @@ const toneEngine = new ToneEngine((val) => {
                   return;
               } 
               if (gestureId === 105) { // 105 = OK Sign
-                  showToast("Hand Signal: Undo 🔙");
+                  showToast("Hand Signal: Delete 🔙");
                   if (typeof handleBackspace === 'function') handleBackspace();
+                  gestureCooldown = 60;
+                  return;
+              }
+              if (gestureId === 18) { // 18 = Rock On
+                  showToast("Hand Signal: Playing ▶️");
+                  playDemo();
+                  gestureCooldown = 60;
+                  return;
+              }
+              if (gestureId === 0) { // 0 = Fist
+                  isDemoPlaying = false;
+                  showToast("Hand Signal: Stopped 🛑");
                   gestureCooldown = 60;
                   return;
               }
@@ -1253,6 +1326,7 @@ const toneEngine = new ToneEngine((val) => {
       },
       (status) => showToast(status)
   );
+  }
 
 
   // 6. Voice Commander Setup
@@ -1273,9 +1347,10 @@ const toneEngine = new ToneEngine((val) => {
           }
       },
       onCommand: (cmd) => {
-          // NEW: Gatekeeper check for the General Tab "Voice Commands" checkbox
-          if (!appSettings.isVoiceCommandsEnabled) {
-              console.log("Action voice commands are disabled in settings. Ignoring:", cmd);
+          // Gatekeeper: requires BOTH the master "Voice Input" mic toggle
+          // AND the "Voice Commands" sub-toggle to be on (mirrors Hand Gestures + Hand Signals above).
+          if (!appSettings.isVoiceInputEnabled || !appSettings.isVoiceCommandsEnabled) {
+              console.log("Voice commands disabled (Voice Input or Voice Commands is off). Ignoring:", cmd);
               return; 
           }
 
@@ -1306,7 +1381,7 @@ const toneEngine = new ToneEngine((val) => {
 
   // 7. Final Wiring & Startup
   updateAllChrome();
-  initComments(db);
+  initFirebaseAndComments(); // fire-and-forget: comments/Firebase load in the background and never block the app
   modules.settings.updateHeaderVisibility();
   initGlobalListeners();
   initGestureEngine();
@@ -1317,7 +1392,7 @@ const toneEngine = new ToneEngine((val) => {
   renderUI();
 };
 function setupARLogic() {
-  const headerCam = document.getElementById('header-cam-btn');
+  const headerCam = document.getElementById('headerarcambtn'); // FIX: was 'header-cam-btn', which doesn't exist - this button's real id is 'headerarcambtn', so its onclick below was never attached and AR Mode could never actually be turned on
   const inputFooter = document.getElementById('input-footer');
   const arRecordBtn = document.getElementById('ar-record-btn');
   const arBackgroundVideo = document.getElementById('ar-background-video');
@@ -1798,6 +1873,17 @@ function initGlobalListeners() {
         };
       }
 
+      const headerSwap = document.getElementById('headerswapbtn');
+      if(headerSwap) {
+          headerSwap.onclick = () => {
+              const isActive = !document.body.classList.contains('layout-swapped');
+              document.body.classList.toggle('layout-swapped', isActive);
+              headerSwap.classList.toggle('header-btn-active', isActive);
+              applyPositionSwapOffsets(isActive);
+              showToast(isActive ? "Inputs Moved to Top 🔄" : "Inputs Back to Bottom 🔄");
+          };
+      }
+
       
       if(headerTimer) {
           headerTimer.textContent = "00:00"; 
@@ -1890,3 +1976,5 @@ function initGlobalListeners() {
 
 // The final boot trigger
 document.addEventListener('DOMContentLoaded', startApp);
+
+

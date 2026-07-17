@@ -1,5 +1,9 @@
 // Import from YOUR local file (Offline Mode)
-import { FilesetResolver, GestureRecognizer } from "./wasm/vision_bundle.js";
+// NOTE: FilesetResolver/GestureRecognizer used to be a static import here. A static import that
+// fails (this WASM bundle is a real local dependency that may not always be present) fails this
+// entire module - which cascades to fail app.js too, since app.js imports VisionEngine from here.
+// It's now dynamically imported inside start() below, right where it's used, so a missing WASM
+// bundle only disables hand tracking instead of the whole app.
 
 // --- 1. EXHAUSTIVE 64-STATE ID MAP ---
 const GESTURE_DICTIONARY = {
@@ -150,6 +154,7 @@ export class VisionEngine {
         if (!this.recognizer) {
             this.onStatus("Loading AI (Offline)... 🧠");
             try {
+                const { FilesetResolver, GestureRecognizer } = await import("./wasm/vision_bundle.js");
                 const vision = await FilesetResolver.forVisionTasks("./wasm");
                 this.recognizer = await GestureRecognizer.createFromOptions(vision, {
                     baseOptions: {

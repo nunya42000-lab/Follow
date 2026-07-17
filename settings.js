@@ -1,4 +1,8 @@
-import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+// NOTE: this file used to have an unused top-level import of Firebase Firestore functions
+// (collection/addDoc/query/orderBy/limit/onSnapshot/serverTimestamp) that were never actually
+// called anywhere in this file. That's dead weight on its own, but worse: a static import that
+// fails (CORS/offline/blocked) fails this entire module - which cascades to fail app.js too,
+// since app.js imports SettingsManager/PREMADE_THEMES/PREMADE_VOICE_PRESETS from here.
 
 export const PREMADE_THEMES = {
     'default': { name: "Default Dark", bgMain: "#000000", bgCard: "#121212", bubble: "#4f46e5", btn: "#1a1a1a", text: "#e5e5e5" },
@@ -71,6 +75,39 @@ const VISUAL_HAND_GESTURES = [
     { value: '50', label: '🤟 Spider-Man / ILY' },
     { value: '48', label: '🫵 Gun / L-Shape' }
 ];
+
+// Hand gesture presets for the live per-key mapping grid (map-hand-kX_Y selects).
+// Values are the numeric OmniGesture v2.0 IDs (see HAND_GESTURE_GROUPS / VISUAL_HAND_GESTURES),
+// the same scheme the Vision Engine actually compares against (appSettings.mappings[key].handGesture).
+// 104 (Chef Kiss) and 105 (OK Sign) are deliberately left out of these defaults since those two IDs
+// double as the global Hand Signals for Clear/Delete when that feature is enabled.
+const HAND_MAPPING_PRESETS = {
+    '9_hand_counts': {
+        name: "[9-Key] Finger Counts",
+        type: 'key9',
+        map: { 'k9_1':'16', 'k9_2':'24', 'k9_3':'28', 'k9_4':'30', 'k9_5':'62', 'k9_6':'0', 'k9_7':'18', 'k9_8':'34', 'k9_9':'100' }
+    },
+    '9_hand_poses': {
+        name: "[9-Key] Static Poses",
+        type: 'key9',
+        map: { 'k9_1':'0', 'k9_2':'18', 'k9_3':'34', 'k9_4':'48', 'k9_5':'50', 'k9_6':'100', 'k9_7':'16', 'k9_8':'24', 'k9_9':'28' }
+    },
+    '12_hand_counts': {
+        name: "[12-Key] Finger Counts",
+        type: 'key12',
+        map: { 'k12_1':'16', 'k12_2':'24', 'k12_3':'28', 'k12_4':'30', 'k12_5':'62', 'k12_6':'0', 'k12_7':'18', 'k12_8':'34', 'k12_9':'48', 'k12_10':'50', 'k12_11':'100', 'k12_12':'200' }
+    },
+    '12_hand_poses': {
+        name: "[12-Key] Static Poses + Shapes",
+        type: 'key12',
+        map: { 'k12_1':'0', 'k12_2':'18', 'k12_3':'34', 'k12_4':'48', 'k12_5':'50', 'k12_6':'100', 'k12_7':'16', 'k12_8':'24', 'k12_9':'28', 'k12_10':'30', 'k12_11':'62', 'k12_12':'200' }
+    },
+    'piano_hand_default': {
+        name: "[Piano] Finger Counts + Poses",
+        type: 'piano',
+        map: { 'piano_C':'16', 'piano_D':'24', 'piano_E':'28', 'piano_F':'30', 'piano_G':'62', 'piano_A':'0', 'piano_B':'18', 'piano_1':'34', 'piano_2':'48', 'piano_3':'50', 'piano_4':'100', 'piano_5':'200' }
+    }
+};
 
 const GESTURE_PRESETS = {
     // ================= 9-KEY PROFILES =================
@@ -291,7 +328,7 @@ export class SettingsManager {
             // FIXED: These are now properly formatted as comma-separated object properties
             filterToggles: document.querySelectorAll('.gesture-filter-toggle'),
             toneCadenceToggle: document.getElementById('toneToggle'),
-            headerbiggerbtn: document.getElementById('header-tone-btn'),
+            headertonebtn: document.getElementById('headertonebtn'), // FIX: was cached as 'headerbiggerbtn' -> getElementById('header-tone-btn'), a nonexistent id that also collided with the real Bigger Buttons button's name
             headerfullscreenbtn: document.getElementById('headerfullscreenbtn'), 
             headerupsidedownbtn: document.getElementById('headerupsidedownbtn'),
 
@@ -323,7 +360,7 @@ export class SettingsManager {
             arcamToggle: document.getElementById('arcamToggle'),
             voiceToggle: document.getElementById('voiceToggle'),
             // RENAMED ITEMS BINDINGS
-            speedDelete: document.getElementById('speeddeletToggle'), // "Quick Erase"
+            speedDelete: document.getElementById('speeddeleteToggle'), // "Quick Erase" (fixed id typo)
             showWelcome: document.getElementById('introToggle'), 
             bossToggle: document.getElementById('bossToggle'), // "Boss Mode"
             biggerToggle: document.getElementById('biggerToggle'), // "Inputs Only"
@@ -334,6 +371,15 @@ export class SettingsManager {
             timerToggle: document.getElementById('timerToggle'),
             counterToggle: document.getElementById('counterToggle'),
             gestureToggle: document.getElementById('touchToggle'),
+
+            // --- FIX: these were referenced throughout the file but never actually
+            // cached, so their checkboxes silently did nothing. Adding the real refs.
+            handToggle: document.getElementById('handToggle'), // "Hand Gestures"
+            handsignalsToggle: document.getElementById('handsignalsToggle'), // "Hand Signals"
+            voicecommandsToggle: document.getElementById('voicecommandsToggle'), // "Voice Commands"
+            wakelockToggle: document.getElementById('wakelockToggle'), // "Wake Lock"
+            newToggle: document.getElementById('newToggle'), // "Position Swap" (was "coming soon")
+            headerswapbtn: document.getElementById('headerswapbtn'), // new Position Swap header button
             uiScale: document.getElementById('ui-scale-select'), 
             seqSize: document.getElementById('seq-size-select'), 
             seqFontSize: document.getElementById('seq-font-size-select'), // <--- NEW FONT SIZE
@@ -614,6 +660,50 @@ bindMappingEvents() {
         });
     }
     bindMappingEvents() {
+        // 0. Master Section Tab Switching (Touch Mapping vs Hand Mapping)
+        // FIX: this used to only be wired in an earlier bindMappingEvents() definition
+        // that got silently shadowed by this one (JS keeps the last method with a given
+        // name), so clicking these two buttons did nothing and #section-map-hand was
+        // permanently stuck hidden.
+        const btnMapTouch = document.getElementById('btn-map-touch');
+        const btnMapHand = document.getElementById('btn-map-hand');
+        const sectionMapTouch = document.getElementById('section-map-touch');
+        const sectionMapHand = document.getElementById('section-map-hand');
+        if (btnMapTouch && btnMapHand && sectionMapTouch && sectionMapHand) {
+            btnMapTouch.onclick = () => {
+                btnMapTouch.classList.add('text-blue-400', 'border-b-2', 'border-blue-400');
+                btnMapTouch.classList.remove('text-gray-500');
+                btnMapHand.classList.remove('text-emerald-400', 'border-b-2', 'border-emerald-400');
+                btnMapHand.classList.add('text-gray-500');
+                sectionMapTouch.classList.remove('hidden');
+                sectionMapHand.classList.add('hidden');
+            };
+            btnMapHand.onclick = () => {
+                btnMapHand.classList.add('text-emerald-400', 'border-b-2', 'border-emerald-400');
+                btnMapHand.classList.remove('text-gray-500');
+                btnMapTouch.classList.remove('text-blue-400', 'border-b-2', 'border-blue-400');
+                btnMapTouch.classList.add('text-gray-500');
+                sectionMapHand.classList.remove('hidden');
+                sectionMapTouch.classList.add('hidden');
+            };
+        }
+
+        // 0b. Quick Preset bars (bulk-assign every key in a layout at once)
+        this.bindMappingPresetBar('touch-preset-select', 'touch-preset-apply', GESTURE_PRESETS, (key, val) => {
+            if (!this.appSettings.mappings) this.appSettings.mappings = {};
+            if (!this.appSettings.mappings[key]) this.appSettings.mappings[key] = { touch: 'none', handGesture: 'none', morse: '' };
+            this.appSettings.mappings[key].touch = val;
+            const el = document.querySelector(`#map-touch-${key}`);
+            if (el) el.value = val;
+        });
+        this.bindMappingPresetBar('hand-preset-select', 'hand-preset-apply', HAND_MAPPING_PRESETS, (key, val) => {
+            if (!this.appSettings.mappings) this.appSettings.mappings = {};
+            if (!this.appSettings.mappings[key]) this.appSettings.mappings[key] = { touch: 'none', handGesture: 'none', morse: '' };
+            this.appSettings.mappings[key].handGesture = val === 'none' ? 'none' : parseInt(val, 10);
+            const el = document.querySelector(`#map-hand-${key}`);
+            if (el) el.value = val;
+        });
+
         // 1. Tab Switching Logic
         document.querySelectorAll('.mapping-subtab-btn').forEach(tab => {
             tab.onclick = (e) => {
@@ -668,6 +758,35 @@ bindMappingEvents() {
                 this.callbacks.onSave();
             };
         });
+    }
+
+    // Populates a preset <select> from a presets object and wires its Apply button to
+    // bulk-write every key in the chosen preset's map via applyKeyFn(key, value).
+    bindMappingPresetBar(selectId, applyBtnId, presetsObj, applyKeyFn) {
+        const select = document.getElementById(selectId);
+        const applyBtn = document.getElementById(applyBtnId);
+        if (!select || !applyBtn || !presetsObj) return;
+
+        select.innerHTML = '';
+        const def = document.createElement('option');
+        def.value = '';
+        def.textContent = '-- Select a preset --';
+        select.appendChild(def);
+        Object.keys(presetsObj).forEach(id => {
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = presetsObj[id].name;
+            select.appendChild(opt);
+        });
+
+        applyBtn.onclick = () => {
+            const id = select.value;
+            if (!id || !presetsObj[id]) { alert('Pick a preset first.'); return; }
+            const map = presetsObj[id].map;
+            Object.keys(map).forEach(key => applyKeyFn(key, map[key]));
+            this.callbacks.onSave();
+            if (typeof showToast === 'function') showToast(`Applied: ${presetsObj[id].name} ⚡`);
+        };
     }
 
 
@@ -840,33 +959,35 @@ initListeners() {
         };
     };
 
-    // Header Visibility Triggers (These 10 affect the header)
+    // Header Visibility Triggers (These 11 affect the header)
     bindToggle(this.dom.timerToggle, 'showTimer', true);
     bindToggle(this.dom.counterToggle, 'showCounter', true);
     bindToggle(this.dom.voiceToggle, 'isVoiceInputEnabled', true);
-    bindToggle(this.dom.toneToggle, 'isToneCadenceEnabled', true);
-    bindToggle(this.dom.touchToggle, 'isGestureInputEnabled', true);
-    bindToggle(this.dom.handToggle, 'isHandGesturesEnabled', true);
+    bindToggle(this.dom.toneCadenceToggle, 'isToneCadenceEnabled', true); // FIX: was this.dom.toneToggle (never cached, dead)
+    bindToggle(this.dom.gestureToggle, 'isGestureInputEnabled', true); // FIX: was this.dom.touchToggle (never cached, dead)
+    bindToggle(this.dom.handToggle, 'isHandGesturesEnabled', true); // FIX: handToggle is now actually cached (see this.dom above)
     bindToggle(this.dom.arcamToggle, 'isArModeEnabled', true);
     bindToggle(this.dom.biggerToggle, 'isStealth1KeyEnabled', true);
     bindToggle(this.dom.fullscreenToggle, 'showFullscreenBtn', true);
     bindToggle(this.dom.upsidedownToggle, 'showUpsideDownBtn', true);
+    bindToggle(this.dom.newToggle, 'isPositionSwapEnabled', true); // was "coming soon" / isNewFeatureEnabled placeholder
 
     // Standard App Settings Triggers
-    bindToggle(this.dom.autotimerToggle, 'isAutoTimerEnabled');
-    bindToggle(this.dom.autocounterToggle, 'isAutoCounterEnabled');
-    bindToggle(this.dom.hapticsToggle, 'isHapticsEnabled');
+    bindToggle(this.dom.autoTimerToggle, 'isAutoTimerEnabled'); // FIX: was this.dom.autotimerToggle (case mismatch, dead)
+    bindToggle(this.dom.autoCounterToggle, 'isAutoCounterEnabled'); // FIX: was this.dom.autocounterToggle (case mismatch, dead)
+    bindToggle(this.dom.haptics, 'isHapticsEnabled'); // FIX: was this.dom.hapticsToggle (never cached, dead)
     bindToggle(this.dom.ecoToggle, 'isEcoModeEnabled');
-    bindToggle(this.dom.voicecommandsToggle, 'isVoiceCommandsEnabled');
-    bindToggle(this.dom.bossToggle, 'isBossModeEnabled');
-    bindToggle(this.dom.newToggle, 'isNewFeatureEnabled'); // Placeholder
-    bindToggle(this.dom.handsignalsToggle, 'isHandSignalsEnabled');
-    bindToggle(this.dom.speeddeleteToggle, 'isSpeedDeletingEnabled');
-    bindToggle(this.dom.apshortcutToggle, 'isApShortcutEnabled');
-    bindToggle(this.dom.volgesToggle, 'isVolumeGesturesEnabled');
-    bindToggle(this.dom.speedToggle, 'isSpeedGesturesEnabled');
-    bindToggle(this.dom.deleteToggle, 'isDeleteGestureEnabled');
-    bindToggle(this.dom.clearToggle, 'isClearGestureEnabled');
+    bindToggle(this.dom.voicecommandsToggle, 'isVoiceCommandsEnabled'); // FIX: voicecommandsToggle is now actually cached
+    bindToggle(this.dom.bossToggle, 'isBlackoutFeatureEnabled'); // FIX: was writing 'isBossModeEnabled', a prop nothing ever reads; the real blackout logic reads isBlackoutFeatureEnabled
+    bindToggle(this.dom.handsignalsToggle, 'isHandSignalsEnabled'); // FIX: handsignalsToggle is now actually cached
+    bindToggle(this.dom.speedDelete, 'isSpeedDeletingEnabled'); // FIX: was this.dom.speeddeleteToggle (never cached, dead)
+    // Dead line removed here: bindToggle(this.dom.apshortcutToggle, 'isApShortcutEnabled') referenced an
+    // uncached element and a setting nothing ever read. The real "AP Shortcut" (long-press Play to
+    // toggle Autoplay) behavior is correctly wired further below via this.dom.longPressToggle.
+    bindToggle(this.dom.volumeGesturesToggle, 'isVolumeGesturesEnabled'); // FIX: was this.dom.volgesToggle (never cached, dead)
+    bindToggle(this.dom.speedGesturesToggle, 'isSpeedGesturesEnabled'); // FIX: was this.dom.speedToggle (never cached, dead)
+    bindToggle(this.dom.deleteGestureToggle, 'isDeleteGestureEnabled'); // FIX: was this.dom.deleteToggle (never cached, dead)
+    bindToggle(this.dom.clearGestureToggle, 'isClearGestureEnabled'); // FIX: was this.dom.clearToggle (never cached, dead)
 
     // Special Overrides
     if (this.dom.introToggle) {
@@ -1391,6 +1512,13 @@ initListeners() {
         if (this.dom.blackoutGesturesToggle) this.dom.blackoutGesturesToggle.checked = !!this.appSettings.isHandGesturesEnabled;
         
         if (this.dom.gestureToggle) this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+
+        // --- FIX: these toggles never had their checked-state restored on load ---
+        if (this.dom.handToggle) this.dom.handToggle.checked = !!this.appSettings.isHandGesturesEnabled;
+        if (this.dom.handsignalsToggle) this.dom.handsignalsToggle.checked = !!this.appSettings.isHandSignalsEnabled;
+        if (this.dom.voicecommandsToggle) this.dom.voicecommandsToggle.checked = !!this.appSettings.isVoiceCommandsEnabled;
+        if (this.dom.wakelockToggle) this.dom.wakelockToggle.checked = (typeof this.appSettings.isWakeLockEnabled === 'undefined') ? true : this.appSettings.isWakeLockEnabled;
+        if (this.dom.newToggle) this.dom.newToggle.checked = !!this.appSettings.isPositionSwapEnabled;
         // INSIDE settings.js -> updateUIFromSettings()
         if (this.dom.fullscreenToggle) {
             this.dom.fullscreenToggle.checked = !!this.appSettings.showFullscreenBtn;
@@ -1455,6 +1583,8 @@ initListeners() {
             }
         }
 
+        const showSwap = !!this.appSettings.isPositionSwapEnabled;
+
         // Toggle visibility
         if(timerBtn) timerBtn.classList.toggle('hidden', !showTimer);
         if(counterBtn) counterBtn.classList.toggle('hidden', !showCounter);
@@ -1464,13 +1594,15 @@ initListeners() {
         if(stealthBtn) stealthBtn.classList.toggle('hidden', !showStealth);
         // Toggle new Hand Button
         if(handBtn) handBtn.classList.toggle('hidden', !showHand);
+        // Toggle Position Swap Button
+        if(this.dom.headerswapbtn) this.dom.headerswapbtn.classList.toggle('hidden', !showSwap);
         
-        if (this.dom.headerbiggerbtn) {
-            this.dom.headerbiggerbtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
+        if (this.dom.headertonebtn) { // FIX: was this.dom.headerbiggerbtn (wrong cache target, see this.dom above)
+            this.dom.headertonebtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
         }
 
         // Check if header should be hidden entirely
-        if (!showTimer && !showCounter && !showMic && !showCam && !showGesture && !showStealth && !showHand) {
+        if (!showTimer && !showCounter && !showMic && !showCam && !showGesture && !showStealth && !showHand && !showSwap && !this.appSettings.isToneCadenceEnabled) {
             header.classList.add('header-hidden');
         } else {
             header.classList.remove('header-hidden');
@@ -1491,40 +1623,27 @@ initListeners() {
         
         if (!this.appSettings.gestureProfiles) this.appSettings.gestureProfiles = {};
 
-        // 1. REBUILD SENSITIVITY CONTROLS
-        const tabRoot = document.getElementById('tab-mapping');
-        if (tabRoot) {
-            tabRoot.className = "tab-content p-1 space-y-4";
-            
-            // Re-inject the slider HTML
-            tabRoot.innerHTML = `
-                <div class="p-3 mb-4 rounded-lg border border-custom bg-black bg-opacity-30">
-                    <h4 class="font-bold text-sm mb-3 text-primary-app">Gesture Sensitivity 🎛️</h4>
-  <div class="mb-4">
-                        <div class="flex justify-between mb-1">
-                            <label class="text-xs font-bold">Tap Speed (ms)</label>
-                            <span id="gesture-tap-val" class="text-xs font-mono">${this.appSettings.gestureTapDelay || 300}ms</span>
-                        </div>
-                        <input type="range" id="gesture-tap-slider" min="100" max="800" step="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer" value="${this.appSettings.gestureTapDelay || 300}">
-                        <p class="text-[10px] text-gray-400 mt-1">Faster time = harder to tap, easier to swipe. Slower time = easier to tap.</p>
-                    </div>
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <label class="text-xs font-bold">Swipe Distance (px)</label>
-                            <span id="gesture-swipe-val" class="text-xs font-mono">${this.appSettings.gestureSwipeDist || 30}px</span>
-                        </div>
-                        <input type="range" id="gesture-swipe-slider" min="10" max="100" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer" value="${this.appSettings.gestureSwipeDist || 30}">
-                        <p class="text-[10px] text-gray-400 mt-1">Higher distance = fewer accidental swipes.</p>
-                    </div>
-                </div>
-            `;
-            
-            // Re-bind listeners for sliders
-            const tapSlider = document.getElementById('gesture-tap-slider');
-            const swipeSlider = document.getElementById('gesture-swipe-slider');
-            const tapVal = document.getElementById('gesture-tap-val');
-            const swipeVal = document.getElementById('gesture-swipe-val');
+        // FIX: this used to do tabRoot.innerHTML = '<sensitivity sliders>' followed by appending
+        // a whole second per-key gesture-mapping accordion system - which wiped out ALL of
+        // #tab-mapping's static content on every call, including the Touch/Hand Mapping tabs,
+        // the per-key map-touch-kX_Y / map-hand-kX_Y grid, and the Quick Presets bars. That grid
+        // is what the Vision Engine and touch engine actually read from, so this was silently
+        // destroying the one mapping UI that worked and replacing it with one where, for hand
+        // gestures specifically, nothing you configured ever did anything (it wrote to a
+        // different, disconnected property). The sensitivity sliders already exist as static
+        // HTML in #section-map-touch, so this just sets their values instead of recreating them,
+        // and the redundant/legacy accordion system below no longer runs.
+        const tapSlider = document.getElementById('gesture-tap-slider');
+        const swipeSlider = document.getElementById('gesture-swipe-slider');
+        const tapVal = document.getElementById('gesture-tap-val');
+        const swipeVal = document.getElementById('gesture-swipe-val');
 
+        if (tapSlider) tapSlider.value = this.appSettings.gestureTapDelay || 300;
+        if (swipeSlider) swipeSlider.value = this.appSettings.gestureSwipeDist || 30;
+        if (tapVal) tapVal.textContent = (this.appSettings.gestureTapDelay || 300) + 'ms';
+        if (swipeVal) swipeVal.textContent = (this.appSettings.gestureSwipeDist || 30) + 'px';
+
+        {
             if(tapSlider) {
                 tapSlider.oninput = (e) => {
                     const val = parseInt(e.target.value);
@@ -1542,6 +1661,13 @@ initListeners() {
                 };
             }
         }
+        // FIX: bindMappingEvents() used to only be called from renderMappingUI(), which always
+        // returns immediately (its target container #mapping-accordion-container doesn't exist
+        // in the HTML) - so bindMappingEvents() never actually ran, meaning the static touch/hand
+        // grid's dropdowns never got their onchange handlers attached and never saved anything.
+        this.bindMappingEvents();
+        return; // FIX: skip the legacy per-key accordion system below (see comment above) -
+                // the static touch/hand grid in index.html is the live mapping UI now.
 
       // --- UPDATED GESTURE CATEGORIES (All inclusive from gesture-groups.js) ---
 const GESTURE_CATEGORIES = {
@@ -2070,3 +2196,4 @@ const GESTURE_CATEGORIES = {
 		this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
     }
 }
+

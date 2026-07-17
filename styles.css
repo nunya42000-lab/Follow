@@ -15,6 +15,10 @@ input, textarea, .selectable-text { -webkit-user-select: text !important; user-s
 @media (orientation:landscape) { #app {padding-top: 0;} #sequence-container { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: .5rem !important; } #sequence-container>div { margin: 0 !important; } }
 #sequence-container { justify-content: flex-start !important; padding-top: 1rem; width: 100%; }
 #input-footer { background-color: var(--card-bg); border-top: 4px solid var(--seq-bubble); padding-bottom: max(.5rem, env(safe-area-inset-bottom)); }
+/* Position Swap: #input-footer's top/bottom placement and paddingTop/paddingBottom on #app
+   are set inline by applyPositionSwapOffsets() in app.js, since they depend on measured
+   element heights. This just flips the border + padding so it still looks correct at the top. */
+body.layout-swapped #input-footer { border-top: none; border-bottom: 4px solid var(--seq-bubble); padding-top: max(.5rem, env(safe-area-inset-top)); padding-bottom: .5rem; }
 .btn-input { transition: all .1s ease-in-out; position: relative; font-weight: 700; border-radius: .75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .3); height: 60px; color: var(--text-main); -webkit-user-select: none; user-select: none; }
 .btn-pad-number { background-color: var(--btn-bg); font-size: 1.5rem; border: 1px solid var(--border); border-radius: 9999px; }
 .btn-pad-number:active { filter: brightness(1.3); transform: scale(.96); }
@@ -81,3 +85,5 @@ body.ar-active #ar-ui-layer { display: flex; }
 body.upside-down { transform: rotate(180deg); }
 body.eco-mode { filter: brightness(0.65); }
 body.eco-mode * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+
+

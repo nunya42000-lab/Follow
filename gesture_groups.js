@@ -592,3 +592,5 @@ export const HAND_GESTURE_GROUPS = [
         ]
     }
 ];
+
+

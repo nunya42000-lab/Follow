@@ -59,10 +59,6 @@
                     <button id="quick-resize-up" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">+</button>
                 </div>
                 <h3 class="text-2xl font-bold text-center flex-grow" data-i18n="quick_title">Follow Me v1.0</h3>
-                <select id="quick-lang-select" class="bg-black bg-opacity-30 text-white text-xs rounded p-2 border border-gray-600">
-                    <option value="en">🇺🇸 EN</option>
-                    <option value="es">🇲🇽 ES</option>
-                </select>
             </div>
             <div class="overflow-y-auto py-2 px-1">
                 <div class="mb-6">
@@ -205,7 +201,6 @@
             
             <div class="no-swipe-zone p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
                 <div class="flex items-center">
-                    <select id="general-lang-select" class="bg-black bg-opacity-30 text-white text-xs rounded p-1 border border-gray-600"><option value="en">🇺🇸</option><option value="es">🇲🇽</option></select>
                 </div>
                 <div class="flex space-x-2 items-center">
                     <button id="open-donate-btn" class="text-2xl hover:scale-110 transition-transform p-3 active:opacity-50" title="Donate">☕</button>
@@ -354,6 +349,11 @@
                                     <button id="voice-preset-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
                                 </div>
                             </div>
+                            <div class="mb-3 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
+                                <label class="text-xs font-bold uppercase text-muted-custom mb-2 block">System Voice</label>
+                                <select id="voice-name-select" class="settings-input w-full p-2 rounded text-sm font-semibold"></select>
+                                <p class="text-[10px] text-gray-400 mt-2">Voices marked ⭐ are natural/enhanced voices your device offers - much less robotic than the plain default.</p>
+                            </div>
                             <div class="space-y-3 p-2 bg-black bg-opacity-20 rounded-lg">
                                 <div><label class="block text-xs font-bold mb-1">Pitch / Tone</label><input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
                                 <div><label class="block text-xs font-bold mb-1">Speed</label><input type="range" id="voice-rate" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
@@ -482,6 +482,8 @@
                                     <option value="100" selected>100%</option>
                                     <option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
                                     <option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option>
+                                    <option value="210">210%</option><option value="220">220%</option><option value="230">230%</option><option value="240">240%</option><option value="250">250%</option>
+                                    <option value="260">260%</option><option value="270">270%</option><option value="280">280%</option><option value="290">290%</option><option value="300">300%</option>
                                 </select>
                             </div>
                             <div>
@@ -851,10 +853,15 @@
                                 <div><strong>Upside Down:</strong> Flips the entire UI 180°.</div>
                                 <div><strong>Full Screen:</strong> Hides browser bars.</div>
                                 <div><strong>Eco Mode 🔋:</strong> Reduces animations/framerate.</div>
-                                <div><strong>Bigger Buttons:</strong> Hides menus for massive buttons.</div>
-                                <div><strong>Gesture Input:</strong> Shows the gesture touch pad.</div>
-                                <div><strong>AR Mode 📸:</strong> Rear-camera background.</div>
-                                <div><strong>Voice Input:</strong> Listens for verbal commands.</div>
+                                <div><strong>Position Swap 🔄:</strong> Adds a header button that moves the input pad from the bottom of the screen to the top.</div>
+                                <div><strong>Bigger Buttons:</strong> Hides menus and makes each key perfectly square (as tall as it is wide) instead of a fixed height.</div>
+                                <div><strong>Touch Gesture:</strong> Shows the transparent touch gesture pad (taps/swipes drawn anywhere on screen).</div>
+                                <div><strong>Hand Gestures 🖐️:</strong> Master switch for the rear-camera hand tracking engine. Required for both per-key hand mapping and Hand Signals below.</div>
+                                <div><strong>Hand Signals:</strong> Global camera gestures for Clear (🤌), Delete (👌), Play (🤘), Stop (✊) - needs Hand Gestures on too.</div>
+                                <div><strong>AR Mode 📸:</strong> Rear-camera background. Needs HTTPS (or localhost) - camera permission can't be requested otherwise.</div>
+                                <div><strong>Voice Input 🎤:</strong> Master switch for the microphone/speech recognizer. Required for both spoken numbers and Voice Commands below.</div>
+                                <div><strong>Voice Commands:</strong> Say your trigger word then "play", "stop", "clear", or "delete" - needs Voice Input on too.</div>
+                                <div><strong>Tone Cadence Mode 🎵:</strong> Hum or whistle notes (C D E F G A B C D) to enter 1-9. 9-Key input only for now; requires microphone access.</div>
                                 <div><strong>Quick Erase:</strong> Hold backspace to rapidly delete.</div>
                                 <div><strong>AP Shortcut:</strong> Long-press Play to toggle Autoplay.</div>
                                 <div><strong>Vol. Gesture:</strong> 3-finger twist adjusts volume.</div>
@@ -871,12 +878,12 @@
                             <span class="group-open:rotate-180 transition-transform">▼</span>
                         </summary>
                         <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
-                            <p><strong>Sequence Size:</strong> Scales the individual cards showing the remembered numbers.</p>
+                            <p><strong>Sequence Size:</strong> Scales the individual cards showing the remembered numbers, from 50% up to 300%.</p>
                             <p><strong>UI Scale:</strong> Zooms the entire interface in or out.</p>
                             <p><strong>Number Size:</strong> Adjusts the font size of the text inside the sequence cards.</p>
                             <p><strong>AR Playback Speed:</strong> The speed at which your recorded AR background clips play back.</p>
                             <p><strong>Resize Gesture:</strong> Maps the pinch-to-zoom gesture to scale the Global UI, the Sequence Cards, or disables it.</p>
-                            <p><strong>Voice Trigger:</strong> The specific word the app listens for before logging your spoken numbers (e.g., "Set 1 2 3").</p>
+                            <p><strong>Voice Trigger:</strong> The specific word the app listens for before logging your spoken numbers or a command (e.g., "Set 1 2 3" or "Set Play").</p>
                         </div>
                     </details>
 
@@ -886,9 +893,12 @@
                             <span class="group-open:rotate-180 transition-transform">▼</span>
                         </summary>
                         <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
+                            <p><strong>Populate Gesture Menus:</strong> Controls which categories of hand gestures (Poses, Pinches, Finger Counts, Advanced Shapes) show up as options in the Hand tab's dropdowns below.</p>
                             <p><strong>Tap Speed (ms):</strong> How fast you must release your finger for it to count as a tap. Higher = easier to tap, harder to swipe.</p>
                             <p><strong>Swipe Distance (px):</strong> How far your finger must drag before it triggers a swipe. Higher = prevents accidental swipes.</p>
-                            <p><strong>Key Mappings:</strong> Assign specific touch-screen gestures (like double taps) and specific AI Hand gestures (like 3-fingers up) to individual keypad values.</p>
+                            <p><strong>Touch / Hand tabs:</strong> Switch between mapping touchscreen gestures and camera hand gestures to each key.</p>
+                            <p><strong>Quick Presets ⚡:</strong> Bulk-assigns every key in a layout at once (e.g. "Finger Counts" for hand, "Taps" for touch) - individual keys can still be fine-tuned afterward. Every key is pre-assigned a sensible default the first time you open this tab.</p>
+                            <p><strong>Key Mappings:</strong> Assign a specific touch-screen gesture or hand gesture to each individual keypad value.</p>
                         </div>
                     </details>
                 </div>
@@ -1071,6 +1081,7 @@
     <button id="ar-record-btn" class="fixed bottom-10 left-1/2 -translate-x-1/2 w-20 h-20 bg-red-600 rounded-full border-4 border-white shadow-[0_0_20px_rgba(255,0,0,0.8)] z-50 hidden active:scale-95 transition-transform items-center justify-center text-white font-bold text-lg pointer-events-auto">REC</button>   
 
     <div id="toast-notification" class="fixed top-20 left-1/2 -translate-x-1/2 bg-primary-app text-white px-6 py-3 rounded-xl shadow-lg z-[99] transition-all duration-300 opacity-0 transform -translate-y-10"><span id="toast-message"></span></div>
+    <div id="tone-debug-indicator" class="hidden fixed top-32 left-1/2 -translate-x-1/2 bg-black bg-opacity-80 text-indigo-300 px-4 py-2 rounded-lg shadow-lg z-[99] font-mono text-xs pointer-events-none">🎵 listening...</div>
    
 
     <script type="module" src="app.js"></script>

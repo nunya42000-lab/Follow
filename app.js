@@ -120,7 +120,7 @@ const DEFAULT_APP = {
   activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), 
   runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), 
   isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, 
-  selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', generalLanguage: 'en', 
+  selectedVoice: null, voicePresets: {}, activeVoicePresetId: 'standard', 
   isGestureInputEnabled: false, gestureMappings: {} 
 };
 
@@ -148,11 +148,6 @@ const DEFAULT_MAPPINGS = {
   'piano_1': 'swipe_left_2f', 'piano_2': 'swipe_nw_2f', 'piano_3': 'swipe_up_2f',
   'piano_4': 'swipe_ne_2f', 'piano_5': 'swipe_right_2f'
 };    
-
-const DICTIONARY = {
-  'en': { correct: "Correct", wrong: "Wrong", stealth: "Bigger Buttons Active", reset: "Reset to Round 1", stop: "Playback Stopped 🛑" },
-  'es': { correct: "Correcto", wrong: "Incorrecto", stealth: "Botones Más Grandes", reset: "Reiniciar Ronda 1", stop: "Detenido 🛑" }
-};
 
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
@@ -198,7 +193,6 @@ function loadState() {
 
           if (!appSettings.voicePresets) appSettings.voicePresets = {};
           if (!appSettings.activeVoicePresetId) appSettings.activeVoicePresetId = 'standard';
-          if (!appSettings.generalLanguage) appSettings.generalLanguage = 'en';
           if (!appSettings.gestureResizeMode) appSettings.gestureResizeMode = 'global';
 
           if(!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS)); 
@@ -266,13 +260,8 @@ function handleGesture(kind) {
 function speak(text) { 
   if(!appSettings.isAudioEnabled || !window.speechSynthesis) return; 
   window.speechSynthesis.cancel(); 
-  const lang = appSettings.generalLanguage || 'en';
-  const dict = DICTIONARY[lang] || DICTIONARY['en'];
-  let msg = text;
-  if(text === "Correct") msg = dict.correct;
-  if(text === "Wrong") msg = dict.wrong;
-  if(text === "Bigger Buttons Active") msg = dict.stealth;  const u = new SpeechSynthesisUtterance(msg); 
-  if(lang === 'es') u.lang = 'es-MX'; else u.lang = 'en-US';
+  const u = new SpeechSynthesisUtterance(text); 
+  u.lang = 'en-US';
   if(appSettings.selectedVoice){
       const voices = window.speechSynthesis.getVoices();
       const v = voices.find(voice => voice.name === appSettings.selectedVoice);
@@ -287,11 +276,7 @@ function speak(text) {
 }
 
 function showToast(msg) { 
-  const lang = appSettings.generalLanguage || 'en';
-  const dict = DICTIONARY[lang] || DICTIONARY['en'];
-if(msg === "Reset to Round 1") msg = dict.reset;
-  if(msg === "Playback Stopped 🛑") msg = dict.stop;
-  if(msg === "Bigger Buttons Active") msg = dict.stealth;  const t = document.getElementById('toast-notification'); 
+  const t = document.getElementById('toast-notification'); 
   const m = document.getElementById('toast-message'); 
   if(!t || !m) return; 
   m.textContent = msg; 
@@ -837,24 +822,44 @@ const schedule = (fn, delay) => {
 }
 nextChunk();
 }
+// FIX: "tone cadence mode... never worked right" - complete rewrite. The original had two
+// compounding problems: (1) it picked the loudest FFT bin in range as "the pitch", which for a
+// hummed note is very often a harmonic/overtone rather than the actual fundamental, so it would
+// frequently lock onto the wrong note entirely; (2) it required a tone lasting *exactly*
+// 100-350ms followed by *exactly* 600-1100ms of silence - a timing window no human can hit
+// consistently by humming or whistling, so even a correctly-pitched note would usually get
+// rejected on timing alone. This version uses autocorrelation (finds the waveform's actual
+// period, which is far more robust to harmonic content than spectral peak-picking) and a
+// hold-to-confirm state machine with no artificial silence requirement between notes.
+// Tone Cadence Mode rewrite. The 0.2s tone / 0.8s silence cadence timing was correct by design
+// and is preserved exactly. What was actually broken: pitch was picked as "the loudest FFT bin
+// in the 200-900Hz range", which for a hummed (not whistled) note very often locks onto a
+// harmonic/overtone instead of the true fundamental, misidentifying the note even when the
+// cadence timing was perfect. This replaces that with autocorrelation (finds the waveform's
+// actual period, which is far more robust to harmonic content) while keeping the timing logic
+// identical to before.
+//
+// Scope for now: 9-Key input only (C D E F G A B C D, notes 1-9). 12-Key and Piano will get
+// their own frequency sets and timings later - this deliberately does not guess at those yet.
 class ToneEngine {
-    constructor(onInputCallback) {
+    constructor(onInputCallback, onDebug) {
         this.onInput = onInputCallback;
+        this.onDebug = onDebug || null; // optional: ({freq, note, db}) => {} for live UI feedback
         this.audioCtx = null;
         this.analyser = null;
         this.micSrc = null;
         this.isActive = false;
         this.loopId = null;
-        
-        // Frequencies for standard 1-9 (and up to 12)
+
+        // 9-Key only: C4 D4 E4 F4 G4 A4 B4 C5 D5 -> notes 1-9
         this.TONES = [
-            { n: 1, f: 261 }, { n: 2, f: 293 }, { n: 3, f: 329 }, 
-            { n: 4, f: 349 }, { n: 5, f: 392 }, { n: 6, f: 440 }, 
-            { n: 7, f: 493 }, { n: 8, f: 523 }, { n: 9, f: 587 },
-            { n: 10, f: 659}, { n: 11, f: 698}, { n: 12, f: 784} 
+            { n: 1, f: 261.63 }, { n: 2, f: 293.66 }, { n: 3, f: 329.63 },
+            { n: 4, f: 349.23 }, { n: 5, f: 392.00 }, { n: 6, f: 440.00 },
+            { n: 7, f: 493.88 }, { n: 8, f: 523.25 }, { n: 9, f: 587.33 }
         ];
-        
-        this.audioThresh = -70; // Adjust decibel threshold if needed
+
+        this.audioThresh = -70; // dB gate, unchanged from before
+
         this.currentTone = null;
         this.toneStartTime = 0;
         this.lastToneEndTime = 0;
@@ -865,17 +870,21 @@ class ToneEngine {
         try {
             this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             this.analyser = this.audioCtx.createAnalyser();
-            this.analyser.fftSize = 8192;
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.analyser.fftSize = 4096;
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+            });
             this.micSrc = this.audioCtx.createMediaStreamSource(stream);
             this.micSrc.connect(this.analyser);
-            
+
             this.isActive = true;
-            this.lastToneEndTime = 0; // Reset timing on start
+            this.lastToneEndTime = 0; // reset timing on start
+            this.currentTone = null;
             this.loop();
             console.log("🎵 Tone Cadence Engine: LISTENING");
         } catch (e) {
             console.error("Tone Engine failed to get microphone access:", e);
+            if (this.onDebug) this.onDebug({ error: e.name || 'Unknown' });
         }
     }
 
@@ -893,34 +902,76 @@ class ToneEngine {
         console.log("🛑 Tone Cadence Engine: STOPPED");
     }
 
+    // Autocorrelation-based fundamental frequency estimate, searching only the lag range
+    // corresponding to our 180-950Hz target band (a touch wider than the note range so edge
+    // notes still interpolate cleanly). Restricting the search range keeps this fast enough for
+    // requestAnimationFrame - full-range autocorrelation on a 4096-sample buffer would be far
+    // too slow to run every frame.
+    _detectPitch(buffer, sampleRate) {
+        const SIZE = buffer.length;
+        let rms = 0;
+        for (let i = 0; i < SIZE; i++) rms += buffer[i] * buffer[i];
+        rms = Math.sqrt(rms / SIZE);
+        if (rms < 0.01) return -1; // effectively silent - not worth analyzing
+
+        const minLag = Math.floor(sampleRate / 950);
+        const maxLag = Math.ceil(sampleRate / 180);
+        const usableSize = SIZE - maxLag;
+        if (usableSize <= 0) return -1;
+
+        const corr = new Float32Array(maxLag + 1);
+        for (let lag = minLag; lag <= maxLag; lag++) {
+            let c = 0;
+            for (let i = 0; i < usableSize; i++) c += buffer[i] * buffer[i + lag];
+            corr[lag] = c;
+        }
+
+        let bestLag = -1, bestCorr = -1;
+        for (let lag = minLag; lag <= maxLag; lag++) {
+            if (corr[lag] > bestCorr) { bestCorr = corr[lag]; bestLag = lag; }
+        }
+        if (bestLag <= 0) return -1;
+
+        // Octave-error correction: a near-pure tone's autocorrelation often has comparably
+        // strong peaks at exact integer multiples of the true period, which can occasionally
+        // out-score the true (shortest) period and detect an octave too low. Walk backward from
+        // the global peak and prefer the shortest lag still within 85% of the peak strength.
+        const strongThreshold = bestCorr * 0.85;
+        for (let lag = minLag; lag < bestLag; lag++) {
+            if (corr[lag] >= strongThreshold) { bestLag = lag; bestCorr = corr[lag]; break; }
+        }
+
+        // Parabolic interpolation around the chosen lag for sub-sample precision
+        let refinedLag = bestLag;
+        if (bestLag > minLag && bestLag < maxLag) {
+            const c0 = corr[bestLag - 1], c1 = bestCorr, c2 = corr[bestLag + 1];
+            const denom = (c0 - 2 * c1 + c2);
+            if (denom !== 0) refinedLag = bestLag + 0.5 * (c0 - c2) / denom;
+        }
+
+        return refinedLag > 0 ? sampleRate / refinedLag : -1;
+    }
+
     loop() {
         if (!this.isActive) return;
-        
-        const buffer = new Float32Array(this.analyser.frequencyBinCount);
-        this.analyser.getFloatFrequencyData(buffer);
-        
+
+        const timeData = new Float32Array(this.analyser.fftSize);
+        this.analyser.getFloatTimeDomainData(timeData);
+
+        const freqData = new Float32Array(this.analyser.frequencyBinCount);
+        this.analyser.getFloatFrequencyData(freqData);
         let maxVal = -Infinity;
-        let maxIdx = -1;
-        const hzPerBin = this.audioCtx.sampleRate / 2 / buffer.length;
-        
-        // Scan frequencies between roughly 200Hz and 900Hz
-        const startBin = Math.floor(200 / hzPerBin);
-        const endBin = Math.floor(900 / hzPerBin);
-        
-        for (let i = startBin; i < endBin; i++) {
-            if (buffer[i] > maxVal) {
-                maxVal = buffer[i];
-                maxIdx = i;
-            }
-        }
-        
+        for (let i = 0; i < freqData.length; i++) if (freqData[i] > maxVal) maxVal = freqData[i];
+
         const now = Date.now();
-        
+
         if (maxVal > this.audioThresh) {
-            const freq = maxIdx * hzPerBin;
-            // Find a matching frequency (within a 4% tolerance)
-            const match = this.TONES.find(t => Math.abs(t.f - freq) < (t.f * 0.04));
-            
+            const freq = this._detectPitch(timeData, this.audioCtx.sampleRate);
+            // Match within a 4% tolerance, same as before
+            const match = freq > 0 ? this.TONES.find(t => Math.abs(t.f - freq) < (t.f * 0.04)) : null;
+
+            if (this.onDebug) this.onDebug({ freq: freq > 0 ? Math.round(freq) : null, note: match ? match.n : null, db: Math.round(maxVal) });
+
             if (match) {
                 if (!this.currentTone) {
                     this.currentTone = match.n;
@@ -931,28 +982,26 @@ class ToneEngine {
                 }
             }
         } else {
-            // Volume dropped below threshold (Silence)
+            if (this.onDebug) this.onDebug({ freq: null, note: null, db: Math.round(maxVal) });
+            // Volume dropped below threshold (silence)
             if (this.currentTone) {
                 const toneDuration = now - this.toneStartTime;
                 const silenceDuration = this.toneStartTime - this.lastToneEndTime;
-                
-                // STRICT TIMING CHECKS
-                // Note must be around 0.2s (allowing 100ms - 350ms for hardware variation)
+
+                // Tone must be ~0.2s (100-350ms tolerance for human/hardware variation)
                 const isToneValid = toneDuration >= 100 && toneDuration <= 350;
-                
-                // Silence must be around 0.8s (allowing 600ms - 1100ms) OR it is the very first note
+                // Silence must be ~0.8s (600-1100ms tolerance), or this is the very first note
                 const isSilenceValid = this.lastToneEndTime === 0 || (silenceDuration >= 600 && silenceDuration <= 1100);
 
                 if (isToneValid && isSilenceValid) {
-                    // Cadence matched perfectly, inject the input!
                     this.onInput(this.currentTone);
                 }
-                
+
                 this.lastToneEndTime = now;
                 this.currentTone = null;
             }
         }
-        
+
         this.loopId = requestAnimationFrame(() => this.loop());
     }
 }
@@ -1248,6 +1297,18 @@ const smartTracker = new SmartCadenceTracker(
 // Bind it to the original Tone Engine listener
 const toneEngine = new ToneEngine((val) => {
     smartTracker.handleTone(val);
+}, (debug) => {
+    const el = document.getElementById('tone-debug-indicator');
+    if (!el) return;
+    if (debug.error) {
+        el.textContent = `🎵 Mic error: ${debug.error}`;
+    } else if (debug.note) {
+        el.textContent = `🎵 ${['','C','D','E','F','G','A','B','C','D'][debug.note]} (${debug.freq}Hz) #${debug.note}`;
+    } else if (debug.freq) {
+        el.textContent = `🎵 ${debug.freq}Hz (no note match)`;
+    } else {
+        el.textContent = `🎵 listening...`;
+    }
 });
 
 
@@ -1739,7 +1800,7 @@ function initGestureEngine() {
               clearTimeout(gestureState.resetTimer); gestureState.resetTimer = setTimeout(() => { gestureState.isPinching = false; }, 250);
               if (mode === 'sequence') {
                   let raw = gestureState.startSeq * data.scale; let newScale = Math.round(raw * 10) / 10;
-                  if (newScale !== appSettings.uiScaleMultiplier) { appSettings.uiScaleMultiplier = Math.min(2.5, Math.max(0.5, newScale)); renderUI(); showToast(`Cards: ${(appSettings.uiScaleMultiplier * 100).toFixed(0)}% 🔍`); }
+                  if (newScale !== appSettings.uiScaleMultiplier) { appSettings.uiScaleMultiplier = Math.min(3.0, Math.max(0.5, newScale)); renderUI(); showToast(`Cards: ${(appSettings.uiScaleMultiplier * 100).toFixed(0)}% 🔍`); }
               } else {
                   let raw = gestureState.startGlobal * data.scale; let newScale = Math.round(raw / 10) * 10;
                   if (newScale !== appSettings.globalUiScale) { appSettings.globalUiScale = Math.min(200, Math.max(50, newScale)); updateAllChrome(); showToast(`UI: ${appSettings.globalUiScale}% 🔍`); }

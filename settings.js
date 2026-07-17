@@ -114,6 +114,83 @@ const HAND_MAPPING_PRESETS = {
     }
 };
 
+const GESTURE_CATEGORIES = {
+    'Taps': [
+        'tap', 'double_tap', 'triple_tap', 'long_tap'
+    ],
+    'Spatial Taps': [
+        'Double_tap_spatial_any', 'Double_tap_spatial_up', 'Double_tap_spatial_down', 
+        'Double_tap_spatial_left', 'Double_tap_spatial_right', 'Double_tap_spatial_nw', 
+        'Double_tap_spatial_ne', 'Double_tap_spatial_sw', 'Double_tap_spatial_se',
+        'triple_tap_spatial_line_any', 'triple_tap_spatial_line_up', 'triple_tap_spatial_line_down', 
+        'triple_tap_spatial_line_left', 'triple_tap_spatial_line_right', 'triple_tap_spatial_corner_ne', 
+        'triple_tap_spatial_corner_nw', 'triple_tap_spatial_corner_se', 'triple_tap_spatial_corner_sw', 
+        'triple_tap_spatial_corner_en', 'triple_tap_spatial_corner_wn', 'triple_tap_spatial_corner_es', 
+        'triple_tap_spatial_corner_ws', 'triple_tap_spatial_boomerang_any', 'triple_tap_spatial_boomerang_up', 
+        'triple_tap_spatial_boomerang_down', 'triple_tap_spatial_boomerang_left', 'triple_tap_spatial_boomerang_right'
+    ],
+    'Multi-Finger Taps': [
+        'tap_2f', 'tap_2f_vertical', 'tap_2f_horizontal', 'tap_2f_diagonal_se', 'tap_2f_diagonal_sw', 
+        'double_tap_2f', 'double_tap_2f_vertical', 'double_tap_2f_horizontal', 'double_tap_2f_diagonal_se', 'double_tap_2f_diagonal_sw', 
+        'triple_tap_2f', 'triple_tap_2f_vertical', 'triple_tap_2f_horizontal', 'triple_tap_2f_diagonal_se', 'triple_tap_2f_diagonal_sw', 
+        'long_tap_2f', 'long_tap_2f_vertical', 'long_tap_2f_horizontal', 'long_tap_2f_diagonal_se', 'long_tap_2f_diagonal_sw',
+        'tap_3f', 'tap_3f_vertical', 'tap_3f_horizontal', 'tap_3f_diagonal_se', 'tap_3f_diagonal_sw', 
+        'double_tap_3f', 'double_tap_3f_vertical', 'double_tap_3f_horizontal', 'double_tap_3f_diagonal_se', 'double_tap_3f_diagonal_sw', 
+        'triple_tap_3f', 'triple_tap_3f_vertical', 'triple_tap_3f_horizontal', 'triple_tap_3f_diagonal_se', 'triple_tap_3f_diagonal_sw', 
+        'long_tap_3f', 'long_tap_3f_vertical', 'long_tap_3f_horizontal', 'long_tap_3f_diagonal_se', 'long_tap_3f_diagonal_sw'
+    ],
+    'Swipes': [
+        'swipe_any', 'swipe_up', 'swipe_down', 'swipe_left', 'swipe_right', 'swipe_nw', 'swipe_ne', 'swipe_sw', 'swipe_se'
+    ],
+    'Long Swipes': [
+        'swipe_long_any', 'swipe_long_up', 'swipe_long_down', 'swipe_long_left', 'swipe_long_right', 'swipe_long_nw', 'swipe_long_ne', 'swipe_long_sw', 'swipe_long_se'
+    ],
+    'Multi-Finger Swipes': [
+        'swipe_any_2f', 'swipe_up_2f', 'swipe_down_2f', 'swipe_left_2f', 'swipe_right_2f', 'swipe_nw_2f', 'swipe_ne_2f', 'swipe_sw_2f', 'swipe_se_2f',
+        'swipe_any_3f', 'swipe_up_3f', 'swipe_down_3f', 'swipe_left_3f', 'swipe_right_3f', 'swipe_nw_3f', 'swipe_ne_3f', 'swipe_sw_3f', 'swipe_se_3f',
+        'pinch_swipe_any_2f', 'pinch_swipe_up_2f', 'pinch_swipe_down_2f', 'pinch_swipe_left_2f', 'pinch_swipe_right_2f', 
+        'expand_swipe_any_2f', 'expand_swipe_up_2f', 'expand_swipe_down_2f', 'expand_swipe_left_2f', 'expand_swipe_right_2f'
+    ],
+    'Boomerangs': [
+        'boomerang_any', 'boomerang_up', 'boomerang_down', 'boomerang_left', 'boomerang_right', 'boomerang_nw', 'boomerang_ne', 'boomerang_sw', 'boomerang_se',
+        'boomerang_any_2f', 'boomerang_up_2f', 'boomerang_down_2f', 'boomerang_left_2f', 'boomerang_right_2f',
+        'boomerang_any_3f', 'boomerang_up_3f', 'boomerang_down_3f', 'boomerang_left_3f', 'boomerang_right_3f',
+        'long_boomerang_any', 'long_boomerang_up', 'long_boomerang_down', 'long_boomerang_left', 'long_boomerang_right',
+        'long_boomerang_any_2f', 'long_boomerang_up_2f', 'long_boomerang_down_2f', 'long_boomerang_left_2f', 'long_boomerang_right_2f'
+    ],
+    'Switchbacks': [
+        'switchback_any', 'switchback_any_cw', 'switchback_any_ccw', 
+        'switchback_up_cw', 'switchback_down_cw', 'switchback_left_cw', 'switchback_right_cw', 'switchback_nw_cw', 'switchback_ne_cw', 'switchback_sw_cw', 'switchback_se_cw',
+        'switchback_up_ccw', 'switchback_down_ccw', 'switchback_left_ccw', 'switchback_right_ccw', 'switchback_nw_ccw', 'switchback_ne_ccw', 'switchback_sw_ccw', 'switchback_se_ccw'
+    ],
+    'Zigzags': [
+        'zigzag_any', 'zigzag_any_cw', 'zigzag_any_ccw', 
+        'zigzag_up_cw', 'zigzag_down_cw', 'zigzag_left_cw', 'zigzag_right_cw', 'zigzag_nw_cw', 'zigzag_ne_cw', 'zigzag_sw_cw', 'zigzag_se_cw',
+        'zigzag_up_ccw', 'zigzag_down_ccw', 'zigzag_left_ccw', 'zigzag_right_ccw', 'zigzag_nw_ccw', 'zigzag_ne_ccw', 'zigzag_sw_ccw', 'zigzag_se_ccw'
+    ],
+    'Corners & Shapes': [
+        'corner_any', 'corner_cw', 'corner_ccw', 'corner_up_cw', 'corner_right_cw', 'corner_down_cw', 'corner_left_cw', 'corner_up_ccw', 'corner_left_ccw', 'corner_down_ccw', 'corner_right_ccw',
+        'triangle_any', 'triangle_cw', 'triangle_ccw', 'triangle_up_cw', 'triangle_right_cw', 'triangle_down_cw', 'triangle_left_cw', 'triangle_up_ccw', 'triangle_left_ccw', 'triangle_down_ccw', 'triangle_right_ccw',
+        'u_shape_any', 'u_shape_cw', 'u_shape_ccw', 'u_shape_up_cw', 'u_shape_right_cw', 'u_shape_down_cw', 'u_shape_left_cw', 'u_shape_up_ccw', 'u_shape_left_ccw', 'u_shape_down_ccw', 'u_shape_right_ccw',
+        'square_any', 'square_cw', 'square_ccw', 'square_up_cw', 'square_right_cw', 'square_down_cw', 'square_left_cw', 'square_up_ccw', 'square_left_ccw', 'square_down_ccw', 'square_right_ccw'
+    ],
+    'Motion Gestures': [
+        'motion_tap_swipe_any', 'motion_tap_swipe_up', 'motion_tap_swipe_down', 'motion_tap_swipe_left', 'motion_tap_swipe_right', 'motion_tap_swipe_nw', 'motion_tap_swipe_ne', 'motion_tap_swipe_sw', 'motion_tap_swipe_se',
+        'motion_tap_swipe_long_any', 'motion_tap_swipe_long_up', 'motion_tap_swipe_long_down', 'motion_tap_swipe_long_left', 'motion_tap_swipe_long_right', 'motion_tap_swipe_long_nw', 'motion_tap_swipe_long_ne', 'motion_tap_swipe_long_sw', 'motion_tap_swipe_long_se',
+        'motion_tap_boomerang_any', 'motion_tap_boomerang_up', 'motion_tap_boomerang_down', 'motion_tap_boomerang_left', 'motion_tap_boomerang_right', 'motion_tap_boomerang_nw', 'motion_tap_boomerang_ne', 'motion_tap_boomerang_sw', 'motion_tap_boomerang_se',
+        'motion_tap_corner_any', 'motion_tap_corner_cw', 'motion_tap_corner_ccw', 'motion_tap_corner_up_cw', 'motion_tap_corner_right_cw', 'motion_tap_corner_left_cw', 'motion_tap_corner_down_cw', 'motion_tap_corner_up_ccw', 'motion_tap_corner_right_ccw', 'motion_tap_corner_left_ccw', 'motion_tap_corner_down_ccw'
+    ],
+    'Flicks': [
+        'Flick_any', 'Flick_up', 'Flick_down', 'Flick_left', 'Flick_right', 'Flick_nw', 'Flick_ne', 'Flick_sw', 'Flick_se'
+    ],
+    'Pausing Curves': [
+        'Pausing_swipe_any', 'Pausing_swipe_up', 'Pausing_swipe_down', 'Pausing_swipe_left', 'Pausing_swipe_right', 'Pausing_swipe_nw', 'Pausing_swipe_ne', 'Pausing_swipe_sw', 'Pausing_swipe_se',
+        'Pausing_boomerang_any', 'Pausing_boomerang_up', 'Pausing_boomerang_down', 'Pausing_boomerang_left', 'Pausing_boomerang_right', 'Pausing_boomerang_nw', 'Pausing_boomerang_ne', 'Pausing_boomerang_sw', 'Pausing_boomerang_se',
+        'Pausing_Switchback_any', 'Pausing_Switchback_cw', 'Pausing_Switchback_ccw', 'Pausing_Switchback_up_cw', 'Pausing_Switchback_down_cw', 'Pausing_Switchback_left_cw', 'Pausing_Switchback_right_cw', 'Pausing_Switchback_nw_cw', 'Pausing_Switchback_ne_cw', 'Pausing_Switchback_sw_cw', 'Pausing_Switchback_se_cw', 'Pausing_Switchback_up_ccw', 'Pausing_Switchback_down_ccw', 'Pausing_Switchback_left_ccw', 'Pausing_Switchback_right_ccw', 'Pausing_Switchback_nw_ccw', 'Pausing_Switchback_ne_ccw', 'Pausing_Switchback_sw_ccw', 'Pausing_Switchback_se_ccw',
+        'Pausing_corner_any', 'Pausing_corner_cw', 'Pausing_corner_ccw', 'Pausing_corner_up_cw', 'Pausing_corner_right_cw', 'Pausing_corner_down_cw', 'Pausing_corner_left_cw', 'Pausing_corner_up_ccw', 'Pausing_corner_left_ccw', 'Pausing_corner_down_ccw', 'Pausing_corner_right_ccw'
+    ]
+};
+
 const GESTURE_PRESETS = {
     // ================= 9-KEY PROFILES =================
     '9_taps': {
@@ -285,29 +362,48 @@ const GESTURE_PRESETS = {
 
 const CRAYONS = ["#000000", "#1F75FE", "#1CA9C9", "#0D98BA", "#FFFFFF", "#C5D0E6", "#B0B7C6", "#AF4035", "#F5F5F5", "#FEFEFA", "#FFFAFA", "#F0F8FF", "#F8F8FF", "#F5F5DC", "#FFFACD", "#FAFAD2", "#FFFFE0", "#FFFFF0", "#FFFF00", "#FFEFD5", "#FFE4B5", "#FFDAB9", "#EEE8AA", "#F0E68C", "#BDB76B", "#E6E6FA", "#D8BFD8", "#DDA0DD", "#EE82EE", "#DA70D6", "#FF00FF", "#BA55D3", "#9370DB", "#8A2BE2", "#9400D3", "#9932CC", "#8B008B", "#800000", "#4B0082", "#483D8B", "#6A5ACD", "#7B68EE", "#ADFF2F", "#7FFF00", "#7CFC00", "#00FF00", "#32CD32", "#98FB98", "#90EE90", "#00FA9A", "#00FF7F", "#3CB371", "#2E8B57", "#228B22", "#008000", "#006400", "#9ACD32", "#6B8E23", "#808000", "#556B2F", "#66CDAA", "#8FBC8F", "#20B2AA", "#008B8B", "#008080", "#00FFFF", "#00CED1", "#40E0D0", "#48D1CC", "#AFEEEE", "#7FFFD4", "#B0E0E6", "#5F9EA0", "#4682B4", "#6495ED", "#00BFFF", "#1E90FF", "#ADD8E6", "#87CEEB", "#87CEFA", "#191970", "#000080", "#0000FF", "#0000CD", "#4169E1", "#8A2BE2", "#4B0082", "#FFE4C4", "#FFEBCD", "#F5DEB3", "#DEB887", "#D2B48C", "#BC8F8F", "#F4A460", "#DAA520", "#B8860B", "#CD853F", "#D2691E", "#8B4513", "#A0522D", "#A52A2A", "#800000", "#FFA07A", "#FA8072", "#E9967A", "#F08080", "#CD5C5C", "#DC143C", "#B22222", "#FF0000", "#FF4500", "#FF6347", "#FF7F50", "#FF8C00", "#FFA500", "#FFD700", "#FFFF00", "#808000", "#556B2F", "#6B8E23", "#999999", "#808080", "#666666", "#333333", "#222222", "#111111", "#0A0A0A", "#000000"];
 
-const LANG = {
-    en: {
-        quick_title: "👋 Quick Start", select_profile: "Select Profile", autoplay: "Autoplay", audio: "Audio", help_btn: "Help 📚", settings_btn: "Settings", dont_show: "Don't show again", play_btn: "PLAY", theme_editor: "🎨 Theme Editor",
-        lbl_profiles: "Profiles", lbl_game: "Game", lbl_playback: "Playback", lbl_general: "General", lbl_mode: "Mode", lbl_input: "Input",
-        timer_toggle: "Timer ⏱️", counter_toggle: "Counter #", 
-        // Note: Boss Mode, Inputs Only etc are now hardcoded in HTML for cleanliness
-        help_stealth_detail: "Inputs Only (1-Key) simplifies input by mapping the 12 primary values (1-12) to a single key press. The interpretation depends on context and mode (Simon/Unique). This is intended for high-speed, minimal-movement input.",
-        help_blackout_detail: "Boss Mode (Blackout) turns the entire screen black to eliminate visual distraction, allowing you to focus purely on audio cues and muscle memory. The app remains fully functional, but the UI is hidden. If BM Gestures are enabled, input switches to a 'no-look' touch system.",
-        help_gesture_detail: "BM Gestures: A 'no-look' input system. Use touch gestures (swipes, taps) to represent values 1 through 12. Values 6 through 12 are represented by letters A through G (A=6, B=7, etc.) on a virtual 3x4 grid."
-    },
-    es: {
-        quick_title: "👋 Inicio Rápido", select_profile: "Perfil", autoplay: "Auto-reproducción", audio: "Audio", help_btn: "Ayuda 📚", settings_btn: "Ajustes", dont_show: "No mostrar más", play_btn: "JUGAR", theme_editor: "🎨 Editor de Temas",
-        lbl_profiles: "Perfiles", lbl_game: "Juego", lbl_playback: "Reproducción", lbl_general: "General", lbl_mode: "Modo", lbl_input: "Entrada",
-        timer_toggle: "Mostrar Temporizador", counter_toggle: "Mostrar Contador",
-        help_stealth_detail: "Solo Entradas (1-tecla) simplifica la entrada al asignar los 12 valores primarios (1-12) a una sola pulsación de tecla.",
-        help_blackout_detail: "Modo Jefe (Blackout) oscurece toda la pantalla para eliminar la distracción visual. La aplicación sigue siendo completamente funcional, pero la interfaz de usuario está oculta.",
-        help_gesture_detail: "Gestos BM: Un sistema de entrada 'sin mirar' para valores del 1 al 12."
-    }
-};
-
 export class SettingsManager {
     
     // FIXED: Class methods must go outside the constructor!
+    // Turns a raw gesture id like 'triple_tap_spatial_boomerang_nw' into a readable label,
+    // e.g. "Triple Tap Spatial Boomerang NW".
+    formatGestureLabel(id) {
+        const compass = { up: 'Up', down: 'Down', left: 'Left', right: 'Right', nw: 'NW', ne: 'NE', sw: 'SW', se: 'SE', cw: 'CW', ccw: 'CCW', any: 'Any' };
+        return id.split('_').map(part => {
+            if (part === '2f') return '(2-Finger)';
+            if (part === '3f') return '(3-Finger)';
+            const lower = part.toLowerCase();
+            if (compass[lower]) return compass[lower];
+            return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+        }).join(' ');
+    }
+
+    // FIX: "the mapping tab should be like the original" - the static map-touch-kX_Y selects only
+    // ever offered 9 basic gestures (tap/double/triple/long + 4 swipes), even though the touch
+    // engine (gestures.js) already recognizes the full ~150-gesture vocabulary in
+    // GESTURE_CATEGORIES (spatial taps, multi-finger variants, boomerangs, switchbacks, zigzags,
+    // corners/shapes, motion gestures, flicks, pausing curves...). This restores that full
+    // vocabulary as grouped <optgroup> sections, so every gesture the engine can actually detect
+    // is assignable.
+    applyTouchGestureOptions() {
+        let optionsHTML = '<option value="none">🚫 Unassigned</option>';
+        Object.keys(GESTURE_CATEGORIES).forEach(category => {
+            optionsHTML += `<optgroup label="${category}">`;
+            GESTURE_CATEGORIES[category].forEach(id => {
+                optionsHTML += `<option value="${id}">${this.formatGestureLabel(id)}</option>`;
+            });
+            optionsHTML += `</optgroup>`;
+        });
+
+        document.querySelectorAll('select[id^="map-touch-"]').forEach(select => {
+            const currentValue = select.value;
+            select.innerHTML = optionsHTML;
+            const stillValid = Array.from(select.options).some(o => o.value === currentValue);
+            select.value = stillValid ? currentValue : 'none';
+        });
+    }
+
+
     bindGestureFilters() {
         if (!this.dom.filterToggles) return;
         this.dom.filterToggles.forEach(toggle => {
@@ -385,7 +481,7 @@ export class SettingsManager {
             voicePresetRename: document.getElementById('voice-preset-rename'),
             voicePresetDelete: document.getElementById('voice-preset-delete'),
 
-            voicePitch: document.getElementById('voice-pitch'), voiceRate: document.getElementById('voice-rate'), voiceVolume: document.getElementById('voice-volume'), voiceTestBtn: document.getElementById('test-voice-btn'),
+            voicePitch: document.getElementById('voice-pitch'), voiceRate: document.getElementById('voice-rate'), voiceVolume: document.getElementById('voice-volume'), voiceTestBtn: document.getElementById('test-voice-btn'), voiceNameSelect: document.getElementById('voice-name-select'),
 
             settingsModal: document.getElementById('settings-modal'), themeSelect: document.getElementById('theme-select'), themeAdd: document.getElementById('theme-add'), themeRename: document.getElementById('theme-rename'), themeDelete: document.getElementById('theme-delete'), themeSave: document.getElementById('theme-save'),
             configSelect: document.getElementById('config-select'), quickConfigSelect: document.getElementById('quick-config-select'), configAdd: document.getElementById('config-add'), configRename: document.getElementById('config-rename'), configDelete: document.getElementById('config-delete'), configSave: document.getElementById('config-save'),
@@ -427,7 +523,7 @@ export class SettingsManager {
             seqSize: document.getElementById('seq-size-select'), 
             seqFontSize: document.getElementById('seq-font-size-select'), // <--- NEW FONT SIZE
             gestureMode: document.getElementById('gesture-mode-select'), autoInput: document.getElementById('auto-input-select'),
-            quickLang: document.getElementById('quick-lang-select'), generalLang: document.getElementById('general-lang-select'), closeSettingsBtn: document.getElementById('close-settings'),
+            closeSettingsBtn: document.getElementById('close-settings'),
 
             // TABS
             tabs: document.querySelectorAll('.tab-btn'),
@@ -478,10 +574,15 @@ export class SettingsManager {
         this.initListeners(); 
         this.bindGestureFilters();
         this.applyHandGestureFilters();
+        this.applyTouchGestureOptions();
         this.populateConfigDropdown(); 
         this.populateThemeDropdown(); 
         this.buildColorGrid(); 
         this.populateVoicePresetDropdown();
+        this.populateVoiceNameDropdown();
+        if (window.speechSynthesis) {
+            window.speechSynthesis.onvoiceschanged = () => this.populateVoiceNameDropdown();
+        }
         this.populatePlaybackSpeedDropdown();
         this.populateARSpeedDropdown();  
         this.populateUIScaleDropdown(); 
@@ -907,6 +1008,50 @@ populateARSpeedDropdown() {
         this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
     }
 
+    // Returns true for voices that are typically noticeably less robotic than a platform's
+    // plain default voice - "Enhanced"/"Premium"/"Natural"/neural-network voices, or well-known
+    // higher-quality voices various platforms ship (Google's non-"Compact" voices, Microsoft's
+    // "Online (Natural)" voices, Apple's "Enhanced"/"Premium" Siri voices).
+    isHighQualityVoice(voice) {
+        const name = voice.name.toLowerCase();
+        return /enhanced|premium|natural|neural|online/.test(name) ||
+               (name.includes('google') && !name.includes('compact'));
+    }
+
+    // FIX: "make better voices for playback" - appSettings.selectedVoice was never actually
+    // settable anywhere in the app, so playback always used whatever voice the browser happened
+    // to default to (usually the lowest-quality one) regardless of the pitch/rate presets above.
+    // This lists every voice the device actually offers, stars the better-sounding ones, and - if
+    // nothing has been picked yet - automatically defaults to the best one found instead of
+    // silently falling back to the browser's arbitrary first voice.
+    populateVoiceNameDropdown() {
+        if (!this.dom.voiceNameSelect || !window.speechSynthesis) return;
+        const voices = window.speechSynthesis.getVoices();
+        if (!voices.length) return; // getVoices() is often empty until the async voiceschanged event fires
+
+        this.dom.voiceNameSelect.innerHTML = '';
+        const def = document.createElement('option');
+        def.value = '';
+        def.textContent = 'Browser Default';
+        this.dom.voiceNameSelect.appendChild(def);
+
+        let bestQualityVoice = null;
+        voices.forEach(voice => {
+            const opt = document.createElement('option');
+            opt.value = voice.name;
+            const isHQ = this.isHighQualityVoice(voice);
+            opt.textContent = (isHQ ? '⭐ ' : '') + voice.name + ' (' + voice.lang + ')';
+            this.dom.voiceNameSelect.appendChild(opt);
+            if (isHQ && !bestQualityVoice) bestQualityVoice = voice;
+        });
+
+        if (!this.appSettings.selectedVoice && bestQualityVoice) {
+            this.appSettings.selectedVoice = bestQualityVoice.name;
+            this.callbacks.onSave();
+        }
+        this.dom.voiceNameSelect.value = this.appSettings.selectedVoice || '';
+    }
+
     applyVoicePreset(id) {
         let preset = this.appSettings.voicePresets[id] || PREMADE_VOICE_PRESETS[id] || PREMADE_VOICE_PRESETS['standard'];
         this.appSettings.voicePitch = preset.pitch;
@@ -922,20 +1067,6 @@ populateARSpeedDropdown() {
     openThemeEditor() { if (!this.dom.editorModal) return; const activeId = this.appSettings.activeTheme; const source = this.appSettings.customThemes[activeId] || PREMADE_THEMES[activeId] || PREMADE_THEMES['default']; this.tempTheme = { ...source }; this.dom.edName.value = this.tempTheme.name; this.dom.targetBtns.forEach(b => b.classList.remove('active', 'bg-primary-app')); this.dom.targetBtns[2].classList.add('active', 'bg-primary-app'); this.currentTargetKey = 'bubble'; const [h, s, l] = this.hexToHsl(this.tempTheme.bubble); this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l; this.dom.ftPreview.style.backgroundColor = this.tempTheme.bubble; this.updatePreview(); this.dom.editorModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.editorModal.querySelector('div').classList.remove('scale-90'); }
     updatePreview() { const t = this.tempTheme; if (!this.dom.edPreview) return; this.dom.edPreview.style.backgroundColor = t.bgMain; this.dom.edPreview.style.color = t.text; this.dom.edPreviewCard.style.backgroundColor = t.bgCard; this.dom.edPreviewCard.style.color = t.text; this.dom.edPreviewCard.style.border = '1px solid rgba(255,255,255,0.1)'; this.dom.edPreviewBtn.style.backgroundColor = t.bubble; this.dom.edPreviewBtn.style.color = t.text; }
     testVoice() { if (window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("Testing 1 2 3."); if (this.appSettings.selectedVoice) { const v = window.speechSynthesis.getVoices().find(voice => voice.name === this.appSettings.selectedVoice); if (v) u.voice = v; } let p = parseFloat(this.dom.voicePitch.value); let r = parseFloat(this.dom.voiceRate.value); let v = parseFloat(this.dom.voiceVolume.value); u.pitch = p; u.rate = r; u.volume = v; window.speechSynthesis.speak(u); } }
-    
-    setLanguage(lang) {
-        const t = LANG[lang];
-        if (!t) return;
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (t[key]) el.textContent = t[key];
-        });
-        
-        this.appSettings.generalLanguage = lang;
-        if (this.dom.quickLang) this.dom.quickLang.value = lang;
-        if (this.dom.generalLang) this.dom.generalLang.value = lang;
-        this.callbacks.onSave();
-    }
 
     openShare() { if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); if (this.dom.shareModal) { this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => this.dom.shareModal.querySelector('.share-sheet').classList.add('active'), 10); } }
     closeShare() { if (this.dom.shareModal) { this.dom.shareModal.querySelector('.share-sheet').classList.remove('active'); setTimeout(() => this.dom.shareModal.classList.add('opacity-0', 'pointer-events-none'), 300); } }
@@ -1104,6 +1235,13 @@ initListeners() {
         
         // Voice Control Base
         if (this.dom.voiceTestBtn) this.dom.voiceTestBtn.onclick = () => this.testVoice();
+        if (this.dom.voiceNameSelect) {
+            this.dom.voiceNameSelect.onchange = (e) => {
+                this.appSettings.selectedVoice = e.target.value || null;
+                this.callbacks.onSave();
+                this.testVoice();
+            };
+        }
         const updateVoiceLive = () => {
             if (this.dom.voicePitch) this.appSettings.voicePitch = parseFloat(this.dom.voicePitch.value);
             if (this.dom.voiceRate) this.appSettings.voiceRate = parseFloat(this.dom.voiceRate.value);
@@ -1149,11 +1287,22 @@ initListeners() {
                     this.dom.headertonebtn.classList.remove('bg-indigo-600', 'text-white');
                     this.dom.headertonebtn.classList.add('bg-indigo-900/40', 'text-indigo-300');
                     this.dom.headertonebtn.textContent = '🎵 Tones Off';
+                    document.getElementById('tone-debug-indicator')?.classList.add('hidden');
                     if (typeof toneEngine !== 'undefined') toneEngine.stop();
                 } else {
+                    // FIX: Tone Cadence's note set (C D E F G A B C D, 1-9) is only defined for
+                    // 9-Key input so far - 12-Key and Piano will get their own frequencies and
+                    // timings later. Block activation elsewhere instead of silently using the
+                    // wrong notes.
+                    const currentInput = this.appSettings.runtimeSettings && this.appSettings.runtimeSettings.currentInput;
+                    if (currentInput !== 'key9') {
+                        if (typeof showToast === 'function') showToast('Tone Cadence currently supports 9-Key input only 🎵');
+                        return;
+                    }
                     this.dom.headertonebtn.classList.add('bg-indigo-600', 'text-white');
                     this.dom.headertonebtn.classList.remove('bg-indigo-900/40', 'text-indigo-300');
                     this.dom.headertonebtn.textContent = '🎵 Tones ON';
+                    document.getElementById('tone-debug-indicator')?.classList.remove('hidden');
                     if (typeof toneEngine !== 'undefined') toneEngine.start();
                 }
             });
@@ -1221,9 +1370,6 @@ initListeners() {
             };
         }
 
-        if (this.dom.quickLang) this.dom.quickLang.onchange = (e) => this.setLanguage(e.target.value);
-        if (this.dom.generalLang) this.dom.generalLang.onchange = (e) => this.setLanguage(e.target.value);
-        
         const handleProfileSwitch = (val) => { this.callbacks.onProfileSwitch(val); this.openSettings(); };
         if (this.dom.configSelect) this.dom.configSelect.onchange = (e) => handleProfileSwitch(e.target.value);
         if (this.dom.quickConfigSelect) this.dom.quickConfigSelect.onchange = (e) => handleProfileSwitch(e.target.value);
@@ -1501,6 +1647,7 @@ initListeners() {
             });
             this.applyHandGestureFilters();
         }
+        this.applyTouchGestureOptions();
         if (this.dom.audio) this.dom.audio.checked = this.appSettings.isAudioEnabled;
         if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = this.appSettings.isAutoplayEnabled;
         if (this.dom.quickAudio) this.dom.quickAudio.checked = this.appSettings.isAudioEnabled;
@@ -1524,6 +1671,7 @@ initListeners() {
         if (this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
         if (this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000); //
         if (this.dom.voicePitch) this.dom.voicePitch.value = this.appSettings.voicePitch || 1.0;
+        this.populateVoiceNameDropdown();
         if (this.dom.voiceRate) this.dom.voiceRate.value = this.appSettings.voiceRate || 1.0;
         if (this.dom.voiceVolume) this.dom.voiceVolume.value = this.appSettings.voiceVolume || 1.0;
         if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
@@ -1590,11 +1738,6 @@ initListeners() {
             this.dom.arSpeedSelect.value = String(speedVal);
         }
 
-        const lang = this.appSettings.generalLanguage || 'en';
-        if (this.dom.quickLang) this.dom.quickLang.value = lang;
-        if (this.dom.generalLang) this.dom.generalLang.value = lang;
-        this.setLanguage(lang);
-        
         this.updateHeaderVisibility();
     }
 
@@ -1732,82 +1875,6 @@ initListeners() {
                 // the static touch/hand grid in index.html is the live mapping UI now.
 
       // --- UPDATED GESTURE CATEGORIES (All inclusive from gesture-groups.js) ---
-const GESTURE_CATEGORIES = {
-    'Taps': [
-        'tap', 'double_tap', 'triple_tap', 'long_tap'
-    ],
-    'Spatial Taps': [
-        'Double_tap_spatial_any', 'Double_tap_spatial_up', 'Double_tap_spatial_down', 
-        'Double_tap_spatial_left', 'Double_tap_spatial_right', 'Double_tap_spatial_nw', 
-        'Double_tap_spatial_ne', 'Double_tap_spatial_sw', 'Double_tap_spatial_se',
-        'triple_tap_spatial_line_any', 'triple_tap_spatial_line_up', 'triple_tap_spatial_line_down', 
-        'triple_tap_spatial_line_left', 'triple_tap_spatial_line_right', 'triple_tap_spatial_corner_ne', 
-        'triple_tap_spatial_corner_nw', 'triple_tap_spatial_corner_se', 'triple_tap_spatial_corner_sw', 
-        'triple_tap_spatial_corner_en', 'triple_tap_spatial_corner_wn', 'triple_tap_spatial_corner_es', 
-        'triple_tap_spatial_corner_ws', 'triple_tap_spatial_boomerang_any', 'triple_tap_spatial_boomerang_up', 
-        'triple_tap_spatial_boomerang_down', 'triple_tap_spatial_boomerang_left', 'triple_tap_spatial_boomerang_right'
-    ],
-    'Multi-Finger Taps': [
-        'tap_2f', 'tap_2f_vertical', 'tap_2f_horizontal', 'tap_2f_diagonal_se', 'tap_2f_diagonal_sw', 
-        'double_tap_2f', 'double_tap_2f_vertical', 'double_tap_2f_horizontal', 'double_tap_2f_diagonal_se', 'double_tap_2f_diagonal_sw', 
-        'triple_tap_2f', 'triple_tap_2f_vertical', 'triple_tap_2f_horizontal', 'triple_tap_2f_diagonal_se', 'triple_tap_2f_diagonal_sw', 
-        'long_tap_2f', 'long_tap_2f_vertical', 'long_tap_2f_horizontal', 'long_tap_2f_diagonal_se', 'long_tap_2f_diagonal_sw',
-        'tap_3f', 'tap_3f_vertical', 'tap_3f_horizontal', 'tap_3f_diagonal_se', 'tap_3f_diagonal_sw', 
-        'double_tap_3f', 'double_tap_3f_vertical', 'double_tap_3f_horizontal', 'double_tap_3f_diagonal_se', 'double_tap_3f_diagonal_sw', 
-        'triple_tap_3f', 'triple_tap_3f_vertical', 'triple_tap_3f_horizontal', 'triple_tap_3f_diagonal_se', 'triple_tap_3f_diagonal_sw', 
-        'long_tap_3f', 'long_tap_3f_vertical', 'long_tap_3f_horizontal', 'long_tap_3f_diagonal_se', 'long_tap_3f_diagonal_sw'
-    ],
-    'Swipes': [
-        'swipe_any', 'swipe_up', 'swipe_down', 'swipe_left', 'swipe_right', 'swipe_nw', 'swipe_ne', 'swipe_sw', 'swipe_se'
-    ],
-    'Long Swipes': [
-        'swipe_long_any', 'swipe_long_up', 'swipe_long_down', 'swipe_long_left', 'swipe_long_right', 'swipe_long_nw', 'swipe_long_ne', 'swipe_long_sw', 'swipe_long_se'
-    ],
-    'Multi-Finger Swipes': [
-        'swipe_any_2f', 'swipe_up_2f', 'swipe_down_2f', 'swipe_left_2f', 'swipe_right_2f', 'swipe_nw_2f', 'swipe_ne_2f', 'swipe_sw_2f', 'swipe_se_2f',
-        'swipe_any_3f', 'swipe_up_3f', 'swipe_down_3f', 'swipe_left_3f', 'swipe_right_3f', 'swipe_nw_3f', 'swipe_ne_3f', 'swipe_sw_3f', 'swipe_se_3f',
-        'pinch_swipe_any_2f', 'pinch_swipe_up_2f', 'pinch_swipe_down_2f', 'pinch_swipe_left_2f', 'pinch_swipe_right_2f', 
-        'expand_swipe_any_2f', 'expand_swipe_up_2f', 'expand_swipe_down_2f', 'expand_swipe_left_2f', 'expand_swipe_right_2f'
-    ],
-    'Boomerangs': [
-        'boomerang_any', 'boomerang_up', 'boomerang_down', 'boomerang_left', 'boomerang_right', 'boomerang_nw', 'boomerang_ne', 'boomerang_sw', 'boomerang_se',
-        'boomerang_any_2f', 'boomerang_up_2f', 'boomerang_down_2f', 'boomerang_left_2f', 'boomerang_right_2f',
-        'boomerang_any_3f', 'boomerang_up_3f', 'boomerang_down_3f', 'boomerang_left_3f', 'boomerang_right_3f',
-        'long_boomerang_any', 'long_boomerang_up', 'long_boomerang_down', 'long_boomerang_left', 'long_boomerang_right',
-        'long_boomerang_any_2f', 'long_boomerang_up_2f', 'long_boomerang_down_2f', 'long_boomerang_left_2f', 'long_boomerang_right_2f'
-    ],
-    'Switchbacks': [
-        'switchback_any', 'switchback_any_cw', 'switchback_any_ccw', 
-        'switchback_up_cw', 'switchback_down_cw', 'switchback_left_cw', 'switchback_right_cw', 'switchback_nw_cw', 'switchback_ne_cw', 'switchback_sw_cw', 'switchback_se_cw',
-        'switchback_up_ccw', 'switchback_down_ccw', 'switchback_left_ccw', 'switchback_right_ccw', 'switchback_nw_ccw', 'switchback_ne_ccw', 'switchback_sw_ccw', 'switchback_se_ccw'
-    ],
-    'Zigzags': [
-        'zigzag_any', 'zigzag_any_cw', 'zigzag_any_ccw', 
-        'zigzag_up_cw', 'zigzag_down_cw', 'zigzag_left_cw', 'zigzag_right_cw', 'zigzag_nw_cw', 'zigzag_ne_cw', 'zigzag_sw_cw', 'zigzag_se_cw',
-        'zigzag_up_ccw', 'zigzag_down_ccw', 'zigzag_left_ccw', 'zigzag_right_ccw', 'zigzag_nw_ccw', 'zigzag_ne_ccw', 'zigzag_sw_ccw', 'zigzag_se_ccw'
-    ],
-    'Corners & Shapes': [
-        'corner_any', 'corner_cw', 'corner_ccw', 'corner_up_cw', 'corner_right_cw', 'corner_down_cw', 'corner_left_cw', 'corner_up_ccw', 'corner_left_ccw', 'corner_down_ccw', 'corner_right_ccw',
-        'triangle_any', 'triangle_cw', 'triangle_ccw', 'triangle_up_cw', 'triangle_right_cw', 'triangle_down_cw', 'triangle_left_cw', 'triangle_up_ccw', 'triangle_left_ccw', 'triangle_down_ccw', 'triangle_right_ccw',
-        'u_shape_any', 'u_shape_cw', 'u_shape_ccw', 'u_shape_up_cw', 'u_shape_right_cw', 'u_shape_down_cw', 'u_shape_left_cw', 'u_shape_up_ccw', 'u_shape_left_ccw', 'u_shape_down_ccw', 'u_shape_right_ccw',
-        'square_any', 'square_cw', 'square_ccw', 'square_up_cw', 'square_right_cw', 'square_down_cw', 'square_left_cw', 'square_up_ccw', 'square_left_ccw', 'square_down_ccw', 'square_right_ccw'
-    ],
-    'Motion Gestures': [
-        'motion_tap_swipe_any', 'motion_tap_swipe_up', 'motion_tap_swipe_down', 'motion_tap_swipe_left', 'motion_tap_swipe_right', 'motion_tap_swipe_nw', 'motion_tap_swipe_ne', 'motion_tap_swipe_sw', 'motion_tap_swipe_se',
-        'motion_tap_swipe_long_any', 'motion_tap_swipe_long_up', 'motion_tap_swipe_long_down', 'motion_tap_swipe_long_left', 'motion_tap_swipe_long_right', 'motion_tap_swipe_long_nw', 'motion_tap_swipe_long_ne', 'motion_tap_swipe_long_sw', 'motion_tap_swipe_long_se',
-        'motion_tap_boomerang_any', 'motion_tap_boomerang_up', 'motion_tap_boomerang_down', 'motion_tap_boomerang_left', 'motion_tap_boomerang_right', 'motion_tap_boomerang_nw', 'motion_tap_boomerang_ne', 'motion_tap_boomerang_sw', 'motion_tap_boomerang_se',
-        'motion_tap_corner_any', 'motion_tap_corner_cw', 'motion_tap_corner_ccw', 'motion_tap_corner_up_cw', 'motion_tap_corner_right_cw', 'motion_tap_corner_left_cw', 'motion_tap_corner_down_cw', 'motion_tap_corner_up_ccw', 'motion_tap_corner_right_ccw', 'motion_tap_corner_left_ccw', 'motion_tap_corner_down_ccw'
-    ],
-    'Flicks': [
-        'Flick_any', 'Flick_up', 'Flick_down', 'Flick_left', 'Flick_right', 'Flick_nw', 'Flick_ne', 'Flick_sw', 'Flick_se'
-    ],
-    'Pausing Curves': [
-        'Pausing_swipe_any', 'Pausing_swipe_up', 'Pausing_swipe_down', 'Pausing_swipe_left', 'Pausing_swipe_right', 'Pausing_swipe_nw', 'Pausing_swipe_ne', 'Pausing_swipe_sw', 'Pausing_swipe_se',
-        'Pausing_boomerang_any', 'Pausing_boomerang_up', 'Pausing_boomerang_down', 'Pausing_boomerang_left', 'Pausing_boomerang_right', 'Pausing_boomerang_nw', 'Pausing_boomerang_ne', 'Pausing_boomerang_sw', 'Pausing_boomerang_se',
-        'Pausing_Switchback_any', 'Pausing_Switchback_cw', 'Pausing_Switchback_ccw', 'Pausing_Switchback_up_cw', 'Pausing_Switchback_down_cw', 'Pausing_Switchback_left_cw', 'Pausing_Switchback_right_cw', 'Pausing_Switchback_nw_cw', 'Pausing_Switchback_ne_cw', 'Pausing_Switchback_sw_cw', 'Pausing_Switchback_se_cw', 'Pausing_Switchback_up_ccw', 'Pausing_Switchback_down_ccw', 'Pausing_Switchback_left_ccw', 'Pausing_Switchback_right_ccw', 'Pausing_Switchback_nw_ccw', 'Pausing_Switchback_ne_ccw', 'Pausing_Switchback_sw_ccw', 'Pausing_Switchback_se_ccw',
-        'Pausing_corner_any', 'Pausing_corner_cw', 'Pausing_corner_ccw', 'Pausing_corner_up_cw', 'Pausing_corner_right_cw', 'Pausing_corner_down_cw', 'Pausing_corner_left_cw', 'Pausing_corner_up_ccw', 'Pausing_corner_left_ccw', 'Pausing_corner_down_ccw', 'Pausing_corner_right_ccw'
-    ]
-};
 
 
         if (!this.appSettings.activeGestureFilters) {

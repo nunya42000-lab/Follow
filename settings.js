@@ -4,6 +4,11 @@
 // fails (CORS/offline/blocked) fails this entire module - which cascades to fail app.js too,
 // since app.js imports SettingsManager/PREMADE_THEMES/PREMADE_VOICE_PRESETS from here.
 
+// FIX: gesture_groups.js was never imported by ANYTHING in the whole project, even though it's
+// exactly the categorized gesture data the "Populate Gesture Menus" filter toggles need in order
+// to actually filter the hand-mapping dropdown options.
+import { HAND_GESTURE_GROUPS, TOUCH_GESTURE_GROUPS } from './gesture_groups.js';
+
 export const PREMADE_THEMES = {
     'default': { name: "Default Dark", bgMain: "#000000", bgCard: "#121212", bubble: "#4f46e5", btn: "#1a1a1a", text: "#e5e5e5" },
     'light': { name: "Light Mode", bgMain: "#f3f4f6", bgCard: "#ffffff", bubble: "#4f46e5", btn: "#e5e7eb", text: "#111827" },
@@ -307,9 +312,47 @@ export class SettingsManager {
         if (!this.dom.filterToggles) return;
         this.dom.filterToggles.forEach(toggle => {
             toggle.addEventListener('change', () => {
-                // Re-run the mapping population engine whenever a box is toggled
-                this.populateMappingUI();
+                if (!this.appSettings.activeGestureFilters) {
+                    this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes'];
+                }
+                const group = toggle.dataset.group;
+                if (toggle.checked) {
+                    if (!this.appSettings.activeGestureFilters.includes(group)) {
+                        this.appSettings.activeGestureFilters.push(group);
+                    }
+                } else {
+                    this.appSettings.activeGestureFilters = this.appSettings.activeGestureFilters.filter(g => g !== group);
+                }
+                this.applyHandGestureFilters();
+                this.callbacks.onSave();
             });
+        });
+    }
+
+    // Builds the hand-mapping <option> list from the currently active "Populate Gesture Menus"
+    // filter categories, and refreshes every map-hand-kX_Y select to match, preserving each
+    // select's current value where it's still a valid option.
+    applyHandGestureFilters() {
+        if (!this.appSettings.activeGestureFilters) {
+            this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes'];
+        }
+        const active = this.appSettings.activeGestureFilters;
+        const groupIdByFilter = { 'Poses': 'hand_poses', 'Pinches': 'hand_pinches', 'Counts': 'hand_counts', 'Shapes': 'hand_vision_shapes' };
+
+        let options = [];
+        active.forEach(filterName => {
+            const group = HAND_GESTURE_GROUPS.find(g => g.id === groupIdByFilter[filterName]);
+            if (group) options.push(...group.gestures);
+        });
+
+        const optionsHTML = '<option value="none">🚫 Unassigned</option>' +
+            options.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+
+        document.querySelectorAll('select[id^="map-hand-"]').forEach(select => {
+            const currentValue = select.value;
+            select.innerHTML = optionsHTML;
+            const stillValid = Array.from(select.options).some(o => o.value === currentValue);
+            select.value = stillValid ? currentValue : 'none';
         });
     }
 
@@ -434,6 +477,7 @@ export class SettingsManager {
         this.tempTheme = null; 
         this.initListeners(); 
         this.bindGestureFilters();
+        this.applyHandGestureFilters();
         this.populateConfigDropdown(); 
         this.populateThemeDropdown(); 
         this.buildColorGrid(); 
@@ -1444,6 +1488,19 @@ initListeners() {
         if (this.dom.seqLength) this.dom.seqLength.value = ps.sequenceLength;
         if (this.dom.autoClear) this.dom.autoClear.checked = this.appSettings.isUniqueRoundsAutoClearEnabled;
         if (this.dom.autoplay) this.dom.autoplay.checked = this.appSettings.isAutoplayEnabled;
+
+        // FIX: restore the "Populate Gesture Menus" filter checkboxes from saved state (they used
+        // to always show their hardcoded HTML default every time settings reopened) and rebuild
+        // the hand-mapping dropdowns to match.
+        if (this.dom.filterToggles) {
+            if (!this.appSettings.activeGestureFilters) {
+                this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes'];
+            }
+            this.dom.filterToggles.forEach(toggle => {
+                toggle.checked = this.appSettings.activeGestureFilters.includes(toggle.dataset.group);
+            });
+            this.applyHandGestureFilters();
+        }
         if (this.dom.audio) this.dom.audio.checked = this.appSettings.isAudioEnabled;
         if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = this.appSettings.isAutoplayEnabled;
         if (this.dom.quickAudio) this.dom.quickAudio.checked = this.appSettings.isAudioEnabled;
@@ -1620,6 +1677,11 @@ initListeners() {
         if (!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
             this.applyDefaultGestureMappings();
         }
+
+        // FIX: "by default everything should be assigned" - appSettings.mappings (the live grid's
+        // storage) used to start completely empty, so every key showed "Unassigned" until you
+        // manually picked something for all 33 keys. Auto-apply sensible presets once, up front.
+        this.applyDefaultMappingsIfEmpty();
         
         if (!this.appSettings.gestureProfiles) this.appSettings.gestureProfiles = {};
 
@@ -2194,6 +2256,39 @@ const GESTURE_CATEGORIES = {
             'piano_5': { gesture: 'swipe_right_2f' }
         };
 		this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
+    }
+
+    // Populates appSettings.mappings (the live per-key grid's storage - map-touch-kX_Y /
+    // map-hand-kX_Y) with sensible presets for every key, for both touch and hand, but only if
+    // it's completely empty (so this never overwrites anything you've already configured).
+    applyDefaultMappingsIfEmpty() {
+        if (this.appSettings.mappings && Object.keys(this.appSettings.mappings).length > 0) return;
+
+        this.appSettings.mappings = {};
+        const ensure = (key) => {
+            if (!this.appSettings.mappings[key]) this.appSettings.mappings[key] = { touch: 'none', handGesture: 'none', morse: '' };
+            return this.appSettings.mappings[key];
+        };
+        const applyTouchPreset = (presetId) => {
+            const preset = GESTURE_PRESETS[presetId];
+            if (!preset) return;
+            Object.keys(preset.map).forEach(key => { ensure(key).touch = preset.map[key]; });
+        };
+        const applyHandPreset = (presetId) => {
+            const preset = HAND_MAPPING_PRESETS[presetId];
+            if (!preset) return;
+            Object.keys(preset.map).forEach(key => {
+                const val = preset.map[key];
+                ensure(key).handGesture = val === 'none' ? 'none' : parseInt(val, 10);
+            });
+        };
+
+        applyTouchPreset('9_taps');
+        applyTouchPreset('12_taps');
+        applyTouchPreset('piano_taps');
+        applyHandPreset('9_hand_counts');
+        applyHandPreset('12_hand_counts');
+        applyHandPreset('piano_hand_default');
     }
 }
 

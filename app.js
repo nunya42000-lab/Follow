@@ -974,6 +974,18 @@ class VoiceCommander {
           'd': 'D', 'dee': 'D', 'e': 'E', 'f': 'F', 'g': 'G', 'jee': 'G'
       };
 
+      // FIX: this was completely missing. handleResult() only ever looked words up in
+      // this.vocab (numbers/letters) and called onInput - there was no path to onCommand at
+      // all, so saying "play"/"stop"/"clear"/"delete"/"settings" could never do anything,
+      // even though onCommand's gatekeeper + all four actions were already fully implemented.
+      this.commandVocab = {
+          'play': 'CMD_PLAY', 'start': 'CMD_PLAY', 'go': 'CMD_PLAY',
+          'stop': 'CMD_STOP', 'pause': 'CMD_STOP',
+          'clear': 'CMD_CLEAR', 'reset': 'CMD_CLEAR',
+          'delete': 'CMD_DELETE', 'backspace': 'CMD_DELETE', 'undo': 'CMD_DELETE', 'back': 'CMD_DELETE',
+          'settings': 'CMD_SETTINGS', 'options': 'CMD_SETTINGS'
+      };
+
       this.initEngine();
   }
 
@@ -987,7 +999,8 @@ class VoiceCommander {
           if (SpeechGrammarList) {
               const activeTrigger = appSettings.voiceTriggerWord || 'set';
               const targets = Object.keys(this.vocab);
-              const whitelist = [activeTrigger, ...targets, 'play', 'start', 'stop', 'delete', 'clear', 'settings'].join(' | ');
+              const commandWords = Object.keys(this.commandVocab);
+              const whitelist = [activeTrigger, ...targets, ...commandWords].join(' | ');
               const grammar = `#JSGF V1.0; grammar appCommands; public <command> = ${whitelist} ;`;
               
               const speechRecognitionList = new SpeechGrammarList();
@@ -1030,6 +1043,14 @@ class VoiceCommander {
 
           if (triggerIdx !== -1 && triggerIdx < words.length - 1) {
               const nextWord = words[triggerIdx + 1];
+
+              const cmd = this.commandVocab[nextWord];
+              if (cmd) {
+                  this.callbacks.onCommand(cmd);
+                  this.recognition.abort();
+                  return;
+              }
+
               const mappedValue = this.vocab[nextWord];
 
               if (mappedValue) {
@@ -1258,7 +1279,16 @@ const toneEngine = new ToneEngine((val) => {
           }
 
           // Extract the integer ID and text label
-          const gestureId = typeof gestureData === 'object' ? gestureData.id : gestureData;
+          let gestureId = typeof gestureData === 'object' ? gestureData.id : gestureData;
+          // FIX: the recognizer's GESTURE_DICTIONARY assigns a separate id to the "palm forward"
+          // orientation of almost every pose (odd ids 1,3,5...63) vs "knuckles forward" (even ids
+          // 0,2,4...62) - e.g. a fist is 0 facing the camera with knuckles out, 1 facing palm out.
+          // Every hand signal and every per-key mapping in this app is defined using only the
+          // knuckles-forward (even) id, so without this, showing the "wrong" side of your hand to
+          // the camera silently matched nothing. Normalize palm-forward down to its knuckles pair.
+          if (typeof gestureId === 'number' && gestureId >= 0 && gestureId <= 63 && gestureId % 2 === 1) {
+              gestureId = gestureId - 1;
+          }
           const gestureLabel = typeof gestureData === 'object' ? gestureData.label : "Gesture";
 
           // --- 3. GLOBAL HAND SIGNALS (Delete / Clear / Play / Stop) ---
@@ -1278,13 +1308,13 @@ const toneEngine = new ToneEngine((val) => {
                   gestureCooldown = 60;
                   return;
               }
-              if (gestureId === 18) { // 18 = Rock On
+              if (gestureId === 18) { // 18 = Rock On (palm-forward variant 19 is normalized to 18 above)
                   showToast("Hand Signal: Playing ▶️");
                   playDemo();
                   gestureCooldown = 60;
                   return;
               }
-              if (gestureId === 0) { // 0 = Fist
+              if (gestureId === 0) { // 0 = Fist (palm-forward variant 1 is normalized to 0 above)
                   isDemoPlaying = false;
                   showToast("Hand Signal: Stopped 🛑");
                   gestureCooldown = 60;
@@ -1426,6 +1456,17 @@ function setupARLogic() {
       if (isTargetActive) {
           document.body.style.backgroundColor = "transparent";
           document.getElementById('ar-container')?.classList.remove('hidden');
+
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+              // FIX: getUserMedia only exists in a secure context (HTTPS, or http://localhost).
+              // Serving this over plain http:// from any other host (e.g. a phone hitting a
+              // computer's LAN IP) means the API itself is missing, so no permission prompt can
+              // ever appear - which looks exactly like "doesn't ask for camera permission".
+              console.error("AR Camera: navigator.mediaDevices.getUserMedia is unavailable - this page needs to be served over HTTPS (or http://localhost) for camera access to work.");
+              showToast("Camera needs HTTPS 🔒 (or localhost)");
+              return;
+          }
+
           try {
               const stream = await navigator.mediaDevices.getUserMedia({ 
                   video: { facingMode: "environment" } 
@@ -1436,8 +1477,16 @@ function setupARLogic() {
                   arBackgroundVideo.play().catch(e => console.warn(e));
               }
           } catch (err) {
-              console.error("AR Camera runtime initialization error:", err);
-              showToast("Camera Access Denied ❌");
+              console.error("AR Camera runtime initialization error:", err.name, err.message);
+              if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                  showToast("Camera Access Denied ❌ (check browser site settings)");
+              } else if (err.name === 'NotFoundError') {
+                  showToast("No Camera Found 📷❌");
+              } else if (err.name === 'NotReadableError') {
+                  showToast("Camera In Use By Another App ❌");
+              } else {
+                  showToast(`Camera Error: ${err.name || 'Unknown'} ❌`);
+              }
           }
       } else {
           document.body.style.backgroundColor = "";

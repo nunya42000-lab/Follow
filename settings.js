@@ -534,6 +534,7 @@ export class SettingsManager {
             quickResizeUp: document.getElementById('quick-resize-up'), quickResizeDown: document.getElementById('quick-resize-down'),
 
             openShareInside: document.getElementById('open-share-button'), closeShareBtn: document.getElementById('close-share'), closeHelpBtn: document.getElementById('close-help'), closeHelpBtnBottom: document.getElementById('close-help-btn-bottom'), openHelpBtn: document.getElementById('open-help-button'), promptDisplay: document.getElementById('prompt-display'), copyPromptBtn: document.getElementById('copy-prompt-btn'), generatePromptBtn: document.getElementById('generate-prompt-btn'),
+            developerModeModal: document.getElementById('developer-mode-modal'), openDeveloperModeBtn: document.getElementById('open-developer-mode-btn'), closeDeveloperModeBtn: document.getElementById('close-developer-mode-btn'),
 			restoreBtn: document.querySelector('button[data-action="restore-defaults"]'),
 			nukeBtn: document.querySelector('button[data-action="nuke-app"]'), // <--- ADD THIS LINE
             calibModal: document.getElementById('calibration-modal'), openCalibBtn: document.getElementById('open-calibration-btn'), closeCalibBtn: document.getElementById('close-calibration-btn'), calibAudioSlider: document.getElementById('calib-audio-slider'), calibCamSlider: document.getElementById('calib-cam-slider'), calibAudioBar: document.getElementById('calib-audio-bar'), calibCamBar: document.getElementById('calib-cam-bar'), calibAudioMarker: document.getElementById('calib-audio-marker'), calibCamMarker: document.getElementById('calib-cam-marker'), calibAudioVal: document.getElementById('audio-val-display'), calibCamVal: document.getElementById('cam-val-display'),
@@ -833,20 +834,29 @@ bindMappingEvents() {
             };
         }
 
-        // 0b. Quick Preset bars (bulk-assign every key in a layout at once)
-        this.bindMappingPresetBar('touch-preset-select', 'touch-preset-apply', GESTURE_PRESETS, (key, val) => {
-            if (!this.appSettings.mappings) this.appSettings.mappings = {};
-            if (!this.appSettings.mappings[key]) this.appSettings.mappings[key] = { touch: 'none', handGesture: 'none', morse: '' };
-            this.appSettings.mappings[key].touch = val;
-            const el = document.querySelector(`#map-touch-${key}`);
-            if (el) el.value = val;
-        });
-        this.bindMappingPresetBar('hand-preset-select', 'hand-preset-apply', HAND_MAPPING_PRESETS, (key, val) => {
-            if (!this.appSettings.mappings) this.appSettings.mappings = {};
-            if (!this.appSettings.mappings[key]) this.appSettings.mappings[key] = { touch: 'none', handGesture: 'none', morse: '' };
-            this.appSettings.mappings[key].handGesture = val === 'none' ? 'none' : parseInt(val, 10);
-            const el = document.querySelector(`#map-hand-${key}`);
-            if (el) el.value = val;
+        // 0b. Quick Preset bars - one per layout per type now (was one shared bar per type),
+        // each filtered to only the presets that match that layout, living inside its own
+        // accordion alongside that layout's key dropdowns.
+        const filterPresetsByType = (presetsObj, type) => {
+            const out = {};
+            Object.keys(presetsObj).forEach(id => { if (presetsObj[id].type === type) out[id] = presetsObj[id]; });
+            return out;
+        };
+        ['key9', 'key12', 'piano'].forEach(layout => {
+            this.bindMappingPresetBar(`touch-preset-${layout}-select`, `touch-preset-${layout}-apply`, filterPresetsByType(GESTURE_PRESETS, layout), (key, val) => {
+                if (!this.appSettings.mappings) this.appSettings.mappings = {};
+                if (!this.appSettings.mappings[key]) this.appSettings.mappings[key] = { touch: 'none', handGesture: 'none', morse: '' };
+                this.appSettings.mappings[key].touch = val;
+                const el = document.querySelector(`#map-touch-${key}`);
+                if (el) el.value = val;
+            });
+            this.bindMappingPresetBar(`hand-preset-${layout}-select`, `hand-preset-${layout}-apply`, filterPresetsByType(HAND_MAPPING_PRESETS, layout), (key, val) => {
+                if (!this.appSettings.mappings) this.appSettings.mappings = {};
+                if (!this.appSettings.mappings[key]) this.appSettings.mappings[key] = { touch: 'none', handGesture: 'none', morse: '' };
+                this.appSettings.mappings[key].handGesture = val === 'none' ? 'none' : parseInt(val, 10);
+                const el = document.querySelector(`#map-hand-${key}`);
+                if (el) el.value = val;
+            });
         });
 
         // 1. Tab Switching Logic
@@ -1522,6 +1532,14 @@ initListeners() {
         
         // External Links and Actions
         if (this.dom.openShareInside) this.dom.openShareInside.onclick = () => this.openShare();
+        if (this.dom.openDeveloperModeBtn) this.dom.openDeveloperModeBtn.onclick = () => {
+            if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none');
+            if (this.dom.developerModeModal) this.dom.developerModeModal.classList.remove('opacity-0', 'pointer-events-none');
+        };
+        if (this.dom.closeDeveloperModeBtn) this.dom.closeDeveloperModeBtn.onclick = () => {
+            if (this.dom.developerModeModal) this.dom.developerModeModal.classList.add('opacity-0', 'pointer-events-none');
+            if (this.dom.settingsModal) this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none');
+        };
         if (this.dom.closeShareBtn) this.dom.closeShareBtn.onclick = () => { this.closeShare(); this.openSettings(); };
         
         let rScale = 100;
@@ -2184,7 +2202,7 @@ initListeners() {
         }
     };
     populateMorseUI() {
-        const tab = document.getElementById('tab-playback');
+        const tab = document.getElementById('developer-mode-modal')?.querySelector('.overflow-y-auto');
         if (!tab) return;
         
         let container = document.getElementById('morse-container');

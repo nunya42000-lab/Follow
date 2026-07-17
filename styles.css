@@ -14,7 +14,7 @@ input, textarea, .selectable-text { -webkit-user-select: text !important; user-s
 #app { padding-top: 1rem; display: flex; flex-direction: column; }
 @media (orientation:landscape) { #app {padding-top: 0;} #sequence-container { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: .5rem !important; } #sequence-container>div { margin: 0 !important; } }
 #sequence-container { justify-content: flex-start !important; padding-top: 1rem; width: 100%; }
-#input-footer { background-color: var(--card-bg); border-top: 4px solid var(--seq-bubble); padding-bottom: max(.5rem, env(safe-area-inset-bottom)); }
+#input-footer { background-color: var(--card-bg); border-top: 4px solid var(--seq-bubble); padding-bottom: max(.5rem, env(safe-area-inset-bottom)); max-height: 70vh; overflow-y: auto; }
 /* Position Swap: #input-footer's top/bottom placement and paddingTop/paddingBottom on #app
    are set inline by applyPositionSwapOffsets() in app.js, since they depend on measured
    element heights. This just flips the border + padding so it still looks correct at the top. */

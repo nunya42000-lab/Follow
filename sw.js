@@ -11,7 +11,6 @@ const CRITICAL_ASSETS = [
     './app.js',
     './settings.js',
     './gestures.js',
-    './comments.js',
     './manifest.json',
     './vision.js',
     './wasm/vision_bundle.js',

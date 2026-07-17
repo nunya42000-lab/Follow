@@ -54,33 +54,11 @@ export const PREMADE_VOICE_PRESETS = {
 // the same scheme the Vision Engine actually compares against (appSettings.mappings[key].handGesture).
 // 104 (Chef Kiss) and 105 (OK Sign) are deliberately left out of these defaults since those two IDs
 // double as the global Hand Signals for Clear/Delete when that feature is enabled.
-const HAND_MAPPING_PRESETS = {
-    '9_hand_counts': {
-        name: "[9-Key] Finger Counts",
-        type: 'key9',
-        map: { 'k9_1':'16', 'k9_2':'24', 'k9_3':'28', 'k9_4':'30', 'k9_5':'62', 'k9_6':'0', 'k9_7':'18', 'k9_8':'34', 'k9_9':'100' }
-    },
-    '9_hand_poses': {
-        name: "[9-Key] Static Poses",
-        type: 'key9',
-        map: { 'k9_1':'0', 'k9_2':'18', 'k9_3':'34', 'k9_4':'48', 'k9_5':'50', 'k9_6':'100', 'k9_7':'16', 'k9_8':'24', 'k9_9':'28' }
-    },
-    '12_hand_counts': {
-        name: "[12-Key] Finger Counts",
-        type: 'key12',
-        map: { 'k12_1':'16', 'k12_2':'24', 'k12_3':'28', 'k12_4':'30', 'k12_5':'62', 'k12_6':'0', 'k12_7':'18', 'k12_8':'34', 'k12_9':'48', 'k12_10':'50', 'k12_11':'100', 'k12_12':'200' }
-    },
-    '12_hand_poses': {
-        name: "[12-Key] Static Poses + Shapes",
-        type: 'key12',
-        map: { 'k12_1':'0', 'k12_2':'18', 'k12_3':'34', 'k12_4':'48', 'k12_5':'50', 'k12_6':'100', 'k12_7':'16', 'k12_8':'24', 'k12_9':'28', 'k12_10':'30', 'k12_11':'62', 'k12_12':'200' }
-    },
-    'piano_hand_default': {
-        name: "[Piano] Finger Counts + Poses",
-        type: 'piano',
-        map: { 'piano_C':'16', 'piano_D':'24', 'piano_E':'28', 'piano_F':'30', 'piano_G':'62', 'piano_A':'0', 'piano_B':'18', 'piano_1':'34', 'piano_2':'48', 'piano_3':'50', 'piano_4':'100', 'piano_5':'200' }
-    }
-};
+// FIX: "i want gesture presets erased so i can make my own" - built-in hand presets
+// cleared to a blank slate. Use NEW/SAVE in each Mapping accordion to build your own
+// (saved under "My Setups"), then export via Developer Mode -> Backup/Restore (Hex) and
+// send the hex code to have them baked in here permanently.
+const HAND_MAPPING_PRESETS = {};
 
 const GESTURE_CATEGORIES = {
     'Taps': [
@@ -159,174 +137,11 @@ const GESTURE_CATEGORIES = {
     ]
 };
 
-const GESTURE_PRESETS = {
-    // ================= 9-KEY PROFILES =================
-    '9_taps': {
-        name: "Taps (Default)",
-        type: 'key9',
-        map: {
-            'k9_1': 'tap', 
-            'k9_2': 'double_tap', 
-            'k9_3': 'triple_tap',
-            'k9_4': 'tap_2f', 
-            'k9_5': 'double_tap_2f', 
-            'k9_6': 'triple_tap_2f',
-            'k9_7': 'tap_3f', 
-            'k9_8': 'double_tap_3f', 
-            'k9_9': 'triple_tap_3f'
-        }
-    },
-    '9_swipes': {
-        name: "Swipes (Directional)",
-        type: 'key9',
-        map: {
-            'k9_1': 'swipe_nw', 'k9_2': 'swipe_up', 'k9_3': 'swipe_ne',
-            'k9_4': 'swipe_left', 'k9_5': 'tap', 'k9_6': 'swipe_right',
-            'k9_7': 'swipe_sw', 'k9_8': 'swipe_down', 'k9_9': 'swipe_se'
-        }
-    },
-    '9_motion': {
-        name: "Spatial Taps (Micro)",
-        type: 'key9',
-        map: {
-            // UPDATED to new ID names
-           'k9_1': 'motion_tap_swipe_nw', 'k9_2': 'motion_tap_swipe_up', 'k9_3': 'motion_tap_swipe_ne',
-            'k9_4': 'motion_tap_swipe_left', 'k9_5': 'double_tap', 'k9_6': 'motion_tap_swipe_right',
-            'k9_7': 'motion_tap_swipe_sw', 'k9_8': 'motion_tap_swipe_down', 'k9_9': 'motion_tap_swipe_se' 
-        }
-    },
-// === 9-KEY HAND ===
-    '9_hand_count': {
-        name: "Hand Count (Up/Down)",
-        type: 'key9',
-        map: {
-            'k9_1': { hand: 'hand_1_up' },   // 1 Up
-            'k9_2': { hand: 'hand_2_up' },   // 2 Up
-            'k9_3': { hand: 'hand_3_up' },   // 3 Up
-            'k9_4': { hand: 'hand_4_up' },   // 4 Up
-            'k9_5': { hand: 'hand_5_up' },   // 5 Up (Palm)
-            'k9_6': { hand: 'hand_1_down' }, // 1 Down
-            'k9_7': { hand: 'hand_2_down' }, // 2 Down
-            'k9_8': { hand: 'hand_3_down' }, // 3 Down
-            'k9_9': { hand: 'hand_4_down' }  // 4 Down
-        }
-    },
-    // ================= 12-KEY PROFILES =================
-    '12_taps': {
-        name: "Taps (Default)",
-        type: 'key12',
-        map: {
-            'k12_1': 'tap', 
-            'k12_2': 'double_tap', 
-            'k12_3': 'triple_tap', 
-            'k12_4': 'long_tap',
-            'k12_5': 'tap_2f', 
-            'k12_6': 'double_tap_2f', 
-            'k12_7': 'triple_tap_2f', 
-            'k12_8': 'long_tap_2f',
-            'k12_9': 'tap_3f', 
-            'k12_10': 'double_tap_3f', 
-            'k12_11': 'triple_tap_3f', 
-            'k12_12': 'long_tap_3f'
-        }
-    },
-    '12_swipes': {
-        name: "Swipes (Directional)",
-        type: 'key12',
-        map: {
-            'k12_1': 'swipe_left', 'k12_2': 'swipe_up', 'k12_3': 'swipe_down', 'k12_4': 'swipe_right',
-            'k12_5': 'swipe_left_2f', 'k12_6': 'swipe_up_2f', 'k12_7': 'swipe_down_2f', 'k12_8': 'swipe_right_2f',
-            'k12_9': 'swipe_left_3f', 'k12_10': 'swipe_up_3f', 'k12_11': 'swipe_down_3f', 'k12_12': 'swipe_right_3f'
-        }
-    },
-    '12_hybrid': {
-        name: "Hybrid (Mix)",
-        type: 'key12',
-        map: {
-            'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
-            'k12_5': 'swipe_left', 'k12_6': 'swipe_up', 'k12_7': 'swipe_down', 'k12_8': 'swipe_right',
-            'k12_9': 'swipe_left_2f', 'k12_10': 'swipe_up_2f', 'k12_11': 'swipe_down_2f', 'k12_12': 'swipe_right_2f'
-        }
-    },
-// === 12-KEY HAND ===
-    '12_hand_extended': {
-        name: "Hand Extended (Up/Down/Side)",
-        type: 'key12',
-        map: {
-            // 1-5: Up
-            'k12_1': { hand: 'hand_1_up' },
-            'k12_2': { hand: 'hand_2_up' },
-            'k12_3': { hand: 'hand_3_up' },
-            'k12_4': { hand: 'hand_4_up' },
-            'k12_5': { hand: 'hand_5_up' },
-            
-            // 6-10: Down
-            'k12_6': { hand: 'hand_1_down' },
-            'k12_7': { hand: 'hand_2_down' },
-            'k12_8': { hand: 'hand_3_down' },
-            'k12_9': { hand: 'hand_4_down' },
-            'k12_10': { hand: 'hand_5_down' },
-
-            // 11-12: Directional (Thumb/Index sideways)
-            'k12_11': { hand: 'hand_1_right' }, // Point Right
-            'k12_12': { hand: 'hand_1_left' }   // Point Left
-        }
-    },
-    
-    // ================= PIANO PROFILES =================
-    'piano_swipes': {
-        name: "Swipes (Default)",
-        type: 'piano',
-        map: {
-            'piano_C': 'swipe_nw', 'piano_D': 'swipe_left', 'piano_E': 'swipe_sw', 
-            'piano_F': 'swipe_down', 'piano_G': 'swipe_se', 
-            'piano_A': 'swipe_right', 'piano_B': 'swipe_ne',
-            'piano_1': 'swipe_left_2f', 'piano_2': 'swipe_nw_2f', 'piano_3': 'swipe_up_2f', 
-            'piano_4': 'swipe_ne_2f', 'piano_5': 'swipe_right_2f'
-        }
-    },
-    'piano_taps': {
-        name: "Taps Only",
-        type: 'piano',
-        map: {
-            'piano_C': 'tap', 
-            'piano_D': 'double_tap', 
-            'piano_E': 'triple_tap',
-            'piano_F': 'long_tap',
-            'piano_G': 'tap_2f',
-            'piano_A': 'double_tap_2f',
-            'piano_B': 'triple_tap_2f',
-            
-            'piano_1': 'tap_3f',
-            'piano_2': 'double_tap_3f',
-            'piano_3': 'triple_tap_3f',
-            'piano_4': 'long_tap_2f',
-            'piano_5': 'long_tap_3f'
-        }
-    },
-       // === PIANO HAND ===
-    'piano_hand_hybrid': {
-        name: "Piano Hands",
-        type: 'piano',
-        map: {
-            // White Keys (C-B) -> Up & Sides
-            'piano_C': { hand: 'hand_1_up' },
-            'piano_D': { hand: 'hand_2_up' },
-            'piano_E': { hand: 'hand_3_up' },
-            'piano_F': { hand: 'hand_4_up' },
-            'piano_G': { hand: 'hand_5_up' },
-            'piano_A': { hand: 'hand_1_right' }, // Point Right
-            'piano_B': { hand: 'hand_2_right' }, // Peace Sign Right
-
-            // Black Keys (1-5) -> Down
-            'piano_1': { hand: 'hand_1_down' },
-            'piano_2': { hand: 'hand_2_down' },
-            'piano_3': { hand: 'hand_3_down' },
-            'piano_4': { hand: 'hand_4_down' },
-            'piano_5': { hand: 'hand_5_down' }
-        }
-    }
-};     
+// FIX: "i want gesture presets erased so i can make my own" - built-in touch presets
+// cleared to a blank slate. Use NEW/SAVE in each Mapping accordion to build your own
+// (saved under "My Setups"), then export via Developer Mode -> Backup/Restore (Hex) and
+// send the hex code to have them baked in here permanently.
+const GESTURE_PRESETS = {};
 
 const CRAYONS = ["#000000", "#1F75FE", "#1CA9C9", "#0D98BA", "#FFFFFF", "#C5D0E6", "#B0B7C6", "#AF4035", "#F5F5F5", "#FEFEFA", "#FFFAFA", "#F0F8FF", "#F8F8FF", "#F5F5DC", "#FFFACD", "#FAFAD2", "#FFFFE0", "#FFFFF0", "#FFFF00", "#FFEFD5", "#FFE4B5", "#FFDAB9", "#EEE8AA", "#F0E68C", "#BDB76B", "#E6E6FA", "#D8BFD8", "#DDA0DD", "#EE82EE", "#DA70D6", "#FF00FF", "#BA55D3", "#9370DB", "#8A2BE2", "#9400D3", "#9932CC", "#8B008B", "#800000", "#4B0082", "#483D8B", "#6A5ACD", "#7B68EE", "#ADFF2F", "#7FFF00", "#7CFC00", "#00FF00", "#32CD32", "#98FB98", "#90EE90", "#00FA9A", "#00FF7F", "#3CB371", "#2E8B57", "#228B22", "#008000", "#006400", "#9ACD32", "#6B8E23", "#808000", "#556B2F", "#66CDAA", "#8FBC8F", "#20B2AA", "#008B8B", "#008080", "#00FFFF", "#00CED1", "#40E0D0", "#48D1CC", "#AFEEEE", "#7FFFD4", "#B0E0E6", "#5F9EA0", "#4682B4", "#6495ED", "#00BFFF", "#1E90FF", "#ADD8E6", "#87CEEB", "#87CEFA", "#191970", "#000080", "#0000FF", "#0000CD", "#4169E1", "#8A2BE2", "#4B0082", "#FFE4C4", "#FFEBCD", "#F5DEB3", "#DEB887", "#D2B48C", "#BC8F8F", "#F4A460", "#DAA520", "#B8860B", "#CD853F", "#D2691E", "#8B4513", "#A0522D", "#A52A2A", "#800000", "#FFA07A", "#FA8072", "#E9967A", "#F08080", "#CD5C5C", "#DC143C", "#B22222", "#FF0000", "#FF4500", "#FF6347", "#FF7F50", "#FF8C00", "#FFA500", "#FFD700", "#FFFF00", "#808000", "#556B2F", "#6B8E23", "#999999", "#808080", "#666666", "#333333", "#222222", "#111111", "#0A0A0A", "#000000"];
 
@@ -470,7 +285,7 @@ export class SettingsManager {
 
             voicePitch: document.getElementById('voice-pitch'), voiceRate: document.getElementById('voice-rate'), voiceVolume: document.getElementById('voice-volume'), voiceTestBtn: document.getElementById('test-voice-btn'), voiceNameSelect: document.getElementById('voice-name-select'),
 
-            settingsModal: document.getElementById('settings-modal'), themeSelect: document.getElementById('theme-select'), themeAdd: document.getElementById('theme-add'), themeRename: document.getElementById('theme-rename'), themeDelete: document.getElementById('theme-delete'), themeSave: document.getElementById('theme-save'), randomThemeToggle: document.getElementById('randomThemeToggle'),
+            settingsModal: document.getElementById('settings-modal'), themeSelect: document.getElementById('theme-select'), themeAdd: document.getElementById('theme-add'), themeRename: document.getElementById('theme-rename'), themeDelete: document.getElementById('theme-delete'), themeSave: document.getElementById('theme-save'), randomThemeToggle: document.getElementById('randomThemeToggle'), skeletonDebugToggle: document.getElementById('skeletonDebugToggle'), fontSelect: document.getElementById('font-select'),
             configSelect: document.getElementById('config-select'), quickConfigSelect: document.getElementById('quick-config-select'), configAdd: document.getElementById('config-add'), configRename: document.getElementById('config-rename'), configDelete: document.getElementById('config-delete'), configSave: document.getElementById('config-save'),
 
             // Inputs
@@ -1019,13 +834,13 @@ populateARSpeedDropdown() {
     updatePreview() { const t = this.tempTheme; if (!this.dom.edPreview) return; this.dom.edPreview.style.backgroundColor = t.bgMain; this.dom.edPreview.style.color = t.text; this.dom.edPreviewCard.style.backgroundColor = t.bgCard; this.dom.edPreviewCard.style.color = t.text; this.dom.edPreviewCard.style.border = '1px solid rgba(255,255,255,0.1)'; this.dom.edPreviewBtn.style.backgroundColor = t.bubble; this.dom.edPreviewBtn.style.color = t.text; }
     testVoice() { if (window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("Testing 1 2 3."); if (this.appSettings.selectedVoice) { const v = window.speechSynthesis.getVoices().find(voice => voice.name === this.appSettings.selectedVoice); if (v) u.voice = v; } let p = parseFloat(this.dom.voicePitch.value); let r = parseFloat(this.dom.voiceRate.value); let v = parseFloat(this.dom.voiceVolume.value); u.pitch = p; u.rate = r; u.volume = v; window.speechSynthesis.speak(u); } }
 
-    openShare() { this.qrScale = 200; if (this.updateQR) this.updateQR(); if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); if (this.dom.shareModal) { this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => this.dom.shareModal.querySelector('.share-sheet').classList.add('active'), 10); } }
-    closeShare() { if (this.dom.shareModal) { this.dom.shareModal.querySelector('.share-sheet').classList.remove('active'); setTimeout(() => this.dom.shareModal.classList.add('opacity-0', 'pointer-events-none'), 300); } }
+    openShare() { this.qrScale = 200; if (this.updateQR) this.updateQR(); if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); if (this.dom.shareModal) { this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => this.dom.shareModal.querySelector('.share-sheet').classList.add('active'), 10); } if (window.lockBodyScroll) window.lockBodyScroll(); }
+    closeShare() { if (this.dom.shareModal) { this.dom.shareModal.querySelector('.share-sheet').classList.remove('active'); setTimeout(() => this.dom.shareModal.classList.add('opacity-0', 'pointer-events-none'), 300); } if (window.unlockBodyScroll) window.unlockBodyScroll(); }
     openCalibration() { if (this.dom.calibModal) { this.dom.calibModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.calibModal.style.pointerEvents = 'auto'; this.sensorEngine.toggleAudio(true); this.sensorEngine.toggleCamera(true); this.sensorEngine.setCalibrationCallback((data) => { if (this.dom.calibAudioBar) { const pct = ((data.audio - (-100)) / ((-30) - (-100))) * 100; this.dom.calibAudioBar.style.width = `${Math.max(0, Math.min(100, pct))}%`; } if (this.dom.calibCamBar) { const pct = Math.min(100, data.camera); this.dom.calibCamBar.style.width = `${pct}%`; } }); } }
     closeCalibration() { if (this.dom.calibModal) { this.dom.calibModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.calibModal.style.pointerEvents = 'none'; this.sensorEngine.setCalibrationCallback(null); this.sensorEngine.toggleAudio(this.appSettings.isAudioEnabled); this.sensorEngine.toggleCamera(this.appSettings.autoInputMode === 'cam' || this.appSettings.autoInputMode === 'both'); } }
 
-    toggleRedeem(show) { if (show) { if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.style.pointerEvents = 'auto'; } } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.style.pointerEvents = 'none'; } } }
-    toggleDonate(show) { if (show) { if (this.dom.donateModal) { this.dom.donateModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'auto'; } } else { if (this.dom.donateModal) { this.dom.donateModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'none'; } } }
+    toggleRedeem(show) { if (show) { if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.style.pointerEvents = 'auto'; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.style.pointerEvents = 'none'; } if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
+    toggleDonate(show) { if (show) { if (this.dom.donateModal) { this.dom.donateModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'auto'; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.donateModal) { this.dom.donateModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'none'; } if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
         setupTabSwipe(modal) {
         // Find the inner card
         const content = modal.querySelector('.settings-modal-bg');
@@ -1087,12 +902,14 @@ initListeners() {
             openDevBtn.onclick = () => {
                 if (settingsModalEl) settingsModalEl.classList.add('opacity-0', 'pointer-events-none');
                 devModal.classList.remove('opacity-0', 'pointer-events-none');
+                if (window.lockBodyScroll) window.lockBodyScroll();
             };
         }
         if (closeDevBtn && devModal) {
             closeDevBtn.onclick = () => {
                 devModal.classList.add('opacity-0', 'pointer-events-none');
                 if (settingsModalEl) settingsModalEl.classList.remove('opacity-0', 'pointer-events-none');
+                if (window.unlockBodyScroll) window.unlockBodyScroll();
             };
         }
     } catch (e) {
@@ -1118,6 +935,7 @@ initListeners() {
                     commentModal.classList.remove('opacity-0', 'pointer-events-none');
                     commentModal.querySelector('div')?.classList.remove('scale-90');
                 }, 10);
+                if (window.lockBodyScroll) window.lockBodyScroll();
             } else {
                 commentModal.querySelector('div')?.classList.add('scale-90');
                 commentModal.classList.add('opacity-0');
@@ -1125,12 +943,56 @@ initListeners() {
                     commentModal.classList.add('pointer-events-none');
                     commentModal.classList.add('hidden');
                 }, 300);
+                if (window.unlockBodyScroll) window.unlockBodyScroll();
             }
         };
         if (openCommentBtn) openCommentBtn.onclick = () => toggleCommentModal(true);
         if (closeCommentBtn) closeCommentBtn.onclick = () => toggleCommentModal(false);
     } catch (e) {
         console.error('Comment modal wiring failed:', e);
+    }
+
+    // Hex settings export/import
+    try {
+        const exportBtn = document.getElementById('hex-export-btn');
+        const importBtn = document.getElementById('hex-import-btn');
+        const copyBtn = document.getElementById('hex-copy-btn');
+        const hexOutput = document.getElementById('hex-output');
+        if (exportBtn && hexOutput) {
+            exportBtn.onclick = () => {
+                if (typeof window.settingsToHex === 'function') {
+                    hexOutput.value = window.settingsToHex();
+                    if (typeof showToast === 'function') showToast('Settings exported ⬇️');
+                }
+            };
+        }
+        if (copyBtn && hexOutput) {
+            copyBtn.onclick = () => {
+                if (!hexOutput.value) { alert('Nothing to copy - export first.'); return; }
+                hexOutput.select();
+                navigator.clipboard?.writeText(hexOutput.value).then(() => {
+                    if (typeof showToast === 'function') showToast('Copied to clipboard 📋');
+                }).catch(() => document.execCommand('copy'));
+            };
+        }
+        if (importBtn && hexOutput) {
+            importBtn.onclick = () => {
+                const hex = hexOutput.value.trim();
+                if (!hex) { alert('Paste a hex code first.'); return; }
+                if (!confirm('This will replace ALL current settings with the imported ones. Continue?')) return;
+                try {
+                    if (typeof window.importSettingsFromHex === 'function') {
+                        window.importSettingsFromHex(hex);
+                        if (typeof showToast === 'function') showToast('Settings imported ✅');
+                    }
+                } catch (e) {
+                    alert('Import failed - that doesn\'t look like a valid settings hex code.');
+                    console.error(e);
+                }
+            };
+        }
+    } catch (e) {
+        console.error('Hex export/import wiring failed:', e);
     }
 
     // Simple helper to bind a checkbox toggle to a global appSetting property
@@ -1162,6 +1024,7 @@ initListeners() {
     bindToggle(this.dom.haptics, 'isHapticsEnabled'); // FIX: was this.dom.hapticsToggle (never cached, dead)
     bindToggle(this.dom.ecoToggle, 'isEcoModeEnabled');
     bindToggle(this.dom.randomThemeToggle, 'isRandomThemeEnabled');
+    bindToggle(this.dom.skeletonDebugToggle, 'isSkeletonDebugEnabled');
     bindToggle(this.dom.voicecommandsToggle, 'isVoiceCommandsEnabled'); // FIX: voicecommandsToggle is now actually cached
     bindToggle(this.dom.bossToggle, 'isBlackoutFeatureEnabled'); // FIX: was writing 'isBossModeEnabled', a prop nothing ever reads; the real blackout logic reads isBlackoutFeatureEnabled
     bindToggle(this.dom.handsignalsToggle, 'isHandSignalsEnabled'); // FIX: handsignalsToggle is now actually cached
@@ -1497,6 +1360,7 @@ initListeners() {
         if (this.dom.themeRename) this.dom.themeRename.onclick = () => { const id = this.appSettings.activeTheme; if (PREMADE_THEMES[id]) return alert("Cannot rename built-in."); const n = prompt("Rename:", this.appSettings.customThemes[id].name); if (n) { this.appSettings.customThemes[id].name = n; this.callbacks.onSave(); this.populateThemeDropdown(); } };
         if (this.dom.themeDelete) this.dom.themeDelete.onclick = () => { if (PREMADE_THEMES[this.appSettings.activeTheme]) return alert("Cannot delete built-in."); if (confirm("Delete?")) { delete this.appSettings.customThemes[this.appSettings.activeTheme]; this.appSettings.activeTheme = 'default'; this.callbacks.onSave(); this.callbacks.onUpdate(); this.populateThemeDropdown(); } };
         if (this.dom.themeSelect) this.dom.themeSelect.onchange = (e) => { this.appSettings.activeTheme = e.target.value; this.callbacks.onUpdate(); this.populateThemeDropdown(); };
+        if (this.dom.fontSelect) this.dom.fontSelect.onchange = (e) => { this.appSettings.activeFontFamily = e.target.value; this.callbacks.onSave(); this.callbacks.onUpdate(); };
         if (this.dom.configAdd) this.dom.configAdd.onclick = () => { const n = prompt("Profile Name:"); if (n) this.callbacks.onProfileAdd(n); this.openSettings(); };
         if (this.dom.configRename) this.dom.configRename.onclick = () => { const n = prompt("Rename:"); if (n) this.callbacks.onProfileRename(n); this.populateConfigDropdown(); };
         if (this.dom.configDelete) this.dom.configDelete.onclick = () => { this.callbacks.onProfileDelete(); this.openSettings(); };
@@ -1506,11 +1370,11 @@ initListeners() {
         // Modals & Navigation
         if (this.dom.closeSetupBtn) this.dom.closeSetupBtn.onclick = () => this.closeSetup();
         if (this.dom.quickSettings) this.dom.quickSettings.onclick = () => { this.closeSetup(); this.openSettings(); };
-        if (this.dom.quickHelp) this.dom.quickHelp.onclick = () => { this.closeSetup(); this.generatePrompt(); if (this.dom.helpModal) this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); };
-        if (this.dom.closeHelpBtn) this.dom.closeHelpBtn.onclick = () => { if (this.dom.helpModal) this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none'); };
-        if (this.dom.closeHelpBtnBottom) this.dom.closeHelpBtnBottom.onclick = () => { if (this.dom.helpModal) this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none'); };
-        if (this.dom.openHelpBtn) this.dom.openHelpBtn.onclick = () => { this.generatePrompt(); if (this.dom.helpModal) this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); };
-        if (this.dom.closeSettingsBtn) this.dom.closeSettingsBtn.onclick = () => { this.callbacks.onSave(); if (this.dom.settingsModal) { this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.add('scale-90'); } };
+        if (this.dom.quickHelp) this.dom.quickHelp.onclick = () => { this.closeSetup(); this.generatePrompt(); if (this.dom.helpModal) this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); if (window.lockBodyScroll) window.lockBodyScroll(); };
+        if (this.dom.closeHelpBtn) this.dom.closeHelpBtn.onclick = () => { if (this.dom.helpModal) this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none'); if (window.unlockBodyScroll) window.unlockBodyScroll(); };
+        if (this.dom.closeHelpBtnBottom) this.dom.closeHelpBtnBottom.onclick = () => { if (this.dom.helpModal) this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none'); if (window.unlockBodyScroll) window.unlockBodyScroll(); };
+        if (this.dom.openHelpBtn) this.dom.openHelpBtn.onclick = () => { this.generatePrompt(); if (this.dom.helpModal) this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); if (window.lockBodyScroll) window.lockBodyScroll(); };
+        if (this.dom.closeSettingsBtn) this.dom.closeSettingsBtn.onclick = () => { this.callbacks.onSave(); if (this.dom.settingsModal) { this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.add('scale-90'); } if (window.unlockBodyScroll) window.unlockBodyScroll(); };
 
         if (this.dom.tabs) {
             this.dom.tabs.forEach(btn => {
@@ -1618,9 +1482,9 @@ initListeners() {
     }
     populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
     populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
-    openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); }
-    openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); }
-    closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); }
+    openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
+    openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
+    closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); if (window.unlockBodyScroll) window.unlockBodyScroll(); }
 
     generatePrompt() {
         if (!this.dom.promptDisplay) return;
@@ -1740,6 +1604,8 @@ initListeners() {
         if (this.dom.voicecommandsToggle) this.dom.voicecommandsToggle.checked = !!this.appSettings.isVoiceCommandsEnabled;
         if (this.dom.wakelockToggle) this.dom.wakelockToggle.checked = (typeof this.appSettings.isWakeLockEnabled === 'undefined') ? true : this.appSettings.isWakeLockEnabled;
         if (this.dom.randomThemeToggle) this.dom.randomThemeToggle.checked = !!this.appSettings.isRandomThemeEnabled;
+        if (this.dom.skeletonDebugToggle) this.dom.skeletonDebugToggle.checked = !!this.appSettings.isSkeletonDebugEnabled;
+        if (this.dom.fontSelect) this.dom.fontSelect.value = this.appSettings.activeFontFamily || "'Inter', sans-serif";
         if (this.dom.newToggle) this.dom.newToggle.checked = !!this.appSettings.isPositionSwapEnabled;
         // INSIDE settings.js -> updateUIFromSettings()
         if (this.dom.fullscreenToggle) {
@@ -2013,6 +1879,9 @@ initListeners() {
     }
     
     applyDefaultGestureMappings() {
+        // FIX: "i want gesture presets erased so i can make my own" - no longer auto-assigns
+        // anything; every key starts Unassigned so custom presets can be built from scratch.
+        return;
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
         
         const defaults = {

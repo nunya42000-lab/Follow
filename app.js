@@ -158,7 +158,7 @@ const DEFAULT_APP = {
   isHandSignalsEnabled: false,
   isVoiceCommandsEnabled: false,
   isToneCadenceEnabled: false,
-  isPositionSwapEnabled: false,
+  isPositionSwapEnabled: false, isSkeletonDebugEnabled: false, activeFontFamily: "'Inter', sans-serif",
   activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), 
   runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), 
   isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, 
@@ -217,6 +217,39 @@ let globalCounterActions = { increment: null, reset: null };
 const getProfileSettings = () => appSettings.runtimeSettings;
 const getState = () => appState['current_session'] || (appState['current_session'] = { sequences: Array.from({length: CONFIG.MAX_MACHINES}, () => []), nextSequenceIndex: 0, currentRound: 1 });
 function saveState() { localStorage.setItem(CONFIG.STORAGE_KEY_SETTINGS, JSON.stringify(appSettings)); localStorage.setItem(CONFIG.STORAGE_KEY_STATE, JSON.stringify(appState)); }
+
+// Hex export/import - lets you back up your full settings (including custom gesture presets,
+// mappings, themes) as a hex string before resetting/nuking, and restore them later. Also how
+// hand-crafted custom presets can be captured and handed off to be baked in permanently.
+function settingsToHex() {
+    const json = JSON.stringify(appSettings);
+    const bytes = new TextEncoder().encode(json);
+    return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function hexToSettingsObject(hex) {
+    const clean = hex.trim().replace(/\s+/g, '');
+    if (!/^[0-9a-fA-F]+$/.test(clean) || clean.length % 2 !== 0) {
+        throw new Error('Not a valid hex string');
+    }
+    const bytes = new Uint8Array(clean.length / 2);
+    for (let i = 0; i < clean.length; i += 2) {
+        bytes[i / 2] = parseInt(clean.substr(i, 2), 16);
+    }
+    const json = new TextDecoder().decode(bytes);
+    return JSON.parse(json);
+}
+function importSettingsFromHex(hex) {
+    const imported = hexToSettingsObject(hex); // throws on invalid input - let the caller catch it
+    const merged = { ...DEFAULT_APP, ...imported };
+    Object.keys(appSettings).forEach(k => delete appSettings[k]); // mutate in place so every
+    Object.assign(appSettings, merged);                            // existing reference (window.appSettings,
+    saveState();                                                    // modules.settings.appSettings) stays in sync
+    updateAllChrome();
+    if (modules.settings) modules.settings.updateUIFromSettings();
+    return true;
+}
+window.settingsToHex = settingsToHex;
+window.importSettingsFromHex = importSettingsFromHex;
 
 function loadState() { 
   try { 
@@ -317,6 +350,54 @@ function speak(text) {
   window.speechSynthesis.speak(u); 
 }
 
+// FIX: "settings modal can be scrolled up and then when exiting the whole thing is raised" -
+// on mobile browsers, a position:fixed modal with its own scrollable content can let touch-drags
+// "bleed through" and also scroll the actual page behind it, even though the modal itself never
+// visually moves. Closing the modal then reveals the page scrolled to a different position than
+// where it started. The fix is to anchor (lock) the real page scroll position while any modal is
+// open, and restore it exactly when the last modal closes.
+//
+// unlockBodyScroll() checks actual modal visibility (rather than a call counter) before
+// releasing the lock, because some modals chain into each other internally - e.g. closing Share
+// also reopens Settings - which breaks simple +1/-1 ref-counting.
+let _savedScrollY = 0;
+let _scrollLocked = false;
+const _MODAL_IDS = ['settings-modal', 'help-modal', 'developer-mode-modal', 'share-modal', 'comment-modal', 'redeem-modal', 'donate-modal', 'theme-editor-modal', 'calibration-modal', 'game-setup-modal'];
+function _anyModalVisible() {
+    return _MODAL_IDS.some(id => {
+        const el = document.getElementById(id);
+        return el && !el.classList.contains('opacity-0') && !el.classList.contains('pointer-events-none') && !el.classList.contains('hidden');
+    });
+}
+function lockBodyScroll() {
+    if (!_scrollLocked) {
+        _savedScrollY = window.scrollY;
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${_savedScrollY}px`;
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.width = '100%';
+        _scrollLocked = true;
+    }
+}
+function unlockBodyScroll() {
+    // Give any chained open/close calls (e.g. closeShare() -> openSettings()) a moment to finish
+    // updating classes before checking whether anything is still actually open.
+    setTimeout(() => {
+        if (_scrollLocked && !_anyModalVisible()) {
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.left = '';
+            document.body.style.right = '';
+            document.body.style.width = '';
+            window.scrollTo(0, _savedScrollY);
+            _scrollLocked = false;
+        }
+    }, 50);
+}
+window.lockBodyScroll = lockBodyScroll;
+window.unlockBodyScroll = unlockBodyScroll;
+
 function showToast(msg) { 
   const t = document.getElementById('toast-notification'); 
   const m = document.getElementById('toast-message'); 
@@ -351,7 +432,7 @@ function applyTheme(themeKey) {
     body.style.setProperty('--border', isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'); 
 }
 
-function updateAllChrome() { applyTheme(appSettings.activeTheme); document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`; renderUI(); }
+function updateAllChrome() { applyTheme(appSettings.activeTheme); document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`; document.body.style.fontFamily = appSettings.activeFontFamily || "'Inter', sans-serif"; renderUI(); }
 
 function startPracticeRound() {
   const settingsModal = document.getElementById('settings-modal');
@@ -1129,7 +1210,10 @@ class VoiceCommander {
       for (let i = event.resultIndex; i < event.results.length; ++i) {
           const transcript = event.results[i][0].transcript.toLowerCase();
           const words = transcript.split(/\s+/).filter(w => w !== "");
-          
+
+          const voiceReadout = document.getElementById('test-voice-readout');
+          if (voiceReadout) voiceReadout.textContent = `"${transcript}"`;
+
           const triggerIdx = words.lastIndexOf(activeTrigger);
 
           if (triggerIdx !== -1 && triggerIdx < words.length - 1) {
@@ -1164,6 +1248,7 @@ class VoiceCommander {
 
 const startApp = () => {
   loadState();
+  window.appSettings = appSettings; // exposes appSettings for vision.js's skeleton debug overlay check
 
   // 1. System Level Initialization
   // (Removed the automatic upside-down and fullscreen boot triggers from here)
@@ -1393,6 +1478,9 @@ const toneEngine = new ToneEngine((val) => {
               gestureId = gestureId - 1;
           }
           const gestureLabel = typeof gestureData === 'object' ? gestureData.label : "Gesture";
+
+          const handReadout = document.getElementById('test-hand-readout');
+          if (handReadout) handReadout.textContent = `ID ${gestureId} - ${gestureLabel}`;
 
           // --- 3. GLOBAL HAND SIGNALS (Delete / Clear / Play / Stop) ---
           // Gatekeeper: requires BOTH the master "Hand Gestures" camera toggle
@@ -1667,16 +1755,40 @@ function setupARLogic() {
   }
 
   const arPlaybackClose = document.getElementById('ar-close-playback-btn');
+  const arAutoCloseToggle = document.getElementById('ar-autoclose-toggle');
+  const closeArPlayback = () => {
+      if (arPlaybackVideo) {
+          arPlaybackVideo.pause(); 
+          arPlaybackVideo.src = "";
+      }
+      if (arPlaybackContainer) {
+          arPlaybackContainer.classList.add('hidden');
+      }
+  };
   if (arPlaybackClose) {
-      arPlaybackClose.addEventListener('click', () => {
-          if (arPlaybackVideo) {
-              arPlaybackVideo.pause(); 
-              arPlaybackVideo.src = "";
-          }
-          if (arPlaybackContainer) {
-              arPlaybackContainer.classList.add('hidden');
-          }
+      arPlaybackClose.addEventListener('click', closeArPlayback);
+  }
+  // FIX: "checkbox that auto closes after playback" - when the recorded clip finishes playing,
+  // automatically return to the app instead of requiring a manual tap on Close & Return.
+  if (arPlaybackVideo) {
+      arPlaybackVideo.addEventListener('ended', () => {
+          if (arAutoCloseToggle && arAutoCloseToggle.checked) closeArPlayback();
       });
+
+      // FIX: "touching the screen while video is playing back will pause until finger is
+      // lifted" - a press-and-hold to pause/resume, similar to how the record button itself
+      // works, so you can freeze a frame to study it without hunting for the native controls.
+      let wasPlayingBeforeTouch = false;
+      arPlaybackVideo.addEventListener('pointerdown', () => {
+          wasPlayingBeforeTouch = !arPlaybackVideo.paused;
+          if (wasPlayingBeforeTouch) arPlaybackVideo.pause();
+      });
+      const resumeIfNeeded = () => {
+          if (wasPlayingBeforeTouch) { arPlaybackVideo.play().catch(() => {}); wasPlayingBeforeTouch = false; }
+      };
+      arPlaybackVideo.addEventListener('pointerup', resumeIfNeeded);
+      arPlaybackVideo.addEventListener('pointercancel', resumeIfNeeded);
+      arPlaybackVideo.addEventListener('pointerleave', resumeIfNeeded);
   }
 }
 
@@ -1780,6 +1892,9 @@ function initGestureEngine() {
       debug: false
   }, {
       onGesture: (data) => {
+          const touchReadout = document.getElementById('test-touch-readout');
+          if (touchReadout) touchReadout.textContent = data.name || JSON.stringify(data);
+
           // Input Mapping
           const isPadOpen = (typeof isGesturePadVisible !== 'undefined' && isGesturePadVisible);
           const isClassPresent = document.body.classList.contains('input-gestures-mode');

@@ -386,8 +386,14 @@ export class SettingsManager {
     // vocabulary as grouped <optgroup> sections, so every gesture the engine can actually detect
     // is assignable.
     applyTouchGestureOptions() {
+        if (!this.appSettings.activeGestureFilters) {
+            this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', ...Object.keys(GESTURE_CATEGORIES)];
+        }
+        const active = this.appSettings.activeGestureFilters;
+
         let optionsHTML = '<option value="none">🚫 Unassigned</option>';
         Object.keys(GESTURE_CATEGORIES).forEach(category => {
+            if (!active.includes(category)) return;
             optionsHTML += `<optgroup label="${category}">`;
             GESTURE_CATEGORIES[category].forEach(id => {
                 optionsHTML += `<option value="${id}">${this.formatGestureLabel(id)}</option>`;
@@ -399,7 +405,19 @@ export class SettingsManager {
             const currentValue = select.value;
             select.innerHTML = optionsHTML;
             const stillValid = Array.from(select.options).some(o => o.value === currentValue);
-            select.value = stillValid ? currentValue : 'none';
+            if (stillValid) {
+                select.value = currentValue;
+            } else if (currentValue && currentValue !== 'none') {
+                // Safety net: the currently-assigned gesture's category got filtered out - keep
+                // it selectable anyway so an existing assignment is never silently hidden/lost.
+                const opt = document.createElement('option');
+                opt.value = currentValue;
+                opt.textContent = this.formatGestureLabel(currentValue) + ' (filtered)';
+                select.appendChild(opt);
+                select.value = currentValue;
+            } else {
+                select.value = 'none';
+            }
         });
     }
 
@@ -409,7 +427,7 @@ export class SettingsManager {
         this.dom.filterToggles.forEach(toggle => {
             toggle.addEventListener('change', () => {
                 if (!this.appSettings.activeGestureFilters) {
-                    this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes'];
+                    this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', ...Object.keys(GESTURE_CATEGORIES)];
                 }
                 const group = toggle.dataset.group;
                 if (toggle.checked) {
@@ -430,7 +448,7 @@ export class SettingsManager {
     // select's current value where it's still a valid option.
     applyHandGestureFilters() {
         if (!this.appSettings.activeGestureFilters) {
-            this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes'];
+            this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', ...Object.keys(GESTURE_CATEGORIES)];
         }
         const active = this.appSettings.activeGestureFilters;
         const groupIdByFilter = { 'Poses': 'hand_poses', 'Pinches': 'hand_pinches', 'Counts': 'hand_counts', 'Shapes': 'hand_vision_shapes' };
@@ -542,6 +560,7 @@ export class SettingsManager {
             openRedeemBtn: document.getElementById('open-redeem-btn'), 
             closeRedeemBtn: document.getElementById('close-redeem-btn'),
             redeemImg: document.getElementById('redeem-img'),
+            qrImg: document.getElementById('qr-img'), qrZoomIn: document.getElementById('qr-zoom-in'), qrZoomOut: document.getElementById('qr-zoom-out'),
             redeemPlus: document.getElementById('redeem-zoom-in'),
             redeemMinus: document.getElementById('redeem-zoom-out'),
 
@@ -834,29 +853,39 @@ bindMappingEvents() {
             };
         }
 
-        // 0b. Quick Preset bars - one per layout per type now (was one shared bar per type),
-        // each filtered to only the presets that match that layout, living inside its own
-        // accordion alongside that layout's key dropdowns.
+        // 0b. Preset bars - one per layout per type, each showing that layout's Built-in presets
+        // plus any custom "My Setups" presets you've saved, with immediate apply-on-select and
+        // NEW/SAVE/RENAME/DELETE for managing your own named presets (matches how the original
+        // gestureProfiles system worked, adapted to the live numeric mapping storage).
+        const LAYOUT_KEYS = {
+            key9: Array.from({ length: 9 }, (_, i) => `k9_${i + 1}`),
+            key12: Array.from({ length: 12 }, (_, i) => `k12_${i + 1}`),
+            piano: ['piano_C', 'piano_D', 'piano_E', 'piano_F', 'piano_G', 'piano_A', 'piano_B', 'piano_1', 'piano_2', 'piano_3', 'piano_4', 'piano_5']
+        };
         const filterPresetsByType = (presetsObj, type) => {
             const out = {};
             Object.keys(presetsObj).forEach(id => { if (presetsObj[id].type === type) out[id] = presetsObj[id]; });
             return out;
         };
         ['key9', 'key12', 'piano'].forEach(layout => {
-            this.bindMappingPresetBar(`touch-preset-${layout}-select`, `touch-preset-${layout}-apply`, filterPresetsByType(GESTURE_PRESETS, layout), (key, val) => {
-                if (!this.appSettings.mappings) this.appSettings.mappings = {};
-                if (!this.appSettings.mappings[key]) this.appSettings.mappings[key] = { touch: 'none', handGesture: 'none', morse: '' };
-                this.appSettings.mappings[key].touch = val;
-                const el = document.querySelector(`#map-touch-${key}`);
-                if (el) el.value = val;
-            });
-            this.bindMappingPresetBar(`hand-preset-${layout}-select`, `hand-preset-${layout}-apply`, filterPresetsByType(HAND_MAPPING_PRESETS, layout), (key, val) => {
-                if (!this.appSettings.mappings) this.appSettings.mappings = {};
-                if (!this.appSettings.mappings[key]) this.appSettings.mappings[key] = { touch: 'none', handGesture: 'none', morse: '' };
-                this.appSettings.mappings[key].handGesture = val === 'none' ? 'none' : parseInt(val, 10);
-                const el = document.querySelector(`#map-hand-${key}`);
-                if (el) el.value = val;
-            });
+            this.bindPresetAccordion('touch', layout, filterPresetsByType(GESTURE_PRESETS, layout), LAYOUT_KEYS[layout],
+                (key) => (this.appSettings.mappings && this.appSettings.mappings[key]) ? this.appSettings.mappings[key].touch : 'none',
+                (key, val) => {
+                    if (!this.appSettings.mappings) this.appSettings.mappings = {};
+                    if (!this.appSettings.mappings[key]) this.appSettings.mappings[key] = { touch: 'none', handGesture: 'none', morse: '' };
+                    this.appSettings.mappings[key].touch = val;
+                    const el = document.querySelector(`#map-touch-${key}`);
+                    if (el) el.value = val;
+                });
+            this.bindPresetAccordion('hand', layout, filterPresetsByType(HAND_MAPPING_PRESETS, layout), LAYOUT_KEYS[layout],
+                (key) => (this.appSettings.mappings && this.appSettings.mappings[key]) ? String(this.appSettings.mappings[key].handGesture) : 'none',
+                (key, val) => {
+                    if (!this.appSettings.mappings) this.appSettings.mappings = {};
+                    if (!this.appSettings.mappings[key]) this.appSettings.mappings[key] = { touch: 'none', handGesture: 'none', morse: '' };
+                    this.appSettings.mappings[key].handGesture = val === 'none' ? 'none' : parseInt(val, 10);
+                    const el = document.querySelector(`#map-hand-${key}`);
+                    if (el) el.value = val;
+                });
         });
 
         // 1. Tab Switching Logic
@@ -915,32 +944,105 @@ bindMappingEvents() {
         });
     }
 
-    // Populates a preset <select> from a presets object and wires its Apply button to
-    // bulk-write every key in the chosen preset's map via applyKeyFn(key, value).
-    bindMappingPresetBar(selectId, applyBtnId, presetsObj, applyKeyFn) {
-        const select = document.getElementById(selectId);
-        const applyBtn = document.getElementById(applyBtnId);
-        if (!select || !applyBtn || !presetsObj) return;
+    // Populates a layout's preset <select> with Built-in presets plus any custom "My Setups"
+    // presets, applies immediately on selection, and wires NEW/SAVE/RENAME/DELETE for managing
+    // your own named presets - mirrors how the original gestureProfiles system worked.
+    bindPresetAccordion(gtype, layout, builtInPresets, keys, getCurrentValueFn, applyValueFn) {
+        const select = document.getElementById(`${gtype}-preset-${layout}-select`);
+        if (!select) return;
 
-        select.innerHTML = '';
-        const def = document.createElement('option');
-        def.value = '';
-        def.textContent = '-- Select a preset --';
-        select.appendChild(def);
-        Object.keys(presetsObj).forEach(id => {
-            const opt = document.createElement('option');
-            opt.value = id;
-            opt.textContent = presetsObj[id].name;
-            select.appendChild(opt);
-        });
+        const storeKey = gtype === 'touch' ? 'customTouchPresets' : 'customHandPresets';
+        if (!this.appSettings[storeKey]) this.appSettings[storeKey] = {};
 
-        applyBtn.onclick = () => {
-            const id = select.value;
-            if (!id || !presetsObj[id]) { alert('Pick a preset first.'); return; }
-            const map = presetsObj[id].map;
-            Object.keys(map).forEach(key => applyKeyFn(key, map[key]));
+        const populate = () => {
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">-- Select Preset --</option>';
+
+            const builtInGroup = document.createElement('optgroup');
+            builtInGroup.label = 'Built-in';
+            Object.keys(builtInPresets).forEach(id => {
+                const opt = document.createElement('option');
+                opt.value = id;
+                opt.textContent = builtInPresets[id].name;
+                builtInGroup.appendChild(opt);
+            });
+            select.appendChild(builtInGroup);
+
+            const customGroup = document.createElement('optgroup');
+            customGroup.label = 'My Setups';
+            Object.keys(this.appSettings[storeKey]).forEach(id => {
+                const preset = this.appSettings[storeKey][id];
+                if (preset.layout !== layout) return; // scope custom presets to this specific layout
+                const opt = document.createElement('option');
+                opt.value = id;
+                opt.textContent = preset.name;
+                customGroup.appendChild(opt);
+            });
+            select.appendChild(customGroup);
+
+            select.value = currentVal;
+        };
+        populate();
+
+        select.onchange = () => {
+            const val = select.value;
+            if (!val) return;
+            const preset = builtInPresets[val] || this.appSettings[storeKey][val];
+            if (!preset) return;
+            Object.keys(preset.map).forEach(key => applyValueFn(key, preset.map[key]));
             this.callbacks.onSave();
-            if (typeof showToast === 'function') showToast(`Applied: ${presetsObj[id].name} ⚡`);
+            if (typeof showToast === 'function') showToast(`Applied: ${preset.name} ⚡`);
+        };
+
+        const snapshotCurrentMap = () => {
+            const map = {};
+            keys.forEach(key => { map[key] = getCurrentValueFn(key); });
+            return map;
+        };
+
+        const newBtn = document.getElementById(`${gtype}-preset-${layout}-new`);
+        const saveBtn = document.getElementById(`${gtype}-preset-${layout}-save`);
+        const renameBtn = document.getElementById(`${gtype}-preset-${layout}-rename`);
+        const deleteBtn = document.getElementById(`${gtype}-preset-${layout}-delete`);
+
+        if (newBtn) newBtn.onclick = () => {
+            const name = prompt('New preset name:');
+            if (!name) return;
+            const id = 'custom_' + Date.now();
+            this.appSettings[storeKey][id] = { name, layout, map: snapshotCurrentMap() };
+            this.callbacks.onSave();
+            populate();
+            select.value = id;
+        };
+
+        if (saveBtn) saveBtn.onclick = () => {
+            const val = select.value;
+            if (!val || !this.appSettings[storeKey][val]) { alert("Select a custom preset to save (or use NEW)."); return; }
+            this.appSettings[storeKey][val].map = snapshotCurrentMap();
+            this.callbacks.onSave();
+            alert("Preset Saved!");
+        };
+
+        if (renameBtn) renameBtn.onclick = () => {
+            const val = select.value;
+            if (!val || !this.appSettings[storeKey][val]) { alert("Cannot rename a built-in preset."); return; }
+            const newName = prompt("Rename:", this.appSettings[storeKey][val].name);
+            if (newName) {
+                this.appSettings[storeKey][val].name = newName;
+                this.callbacks.onSave();
+                populate();
+                select.value = val;
+            }
+        };
+
+        if (deleteBtn) deleteBtn.onclick = () => {
+            const val = select.value;
+            if (!val || !this.appSettings[storeKey][val]) { alert("Cannot delete a built-in preset."); return; }
+            if (confirm("Delete this preset?")) {
+                delete this.appSettings[storeKey][val];
+                this.callbacks.onSave();
+                populate();
+            }
         };
     }
 
@@ -1078,7 +1180,7 @@ populateARSpeedDropdown() {
     updatePreview() { const t = this.tempTheme; if (!this.dom.edPreview) return; this.dom.edPreview.style.backgroundColor = t.bgMain; this.dom.edPreview.style.color = t.text; this.dom.edPreviewCard.style.backgroundColor = t.bgCard; this.dom.edPreviewCard.style.color = t.text; this.dom.edPreviewCard.style.border = '1px solid rgba(255,255,255,0.1)'; this.dom.edPreviewBtn.style.backgroundColor = t.bubble; this.dom.edPreviewBtn.style.color = t.text; }
     testVoice() { if (window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("Testing 1 2 3."); if (this.appSettings.selectedVoice) { const v = window.speechSynthesis.getVoices().find(voice => voice.name === this.appSettings.selectedVoice); if (v) u.voice = v; } let p = parseFloat(this.dom.voicePitch.value); let r = parseFloat(this.dom.voiceRate.value); let v = parseFloat(this.dom.voiceVolume.value); u.pitch = p; u.rate = r; u.volume = v; window.speechSynthesis.speak(u); } }
 
-    openShare() { if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); if (this.dom.shareModal) { this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => this.dom.shareModal.querySelector('.share-sheet').classList.add('active'), 10); } }
+    openShare() { this.qrScale = 200; if (this.updateQR) this.updateQR(); if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); if (this.dom.shareModal) { this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => this.dom.shareModal.querySelector('.share-sheet').classList.add('active'), 10); } }
     closeShare() { if (this.dom.shareModal) { this.dom.shareModal.querySelector('.share-sheet').classList.remove('active'); setTimeout(() => this.dom.shareModal.classList.add('opacity-0', 'pointer-events-none'), 300); } }
     openCalibration() { if (this.dom.calibModal) { this.dom.calibModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.calibModal.style.pointerEvents = 'auto'; this.sensorEngine.toggleAudio(true); this.sensorEngine.toggleCamera(true); this.sensorEngine.setCalibrationCallback((data) => { if (this.dom.calibAudioBar) { const pct = ((data.audio - (-100)) / ((-30) - (-100))) * 100; this.dom.calibAudioBar.style.width = `${Math.max(0, Math.min(100, pct))}%`; } if (this.dom.calibCamBar) { const pct = Math.min(100, data.camera); this.dom.calibCamBar.style.width = `${pct}%`; } }); } }
     closeCalibration() { if (this.dom.calibModal) { this.dom.calibModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.calibModal.style.pointerEvents = 'none'; this.sensorEngine.setCalibrationCallback(null); this.sensorEngine.toggleAudio(this.appSettings.isAudioEnabled); this.sensorEngine.toggleCamera(this.appSettings.autoInputMode === 'cam' || this.appSettings.autoInputMode === 'both'); } }
@@ -1134,6 +1236,30 @@ populateARSpeedDropdown() {
         }, { passive: true });
     }
 initListeners() {
+    // Wired first and defensively (re-queries the DOM directly rather than trusting this.dom,
+    // and is wrapped in try/catch) so Developer Mode reliably opens/closes even if something
+    // later in this large method throws before reaching its old wiring spot.
+    try {
+        const openDevBtn = document.getElementById('open-developer-mode-btn');
+        const closeDevBtn = document.getElementById('close-developer-mode-btn');
+        const devModal = document.getElementById('developer-mode-modal');
+        const settingsModalEl = document.getElementById('settings-modal');
+        if (openDevBtn && devModal) {
+            openDevBtn.onclick = () => {
+                if (settingsModalEl) settingsModalEl.classList.add('opacity-0', 'pointer-events-none');
+                devModal.classList.remove('opacity-0', 'pointer-events-none');
+            };
+        }
+        if (closeDevBtn && devModal) {
+            closeDevBtn.onclick = () => {
+                devModal.classList.add('opacity-0', 'pointer-events-none');
+                if (settingsModalEl) settingsModalEl.classList.remove('opacity-0', 'pointer-events-none');
+            };
+        }
+    } catch (e) {
+        console.error('Developer Mode wiring failed:', e);
+    }
+
     // Simple helper to bind a checkbox toggle to a global appSetting property
     const bindToggle = (el, prop, updateHeader = false) => {
         if (!el) return;
@@ -1532,14 +1658,6 @@ initListeners() {
         
         // External Links and Actions
         if (this.dom.openShareInside) this.dom.openShareInside.onclick = () => this.openShare();
-        if (this.dom.openDeveloperModeBtn) this.dom.openDeveloperModeBtn.onclick = () => {
-            if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none');
-            if (this.dom.developerModeModal) this.dom.developerModeModal.classList.remove('opacity-0', 'pointer-events-none');
-        };
-        if (this.dom.closeDeveloperModeBtn) this.dom.closeDeveloperModeBtn.onclick = () => {
-            if (this.dom.developerModeModal) this.dom.developerModeModal.classList.add('opacity-0', 'pointer-events-none');
-            if (this.dom.settingsModal) this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none');
-        };
         if (this.dom.closeShareBtn) this.dom.closeShareBtn.onclick = () => { this.closeShare(); this.openSettings(); };
         
         let rScale = 100;
@@ -1550,6 +1668,14 @@ initListeners() {
         if (this.dom.openRedeemSettingsBtn) this.dom.openRedeemSettingsBtn.onclick = () => { rScale = 100; updateRedeem(); this.toggleRedeem(true); };
         if (this.dom.redeemPlus) this.dom.redeemPlus.onclick = () => { rScale = Math.min(100, rScale + 10); updateRedeem(); };
         if (this.dom.redeemMinus) this.dom.redeemMinus.onclick = () => { rScale = Math.max(10, rScale - 10); updateRedeem(); };
+
+        // QR zoom in the Share modal - same +/- pattern as the redeem barcode above, but starts
+        // at 200% (QR codes are small and benefit from being bigger by default) and can zoom in
+        // further. Stored on `this` (not a local closure var) so openShare() can reset it too.
+        this.qrScale = 200;
+        this.updateQR = () => { if (this.dom.qrImg) this.dom.qrImg.style.transform = `scale(${this.qrScale / 100})`; };
+        if (this.dom.qrZoomIn) this.dom.qrZoomIn.onclick = () => { this.qrScale = Math.min(400, this.qrScale + 10); this.updateQR(); };
+        if (this.dom.qrZoomOut) this.dom.qrZoomOut.onclick = () => { this.qrScale = Math.max(50, this.qrScale - 10); this.updateQR(); };
         
         if (this.dom.openDonateBtn) this.dom.openDonateBtn.onclick = () => this.toggleDonate(true);
         if (this.dom.closeDonateBtn) this.dom.closeDonateBtn.onclick = () => this.toggleDonate(false);
@@ -1658,7 +1784,7 @@ initListeners() {
         // the hand-mapping dropdowns to match.
         if (this.dom.filterToggles) {
             if (!this.appSettings.activeGestureFilters) {
-                this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes'];
+                this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', ...Object.keys(GESTURE_CATEGORIES)];
             }
             this.dom.filterToggles.forEach(toggle => {
                 toggle.checked = this.appSettings.activeGestureFilters.includes(toggle.dataset.group);

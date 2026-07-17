@@ -7,7 +7,7 @@
 // FIX: gesture_groups.js was never imported by ANYTHING in the whole project, even though it's
 // exactly the categorized gesture data the "Populate Gesture Menus" filter toggles need in order
 // to actually filter the hand-mapping dropdown options.
-import { HAND_GESTURE_GROUPS, TOUCH_GESTURE_GROUPS } from './gesture_groups.js';
+import { HAND_GESTURE_GROUPS } from './gesture_groups.js';
 
 export const PREMADE_THEMES = {
     'default': { name: "Default Dark", bgMain: "#000000", bgCard: "#121212", bubble: "#4f46e5", btn: "#1a1a1a", text: "#e5e5e5" },
@@ -44,42 +44,10 @@ export const PREMADE_VOICE_PRESETS = {
     'announcer': { name: "Announcer", pitch: 0.8, rate: 1.1, volume: 1.0 },
     'whisper': { name: "Quiet", pitch: 1.2, rate: 0.8, volume: 0.4 }
 };
-const HAND_GESTURES_LIST = [
-    'hand_fist',
-    'hand_1_up', 'hand_1_down', 'hand_1_left', 'hand_1_right',
-    'hand_2_up', 'hand_2_down', 'hand_2_left', 'hand_2_right',
-    'hand_3_up', 'hand_3_down', 'hand_3_left', 'hand_3_right',
-    'hand_4_up', 'hand_4_down', 'hand_4_left', 'hand_4_right',
-    'hand_5_up', 'hand_5_down', 'hand_5_left', 'hand_5_right'
-];
-    const TOUCH_GESTURES = [
-    { value: 'none', label: '🚫 Unassigned' },
-    { value: 'tap', label: '👆 Single Tap' },
-    { value: 'double_tap', label: '👆👆 Double Taps' }, // Named per your correction
-    { value: 'triple_tap', label: '👆👆👆 Triple Tap' },
-    { value: 'long_tap', label: '⏱️ Long Press' },
-    { value: 'swipe_up', label: '⬆️ Swipe Up' },
-    { value: 'swipe_down', label: '⬇️ Swipe Down' },
-    { value: 'swipe_left', label: '⬅️ Swipe Left' },
-    { value: 'swipe_right', label: '➡️ Swipe Right' }
-];
-
-const VISUAL_HAND_GESTURES = [
-    { value: 'none', label: '🚫 Unassigned' },
-    { value: '105', label: '👌 OK Sign (Pinch)' },
-    { value: '104', label: '🤌 Chef Kiss (All)' },
-    { value: '100', label: '🤏 Basic Pinch' },
-    { value: '16', label: '☝️ 1 Finger (Index)' },
-    { value: '24', label: '✌️ 2 Fingers (Peace)' },
-    { value: '28', label: '3️⃣ 3 Fingers' },
-    { value: '30', label: '4️⃣ 4 Fingers' },
-    { value: '62', label: '🖐️ 5 Fingers (Palm)' },
-    { value: '0', label: '✊ Fist' },
-    { value: '18', label: '🤘 Rock On' },
-    { value: '34', label: '🤙 Shaka' },
-    { value: '50', label: '🤟 Spider-Man / ILY' },
-    { value: '48', label: '🫵 Gun / L-Shape' }
-];
+// NOTE: HAND_GESTURES_LIST, TOUCH_GESTURES, and VISUAL_HAND_GESTURES were removed here -
+// all three were unused. The first two were only referenced by dead functions removed
+// alongside them; VISUAL_HAND_GESTURES was never referenced by any real code at all (the
+// static per-key <option> lists in index.html were written directly instead).
 
 // Hand gesture presets for the live per-key mapping grid (map-hand-kX_Y selects).
 // Values are the numeric OmniGesture v2.0 IDs (see HAND_GESTURE_GROUPS / VISUAL_HAND_GESTURES),
@@ -200,12 +168,12 @@ const GESTURE_PRESETS = {
             'k9_1': 'tap', 
             'k9_2': 'double_tap', 
             'k9_3': 'triple_tap',
-            'k9_4': 'tap_2f_any', 
-            'k9_5': 'double_tap_2f_any', 
-            'k9_6': 'triple_tap_2f_any',
-            'k9_7': 'tap_3f_any', 
-            'k9_8': 'double_tap_3f_any', 
-            'k9_9': 'triple_tap_3f_any'
+            'k9_4': 'tap_2f', 
+            'k9_5': 'double_tap_2f', 
+            'k9_6': 'triple_tap_2f',
+            'k9_7': 'tap_3f', 
+            'k9_8': 'double_tap_3f', 
+            'k9_9': 'triple_tap_3f'
         }
     },
     '9_swipes': {
@@ -222,9 +190,9 @@ const GESTURE_PRESETS = {
         type: 'key9',
         map: {
             // UPDATED to new ID names
-           'k9_1': 'motion_tap_spatial_nw', 'k9_2': 'motion_tap_spatial_up', 'k9_3': 'motion_tap_spatial_ne',
-            'k9_4': 'motion_tap_spatial_left', 'k9_5': 'double_tap', 'k9_6': 'motion_tap_spatial_right',
-            'k9_7': 'motion_tap_spatial_sw', 'k9_8': 'motion_tap_spatial_down', 'k9_9': 'motion_tap_spatial_se' 
+           'k9_1': 'motion_tap_swipe_nw', 'k9_2': 'motion_tap_swipe_up', 'k9_3': 'motion_tap_swipe_ne',
+            'k9_4': 'motion_tap_swipe_left', 'k9_5': 'double_tap', 'k9_6': 'motion_tap_swipe_right',
+            'k9_7': 'motion_tap_swipe_sw', 'k9_8': 'motion_tap_swipe_down', 'k9_9': 'motion_tap_swipe_se' 
         }
     },
 // === 9-KEY HAND ===
@@ -252,14 +220,14 @@ const GESTURE_PRESETS = {
             'k12_2': 'double_tap', 
             'k12_3': 'triple_tap', 
             'k12_4': 'long_tap',
-            'k12_5': 'tap_2f_any', 
-            'k12_6': 'double_tap_2f_any', 
-            'k12_7': 'triple_tap_2f_any', 
-            'k12_8': 'long_tap_2f_any',
-            'k12_9': 'tap_3f_any', 
-            'k12_10': 'double_tap_3f_any', 
-            'k12_11': 'triple_tap_3f_any', 
-            'k12_12': 'long_tap_3f_any'
+            'k12_5': 'tap_2f', 
+            'k12_6': 'double_tap_2f', 
+            'k12_7': 'triple_tap_2f', 
+            'k12_8': 'long_tap_2f',
+            'k12_9': 'tap_3f', 
+            'k12_10': 'double_tap_3f', 
+            'k12_11': 'triple_tap_3f', 
+            'k12_12': 'long_tap_3f'
         }
     },
     '12_swipes': {
@@ -325,15 +293,15 @@ const GESTURE_PRESETS = {
             'piano_D': 'double_tap', 
             'piano_E': 'triple_tap',
             'piano_F': 'long_tap',
-            'piano_G': 'tap_2f_any',
-            'piano_A': 'double_tap_2f_any',
-            'piano_B': 'triple_tap_2f_any',
+            'piano_G': 'tap_2f',
+            'piano_A': 'double_tap_2f',
+            'piano_B': 'triple_tap_2f',
             
-            'piano_1': 'tap_3f_any',
-            'piano_2': 'double_tap_3f_any',
-            'piano_3': 'triple_tap_3f_any',
-            'piano_4': 'long_tap_2f_any',
-            'piano_5': 'long_tap_3f_any'
+            'piano_1': 'tap_3f',
+            'piano_2': 'double_tap_3f',
+            'piano_3': 'triple_tap_3f',
+            'piano_4': 'long_tap_2f',
+            'piano_5': 'long_tap_3f'
         }
     },
        // === PIANO HAND ===
@@ -438,6 +406,7 @@ export class SettingsManager {
                     this.appSettings.activeGestureFilters = this.appSettings.activeGestureFilters.filter(g => g !== group);
                 }
                 this.applyHandGestureFilters();
+                this.applyTouchGestureOptions();
                 this.callbacks.onSave();
             });
         });
@@ -615,8 +584,6 @@ export class SettingsManager {
         this.updateUIFromSettings();
         
 
-        // 🟢 ADD THIS LINE: Force the Mapping Tab to build and populate immediately
-        this.renderMappingUI(); 
         if(this.dom.gestureToggle){
             this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
             this.dom.gestureToggle.addEventListener('change', (e) => {
@@ -683,147 +650,14 @@ export class SettingsManager {
             };
         }
     }
-populateMappingAccordions() {
-    const container = document.getElementById('mapping-accordion-container');
-    container.innerHTML = '';
-    ['k9_1', 'k9_2', 'k9_3'].forEach(key => {
-        container.innerHTML += `
-        <details class="group bg-gray-900 p-3 rounded border">
-            <summary class="font-bold cursor-pointer">Key ${key}</summary>
-            <div class="flex border-b mb-2">
-                <button class="tab-touch active p-2 text-xs" data-k="${key}">👆 Touch</button>
-                <button class="tab-hand p-2 text-xs" data-k="${key}">🖐️ Hand</button>
-            </div>
-            <select class="select-touch w-full p-2 bg-black">${TOUCH_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('')}</select>
-            <select class="select-hand hidden w-full p-2 bg-black">${HAND_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('')}</select>
-        </details>`;
-    });
-}
-    renderMappingUI() {
-        const container = document.getElementById('mapping-accordion-container');
-        if (!container) return;
-        
-        container.innerHTML = ''; // Clear existing DOM
-
-        // Map out the 3 layout configurations
-        const groups = [
-            { id: 'key9', title: '9-Key Layout', keys: Array.from({length: 9}, (_, i) => `k9_${i+1}`) },
-            { id: 'key12', title: '12-Key Layout', keys: Array.from({length: 12}, (_, i) => `k12_${i+1}`) },
-            { id: 'piano', title: 'Piano Layout', keys: ['piano_C', 'piano_D', 'piano_E', 'piano_F', 'piano_G', 'piano_A', 'piano_B', 'piano_1', 'piano_2', 'piano_3', 'piano_4', 'piano_5'] }
-        ];
-
-        const touchOptionsHTML = TOUCH_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('');
-        const handOptionsHTML = VISUAL_HAND_GESTURES.map(g => `<option value="${g.value}">${g.label}</option>`).join('');
-
-        groups.forEach(group => {
-            // Group Header
-            container.innerHTML += `<h3 class="font-bold text-sm mt-6 mb-2 text-primary-app border-b border-gray-700 pb-1">${group.title}</h3>`;
-            
-            group.keys.forEach(keyId => {
-                let displayName = keyId.replace('k9_', 'Key ').replace('k12_', 'Key ').replace('piano_', 'Note ');
-
-                const accordion = `
-                    <details class="group bg-gray-900 rounded-lg border border-gray-700 open:bg-gray-800 transition-colors shadow-sm mb-2">
-                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white outline-none">
-                            <span class="flex items-center gap-2">
-                                <span class="bg-gray-700 w-16 h-6 flex items-center justify-center rounded text-xs text-blue-300 font-mono border border-gray-600">${displayName}</span>
-                            </span>
-                            <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
-                        </summary>
-                        
-                        <div class="p-3 border-t border-gray-700 mt-1 bg-black/20">
-                            <div class="flex border-b border-gray-700 mb-3">
-                                <button type="button" class="mapping-subtab-btn active flex-1 py-2 text-xs font-bold text-blue-400 border-b-2 border-blue-400 transition-colors" data-key="${keyId}" data-target="touch">👆 Touch</button>
-                                <button type="button" class="mapping-subtab-btn flex-1 py-2 text-xs font-bold text-gray-500 hover:text-green-400 transition-colors" data-key="${keyId}" data-target="hand">🖐️ Hand Tracking</button>
-                            </div>
-                            
-                            <div id="panel-touch-${keyId}" class="mapping-panel block space-y-2">
-                                <select id="map-touch-${keyId}" class="mapping-select settings-input w-full p-2.5 rounded text-sm font-semibold shadow-sm border border-gray-600 bg-gray-950 text-white outline-none focus:border-blue-500 transition-colors" data-type="touch" data-key="${keyId}">
-                                    ${touchOptionsHTML}
-                                </select>
-                            </div>
-                            
-                            <div id="panel-hand-${keyId}" class="mapping-panel hidden space-y-2">
-                                <select id="map-hand-${keyId}" class="mapping-select settings-input w-full p-2.5 rounded text-sm font-semibold shadow-sm border border-gray-600 bg-gray-950 text-emerald-400 outline-none focus:border-emerald-500 transition-colors" data-type="hand" data-key="${keyId}">
-                                    ${handOptionsHTML}
-                                </select>
-                            </div>
-                        </div>
-                    </details>
-                `;
-                container.innerHTML += accordion;
-            });
-        });
-
-        // Attach event listeners for tabs and dropdown saves
-        this.bindMappingEvents();
-    }
-bindMappingEvents() {
-        // 1. Master Tab Switching Logic (Touch vs. Hand)
-        const btnTouch = document.getElementById('btn-map-touch');
-        const btnHand = document.getElementById('btn-map-hand');
-        const secTouch = document.getElementById('section-map-touch');
-        const secHand = document.getElementById('section-map-hand');
-
-        if (btnTouch && btnHand) {
-            btnTouch.onclick = () => {
-                // Activate Touch Tab
-                btnTouch.classList.add('text-blue-400', 'border-b-2', 'border-blue-400');
-                btnTouch.classList.remove('text-gray-500');
-                // Deactivate Hand Tab
-                btnHand.classList.remove('text-emerald-400', 'border-b-2', 'border-emerald-400');
-                btnHand.classList.add('text-gray-500');
-                // Switch Content
-                secTouch.classList.remove('hidden');
-                secHand.classList.add('hidden');
-            };
-
-            btnHand.onclick = () => {
-                // Activate Hand Tab
-                btnHand.classList.add('text-emerald-400', 'border-b-2', 'border-emerald-400');
-                btnHand.classList.remove('text-gray-500');
-                // Deactivate Touch Tab
-                btnTouch.classList.remove('text-blue-400', 'border-b-2', 'border-blue-400');
-                btnTouch.classList.add('text-gray-500');
-                // Switch Content
-                secHand.classList.remove('hidden');
-                secTouch.classList.add('hidden');
-            };
-        }
-
-        // 2. Data Binding & Saving for ALL Layouts (9-Key, 12-Key, Piano)
-        document.querySelectorAll('.mapping-select').forEach(select => {
-            const keyId = select.dataset.key; // Grabs 'k9_1', 'k12_5', 'piano_C', etc.
-            const type = select.dataset.type; // Grabs 'touch' or 'hand'
-            
-            // A. Populate the drop-downs on load
-            if (this.appSettings.mappings && this.appSettings.mappings[keyId]) {
-                if (type === 'touch' && this.appSettings.mappings[keyId].touch) {
-                    select.value = this.appSettings.mappings[keyId].touch;
-                } else if (type === 'hand' && this.appSettings.mappings[keyId].handGesture !== undefined) {
-                    select.value = this.appSettings.mappings[keyId].handGesture;
-                }
-            }
-
-            // B. Toggle / Save settings instantly on change
-            select.onchange = (e) => {
-                // Ensure the safety net structure exists
-                if (!this.appSettings.mappings) this.appSettings.mappings = {};
-                if (!this.appSettings.mappings[keyId]) {
-                    this.appSettings.mappings[keyId] = { touch: 'none', handGesture: 'none', morse: '' };
-                }
-                
-                if (type === 'touch') {
-                    this.appSettings.mappings[keyId].touch = e.target.value;
-                } else {
-                    // Vision Engine requires integers for the gesture IDs (e.g., 105, 104)
-                    this.appSettings.mappings[keyId].handGesture = e.target.value === 'none' ? 'none' : parseInt(e.target.value, 10);
-                }
-                
-                this.callbacks.onSave(); // Push changes to LocalStorage/memory immediately
-            };
-        });
-    }
+    // FIX: removed populateMappingAccordions() - dead code, never called anywhere, and
+    // referenced a HAND_GESTURES variable that was never even defined (would have thrown
+    // if it somehow ran). Its target container never existed in the HTML either.
+    // FIX: renderMappingUI() removed - it was 100% dead code. It always returned
+    // immediately because its target container (#mapping-accordion-container) never
+    // existed in the HTML. The working replacement is the accordion system built in
+    // index.html directly (section-map-touch/section-map-hand) plus bindMappingEvents()
+    // and bindPresetAccordion() below.
     bindMappingEvents() {
         // 0. Master Section Tab Switching (Touch Mapping vs Hand Mapping)
         // FIX: this used to only be wired in an earlier bindMappingEvents() definition
@@ -869,11 +703,11 @@ bindMappingEvents() {
         };
         ['key9', 'key12', 'piano'].forEach(layout => {
             this.bindPresetAccordion('touch', layout, filterPresetsByType(GESTURE_PRESETS, layout), LAYOUT_KEYS[layout],
-                (key) => (this.appSettings.mappings && this.appSettings.mappings[key]) ? this.appSettings.mappings[key].touch : 'none',
+                (key) => (this.appSettings.gestureMappings && this.appSettings.gestureMappings[key]) ? this.appSettings.gestureMappings[key].gesture : 'none',
                 (key, val) => {
-                    if (!this.appSettings.mappings) this.appSettings.mappings = {};
-                    if (!this.appSettings.mappings[key]) this.appSettings.mappings[key] = { touch: 'none', handGesture: 'none', morse: '' };
-                    this.appSettings.mappings[key].touch = val;
+                    if (!this.appSettings.gestureMappings) this.appSettings.gestureMappings = {};
+                    if (!this.appSettings.gestureMappings[key]) this.appSettings.gestureMappings[key] = {};
+                    this.appSettings.gestureMappings[key].gesture = val;
                     const el = document.querySelector(`#map-touch-${key}`);
                     if (el) el.value = val;
                 });
@@ -920,22 +754,27 @@ bindMappingEvents() {
             const type = select.dataset.type;
             
             // Set the dropdown to match the saved appSettings
-            if (this.appSettings.mappings && this.appSettings.mappings[keyId]) {
-                if (type === 'touch' && this.appSettings.mappings[keyId].touch) {
-                    select.value = this.appSettings.mappings[keyId].touch;
-                } else if (type === 'hand' && this.appSettings.mappings[keyId].handGesture !== undefined) {
-                    select.value = this.appSettings.mappings[keyId].handGesture;
+            if (type === 'touch') {
+                // FIX: the live touch engine (mapGestureToValue in app.js) reads
+                // appSettings.gestureMappings[key].gesture, NOT appSettings.mappings[key].touch -
+                // this was silently writing to a property nothing ever consumed.
+                if (this.appSettings.gestureMappings && this.appSettings.gestureMappings[keyId] && this.appSettings.gestureMappings[keyId].gesture) {
+                    select.value = this.appSettings.gestureMappings[keyId].gesture;
                 }
+            } else if (this.appSettings.mappings && this.appSettings.mappings[keyId] && this.appSettings.mappings[keyId].handGesture !== undefined) {
+                select.value = this.appSettings.mappings[keyId].handGesture;
             }
 
             // 3. Save Changes instantly
             select.onchange = (e) => {
-                if (!this.appSettings.mappings) this.appSettings.mappings = {};
-                if (!this.appSettings.mappings[keyId]) this.appSettings.mappings[keyId] = { touch: 'none', handGesture: 'none', morse: '' };
-                
                 if (type === 'touch') {
-                    this.appSettings.mappings[keyId].touch = e.target.value;
+                    // FIX: write to the property the live touch engine actually reads
+                    if (!this.appSettings.gestureMappings) this.appSettings.gestureMappings = {};
+                    if (!this.appSettings.gestureMappings[keyId]) this.appSettings.gestureMappings[keyId] = {};
+                    this.appSettings.gestureMappings[keyId].gesture = e.target.value;
                 } else {
+                    if (!this.appSettings.mappings) this.appSettings.mappings = {};
+                    if (!this.appSettings.mappings[keyId]) this.appSettings.mappings[keyId] = { touch: 'none', handGesture: 'none', morse: '' };
                     // Hand gestures must be parsed as Integers (except 'none')
                     this.appSettings.mappings[keyId].handGesture = e.target.value === 'none' ? 'none' : parseInt(e.target.value, 10);
                 }
@@ -1798,9 +1637,7 @@ initListeners() {
         if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !this.appSettings.showWelcomeScreen;
         if (this.dom.showWelcome) this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
         if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.isHapticMorseEnabled;
-            // Add this to your updateUIFromSettings or initialization method:
-    this.renderMappingUI();
-            
+
         // UPDATED: Matches the new dropdown generation logic (e.g. "1.00")
         if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = (this.appSettings.playbackSpeed || 1.0).toFixed(2);
         if (this.dom.voiceTriggerSelect) {
@@ -2018,315 +1855,8 @@ initListeners() {
         return; // FIX: skip the legacy per-key accordion system below (see comment above) -
                 // the static touch/hand grid in index.html is the live mapping UI now.
 
-      // --- UPDATED GESTURE CATEGORIES (All inclusive from gesture-groups.js) ---
+    }
 
-
-        if (!this.appSettings.activeGestureFilters) {
-            this.appSettings.activeGestureFilters = ['Taps', 'Multi-Finger Taps', 'Swipes'];
-        }
-
-        const getAvailableGestures = () => {
-            let available = [];
-            this.appSettings.activeGestureFilters.forEach(cat => {
-                if (GESTURE_CATEGORIES[cat]) available.push(...GESTURE_CATEGORIES[cat]);
-            });
-            return available;
-        };
-
-        this.updateAllMappingDropdowns = () => {
-            const available = getAvailableGestures();
-            const dropdowns = document.querySelectorAll('.gesture-map-select');
-            dropdowns.forEach(select => {
-                const currentVal = select.value;
-                select.innerHTML = '';
-                
-                available.forEach(g => {
-                    const opt = document.createElement('option');
-                    opt.value = g;
-                    opt.textContent = g;
-                    select.appendChild(opt);
-                });
-                
-                if (!available.includes(currentVal) && currentVal) {
-                    const opt = document.createElement('option');
-                    opt.value = currentVal;
-                    opt.textContent = currentVal;
-                    select.appendChild(opt);
-                }
-                select.value = currentVal;
-            });
-        };
-
-        // 3. BUILD UI (With Accordions)
-        const buildSection = (type, title, keyPrefix, count, customKeys = null, isOpen = false) => {
-            const details = document.createElement('details');
-            details.className = "group rounded-lg border border-custom bg-black bg-opacity-20 mb-3 open:bg-opacity-40 transition-all";
-            if (isOpen) details.open = true;
-
-            const summary = document.createElement('summary');
-            summary.className = "cursor-pointer p-3 font-bold text-sm select-none flex justify-between items-center text-gray-200 hover:text-white";
-            summary.innerHTML = `<span>${title} Mapping</span><span class="group-open:rotate-180 transition-transform">▼</span>`;
-            details.appendChild(summary);
-
-            const contentDiv = document.createElement('div');
-            contentDiv.className = "p-3 pt-0 border-t border-gray-700 mt-2";
-            
-            // --- PROFILE SELECTOR INSIDE ACCORDION ---
-            const profileHeader = document.createElement('div');
-            profileHeader.innerHTML = `<label class="text-xs font-bold uppercase text-muted-custom block mb-1 mt-2">Active Preset</label>`;
-            contentDiv.appendChild(profileHeader);
-
-            const select = document.createElement('select');
-            select.className = "settings-input w-full p-2 rounded mb-3 font-bold text-xs";
-            
-            const populateSelect = () => {
-                select.innerHTML = '';
-                const def = document.createElement('option');
-                def.textContent = "-- Select Preset --";
-                def.value = "";
-                select.appendChild(def);
-
-                const grp1 = document.createElement('optgroup'); grp1.label = "Built-in";
-                
-                const safePresets = (typeof GESTURE_PRESETS !== 'undefined') ? GESTURE_PRESETS : {};
-
-                Object.keys(safePresets).forEach(k => {
-                    if(safePresets[k].type === type) {
-                        const opt = document.createElement('option');
-                        opt.value = k;
-                        opt.textContent = safePresets[k].name;
-                        grp1.appendChild(opt);
-                    }
-                });
-                select.appendChild(grp1);
-
-                const grp2 = document.createElement('optgroup'); grp2.label = "My Setups";
-                if(this.appSettings.gestureProfiles) {
-                    Object.keys(this.appSettings.gestureProfiles).forEach(k => {
-                        if(this.appSettings.gestureProfiles[k].type === type) {
-                            const opt = document.createElement('option');
-                            opt.value = k;
-                            opt.textContent = this.appSettings.gestureProfiles[k].name;
-                            grp2.appendChild(opt);
-                        }
-                    });
-                }
-                select.appendChild(grp2);
-            };
-            populateSelect();
-            contentDiv.appendChild(select);
-
-            // --- BUTTONS ---
-            const btnGrid = document.createElement('div');
-            btnGrid.className = "grid grid-cols-2 gap-2 mb-4"; 
-            
-            const createBtn = (txt, color, onClick) => {
-                const b = document.createElement('button');
-                b.textContent = txt;
-                b.className = `py-2 text-xs bg-${color}-600 hover:bg-${color}-500 rounded text-white font-bold transition shadow`;
-                b.onclick = (e) => { e.stopPropagation(); onClick(); }; // Stop propagation so accordion doesn't close
-                return b;
-            };
-
-            btnGrid.append(
-                createBtn("NEW", "blue", () => {
-                    const name = prompt("New Profile Name:");
-                    if(!name) return;
-                    const id = 'cust_gest_' + Date.now();
-                    const currentMap = {};
-                    listContainer.querySelectorAll('select.gesture-map-select').forEach(inp => currentMap[inp.dataset.key] = inp.value);
-                    this.appSettings.gestureProfiles[id] = { name: name, type: type, map: currentMap };
-                    this.callbacks.onSave();
-                    populateSelect();
-                    select.value = id;
-                }),
-                createBtn("SAVE 💾", "green", () => {
-                    const val = select.value;
-                    if(!val || val.indexOf('cust_') === -1) return alert("Select a custom profile to save (or use NEW).");
-                    const currentMap = {};
-                    listContainer.querySelectorAll('select.gesture-map-select').forEach(inp => currentMap[inp.dataset.key] = inp.value);
-                    this.appSettings.gestureProfiles[val].map = currentMap;
-                    this.callbacks.onSave();
-                    alert("Profile Saved!");
-                }),
-                createBtn("RENAME", "gray", () => {
-                    const val = select.value;
-                    if(!val || val.indexOf('cust_') === -1) return alert("Cannot rename built-in profiles.");
-                    const newName = prompt("Rename:", this.appSettings.gestureProfiles[val].name);
-                    if(newName) {
-                        this.appSettings.gestureProfiles[val].name = newName;
-                        this.callbacks.onSave();
-                        populateSelect();
-                        select.value = val;
-                    }
-                }),
-                createBtn("DELETE", "red", () => {
-                    const val = select.value;
-                    if(!val || val.indexOf('cust_') === -1) return alert("Cannot delete built-in profiles.");
-                    if(confirm("Delete this profile?")) {
-                        delete this.appSettings.gestureProfiles[val];
-                        this.callbacks.onSave();
-                        populateSelect();
-                    }
-                })
-            );
-            contentDiv.appendChild(btnGrid);
-
-            // --- LIST ---
-            const listContainer = document.createElement('div');
-            listContainer.className = "space-y-2 border-t border-custom pt-3 max-h-60 overflow-y-auto";
-            contentDiv.appendChild(listContainer);
-
-            const renderMappings = () => {
-                listContainer.innerHTML = '';
-                const keysToRender = customKeys || Array.from({length: count}, (_, i) => String(i + 1));
-                
-                keysToRender.forEach(k => {
-                    const keyId = keyPrefix + k;
-                    const row = document.createElement('div');
-                    row.className = "flex items-center space-x-2 mb-2";
-
-                    const lbl = document.createElement('div');
-                    lbl.className = "text-sm font-bold w-8 h-10 flex items-center justify-center bg-gray-800 rounded border border-gray-600 shrink-0";
-                    lbl.textContent = k;
-
-                    // 1. TOUCH GESTURE DROPDOWN
-                    const dropTouch = document.createElement('select');
-                    dropTouch.className = "settings-input p-1 rounded text-[10px] h-10 border border-custom flex-1 w-0 gesture-map-select";
-                    dropTouch.dataset.key = keyId; 
-
-                    // LOAD SAVED VALUES
-                    const mapping = (this.appSettings.gestureMappings && this.appSettings.gestureMappings[keyId]) 
-                        ? this.appSettings.gestureMappings[keyId] 
-                        : {};
-
-                    let savedGesture = mapping.gesture || 'tap';
-
-                    const availableGestures = getAvailableGestures();
-                    availableGestures.forEach(g => {
-                        const opt = document.createElement('option');
-                        opt.value = g;
-                        opt.textContent = g; 
-                        dropTouch.appendChild(opt);
-                    });
-
-                    // Ensure saved gesture is injected if filtered out
-                    if (!availableGestures.includes(savedGesture) && savedGesture) {
-                        const opt = document.createElement('option');
-                        opt.value = savedGesture;
-                        opt.textContent = savedGesture;
-                        dropTouch.appendChild(opt);
-                    }
-                    dropTouch.value = savedGesture;
-
-                    // 2. HAND GESTURE DROPDOWN
-                    const dropHand = document.createElement('select');
-                    dropHand.className = "settings-input p-1 rounded text-[10px] h-10 border border-custom flex-1 w-0 bg-blue-900 bg-opacity-20";
-                    
-                    const defHand = document.createElement('option');
-                    defHand.value = ""; 
-                    defHand.textContent = "- Hand -";
-                    dropHand.appendChild(defHand);
-                    
-                    const handList = (typeof HAND_GESTURES_LIST !== 'undefined') ? HAND_GESTURES_LIST : [];
-
-                    handList.forEach(g => {
-                        const opt = document.createElement('option');
-                        opt.value = g;
-                        opt.textContent = g.replace('hand_', '').replace('_', ' ').replace('fist', '✊ Fist').toUpperCase(); 
-                        dropHand.appendChild(opt);
-                    });
-
-                    dropHand.value = mapping.hand || '';
-
-                    // SAVE LISTENER
-                    const save = () => {
-                        if(!this.appSettings.gestureMappings[keyId]) this.appSettings.gestureMappings[keyId] = {};
-                        this.appSettings.gestureMappings[keyId].gesture = dropTouch.value;
-                        this.appSettings.gestureMappings[keyId].hand = dropHand.value;
-                        this.callbacks.onSave();
-                    };
-
-                    dropTouch.onchange = save;
-                    dropHand.onchange = save;
-
-                    row.appendChild(lbl);
-                    row.appendChild(dropTouch);
-                    row.appendChild(dropHand);
-                    listContainer.appendChild(row);
-                });
-            };
-
-            renderMappings();
-
-            select.onchange = () => {
-                 const val = select.value;
-                 if(!val) return;
-                 const safePresets = (typeof GESTURE_PRESETS !== 'undefined') ? GESTURE_PRESETS : {};
-                 
-                 let data = safePresets[val] ? safePresets[val].map : (this.appSettings.gestureProfiles[val] ? this.appSettings.gestureProfiles[val].map : null);
-                 if(data) {
-                     Object.keys(data).forEach(key => {
-                         if(!this.appSettings.gestureMappings[key]) this.appSettings.gestureMappings[key] = {};
-                         
-                         const entry = data[key];
-                         if (typeof entry === 'string') {
-                             this.appSettings.gestureMappings[key].gesture = entry;
-                         } else if (typeof entry === 'object') {
-                             if(entry.gesture) this.appSettings.gestureMappings[key].gesture = entry.gesture;
-                             if(entry.hand) this.appSettings.gestureMappings[key].hand = entry.hand;
-                         }
-                     });
-                     this.callbacks.onSave();
-                     renderMappings();
-                 }
-            };
-            
-            details.appendChild(contentDiv);
-            if(tabRoot) tabRoot.appendChild(details);
-        };
-
-        buildSection('key9', '9-Key', 'k9_', 9, null, true); 
-        buildSection('key12', '12-Key', 'k12_', 12);
-        buildSection('piano', 'Piano', 'piano_', 0, ['C','D','E','F','G','A','B','1','2','3','4','5']);
-
-        // --- NEW: FILTER CHECKBOX UI ---
-        if (tabRoot) {
-            const filterContainer = document.createElement('div');
-            filterContainer.className = "p-3 mt-4 mb-4 rounded-lg border border-custom bg-black bg-opacity-30";
-            filterContainer.innerHTML = `<h4 class="font-bold text-sm mb-3 text-primary-app">Visible Gesture Types 🔍</h4><div class="grid grid-cols-2 gap-2" id="gesture-filter-grid"></div>`;
-            tabRoot.appendChild(filterContainer);
-
-            const grid = document.getElementById('gesture-filter-grid');
-            if (grid) {
-                Object.keys(GESTURE_CATEGORIES).forEach(cat => {
-                    const lbl = document.createElement('label');
-                    lbl.className = "flex items-center space-x-2 text-xs font-bold text-gray-300 cursor-pointer";
-                    const cb = document.createElement('input');
-                    cb.type = "checkbox";
-                    cb.className = "accent-indigo-500 gesture-filter-toggle w-4 h-4";
-                    cb.dataset.category = cat;
-                    cb.checked = this.appSettings.activeGestureFilters.includes(cat);
-                    
-                    cb.onchange = (e) => {
-                        if (e.target.checked) {
-                            if (!this.appSettings.activeGestureFilters.includes(cat)) {
-                                this.appSettings.activeGestureFilters.push(cat);
-                            }
-                        } else {
-                            this.appSettings.activeGestureFilters = this.appSettings.activeGestureFilters.filter(c => c !== cat);
-                        }
-                        this.callbacks.onSave();
-                        this.updateAllMappingDropdowns();
-                    };
-                    
-                    lbl.appendChild(cb);
-                    lbl.appendChild(document.createTextNode(" " + cat));
-                    grid.appendChild(lbl);
-                });
-            }
-        }
-    };
     populateMorseUI() {
         const tab = document.getElementById('developer-mode-modal')?.querySelector('.overflow-y-auto');
         if (!tab) return;
@@ -2431,26 +1961,26 @@ initListeners() {
             'k9_1': { gesture: 'tap' }, 
             'k9_2': { gesture: 'double_tap' }, 
             'k9_3': { gesture: 'triple_tap' }, 
-            'k9_4': { gesture: 'tap_2f_any' }, 
-            'k9_5': { gesture: 'double_tap_2f_any' }, 
-            'k9_6': { gesture: 'triple_tap_2f_any' }, 
-            'k9_7': { gesture: 'tap_3f_any' }, 
-            'k9_8': { gesture: 'double_tap_3f_any' }, 
-            'k9_9': { gesture: 'triple_tap_3f_any' },
+            'k9_4': { gesture: 'tap_2f' }, 
+            'k9_5': { gesture: 'double_tap_2f' }, 
+            'k9_6': { gesture: 'triple_tap_2f' }, 
+            'k9_7': { gesture: 'tap_3f' }, 
+            'k9_8': { gesture: 'double_tap_3f' }, 
+            'k9_9': { gesture: 'triple_tap_3f' },
 
             // 12-KEY DEFAULT: TAPS
             'k12_1': { gesture: 'tap' }, 
             'k12_2': { gesture: 'double_tap' }, 
             'k12_3': { gesture: 'triple_tap' }, 
             'k12_4': { gesture: 'long_tap' }, 
-            'k12_5': { gesture: 'tap_2f_any' }, 
-            'k12_6': { gesture: 'double_tap_2f_any' }, 
-            'k12_7': { gesture: 'triple_tap_2f_any' }, 
-            'k12_8': { gesture: 'long_tap_2f_any' }, 
-            'k12_9': { gesture: 'tap_3f_any' }, 
-            'k12_10': { gesture: 'double_tap_3f_any' }, 
-            'k12_11': { gesture: 'triple_tap_3f_any' }, 
-            'k12_12': { gesture: 'long_tap_3f_any' },
+            'k12_5': { gesture: 'tap_2f' }, 
+            'k12_6': { gesture: 'double_tap_2f' }, 
+            'k12_7': { gesture: 'triple_tap_2f' }, 
+            'k12_8': { gesture: 'long_tap_2f' }, 
+            'k12_9': { gesture: 'tap_3f' }, 
+            'k12_10': { gesture: 'double_tap_3f' }, 
+            'k12_11': { gesture: 'triple_tap_3f' }, 
+            'k12_12': { gesture: 'long_tap_3f' },
 
             // PIANO DEFAULT: SWIPES
             'piano_C': { gesture: 'swipe_nw' }, 
@@ -2472,6 +2002,9 @@ initListeners() {
     // Populates appSettings.mappings (the live per-key grid's storage - map-touch-kX_Y /
     // map-hand-kX_Y) with sensible presets for every key, for both touch and hand, but only if
     // it's completely empty (so this never overwrites anything you've already configured).
+    // Hand mapping defaults only - touch defaults are already correctly seeded by
+    // applyDefaultGestureMappings() into appSettings.gestureMappings (the live storage).
+    // Hand has no equivalent pre-existing default-seeder, so this fills that gap.
     applyDefaultMappingsIfEmpty() {
         if (this.appSettings.mappings && Object.keys(this.appSettings.mappings).length > 0) return;
 
@@ -2479,11 +2012,6 @@ initListeners() {
         const ensure = (key) => {
             if (!this.appSettings.mappings[key]) this.appSettings.mappings[key] = { touch: 'none', handGesture: 'none', morse: '' };
             return this.appSettings.mappings[key];
-        };
-        const applyTouchPreset = (presetId) => {
-            const preset = GESTURE_PRESETS[presetId];
-            if (!preset) return;
-            Object.keys(preset.map).forEach(key => { ensure(key).touch = preset.map[key]; });
         };
         const applyHandPreset = (presetId) => {
             const preset = HAND_MAPPING_PRESETS[presetId];
@@ -2494,9 +2022,6 @@ initListeners() {
             });
         };
 
-        applyTouchPreset('9_taps');
-        applyTouchPreset('12_taps');
-        applyTouchPreset('piano_taps');
         applyHandPreset('9_hand_counts');
         applyHandPreset('12_hand_counts');
         applyHandPreset('piano_hand_default');

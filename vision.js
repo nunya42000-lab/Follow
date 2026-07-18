@@ -6,6 +6,17 @@
 // bundle only disables hand tracking instead of the whole app.
 
 // --- 1. EXHAUSTIVE 64-STATE ID MAP ---
+// Motion/transition gestures - one pose changing into another within ~900ms. IDs start at 400
+// to stay clear of the 0-63 static pose range. Chosen pairs read naturally as an action rather
+// than just two shapes: Fist->Open reads as "throwing something away", Open->Fist as "grabbing".
+export const TRANSITION_GESTURES = {
+    '0->62':   { id: 400, label: '🗑️ Throw (Fist → Open)' },
+    '62->0':   { id: 401, label: '✊ Grab (Open → Fist)' },
+    '100->62': { id: 402, label: '👐 Release (Pinch → Open)' },
+    '62->100': { id: 403, label: '🤏 Snatch (Open → Pinch)' },
+    '0->16':   { id: 404, label: '☝️ Point Out (Fist → 1 Finger)' },
+};
+
 const GESTURE_DICTIONARY = {
     0: 'FIST_KNUCKLES_FWD',           1: 'FIST_PALM_FWD',
     2: 'PINKY_KNUCKLES_FWD',          3: 'PINKY_PALM_FWD',
@@ -58,6 +69,9 @@ class GestureBuffer {
     }
 
     pushAndEvaluate(gestureID) {
+        // Reads live so the Hold Frames slider takes effect immediately without restarting tracking
+        this.maxSize = (window.appSettings && window.appSettings.handHoldFrames) || 4;
+
         if (gestureID === null) {
             this.buffer = [];
             this.currentLockedGesture = null;
@@ -253,6 +267,23 @@ export class VisionEngine {
             const stableID = this.engineBuffer.pushAndEvaluate(rawID);
 
             if (stableID !== null && GESTURE_DICTIONARY[stableID]) {
+                // FIX: "frozen gestures... adding motion would make them better" - poses were
+                // purely static (hold one shape, done). This adds a small set of TRANSITION
+                // gestures - one pose changing into another within a short window reads as an
+                // actual motion (e.g. a fist opening into a throw), not just another static shape.
+                if (this._prevStableID !== null && this._prevStableID !== stableID) {
+                    const elapsed = Date.now() - (this._prevStableTime || 0);
+                    const transition = TRANSITION_GESTURES[`${this._prevStableID}->${stableID}`];
+                    if (transition && elapsed < 900) {
+                        this.onTrigger({ id: transition.id, label: transition.label });
+                        this._prevStableID = stableID;
+                        this._prevStableTime = Date.now();
+                        return;
+                    }
+                }
+                this._prevStableID = stableID;
+                this._prevStableTime = Date.now();
+
                 // Sends a structured object downstream so app.js can use `gesture.id` or `gesture.label`
                 this.onTrigger({
                     id: stableID,
@@ -263,6 +294,7 @@ export class VisionEngine {
         } else {
             // Hand lost from frame, dump the buffer
             this.engineBuffer.pushAndEvaluate(null);
+            this._prevStableID = null;
         }
 
         this.onTrigger("none");
@@ -274,11 +306,17 @@ export class VisionEngine {
             this.debugCanvas.style.position = 'fixed';
             this.debugCanvas.style.top = '0';
             this.debugCanvas.style.left = '0';
+            this.debugCanvas.style.margin = '0';
             this.debugCanvas.style.width = '100vw';
             this.debugCanvas.style.height = '100vh';
             this.debugCanvas.style.zIndex = '9999';
             this.debugCanvas.style.pointerEvents = 'none';
-            document.body.appendChild(this.debugCanvas);
+            // FIX: appended to <html> instead of <body> - if a settings/help/etc modal is open,
+            // the scroll-lock sets body.style.position = 'fixed' to anchor the page, which makes
+            // body the containing block for its own position:fixed children and throws off their
+            // top/left (a well-known CSS quirk). <html> is never given position:fixed, so this
+            // stays correctly viewport-anchored no matter what else is open.
+            document.documentElement.appendChild(this.debugCanvas);
             this.debugCtx = this.debugCanvas.getContext('2d');
         }
 
@@ -295,6 +333,23 @@ export class VisionEngine {
         if (results.landmarks) {
             for (const landmarks of results.landmarks) {
                 this._drawHand(ctx, landmarks, canvas.width, canvas.height);
+            }
+        }
+
+        // Also draw onto the small Developer Mode practice preview canvas, if it's open
+        const miniCanvas = document.getElementById('practice-preview-canvas');
+        if (miniCanvas) {
+            const miniCtx = miniCanvas.getContext('2d');
+            const rect = miniCanvas.getBoundingClientRect();
+            if (miniCanvas.width !== rect.width || miniCanvas.height !== rect.height) {
+                miniCanvas.width = rect.width;
+                miniCanvas.height = rect.height;
+            }
+            miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
+            if (results.landmarks) {
+                for (const landmarks of results.landmarks) {
+                    this._drawHand(miniCtx, landmarks, miniCanvas.width, miniCanvas.height);
+                }
             }
         }
     }

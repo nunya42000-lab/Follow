@@ -158,7 +158,7 @@ const DEFAULT_APP = {
   isHandSignalsEnabled: false,
   isVoiceCommandsEnabled: false,
   isToneCadenceEnabled: false,
-  isPositionSwapEnabled: false, isSkeletonDebugEnabled: false, activeFontFamily: "'Inter', sans-serif",
+  isPositionSwapEnabled: false, isSkeletonDebugEnabled: false, activeFontFamily: "'Inter', sans-serif", handGestureCooldown: 600, handHoldFrames: 4, voiceConfidenceThreshold: 50, toneVolumeThreshold: -70, isSliderLockEnabled: false,
   activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), 
   runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), 
   isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, 
@@ -194,6 +194,7 @@ const DEFAULT_MAPPINGS = {
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
 let modules = { settings: null, vision: null, gestureEngine: null }; // Removed legacy sensor
+window.modules = modules;
 let timers = { speedDelete: null, initialDelay: null, longPress: null, settingsLongPress: null, stealth: null, stealthAction: null, playback: null, tap: null };
 let gestureState = { startDist: 0, startScale: 1, isPinching: false };
 let blackoutState = { isActive: false, lastShake: 0 }; 
@@ -1088,7 +1089,7 @@ class ToneEngine {
 
         const now = Date.now();
 
-        if (maxVal > this.audioThresh) {
+        if (maxVal > (appSettings.toneVolumeThreshold || this.audioThresh)) {
             const freq = this._detectPitch(timeData, this.audioCtx.sampleRate);
             // Match within a 4% tolerance, same as before
             const match = freq > 0 ? this.TONES.find(t => Math.abs(t.f - freq) < (t.f * 0.04)) : null;
@@ -1210,9 +1211,18 @@ class VoiceCommander {
       for (let i = event.resultIndex; i < event.results.length; ++i) {
           const transcript = event.results[i][0].transcript.toLowerCase();
           const words = transcript.split(/\s+/).filter(w => w !== "");
+          const confidence = event.results[i][0].confidence;
 
           const voiceReadout = document.getElementById('test-voice-readout');
-          if (voiceReadout) voiceReadout.textContent = `"${transcript}"`;
+          if (voiceReadout) voiceReadout.textContent = `"${transcript}"` + (event.results[i].isFinal ? ` (${Math.round(confidence * 100)}%)` : ' (listening...)');
+
+          // FIX: reject low-confidence FINAL results per the adjustable threshold - interim
+          // results are skipped here since browsers typically report 0 confidence for those
+          // regardless of actual quality, so checking them would reject everything.
+          const minConfidence = (appSettings.voiceConfidenceThreshold || 50) / 100;
+          if (event.results[i].isFinal && confidence > 0 && confidence < minConfidence) {
+              continue;
+          }
 
           const triggerIdx = words.lastIndexOf(activeTrigger);
 
@@ -1441,7 +1451,7 @@ const toneEngine = new ToneEngine((val) => {
 
   // 5. Initialize Vision Engine
   let gestureHistory = [];
-  let gestureCooldown = 0;
+  let gestureCooldownUntil = 0; // timestamp-based (was frame-counted) so it's framerate-independent and adjustable
 
   // GRACEFUL DEGRADATION: VisionEngine lives in its own <script type="module"> tag because it
   // imports a local WASM bundle (./wasm/vision_bundle.js) that isn't part of this single-file
@@ -1456,8 +1466,7 @@ const toneEngine = new ToneEngine((val) => {
           const settings = getProfileSettings();
           
           // 1. Handle Cooldown to prevent rapid double-firing while holding the pose
-          if (typeof gestureCooldown !== 'undefined' && gestureCooldown > 0) {
-              gestureCooldown--;
+          if (Date.now() < gestureCooldownUntil) {
               return;
           }
 
@@ -1490,25 +1499,25 @@ const toneEngine = new ToneEngine((val) => {
                   showToast("Hand Signal: Clear 🧹");
                   // Call your existing clear function here
                   if (typeof resetCurrentMachine === 'function') resetCurrentMachine();
-                  gestureCooldown = 60; 
+                  gestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000); 
                   return;
               } 
               if (gestureId === 105) { // 105 = OK Sign
                   showToast("Hand Signal: Delete 🔙");
                   if (typeof handleBackspace === 'function') handleBackspace();
-                  gestureCooldown = 60;
+                  gestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
                   return;
               }
               if (gestureId === 18) { // 18 = Rock On (palm-forward variant 19 is normalized to 18 above)
                   showToast("Hand Signal: Playing ▶️");
                   playDemo();
-                  gestureCooldown = 60;
+                  gestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
                   return;
               }
               if (gestureId === 0) { // 0 = Fist (palm-forward variant 1 is normalized to 0 above)
                   isDemoPlaying = false;
                   showToast("Hand Signal: Stopped 🛑");
-                  gestureCooldown = 60;
+                  gestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
                   return;
               }
           }
@@ -1542,7 +1551,7 @@ const toneEngine = new ToneEngine((val) => {
               setTimeout(() => document.body.style.backgroundColor = '', 100);
               
               // 60-frame cooldown (approx 2 seconds) locks the engine to require a fresh movement
-              gestureCooldown = 60; 
+              gestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000); 
           }
       },
       (status) => showToast(status)

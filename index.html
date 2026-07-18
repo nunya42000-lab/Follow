@@ -140,7 +140,7 @@
     </div>
 
     <div id="redeem-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
-        <div class="relative w-full max-w-lg h-[95vh] flex flex-col items-center justify-center p-4">
+        <div class="relative w-full max-w-[280px] h-[95vh] flex flex-col items-center justify-center p-4">
             <button id="close-redeem-btn" class="absolute top-4 right-4 z-50 bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600">✕</button>
             <div class="absolute top-16 right-4 z-50 flex flex-col gap-3">
                 <button id="redeem-zoom-in" class="bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600 active:bg-gray-700">+</button>
@@ -791,7 +791,7 @@
             </div>
             <div class="px-5 pb-2 flex justify-center relative">
                 <div class="w-80 h-80 rounded-lg shadow-lg border border-gray-700 bg-white p-1 overflow-hidden flex items-center justify-center">
-                    <img id="qr-img" src="qr.jpg" alt="Scan to open Follow Me" class="w-full h-full object-fill transition-transform duration-200" onerror="this.style.display='none'">
+                    <img id="qr-img" src="qr.jpg" alt="Scan to open Follow Me" class="w-full h-full object-contain transition-transform duration-200" onerror="this.style.display='none'">
                 </div>
                 <div class="absolute top-2 right-8 flex flex-col gap-2">
                     <button id="qr-zoom-in" type="button" class="bg-gray-800 text-white rounded-full w-7 h-7 font-bold text-sm shadow-lg border border-gray-600 active:bg-gray-700">+</button>
@@ -843,6 +843,11 @@
                 <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
                     <h4 class="font-bold text-sm mb-2 text-primary-app">Test &amp; Practice 🎯</h4>
                     <p class="text-[10px] text-gray-400 mb-3">Live readouts so you can calibrate distance/timing before mapping. Turn on Hand Gestures / Touch Gesture / Voice Input in Settings → General first, then interact normally - these update live.</p>
+                    <div class="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-gray-700 mb-3">
+                        <video id="practice-preview-video" class="w-full h-full object-cover scale-x-[-1]" muted playsinline></video>
+                        <canvas id="practice-preview-canvas" class="absolute inset-0 w-full h-full scale-x-[-1]"></canvas>
+                        <div id="practice-preview-placeholder" class="absolute inset-0 flex items-center justify-center text-[10px] text-gray-500">Turn on Hand Gestures to see your camera + skeleton here</div>
+                    </div>
                     <div class="space-y-2">
                         <div class="p-2 rounded bg-gray-950 border border-gray-700">
                             <span class="text-[10px] font-bold text-emerald-400 uppercase">🖐️ Hand (with skeleton above)</span>
@@ -858,44 +863,81 @@
                         </div>
                     </div>
                 </div>
-                <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
-                    <h4 class="font-bold text-sm mb-2 text-primary-app">Gesture Sensitivity 🎛️</h4>
-                    <div class="mb-4">
-                        <div class="flex justify-between mb-1"><label class="text-xs font-bold">Tap Speed (ms)</label><span id="gesture-tap-val" class="text-xs font-mono">300ms</span></div>
-                        <input type="range" id="gesture-tap-slider" min="100" max="800" step="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-[10px] text-gray-400 mt-1">Faster time = harder to tap, easier to swipe. Slower time = easier to tap.</p>
+                <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+                    <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
+                        <span>Sensitivity 🎛️</span>
+                        <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+                    </summary>
+                    <div class="p-3 border-t border-gray-700">
+                        <label class="flex items-center justify-between gap-2 p-2 mb-3 rounded-lg bg-red-900 bg-opacity-20 border border-red-500/30 cursor-pointer">
+                            <span class="font-bold text-xs text-red-300">🔒 Lock Sliders (prevent accidental changes)</span>
+                            <input type="checkbox" id="sliderLockToggle" class="h-5 w-5 accent-red-500">
+                        </label>
+
+                        <p class="text-[10px] font-bold uppercase text-blue-400 mt-3 mb-1">Touch</p>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Tap Speed (ms)</label><span id="gesture-tap-val" class="text-xs font-mono">300ms</span></div>
+                            <input type="range" id="gesture-tap-slider" min="100" max="800" step="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">Faster time = harder to tap, easier to swipe. Slower time = easier to tap.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Swipe Distance (px)</label><span id="gesture-swipe-val" class="text-xs font-mono">30px</span></div>
+                            <input type="range" id="gesture-swipe-slider" min="10" max="100" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">Higher distance = fewer accidental swipes.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Long Press Time (ms)</label><span id="gesture-longpress-val" class="text-xs font-mono">300ms</span></div>
+                            <input type="range" id="gesture-longpress-slider" min="150" max="800" step="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How long you must hold before it counts as a long press instead of a tap.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Tap Wiggle Room (px)</label><span id="gesture-tapprecision-val" class="text-xs font-mono">30px</span></div>
+                            <input type="range" id="gesture-tapprecision-slider" min="10" max="60" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How far your finger can drift during a tap before it's read as a swipe instead. Higher = more forgiving of shaky taps.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Spatial Tap Precision (px)</label><span id="gesture-spatial-val" class="text-xs font-mono">10px</span></div>
+                            <input type="range" id="gesture-spatial-slider" min="5" max="30" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How close together spatial taps (corner/direction taps) must land to register as the same spot.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Long Swipe Distance (px)</label><span id="gesture-longswipe-val" class="text-xs font-mono">150px</span></div>
+                            <input type="range" id="gesture-longswipe-slider" min="80" max="300" step="10" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">Distance needed for a swipe to count as "long" rather than regular.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Multi-Finger Swipe Sync (px)</label><span id="gesture-multiswipe-val" class="text-xs font-mono">10px</span></div>
+                            <input type="range" id="gesture-multiswipe-slider" min="5" max="30" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How closely multiple fingers must move together to count as one multi-finger swipe. Lower = stricter.</p>
+                        </div>
+
+                        <p class="text-[10px] font-bold uppercase text-emerald-400 mt-4 mb-1">Hand</p>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Gesture Cooldown (ms)</label><span id="gesture-handcooldown-val" class="text-xs font-mono">2000ms</span></div>
+                            <input type="range" id="gesture-handcooldown-slider" min="200" max="2000" step="100" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How long to wait after one hand input before another can register. Lower = faster back-to-back gestures, but more risk of double-firing.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Hold Frames to Lock In</label><span id="gesture-handhold-val" class="text-xs font-mono">4</span></div>
+                            <input type="range" id="gesture-handhold-slider" min="1" max="10" step="1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How many consecutive matching camera frames before a pose is confirmed. Lower = snappier but jumpier; higher = steadier but slower to register.</p>
+                        </div>
+
+                        <p class="text-[10px] font-bold uppercase text-yellow-400 mt-4 mb-1">Voice</p>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Confidence Threshold</label><span id="voice-confidence-val" class="text-xs font-mono">50%</span></div>
+                            <input type="range" id="voice-confidence-slider" min="0" max="90" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How sure the recognizer must be before accepting a word. Higher = fewer misheard inputs, but may reject unclear speech.</p>
+                        </div>
+
+                        <p class="text-[10px] font-bold uppercase text-purple-400 mt-4 mb-1">Tone Cadence</p>
+                        <div class="sensitivity-slider">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Volume Threshold (dB)</label><span id="tone-threshold-val" class="text-xs font-mono">-70dB</span></div>
+                            <input type="range" id="tone-threshold-slider" min="-90" max="-40" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How loud a hum/whistle must be to count as a note. Lower (more negative) = picks up quieter sounds, but more background noise too.</p>
+                        </div>
                     </div>
-                    <div>
-                        <div class="flex justify-between mb-1"><label class="text-xs font-bold">Swipe Distance (px)</label><span id="gesture-swipe-val" class="text-xs font-mono">30px</span></div>
-                        <input type="range" id="gesture-swipe-slider" min="10" max="100" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-[10px] text-gray-400 mt-1">Higher distance = fewer accidental swipes.</p>
-                    </div>
-                    <div class="mt-4">
-                        <div class="flex justify-between mb-1"><label class="text-xs font-bold">Long Press Time (ms)</label><span id="gesture-longpress-val" class="text-xs font-mono">300ms</span></div>
-                        <input type="range" id="gesture-longpress-slider" min="150" max="800" step="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-[10px] text-gray-400 mt-1">How long you must hold before it counts as a long press instead of a tap.</p>
-                    </div>
-                    <div class="mt-4">
-                        <div class="flex justify-between mb-1"><label class="text-xs font-bold">Tap Wiggle Room (px)</label><span id="gesture-tapprecision-val" class="text-xs font-mono">30px</span></div>
-                        <input type="range" id="gesture-tapprecision-slider" min="10" max="60" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-[10px] text-gray-400 mt-1">How far your finger can drift during a tap before it's read as a swipe instead. Higher = more forgiving of shaky taps.</p>
-                    </div>
-                    <div class="mt-4">
-                        <div class="flex justify-between mb-1"><label class="text-xs font-bold">Spatial Tap Precision (px)</label><span id="gesture-spatial-val" class="text-xs font-mono">10px</span></div>
-                        <input type="range" id="gesture-spatial-slider" min="5" max="30" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-[10px] text-gray-400 mt-1">How close together spatial taps (corner/direction taps) must land to register as the same spot.</p>
-                    </div>
-                    <div class="mt-4">
-                        <div class="flex justify-between mb-1"><label class="text-xs font-bold">Long Swipe Distance (px)</label><span id="gesture-longswipe-val" class="text-xs font-mono">150px</span></div>
-                        <input type="range" id="gesture-longswipe-slider" min="80" max="300" step="10" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-[10px] text-gray-400 mt-1">Distance needed for a swipe to count as "long" rather than regular.</p>
-                    </div>
-                    <div class="mt-4">
-                        <div class="flex justify-between mb-1"><label class="text-xs font-bold">Multi-Finger Swipe Sync (px)</label><span id="gesture-multiswipe-val" class="text-xs font-mono">10px</span></div>
-                        <input type="range" id="gesture-multiswipe-slider" min="5" max="30" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-[10px] text-gray-400 mt-1">How closely multiple fingers must move together to count as one multi-finger swipe. Lower = stricter.</p>
-                    </div>
-                </div>
+                </details>
 
                 <div id="gesture-filter-toggles" class="grid grid-cols-2 gap-4 p-4 border border-emerald-500/20 bg-black/30 rounded-xl">
                     <div class="col-span-2 text-xs font-bold text-emerald-400 mb-1 uppercase tracking-wider">Populate Hand Gesture Menus:</div>
@@ -914,6 +956,14 @@
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-emerald-500" data-group="Shapes" checked>
                         <span class="text-xs font-medium text-gray-300">Include Advanced Shapes</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-emerald-500" data-group="Motion" checked>
+                        <span class="text-xs font-medium text-gray-300">Include Motion (Directional Swipes)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-emerald-500" data-group="Transitions" checked>
+                        <span class="text-xs font-medium text-gray-300">Include Motion Transitions (Throw/Grab/etc)</span>
                     </label>
                 </div>
 

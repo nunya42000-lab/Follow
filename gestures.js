@@ -58,6 +58,18 @@ export const HAND_GESTURE_GROUPS = [
             { id: "302", name: "👈 Swipe Left" },
             { id: "303", name: "👉 Swipe Right" }
         ]
+    },
+    {
+        id: "hand_transitions",
+        name: "Motion Transitions",
+        enabled: true,
+        gestures: [
+            { id: "400", name: "🗑️ Throw (Fist → Open)" },
+            { id: "401", name: "✊ Grab (Open → Fist)" },
+            { id: "402", name: "👐 Release (Pinch → Open)" },
+            { id: "403", name: "🤏 Snatch (Open → Pinch)" },
+            { id: "404", name: "☝️ Point Out (Fist → 1 Finger)" }
+        ]
     },]
      export const TOUCH_GESTURE_GROUPS = [
     {

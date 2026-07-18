@@ -9,7 +9,7 @@
 // Motion/transition gestures - one pose changing into another within ~900ms. IDs start at 400
 // to stay clear of the 0-63 static pose range. Chosen pairs read naturally as an action rather
 // than just two shapes: Fist->Open reads as "throwing something away", Open->Fist as "grabbing".
-export const TRANSITION_GESTURES = {
+const TRANSITION_GESTURES = {
     '0->62':   { id: 400, label: '🗑️ Throw (Fist → Open)' },
     '62->0':   { id: 401, label: '✊ Grab (Open → Fist)' },
     '100->62': { id: 402, label: '👐 Release (Pinch → Open)' },

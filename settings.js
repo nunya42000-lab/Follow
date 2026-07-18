@@ -180,7 +180,7 @@ export class SettingsManager {
     // is assignable.
     applyTouchGestureOptions() {
         if (!this.appSettings.activeGestureFilters) {
-            this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', 'Motion', 'Transitions', ...Object.keys(GESTURE_CATEGORIES)];
+            this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', 'Motion', 'Transitions', 'Anchors', 'Chords', ...Object.keys(GESTURE_CATEGORIES)];
         }
         const active = this.appSettings.activeGestureFilters;
 
@@ -220,7 +220,7 @@ export class SettingsManager {
         this.dom.filterToggles.forEach(toggle => {
             toggle.addEventListener('change', () => {
                 if (!this.appSettings.activeGestureFilters) {
-                    this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', 'Motion', 'Transitions', ...Object.keys(GESTURE_CATEGORIES)];
+                    this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', 'Motion', 'Transitions', 'Anchors', 'Chords', ...Object.keys(GESTURE_CATEGORIES)];
                 }
                 const group = toggle.dataset.group;
                 if (toggle.checked) {
@@ -242,10 +242,10 @@ export class SettingsManager {
     // select's current value where it's still a valid option.
     applyHandGestureFilters() {
         if (!this.appSettings.activeGestureFilters) {
-            this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', 'Motion', 'Transitions', ...Object.keys(GESTURE_CATEGORIES)];
+            this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', 'Motion', 'Transitions', 'Anchors', 'Chords', ...Object.keys(GESTURE_CATEGORIES)];
         }
         const active = this.appSettings.activeGestureFilters;
-        const groupIdByFilter = { 'Poses': 'hand_poses', 'Pinches': 'hand_pinches', 'Counts': 'hand_counts', 'Shapes': 'hand_vision_shapes', 'Motion': 'hand_swipes', 'Transitions': 'hand_transitions' };
+        const groupIdByFilter = { 'Poses': 'hand_poses', 'Pinches': 'hand_pinches', 'Counts': 'hand_counts', 'Shapes': 'hand_vision_shapes', 'Motion': 'hand_swipes', 'Transitions': 'hand_transitions', 'Anchors': 'hand_anchors', 'Chords': 'hand_chords' };
 
         let options = [];
         active.forEach(filterName => {
@@ -270,10 +270,9 @@ export class SettingsManager {
         });
     }
 
-    constructor(appSettings, callbacks, sensorEngine) {
+    constructor(appSettings, callbacks) {
         this.appSettings = appSettings;
         this.callbacks = callbacks;
-        this.sensorEngine = sensorEngine;
         this.currentTargetKey = 'bubble';
 
         // 2. Build the DOM cache
@@ -324,7 +323,7 @@ export class SettingsManager {
             
             // Previously injected, now hardcoded
             longPressToggle: document.getElementById('apshortcutToggle'), // "AP Shortcut"
-            blackoutGesturesToggle: document.getElementById('bmgToggle'), // "Hand Gestures" (Previously BM Gestures)
+            
             timerToggle: document.getElementById('timerToggle'),
             counterToggle: document.getElementById('counterToggle'),
             gestureToggle: document.getElementById('touchToggle'),
@@ -340,7 +339,7 @@ export class SettingsManager {
             uiScale: document.getElementById('ui-scale-select'), 
             seqSize: document.getElementById('seq-size-select'), 
             seqFontSize: document.getElementById('seq-font-size-select'), // <--- NEW FONT SIZE
-            gestureMode: document.getElementById('gesture-mode-select'), autoInput: document.getElementById('auto-input-select'),
+            gestureMode: document.getElementById('gesture-mode-select'),
             closeSettingsBtn: document.getElementById('close-settings'),
 
             // TABS
@@ -355,9 +354,9 @@ export class SettingsManager {
             developerModeModal: document.getElementById('developer-mode-modal'), openDeveloperModeBtn: document.getElementById('open-developer-mode-btn'), closeDeveloperModeBtn: document.getElementById('close-developer-mode-btn'),
 			restoreBtn: document.querySelector('button[data-action="restore-defaults"]'),
 			nukeBtn: document.querySelector('button[data-action="nuke-app"]'), // <--- ADD THIS LINE
-            calibModal: document.getElementById('calibration-modal'), openCalibBtn: document.getElementById('open-calibration-btn'), closeCalibBtn: document.getElementById('close-calibration-btn'), calibAudioSlider: document.getElementById('calib-audio-slider'), calibCamSlider: document.getElementById('calib-cam-slider'), calibAudioBar: document.getElementById('calib-audio-bar'), calibCamBar: document.getElementById('calib-cam-bar'), calibAudioMarker: document.getElementById('calib-audio-marker'), calibCamMarker: document.getElementById('calib-cam-marker'), calibAudioVal: document.getElementById('audio-val-display'), calibCamVal: document.getElementById('cam-val-display'),
+            
             redeemModal: document.getElementById('redeem-modal'), 
-            openRedeemBtn: document.getElementById('open-redeem-btn'), 
+            
             closeRedeemBtn: document.getElementById('close-redeem-btn'),
             redeemImg: document.getElementById('redeem-img'),
             qrImg: document.getElementById('qr-img'), qrZoomIn: document.getElementById('qr-zoom-in'), qrZoomOut: document.getElementById('qr-zoom-out'),
@@ -372,9 +371,7 @@ export class SettingsManager {
             copyLinkBtn: document.getElementById('copy-link-button'), nativeShareBtn: document.getElementById('native-share-button'),
             chatShareBtn: document.getElementById('chat-share-button'), emailShareBtn: document.getElementById('email-share-button'),
             
-            mapping9Container: document.getElementById('mapping-9-container'),
-            mapping12Container: document.getElementById('mapping-12-container'),
-            mappingPianoContainer: document.getElementById('mapping-piano-container'),
+            
             gestureTapSlider: document.getElementById('gesture-tap-slider'),
             gestureSwipeSlider: document.getElementById('gesture-swipe-slider'),
             gestureTapVal: document.getElementById('gesture-tap-val'),
@@ -850,10 +847,11 @@ populateARSpeedDropdown() {
     updatePreview() { const t = this.tempTheme; if (!this.dom.edPreview) return; this.dom.edPreview.style.backgroundColor = t.bgMain; this.dom.edPreview.style.color = t.text; this.dom.edPreviewCard.style.backgroundColor = t.bgCard; this.dom.edPreviewCard.style.color = t.text; this.dom.edPreviewCard.style.border = '1px solid rgba(255,255,255,0.1)'; this.dom.edPreviewBtn.style.backgroundColor = t.bubble; this.dom.edPreviewBtn.style.color = t.text; }
     testVoice() { if (window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("Testing 1 2 3."); if (this.appSettings.selectedVoice) { const v = window.speechSynthesis.getVoices().find(voice => voice.name === this.appSettings.selectedVoice); if (v) u.voice = v; } let p = parseFloat(this.dom.voicePitch.value); let r = parseFloat(this.dom.voiceRate.value); let v = parseFloat(this.dom.voiceVolume.value); u.pitch = p; u.rate = r; u.volume = v; window.speechSynthesis.speak(u); } }
 
-    openShare() { this.qrScale = 200; if (this.updateQR) this.updateQR(); if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); if (this.dom.shareModal) { this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => this.dom.shareModal.querySelector('.share-sheet').classList.add('active'), 10); } if (window.lockBodyScroll) window.lockBodyScroll(); }
+    openShare() { this.qrScale = 100; if (this.updateQR) this.updateQR(); if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); if (this.dom.shareModal) { this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => this.dom.shareModal.querySelector('.share-sheet').classList.add('active'), 10); } if (window.lockBodyScroll) window.lockBodyScroll(); }
     closeShare() { if (this.dom.shareModal) { this.dom.shareModal.querySelector('.share-sheet').classList.remove('active'); setTimeout(() => this.dom.shareModal.classList.add('opacity-0', 'pointer-events-none'), 300); } if (window.unlockBodyScroll) window.unlockBodyScroll(); }
-    openCalibration() { if (this.dom.calibModal) { this.dom.calibModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.calibModal.style.pointerEvents = 'auto'; this.sensorEngine.toggleAudio(true); this.sensorEngine.toggleCamera(true); this.sensorEngine.setCalibrationCallback((data) => { if (this.dom.calibAudioBar) { const pct = ((data.audio - (-100)) / ((-30) - (-100))) * 100; this.dom.calibAudioBar.style.width = `${Math.max(0, Math.min(100, pct))}%`; } if (this.dom.calibCamBar) { const pct = Math.min(100, data.camera); this.dom.calibCamBar.style.width = `${pct}%`; } }); } }
-    closeCalibration() { if (this.dom.calibModal) { this.dom.calibModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.calibModal.style.pointerEvents = 'none'; this.sensorEngine.setCalibrationCallback(null); this.sensorEngine.toggleAudio(this.appSettings.isAudioEnabled); this.sensorEngine.toggleCamera(this.appSettings.autoInputMode === 'cam' || this.appSettings.autoInputMode === 'both'); } }
+    // FIX: removed openCalibration()/closeCalibration() - confirmed dead code. Neither was ever
+    // called anywhere, their target #calibration-modal never existed in the HTML, and both
+    // depended on this.sensorEngine, which was never even passed to the constructor.
 
     toggleRedeem(show) { if (show) { if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.style.pointerEvents = 'auto'; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.style.pointerEvents = 'none'; } if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
     toggleDonate(show) { if (show) { if (this.dom.donateModal) { this.dom.donateModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'auto'; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.donateModal) { this.dom.donateModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'none'; } if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
@@ -929,6 +927,23 @@ initListeners() {
                 } else if (placeholder) {
                     placeholder.classList.remove('hidden');
                 }
+
+                // Sync the self-contained test toggles to reflect (and drive) the real settings,
+                // so flipping one here actually starts/stops the real engine via its existing
+                // logic rather than duplicating it.
+                const syncTestToggle = (testId, realId) => {
+                    const testEl = document.getElementById(testId);
+                    const realEl = document.getElementById(realId);
+                    if (!testEl || !realEl) return;
+                    testEl.checked = realEl.checked;
+                    testEl.onchange = () => {
+                        realEl.checked = testEl.checked;
+                        realEl.dispatchEvent(new Event('change', { bubbles: true }));
+                    };
+                };
+                syncTestToggle('test-hand-toggle', 'handToggle');
+                syncTestToggle('test-touch-toggle', 'gestureToggle');
+                syncTestToggle('test-voice-toggle', 'voiceToggle');
             };
         }
         if (closeDevBtn && devModal) {
@@ -1052,7 +1067,11 @@ initListeners() {
     bindToggle(this.dom.randomThemeToggle, 'isRandomThemeEnabled');
     bindToggle(this.dom.skeletonDebugToggle, 'isSkeletonDebugEnabled');
     bindToggle(this.dom.voicecommandsToggle, 'isVoiceCommandsEnabled'); // FIX: voicecommandsToggle is now actually cached
-    bindToggle(this.dom.bossToggle, 'isBlackoutFeatureEnabled'); // FIX: was writing 'isBossModeEnabled', a prop nothing ever reads; the real blackout logic reads isBlackoutFeatureEnabled
+    bindToggle(this.dom.bossToggle, 'isBlackoutFeatureEnabled'); // FIX: was writing 'isBossModeEnabled', a prop nothing ever reads
+    // NOTE: "BM Gestures" isn't a separate toggle - it's simply Touch Gesture Input (isGestureInputEnabled)
+    // being on at the same time as Boss Mode (isBlackoutFeatureEnabled), which the app.js gating checks
+    // already read directly. A dedicated third toggle would have made turning both features on together
+    // insufficient on its own, which isn't how this is supposed to work.
     bindToggle(this.dom.handsignalsToggle, 'isHandSignalsEnabled'); // FIX: handsignalsToggle is now actually cached
     bindToggle(this.dom.speedDelete, 'isSpeedDeletingEnabled'); // FIX: was this.dom.speeddeleteToggle (never cached, dead)
     // Dead line removed here: bindToggle(this.dom.apshortcutToggle, 'isApShortcutEnabled') referenced an
@@ -1368,18 +1387,10 @@ initListeners() {
         }
 
         if (this.dom.gestureMode) this.dom.gestureMode.onchange = (e) => { this.appSettings.gestureResizeMode = e.target.value; this.callbacks.onSave(); };
-        
-        if (this.dom.autoInput) {
-            this.dom.autoInput.onchange = (e) => { 
-                const val = e.target.value; 
-                this.appSettings.autoInputMode = val; 
-                this.appSettings.showMicBtn = (val === 'mic' || val === 'both'); 
-                this.appSettings.showCamBtn = (val === 'cam' || val === 'both'); 
-                this.callbacks.onSave(); 
-                this.callbacks.onUpdate(); 
-                this.updateHeaderVisibility(); 
-            };
-        }
+        // FIX: removed a dead onchange block for this.dom.autoInput - its target
+        // ('auto-input-select') never existed in the HTML, and autoInputMode's only real
+        // consumer was the calibration/sensorEngine system, which was also confirmed dead
+        // and removed above.
         
         // Configuration Actions
         if (this.dom.themeAdd) this.dom.themeAdd.onclick = () => { const n = prompt("Name:"); if (n) { const id = 'c_' + Date.now(); this.appSettings.customThemes[id] = { ...PREMADE_THEMES['default'], name: n }; this.appSettings.activeTheme = id; this.callbacks.onSave(); this.callbacks.onUpdate(); this.populateThemeDropdown(); this.openThemeEditor(); } };
@@ -1427,7 +1438,6 @@ initListeners() {
         let rScale = 100;
         const updateRedeem = () => { if(this.dom.redeemImg) this.dom.redeemImg.style.transform = `scale(${rScale/100})`; };
         
-        if (this.dom.openRedeemBtn) this.dom.openRedeemBtn.onclick = () => { rScale = 100; updateRedeem(); this.toggleRedeem(true); };
         if (this.dom.closeRedeemBtn) this.dom.closeRedeemBtn.onclick = () => this.toggleRedeem(false);
         if (this.dom.openRedeemSettingsBtn) this.dom.openRedeemSettingsBtn.onclick = () => { rScale = 100; updateRedeem(); this.toggleRedeem(true); };
         if (this.dom.redeemPlus) this.dom.redeemPlus.onclick = () => { rScale = Math.min(100, rScale + 10); updateRedeem(); };
@@ -1436,7 +1446,7 @@ initListeners() {
         // QR zoom in the Share modal - same +/- pattern as the redeem barcode above, but starts
         // at 200% (QR codes are small and benefit from being bigger by default) and can zoom in
         // further. Stored on `this` (not a local closure var) so openShare() can reset it too.
-        this.qrScale = 200;
+        this.qrScale = 100;
         this.updateQR = () => { if (this.dom.qrImg) this.dom.qrImg.style.transform = `scale(${this.qrScale / 100})`; };
         if (this.dom.qrZoomIn) this.dom.qrZoomIn.onclick = () => { this.qrScale = Math.min(400, this.qrScale + 10); this.updateQR(); };
         if (this.dom.qrZoomOut) this.dom.qrZoomOut.onclick = () => { this.qrScale = Math.max(50, this.qrScale - 10); this.updateQR(); };
@@ -1548,7 +1558,7 @@ initListeners() {
         // the hand-mapping dropdowns to match.
         if (this.dom.filterToggles) {
             if (!this.appSettings.activeGestureFilters) {
-                this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', 'Motion', 'Transitions', ...Object.keys(GESTURE_CATEGORIES)];
+                this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', 'Motion', 'Transitions', 'Anchors', 'Chords', ...Object.keys(GESTURE_CATEGORIES)];
             }
             this.dom.filterToggles.forEach(toggle => {
                 toggle.checked = this.appSettings.activeGestureFilters.includes(toggle.dataset.group);
@@ -1620,7 +1630,7 @@ initListeners() {
         if (this.dom.bossToggle) this.dom.bossToggle.checked = this.appSettings.isBlackoutFeatureEnabled;
         
         // --- CRITICAL FIX: Map to the correct variable name ---
-        if (this.dom.blackoutGesturesToggle) this.dom.blackoutGesturesToggle.checked = !!this.appSettings.isHandGesturesEnabled;
+        
         
         if (this.dom.gestureToggle) this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
 

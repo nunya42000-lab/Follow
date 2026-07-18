@@ -140,12 +140,12 @@
     </div>
 
     <div id="redeem-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <button id="close-redeem-btn" class="absolute top-4 right-4 z-50 bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600">✕</button>
+        <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex gap-4">
+            <button id="redeem-zoom-out" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">-</button>
+            <button id="redeem-zoom-in" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">+</button>
+        </div>
         <div class="relative w-full max-w-[280px] h-[95vh] flex flex-col items-center justify-center p-4">
-            <button id="close-redeem-btn" class="absolute top-4 right-4 z-50 bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600">✕</button>
-            <div class="absolute top-16 right-4 z-50 flex flex-col gap-3">
-                <button id="redeem-zoom-in" class="bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600 active:bg-gray-700">+</button>
-                <button id="redeem-zoom-out" class="bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600 active:bg-gray-700">-</button>
-            </div>
             <div class="bg-white p-2 rounded-lg shadow-2xl w-full h-full flex items-center justify-center overflow-hidden">
                 <img id="redeem-img" src="redeem.jpg" alt="Redeem Barcode" class="w-full h-full object-contain transition-transform duration-200">
             </div>
@@ -842,7 +842,21 @@
                 </div>
                 <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
                     <h4 class="font-bold text-sm mb-2 text-primary-app">Test &amp; Practice 🎯</h4>
-                    <p class="text-[10px] text-gray-400 mb-3">Live readouts so you can calibrate distance/timing before mapping. Turn on Hand Gestures / Touch Gesture / Voice Input in Settings → General first, then interact normally - these update live.</p>
+                    <p class="text-[10px] text-gray-400 mb-3">Live readouts for calibrating distance/timing before mapping. Flip a toggle below to start that test right here - no need to leave Developer Mode.</p>
+                    <div class="grid grid-cols-3 gap-2 mb-3">
+                        <label class="flex flex-col items-center gap-1 p-2 rounded-lg bg-emerald-900 bg-opacity-20 border border-emerald-500/30 cursor-pointer">
+                            <span class="text-[10px] font-bold text-emerald-300">🖐️ Hand</span>
+                            <input type="checkbox" id="test-hand-toggle" class="h-5 w-5 accent-emerald-500">
+                        </label>
+                        <label class="flex flex-col items-center gap-1 p-2 rounded-lg bg-blue-900 bg-opacity-20 border border-blue-500/30 cursor-pointer">
+                            <span class="text-[10px] font-bold text-blue-300">👆 Touch</span>
+                            <input type="checkbox" id="test-touch-toggle" class="h-5 w-5 accent-blue-500">
+                        </label>
+                        <label class="flex flex-col items-center gap-1 p-2 rounded-lg bg-yellow-900 bg-opacity-20 border border-yellow-500/30 cursor-pointer">
+                            <span class="text-[10px] font-bold text-yellow-300">🎤 Voice</span>
+                            <input type="checkbox" id="test-voice-toggle" class="h-5 w-5 accent-yellow-500">
+                        </label>
+                    </div>
                     <div class="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-gray-700 mb-3">
                         <video id="practice-preview-video" class="w-full h-full object-cover scale-x-[-1]" muted playsinline></video>
                         <canvas id="practice-preview-canvas" class="absolute inset-0 w-full h-full scale-x-[-1]"></canvas>
@@ -964,6 +978,14 @@
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-emerald-500" data-group="Transitions" checked>
                         <span class="text-xs font-medium text-gray-300">Include Motion Transitions (Throw/Grab/etc)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-emerald-500" data-group="Anchors" checked>
+                        <span class="text-xs font-medium text-gray-300">Include Anchors</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-emerald-500" data-group="Chords" checked>
+                        <span class="text-xs font-medium text-gray-300">Include Chords (specific finger combos)</span>
                     </label>
                 </div>
 
@@ -1137,7 +1159,7 @@
                                 <div><strong>Show Intro:</strong> Launch setup modal on boot.</div>
                                 <div><strong>Random Theme 🎲:</strong> Picks a random built-in or custom theme each time the app opens.</div>
                                 <div><strong>Boss Mode 🌑:</strong> Shake to black out screen.</div>
-                                <div><strong>BM Gestures:</strong> Touch-input while blacked out.</div>
+                                <div><strong>BM Gestures:</strong> Automatic when Touch Gesture and Boss Mode are both on - no separate toggle needed.</div>
                                 <div><strong>Wake Lock 💡:</strong> Prevents screen sleeping.</div>
                                 <div><strong>Upside Down:</strong> Flips the entire UI 180°.</div>
                                 <div><strong>Full Screen:</strong> Hides browser bars.</div>

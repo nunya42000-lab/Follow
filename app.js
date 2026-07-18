@@ -150,7 +150,7 @@ const DEFAULT_APP = {
 
   isLongPressAutoplayEnabled: true, isStealth1KeyEnabled: false, 
   activeTheme: 'default', customThemes: {}, isRandomThemeEnabled: false, sensorAudioThresh: -85, sensorCamThresh: 30, 
-  isBlackoutFeatureEnabled: false, isBlackoutGesturesEnabled: false, isHapticMorseEnabled: false, 
+  isBlackoutFeatureEnabled: false, isHapticMorseEnabled: false, 
   showMicBtn: false, showCamBtn: false, autoInputMode: 'none', 
   showTimer: false, showCounter: false,
   // --- Settings that previously had no default (toggle wiring fix) ---
@@ -617,7 +617,7 @@ function renderUI() {
         const pad = document.getElementById('gesture-pad');
         if (gpWrap) {
           const isGlobalGestureOn = appSettings.isGestureInputEnabled; 
-          const isBossGestureOn = appSettings.isBlackoutFeatureEnabled && appSettings.isBlackoutGesturesEnabled && blackoutState.isActive;
+          const isBossGestureOn = appSettings.isBlackoutFeatureEnabled && appSettings.isGestureInputEnabled && blackoutState.isActive;
 
           if ((isGlobalGestureOn && isGesturePadVisible) || isBossGestureOn) {
               document.body.classList.add('input-gestures-mode');
@@ -1907,7 +1907,7 @@ function initGestureEngine() {
           // Input Mapping
           const isPadOpen = (typeof isGesturePadVisible !== 'undefined' && isGesturePadVisible);
           const isClassPresent = document.body.classList.contains('input-gestures-mode');
-          const isBossActive = appSettings.isBlackoutFeatureEnabled && appSettings.isBlackoutGesturesEnabled && blackoutState.isActive;
+          const isBossActive = appSettings.isBlackoutFeatureEnabled && appSettings.isGestureInputEnabled && blackoutState.isActive;
 
           if (isPadOpen || isClassPresent || isBossActive) {
               const settings = getProfileSettings();
@@ -2100,7 +2100,7 @@ function initGlobalListeners() {
       const bl = document.getElementById('blackout-layer');
       if(bl) {
            bl.addEventListener('touchstart', (e) => {
-               if (appSettings.isBlackoutGesturesEnabled) return;
+               if (appSettings.isGestureInputEnabled) return;
                if (e.touches.length === 1) {
                    e.preventDefault(); 
                    const t = e.touches[0]; const w = window.innerWidth; const h = window.innerHeight;

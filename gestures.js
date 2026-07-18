@@ -115,6 +115,9 @@ export class GestureEngine {
             tapPrecision: 30,
             longSwipeThreshold: 150, 
             multiSwipeThreshold: 10, 
+            anchorStillDistance: 15,
+            anchorMinHoldTime: 150,
+            chordSimultaneityWindow: 50,
             debug: false
         }, config || {});
 
@@ -135,6 +138,31 @@ export class GestureEngine {
         };
 
         this._bindHandlers();
+    }
+
+    // FIX: this.config was captured once at construction and never re-read, so every
+    // sensitivity slider (Tap Speed, Swipe Distance, etc.) silently required a page reload to
+    // take effect - changing one updated appSettings but the live engine never saw it. This
+    // reads the current value from appSettings each time, falling back to the constructor
+    // default if appSettings isn't available yet.
+    _cfg(key) {
+        const appSettingsKeyMap = {
+            tapDelay: 'gestureTapDelay',
+            swipeThreshold: 'gestureSwipeDist',
+            longPressTime: 'gestureLongPressTime',
+            tapPrecision: 'gestureTapPrecision',
+            spatialThreshold: 'gestureSpatialThreshold',
+            longSwipeThreshold: 'gestureLongSwipeThreshold',
+            multiSwipeThreshold: 'gestureMultiSwipeThreshold',
+            anchorStillDistance: 'touchAnchorStillDistance',
+            anchorMinHoldTime: 'touchAnchorMinHoldTime',
+            chordSimultaneityWindow: 'touchChordSimultaneityWindow',
+        };
+        const settingKey = appSettingsKeyMap[key];
+        if (settingKey && window.appSettings && window.appSettings[settingKey] !== undefined && window.appSettings[settingKey] !== null) {
+            return window.appSettings[settingKey];
+        }
+        return this.config[key];
     }
 
     updateAllowed(list) {
@@ -280,9 +308,9 @@ export class GestureEngine {
         // "Still" (anchor candidate) needs BOTH minimal movement AND to have been held for a
         // while - a fast, precise tap can have equally tiny displacement, so distance alone
         // can't tell the two apart.
-        if (dist < 15 && duration >= 150) return { kind: 'still' };
-        if (dist < this.config.tapPrecision && duration < this.config.longPressTime) return { kind: 'tap' };
-        if (dist > this.config.swipeThreshold) return { kind: 'swipe', dir: this._getDirection(dx, dy) };
+        if (dist < this._cfg('anchorStillDistance') && duration >= this._cfg('anchorMinHoldTime')) return { kind: 'still' };
+        if (dist < this._cfg('tapPrecision') && duration < this._cfg('longPressTime')) return { kind: 'tap' };
+        if (dist > this._cfg('swipeThreshold')) return { kind: 'swipe', dir: this._getDirection(dx, dy) };
         return { kind: 'ambiguous' };
     }
 
@@ -311,10 +339,10 @@ export class GestureEngine {
             return true;
         }
 
-        // Chord: both fingers touched down within a tight simultaneity window (~50ms - humans
-        // can't land multiple fingers on glass at the exact same millisecond) and each had real,
+        // Chord: both fingers touched down within a tight simultaneity window (humans can't
+        // land multiple fingers on glass at the exact same millisecond) and each had real,
         // independent motion that differs from the other.
-        const SIMULTANEITY_WINDOW_MS = 50;
+        const SIMULTANEITY_WINDOW_MS = this._cfg('chordSimultaneityWindow');
         if (downTimeDelta <= SIMULTANEITY_WINDOW_MS && (c1.kind === 'tap' || c1.kind === 'swipe') && (c2.kind === 'tap' || c2.kind === 'swipe')) {
             const label1 = c1.kind === 'tap' ? 'tap' : c1.dir;
             const label2 = c2.kind === 'tap' ? 'tap' : c2.dir;
@@ -394,7 +422,7 @@ export class GestureEngine {
         }
 
         // --- 2. Shapes & Swipes ---
-        if (type === 'tap' && pathLen > this.config.swipeThreshold) {
+        if (type === 'tap' && pathLen > this._cfg('swipeThreshold')) {
             
             // --- 4 Segments (Square or Long Zigzag) ---
             if (segments.length >= 4) {
@@ -451,14 +479,14 @@ export class GestureEngine {
             // --- 1 Segment (Swipe) ---
             else {
                 const dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
-                let threshold = this.config.longSwipeThreshold;
+                let threshold = this._cfg('longSwipeThreshold');
                 if (dir.length > 2) threshold += 60; 
                 type = netDist > threshold ? 'swipe_long' : 'swipe';
                 meta.dir = dir;
             }
         }
 
-        if (fingers > 1 && type === 'tap' && netDist > this.config.multiSwipeThreshold) {
+        if (fingers > 1 && type === 'tap' && netDist > this._cfg('multiSwipeThreshold')) {
             type = 'swipe';
             if (segments.length >= 2) {
                  const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
@@ -469,7 +497,7 @@ export class GestureEngine {
 
         if (type === 'tap') {
             const dur = inputs[0].endTime - inputs[0].startTime;
-            if (dur > this.config.longPressTime) type = 'long_tap';
+            if (dur > this._cfg('longPressTime')) type = 'long_tap';
             if (fingers > 1) meta.align = this._getAlignment(inputs);
         }
 
@@ -488,7 +516,7 @@ export class GestureEngine {
                     this.tapStack.posHistory.push(ec);
                     this.tapStack.lastPos = ec;
                     this.tapStack.active = true;
-                    this.tapStack.timer = setTimeout(() => this._commitStack(), this.config.tapDelay);
+                    this.tapStack.timer = setTimeout(() => this._commitStack(), this._cfg('tapDelay'));
                     return;
                 }
             }
@@ -505,7 +533,7 @@ export class GestureEngine {
                 active: true, count: 1, fingers: fingers, 
                 posHistory: [ec], lastPos: ec,
                 align: meta.align, 
-                timer: setTimeout(() => this._commitStack(), this.config.tapDelay) 
+                timer: setTimeout(() => this._commitStack(), this._cfg('tapDelay')) 
             }; 
             return; 
         }

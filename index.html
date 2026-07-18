@@ -840,8 +840,12 @@
                     <span class="font-bold text-sm text-muted-custom">Hand Skeleton Overlay 🦴</span>
                     <input type="checkbox" id="skeletonDebugToggle" class="h-6 w-6 accent-indigo-500">
                 </div>
-                <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
-                    <h4 class="font-bold text-sm mb-2 text-primary-app">Test &amp; Practice 🎯</h4>
+                <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+                    <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
+                        <span>Test &amp; Practice 🎯</span>
+                        <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+                    </summary>
+                    <div class="p-3 border-t border-gray-700">
                     <p class="text-[10px] text-gray-400 mb-3">Live readouts for calibrating distance/timing before mapping. Flip a toggle below to start that test right here - no need to leave Developer Mode.</p>
                     <div class="grid grid-cols-3 gap-2 mb-3">
                         <label class="flex flex-col items-center gap-1 p-2 rounded-lg bg-emerald-900 bg-opacity-20 border border-emerald-500/30 cursor-pointer">
@@ -876,7 +880,8 @@
                             <div id="test-voice-readout" class="font-mono text-xs text-yellow-300 mt-1">Waiting for speech...</div>
                         </div>
                     </div>
-                </div>
+                    </div>
+                </details>
                 <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
                     <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
                         <span>Sensitivity 🎛️</span>
@@ -924,6 +929,21 @@
                             <input type="range" id="gesture-multiswipe-slider" min="5" max="30" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
                             <p class="text-[10px] text-gray-400 mt-1">How closely multiple fingers must move together to count as one multi-finger swipe. Lower = stricter.</p>
                         </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Anchor Hold Distance (px)</label><span id="gesture-anchordist-val" class="text-xs font-mono">15px</span></div>
+                            <input type="range" id="gesture-anchordist-slider" min="5" max="30" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How far the anchor finger can drift and still count as "held still" for an Anchor gesture. Lower = stricter.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Anchor Min Hold Time (ms)</label><span id="gesture-anchorhold-val" class="text-xs font-mono">150ms</span></div>
+                            <input type="range" id="gesture-anchorhold-slider" min="50" max="500" step="25" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How long the anchor finger must be held before the second finger's tap/swipe counts as an Anchor gesture.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Chord Simultaneity Window (ms)</label><span id="gesture-chordwindow-val" class="text-xs font-mono">50ms</span></div>
+                            <input type="range" id="gesture-chordwindow-slider" min="20" max="150" step="10" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How close together two fingers must land to count as a Chord. Higher = more forgiving of imprecise timing, but more false positives.</p>
+                        </div>
 
                         <p class="text-[10px] font-bold uppercase text-emerald-400 mt-4 mb-1">Hand</p>
                         <div class="sensitivity-slider mb-4">
@@ -953,6 +973,12 @@
                     </div>
                 </details>
 
+                <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+                    <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
+                        <span>Populate Gesture Menus 🔍</span>
+                        <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+                    </summary>
+                    <div class="p-3 border-t border-gray-700 space-y-4">
                 <div id="gesture-filter-toggles" class="grid grid-cols-2 gap-4 p-4 border border-emerald-500/20 bg-black/30 rounded-xl">
                     <div class="col-span-2 text-xs font-bold text-emerald-400 mb-1 uppercase tracking-wider">Populate Hand Gesture Menus:</div>
                     <label class="flex items-center gap-2 cursor-pointer">
@@ -1048,6 +1074,18 @@
                         <span class="text-xs font-medium text-gray-300">Chords (2 fingers, different actions)</span>
                     </label>
                 </div>
+                    </div>
+                </details>
+
+                <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+                    <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
+                        <span>Haptic Output Mapping 📳</span>
+                        <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+                    </summary>
+                    <div class="p-3 border-t border-gray-700">
+                        <div id="morse-container-target"></div>
+                    </div>
+                </details>
             </div>
         </div>
     </div>

@@ -58,7 +58,34 @@ export const PREMADE_VOICE_PRESETS = {
 // cleared to a blank slate. Use NEW/SAVE in each Mapping accordion to build your own
 // (saved under "My Setups"), then export via Developer Mode -> Backup/Restore (Hex) and
 // send the hex code to have them baked in here permanently.
-const HAND_MAPPING_PRESETS = {};
+const HAND_MAPPING_PRESETS = {
+    '9_hand_counts': {
+        name: "Finger Counts",
+        type: 'key9',
+        map: {
+            'k9_1': '16', 'k9_2': '24', 'k9_3': '28', 'k9_4': '30', 'k9_5': '62',
+            'k9_6': '34', 'k9_7': '48', 'k9_8': '50', 'k9_9': '100'
+        }
+    },
+    '12_hand_counts': {
+        name: "Finger Counts Extended",
+        type: 'key12',
+        map: {
+            'k12_1': '16', 'k12_2': '24', 'k12_3': '28', 'k12_4': '30', 'k12_5': '62',
+            'k12_6': '34', 'k12_7': '48', 'k12_8': '50', 'k12_9': '100',
+            'k12_10': '12', 'k12_11': '20', 'k12_12': '36'
+        }
+    },
+    'piano_hand_default': {
+        name: "Finger Counts",
+        type: 'piano',
+        map: {
+            'piano_C': '16', 'piano_D': '24', 'piano_E': '28', 'piano_F': '30', 'piano_G': '62',
+            'piano_A': '34', 'piano_B': '48',
+            'piano_1': '50', 'piano_2': '100', 'piano_3': '12', 'piano_4': '20', 'piano_5': '36'
+        }
+    }
+};
 
 const GESTURE_CATEGORIES = {
     'Anchors': [
@@ -151,6 +178,15 @@ const GESTURE_CATEGORIES = {
 // (saved under "My Setups"), then export via Developer Mode -> Backup/Restore (Hex) and
 // send the hex code to have them baked in here permanently.
 const GESTURE_PRESETS = {
+    '9_taps': {
+        name: "Basic Taps",
+        type: 'key9',
+        map: {
+            'k9_1': 'tap', 'k9_2': 'double_tap', 'k9_3': 'triple_tap',
+            'k9_4': 'tap_2f', 'k9_5': 'double_tap_2f', 'k9_6': 'triple_tap_2f',
+            'k9_7': 'tap_3f', 'k9_8': 'double_tap_3f', 'k9_9': 'triple_tap_3f'
+        }
+    },
     '9_spatial': {
         name: "Spatial Taps (3x3 Grid)",
         type: 'key9',
@@ -158,6 +194,25 @@ const GESTURE_PRESETS = {
             'k9_1': 'Double_tap_spatial_nw', 'k9_2': 'Double_tap_spatial_up', 'k9_3': 'Double_tap_spatial_ne',
             'k9_4': 'Double_tap_spatial_left', 'k9_5': 'double_tap', 'k9_6': 'Double_tap_spatial_right',
             'k9_7': 'Double_tap_spatial_sw', 'k9_8': 'Double_tap_spatial_down', 'k9_9': 'Double_tap_spatial_se'
+        }
+    },
+    '12_taps': {
+        name: "Basic Taps",
+        type: 'key12',
+        map: {
+            'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
+            'k12_5': 'tap_2f', 'k12_6': 'double_tap_2f', 'k12_7': 'triple_tap_2f', 'k12_8': 'long_tap_2f',
+            'k12_9': 'tap_3f', 'k12_10': 'double_tap_3f', 'k12_11': 'triple_tap_3f', 'k12_12': 'long_tap_3f'
+        }
+    },
+    'piano_taps': {
+        name: "Basic Swipes",
+        type: 'piano',
+        map: {
+            'piano_C': 'swipe_nw', 'piano_D': 'swipe_left', 'piano_E': 'swipe_sw', 'piano_F': 'swipe_down',
+            'piano_G': 'swipe_se', 'piano_A': 'swipe_right', 'piano_B': 'swipe_ne',
+            'piano_1': 'swipe_left_2f', 'piano_2': 'swipe_nw_2f', 'piano_3': 'swipe_up_2f',
+            'piano_4': 'swipe_ne_2f', 'piano_5': 'swipe_right_2f'
         }
     }
 };
@@ -951,7 +1006,7 @@ initListeners() {
                     };
                 };
                 syncTestToggle('test-hand-toggle', 'handToggle');
-                syncTestToggle('test-touch-toggle', 'gestureToggle');
+                syncTestToggle('test-touch-toggle', 'touchToggle');
                 syncTestToggle('test-voice-toggle', 'voiceToggle');
             };
         }
@@ -1805,6 +1860,9 @@ initListeners() {
                 { id: 'gesture-handhold-slider', valId: 'gesture-handhold-val', prop: 'handHoldFrames', unit: '', def: 4 },
                 { id: 'voice-confidence-slider', valId: 'voice-confidence-val', prop: 'voiceConfidenceThreshold', unit: '%', def: 50 },
                 { id: 'tone-threshold-slider', valId: 'tone-threshold-val', prop: 'toneVolumeThreshold', unit: 'dB', def: -70 },
+                { id: 'gesture-anchordist-slider', valId: 'gesture-anchordist-val', prop: 'touchAnchorStillDistance', unit: 'px', def: 15 },
+                { id: 'gesture-anchorhold-slider', valId: 'gesture-anchorhold-val', prop: 'touchAnchorMinHoldTime', unit: 'ms', def: 150 },
+                { id: 'gesture-chordwindow-slider', valId: 'gesture-chordwindow-val', prop: 'touchChordSimultaneityWindow', unit: 'ms', def: 50 },
             ];
             moreSliders.forEach(({ id, valId, prop, unit, def }) => {
                 const slider = document.getElementById(id);
@@ -1851,14 +1909,14 @@ initListeners() {
     }
 
     populateMorseUI() {
-        const tab = document.getElementById('developer-mode-modal')?.querySelector('.overflow-y-auto');
+        const tab = document.getElementById('morse-container-target');
         if (!tab) return;
         
         let container = document.getElementById('morse-container');
         if (!container) {
             container = document.createElement('div');
             container.id = 'morse-container';
-            container.className = "mt-6 p-4 rounded-lg bg-black bg-opacity-20 border border-gray-700";
+            container.className = "";
             tab.appendChild(container);
         }
 
@@ -1947,9 +2005,6 @@ initListeners() {
     }
     
     applyDefaultGestureMappings() {
-        // FIX: "i want gesture presets erased so i can make my own" - no longer auto-assigns
-        // anything; every key starts Unassigned so custom presets can be built from scratch.
-        return;
         this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
         
         const defaults = {

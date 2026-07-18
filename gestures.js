@@ -44,20 +44,13 @@ export const HAND_GESTURE_GROUPS = [
         gestures: [
             { id: "200", name: "🪃 Boomerang Pattern" },
             { id: "201", name: "⚡ Zigzag Motion" },
+            { id: "202", name: "⚓ Anchor Hold" },
             { id: "203", name: "🔄 Circular Sweep" }
         ]
     },
     {
-        id: "hand_anchors",
-        name: "Hand Anchors",
-        enabled: true,
-        gestures: [
-            { id: "202", name: "⚓ Anchor Hold" }
-        ]
-    },
-    {
-        id: "hand_chords",
-        name: "Hand Chords (specific finger combos)",
+        id: "hand_combos",
+        name: "Hand Combos (specific finger combinations)",
         enabled: true,
         gestures: [
             { id: "12", name: "🥢 Chopsticks" },
@@ -272,6 +265,70 @@ export class GestureEngine {
         }
     }
 
+    // Classifies a single finger's own path in isolation - used by anchor/chord detection,
+    // which needs to look at what EACH finger did independently rather than the collective
+    // average _analyze() uses for normal multi-finger swipes.
+    _classifySingleFinger(ptr) {
+        const pts = ptr.pts;
+        const first = pts[0];
+        const last = pts[pts.length - 1];
+        const dx = last.x - first.x;
+        const dy = last.y - first.y;
+        const dist = Math.hypot(dx, dy);
+        const duration = (ptr.endTime || Date.now()) - ptr.startTime;
+
+        // "Still" (anchor candidate) needs BOTH minimal movement AND to have been held for a
+        // while - a fast, precise tap can have equally tiny displacement, so distance alone
+        // can't tell the two apart.
+        if (dist < 15 && duration >= 150) return { kind: 'still' };
+        if (dist < this.config.tapPrecision && duration < this.config.longPressTime) return { kind: 'tap' };
+        if (dist > this.config.swipeThreshold) return { kind: 'swipe', dir: this._getDirection(dx, dy) };
+        return { kind: 'ambiguous' };
+    }
+
+    // FIX: "anchors... hold 1 down and then tap or swipe with another" / "chords... each finger
+    // isn't doing the same thing" - two genuinely new gesture types, not just re-exposing
+    // existing ones. Anchor: whichever finger touched down FIRST stayed still (a modifier, like
+    // holding Shift) while the second finger tapped or swiped. Chord: both fingers had real,
+    // independent motion that DIFFERED from each other (two fingers swiping the same direction
+    // together is already the existing multi-finger swipe - this is specifically for when they
+    // don't match). Runs before the normal analyzer and only intercepts when one of these two
+    // patterns actually matches; otherwise everything falls through unchanged.
+    _tryAnchorOrChord(inputs) {
+        if (inputs.length !== 2) return false;
+
+        const sorted = [...inputs].sort((a, b) => a.startTime - b.startTime);
+        const first = sorted[0], second = sorted[1];
+        const downTimeDelta = second.startTime - first.startTime;
+        const c1 = this._classifySingleFinger(first);
+        const c2 = this._classifySingleFinger(second);
+
+        // Anchor: first-down finger held still, second finger acted - inherently sequential
+        // (that's the whole point of a modifier), so no simultaneity requirement here.
+        if (c1.kind === 'still' && (c2.kind === 'tap' || c2.kind === 'swipe')) {
+            if (c2.kind === 'tap') this._emitGesture('anchor', 2, { subMode: 'tap' });
+            else this._emitGesture('anchor', 2, { subMode: 'swipe', dir: c2.dir });
+            return true;
+        }
+
+        // Chord: both fingers touched down within a tight simultaneity window (~50ms - humans
+        // can't land multiple fingers on glass at the exact same millisecond) and each had real,
+        // independent motion that differs from the other.
+        const SIMULTANEITY_WINDOW_MS = 50;
+        if (downTimeDelta <= SIMULTANEITY_WINDOW_MS && (c1.kind === 'tap' || c1.kind === 'swipe') && (c2.kind === 'tap' || c2.kind === 'swipe')) {
+            const label1 = c1.kind === 'tap' ? 'tap' : c1.dir;
+            const label2 = c2.kind === 'tap' ? 'tap' : c2.dir;
+            if (label1 !== label2) {
+                // Sort alphabetically so "up+left" and "left+up" produce the same id
+                const [a, b] = [label1, label2].sort();
+                this._emitGesture('chord', 2, { subMode: `${a}_${b}` });
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     _handleUp(e) {
         if (!this.activePointers[e.pointerId]) return;
         this.activePointers[e.pointerId].endTime = Date.now();
@@ -292,7 +349,14 @@ export class GestureEngine {
             }
 
             clearTimeout(this.debounceTimer);
-            this.debounceTimer = setTimeout(() => this._analyze(), 50);
+            this.debounceTimer = setTimeout(() => {
+                const inputs = this.history;
+                if (this._tryAnchorOrChord(inputs)) {
+                    this.history = [];
+                    return;
+                }
+                this._analyze();
+            }, 50);
         }
     }
 

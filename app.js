@@ -1,5 +1,5 @@
 import { GestureEngine } from './gestures.js';
-import { SettingsManager, PREMADE_THEMES, PREMADE_VOICE_PRESETS } from './settings.js';
+import { SettingsManager, PREMADE_THEMES } from './settings.js';
 import { VisionEngine } from './vision.js';
 // NOTE: Firebase (initializeApp/getFirestore) and comments.js used to be imported statically
 // here. A static import that fails (CORS block, ad-blocker, offline, network hiccup) fails the

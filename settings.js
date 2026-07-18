@@ -61,6 +61,15 @@ export const PREMADE_VOICE_PRESETS = {
 const HAND_MAPPING_PRESETS = {};
 
 const GESTURE_CATEGORIES = {
+    'Anchors': [
+        'anchor_tap_2f', 'anchor_swipe_up_2f', 'anchor_swipe_down_2f', 'anchor_swipe_left_2f', 'anchor_swipe_right_2f'
+    ],
+    'Chords': [
+        'chord_down_left_2f', 'chord_down_right_2f', 'chord_down_tap_2f', 'chord_down_up_2f',
+        'chord_left_right_2f', 'chord_left_tap_2f', 'chord_left_up_2f',
+        'chord_right_tap_2f', 'chord_right_up_2f',
+        'chord_tap_up_2f'
+    ],
     'Taps': [
         'tap', 'double_tap', 'triple_tap', 'long_tap'
     ],
@@ -180,7 +189,7 @@ export class SettingsManager {
     // is assignable.
     applyTouchGestureOptions() {
         if (!this.appSettings.activeGestureFilters) {
-            this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', 'Motion', 'Transitions', 'Anchors', 'Chords', ...Object.keys(GESTURE_CATEGORIES)];
+            this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', 'Motion', 'Transitions', 'Combos', ...Object.keys(GESTURE_CATEGORIES)];
         }
         const active = this.appSettings.activeGestureFilters;
 
@@ -220,7 +229,7 @@ export class SettingsManager {
         this.dom.filterToggles.forEach(toggle => {
             toggle.addEventListener('change', () => {
                 if (!this.appSettings.activeGestureFilters) {
-                    this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', 'Motion', 'Transitions', 'Anchors', 'Chords', ...Object.keys(GESTURE_CATEGORIES)];
+                    this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', 'Motion', 'Transitions', 'Combos', ...Object.keys(GESTURE_CATEGORIES)];
                 }
                 const group = toggle.dataset.group;
                 if (toggle.checked) {
@@ -242,10 +251,10 @@ export class SettingsManager {
     // select's current value where it's still a valid option.
     applyHandGestureFilters() {
         if (!this.appSettings.activeGestureFilters) {
-            this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', 'Motion', 'Transitions', 'Anchors', 'Chords', ...Object.keys(GESTURE_CATEGORIES)];
+            this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', 'Motion', 'Transitions', 'Combos', ...Object.keys(GESTURE_CATEGORIES)];
         }
         const active = this.appSettings.activeGestureFilters;
-        const groupIdByFilter = { 'Poses': 'hand_poses', 'Pinches': 'hand_pinches', 'Counts': 'hand_counts', 'Shapes': 'hand_vision_shapes', 'Motion': 'hand_swipes', 'Transitions': 'hand_transitions', 'Anchors': 'hand_anchors', 'Chords': 'hand_chords' };
+        const groupIdByFilter = { 'Poses': 'hand_poses', 'Pinches': 'hand_pinches', 'Counts': 'hand_counts', 'Shapes': 'hand_vision_shapes', 'Motion': 'hand_swipes', 'Transitions': 'hand_transitions', 'Combos': 'hand_combos' };
 
         let options = [];
         active.forEach(filterName => {
@@ -1558,7 +1567,7 @@ initListeners() {
         // the hand-mapping dropdowns to match.
         if (this.dom.filterToggles) {
             if (!this.appSettings.activeGestureFilters) {
-                this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', 'Motion', 'Transitions', 'Anchors', 'Chords', ...Object.keys(GESTURE_CATEGORIES)];
+                this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', 'Motion', 'Transitions', 'Combos', ...Object.keys(GESTURE_CATEGORIES)];
             }
             this.dom.filterToggles.forEach(toggle => {
                 toggle.checked = this.appSettings.activeGestureFilters.includes(toggle.dataset.group);

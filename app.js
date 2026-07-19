@@ -2086,9 +2086,9 @@ function initGestureEngine() {
 
 function initGlobalListeners() {
 // In settings.js - initListeners() method
-
-try {
-    const openDevBtn = document.getElementById('open-developer-mode-btn');
+    
+    try {
+        const openDevBtn = document.getElementById('open-developer-mode-btn');
     const closeDevBtn = document.getElementById('close-developer-mode-btn');
     const devModal = document.getElementById('developer-mode-modal');
     const settingsModalEl = document.getElementById('settings-modal');
@@ -2106,7 +2106,6 @@ try {
             // The click handler continues with the rest of the test setup...
         };
     } 
-    try {
       // --- BUTTON LISTENERS ---
       document.querySelectorAll('.btn-pad-number').forEach(b => {
           const press = (e) => { 

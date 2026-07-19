@@ -1527,6 +1527,7 @@ const toneEngine = new ToneEngine((val) => {
     if (el) el.textContent = text;
     if (testEl) testEl.textContent = text;
 });
+window.toneEngine = toneEngine;
 
 
   // 5. Initialize Vision Engine

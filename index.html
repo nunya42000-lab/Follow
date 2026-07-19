@@ -459,6 +459,9 @@
         <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
         <span class="font-bold text-sm text-muted-custom">Hand Gestures🖐️</span>
         <input type="checkbox" id="handToggle" class="h-5 w-5 accent-indigo-500"></div>
+        <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Hand Skeleton Overlay 🦴</span>
+        <input type="checkbox" id="skeletonDebugToggle" class="h-5 w-5 accent-indigo-500"></div>
         <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
         <span class="font-bold text-sm text-muted-custom">Hand Signals🖐️</span>
         <input type="checkbox" id="handsignalsToggle" class="h-6 w-6 rounded accent-indigo-500"></div>
@@ -836,75 +839,71 @@
                         <button id="hex-import-btn" type="button" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">Import</button>
                     </div>
                 </div>
-                <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-                    <span class="font-bold text-sm text-muted-custom">Hand Skeleton Overlay 🦴</span>
-                    <input type="checkbox" id="skeletonDebugToggle" class="h-6 w-6 accent-indigo-500">
-                </div>
                 <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
                     <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
                         <span>Test &amp; Practice 🎯</span>
                         <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
                     </summary>
                     <div class="p-3 border-t border-gray-700">
-                    <p class="text-[10px] text-gray-400 mb-3">Live readouts for calibrating distance/timing before mapping. Flip a toggle below to start that test right here - no need to leave Developer Mode.</p>
-                    <div class="grid grid-cols-4 gap-2 mb-3">
-                        <label class="flex flex-col items-center gap-1 p-2 rounded-lg bg-emerald-900 bg-opacity-20 border border-emerald-500/30 cursor-pointer">
-                            <span class="text-[10px] font-bold text-emerald-300">🖐️ Hand</span>
-                            <input type="checkbox" id="test-hand-toggle" class="h-5 w-5 accent-emerald-500">
-                        </label>
-                        <label class="flex flex-col items-center gap-1 p-2 rounded-lg bg-blue-900 bg-opacity-20 border border-blue-500/30 cursor-pointer">
-                            <span class="text-[10px] font-bold text-blue-300">👆 Touch</span>
-                            <input type="checkbox" id="test-touch-toggle" class="h-5 w-5 accent-blue-500">
-                        </label>
-                        <label class="flex flex-col items-center gap-1 p-2 rounded-lg bg-yellow-900 bg-opacity-20 border border-yellow-500/30 cursor-pointer">
-                            <span class="text-[10px] font-bold text-yellow-300">🎤 Voice</span>
-                            <input type="checkbox" id="test-voice-toggle" class="h-5 w-5 accent-yellow-500">
-                        </label>
-                        <label class="flex flex-col items-center gap-1 p-2 rounded-lg bg-purple-900 bg-opacity-20 border border-purple-500/30 cursor-pointer">
-                            <span class="text-[10px] font-bold text-purple-300">🎵 Tone</span>
-                            <input type="checkbox" id="test-tone-toggle" class="h-5 w-5 accent-purple-500">
-                        </label>
+                    <p class="text-[10px] text-gray-400 mb-3">Fully independent of your real settings - starting a test here never changes what's on/off for actual gameplay, and stops itself when you leave the tab.</p>
+
+                    <div class="grid grid-cols-4 gap-1 mb-3">
+                        <button type="button" id="test-tab-btn-hand" class="test-tab-btn py-2 rounded-lg text-[10px] font-bold bg-emerald-600 text-white">🖐️ Hand</button>
+                        <button type="button" id="test-tab-btn-touch" class="test-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300">👆 Touch</button>
+                        <button type="button" id="test-tab-btn-voice" class="test-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300">🎤 Voice</button>
+                        <button type="button" id="test-tab-btn-tone" class="test-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300">🎵 Tone</button>
                     </div>
-                    <label class="flex items-center justify-between gap-2 p-2 mb-3 rounded-lg bg-red-900 bg-opacity-20 border border-red-500/30 cursor-pointer">
-                        <span class="font-bold text-xs text-red-300">🔒 Lock Test Area (swipes/taps here won't affect your real sequence)</span>
-                        <input type="checkbox" id="testAreaLockToggle" class="h-5 w-5 accent-red-500" checked>
-                    </label>
-                    <div id="test-area-lock-container" class="no-swipe-zone">
-                    <div class="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-gray-700 mb-3">
-                        <video id="practice-preview-video" class="w-full h-full object-cover scale-x-[-1]" muted playsinline></video>
-                        <canvas id="practice-preview-canvas" class="absolute inset-0 w-full h-full scale-x-[-1]"></canvas>
-                        <div id="practice-preview-placeholder" class="absolute inset-0 flex items-center justify-center text-[10px] text-gray-500">Turn on Hand Gestures to see your camera + skeleton here</div>
-                    </div>
-                    <div class="space-y-2">
-                        <div class="p-2 rounded bg-gray-950 border border-gray-700">
-                            <span class="text-[10px] font-bold text-emerald-400 uppercase">🖐️ Hand (with skeleton above)</span>
-                            <div id="test-hand-readout" class="font-mono text-xs text-emerald-300 mt-1">Waiting for a hand pose...</div>
+
+                    <div id="test-panel-hand" class="test-panel">
+                        <button type="button" id="test-hand-start-btn" class="w-full py-2 mb-2 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white">▶️ Start Camera Test</button>
+                        <div class="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-gray-700 mb-3">
+                            <video id="practice-preview-video" class="w-full h-full object-cover scale-x-[-1]" muted playsinline></video>
+                            <canvas id="practice-preview-canvas" class="absolute inset-0 w-full h-full"></canvas>
+                            <div id="practice-preview-placeholder" class="absolute inset-0 flex items-center justify-center text-[10px] text-gray-500 text-center px-4">Tap "Start Camera Test" above</div>
                         </div>
                         <div class="p-2 rounded bg-gray-950 border border-gray-700">
-                            <span class="text-[10px] font-bold text-blue-400 uppercase">👆 Touch</span>
-                            <div id="test-touch-readout" class="font-mono text-xs text-blue-300 mt-1">Waiting for a touch gesture...</div>
-                        </div>
-                        <div class="p-2 rounded bg-gray-950 border border-gray-700">
-                            <span class="text-[10px] font-bold text-yellow-400 uppercase">🎤 Voice</span>
-                            <div id="test-voice-readout" class="font-mono text-xs text-yellow-300 mt-1">Waiting for speech...</div>
-                        </div>
-                        <div class="p-2 rounded bg-gray-950 border border-gray-700">
-                            <span class="text-[10px] font-bold text-purple-400 uppercase">🎵 Tone Cadence</span>
-                            <div id="test-tone-readout" class="font-mono text-xs text-purple-300 mt-1">Waiting for a hum/whistle...</div>
+                            <span class="text-[10px] font-bold text-emerald-400 uppercase">🖐️ Detected Pose</span>
+                            <div id="test-hand-readout" class="font-mono text-xs text-emerald-300 mt-1">Not testing</div>
                         </div>
                     </div>
 
-                    <div class="mt-3 p-3 rounded-lg bg-purple-950 bg-opacity-30 border border-purple-500/30">
-                        <p class="text-[10px] font-bold uppercase text-purple-300 mb-2">🔊 Speaker Test Sequence (no mic/humming needed)</p>
-                        <p class="text-[10px] text-gray-400 mb-2">Plays your sequence as tones through the speaker so the mic (turn on 🎵 Tone above) can pick them up - a repeatable way to test the whole pipeline without humming yourself. Uses the same 9-Key notes (C D E F G A B C D) and 200ms/800ms timing your Tone Cadence engine expects.</p>
-                        <label class="text-[10px] font-bold text-gray-400 block mb-1">Sequence (1-9, comma separated)</label>
-                        <input type="text" id="tone-test-sequence" value="1,1,1,4,6,2,2,3,6,7,1,7,1,3,2,2,3,8,7,1" class="w-full p-2 mb-2 rounded text-xs font-mono bg-gray-950 border border-gray-600 text-white">
-                        <div class="grid grid-cols-2 gap-2 mb-2">
-                            <button id="tone-test-play-btn" type="button" class="py-2 text-xs bg-purple-600 hover:bg-purple-500 rounded text-white font-bold">▶️ Play Sequence</button>
-                            <button id="tone-test-stop-btn" type="button" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">⏹️ Stop</button>
+                    <div id="test-panel-touch" class="test-panel hidden">
+                        <p class="text-[10px] text-gray-400 mb-2">The touch engine is always listening across the whole screen (that's how gestures work in the real app too) - tap/swipe in the box below to test safely, without it affecting your real sequence.</p>
+                        <div id="test-area-lock-container" class="no-swipe-zone h-32 rounded-lg border-2 border-dashed border-blue-500/40 bg-blue-950 bg-opacity-20 flex items-center justify-center text-xs text-blue-300 mb-3">
+                            Tap or swipe anywhere in this box
                         </div>
-                        <div id="tone-test-progress" class="text-[10px] font-mono text-purple-300 text-center">Not playing</div>
+                        <div class="p-2 rounded bg-gray-950 border border-gray-700">
+                            <span class="text-[10px] font-bold text-blue-400 uppercase">👆 Detected Gesture</span>
+                            <div id="test-touch-readout" class="font-mono text-xs text-blue-300 mt-1">Waiting for a touch gesture...</div>
+                        </div>
                     </div>
+
+                    <div id="test-panel-voice" class="test-panel hidden">
+                        <button type="button" id="test-voice-start-btn" class="w-full py-2 mb-2 rounded-lg text-xs font-bold bg-yellow-600 hover:bg-yellow-500 text-white">▶️ Start Mic Test</button>
+                        <p class="text-[10px] text-gray-400 mb-2">Say your Voice Trigger word, then a number or command, same as real use.</p>
+                        <div class="p-2 rounded bg-gray-950 border border-gray-700">
+                            <span class="text-[10px] font-bold text-yellow-400 uppercase">🎤 Heard</span>
+                            <div id="test-voice-readout" class="font-mono text-xs text-yellow-300 mt-1">Not testing</div>
+                        </div>
+                    </div>
+
+                    <div id="test-panel-tone" class="test-panel hidden">
+                        <button type="button" id="test-tone-start-btn" class="w-full py-2 mb-2 rounded-lg text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white">▶️ Start Mic Test</button>
+                        <div class="p-2 rounded bg-gray-950 border border-gray-700 mb-3">
+                            <span class="text-[10px] font-bold text-purple-400 uppercase">🎵 Detected Note</span>
+                            <div id="test-tone-readout" class="font-mono text-xs text-purple-300 mt-1">Not testing</div>
+                        </div>
+                        <div class="p-3 rounded-lg bg-purple-950 bg-opacity-30 border border-purple-500/30">
+                            <p class="text-[10px] font-bold uppercase text-purple-300 mb-2">🔊 Speaker Test Sequence</p>
+                            <p class="text-[10px] text-gray-400 mb-2">Plays your sequence as tones through the speaker so the mic test above can try to pick them up - a repeatable way to test without humming yourself. Start the mic test above first.</p>
+                            <label class="text-[10px] font-bold text-gray-400 block mb-1">Sequence (1-9, comma separated)</label>
+                            <input type="text" id="tone-test-sequence" value="1,1,1,4,6,2,2,3,6,7,1,7,1,3,2,2,3,8,7,1" class="w-full p-2 mb-2 rounded text-xs font-mono bg-gray-950 border border-gray-600 text-white">
+                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                <button id="tone-test-play-btn" type="button" class="py-2 text-xs bg-purple-600 hover:bg-purple-500 rounded text-white font-bold">▶️ Play Sequence</button>
+                                <button id="tone-test-stop-btn" type="button" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">⏹️ Stop</button>
+                            </div>
+                            <div id="tone-test-progress" class="text-[10px] font-mono text-purple-300 text-center">Not playing</div>
+                        </div>
                     </div>
                     </div>
                 </details>

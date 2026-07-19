@@ -1057,64 +1057,157 @@ initListeners() {
         const settingsModalEl = document.getElementById('settings-modal');
         if (openDevBtn && devModal) {
             openDevBtn.onclick = () => {
-                if (settingsModalEl) settingsModalEl.classList.add('opacity-0', 'pointer-events-none');
-                devModal.classList.remove('opacity-0', 'pointer-events-none');
-                if (window.lockBodyScroll) window.lockBodyScroll();
-                // Attach the live camera stream (if hand tracking is active) to the mini preview
-                const previewVideo = document.getElementById('practice-preview-video');
-                const placeholder = document.getElementById('practice-preview-placeholder');
-                if (previewVideo && window.modules && window.modules.vision && window.modules.vision.video && window.modules.vision.video.srcObject) {
-                    previewVideo.srcObject = window.modules.vision.video.srcObject;
-                    previewVideo.play().catch(() => {});
-                    if (placeholder) placeholder.classList.add('hidden');
-                } else if (placeholder) {
-                    placeholder.classList.remove('hidden');
-                }
+                // ==========================================================
+                // Test & Practice - fully independent of real app settings.
+                // ==========================================================
+                if (!window.__testAreaSetup) {
+                    window.__testAreaSetup = true;
 
-                // Sync the self-contained test toggles to reflect (and drive) the real settings,
-                // so flipping one here actually starts/stops the real engine via its existing
-                // logic rather than duplicating it.
-                const syncTestToggle = (testId, realId) => {
-                    const testEl = document.getElementById(testId);
-                    const realEl = document.getElementById(realId);
-                    if (!testEl || !realEl) return;
-                    testEl.checked = realEl.checked;
-                    testEl.onchange = () => {
-                        realEl.checked = testEl.checked;
-                        realEl.dispatchEvent(new Event('change', { bubbles: true }));
+                    let activeTestTab = 'hand';
+                    const tabButtons = {
+                        hand: document.getElementById('test-tab-btn-hand'),
+                        touch: document.getElementById('test-tab-btn-touch'),
+                        voice: document.getElementById('test-tab-btn-voice'),
+                        tone: document.getElementById('test-tab-btn-tone'),
                     };
-                };
-                syncTestToggle('test-hand-toggle', 'handToggle');
-                syncTestToggle('test-touch-toggle', 'touchToggle');
-                syncTestToggle('test-voice-toggle', 'voiceToggle');
-                syncTestToggle('test-tone-toggle', 'toneToggle');
+                    const tabColors = { hand: 'emerald', touch: 'blue', voice: 'yellow', tone: 'purple' };
+                    const panels = {
+                        hand: document.getElementById('test-panel-hand'),
+                        touch: document.getElementById('test-panel-touch'),
+                        voice: document.getElementById('test-panel-voice'),
+                        tone: document.getElementById('test-panel-tone'),
+                    };
 
-                // Tone Cadence speaker test sequence - play/stop, guarded so repeated Dev Mode
-                // opens don't stack duplicate click handlers.
-                if (!window.__toneTestSetup) {
-                    window.__toneTestSetup = true;
+                    const stopAllTests = () => {
+                        if (window.__testHandStop) window.__testHandStop();
+                        if (window.__testVoiceStop) window.__testVoiceStop();
+                        if (window.__testToneStop) window.__testToneStop();
+                    };
+
+                    const switchTestTab = (tab) => {
+                        if (tab !== activeTestTab) stopAllTests();
+                        activeTestTab = tab;
+                        Object.keys(panels).forEach(key => {
+                            panels[key]?.classList.toggle('hidden', key !== tab);
+                            const btn = tabButtons[key];
+                            if (!btn) return;
+                            if (key === tab) {
+                                btn.className = `test-tab-btn py-2 rounded-lg text-[10px] font-bold bg-${tabColors[key]}-600 text-white`;
+                            } else {
+                                btn.className = 'test-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300';
+                            }
+                        });
+                    };
+                    Object.keys(tabButtons).forEach(key => {
+                        if (tabButtons[key]) tabButtons[key].onclick = () => switchTestTab(key);
+                    });
+                    // Stopping everything when Dev Mode itself closes
+                    window.__stopAllDevModeTests = stopAllTests;
+
+                    // --- HAND TEST: directly starts/stops the real vision engine's camera,
+                    // without touching appSettings.isHandGesturesEnabled at all. ---
+                    const handStartBtn = document.getElementById('test-hand-start-btn');
+                    const handPlaceholder = document.getElementById('practice-preview-placeholder');
+                    const previewVideo = document.getElementById('practice-preview-video');
+                    let handTestRunning = false;
+                    const stopHandTest = () => {
+                        if (!handTestRunning) return;
+                        handTestRunning = false;
+                        if (window.modules?.vision) window.modules.vision.stop();
+                        if (previewVideo) previewVideo.srcObject = null;
+                        if (handPlaceholder) { handPlaceholder.classList.remove('hidden'); handPlaceholder.textContent = 'Tap "Start Camera Test" above'; }
+                        if (handStartBtn) handStartBtn.textContent = '▶️ Start Camera Test';
+                        const readout = document.getElementById('test-hand-readout');
+                        if (readout) readout.textContent = 'Not testing';
+                    };
+                    window.__testHandStop = stopHandTest;
+                    if (handStartBtn) {
+                        handStartBtn.onclick = async () => {
+                            if (handTestRunning) { stopHandTest(); return; }
+                            if (!window.modules?.vision) { if (handPlaceholder) handPlaceholder.textContent = 'Vision engine unavailable'; return; }
+                            handTestRunning = true;
+                            handStartBtn.textContent = '⏹️ Stop Camera Test';
+                            if (handPlaceholder) handPlaceholder.textContent = 'Starting camera...';
+                            await window.modules.vision.start();
+                            if (previewVideo && window.modules.vision.video?.srcObject) {
+                                previewVideo.srcObject = window.modules.vision.video.srcObject;
+                                previewVideo.play().catch(() => {});
+                                if (handPlaceholder) handPlaceholder.classList.add('hidden');
+                            }
+                        };
+                    }
+
+                    // --- VOICE TEST: a standalone SpeechRecognition instance, separate from the
+                    // real VoiceCommander, so testing never depends on or changes Voice Input. ---
+                    const voiceStartBtn = document.getElementById('test-voice-start-btn');
+                    let testRecognition = null;
+                    const stopVoiceTest = () => {
+                        if (testRecognition) { try { testRecognition.stop(); } catch (e) {} testRecognition = null; }
+                        if (voiceStartBtn) voiceStartBtn.textContent = '▶️ Start Mic Test';
+                        const readout = document.getElementById('test-voice-readout');
+                        if (readout) readout.textContent = 'Not testing';
+                    };
+                    window.__testVoiceStop = stopVoiceTest;
+                    if (voiceStartBtn) {
+                        voiceStartBtn.onclick = () => {
+                            if (testRecognition) { stopVoiceTest(); return; }
+                            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+                            const readout = document.getElementById('test-voice-readout');
+                            if (!SR) { if (readout) readout.textContent = 'Speech recognition not supported in this browser'; return; }
+                            testRecognition = new SR();
+                            testRecognition.continuous = true;
+                            testRecognition.interimResults = true;
+                            testRecognition.onresult = (e) => {
+                                const last = e.results[e.results.length - 1];
+                                if (readout) readout.textContent = `"${last[0].transcript}"` + (last.isFinal ? ` (${Math.round(last[0].confidence * 100)}%)` : ' (listening...)');
+                            };
+                            testRecognition.onerror = (e) => { if (readout) readout.textContent = `Mic error: ${e.error}`; };
+                            testRecognition.onend = () => { if (testRecognition) { try { testRecognition.start(); } catch (e) {} } }; // auto-restart while test is active
+                            testRecognition.start();
+                            voiceStartBtn.textContent = '⏹️ Stop Mic Test';
+                            if (readout) readout.textContent = 'Listening...';
+                        };
+                    }
+
+                    // --- TONE TEST: directly starts/stops the real ToneEngine singleton, without
+                    // touching appSettings.isToneCadenceEnabled. This is a full overhaul - before,
+                    // the test toggle only ever changed a setting that controls header button
+                    // visibility, and never actually started the mic or the engine at all. ---
+                    const toneStartBtn = document.getElementById('test-tone-start-btn');
+                    let toneTestRunning = false;
+                    const stopToneTest = () => {
+                        if (!toneTestRunning) return;
+                        toneTestRunning = false;
+                        if (window.toneEngine) window.toneEngine.stop();
+                        if (toneStartBtn) toneStartBtn.textContent = '▶️ Start Mic Test';
+                        const readout = document.getElementById('test-tone-readout');
+                        if (readout) readout.textContent = 'Not testing';
+                    };
+                    window.__testToneStop = stopToneTest;
+                    if (toneStartBtn) {
+                        toneStartBtn.onclick = async () => {
+                            if (toneTestRunning) { stopToneTest(); return; }
+                            if (!window.toneEngine) { const r = document.getElementById('test-tone-readout'); if (r) r.textContent = 'Tone engine unavailable'; return; }
+                            toneTestRunning = true;
+                            toneStartBtn.textContent = '⏹️ Stop Mic Test';
+                            await window.toneEngine.start();
+                        };
+                    }
+
+                    // --- Speaker test sequence player (unchanged core logic, still independent) ---
                     const playBtn = document.getElementById('tone-test-play-btn');
                     const stopBtn = document.getElementById('tone-test-stop-btn');
                     const seqInput = document.getElementById('tone-test-sequence');
                     const progressEl = document.getElementById('tone-test-progress');
                     const noteNames = ['', 'C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D'];
-
                     if (playBtn) {
                         playBtn.onclick = () => {
-                            if (!window.toneSequenceTester) return;
-                            if (window.toneSequenceTester.isPlaying) return;
+                            if (!window.toneSequenceTester || window.toneSequenceTester.isPlaying) return;
                             const raw = (seqInput?.value || '').split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n >= 1 && n <= 9);
-                            if (raw.length === 0) {
-                                if (progressEl) progressEl.textContent = 'Enter a sequence of numbers 1-9 first.';
-                                return;
-                            }
+                            if (raw.length === 0) { if (progressEl) progressEl.textContent = 'Enter a sequence of numbers 1-9 first.'; return; }
                             window.toneSequenceTester.playSequence(raw, 200, 800, (i, total, num, freq) => {
                                 if (!progressEl) return;
-                                if (i === -1) {
-                                    progressEl.textContent = 'Done ✅';
-                                } else {
-                                    progressEl.textContent = `Playing ${i + 1}/${total}: ${num} (${noteNames[num]}, ${Math.round(freq)}Hz)`;
-                                }
+                                progressEl.textContent = (i === -1) ? 'Done ✅' : `Playing ${i + 1}/${total}: ${num} (${noteNames[num]}, ${Math.round(freq)}Hz)`;
                             });
                         };
                     }
@@ -1124,32 +1217,14 @@ initListeners() {
                             if (progressEl) progressEl.textContent = 'Stopped';
                         };
                     }
-                }
 
-                // FIX: "testing area needs... a lock toggle so swiping doesn't move it" - the
-                // global touch gesture engine listens on the whole document, so without this,
-                // testing a swipe/tap in the practice area could ALSO fire it for real (adding
-                // to your actual sequence while you're just watching the readout).
-                //
-                // FIX #2: "the test section doesn't work" - the first version of this used
-                // capture-phase listeners on `document`, which stop the event before it even
-                // reaches its actual target - that blocked the Play/Stop buttons and the sequence
-                // input from ever getting their own click/input events, not just from bubbling
-                // further up. A bubble-phase listener on the container itself lets the target's
-                // own handler fire first (target-phase always runs regardless), then stops it
-                // from continuing up to the engine's listener on document.body.
-                if (!window.__testAreaLockSetup) {
-                    window.__testAreaLockSetup = true;
+                    // --- Touch test: the engine is already global/always-on, just isolate its
+                    // effect on the real sequence via the existing lock container. ---
                     const lockContainer = document.getElementById('test-area-lock-container');
-                    const lockToggle = document.getElementById('testAreaLockToggle');
                     if (lockContainer) {
-                        const stopIfLocked = (e) => {
-                            if (lockToggle && lockToggle.checked) {
-                                e.stopPropagation();
-                            }
-                        };
+                        const stopPropagationAlways = (e) => e.stopPropagation();
                         ['pointerdown', 'pointermove', 'pointerup', 'pointercancel', 'touchstart', 'touchmove', 'touchend'].forEach(type => {
-                            lockContainer.addEventListener(type, stopIfLocked, false);
+                            lockContainer.addEventListener(type, stopPropagationAlways, false);
                         });
                     }
                 }
@@ -1157,6 +1232,7 @@ initListeners() {
         }
         if (closeDevBtn && devModal) {
             closeDevBtn.onclick = () => {
+                if (window.__stopAllDevModeTests) window.__stopAllDevModeTests();
                 devModal.classList.add('opacity-0', 'pointer-events-none');
                 if (settingsModalEl) settingsModalEl.classList.remove('opacity-0', 'pointer-events-none');
                 if (window.unlockBodyScroll) window.unlockBodyScroll();

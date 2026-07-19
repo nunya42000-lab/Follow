@@ -2085,7 +2085,28 @@ function initGestureEngine() {
 }
 
 function initGlobalListeners() {
-  try {
+// In settings.js - initListeners() method
+
+try {
+    const openDevBtn = document.getElementById('open-developer-mode-btn');
+    const closeDevBtn = document.getElementById('close-developer-mode-btn');
+    const devModal = document.getElementById('developer-mode-modal');
+    const settingsModalEl = document.getElementById('settings-modal');
+    if (openDevBtn && devModal) {
+        openDevBtn.onclick = () => {
+            // ==========================================================
+            // Test & Practice - fully independent of real app settings.
+            // ==========================================================
+            if (!window.__testAreaSetup) {
+                // ... test setup code ...
+            }
+            
+            // --- THIS IS WHAT OPENS THE MODAL ---
+            devModal.classList.remove('opacity-0', 'pointer-events-none');
+            // The click handler continues with the rest of the test setup...
+        };
+    } 
+    try {
       // --- BUTTON LISTENERS ---
       document.querySelectorAll('.btn-pad-number').forEach(b => {
           const press = (e) => { 

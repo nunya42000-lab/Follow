@@ -395,7 +395,11 @@ export class SettingsManager {
         // FIX: "gestures that are hand signals cannot be used for mapping" - Fist(0)/Rock On(18)/
         // Chef Kiss(104)/OK Sign(105) are reserved for the global Stop/Play/Clear/Delete signals.
         // Letting a key also claim one would mean every Stop gesture also fires that key's input.
-        const HAND_SIGNAL_IDS = ['18', '104', '105']; // '0' (Fist) removed - Stop is now two-handed, Fist is free for regular mapping
+        // All four Hand Signals (Clear/Delete/Play/Stop) are now two-handed - detected only when
+        // BOTH hands simultaneously show the same pose, a separate check in vision.js that runs
+        // before regular single-hand recognition. A single hand showing any of these poses just
+        // falls through to normal per-key matching, so none of them need to be reserved here.
+        const HAND_SIGNAL_IDS = [];
         options = options.filter(g => !HAND_SIGNAL_IDS.includes(String(g.id)));
 
         const optionsHTML = '<option value="none">🚫 Unassigned</option>' +

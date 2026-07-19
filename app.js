@@ -1494,30 +1494,29 @@ const toneEngine = new ToneEngine((val) => {
           // --- 3. GLOBAL HAND SIGNALS (Delete / Clear / Play / Stop) ---
           // Gatekeeper: requires BOTH the master "Hand Gestures" camera toggle
           // AND the "Hand Signals" sub-toggle to be on (mirrors Voice Input + Voice Commands below).
+          // FIX: "hand signals should be special 2 handed gestures" - all four are now genuinely
+          // two-handed (detected in vision.js), replacing the old single-hand poses. Chef Kiss,
+          // OK Sign, Rock On, and Fist are no longer reserved, so they're usable for regular
+          // per-key mapping again.
           if (appSettings.isHandGesturesEnabled && appSettings.isHandSignalsEnabled) {
-              if (gestureId === 104) { // 104 = Chef Kiss
-                  showToast("Hand Signal: Clear 🧹");
-                  // Call your existing clear function here
+              if (gestureId === 'TWO_HAND_CLEAR') {
+                  showToast("Hand Signal: Clear 🧹✊✊");
                   if (typeof resetCurrentMachine === 'function') resetCurrentMachine();
                   gestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000); 
                   return;
               } 
-              if (gestureId === 105) { // 105 = OK Sign
-                  showToast("Hand Signal: Delete 🔙");
+              if (gestureId === 'TWO_HAND_DELETE') {
+                  showToast("Hand Signal: Delete 🔙👎👎");
                   if (typeof handleBackspace === 'function') handleBackspace();
                   gestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
                   return;
               }
-              if (gestureId === 18) { // 18 = Rock On (palm-forward variant 19 is normalized to 18 above)
-                  showToast("Hand Signal: Playing ▶️");
+              if (gestureId === 'TWO_HAND_PLAY') {
+                  showToast("Hand Signal: Playing ▶️👍👍");
                   playDemo();
                   gestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
                   return;
               }
-              // FIX: "hand signals should be special 2 handed gestures like both palms facing to
-              // stop playback" - Stop is now genuinely two-handed (both palms shown at once,
-              // detected in vision.js), replacing the old single-hand Fist signal. Fist (id 0) is
-              // no longer reserved, so it's usable for regular per-key mapping again.
               if (gestureId === 'TWO_HAND_STOP') {
                   isDemoPlaying = false;
                   showToast("Hand Signal: Stopped 🛑✋✋");

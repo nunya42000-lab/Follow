@@ -12,7 +12,9 @@ export const HAND_GESTURE_GROUPS = [
             { id: "18", name: "🤘 Rock On" },
             { id: "34", name: "🤙 Shaka" },
             { id: "48", name: "🫵 Gun / L-Shape" },
-            { id: "50", name: "🤟 Spidey / ILY" }
+            { id: "50", name: "🤟 Spidey / ILY" },
+            { id: "600", name: "👍 Thumbs Up" },
+            { id: "601", name: "👎 Thumbs Down" }
         ]
     },
     {

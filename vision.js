@@ -57,7 +57,9 @@ const GESTURE_DICTIONARY = {
     102: 'PINCH_RING',
     103: 'PINCH_PINKY',
     104: 'CHEF_KISS_ALL_PINCHED',
-    105: 'OK_SIGN'
+    105: 'OK_SIGN',
+    600: 'THUMBS_UP',
+    601: 'THUMBS_DOWN'
 };
 
 // --- 2. TEMPORAL DEBOUNCE BUFFER ---
@@ -147,6 +149,12 @@ function processHandData(landmarks) {
         gestureID = 102;
     } else if (dThumbPinky < pinchThreshold) {
         gestureID = 103;
+    } else if (T === 1 && I === 0 && M === 0 && R === 0 && P === 0) {
+        // Thumb is the only finger extended - "thumb up" (id 32/33) can't tell up from down on
+        // its own, since that's about which side of the hand faces the camera, not which way the
+        // thumb points. Checking the thumb tip's position relative to its own base joint (not
+        // just the wrist) gives a genuine, independent up/down reading.
+        gestureID = (n[4].y < n[2].y) ? 600 : 601; // image y increases downward, so smaller y = higher up = thumbs up
     }
 
     return gestureID;
@@ -262,16 +270,23 @@ export class VisionEngine {
             this.debugCtx.clearRect(0, 0, this.debugCanvas.width, this.debugCanvas.height);
         }
 
-        // FIX: "hand signals should be special 2 handed gestures like both palms facing to stop
-        // playback" - checked first, ahead of normal single-hand processing, and only fires when
-        // BOTH hands are simultaneously showing an open palm (id 62). This is purely additive -
-        // it doesn't touch or reinterpret any existing single-hand pose id, so every preset and
-        // mapping built around the old single-hand ids keeps working exactly as before.
+        // FIX: "hand signals should be special 2 handed gestures" - Stop (both palms), Play
+        // (both thumbs up), Delete (both thumbs down), Clear (both fists). Checked first, ahead
+        // of normal single-hand processing, and only fires when both hands simultaneously show
+        // the matching pose. Purely additive - doesn't touch or reinterpret any existing
+        // single-hand pose id, so every preset and mapping built around those keeps working.
         if (results.landmarks && results.landmarks.length === 2) {
             const rawID0 = processHandData(results.landmarks[0]);
             const rawID1 = processHandData(results.landmarks[1]);
-            if (rawID0 === 62 && rawID1 === 62) {
-                this.onTrigger({ id: 'TWO_HAND_STOP', label: '✋✋ Both Palms - Stop' });
+            const TWO_HAND_SIGNALS = {
+                '62': { id: 'TWO_HAND_STOP', label: '✋✋ Both Palms - Stop' },
+                '600': { id: 'TWO_HAND_PLAY', label: '👍👍 Both Thumbs Up - Play' },
+                '601': { id: 'TWO_HAND_DELETE', label: '👎👎 Both Thumbs Down - Delete' },
+                '0': { id: 'TWO_HAND_CLEAR', label: '✊✊ Both Fists - Clear' },
+            };
+            if (rawID0 === rawID1 && TWO_HAND_SIGNALS[rawID0]) {
+                const signal = TWO_HAND_SIGNALS[rawID0];
+                this.onTrigger({ id: signal.id, label: signal.label });
                 this._prevStableID = null;
                 return;
             }

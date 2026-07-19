@@ -1,0 +1,1496 @@
+<html lang="en">
+<head>
+   <script>
+  window.onerror = function(msg, url, line) {
+    alert("Error: " + msg + "\nLine: " + line);
+  };
+  window.onunhandledrejection = function(event) {
+    alert("Promise Error: " + event.reason);
+  };
+   </script>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Follow Me</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Poppins:wght@400;600;700&family=Roboto+Mono:wght@400;600&family=Comfortaa:wght@400;700&display=swap">
+    <link rel="stylesheet" href="styles.css">
+    <style> body { touch-action: none; overscroll-behavior: none; } </style>
+    <meta property="og:title" content="Follow Me">
+    <meta property="og:description" content="Memory Skill Game">
+    <meta property="og:image" content="icon.png"> 
+    <meta property="og:url" content="https://nunya42000-lab.github.io/Follow/">
+    <meta property="og:type" content="website">
+</head>
+<body class="min-h-screen flex flex-col font-sans transition-colors duration-200">
+    <div id="blackout-layer"></div>
+   
+    <div id="ar-container" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 z-[-1] pointer-events-none hidden">
+        <video id="ar-background-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
+    </div>
+
+    <header id="aux-control-header" class="fixed top-0 left-0 right-0 z-40 p-2 pt-safe-top transition-transform duration-300 pointer-events-none">
+        <div class="max-w-7xl mx-auto w-full flex justify-between items-start">
+<div class="flex gap-2 pointer-events-auto">
+<button id="headertimerbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">⏱️</button>
+<button id="headercounterbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">#</button>
+<button id="headervoicebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🎤</button>
+<button id="headertonebtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🎵</button>
+<button id="headertouchbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🗒️</button>
+<button id="headerhandbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🖐️</button>
+<button id="headerarcambtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">📷</button>
+<button id="headerbiggerbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">⌨️</button>
+<button id="headerfullscreenbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔲</button>
+<button id="headerupsidedownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🙃</button>
+<button id="headerswapbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔄</button>
+            </div>
+        </div>
+    </header>
+
+    
+    
+    <div id="game-setup-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
+            <div class="flex items-center justify-between border-b border-custom pb-3 mb-4 relative">
+                <div class="flex items-center space-x-2">
+                    <button id="quick-resize-down" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">-</button>
+                    <button id="quick-resize-up" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">+</button>
+                </div>
+                <h3 class="text-2xl font-bold text-center flex-grow">Follow Me v1.0</h3>
+            </div>
+            <div class="overflow-y-auto py-2 px-1">
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold mb-2 text-muted-custom">Select Profile</label>
+                    <select id="quick-config-select" class="settings-input w-full h-12 px-4 py-2 text-lg font-semibold shadow-sm rounded"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
+                        <label class="font-semibold">Autoplay</label>
+                        <input type="checkbox" id="quick-autoplay-toggle" class="h-6 w-6 rounded accent-indigo-500">
+                    </div>
+                    <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
+                        <label class="font-semibold">Audio</label>
+                        <input type="checkbox" id="quick-audio-toggle" class="h-6 w-6 rounded accent-indigo-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-2">
+                    <button id="quick-open-help" class="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-bold transition">Help 📚</button>
+                    <button id="quick-open-settings" class="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-bold transition">Settings</button>
+                </div>
+            </div>
+            <div class="flex justify-between items-center pt-4 border-t border-custom mt-2">
+                <label class="flex items-center text-sm text-muted-custom">
+                    <input type="checkbox" id="dont-introToggle" class="mr-2 rounded"> 
+                    <span>Don't show again</span>
+                </label>
+                <button id="close-game-setup-modal" class="px-8 py-3 text-white bg-primary-app hover:opacity-90 rounded-lg font-bold shadow-lg transition transform active:scale-95">PLAY</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="theme-editor-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[100] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-md w-full transform scale-90 transition-transform duration-300 flex flex-col border border-custom max-h-[95vh] overflow-hidden">
+            <h3 class="text-xl font-bold mb-4">🎨 Theme Editor</h3>
+            <div class="overflow-y-auto px-1 flex-grow">
+                <div class="mb-4">
+                    <label class="block text-xs font-bold mb-1 text-muted-custom">Theme Name</label>
+                    <input type="text" id="theme-name-input" class="settings-input w-full p-2 rounded border border-custom" placeholder="My Theme">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-xs font-bold mb-2 text-muted-custom">Select Element:</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button class="target-btn active p-2 text-xs font-bold rounded border border-custom bg-primary-app" data-target="bgMain">Background</button>
+                        <button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="bgCard">Cards/Modals</button>
+                        <button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="bubble">Seq Bubble</button>
+                        <button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="btn">Keypad Btn</button>
+                        <button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="text">Text/Num</button>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-xs font-bold mb-2 text-muted-custom">Palette</label>
+                    <div id="color-grid" class="grid grid-cols-10 gap-1 mb-3 h-40 overflow-y-auto border border-gray-700 p-1 rounded"></div>
+                    <div id="fine-tune-container" class="hidden bg-black bg-opacity-20 p-3 rounded border border-gray-700">
+                        <label class="block text-xs font-bold mb-2">Fine Tune</label>
+                        <div class="flex space-x-2 items-center">
+                            <div id="fine-tune-preview" class="w-8 h-8 rounded border border-gray-500"></div>
+                            <div class="flex-grow space-y-1">
+                                <input type="range" id="ft-hue" min="0" max="360" class="w-full h-1 bg-gray-600 appearance-none rounded">
+                                <input type="range" id="ft-sat" min="0" max="100" class="w-full h-1 bg-gray-600 appearance-none rounded">
+                                <input type="range" id="ft-lit" min="0" max="100" class="w-full h-1 bg-gray-600 appearance-none rounded">
+                            </div>
+                        </div>
+                    </div>
+                    <button id="toggle-fine-tune" class="text-xs underline mt-1 text-blue-400">Show Fine Tune Controls</button>
+                </div>
+                <div class="mb-4 p-4 rounded border border-custom transition-colors" id="theme-preview-box">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold">Preview</span>
+                        <button class="px-3 py-1 rounded text-sm font-bold transition-colors" id="preview-btn">Bubble</button>
+                    </div>
+                    <div class="p-4 rounded font-bold text-center text-sm transition-colors" id="preview-card">Keypad Button</div>
+                </div>
+            </div>
+            <div class="flex space-x-3 mt-2 pt-3 border-t border-custom">
+                <button id="cancel-theme-btn" class="flex-1 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold">Cancel</button>
+                <button id="save-theme-btn" class="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold">Save Theme</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="redeem-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <button id="close-redeem-btn" class="absolute top-4 right-4 z-50 bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600">✕</button>
+        <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex gap-4">
+            <button id="redeem-zoom-out" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">-</button>
+            <button id="redeem-zoom-in" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">+</button>
+        </div>
+        <div class="relative w-full max-w-[280px] h-[95vh] flex flex-col items-center justify-center p-4">
+            <div class="bg-white p-2 rounded-lg shadow-2xl w-full h-full flex items-center justify-center overflow-hidden">
+                <img id="redeem-img" src="redeem.jpg" alt="Redeem Barcode" class="w-full h-full object-contain transition-transform duration-200">
+            </div>
+        </div>
+    </div>
+
+
+
+    <div id="donate-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[140] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom flex flex-col text-center">
+            <h3 class="text-2xl font-bold mb-2">Buy me a Coffee? ☕</h3>
+            <p class="text-sm opacity-80 mb-6">If this app helps you win, consider sending a tip!</p>
+            
+            <div class="space-y-6">
+                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                    <button id="btn-cashapp-main" class="w-full bg-[#00D632] hover:bg-[#00bf2c] text-white font-bold py-3 rounded-lg mb-3 shadow-lg flex items-center justify-center text-lg">
+                        <span class="mr-2">💸</span> Cash App
+                    </button>
+                    <div class="grid grid-cols-7 gap-1">
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="cash" data-amount="1">☕</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="cash" data-amount="2">🍦</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="cash" data-amount="3">🍺</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="cash" data-amount="5">🍔</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="cash" data-amount="10">🍕</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="cash" data-amount="20">🥩</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="cash" data-amount="50">🦞</button>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                    <button id="btn-paypal-main" class="w-full bg-[#0070BA] hover:bg-[#005ea6] text-white font-bold py-3 rounded-lg mb-3 shadow-lg flex items-center justify-center text-lg">
+                        <span class="mr-2">🅿️</span> PayPal
+                    </button>
+                    <div class="grid grid-cols-7 gap-1">
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="1">☕</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="2">🍦</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="3">🍺</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="5">🍔</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="10">🍕</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="20">🥩</button>
+                        <button class="donate-quick-btn text-xl hover:scale-110 transition-transform" data-app="paypal" data-amount="50">🦞</button>
+                    </div>
+                </div>
+            </div>
+            <button id="close-donate-btn" class="mt-6 w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold">Close</button>
+        </div>
+    </div>
+
+
+
+    <div id="settings-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh] overflow-hidden border border-custom m-4">
+            
+            <div class="no-swipe-zone p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
+                <button id="open-developer-mode-btn" class="text-xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="Developer Mode">🛠️</button>
+                <button id="open-donate-btn" class="text-2xl hover:scale-110 transition-transform p-3 active:opacity-50" title="Donate">☕</button>
+                <button id="open-redeem-btn-settings" class="text-2xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="ID">🆔</button>
+                <button id="open-share-button" class="text-xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="Share">📤</button>
+                <button id="open-comment-modal" class="text-xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="Feedback">💬</button>
+                <button id="open-help-button" class="text-xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="Help">❓</button>
+            </div>
+            
+            <div class="flex border-b border-custom bg-black bg-opacity-20">
+                <div class="tab-btn active" data-tab="mode">Game</div>
+                <div class="tab-btn" data-tab="playback">Playback</div>
+                <div class="tab-btn" data-tab="general">General</div>
+                <div class="tab-btn" data-tab="mapping">Mapping</div>
+            </div>
+            
+            <div class="overflow-y-auto flex-grow p-5 space-y-4">
+                <div id="tab-mode" class="tab-content active">
+                    <div class="mb-5 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
+                        <label class="text-xs font-bold uppercase text-muted-custom mb-2 block">Profiles</label>
+                        <select id="config-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="config-add" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button>
+                            <button id="config-save" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">SAVE 💾</button>
+                            <button id="config-rename" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button>
+                            <button id="config-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div>
+                            <label class="block text-xs font-bold mb-1 text-muted-custom">Input</label>
+                            <select id="input-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                <option value="key9">9-Key</option>
+                                <option value="key12">12-Key</option>
+                                <option value="piano">Piano</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-1 text-muted-custom">Mode</label>
+                            <select id="mode-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                <option value="simon">Simon Says</option>
+                                <option value="unique">Unique</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div>
+                            <label class="block text-xs font-bold mb-1 text-muted-custom">Machines</label>
+                            <select id="machines-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-1 text-muted-custom">Length</label>
+                            <select id="seq-length-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                <option value="15">15</option><option value="20">20</option><option value="25">25</option>
+                                <option value="30">30</option><option value="35">35</option><option value="40">40</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center p-3 rounded-lg settings-input border border-custom mt-2 mb-4">
+                        <span class="font-bold text-sm">Auto-Advance (Unique)</span>
+                        <input type="checkbox" id="autoclear-toggle" class="h-5 w-5 accent-indigo-500">
+                    </div>
+                    <div class="flex justify-between items-center p-3 rounded-lg settings-input border border-blue-500 border-opacity-50">
+                        <div>
+                            <span class="font-bold text-sm block">Practice Mode 🎓</span>
+                            <span class="text-xs text-muted-custom">Mirrors current game settings</span>
+                        </div>
+                        <input type="checkbox" id="practice-mode-toggle" class="h-5 w-5 accent-blue-500">
+                    </div>
+                </div>
+
+                <div id="tab-playback" class="tab-content">
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
+                                <label class="font-bold text-sm">Autoplay</label>
+                                <input type="checkbox" id="autoplay-toggle" class="h-6 w-6 rounded accent-indigo-500">
+                            </div>
+                            <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
+                                <label class="font-bold text-sm">Flash 👀</label>
+                                <input type="checkbox" id="flash-toggle" class="h-6 w-6 rounded accent-indigo-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
+                                <label class="font-bold text-sm">Audio 👂</label>
+                                <input type="checkbox" id="audio-toggle" class="h-6 w-6 rounded accent-indigo-500">
+                            </div>
+                            <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom border-yellow-500 border-opacity-30">
+                                <label class="font-bold text-sm">Morse ✋</label>
+                                <input type="checkbox" id="haptic-morse-toggle" class="h-6 w-6 rounded accent-indigo-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Speed</label>
+                                <select id="playback-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="1">1.0x</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Pause</label>
+                                <select id="pause-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="none">None</option>
+                                    <option value="short">Short</option>
+                                    <option value="long">Long</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Chunk Size</label>
+                                <select id="chunk-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="2">2 items</option><option value="3">3 items</option><option value="4">4 items</option>
+                                    <option value="5">5 items</option><option value="40">40 items</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Delay</label>
+                                <select id="delay-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="0">0s</option><option value="0.2">0.2s</option><option value="0.4">0.4s</option>
+                                    <option value="0.6">0.6s</option><option value="0.8">0.8s</option><option value="1.0">1.0s</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 pt-4 border-t border-custom">
+                            <h4 class="font-bold text-sm mb-3 text-primary-app">Voice Settings 🗣️</h4>
+                            <div class="mb-4 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
+                                <label class="text-xs font-bold uppercase text-muted-custom mb-2 block">Voice Profile</label>
+                                <select id="voice-preset-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button id="voice-preset-add" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button>
+                                    <button id="voice-preset-save" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">SAVE 💾</button>
+                                    <button id="voice-preset-rename" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button>
+                                    <button id="voice-preset-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
+                                </div>
+                            </div>
+                            <div class="mb-3 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
+                                <label class="text-xs font-bold uppercase text-muted-custom mb-2 block">System Voice</label>
+                                <select id="voice-name-select" class="settings-input w-full p-2 rounded text-sm font-semibold"></select>
+                                <p class="text-[10px] text-gray-400 mt-2">Voices marked ⭐ are natural/enhanced voices your device offers - much less robotic than the plain default.</p>
+                            </div>
+                            <div class="space-y-3 p-2 bg-black bg-opacity-20 rounded-lg">
+                                <div><label class="block text-xs font-bold mb-1">Pitch / Tone</label><input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
+                                <div><label class="block text-xs font-bold mb-1">Speed</label><input type="range" id="voice-rate" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
+                                <div><label class="block text-xs font-bold mb-1">Volume</label><input type="range" id="voice-volume" min="0" max="1" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
+                            </div>
+                            <button id="test-voice-btn" class="w-full py-2 bg-gray-700 text-white rounded font-bold text-xs mt-3">Test Voice 🔊</button>
+                        </div>
+                    </div>
+                </div>
+
+                                <!-- General Tab -->
+                <div id="tab-general" class="tab-content">
+                    <div class="space-y-4">
+                        <div class="p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-xs font-bold uppercase text-muted-custom">Theme 🎨</label>
+                                <button id="open-theme-editor" class="text-xs bg-purple-600 hover:bg-purple-500 text-white px-2 py-1 rounded font-bold">EDITOR</button>
+                            </div>
+                            <select id="theme-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button id="theme-add" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button>
+                                <button id="theme-save" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">SAVE 💾</button>
+                                <button id="theme-rename" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button>
+                                <button id="theme-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
+                            </div>
+                            <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-700">
+                                <span class="font-bold text-sm text-muted-custom">Random Theme 🎲</span>
+                                <input type="checkbox" id="randomThemeToggle" class="h-6 w-6 accent-indigo-500">
+                            </div>
+                            <div class="mt-3 pt-3 border-t border-gray-700">
+                                <label class="text-xs font-bold uppercase text-muted-custom mb-1 block">Font 🔤</label>
+                                <select id="font-select" class="settings-input w-full p-2 rounded font-bold">
+                                    <option value="'Inter', sans-serif">Inter (Default)</option>
+                                    <option value="'Poppins', sans-serif">Poppins</option>
+                                    <option value="'Roboto Mono', monospace">Roboto Mono</option>
+                                    <option value="'Comfortaa', cursive">Comfortaa</option>
+                                    <option value="system-ui, sans-serif">System Default</option>
+                                    <option value="Georgia, serif">Georgia (Serif)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+        <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Timer ⏱️</span>
+        <input type="checkbox" id="timerToggle" class="h-6 w-6 accent-indigo-500"></div>
+        <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Auto Timer 🚀</span>
+        <input type="checkbox" id="autotimerToggle" class="h-6 w-6 accent-indigo-500"></div>
+        
+        <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Counter #</span>
+        <input type="checkbox" id="counterToggle" class="h-6 w-6 accent-indigo-500"></div>
+        <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Auto Counter ➕</span>
+        <input type="checkbox" id="autocounterToggle" class="h-6 w-6 accent-indigo-500"></div>
+        <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Haptics 📳</span>
+        <input type="checkbox" id="hapticsToggle" class="h-6 w-6 accent-indigo-500"></div>
+        <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Show Intro</span>
+        <input type="checkbox" id="introToggle" class="h-6 w-6 accent-indigo-500"></div>
+        
+        <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Upside Down 🙃</span>
+        <input type="checkbox" id="upsidedownToggle" class="h-5 w-5 accent-indigo-500"></div>
+        <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Full Screen 🔲</span>
+        <input type="checkbox" id="fullscreenToggle" class="h-5 w-5 accent-indigo-500"></div>
+        
+        <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Eco Mode 🔋</span>
+        <input type="checkbox" id="ecoToggle" class="h-5 w-5 accent-indigo-500"></div>
+        <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Wake Lock 💡</span>
+        <input type="checkbox" id="wakelockToggle" class="h-5 w-5 accent-indigo-500"></div>
+        
+        <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Voice Input 🎤</span>
+        <input type="checkbox" id="voiceToggle" class="h-5 w-5 accent-indigo-500"></div>
+        <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Voice Commands</span>
+        <input type="checkbox" id="voicecommandsToggle" class="h-6 w-6 rounded accent-indigo-500"></div>
+        
+        <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Tone Cadence Mode 🎵</span>
+        <input type="checkbox" id="toneToggle" class="h-5 w-5 accent-indigo-500"></div>
+        <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Touch Gesture</span>
+        <input type="checkbox" id="touchToggle" class="h-5 w-5 accent-indigo-500"></div>
+        
+        <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Boss Mode 🌑</span>
+        <input type="checkbox" id="bossToggle" class="h-5 w-5 accent-indigo-500"></div>
+        <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Position Swap 🔄</span>
+        <input type="checkbox" id="newToggle" class="h-5 w-5 accent-indigo-500"></div>
+        
+        <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Bigger Buttons </span>
+        <input type="checkbox" id="biggerToggle" class="h-5 w-5 accent-indigo-500"></div>
+        <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">AR Mode 📸</span>
+        <input type="checkbox" id="arcamToggle" class="h-5 w-5 accent-indigo-500"></div>
+        
+        <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Hand Gestures🖐️</span>
+        <input type="checkbox" id="handToggle" class="h-5 w-5 accent-indigo-500"></div>
+        <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Hand Signals🖐️</span>
+        <input type="checkbox" id="handsignalsToggle" class="h-6 w-6 rounded accent-indigo-500"></div>
+        
+        <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">Quick Erase</span>
+        <input type="checkbox" id="speeddeleteToggle" class="h-5 w-5 accent-indigo-500"></div>
+        <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm text-muted-custom">AP Shortcut</span>
+        <input type="checkbox" id="apshortcutToggle" class="h-5 w-5 accent-indigo-500"></div>
+        
+        <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm">Vol. Gesture 🔊</span>
+        <input type="checkbox" id="volgesToggle" class="h-5 w-5 accent-indigo-500"></div>
+        <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm">Speed Gesture ⚡</span>
+        <input type="checkbox" id="speedToggle" class="h-5 w-5 accent-indigo-500"></div>
+        
+        <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm">Delete Gesture 🧹</span>
+        <input type="checkbox" id="deleteToggle" class="h-5 w-5 accent-indigo-500"></div>
+        <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+        <span class="font-bold text-sm">Clear Gesture 💥</span>
+        <input type="checkbox" id="clearToggle" class="h-5 w-5 accent-indigo-500"></div>    
+                        </div>
+                            
+                        <div class="grid grid-cols-2 gap-3 pt-2">
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
+                                <select id="seq-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+                                    <option value="100" selected>100%</option>
+                                    <option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+                                    <option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option>
+                                    <option value="210">210%</option><option value="220">220%</option><option value="230">230%</option><option value="240">240%</option><option value="250">250%</option>
+                                    <option value="260">260%</option><option value="270">270%</option><option value="280">280%</option><option value="290">290%</option><option value="300">300%</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
+                                <select id="ui-scale-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+                                    <option value="100" selected>100%</option>
+                                    <option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+                                    <option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Number Size</label>
+                                <select id="seq-font-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="100">Normal</option>
+                                    <option value="150">Large</option>
+                                    <option value="200">Huge</option>
+                                    <option value="250">Max (Fill)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">AR Playback Speed</label>
+                                <select id="ar-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="0.5">50%</option>
+                                    <option value="0.75">75%</option>
+                                    <option value="1.0" selected>100%</option>
+                                    <option value="1.25">125%</option>
+                                    <option value="1.5">150%</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 mt-4">
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Resize Gesture</label>
+                                <select id="gesture-mode-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="global">Global UI</option>
+                                    <option value="sequence">Cards Only</option>
+                                    <option value="none">Disabled</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-muted-custom">Voice Trigger</label>
+                                <select id="voice-trigger-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+                                    <option value="add">ADD</option>
+                                    <option value="plus">PLUS</option>
+                                    <option value="press">PRESS</option>
+                                    <option value="input">INPUT</option>
+                                    <option value="enter">ENTER</option>
+                                    <option value="set">SET</option>
+                                    <option value="nexus">NEXUS</option>
+                                    <option value="track">TRACK</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+<div id="tab-mapping" class="tab-content">
+    <div class="flex border-b border-gray-700 mb-4 bg-black/40 rounded-t-lg">
+        <button type="button" id="btn-map-touch" class="flex-1 py-3 text-sm font-bold text-blue-400 border-b-2 border-blue-400 transition-colors">👆 Touch Mapping</button>
+        <button type="button" id="btn-map-hand" class="flex-1 py-3 text-sm font-bold text-gray-500 hover:text-emerald-400 transition-colors">🖐️ Hand Mapping</button>
+    </div>
+
+    <div id="section-map-touch" class="block space-y-4">
+        <details class="group bg-gray-900 rounded-lg border border-gray-700 open:bg-gray-800 transition-colors shadow-sm">
+            <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-blue-400 outline-none">
+                <span>9-Key Layout</span>
+                <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+            </summary>
+            <div class="p-3 border-t border-gray-700 bg-black/20 space-y-3">
+                <div class="p-2 rounded-lg border border-blue-500/30 bg-blue-900/10">
+                    <label class="text-[10px] font-bold uppercase text-blue-400 block mb-1">Active Preset</label>
+                    <select id="touch-preset-key9-select" class="mapping-preset-select settings-input w-full p-2 rounded mb-2 text-xs font-semibold border border-gray-600 bg-gray-950 outline-none">
+                        <option value="">-- Select Preset --</option>
+                    </select>
+                    <div class="grid grid-cols-4 gap-1">
+                        <button type="button" id="touch-preset-key9-new" class="py-1.5 text-[10px] bg-blue-600 hover:bg-blue-500 rounded text-white font-bold transition shadow">NEW</button>
+                        <button type="button" id="touch-preset-key9-save" class="py-1.5 text-[10px] bg-green-600 hover:bg-green-500 rounded text-white font-bold transition shadow">SAVE</button>
+                        <button type="button" id="touch-preset-key9-rename" class="py-1.5 text-[10px] bg-gray-600 hover:bg-gray-500 rounded text-white font-bold transition shadow">RENAME</button>
+                        <button type="button" id="touch-preset-key9-delete" class="py-1.5 text-[10px] bg-red-600 hover:bg-red-500 rounded text-white font-bold transition shadow">DELETE</button>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 1</span><select id="map-touch-k9_1" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k9_1"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 2</span><select id="map-touch-k9_2" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k9_2"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 3</span><select id="map-touch-k9_3" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k9_3"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 4</span><select id="map-touch-k9_4" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k9_4"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 5</span><select id="map-touch-k9_5" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k9_5"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 6</span><select id="map-touch-k9_6" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k9_6"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 7</span><select id="map-touch-k9_7" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k9_7"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 8</span><select id="map-touch-k9_8" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k9_8"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 9</span><select id="map-touch-k9_9" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k9_9"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                </div>
+            </div>
+        </details>
+        <details class="group bg-gray-900 rounded-lg border border-gray-700 open:bg-gray-800 transition-colors shadow-sm">
+            <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-blue-400 outline-none">
+                <span>12-Key Layout</span>
+                <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+            </summary>
+            <div class="p-3 border-t border-gray-700 bg-black/20 space-y-3">
+                <div class="p-2 rounded-lg border border-blue-500/30 bg-blue-900/10">
+                    <label class="text-[10px] font-bold uppercase text-blue-400 block mb-1">Active Preset</label>
+                    <select id="touch-preset-key12-select" class="mapping-preset-select settings-input w-full p-2 rounded mb-2 text-xs font-semibold border border-gray-600 bg-gray-950 outline-none">
+                        <option value="">-- Select Preset --</option>
+                    </select>
+                    <div class="grid grid-cols-4 gap-1">
+                        <button type="button" id="touch-preset-key12-new" class="py-1.5 text-[10px] bg-blue-600 hover:bg-blue-500 rounded text-white font-bold transition shadow">NEW</button>
+                        <button type="button" id="touch-preset-key12-save" class="py-1.5 text-[10px] bg-green-600 hover:bg-green-500 rounded text-white font-bold transition shadow">SAVE</button>
+                        <button type="button" id="touch-preset-key12-rename" class="py-1.5 text-[10px] bg-gray-600 hover:bg-gray-500 rounded text-white font-bold transition shadow">RENAME</button>
+                        <button type="button" id="touch-preset-key12-delete" class="py-1.5 text-[10px] bg-red-600 hover:bg-red-500 rounded text-white font-bold transition shadow">DELETE</button>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 1</span><select id="map-touch-k12_1" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k12_1"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 2</span><select id="map-touch-k12_2" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k12_2"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 3</span><select id="map-touch-k12_3" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k12_3"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 4</span><select id="map-touch-k12_4" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k12_4"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 5</span><select id="map-touch-k12_5" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k12_5"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 6</span><select id="map-touch-k12_6" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k12_6"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 7</span><select id="map-touch-k12_7" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k12_7"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 8</span><select id="map-touch-k12_8" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k12_8"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 9</span><select id="map-touch-k12_9" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k12_9"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 10</span><select id="map-touch-k12_10" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k12_10"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 11</span><select id="map-touch-k12_11" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k12_11"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Key 12</span><select id="map-touch-k12_12" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="k12_12"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                </div>
+            </div>
+        </details>
+        <details class="group bg-gray-900 rounded-lg border border-gray-700 open:bg-gray-800 transition-colors shadow-sm">
+            <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-blue-400 outline-none">
+                <span>Piano Layout</span>
+                <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+            </summary>
+            <div class="p-3 border-t border-gray-700 bg-black/20 space-y-3">
+                <div class="p-2 rounded-lg border border-blue-500/30 bg-blue-900/10">
+                    <label class="text-[10px] font-bold uppercase text-blue-400 block mb-1">Active Preset</label>
+                    <select id="touch-preset-piano-select" class="mapping-preset-select settings-input w-full p-2 rounded mb-2 text-xs font-semibold border border-gray-600 bg-gray-950 outline-none">
+                        <option value="">-- Select Preset --</option>
+                    </select>
+                    <div class="grid grid-cols-4 gap-1">
+                        <button type="button" id="touch-preset-piano-new" class="py-1.5 text-[10px] bg-blue-600 hover:bg-blue-500 rounded text-white font-bold transition shadow">NEW</button>
+                        <button type="button" id="touch-preset-piano-save" class="py-1.5 text-[10px] bg-green-600 hover:bg-green-500 rounded text-white font-bold transition shadow">SAVE</button>
+                        <button type="button" id="touch-preset-piano-rename" class="py-1.5 text-[10px] bg-gray-600 hover:bg-gray-500 rounded text-white font-bold transition shadow">RENAME</button>
+                        <button type="button" id="touch-preset-piano-delete" class="py-1.5 text-[10px] bg-red-600 hover:bg-red-500 rounded text-white font-bold transition shadow">DELETE</button>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Note C</span><select id="map-touch-piano_C" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="piano_C"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Note D</span><select id="map-touch-piano_D" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="piano_D"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Note E</span><select id="map-touch-piano_E" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="piano_E"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Note F</span><select id="map-touch-piano_F" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="piano_F"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Note G</span><select id="map-touch-piano_G" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="piano_G"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Note A</span><select id="map-touch-piano_A" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="piano_A"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Note B</span><select id="map-touch-piano_B" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="piano_B"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Note 1</span><select id="map-touch-piano_1" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="piano_1"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Note 2</span><select id="map-touch-piano_2" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="piano_2"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Note 3</span><select id="map-touch-piano_3" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="piano_3"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Note 4</span><select id="map-touch-piano_4" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="piano_4"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">Note 5</span><select id="map-touch-piano_5" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="touch" data-key="piano_5"><option value="none">🚫 Unassigned</option><option value="tap">👆 Single Tap</option><option value="double_tap">👆👆 Double Taps</option><option value="triple_tap">👆👆👆 Triple Tap</option><option value="long_tap">⏱️ Long Press</option><option value="swipe_up">⬆️ Swipe Up</option><option value="swipe_down">⬇️ Swipe Down</option><option value="swipe_left">⬅️ Swipe Left</option><option value="swipe_right">➡️ Swipe Right</option></select></div>
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div id="section-map-hand" class="hidden space-y-4">
+        <details class="group bg-gray-900 rounded-lg border border-gray-700 open:bg-gray-800 transition-colors shadow-sm">
+            <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-emerald-400 outline-none">
+                <span>9-Key Layout</span>
+                <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+            </summary>
+            <div class="p-3 border-t border-gray-700 bg-black/20 space-y-3">
+                <div class="p-2 rounded-lg border border-emerald-500/30 bg-emerald-900/10">
+                    <label class="text-[10px] font-bold uppercase text-emerald-400 block mb-1">Active Preset</label>
+                    <select id="hand-preset-key9-select" class="mapping-preset-select settings-input w-full p-2 rounded mb-2 text-xs font-semibold border border-gray-600 bg-gray-950 outline-none">
+                        <option value="">-- Select Preset --</option>
+                    </select>
+                    <div class="grid grid-cols-4 gap-1">
+                        <button type="button" id="hand-preset-key9-new" class="py-1.5 text-[10px] bg-blue-600 hover:bg-blue-500 rounded text-white font-bold transition shadow">NEW</button>
+                        <button type="button" id="hand-preset-key9-save" class="py-1.5 text-[10px] bg-green-600 hover:bg-green-500 rounded text-white font-bold transition shadow">SAVE</button>
+                        <button type="button" id="hand-preset-key9-rename" class="py-1.5 text-[10px] bg-gray-600 hover:bg-gray-500 rounded text-white font-bold transition shadow">RENAME</button>
+                        <button type="button" id="hand-preset-key9-delete" class="py-1.5 text-[10px] bg-red-600 hover:bg-red-500 rounded text-white font-bold transition shadow">DELETE</button>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 1</span><select id="map-hand-k9_1" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k9_1"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 2</span><select id="map-hand-k9_2" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k9_2"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 3</span><select id="map-hand-k9_3" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k9_3"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 4</span><select id="map-hand-k9_4" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k9_4"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 5</span><select id="map-hand-k9_5" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k9_5"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 6</span><select id="map-hand-k9_6" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k9_6"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 7</span><select id="map-hand-k9_7" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k9_7"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 8</span><select id="map-hand-k9_8" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k9_8"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 9</span><select id="map-hand-k9_9" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k9_9"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                </div>
+            </div>
+        </details>
+        <details class="group bg-gray-900 rounded-lg border border-gray-700 open:bg-gray-800 transition-colors shadow-sm">
+            <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-emerald-400 outline-none">
+                <span>12-Key Layout</span>
+                <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+            </summary>
+            <div class="p-3 border-t border-gray-700 bg-black/20 space-y-3">
+                <div class="p-2 rounded-lg border border-emerald-500/30 bg-emerald-900/10">
+                    <label class="text-[10px] font-bold uppercase text-emerald-400 block mb-1">Active Preset</label>
+                    <select id="hand-preset-key12-select" class="mapping-preset-select settings-input w-full p-2 rounded mb-2 text-xs font-semibold border border-gray-600 bg-gray-950 outline-none">
+                        <option value="">-- Select Preset --</option>
+                    </select>
+                    <div class="grid grid-cols-4 gap-1">
+                        <button type="button" id="hand-preset-key12-new" class="py-1.5 text-[10px] bg-blue-600 hover:bg-blue-500 rounded text-white font-bold transition shadow">NEW</button>
+                        <button type="button" id="hand-preset-key12-save" class="py-1.5 text-[10px] bg-green-600 hover:bg-green-500 rounded text-white font-bold transition shadow">SAVE</button>
+                        <button type="button" id="hand-preset-key12-rename" class="py-1.5 text-[10px] bg-gray-600 hover:bg-gray-500 rounded text-white font-bold transition shadow">RENAME</button>
+                        <button type="button" id="hand-preset-key12-delete" class="py-1.5 text-[10px] bg-red-600 hover:bg-red-500 rounded text-white font-bold transition shadow">DELETE</button>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 1</span><select id="map-hand-k12_1" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k12_1"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 2</span><select id="map-hand-k12_2" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k12_2"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 3</span><select id="map-hand-k12_3" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k12_3"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 4</span><select id="map-hand-k12_4" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k12_4"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 5</span><select id="map-hand-k12_5" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k12_5"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 6</span><select id="map-hand-k12_6" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k12_6"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 7</span><select id="map-hand-k12_7" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k12_7"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 8</span><select id="map-hand-k12_8" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k12_8"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 9</span><select id="map-hand-k12_9" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k12_9"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 10</span><select id="map-hand-k12_10" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k12_10"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 11</span><select id="map-hand-k12_11" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k12_11"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Key 12</span><select id="map-hand-k12_12" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="k12_12"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                </div>
+            </div>
+        </details>
+        <details class="group bg-gray-900 rounded-lg border border-gray-700 open:bg-gray-800 transition-colors shadow-sm">
+            <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-emerald-400 outline-none">
+                <span>Piano Layout</span>
+                <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+            </summary>
+            <div class="p-3 border-t border-gray-700 bg-black/20 space-y-3">
+                <div class="p-2 rounded-lg border border-emerald-500/30 bg-emerald-900/10">
+                    <label class="text-[10px] font-bold uppercase text-emerald-400 block mb-1">Active Preset</label>
+                    <select id="hand-preset-piano-select" class="mapping-preset-select settings-input w-full p-2 rounded mb-2 text-xs font-semibold border border-gray-600 bg-gray-950 outline-none">
+                        <option value="">-- Select Preset --</option>
+                    </select>
+                    <div class="grid grid-cols-4 gap-1">
+                        <button type="button" id="hand-preset-piano-new" class="py-1.5 text-[10px] bg-blue-600 hover:bg-blue-500 rounded text-white font-bold transition shadow">NEW</button>
+                        <button type="button" id="hand-preset-piano-save" class="py-1.5 text-[10px] bg-green-600 hover:bg-green-500 rounded text-white font-bold transition shadow">SAVE</button>
+                        <button type="button" id="hand-preset-piano-rename" class="py-1.5 text-[10px] bg-gray-600 hover:bg-gray-500 rounded text-white font-bold transition shadow">RENAME</button>
+                        <button type="button" id="hand-preset-piano-delete" class="py-1.5 text-[10px] bg-red-600 hover:bg-red-500 rounded text-white font-bold transition shadow">DELETE</button>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Note C</span><select id="map-hand-piano_C" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="piano_C"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Note D</span><select id="map-hand-piano_D" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="piano_D"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Note E</span><select id="map-hand-piano_E" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="piano_E"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Note F</span><select id="map-hand-piano_F" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="piano_F"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Note G</span><select id="map-hand-piano_G" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="piano_G"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Note A</span><select id="map-hand-piano_A" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="piano_A"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Note B</span><select id="map-hand-piano_B" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="piano_B"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Note 1</span><select id="map-hand-piano_1" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="piano_1"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Note 2</span><select id="map-hand-piano_2" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="piano_2"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Note 3</span><select id="map-hand-piano_3" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="piano_3"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Note 4</span><select id="map-hand-piano_4" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="piano_4"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                <div class="flex items-center gap-2"><span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-emerald-400 font-mono border border-gray-600 shrink-0">Note 5</span><select id="map-hand-piano_5" class="mapping-select settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none" data-type="hand" data-key="piano_5"><option value="none">🚫 Unassigned</option><option value="105">👌 OK Sign (Pinch)</option><option value="104">🤌 Chef Kiss (All)</option><option value="100">🤏 Basic Pinch</option><option value="16">☝️ 1 Finger (Index)</option><option value="24">✌️ 2 Fingers (Peace)</option><option value="28">3️⃣ 3 Fingers</option><option value="30">4️⃣ 4 Fingers</option><option value="62">🖐️ 5 Fingers (Palm)</option><option value="0">✊ Fist</option><option value="18">🤘 Rock On</option><option value="34">🤙 Shaka</option><option value="50">🤟 Spider-Man / ILY</option><option value="48">🫵 Gun / L-Shape</option></select></div>
+                </div>
+            </div>
+        </details>
+    </div>
+    </div>
+            </div> 
+  <div class="mt-8 pt-4 border-t border-gray-700 flex justify-between items-center w-full">
+  
+<button data-action="nuke-app" class="px-4 py-2 bg-red-900 hover:bg-red-700 text-white font-bold rounded shadow-lg border border-red-500 text-xs transition-colors">
+☢️ NUKE CACHE
+</button>
+<button data-action="restore-defaults" class="px-4 py-2 bg-yellow-700 hover:bg-yellow-600 text-white font-bold rounded shadow-lg text-xs transition-colors">
+⚠️ Reset Settings
+</button> 
+                <button id="close-settings" class="px-8 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold transition shadow">Exit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIX: this modal did not exist at all, even though openShare()/closeShare() and all four
+         share button handlers were already written and wired against these exact ids. That's why
+         the share button appeared to do nothing (it was only ever hiding the settings modal). -->
+    <div id="share-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-60 z-[90] opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="share-sheet">
+            <div class="flex items-center gap-3 px-5 pt-4 pb-2">
+                <img src="icon.png" alt="Follow Me" class="w-12 h-12 rounded-xl shadow-lg border border-gray-700 shrink-0" onerror="this.style.display='none'">
+                <h3 class="font-bold text-lg text-white flex-1">Share Follow Me 📤</h3>
+                <button id="close-share" class="text-2xl text-gray-400 hover:text-white leading-none">&times;</button>
+            </div>
+            <div class="px-5 pb-2 flex justify-center relative">
+                <div class="w-80 h-80 rounded-lg shadow-lg border border-gray-700 bg-white p-1 overflow-hidden flex items-center justify-center">
+                    <img id="qr-img" src="qr.jpg" alt="Scan to open Follow Me" class="w-full h-full object-contain transition-transform duration-200" onerror="this.style.display='none'">
+                </div>
+                <div class="absolute top-2 right-8 flex flex-col gap-2">
+                    <button id="qr-zoom-in" type="button" class="bg-gray-800 text-white rounded-full w-7 h-7 font-bold text-sm shadow-lg border border-gray-600 active:bg-gray-700">+</button>
+                    <button id="qr-zoom-out" type="button" class="bg-gray-800 text-white rounded-full w-7 h-7 font-bold text-sm shadow-lg border border-gray-600 active:bg-gray-700">-</button>
+                </div>
+            </div>
+            <div class="grid grid-cols-4 gap-3 px-5 py-4 text-center">
+                <button id="native-share-button" class="flex flex-col items-center gap-2 text-xs text-gray-200">
+                    <span class="w-14 h-14 rounded-full bg-indigo-600 flex items-center justify-center text-2xl">📲</span>
+                    Share
+                </button>
+                <button id="copy-link-button" class="flex flex-col items-center gap-2 text-xs text-gray-200">
+                    <span class="w-14 h-14 rounded-full bg-gray-700 flex items-center justify-center text-2xl">🔗</span>
+                    Copy Link
+                </button>
+                <button id="chat-share-button" class="flex flex-col items-center gap-2 text-xs text-gray-200">
+                    <span class="w-14 h-14 rounded-full bg-green-600 flex items-center justify-center text-2xl">💬</span>
+                    Text
+                </button>
+                <button id="email-share-button" class="flex flex-col items-center gap-2 text-xs text-gray-200">
+                    <span class="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center text-2xl">✉️</span>
+                    Email
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="developer-mode-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[95] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div style="display: flex; flex-direction: column; max-height: 90vh; overflow: hidden;" class="settings-modal-bg rounded-xl shadow-2xl max-w-md w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
+            <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center">
+                <h3 class="text-xl font-bold">🛠️ Developer Mode</h3>
+                <button id="close-developer-mode-btn" class="text-2xl text-gray-400 hover:text-white leading-none">&times;</button>
+            </div>
+            <div style="overflow-y: auto; flex: 1 1 0%; min-height: 0;" class="p-4 space-y-4 overflow-y-auto">
+                <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
+                    <h4 class="font-bold text-sm mb-2 text-primary-app">Backup / Restore (Hex) 💾</h4>
+                    <p class="text-[10px] text-gray-400 mb-2">Export your full settings (including custom presets) as a hex code before resetting, or paste one back in to restore it.</p>
+                    <button id="hex-export-btn" type="button" class="w-full py-2 mb-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">Export to Hex</button>
+                    <textarea id="hex-output" class="w-full h-20 bg-gray-950 border border-gray-600 rounded p-2 text-[10px] font-mono text-green-400 resize-none mb-2" placeholder="Paste a hex code here to import, or export above..."></textarea>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="hex-copy-btn" type="button" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">Copy</button>
+                        <button id="hex-import-btn" type="button" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">Import</button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+                    <span class="font-bold text-sm text-muted-custom">Hand Skeleton Overlay 🦴</span>
+                    <input type="checkbox" id="skeletonDebugToggle" class="h-6 w-6 accent-indigo-500">
+                </div>
+                <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+                    <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
+                        <span>Test &amp; Practice 🎯</span>
+                        <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+                    </summary>
+                    <div class="p-3 border-t border-gray-700">
+                    <p class="text-[10px] text-gray-400 mb-3">Live readouts for calibrating distance/timing before mapping. Flip a toggle below to start that test right here - no need to leave Developer Mode.</p>
+                    <div class="grid grid-cols-4 gap-2 mb-3">
+                        <label class="flex flex-col items-center gap-1 p-2 rounded-lg bg-emerald-900 bg-opacity-20 border border-emerald-500/30 cursor-pointer">
+                            <span class="text-[10px] font-bold text-emerald-300">🖐️ Hand</span>
+                            <input type="checkbox" id="test-hand-toggle" class="h-5 w-5 accent-emerald-500">
+                        </label>
+                        <label class="flex flex-col items-center gap-1 p-2 rounded-lg bg-blue-900 bg-opacity-20 border border-blue-500/30 cursor-pointer">
+                            <span class="text-[10px] font-bold text-blue-300">👆 Touch</span>
+                            <input type="checkbox" id="test-touch-toggle" class="h-5 w-5 accent-blue-500">
+                        </label>
+                        <label class="flex flex-col items-center gap-1 p-2 rounded-lg bg-yellow-900 bg-opacity-20 border border-yellow-500/30 cursor-pointer">
+                            <span class="text-[10px] font-bold text-yellow-300">🎤 Voice</span>
+                            <input type="checkbox" id="test-voice-toggle" class="h-5 w-5 accent-yellow-500">
+                        </label>
+                        <label class="flex flex-col items-center gap-1 p-2 rounded-lg bg-purple-900 bg-opacity-20 border border-purple-500/30 cursor-pointer">
+                            <span class="text-[10px] font-bold text-purple-300">🎵 Tone</span>
+                            <input type="checkbox" id="test-tone-toggle" class="h-5 w-5 accent-purple-500">
+                        </label>
+                    </div>
+                    <label class="flex items-center justify-between gap-2 p-2 mb-3 rounded-lg bg-red-900 bg-opacity-20 border border-red-500/30 cursor-pointer">
+                        <span class="font-bold text-xs text-red-300">🔒 Lock Test Area (swipes/taps here won't affect your real sequence)</span>
+                        <input type="checkbox" id="testAreaLockToggle" class="h-5 w-5 accent-red-500" checked>
+                    </label>
+                    <div id="test-area-lock-container" class="no-swipe-zone">
+                    <div class="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-gray-700 mb-3">
+                        <video id="practice-preview-video" class="w-full h-full object-cover scale-x-[-1]" muted playsinline></video>
+                        <canvas id="practice-preview-canvas" class="absolute inset-0 w-full h-full scale-x-[-1]"></canvas>
+                        <div id="practice-preview-placeholder" class="absolute inset-0 flex items-center justify-center text-[10px] text-gray-500">Turn on Hand Gestures to see your camera + skeleton here</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="p-2 rounded bg-gray-950 border border-gray-700">
+                            <span class="text-[10px] font-bold text-emerald-400 uppercase">🖐️ Hand (with skeleton above)</span>
+                            <div id="test-hand-readout" class="font-mono text-xs text-emerald-300 mt-1">Waiting for a hand pose...</div>
+                        </div>
+                        <div class="p-2 rounded bg-gray-950 border border-gray-700">
+                            <span class="text-[10px] font-bold text-blue-400 uppercase">👆 Touch</span>
+                            <div id="test-touch-readout" class="font-mono text-xs text-blue-300 mt-1">Waiting for a touch gesture...</div>
+                        </div>
+                        <div class="p-2 rounded bg-gray-950 border border-gray-700">
+                            <span class="text-[10px] font-bold text-yellow-400 uppercase">🎤 Voice</span>
+                            <div id="test-voice-readout" class="font-mono text-xs text-yellow-300 mt-1">Waiting for speech...</div>
+                        </div>
+                        <div class="p-2 rounded bg-gray-950 border border-gray-700">
+                            <span class="text-[10px] font-bold text-purple-400 uppercase">🎵 Tone Cadence</span>
+                            <div id="test-tone-readout" class="font-mono text-xs text-purple-300 mt-1">Waiting for a hum/whistle...</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 p-3 rounded-lg bg-purple-950 bg-opacity-30 border border-purple-500/30">
+                        <p class="text-[10px] font-bold uppercase text-purple-300 mb-2">🔊 Speaker Test Sequence (no mic/humming needed)</p>
+                        <p class="text-[10px] text-gray-400 mb-2">Plays your sequence as tones through the speaker so the mic (turn on 🎵 Tone above) can pick them up - a repeatable way to test the whole pipeline without humming yourself. Uses the same 9-Key notes (C D E F G A B C D) and 200ms/800ms timing your Tone Cadence engine expects.</p>
+                        <label class="text-[10px] font-bold text-gray-400 block mb-1">Sequence (1-9, comma separated)</label>
+                        <input type="text" id="tone-test-sequence" value="1,1,1,4,6,2,2,3,6,7,1,7,1,3,2,2,3,8,7,1" class="w-full p-2 mb-2 rounded text-xs font-mono bg-gray-950 border border-gray-600 text-white">
+                        <div class="grid grid-cols-2 gap-2 mb-2">
+                            <button id="tone-test-play-btn" type="button" class="py-2 text-xs bg-purple-600 hover:bg-purple-500 rounded text-white font-bold">▶️ Play Sequence</button>
+                            <button id="tone-test-stop-btn" type="button" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">⏹️ Stop</button>
+                        </div>
+                        <div id="tone-test-progress" class="text-[10px] font-mono text-purple-300 text-center">Not playing</div>
+                    </div>
+                    </div>
+                    </div>
+                </details>
+                <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+                    <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
+                        <span>Sensitivity 🎛️</span>
+                        <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+                    </summary>
+                    <div class="p-3 border-t border-gray-700">
+                        <label class="flex items-center justify-between gap-2 p-2 mb-3 rounded-lg bg-red-900 bg-opacity-20 border border-red-500/30 cursor-pointer">
+                            <span class="font-bold text-xs text-red-300">🔒 Lock Sliders (prevent accidental changes)</span>
+                            <input type="checkbox" id="sliderLockToggle" class="h-5 w-5 accent-red-500">
+                        </label>
+
+                        <p class="text-[10px] font-bold uppercase text-blue-400 mt-3 mb-1">Touch</p>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Tap Speed (ms)</label><span id="gesture-tap-val" class="text-xs font-mono">300ms</span></div>
+                            <input type="range" id="gesture-tap-slider" min="100" max="800" step="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">Faster time = harder to tap, easier to swipe. Slower time = easier to tap.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Swipe Distance (px)</label><span id="gesture-swipe-val" class="text-xs font-mono">30px</span></div>
+                            <input type="range" id="gesture-swipe-slider" min="10" max="100" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">Higher distance = fewer accidental swipes.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Long Press Time (ms)</label><span id="gesture-longpress-val" class="text-xs font-mono">300ms</span></div>
+                            <input type="range" id="gesture-longpress-slider" min="150" max="800" step="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How long you must hold before it counts as a long press instead of a tap.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Tap Wiggle Room (px)</label><span id="gesture-tapprecision-val" class="text-xs font-mono">30px</span></div>
+                            <input type="range" id="gesture-tapprecision-slider" min="10" max="60" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How far your finger can drift during a tap before it's read as a swipe instead. Higher = more forgiving of shaky taps.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Spatial Tap Precision (px)</label><span id="gesture-spatial-val" class="text-xs font-mono">10px</span></div>
+                            <input type="range" id="gesture-spatial-slider" min="5" max="30" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How close together spatial taps (corner/direction taps) must land to register as the same spot.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Long Swipe Distance (px)</label><span id="gesture-longswipe-val" class="text-xs font-mono">150px</span></div>
+                            <input type="range" id="gesture-longswipe-slider" min="80" max="300" step="10" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">Distance needed for a swipe to count as "long" rather than regular.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Multi-Finger Swipe Sync (px)</label><span id="gesture-multiswipe-val" class="text-xs font-mono">10px</span></div>
+                            <input type="range" id="gesture-multiswipe-slider" min="5" max="30" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How closely multiple fingers must move together to count as one multi-finger swipe. Lower = stricter.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Anchor Hold Distance (px)</label><span id="gesture-anchordist-val" class="text-xs font-mono">15px</span></div>
+                            <input type="range" id="gesture-anchordist-slider" min="5" max="30" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How far the anchor finger can drift and still count as "held still" for an Anchor gesture. Lower = stricter.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Anchor Min Hold Time (ms)</label><span id="gesture-anchorhold-val" class="text-xs font-mono">150ms</span></div>
+                            <input type="range" id="gesture-anchorhold-slider" min="50" max="500" step="25" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How long the anchor finger must be held before the second finger's tap/swipe counts as an Anchor gesture.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Chord Simultaneity Window (ms)</label><span id="gesture-chordwindow-val" class="text-xs font-mono">50ms</span></div>
+                            <input type="range" id="gesture-chordwindow-slider" min="20" max="150" step="10" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How close together two fingers must land to count as a Chord. Higher = more forgiving of imprecise timing, but more false positives.</p>
+                        </div>
+
+                        <p class="text-[10px] font-bold uppercase text-emerald-400 mt-4 mb-1">Hand</p>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Gesture Cooldown (ms)</label><span id="gesture-handcooldown-val" class="text-xs font-mono">2000ms</span></div>
+                            <input type="range" id="gesture-handcooldown-slider" min="200" max="2000" step="100" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How long to wait after one hand input before another can register. Lower = faster back-to-back gestures, but more risk of double-firing.</p>
+                        </div>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Hold Frames to Lock In</label><span id="gesture-handhold-val" class="text-xs font-mono">4</span></div>
+                            <input type="range" id="gesture-handhold-slider" min="1" max="10" step="1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How many consecutive matching camera frames before a pose is confirmed. Lower = snappier but jumpier; higher = steadier but slower to register.</p>
+                        </div>
+
+                        <p class="text-[10px] font-bold uppercase text-yellow-400 mt-4 mb-1">Voice</p>
+                        <div class="sensitivity-slider mb-4">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Confidence Threshold</label><span id="voice-confidence-val" class="text-xs font-mono">50%</span></div>
+                            <input type="range" id="voice-confidence-slider" min="0" max="90" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How sure the recognizer must be before accepting a word. Higher = fewer misheard inputs, but may reject unclear speech.</p>
+                        </div>
+
+                        <p class="text-[10px] font-bold uppercase text-purple-400 mt-4 mb-1">Tone Cadence</p>
+                        <div class="sensitivity-slider">
+                            <div class="flex justify-between mb-1"><label class="text-xs font-bold">Volume Threshold (dB)</label><span id="tone-threshold-val" class="text-xs font-mono">-70dB</span></div>
+                            <input type="range" id="tone-threshold-slider" min="-90" max="-40" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-[10px] text-gray-400 mt-1">How loud a hum/whistle must be to count as a note. Lower (more negative) = picks up quieter sounds, but more background noise too.</p>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+                    <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
+                        <span>Populate Gesture Menus 🔍</span>
+                        <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+                    </summary>
+                    <div class="p-3 border-t border-gray-700 space-y-4">
+                <div id="gesture-filter-toggles" class="grid grid-cols-2 gap-4 p-4 border border-emerald-500/20 bg-black/30 rounded-xl">
+                    <div class="col-span-2 text-xs font-bold text-emerald-400 mb-1 uppercase tracking-wider">Populate Hand Gesture Menus:</div>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-emerald-500" data-group="Poses" checked>
+                        <span class="text-xs font-medium text-gray-300">Include Poses (Fist/Rock)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-emerald-500" data-group="Pinches" checked>
+                        <span class="text-xs font-medium text-gray-300">Include Pinches</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-emerald-500" data-group="Counts" checked>
+                        <span class="text-xs font-medium text-gray-300">Include Finger Counts</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-emerald-500" data-group="Shapes" checked>
+                        <span class="text-xs font-medium text-gray-300">Include Advanced Shapes</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-emerald-500" data-group="Motion" checked>
+                        <span class="text-xs font-medium text-gray-300">Include Motion (Directional Swipes)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-emerald-500" data-group="Transitions" checked>
+                        <span class="text-xs font-medium text-gray-300">Include Motion Transitions (Throw/Grab/etc)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-emerald-500" data-group="Combos" checked>
+                        <span class="text-xs font-medium text-gray-300">Include Combos (specific finger combinations)</span>
+                    </label>
+                </div>
+
+                <div id="touch-gesture-filter-toggles" class="grid grid-cols-2 gap-3 p-4 border border-blue-500/20 bg-black/30 rounded-xl">
+                    <div class="col-span-2 text-xs font-bold text-blue-400 mb-1 uppercase tracking-wider">Populate Touch Gesture Menus:</div>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-blue-500" data-group="Taps" checked>
+                        <span class="text-xs font-medium text-gray-300">Taps</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-blue-500" data-group="Spatial Taps" checked>
+                        <span class="text-xs font-medium text-gray-300">Spatial Taps</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-blue-500" data-group="Multi-Finger Taps" checked>
+                        <span class="text-xs font-medium text-gray-300">Multi-Finger Taps</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-blue-500" data-group="Swipes" checked>
+                        <span class="text-xs font-medium text-gray-300">Swipes</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-blue-500" data-group="Long Swipes" checked>
+                        <span class="text-xs font-medium text-gray-300">Long Swipes</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-blue-500" data-group="Multi-Finger Swipes" checked>
+                        <span class="text-xs font-medium text-gray-300">Multi-Finger Swipes</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-blue-500" data-group="Boomerangs" checked>
+                        <span class="text-xs font-medium text-gray-300">Boomerangs</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-blue-500" data-group="Switchbacks" checked>
+                        <span class="text-xs font-medium text-gray-300">Switchbacks</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-blue-500" data-group="Zigzags" checked>
+                        <span class="text-xs font-medium text-gray-300">Zigzags</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-blue-500" data-group="Corners & Shapes" checked>
+                        <span class="text-xs font-medium text-gray-300">Corners & Shapes</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-blue-500" data-group="Motion Gestures" checked>
+                        <span class="text-xs font-medium text-gray-300">Motion Gestures</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-blue-500" data-group="Flicks" checked>
+                        <span class="text-xs font-medium text-gray-300">Flicks</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-blue-500" data-group="Pausing Curves" checked>
+                        <span class="text-xs font-medium text-gray-300">Pausing Curves</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-blue-500" data-group="Anchors" checked>
+                        <span class="text-xs font-medium text-gray-300">Anchors (hold + tap/swipe)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-blue-500" data-group="Chords" checked>
+                        <span class="text-xs font-medium text-gray-300">Chords (2 fingers, different actions)</span>
+                    </label>
+                </div>
+                    </div>
+                </details>
+
+                <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+                    <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
+                        <span>Haptic Output Mapping 📳</span>
+                        <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+                    </summary>
+                    <div class="p-3 border-t border-gray-700">
+                        <div id="morse-container-target"></div>
+                    </div>
+                </details>
+            </div>
+        </div>
+    </div>
+
+    <div id="help-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
+            <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center">
+                <h3 class="text-2xl font-bold">Manual 📘</h3>
+                <button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button>
+            </div>
+            <div class="flex border-b border-custom bg-black bg-opacity-10 overflow-x-auto no-scrollbar">
+                <div class="tab-btn active flex-none whitespace-nowrap px-4" data-tab="help-about">Basics</div>
+                <div class="tab-btn flex-none whitespace-nowrap px-4" data-tab="help-settings">Master Settings</div>
+                <div class="tab-btn flex-none whitespace-nowrap px-4" data-tab="help-vision">Hand Tracking</div>
+                <div class="tab-btn flex-none whitespace-nowrap px-4" data-tab="help-gestures">Touch Gestures</div>
+                <div class="tab-btn flex-none whitespace-nowrap px-4" data-tab="help-voice">AI Voice</div>
+            </div>
+            <div class="p-5 overflow-y-auto leading-relaxed space-y-4 text-sm flex-grow">
+                
+                <div id="tab-help-about" class="tab-content active space-y-4">
+                    <div class="bg-gradient-to-r from-blue-900/40 to-purple-900/40 p-4 rounded-lg border border-white/10">
+                        <h4 class="font-bold text-lg text-white mb-2">Welcome to Follow Me 👋</h4>
+                        <p class="opacity-90 text-xs leading-5">This app is a memory assistant built to help you track complex sequence games and pattern challenges. It remembers the inputs so you don't have to.</p>
+                    </div>
+                    <div class="space-y-3">
+                        <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">The Core Loop</strong>
+                        <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                            <div class="bg-white/5 p-2 rounded border border-gray-700">
+                                <div class="text-xl mb-1">👀</div>
+                                <div class="font-bold text-blue-400">Watch</div>
+                                <span class="opacity-60 text-[10px]">See the pattern.</span>
+                            </div>
+                            <div class="bg-white/5 p-2 rounded border border-gray-700">
+                                <div class="text-xl mb-1">👇</div>
+                                <div class="font-bold text-green-400">Input</div>
+                                <span class="opacity-60 text-[10px]">Record it instantly.</span>
+                            </div>
+                            <div class="bg-white/5 p-2 rounded border border-gray-700">
+                                <div class="text-xl mb-1">▶️</div>
+                                <div class="font-bold text-purple-400">Play</div>
+                                <span class="opacity-60 text-[10px]">Let the app recite it.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Top Menu Icons</strong>
+                        <ul class="space-y-2 text-xs opacity-90">
+                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">⏱️</span> <strong>Timer:</strong> Stopwatch controls for tracking time limits.</li>
+                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">#</span> <strong>Counter:</strong> Manual tally tracker.</li>
+                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🎤</span> <strong>Mic:</strong> Toggle voice command listening.</li>
+                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🎵</span> <strong>Tone Cadence:</strong> Toggle hum/whistle note input (9-Key only).</li>
+                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🗒️</span> <strong>Gesture Pad:</strong> Open the touch-swipe input area.</li>
+                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🖐️</span> <strong>Hand Tracking:</strong> Activate AI front-camera gesture tracking.</li>
+                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📷</span> <strong>AR Mode:</strong> Turn background transparent via rear camera (needs HTTPS).</li>
+                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">⌨️</span> <strong>Bigger Buttons:</strong> Hide the UI and make every key perfectly square for maximum touch targets.</li>
+                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔄</span> <strong>Position Swap:</strong> Move the input keypad from the bottom of the screen to the top.</li>
+                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔲</span> <strong>Full Screen:</strong> Hide the browser's address bar and UI chrome.</li>
+                            <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🙃</span> <strong>Upside Down:</strong> Flip the entire interface 180° (for a partner facing you).</li>
+                        </ul>
+                    </div>
+                    <p class="text-[10px] text-gray-500 italic">Each icon above only appears in the header once its matching toggle is turned on in Settings → General.</p>
+                </div>
+
+                <div id="tab-help-settings" class="tab-content space-y-3">
+                    <p class="text-xs opacity-80 mb-3">Every toggle, slider, and switch in the Settings menu explained.</p>
+                    
+                    <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
+                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-blue-400">
+                            <span>🎮 Game Tab</span>
+                            <span class="group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
+                            <p><strong>Profiles:</strong> Save and load your entire configuration instantly.</p>
+                            <p><strong>Input:</strong> Choose your layout.<br>• <em>9-Key:</em> Standard 3x3 grid.<br>• <em>12-Key:</em> 3x4 grid for advanced setups.<br>• <em>Piano:</em> 7 natural keys, 5 sharp/flat keys.</p>
+                            <p><strong>Mode:</strong><br>• <em>Simon Says:</em> Cumulative sequence. Adds one item per round, playing from the start.<br>• <em>Unique:</em> Random sequences. Clears completely each round.</p>
+                            <p><strong>Machines:</strong> Track up to 4 completely independent sequences simultaneously.</p>
+                            <p><strong>Length:</strong> Maximum sequence boundary per machine.</p>
+                            <p><strong>Auto-Advance (Unique):</strong> Automatically clears the sequence for the next round after playback finishes.</p>
+                            <p><strong>Practice Mode 🎓:</strong> Runs a dummy round with random numbers mimicking your current settings to test layouts.</p>
+                        </div>
+                    </details>
+
+                    <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
+                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-green-400">
+                            <span>▶️ Playback Tab</span>
+                            <span class="group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
+                            <p><strong>Autoplay:</strong> Automatically triggers playback the moment a sequence round is completed.</p>
+                            <p><strong>Flash 👀:</strong> Visually highlights the number bubble during playback.</p>
+                            <p><strong>Audio 👂:</strong> Reads the sequence aloud using the selected Voice Settings.</p>
+                            <p><strong>Morse ✋:</strong> Triggers physical haptic vibrations mapped to dot/dash patterns for silent feedback.</p>
+                            <p><strong>Speed:</strong> Multiplier for how fast the sequence is delivered.</p>
+                            <p><strong>Pause:</strong> Injects a small or large delay between numbers.</p>
+                            <p><strong>Chunk Size & Delay:</strong> Breaks long sequences into groups (e.g., 3 numbers at a time) with a forced breath/delay between chunks.</p>
+                            <p><strong>Voice Profile:</strong> Select, create, and tune custom text-to-speech voices (Pitch, Speed, Volume).</p>
+                        </div>
+                    </details>
+
+                    <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
+                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-purple-400">
+                            <span>⚙️ General Tab (Toggles)</span>
+                            <span class="group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-3 text-[11px] opacity-90 space-y-2 border-t border-gray-700 mt-2 pt-2">
+                            <p><strong>Theme 🎨:</strong> Pick a color scheme or open the Editor to create your own.</p>
+                            <div class="grid grid-cols-2 gap-2 mt-2">
+                                <div><strong>Timer ⏱️:</strong> Shows header stopwatch.</div>
+                                <div><strong>Auto Timer:</strong> Starts stopwatch on input.</div>
+                                <div><strong>Counter #:</strong> Shows tally counter.</div>
+                                <div><strong>Auto Counter:</strong> Increments on input.</div>
+                                <div><strong>Haptics 📳:</strong> Vibrate on button press.</div>
+                                <div><strong>Show Intro:</strong> Launch setup modal on boot.</div>
+                                <div><strong>Random Theme 🎲:</strong> Picks a random built-in or custom theme each time the app opens.</div>
+                                <div><strong>Boss Mode 🌑:</strong> Shake to black out screen.</div>
+                                <div><strong>BM Gestures:</strong> Automatic when Touch Gesture and Boss Mode are both on - no separate toggle needed.</div>
+                                <div><strong>Wake Lock 💡:</strong> Prevents screen sleeping.</div>
+                                <div><strong>Upside Down:</strong> Flips the entire UI 180°.</div>
+                                <div><strong>Full Screen:</strong> Hides browser bars.</div>
+                                <div><strong>Eco Mode 🔋:</strong> Reduces animations/framerate.</div>
+                                <div><strong>Position Swap 🔄:</strong> Adds a header button that moves the input pad from the bottom of the screen to the top.</div>
+                                <div><strong>Bigger Buttons:</strong> Hides menus and makes each key perfectly square (as tall as it is wide) instead of a fixed height.</div>
+                                <div><strong>Touch Gesture:</strong> Shows the transparent touch gesture pad (taps/swipes drawn anywhere on screen).</div>
+                                <div><strong>Hand Gestures 🖐️:</strong> Master switch for the rear-camera hand tracking engine. Required for both per-key hand mapping and Hand Signals below.</div>
+                                <div><strong>Hand Signals:</strong> Global camera gestures for Clear (🤌), Delete (👌), Play (🤘), Stop (✊) - needs Hand Gestures on too.</div>
+                                <div><strong>AR Mode 📸:</strong> Rear-camera background. Needs HTTPS (or localhost) - camera permission can't be requested otherwise.</div>
+                                <div><strong>Voice Input 🎤:</strong> Master switch for the microphone/speech recognizer. Required for both spoken numbers and Voice Commands below.</div>
+                                <div><strong>Voice Commands:</strong> Say your trigger word then "play", "stop", "clear", or "delete" - needs Voice Input on too.</div>
+                                <div><strong>Tone Cadence Mode 🎵:</strong> Hum or whistle notes (C D E F G A B C D) to enter 1-9. 9-Key input only for now; requires microphone access.</div>
+                                <div><strong>Quick Erase:</strong> Hold backspace to rapidly delete.</div>
+                                <div><strong>AP Shortcut:</strong> Long-press Play to toggle Autoplay.</div>
+                                <div><strong>Vol. Gesture:</strong> 3-finger twist adjusts volume.</div>
+                                <div><strong>Speed Gesture:</strong> 2-finger twist adjusts speed.</div>
+                                <div><strong>Delete Gesture:</strong> 1-finger squiggle erases.</div>
+                                <div><strong>Clear Gesture:</strong> 2-finger squiggle nukes the round.</div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
+                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-yellow-400">
+                            <span>🔍 General Tab (Layout)</span>
+                            <span class="group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
+                            <p><strong>Sequence Size:</strong> Scales the individual cards showing the remembered numbers, from 50% up to 300%.</p>
+                            <p><strong>UI Scale:</strong> Zooms the entire interface in or out.</p>
+                            <p><strong>Number Size:</strong> Adjusts the font size of the text inside the sequence cards.</p>
+                            <p><strong>AR Playback Speed:</strong> The speed at which your recorded AR background clips play back.</p>
+                            <p><strong>Resize Gesture:</strong> Maps the pinch-to-zoom gesture to scale the Global UI, the Sequence Cards, or disables it.</p>
+                            <p><strong>Voice Trigger:</strong> The specific word the app listens for before logging your spoken numbers or a command (e.g., "Set 1 2 3" or "Set Play").</p>
+                        </div>
+                    </details>
+
+                    <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
+                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-red-400">
+                            <span>🎛️ Mapping Tab</span>
+                            <span class="group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
+                            <p><strong>Touch / Hand tabs:</strong> Switch between mapping touchscreen gestures and camera hand gestures to each key.</p>
+                            <p><strong>9-Key / 12-Key / Piano accordions:</strong> Each tab has one accordion per layout. Open one to see that layout's Quick Preset picker plus every key's individual dropdown.</p>
+                            <p><strong>Quick Presets ⚡:</strong> Bulk-assigns every key in that specific layout at once (e.g. "Finger Counts" for hand, "Taps" for touch) - individual keys can still be fine-tuned afterward. Every key is pre-assigned a sensible default the first time you open this tab.</p>
+                            <p><strong>Key Mappings:</strong> Assign a specific touch-screen gesture or hand gesture to each individual keypad value.</p>
+                            <p class="opacity-70">Tap Speed, Swipe Distance, and the gesture category filters moved to 🛠️ Developer Mode below.</p>
+                        </div>
+                    </details>
+
+                    <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
+                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-gray-400">
+                            <span>🛠️ Developer Mode</span>
+                            <span class="group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
+                            <p>Opens from the wrench icon in the top-left of the Settings header. Holds the more technical, fine-tuning controls:</p>
+                            <p><strong>Tap Speed (ms):</strong> How fast you must release your finger for it to count as a tap. Higher = easier to tap, harder to swipe.</p>
+                            <p><strong>Swipe Distance (px):</strong> How far your finger must drag before it triggers a swipe. Higher = prevents accidental swipes.</p>
+                            <p><strong>Long Press Time, Tap Wiggle Room, Spatial Tap Precision, Long Swipe Distance, Multi-Finger Swipe Sync:</strong> Five more fine-tuning sliders for the touch engine - each has its own explanation directly under its slider.</p>
+                            <p><strong>Populate Hand/Touch Gesture Menus:</strong> Two separate filter groups. Hand controls which pose categories (Poses, Pinches, Finger Counts, Advanced Shapes) show up in the Hand tab's dropdowns; Touch controls which of the 13 touch categories (Taps, Swipes, Boomerangs, etc.) show up in the Touch tab's dropdowns.</p>
+                            <p><strong>Haptic Output Mapping:</strong> Customize the dot/dash vibration pattern for each of the 12 possible values, used when the Playback tab's Morse toggle is on.</p>
+                        </div>
+                    </details>
+                </div>
+            
+                <div id="tab-help-vision" class="tab-content space-y-4">
+                    <div class="bg-blue-900/30 p-3 rounded-lg border border-blue-500/30">
+                        <strong class="text-blue-300 block mb-1">🖐️ Front Camera AI Tracking</strong>
+                        <p class="text-xs opacity-90">Control the app without touching the screen. Turn on "Hand Gestures" in Settings → General, then click the 🖐️ icon in the header to activate the camera.</p>
+                    </div>
+                    <div class="text-xs space-y-2 opacity-90 bg-black/20 p-3 rounded">
+                        <p><strong>🎛️ Per-Key Mapping (customizable):</strong></p>
+                        <p class="opacity-80">Each keypad value can be assigned its own hand pose - Settings → Mapping → Hand tab → open the 9-Key/12-Key/Piano accordion for your layout. Apply a Quick Preset (like "Finger Counts") to assign every key at once, or set individual keys by hand. Which pose categories show up in those dropdowns (Poses, Pinches, Finger Counts, Advanced Shapes) is controlled in 🛠️ Developer Mode.</p>
+                    </div>
+                    <div class="text-xs space-y-2 opacity-80 bg-black/20 p-3 rounded">
+                        <p><strong>✋ Hand Signals (global, separate from key mapping):</strong></p>
+                        <ul class="list-disc pl-4 space-y-1">
+                            <li><strong>🤌 Chef Kiss:</strong> Clear the round.</li>
+                            <li><strong>👌 OK Sign:</strong> Delete (backspace).</li>
+                            <li><strong>🤘 Rock On:</strong> Play.</li>
+                            <li><strong>✊ Fist:</strong> Stop.</li>
+                        </ul>
+                        <p class="opacity-70">These four work from any key mapping and fire regardless of which hand orientation (palm or knuckles facing the camera) you show. Turn on "Hand Signals" in Settings → General to enable them - it requires Hand Gestures to also be on.</p>
+                    </div>
+                    <div class="text-xs space-y-2 opacity-80 bg-black/20 p-3 rounded">
+                        <p><strong>💡 Tracking Rules:</strong></p>
+                        <ul class="list-disc pl-4 space-y-1">
+                            <li><strong>Hold Steady:</strong> You must hold the gesture still for a fraction of a second to lock it in. This prevents accidental multi-inputs.</li>
+                            <li><strong>Boss Mode:</strong> Hand Tracking utilizes the camera, not the screen. It works perfectly while Boss Mode (Blackout) is active.</li>
+                            <li><strong>Lighting:</strong> Ensure your hand is front-lit. Heavy backlighting (like a bright window behind you) will blind the AI.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div id="tab-help-gestures" class="tab-content space-y-4">
+                    <div class="bg-gray-800 p-2 rounded border border-gray-600">
+                        <strong class="text-white text-xs block mb-1">The Gesture Pad</strong>
+                        <p class="text-[10px] opacity-70">These touch commands work on the transparent "Gesture Pad" (opened via the 🗒️ icon) or when Boss Mode Gestures are enabled. Assign any of them to a keypad value in Settings → Mapping → Touch tab; a Quick Preset can assign a whole layout at once.</p>
+                    </div>
+                    <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
+                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white">
+                            <span>💨 Basic Swipes & Taps</span>
+                            <span class="group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-3 text-xs opacity-90 space-y-2 border-t border-gray-700 mt-2 pt-2">
+                            <p><strong>1-Finger Swipe:</strong> Up, Down, Left, Right.</p>
+                            <p><strong>2-Finger & 3-Finger:</strong> Multi-touch swipes in any direction.</p>
+                            <p><strong>Corners:</strong> Swipe diagonally (e.g., Up-Right).</p>
+                            <p><strong>Taps:</strong> Single, Double, Triple, and Long Presses (Hold).</p>
+                        </div>
+                    </details>
+                    <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
+                        <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white">
+                            <span>📐 Complex Shapes</span>
+                            <span class="group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
+                            <p><strong>Boomerang (I-Shape):</strong> Swipe UP then DOWN without lifting.</p>
+                            <p><strong>Switchback (V-Shape):</strong> Swipe RIGHT then DOWN-LEFT without lifting.</p>
+                            <p><strong>Square/Triangle:</strong> Draw the continuous shape.</p>
+                            <p><strong>Twists:</strong> Rotate two or three fingers in a circle.</p>
+                            <p><strong>Squiggle:</strong> Rapidly scrub back and forth.</p>
+                        </div>
+                    </details>
+                </div>
+
+                <div id="tab-help-voice" class="tab-content">
+                    <div class="bg-blue-900/30 p-3 rounded-lg border border-blue-500/30 mb-4">
+                        <strong class="text-blue-300 block mb-1">🎤 In-App Voice Input</strong>
+                        <p class="text-xs opacity-90 mb-2">Turn on "Voice Input" in Settings → General, then tap the 🎤 header icon to start listening. Say your Voice Trigger word (default "Set"), then a number, letter, or command in the same breath.</p>
+                        <p class="text-xs opacity-90"><strong>Examples:</strong> "Set 1 2 3" enters those values. "Set Play" plays back. Requires "Voice Commands" also on in Settings → General.</p>
+                        <p class="text-xs opacity-90 mt-2"><strong>Commands:</strong> play / start / go &nbsp;•&nbsp; stop / pause &nbsp;•&nbsp; clear / reset &nbsp;•&nbsp; delete / backspace / undo / back &nbsp;•&nbsp; settings / options</p>
+                    </div>
+                    <h4 class="font-bold text-lg text-primary-app mb-2">AI Assistant Prompt 🤖</h4>
+                    <p class="mb-4 opacity-90 text-xs">Copy this prompt into an AI Audio Assistant (like ChatGPT Voice) to play with a dynamic AI caller that adapts to your current configuration.</p>
+                    <div class="relative">
+                        <textarea id="prompt-display" class="w-full h-48 bg-gray-900 border border-gray-700 rounded-lg p-3 text-xs font-mono text-green-400 resize-none" readonly></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-2 mt-2">
+                        <button id="generate-prompt-btn" class="bg-green-600 hover:bg-green-500 text-white text-xs font-bold px-4 py-2 rounded shadow">🔄 Update</button>
+                        <button id="copy-prompt-btn" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded shadow">📋 Copy</button>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-custom flex justify-end bg-black bg-opacity-20">
+                <button id="close-help-btn-bottom" class="px-6 py-2 bg-primary-app text-white rounded-lg font-bold hover:bg-secondary-app transition shadow-lg">Close Manual</button>
+            </div>
+        </div>
+    </div>
+
+<div id="comment-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[120] transition-opacity duration-300 opacity-0 pointer-events-none hidden">
+        <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom">
+             <h3 class="font-bold text-lg mb-4">Send Feedback 💬</h3>
+             <input type="text" id="comment-username" class="settings-input w-full p-2 rounded mb-2 text-sm" placeholder="Name (Optional)">
+             <textarea id="comment-message" class="settings-input w-full p-2 rounded mb-4 text-sm h-24 resize-none" placeholder="Message..."></textarea>
+             <div id="comments-list-container" class="max-h-32 overflow-y-auto mb-4 text-xs"></div>
+             <div class="flex space-x-2">
+                 <button id="close-comment-modal" class="flex-1 bg-gray-700 py-2 rounded text-white font-bold text-xs">Close</button>
+                 <button id="submit-comment-btn" class="flex-1 bg-blue-600 py-2 rounded text-white font-bold text-xs">Send</button>
+             </div>
+        </div>
+    </div>
+
+    <div id="app" class="max-w-7xl w-full mx-auto flex-grow pb-32">
+        <main id="sequence-container" class="flex-grow mb-6 transition-all duration-300 pt-4 flex flex-col items-center justify-center"></main>
+    </div>
+
+    <div id="gesture-pad-wrapper" class="hidden">
+        <div id="gesture-pad" class="p-4 rounded-lg m-4 border border-custom settings-input" style="height:220px; display:flex; align-items:center; justify-content:center;">
+            <div id="gesture-indicator" class="text-center text-sm opacity-80">Use gestures here — swipes, taps, multi-finger.</div>
+        </div>
+    </div>
+
+    <footer id="input-footer" class="fixed bottom-0 left-0 right-0 p-2 md:p-4 shadow-2xl z-40 safe-area-bottom transition-colors duration-200">
+        <div id="pad-key9" class="max-w-md mx-auto">
+            <div class="grid grid-cols-3 gap-3 mb-2">
+                <button data-value="1" class="btn-input btn-pad-number">1</button>
+                <button data-value="2" class="btn-input btn-pad-number">2</button>
+                <button data-value="3" class="btn-input btn-pad-number">3</button>
+                <button data-value="4" class="btn-input btn-pad-number">4</button>
+                <button data-value="5" class="btn-input btn-pad-number">5</button>
+                <button data-value="6" class="btn-input btn-pad-number">6</button>
+                <button data-value="7" class="btn-input btn-pad-number">7</button>
+                <button data-value="8" class="btn-input btn-pad-number">8</button>
+                <button data-value="9" class="btn-input btn-pad-number">9</button>
+            </div>
+            <div class="grid grid-cols-3 gap-2 control-row">
+                <button data-action="reset-unique-rounds" class="reset-button btn-input btn-control !bg-red-600 text-sm font-bold col-span-3 mb-2" style="display:none">RESET ROUNDS</button>
+                <button data-action="play-demo" class="btn-input btn-control !bg-primary-app col-span-1 text-white text-xl">▶</button>
+                <button data-action="backspace" class="btn-input btn-control col-span-1 text-xl">←</button>
+                <button data-action="open-settings" class="btn-input btn-control !bg-primary-app col-span-1 text-white text-xl">⚙️</button>
+            </div>
+        </div>
+
+        <div id="pad-key12" class="max-w-lg mx-auto" style="display: none;">
+            <div class="grid grid-cols-4 gap-3 mb-2">
+                <button data-value="1" class="btn-input btn-pad-number">1</button>
+                <button data-value="2" class="btn-input btn-pad-number">2</button>
+                <button data-value="3" class="btn-input btn-pad-number">3</button>
+                <button data-value="4" class="btn-input btn-pad-number">4</button>
+                <button data-value="5" class="btn-input btn-pad-number">5</button>
+                <button data-value="6" class="btn-input btn-pad-number">6</button>
+                <button data-value="7" class="btn-input btn-pad-number">7</button>
+                <button data-value="8" class="btn-input btn-pad-number">8</button>
+                <button data-value="9" class="btn-input btn-pad-number">9</button>
+                <button data-value="10" class="btn-input btn-pad-number">10</button>
+                <button data-value="11" class="btn-input btn-pad-number">11</button>
+                <button data-value="12" class="btn-input btn-pad-number">12</button>
+            </div>
+            <div class="grid grid-cols-3 gap-2 control-row">
+                 <button data-action="reset-unique-rounds" class="reset-button btn-input btn-control !bg-red-600 text-sm font-bold col-span-3 mb-2" style="display:none">RESET ROUNDS</button>
+                 <button data-action="play-demo" class="btn-input btn-control !bg-primary-app col-span-1 text-white text-xl">▶</button>
+                 <button data-action="backspace" class="btn-input btn-control col-span-1 text-xl">←</button>
+                 <button data-action="open-settings" class="btn-input btn-control !bg-primary-app col-span-1 text-white text-xl">⚙️</button>
+            </div>
+        </div>
+
+        <div id="pad-piano" class="max-w-2xl mx-auto pt-0 pb-1" style="display:none;">
+            <div id="piano-keys" class="relative h-40 w-full mb-2 border border-custom">
+                <div class="flex h-full w-full">
+                    <div class="key-container"><button data-value="C" class="piano-key-white btn-input btn-pad-number">C</button></div>
+                    <div class="key-container"><button data-value="D" class="piano-key-white btn-input btn-pad-number">D</button></div>
+                    <div class="key-container"><button data-value="E" class="piano-key-white btn-input btn-pad-number">E</button></div>
+                    <div class="key-container"><button data-value="F" class="piano-key-white btn-input btn-pad-number">F</button></div>
+                    <div class="key-container"><button data-value="G" class="piano-key-white btn-input btn-pad-number">G</button></div>
+                    <div class="key-container"><button data-value="A" class="piano-key-white btn-input btn-pad-number">A</button></div>
+                    <div class="key-container"><button data-value="B" class="piano-key-white btn-input btn-pad-number">B</button></div>
+                </div>
+                <button data-value="1" class="piano-key-black btn-input btn-pad-number black-1">1</button>
+                <button data-value="2" class="piano-key-black btn-input btn-pad-number black-2">2</button>
+                <button data-value="3" class="piano-key-black btn-input btn-pad-number black-3">3</button>
+                <button data-value="4" class="piano-key-black btn-input btn-pad-number black-4">4</button>
+                <button data-value="5" class="piano-key-black btn-input btn-pad-number black-5">5</button>
+            </div>
+            <div class="grid grid-cols-3 gap-2 max-w-lg mx-auto control-row">
+                 <button data-action="reset-unique-rounds" class="reset-button btn-input btn-control !bg-red-600 text-sm font-bold col-span-3 mb-2" style="display:none">RESET ROUNDS</button>
+                 <button data-action="play-demo" class="btn-input btn-control !bg-primary-app col-span-1 text-white text-xl">▶</button>
+                 <button data-action="backspace" class="btn-input btn-control col-span-1 text-xl">←</button>
+                 <button data-action="open-settings" class="btn-input btn-control !bg-primary-app col-span-1 text-white text-xl">⚙️</button>
+            </div>
+        </div>
+    </footer>
+
+    <div id="ar-playback-container" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: none;" class="fixed inset-0 z-[100] hidden bg-black flex-col justify-center items-center touch-none">
+        <video id="ar-playback-video" class="w-full h-full object-contain" playsinline controls></video>
+        <button id="ar-close-playback-btn" class="absolute top-8 right-8 bg-red-600 hover:bg-red-500 text-white py-3 px-6 rounded-xl font-bold shadow-lg text-lg z-[101]">Close & Return</button>
+        <label class="absolute top-8 left-8 z-[101] flex items-center gap-2 bg-black bg-opacity-60 text-white text-sm font-bold px-4 py-3 rounded-xl shadow-lg cursor-pointer">
+            <input type="checkbox" id="ar-autoclose-toggle" class="h-5 w-5 accent-red-500">
+            Auto-close after playback
+        </label>
+    </div>
+
+    <button id="ar-record-btn" class="fixed bottom-10 left-1/2 -translate-x-1/2 w-20 h-20 bg-red-600 rounded-full border-4 border-white shadow-[0_0_20px_rgba(255,0,0,0.8)] z-50 hidden active:scale-95 transition-transform items-center justify-center text-white font-bold text-lg pointer-events-auto">REC</button>   
+
+    <div id="toast-notification" class="fixed top-20 left-1/2 -translate-x-1/2 bg-primary-app text-white px-6 py-3 rounded-xl shadow-lg z-[99] transition-all duration-300 opacity-0 transform -translate-y-10"><span id="toast-message"></span></div>
+    <div id="tone-debug-indicator" class="hidden fixed top-32 left-1/2 -translate-x-1/2 bg-black bg-opacity-80 text-indigo-300 px-4 py-2 rounded-lg shadow-lg z-[99] font-mono text-xs pointer-events-none">🎵 listening...</div>
+   
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
+
+

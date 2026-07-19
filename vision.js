@@ -176,7 +176,7 @@ export class VisionEngine {
                         delegate: "GPU" 
                     },
                     runningMode: "VIDEO",
-                    numHands: 1
+                    numHands: 2
                 });
             } catch (e) {
                 console.error("Vision Init Error:", e);
@@ -260,6 +260,21 @@ export class VisionEngine {
             this._drawDebugSkeleton(results);
         } else if (this.debugCanvas && this.debugCtx) {
             this.debugCtx.clearRect(0, 0, this.debugCanvas.width, this.debugCanvas.height);
+        }
+
+        // FIX: "hand signals should be special 2 handed gestures like both palms facing to stop
+        // playback" - checked first, ahead of normal single-hand processing, and only fires when
+        // BOTH hands are simultaneously showing an open palm (id 62). This is purely additive -
+        // it doesn't touch or reinterpret any existing single-hand pose id, so every preset and
+        // mapping built around the old single-hand ids keeps working exactly as before.
+        if (results.landmarks && results.landmarks.length === 2) {
+            const rawID0 = processHandData(results.landmarks[0]);
+            const rawID1 = processHandData(results.landmarks[1]);
+            if (rawID0 === 62 && rawID1 === 62) {
+                this.onTrigger({ id: 'TWO_HAND_STOP', label: '✋✋ Both Palms - Stop' });
+                this._prevStableID = null;
+                return;
+            }
         }
 
         if (results.landmarks && results.landmarks.length > 0) {

@@ -1514,9 +1514,13 @@ const toneEngine = new ToneEngine((val) => {
                   gestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
                   return;
               }
-              if (gestureId === 0) { // 0 = Fist (palm-forward variant 1 is normalized to 0 above)
+              // FIX: "hand signals should be special 2 handed gestures like both palms facing to
+              // stop playback" - Stop is now genuinely two-handed (both palms shown at once,
+              // detected in vision.js), replacing the old single-hand Fist signal. Fist (id 0) is
+              // no longer reserved, so it's usable for regular per-key mapping again.
+              if (gestureId === 'TWO_HAND_STOP') {
                   isDemoPlaying = false;
-                  showToast("Hand Signal: Stopped 🛑");
+                  showToast("Hand Signal: Stopped 🛑✋✋");
                   gestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
                   return;
               }
@@ -1742,6 +1746,7 @@ function setupARLogic() {
               if (arPlaybackVideo && arPlaybackContainer) {
                   arPlaybackVideo.src = URL.createObjectURL(blob);
                   arPlaybackContainer.classList.remove('hidden');
+                  arPlaybackContainer.style.display = 'flex';
                   
                   // Sets standard playback speed statically from preferences on video load
                   arPlaybackVideo.playbackRate = appSettings.arPlaybackSpeed || 1.0;
@@ -1772,6 +1777,7 @@ function setupARLogic() {
       }
       if (arPlaybackContainer) {
           arPlaybackContainer.classList.add('hidden');
+          arPlaybackContainer.style.display = 'none';
       }
   };
   if (arPlaybackClose) {

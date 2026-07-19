@@ -27,7 +27,7 @@
 <body class="min-h-screen flex flex-col font-sans transition-colors duration-200">
     <div id="blackout-layer"></div>
    
-    <div id="ar-container" class="fixed inset-0 z-[-1] pointer-events-none hidden">
+    <div id="ar-container" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 z-[-1] pointer-events-none hidden">
         <video id="ar-background-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
     </div>
 
@@ -51,7 +51,7 @@
 
     
     
-    <div id="game-setup-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
+    <div id="game-setup-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
             <div class="flex items-center justify-between border-b border-custom pb-3 mb-4 relative">
                 <div class="flex items-center space-x-2">
@@ -90,7 +90,7 @@
         </div>
     </div>
 
-    <div id="theme-editor-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[100] transition-opacity duration-300 opacity-0 pointer-events-none">
+    <div id="theme-editor-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[100] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-md w-full transform scale-90 transition-transform duration-300 flex flex-col border border-custom max-h-[95vh] overflow-hidden">
             <h3 class="text-xl font-bold mb-4">🎨 Theme Editor</h3>
             <div class="overflow-y-auto px-1 flex-grow">
@@ -139,7 +139,7 @@
         </div>
     </div>
 
-    <div id="redeem-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
+    <div id="redeem-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
         <button id="close-redeem-btn" class="absolute top-4 right-4 z-50 bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600">✕</button>
         <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex gap-4">
             <button id="redeem-zoom-out" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">-</button>
@@ -154,7 +154,7 @@
 
 
 
-    <div id="donate-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[140] transition-opacity duration-300 opacity-0 pointer-events-none">
+    <div id="donate-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[140] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom flex flex-col text-center">
             <h3 class="text-2xl font-bold mb-2">Buy me a Coffee? ☕</h3>
             <p class="text-sm opacity-80 mb-6">If this app helps you win, consider sending a tip!</p>
@@ -196,7 +196,7 @@
 
 
 
-    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="settings-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh] overflow-hidden border border-custom m-4">
             
             <div class="no-swipe-zone p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
@@ -782,7 +782,7 @@
     <!-- FIX: this modal did not exist at all, even though openShare()/closeShare() and all four
          share button handlers were already written and wired against these exact ids. That's why
          the share button appeared to do nothing (it was only ever hiding the settings modal). -->
-    <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-60 z-[90] opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="share-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-60 z-[90] opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="share-sheet">
             <div class="flex items-center gap-3 px-5 pt-4 pb-2">
                 <img src="icon.png" alt="Follow Me" class="w-12 h-12 rounded-xl shadow-lg border border-gray-700 shrink-0" onerror="this.style.display='none'">
@@ -819,7 +819,7 @@
         </div>
     </div>
 
-    <div id="developer-mode-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[95] transition-opacity duration-300 opacity-0 pointer-events-none">
+    <div id="developer-mode-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[95] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg rounded-xl shadow-2xl max-w-md w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
             <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center">
                 <h3 class="text-xl font-bold">🛠️ Developer Mode</h3>
@@ -861,6 +861,11 @@
                             <input type="checkbox" id="test-voice-toggle" class="h-5 w-5 accent-yellow-500">
                         </label>
                     </div>
+                    <label class="flex items-center justify-between gap-2 p-2 mb-3 rounded-lg bg-red-900 bg-opacity-20 border border-red-500/30 cursor-pointer">
+                        <span class="font-bold text-xs text-red-300">🔒 Lock Test Area (swipes/taps here won't affect your real sequence)</span>
+                        <input type="checkbox" id="testAreaLockToggle" class="h-5 w-5 accent-red-500" checked>
+                    </label>
+                    <div id="test-area-lock-container" class="no-swipe-zone">
                     <div class="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-gray-700 mb-3">
                         <video id="practice-preview-video" class="w-full h-full object-cover scale-x-[-1]" muted playsinline></video>
                         <canvas id="practice-preview-canvas" class="absolute inset-0 w-full h-full scale-x-[-1]"></canvas>
@@ -879,6 +884,7 @@
                             <span class="text-[10px] font-bold text-yellow-400 uppercase">🎤 Voice</span>
                             <div id="test-voice-readout" class="font-mono text-xs text-yellow-300 mt-1">Waiting for speech...</div>
                         </div>
+                    </div>
                     </div>
                     </div>
                 </details>
@@ -1090,7 +1096,7 @@
         </div>
     </div>
 
-    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
+    <div id="help-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
             <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center">
                 <h3 class="text-2xl font-bold">Manual 📘</h3>
@@ -1355,7 +1361,7 @@
         </div>
     </div>
 
-<div id="comment-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[120] transition-opacity duration-300 opacity-0 pointer-events-none hidden">
+<div id="comment-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[120] transition-opacity duration-300 opacity-0 pointer-events-none hidden">
         <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom">
              <h3 class="font-bold text-lg mb-4">Send Feedback 💬</h3>
              <input type="text" id="comment-username" class="settings-input w-full p-2 rounded mb-2 text-sm" placeholder="Name (Optional)">
@@ -1448,7 +1454,7 @@
         </div>
     </footer>
 
-    <div id="ar-playback-container" class="fixed inset-0 z-[100] hidden bg-black flex-col justify-center items-center touch-none">
+    <div id="ar-playback-container" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: none;" class="fixed inset-0 z-[100] hidden bg-black flex-col justify-center items-center touch-none">
         <video id="ar-playback-video" class="w-full h-full object-contain" playsinline controls></video>
         <button id="ar-close-playback-btn" class="absolute top-8 right-8 bg-red-600 hover:bg-red-500 text-white py-3 px-6 rounded-xl font-bold shadow-lg text-lg z-[101]">Close & Return</button>
         <label class="absolute top-8 left-8 z-[101] flex items-center gap-2 bg-black bg-opacity-60 text-white text-sm font-bold px-4 py-3 rounded-xl shadow-lg cursor-pointer">

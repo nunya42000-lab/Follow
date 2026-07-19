@@ -67,6 +67,14 @@ const HAND_MAPPING_PRESETS = {
             'k9_6': '34', 'k9_7': '48', 'k9_8': '50', 'k9_9': '100'
         }
     },
+    '9_hand_shapes': {
+        name: "Shapes & Combos",
+        type: 'key9',
+        map: {
+            'k9_1': '200', 'k9_2': '201', 'k9_3': '203', 'k9_4': '12', 'k9_5': '20',
+            'k9_6': '36', 'k9_7': '40', 'k9_8': '56', 'k9_9': '101'
+        }
+    },
     '12_hand_counts': {
         name: "Finger Counts Extended",
         type: 'key12',
@@ -76,6 +84,15 @@ const HAND_MAPPING_PRESETS = {
             'k12_10': '12', 'k12_11': '20', 'k12_12': '36'
         }
     },
+    '12_hand_shapes': {
+        name: "Shapes & Combos",
+        type: 'key12',
+        map: {
+            'k12_1': '200', 'k12_2': '201', 'k12_3': '203', 'k12_4': '300', 'k12_5': '301',
+            'k12_6': '302', 'k12_7': '303', 'k12_8': '14', 'k12_9': '22',
+            'k12_10': '40', 'k12_11': '52', 'k12_12': '56'
+        }
+    },
     'piano_hand_default': {
         name: "Finger Counts",
         type: 'piano',
@@ -83,6 +100,15 @@ const HAND_MAPPING_PRESETS = {
             'piano_C': '16', 'piano_D': '24', 'piano_E': '28', 'piano_F': '30', 'piano_G': '62',
             'piano_A': '34', 'piano_B': '48',
             'piano_1': '50', 'piano_2': '100', 'piano_3': '12', 'piano_4': '20', 'piano_5': '36'
+        }
+    },
+    'piano_hand_shapes': {
+        name: "Shapes & Combos",
+        type: 'piano',
+        map: {
+            'piano_C': '200', 'piano_D': '201', 'piano_E': '203', 'piano_F': '101', 'piano_G': '102',
+            'piano_A': '103', 'piano_B': '40',
+            'piano_1': '42', 'piano_2': '44', 'piano_3': '52', 'piano_4': '54', 'piano_5': '58'
         }
     }
 };
@@ -196,6 +222,15 @@ const GESTURE_PRESETS = {
             'k9_7': 'Double_tap_spatial_sw', 'k9_8': 'Double_tap_spatial_down', 'k9_9': 'Double_tap_spatial_se'
         }
     },
+    '9_swipes': {
+        name: "Swipes",
+        type: 'key9',
+        map: {
+            'k9_1': 'swipe_nw', 'k9_2': 'swipe_up', 'k9_3': 'swipe_ne',
+            'k9_4': 'swipe_left', 'k9_5': 'double_tap', 'k9_6': 'swipe_right',
+            'k9_7': 'swipe_sw', 'k9_8': 'swipe_down', 'k9_9': 'swipe_se'
+        }
+    },
     '12_taps': {
         name: "Basic Taps",
         type: 'key12',
@@ -203,6 +238,24 @@ const GESTURE_PRESETS = {
             'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
             'k12_5': 'tap_2f', 'k12_6': 'double_tap_2f', 'k12_7': 'triple_tap_2f', 'k12_8': 'long_tap_2f',
             'k12_9': 'tap_3f', 'k12_10': 'double_tap_3f', 'k12_11': 'triple_tap_3f', 'k12_12': 'long_tap_3f'
+        }
+    },
+    '12_swipes': {
+        name: "Directional Swipes",
+        type: 'key12',
+        map: {
+            'k12_1': 'swipe_up', 'k12_2': 'swipe_down', 'k12_3': 'swipe_left', 'k12_4': 'swipe_right',
+            'k12_5': 'swipe_up_2f', 'k12_6': 'swipe_down_2f', 'k12_7': 'swipe_left_2f', 'k12_8': 'swipe_right_2f',
+            'k12_9': 'swipe_up_3f', 'k12_10': 'swipe_down_3f', 'k12_11': 'swipe_left_3f', 'k12_12': 'swipe_right_3f'
+        }
+    },
+    '12_flicks': {
+        name: "Flicks",
+        type: 'key12',
+        map: {
+            'k12_1': 'Flick_up', 'k12_2': 'Flick_down', 'k12_3': 'Flick_left', 'k12_4': 'Flick_right',
+            'k12_5': 'Flick_nw', 'k12_6': 'Flick_ne', 'k12_7': 'Flick_sw', 'k12_8': 'Flick_se',
+            'k12_9': 'tap_2f', 'k12_10': 'double_tap_2f', 'k12_11': 'tap_3f', 'k12_12': 'double_tap_3f'
         }
     },
     'piano_taps': {
@@ -213,6 +266,28 @@ const GESTURE_PRESETS = {
             'piano_G': 'swipe_se', 'piano_A': 'swipe_right', 'piano_B': 'swipe_ne',
             'piano_1': 'swipe_left_2f', 'piano_2': 'swipe_nw_2f', 'piano_3': 'swipe_up_2f',
             'piano_4': 'swipe_ne_2f', 'piano_5': 'swipe_right_2f'
+        }
+    },
+    'piano_spatial': {
+        name: "Spatial Corners",
+        type: 'piano',
+        map: {
+            'piano_C': 'triple_tap_spatial_corner_nw', 'piano_D': 'triple_tap_spatial_line_left',
+            'piano_E': 'triple_tap_spatial_corner_sw', 'piano_F': 'triple_tap_spatial_line_down',
+            'piano_G': 'triple_tap_spatial_corner_se', 'piano_A': 'triple_tap_spatial_line_right',
+            'piano_B': 'triple_tap_spatial_corner_ne',
+            'piano_1': 'Double_tap_spatial_left', 'piano_2': 'Double_tap_spatial_nw',
+            'piano_3': 'Double_tap_spatial_up', 'piano_4': 'Double_tap_spatial_ne', 'piano_5': 'Double_tap_spatial_right'
+        }
+    },
+    'piano_multi': {
+        name: "Multi-Finger",
+        type: 'piano',
+        map: {
+            'piano_C': 'tap_2f', 'piano_D': 'double_tap_2f', 'piano_E': 'triple_tap_2f', 'piano_F': 'long_tap_2f',
+            'piano_G': 'tap_3f', 'piano_A': 'double_tap_3f', 'piano_B': 'triple_tap_3f',
+            'piano_1': 'swipe_up_2f', 'piano_2': 'swipe_down_2f', 'piano_3': 'swipe_left_2f',
+            'piano_4': 'swipe_right_2f', 'piano_5': 'long_tap_3f'
         }
     }
 };
@@ -320,7 +395,7 @@ export class SettingsManager {
         // FIX: "gestures that are hand signals cannot be used for mapping" - Fist(0)/Rock On(18)/
         // Chef Kiss(104)/OK Sign(105) are reserved for the global Stop/Play/Clear/Delete signals.
         // Letting a key also claim one would mean every Stop gesture also fires that key's input.
-        const HAND_SIGNAL_IDS = ['0', '18', '104', '105'];
+        const HAND_SIGNAL_IDS = ['18', '104', '105']; // '0' (Fist) removed - Stop is now two-handed, Fist is free for regular mapping
         options = options.filter(g => !HAND_SIGNAL_IDS.includes(String(g.id)));
 
         const optionsHTML = '<option value="none">🚫 Unassigned</option>' +
@@ -1008,6 +1083,27 @@ initListeners() {
                 syncTestToggle('test-hand-toggle', 'handToggle');
                 syncTestToggle('test-touch-toggle', 'touchToggle');
                 syncTestToggle('test-voice-toggle', 'voiceToggle');
+
+                // FIX: "testing area needs... a lock toggle so swiping doesn't move it" - the
+                // global touch gesture engine listens on the whole document, so without this,
+                // testing a swipe/tap in the practice area could ALSO fire it for real (adding
+                // to your actual sequence while you're just watching the readout). Capture-phase
+                // listeners on the container intercept the event before it can bubble up to the
+                // engine's own (bubble-phase) listeners. Set up once, guarded against re-adding
+                // duplicate listeners every time Dev Mode reopens.
+                if (!window.__testAreaLockSetup) {
+                    window.__testAreaLockSetup = true;
+                    const lockContainer = document.getElementById('test-area-lock-container');
+                    const lockToggle = document.getElementById('testAreaLockToggle');
+                    const stopIfLocked = (e) => {
+                        if (lockToggle && lockToggle.checked && lockContainer && lockContainer.contains(e.target)) {
+                            e.stopPropagation();
+                        }
+                    };
+                    ['pointerdown', 'pointermove', 'pointerup', 'pointercancel', 'touchstart', 'touchmove', 'touchend'].forEach(type => {
+                        document.addEventListener(type, stopIfLocked, true);
+                    });
+                }
             };
         }
         if (closeDevBtn && devModal) {

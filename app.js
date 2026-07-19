@@ -1432,20 +1432,100 @@ const smartTracker = new SmartCadenceTracker(
 );
 
 // Bind it to the original Tone Engine listener
+// Tone Cadence speaker test - plays a sequence of tones through the speaker so the mic can pick
+// them up, for repeatable testing without having to hum/whistle yourself. Based on the provided
+// simulator, with a few additions: the sequence is editable rather than hardcoded, there's a live
+// progress readout, and - the one the original didn't have - a real stop button that actually
+// cancels a run in progress instead of just letting it play out.
+class ToneSequenceTester {
+    constructor() {
+        this.audioCtx = null;
+        this.isPlaying = false;
+        this.stopRequested = false;
+        // Matches ToneEngine's own 9-Key note set (C D E F G A B C D)
+        this.TONES = {
+            1: 261.63, 2: 293.66, 3: 329.63,
+            4: 349.23, 5: 392.00, 6: 440.00,
+            7: 493.88, 8: 523.25, 9: 587.33
+        };
+    }
+
+    _initAudio() {
+        if (!this.audioCtx) {
+            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    async playTone(frequency, durationMs) {
+        this._initAudio();
+        if (this.audioCtx.state === 'suspended') await this.audioCtx.resume();
+
+        const oscillator = this.audioCtx.createOscillator();
+        const gainNode = this.audioCtx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.value = frequency;
+
+        const attack = 0.01, release = 0.01;
+        const durationSec = durationMs / 1000;
+        const now = this.audioCtx.currentTime;
+
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(1, now + attack);
+        gainNode.gain.setValueAtTime(1, now + durationSec - release);
+        gainNode.gain.linearRampToValueAtTime(0, now + durationSec);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioCtx.destination);
+        oscillator.start(now);
+        oscillator.stop(now + durationSec);
+
+        return new Promise(resolve => setTimeout(resolve, durationMs));
+    }
+
+    async playSequence(sequence, toneDurationMs = 200, silenceDurationMs = 800, onProgress) {
+        this.isPlaying = true;
+        this.stopRequested = false;
+        for (let i = 0; i < sequence.length; i++) {
+            if (this.stopRequested) break;
+            const num = sequence[i];
+            const freq = this.TONES[num];
+            if (freq) {
+                if (onProgress) onProgress(i, sequence.length, num, freq);
+                await this.playTone(freq, toneDurationMs);
+                if (this.stopRequested) break;
+                if (i < sequence.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, silenceDurationMs));
+                }
+            }
+        }
+        this.isPlaying = false;
+        if (onProgress) onProgress(-1, sequence.length, null, null); // signals "done"
+    }
+
+    stop() {
+        this.stopRequested = true;
+    }
+}
+const toneSequenceTester = new ToneSequenceTester();
+window.toneSequenceTester = toneSequenceTester;
+
 const toneEngine = new ToneEngine((val) => {
     smartTracker.handleTone(val);
 }, (debug) => {
     const el = document.getElementById('tone-debug-indicator');
-    if (!el) return;
+    const testEl = document.getElementById('test-tone-readout');
+    let text;
     if (debug.error) {
-        el.textContent = `🎵 Mic error: ${debug.error}`;
+        text = `🎵 Mic error: ${debug.error}`;
     } else if (debug.note) {
-        el.textContent = `🎵 ${['','C','D','E','F','G','A','B','C','D'][debug.note]} (${debug.freq}Hz) #${debug.note}`;
+        text = `🎵 ${['','C','D','E','F','G','A','B','C','D'][debug.note]} (${debug.freq}Hz) #${debug.note}`;
     } else if (debug.freq) {
-        el.textContent = `🎵 ${debug.freq}Hz (no note match)`;
+        text = `🎵 ${debug.freq}Hz (no note match)`;
     } else {
-        el.textContent = `🎵 listening...`;
+        text = `🎵 listening...`;
     }
+    if (el) el.textContent = text;
+    if (testEl) testEl.textContent = text;
 });
 
 

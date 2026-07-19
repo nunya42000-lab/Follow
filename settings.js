@@ -1087,6 +1087,44 @@ initListeners() {
                 syncTestToggle('test-hand-toggle', 'handToggle');
                 syncTestToggle('test-touch-toggle', 'touchToggle');
                 syncTestToggle('test-voice-toggle', 'voiceToggle');
+                syncTestToggle('test-tone-toggle', 'toneToggle');
+
+                // Tone Cadence speaker test sequence - play/stop, guarded so repeated Dev Mode
+                // opens don't stack duplicate click handlers.
+                if (!window.__toneTestSetup) {
+                    window.__toneTestSetup = true;
+                    const playBtn = document.getElementById('tone-test-play-btn');
+                    const stopBtn = document.getElementById('tone-test-stop-btn');
+                    const seqInput = document.getElementById('tone-test-sequence');
+                    const progressEl = document.getElementById('tone-test-progress');
+                    const noteNames = ['', 'C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D'];
+
+                    if (playBtn) {
+                        playBtn.onclick = () => {
+                            if (!window.toneSequenceTester) return;
+                            if (window.toneSequenceTester.isPlaying) return;
+                            const raw = (seqInput?.value || '').split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n >= 1 && n <= 9);
+                            if (raw.length === 0) {
+                                if (progressEl) progressEl.textContent = 'Enter a sequence of numbers 1-9 first.';
+                                return;
+                            }
+                            window.toneSequenceTester.playSequence(raw, 200, 800, (i, total, num, freq) => {
+                                if (!progressEl) return;
+                                if (i === -1) {
+                                    progressEl.textContent = 'Done ✅';
+                                } else {
+                                    progressEl.textContent = `Playing ${i + 1}/${total}: ${num} (${noteNames[num]}, ${Math.round(freq)}Hz)`;
+                                }
+                            });
+                        };
+                    }
+                    if (stopBtn) {
+                        stopBtn.onclick = () => {
+                            if (window.toneSequenceTester) window.toneSequenceTester.stop();
+                            if (progressEl) progressEl.textContent = 'Stopped';
+                        };
+                    }
+                }
 
                 // FIX: "testing area needs... a lock toggle so swiping doesn't move it" - the
                 // global touch gesture engine listens on the whole document, so without this,

@@ -485,6 +485,20 @@ export class GestureEngine {
                 if (dir.length > 2) threshold += 60; 
                 type = netDist > threshold ? 'swipe_long' : 'swipe';
                 meta.dir = dir;
+
+                // FIX: "Flick" was listed as a selectable option (GESTURE_CATEGORIES, and your
+                // own imported preset) but the engine never actually produced this gesture id -
+                // any key mapped to it could never fire, no matter how the gesture was performed.
+                // A flick is a swipe completed quickly (snappy, short duration), as opposed to a
+                // slower, more deliberate swipe - using duration as the distinguishing factor
+                // since both can cover similar distance.
+                if (type === 'swipe') {
+                    const swipeDuration = inputs[0].endTime - inputs[0].startTime;
+                    if (swipeDuration < 200) {
+                        this._emitGesture('Flick', fingers, { dir: dir });
+                        return;
+                    }
+                }
             }
         }
 

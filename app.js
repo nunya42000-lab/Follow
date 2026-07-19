@@ -158,7 +158,7 @@ const DEFAULT_APP = {
   isHandSignalsEnabled: false,
   isVoiceCommandsEnabled: false,
   isToneCadenceEnabled: false,
-  isPositionSwapEnabled: false, isSkeletonDebugEnabled: false, activeFontFamily: "'Inter', sans-serif", handGestureCooldown: 600, handHoldFrames: 4, voiceConfidenceThreshold: 50, toneVolumeThreshold: -70, isSliderLockEnabled: false, touchAnchorStillDistance: 15, touchAnchorMinHoldTime: 150, touchChordSimultaneityWindow: 50,
+  isPositionSwapEnabled: false, isSkeletonDebugEnabled: false, activeFontFamily: "'Inter', sans-serif", handGestureCooldown: 600, handHoldFrames: 4, voiceConfidenceThreshold: 50, toneVolumeThreshold: -85, isSliderLockEnabled: false, touchAnchorStillDistance: 15, touchAnchorMinHoldTime: 150, touchChordSimultaneityWindow: 50,
   activeProfileId: 'profile_1', profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)), 
   runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)), 
   isPracticeModeEnabled: false, voicePitch: 1.0, voiceRate: 1.0, voiceVolume: 1.0, 

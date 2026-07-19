@@ -1274,7 +1274,22 @@ initListeners() {
     bindToggle(this.dom.haptics, 'isHapticsEnabled'); // FIX: was this.dom.hapticsToggle (never cached, dead)
     bindToggle(this.dom.ecoToggle, 'isEcoModeEnabled');
     bindToggle(this.dom.randomThemeToggle, 'isRandomThemeEnabled');
-    bindToggle(this.dom.skeletonDebugToggle, 'isSkeletonDebugEnabled');
+    // FIX: "never see skeleton" - the skeleton toggle only set a flag that the vision engine's
+    // process() loop checks, but that loop never runs unless hand tracking is actually started
+    // via the separate "Hand Gestures" toggle. Turning on skeleton alone did nothing visible.
+    // Auto-enabling Hand Gestures alongside it removes that hidden dependency entirely.
+    if (this.dom.skeletonDebugToggle) {
+        this.dom.skeletonDebugToggle.checked = !!this.appSettings.isSkeletonDebugEnabled;
+        this.dom.skeletonDebugToggle.onchange = (e) => {
+            this.appSettings.isSkeletonDebugEnabled = e.target.checked;
+            if (e.target.checked && !this.appSettings.isHandGesturesEnabled && this.dom.handToggle) {
+                this.dom.handToggle.checked = true;
+                this.dom.handToggle.dispatchEvent(new Event('change', { bubbles: true }));
+                if (typeof showToast === 'function') showToast('Hand Gestures turned on too - needed for the skeleton to have anything to draw 🦴');
+            }
+            this.callbacks.onSave();
+        };
+    }
     bindToggle(this.dom.voicecommandsToggle, 'isVoiceCommandsEnabled'); // FIX: voicecommandsToggle is now actually cached
     bindToggle(this.dom.bossToggle, 'isBlackoutFeatureEnabled'); // FIX: was writing 'isBossModeEnabled', a prop nothing ever reads
     // NOTE: "BM Gestures" isn't a separate toggle - it's simply Touch Gesture Input (isGestureInputEnabled)

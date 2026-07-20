@@ -1228,6 +1228,9 @@ initListeners() {
                         });
                     }
                 }
+				devModal.classList.remove('opacity-0', 'pointer-events-none');
+            if (settingsModalEl) settingsModalEl.classList.add('opacity-0', 'pointer-events-none');
+            if (window.lockBodyScroll) window.lockBodyScroll();
             };
         }
         if (closeDevBtn && devModal) {

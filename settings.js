@@ -909,26 +909,67 @@ export class SettingsManager {
 							if (readout) readout.textContent = 'Not testing';
 						};
 						window.__testVoiceStop = stopVoiceTest;
-						if (voiceStartBtn) {
-							voiceStartBtn.onclick = () => {
-								if (testRecognition) { stopVoiceTest(); return; }
-								const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-								const readout = document.getElementById('test-voice-readout');
-								if (!SR) { if (readout) readout.textContent = 'Speech recognition not supported in this browser'; return; }
-								testRecognition = new SR();
-								testRecognition.continuous = true;
-								testRecognition.interimResults = true;
-								testRecognition.onresult = (e) => {
-									const last = e.results[e.results.length - 1];
-									if (readout) readout.textContent = `"${last[0].transcript}"` + (last.isFinal ? ` (${Math.round(last[0].confidence * 100)}%)` : ' (listening...)');
-								};
-								testRecognition.onerror = (e) => { if (readout) readout.textContent = `Mic error: ${e.error}`; };
-								testRecognition.onend = () => { if (testRecognition) { try { testRecognition.start(); } catch (e) {} } };
-								testRecognition.start();
-								voiceStartBtn.textContent = '⏹️ Stop Mic Test';
-								if (readout) readout.textContent = 'Listening...';
-							};
-						}
+						// --- VOICE TEST: Exact matching validation ---
+if (voiceStartBtn) {
+    voiceStartBtn.onclick = () => {
+        if (testRecognition) { stopVoiceTest(); return; }
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const readout = document.getElementById('test-voice-readout');
+        if (!SR) { if (readout) readout.textContent = 'Speech recognition not supported'; return; }
+        testRecognition = new SR();
+        testRecognition.continuous = true;
+        testRecognition.interimResults = true;
+        
+        const vocab = {
+            '1': '1', 'one': '1', 'won': '1', '2': '2', 'two': '2', 'to': '2', 'too': '2',
+            '3': '3', 'three': '3', 'tree': '3', '4': '4', 'four': '4', 'for': '4', 'fore': '4',
+            '5': '5', 'five': '5', '6': '6', 'six': '6', '7': '7', 'seven': '7',
+            '8': '8', 'eight': '8', 'ate': '8', '9': '9', 'nine': '9',
+            '10': '10', 'ten': '10', 'tin': '10', '11': '11', 'eleven': '11', '12': '12', 'twelve': '12',
+            'a': 'A', 'hey': 'A', 'b': 'B', 'bee': 'B', 'be': 'B', 'c': 'C', 'see': 'C', 'sea': 'C',
+            'd': 'D', 'dee': 'D', 'e': 'E', 'f': 'F', 'g': 'G', 'jee': 'G'
+        };
+        const commandVocab = {
+            'play': 'CMD_PLAY', 'start': 'CMD_PLAY', 'go': 'CMD_PLAY',
+            'stop': 'CMD_STOP', 'pause': 'CMD_STOP',
+            'clear': 'CMD_CLEAR', 'reset': 'CMD_CLEAR',
+            'delete': 'CMD_DELETE', 'backspace': 'CMD_DELETE', 'undo': 'CMD_DELETE', 'back': 'CMD_DELETE',
+            'settings': 'CMD_SETTINGS', 'options': 'CMD_SETTINGS'
+        };
+
+        testRecognition.onresult = (e) => {
+            const last = e.results[e.results.length - 1];
+            const transcript = last[0].transcript.toLowerCase().trim();
+            
+            if (last.isFinal) {
+                const activeTrigger = (window.appSettings.voiceTriggerWord || 'set').toLowerCase();
+                const words = transcript.split(/\s+/).filter(w => w !== "");
+                const triggerIdx = words.lastIndexOf(activeTrigger);
+                
+                let match = null;
+                if (triggerIdx !== -1 && triggerIdx < words.length - 1) {
+                    const nextWord = words[triggerIdx + 1];
+                    if (commandVocab[nextWord]) match = commandVocab[nextWord];
+                    else if (vocab[nextWord]) match = vocab[nextWord];
+                }
+
+                if (match) {
+                    if (readout) readout.innerHTML = `<span class="text-green-400 font-bold">✓ Match: ${match}</span> <br><span class="text-gray-500 text-[10px]">from "${transcript}"</span>`;
+                } else {
+                    if (readout) readout.innerHTML = `<span class="text-red-400 font-bold">✗ Ignored</span> <br><span class="text-gray-500 text-[10px]">heard "${transcript}"</span>`;
+                }
+            } else {
+                if (readout) readout.textContent = `listening: "${transcript}"`;
+            }
+        };
+        testRecognition.onerror = (e) => { if (readout) readout.textContent = `Mic error: ${e.error}`; };
+        testRecognition.onend = () => { if (testRecognition) { try { testRecognition.start(); } catch (e) {} } };
+        testRecognition.start();
+        voiceStartBtn.textContent = '⏹️ Stop Mic Test';
+        if (readout) readout.textContent = 'Listening...';
+    };
+}
+
 						const toneStartBtn = document.getElementById('test-tone-start-btn');
 						let toneTestRunning = false;
 						const stopToneTest = () => {
@@ -949,6 +990,15 @@ export class SettingsManager {
 								await window.toneEngine.start();
 							};
 						}
+						// --- TONE TEST: History clear ---
+const clearToneHistoryBtn = document.getElementById('clear-tone-history-btn');
+if (clearToneHistoryBtn) {
+    clearToneHistoryBtn.onclick = () => {
+        const historyEl = document.getElementById('tone-test-history');
+        if (historyEl) historyEl.textContent = "";
+    };
+}
+						
 						const playBtn = document.getElementById('tone-test-play-btn');
 						const stopBtn = document.getElementById('tone-test-stop-btn');
 						const seqInput = document.getElementById('tone-test-sequence');
@@ -971,13 +1021,35 @@ export class SettingsManager {
 								if (progressEl) progressEl.textContent = 'Stopped';
 							};
 						}
-						const lockContainer = document.getElementById('test-area-lock-container');
-						if (lockContainer) {
-							const stopPropagationAlways = (e) => e.stopPropagation();
-							['pointerdown', 'pointermove', 'pointerup', 'pointercancel', 'touchstart', 'touchmove', 'touchend'].forEach(type => {
-									lockContainer.addEventListener(type, stopPropagationAlways, false);
-								});
-						}
+						// --- TOUCH TEST: Dedicated local engine to prevent dropping unmapped inputs ---
+const touchTestContainer = document.getElementById('test-area-lock-container');
+if (touchTestContainer && !window.__testGestureEngine) {
+    window.__testGestureEngine = new window.modules.gestureEngine.constructor(touchTestContainer, {
+        tapDelay: window.appSettings.gestureTapDelay || 300,
+        swipeThreshold: window.appSettings.gestureSwipeDist || 30,
+        longPressTime: window.appSettings.gestureLongPressTime || 300,
+        tapPrecision: window.appSettings.gestureTapPrecision || 30,
+        spatialThreshold: window.appSettings.gestureSpatialThreshold || 10,
+        longSwipeThreshold: window.appSettings.gestureLongSwipeThreshold || 150,
+        multiSwipeThreshold: window.appSettings.gestureMultiSwipeThreshold || 10
+    }, {
+        onGesture: (data) => {
+            const readout = document.getElementById('test-touch-readout');
+            if (readout) readout.textContent = data.name || JSON.stringify(data);
+        },
+        onContinuous: (data) => {
+            const readout = document.getElementById('test-touch-readout');
+            if (readout) readout.textContent = `${data.type} (Continuous)`;
+        }
+    });
+    
+    window.__testGestureEngine.updateAllowed([]);
+    
+    touchTestContainer.addEventListener('pointerdown', e => e.stopPropagation());
+    touchTestContainer.addEventListener('pointermove', e => e.stopPropagation());
+    touchTestContainer.addEventListener('pointerup', e => e.stopPropagation());
+}
+
 					}
 					devModal.classList.remove('opacity-0', 'pointer-events-none');
 					if (settingsModalEl) settingsModalEl.classList.add('opacity-0', 'pointer-events-none');

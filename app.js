@@ -1905,8 +1905,7 @@ function setupARLogic() {
             arRecordBtn.classList.remove('bg-red-800', 'scale-90');
         });
     }
-    const arPlaybackClose = document.getElementById('ar-close-playback-btn');
-    const arAutoCloseToggle = document.getElementById('ar-autoclose-toggle');
+        const arPlaybackClose = document.getElementById('ar-close-playback-btn');
     const closeArPlayback = () => {
         if (arPlaybackVideo) {
             arPlaybackVideo.pause();
@@ -1917,33 +1916,34 @@ function setupARLogic() {
             arPlaybackContainer.style.display = 'none';
         }
     };
+
     if (arPlaybackClose) {
         arPlaybackClose.addEventListener('click', closeArPlayback);
     }
-   if (arPlaybackVideo) {
-      arPlaybackVideo.addEventListener('ended', () => {
-          if (appSettings.isArAutoCloseEnabled) closeArPlayback();
-      });
-  if (arPlaybackVideo) {
+
+    if (arPlaybackVideo) {
         arPlaybackVideo.addEventListener('ended', () => {
-            if (arAutoCloseToggle && arAutoCloseToggle.checked) closeArPlayback();
+            if (appSettings.isArAutoCloseEnabled) closeArPlayback();
         });
+
         let wasPlayingBeforeTouch = false;
         arPlaybackVideo.addEventListener('pointerdown', () => {
             wasPlayingBeforeTouch = !arPlaybackVideo.paused;
             if (wasPlayingBeforeTouch) arPlaybackVideo.pause();
         });
+        
         const resumeIfNeeded = () => {
             if (wasPlayingBeforeTouch) {
                 arPlaybackVideo.play().catch(() => {});
                 wasPlayingBeforeTouch = false;
             }
         };
+        
         arPlaybackVideo.addEventListener('pointerup', resumeIfNeeded);
         arPlaybackVideo.addEventListener('pointercancel', resumeIfNeeded);
         arPlaybackVideo.addEventListener('pointerleave', resumeIfNeeded);
     }
-}
+} 
 
 function mapGestureToValue(kind, currentInput) {
     const saved = appSettings.gestureMappings || ({});

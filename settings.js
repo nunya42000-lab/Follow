@@ -877,6 +877,7 @@ export class SettingsManager {
 						const stopHandTest = () => {
 							if (!handTestRunning) return;
 							handTestRunning = false;
+							window.__handTestModeActive = false;
 							if (window.modules?.vision) window.modules.vision.stop();
 							if (previewVideo) previewVideo.srcObject = null;
 							if (handPlaceholder) { handPlaceholder.classList.remove('hidden'); handPlaceholder.textContent = 'Tap "Start Camera Test" above'; }
@@ -890,6 +891,7 @@ export class SettingsManager {
 								if (handTestRunning) { stopHandTest(); return; }
 								if (!window.modules?.vision) { if (handPlaceholder) handPlaceholder.textContent = 'Vision engine unavailable'; return; }
 								handTestRunning = true;
+								window.__handTestModeActive = true;
 								handStartBtn.textContent = '⏹️ Stop Camera Test';
 								if (handPlaceholder) handPlaceholder.textContent = 'Starting camera...';
 								await window.modules.vision.start();

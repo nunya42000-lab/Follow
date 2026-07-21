@@ -339,7 +339,7 @@ export class VisionEngine {
             this.debugCanvas.style.margin = '0';
             this.debugCanvas.style.width = '100vw';
             this.debugCanvas.style.height = '100vh';
-            this.debugCanvas.style.zIndex = '9999';
+            this.debugCanvas.style.zIndex = '10';
             this.debugCanvas.style.pointerEvents = 'none';
             // FIX: appended to <html> instead of <body> - if a settings/help/etc modal is open,
             // the scroll-lock sets body.style.position = 'fixed' to anchor the page, which makes

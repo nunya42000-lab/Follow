@@ -528,6 +528,13 @@ const startApp = () => {
             const handReadout = document.getElementById('test-hand-readout');
             if (handReadout) handReadout.textContent = `ID ${gestureId} - ${gestureLabel}`;
             if (window.__testChecklists?.hand) window.__testChecklists.hand.mark(String(gestureId));
+            // FIX: "also adds to sequence in test mode" - the vision engine is one shared
+            // instance (unlike touch, which has its own fully separate test engine), so a
+            // detection during a camera test was also flowing straight into real input handling
+            // below. This flag, set only while the Hand test tab's camera is actually running,
+            // stops it there - test detections still update the readout/checklist above, they
+            // just never reach Hand Signals or the real per-key mapping.
+            if (window.__handTestModeActive) return;
             if (appSettings.isHandGesturesEnabled && appSettings.isHandSignalsEnabled) {
                 if (gestureId === 'TWO_HAND_CLEAR') {
                     showToast("Hand Signal: Clear 🧹✊✊");

@@ -180,7 +180,7 @@ alert("Promise Error: " + event.reason);
 <button id="close-donate-btn" class="mt-6 w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold">Close</button>
 </div>
 </div>
-<div id="settings-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+<div id="settings-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding-top: max(1.5rem, env(safe-area-inset-top));" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
 <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh] overflow-hidden border border-custom m-4">
 <div class="no-swipe-zone p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
 <button id="open-developer-mode-btn" class="text-xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="Developer Mode">🛠️</button>
@@ -775,7 +775,7 @@ Email
 </div>
 </div>
 </div>
-<div id="developer-mode-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[95] transition-opacity duration-300 opacity-0 pointer-events-none">
+<div id="developer-mode-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding-top: max(1.5rem, env(safe-area-inset-top));" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[95] transition-opacity duration-300 opacity-0 pointer-events-none">
 <div style="display: flex; flex-direction: column; max-height: 90vh; overflow: hidden;" class="settings-modal-bg rounded-xl shadow-2xl max-w-md w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
 <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center">
 <h3 class="text-xl font-bold">🛠️ Developer Mode</h3>
@@ -1266,14 +1266,14 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <p class="opacity-80">Each keypad value can be assigned its own hand pose - Settings → Mapping → Hand tab → open the 9-Key/12-Key/Piano accordion for your layout. Apply a Quick Preset (like "Finger Counts") to assign every key at once, or set individual keys by hand. Which pose categories show up in those dropdowns (Poses, Pinches, Finger Counts, Advanced Shapes) is controlled in 🛠️ Developer Mode.</p>
 </div>
 <div class="text-xs space-y-2 opacity-80 bg-black/20 p-3 rounded">
-<p><strong>✋ Hand Signals (global, separate from key mapping):</strong></p>
+<p><strong>✋ Hand Signals (global, separate from key mapping, both hands):</strong></p>
 <ul class="list-disc pl-4 space-y-1">
-<li><strong>🤌 Chef Kiss:</strong> Clear the round.</li>
-<li><strong>👌 OK Sign:</strong> Delete (backspace).</li>
-<li><strong>🤘 Rock On:</strong> Play.</li>
-<li><strong>✊ Fist:</strong> Stop.</li>
+<li><strong>✊✊ Both Fists:</strong> Clear the round.</li>
+<li><strong>👎👎 Both Thumbs Down:</strong> Delete (backspace).</li>
+<li><strong>👍👍 Both Thumbs Up:</strong> Play.</li>
+<li><strong>✋✋ Both Open Palms:</strong> Stop.</li>
 </ul>
-<p class="opacity-70">These four work from any key mapping and fire regardless of which hand orientation (palm or knuckles facing the camera) you show. Turn on "Hand Signals" in Settings → General to enable them - it requires Hand Gestures to also be on.</p>
+<p class="opacity-70">Each one needs both hands showing the same pose at the same time - this keeps them distinct from your regular one-handed per-key mapping above, so a single hand doing the same pose while you play never accidentally triggers one. Turn on "Hand Signals" in Settings → General to enable them - it requires Hand Gestures to also be on.</p>
 </div>
 <div class="text-xs space-y-2 opacity-80 bg-black/20 p-3 rounded">
 <p><strong>💡 Tracking Rules:</strong></p>

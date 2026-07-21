@@ -1,4 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+/* Defensive safety net: every modal's and test-tab's open/closed state depends on these three
+   classes actually applying. If they don't, a "closed" element stays visible/interactive,
+   invisibly overlapping whatever's really underneath it. */
+.opacity-0 { opacity: 0 !important; }
+.pointer-events-none { pointer-events: none !important; }
+.hidden { display: none !important; }
 :root { --bg-main: #000000; --card-bg: #121212; --seq-bubble: #4f46e5; --btn-bg: #1a1a1a; --text-main: #e5e5e5; --border: rgba(255, 255, 255, 0.15); }
 body { background-color: var(--bg-main); color: var(--text-main); transition: background-color .3s, color .3s; min-height: 100vh; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
 input, textarea, .selectable-text { -webkit-user-select: text !important; user-select: text !important; -webkit-touch-callout: default !important; cursor: auto; touch-action: auto; }

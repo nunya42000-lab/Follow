@@ -527,6 +527,7 @@ const startApp = () => {
             const gestureLabel = typeof gestureData === 'object' ? gestureData.label : "Gesture";
             const handReadout = document.getElementById('test-hand-readout');
             if (handReadout) handReadout.textContent = `ID ${gestureId} - ${gestureLabel}`;
+            if (window.__testChecklists?.hand) window.__testChecklists.hand.mark(String(gestureId));
             if (appSettings.isHandGesturesEnabled && appSettings.isHandSignalsEnabled) {
                 if (gestureId === 'TWO_HAND_CLEAR') {
                     showToast("Hand Signal: Clear 🧹✊✊");

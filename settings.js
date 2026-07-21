@@ -920,43 +920,25 @@ if (voiceStartBtn) {
         testRecognition.continuous = true;
         testRecognition.interimResults = true;
         
-        const vocab = {
-            '1': '1', 'one': '1', 'won': '1', '2': '2', 'two': '2', 'to': '2', 'too': '2',
-            '3': '3', 'three': '3', 'tree': '3', '4': '4', 'four': '4', 'for': '4', 'fore': '4',
-            '5': '5', 'five': '5', '6': '6', 'six': '6', '7': '7', 'seven': '7',
-            '8': '8', 'eight': '8', 'ate': '8', '9': '9', 'nine': '9',
-            '10': '10', 'ten': '10', 'tin': '10', '11': '11', 'eleven': '11', '12': '12', 'twelve': '12',
-            'a': 'A', 'hey': 'A', 'b': 'B', 'bee': 'B', 'be': 'B', 'c': 'C', 'see': 'C', 'sea': 'C',
-            'd': 'D', 'dee': 'D', 'e': 'E', 'f': 'F', 'g': 'G', 'jee': 'G'
-        };
-        const commandVocab = {
-            'play': 'CMD_PLAY', 'start': 'CMD_PLAY', 'go': 'CMD_PLAY',
-            'stop': 'CMD_STOP', 'pause': 'CMD_STOP',
-            'clear': 'CMD_CLEAR', 'reset': 'CMD_CLEAR',
-            'delete': 'CMD_DELETE', 'backspace': 'CMD_DELETE', 'undo': 'CMD_DELETE', 'back': 'CMD_DELETE',
-            'settings': 'CMD_SETTINGS', 'options': 'CMD_SETTINGS'
-        };
+        // FIX: "audio input should only be looking for exact words. this would eliminate
+        // chances for errors." - no homophone/fuzzy tolerance here (the previous version mapped
+        // sound-alikes like "won"->1, "too"->2, "for"->4, which is the opposite of what a
+        // reliability test needs). Each word on the checklist must be heard as that literal word.
+        const exactWords = ['one', 'two', 'play', 'stop'];
 
         testRecognition.onresult = (e) => {
             const last = e.results[e.results.length - 1];
             const transcript = last[0].transcript.toLowerCase().trim();
             
             if (last.isFinal) {
-                const activeTrigger = (window.appSettings.voiceTriggerWord || 'set').toLowerCase();
                 const words = transcript.split(/\s+/).filter(w => w !== "");
-                const triggerIdx = words.lastIndexOf(activeTrigger);
-                
-                let match = null;
-                if (triggerIdx !== -1 && triggerIdx < words.length - 1) {
-                    const nextWord = words[triggerIdx + 1];
-                    if (commandVocab[nextWord]) match = commandVocab[nextWord];
-                    else if (vocab[nextWord]) match = vocab[nextWord];
-                }
+                const exactMatches = words.filter(w => exactWords.includes(w));
 
-                if (match) {
-                    if (readout) readout.innerHTML = `<span class="text-green-400 font-bold">✓ Match: ${match}</span> <br><span class="text-gray-500 text-[10px]">from "${transcript}"</span>`;
+                if (exactMatches.length > 0) {
+                    exactMatches.forEach(w => window.__testChecklists?.voice?.mark(w));
+                    if (readout) readout.innerHTML = `<span class="text-green-400 font-bold">✓ Exact match: ${exactMatches.join(', ')}</span><br><span class="text-gray-500 text-[10px]">heard "${transcript}"</span>`;
                 } else {
-                    if (readout) readout.innerHTML = `<span class="text-red-400 font-bold">✗ Ignored</span> <br><span class="text-gray-500 text-[10px]">heard "${transcript}"</span>`;
+                    if (readout) readout.innerHTML = `<span class="text-red-400 font-bold">✗ No exact match</span><br><span class="text-gray-500 text-[10px]">heard "${transcript}"</span>`;
                 }
             } else {
                 if (readout) readout.textContent = `listening: "${transcript}"`;
@@ -1036,6 +1018,7 @@ if (touchTestContainer && !window.__testGestureEngine) {
         onGesture: (data) => {
             const readout = document.getElementById('test-touch-readout');
             if (readout) readout.textContent = data.name || JSON.stringify(data);
+            if (window.__testChecklists?.touch) window.__testChecklists.touch.mark(data.id || data.name);
         },
         onContinuous: (data) => {
             const readout = document.getElementById('test-touch-readout');
@@ -1045,9 +1028,111 @@ if (touchTestContainer && !window.__testGestureEngine) {
     
     window.__testGestureEngine.updateAllowed([]);
     
-    touchTestContainer.addEventListener('pointerdown', e => e.stopPropagation());
-    touchTestContainer.addEventListener('pointermove', e => e.stopPropagation());
-    touchTestContainer.addEventListener('pointerup', e => e.stopPropagation());
+    // Raw input feedback - "the touch pad should show what it receives" - separate from the
+    // classified gesture readout, this shows exactly what's physically touching the screen.
+    const rawEl = document.getElementById('test-touch-raw');
+    const activePointers = new Map();
+    const renderRaw = () => {
+        if (!rawEl) return;
+        if (activePointers.size === 0) { rawEl.textContent = 'No fingers down'; return; }
+        const lines = Array.from(activePointers.entries()).map(([id, p]) =>
+            `finger ${id}: (${Math.round(p.x)}, ${Math.round(p.y)})`);
+        rawEl.textContent = `${activePointers.size} finger(s) down\n${lines.join('\n')}`;
+    };
+    touchTestContainer.addEventListener('pointerdown', e => {
+        e.stopPropagation();
+        activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        renderRaw();
+    });
+    touchTestContainer.addEventListener('pointermove', e => {
+        e.stopPropagation();
+        if (activePointers.has(e.pointerId)) {
+            activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            renderRaw();
+        }
+    });
+    const releasePointer = (e) => { e.stopPropagation(); activePointers.delete(e.pointerId); renderRaw(); };
+    touchTestContainer.addEventListener('pointerup', releasePointer);
+    touchTestContainer.addEventListener('pointercancel', releasePointer);
+}
+
+// ==========================================================
+// Generic checklist system - Hand, Touch, and Voice each get a list of required
+// inputs to verify, checked off as they're detected. Tone Cadence uses history
+// logging instead (pitch detection is inherently variable, pass/fail doesn't fit).
+// ==========================================================
+if (!window.__testChecklists) {
+    window.__testChecklists = {};
+    const buildChecklist = (containerId, items, colorClass) => {
+        const container = document.getElementById(containerId);
+        if (!container) return null;
+        container.innerHTML = '';
+        const state = {};
+        items.forEach(item => {
+            state[item.id] = false;
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-2 text-[10px]';
+            row.innerHTML = `<span id="check-${containerId}-${item.id}">⬜</span><span>${item.label}</span>`;
+            container.appendChild(row);
+        });
+        const passBanner = document.createElement('div');
+        passBanner.id = `${containerId}-pass-banner`;
+        passBanner.className = 'hidden mt-2 p-2 rounded bg-green-900 bg-opacity-40 border border-green-500/50 text-green-300 text-[10px] font-bold text-center';
+        passBanner.textContent = '✅ All checks passed!';
+        container.appendChild(passBanner);
+
+        const checkAllPassed = () => {
+            const passed = Object.values(state).every(v => v === true);
+            passBanner.classList.toggle('hidden', !passed);
+            return passed;
+        };
+
+        return {
+            state,
+            mark(id) {
+                if (state[id] === true || !(id in state)) return;
+                state[id] = true;
+                const el = document.getElementById(`check-${containerId}-${id}`);
+                if (el) el.textContent = '✅';
+                checkAllPassed();
+            },
+            reset() {
+                Object.keys(state).forEach(id => {
+                    state[id] = false;
+                    const el = document.getElementById(`check-${containerId}-${id}`);
+                    if (el) el.textContent = '⬜';
+                });
+                passBanner.classList.add('hidden');
+            },
+            allPassed: checkAllPassed
+        };
+    };
+
+    window.__testChecklists.hand = buildChecklist('test-hand-checklist', [
+        { id: '0', label: 'Fist ✊' },
+        { id: '62', label: 'Open Palm ✋' },
+        { id: '16', label: '1 Finger ☝️' },
+        { id: '600', label: 'Thumbs Up 👍' },
+    ]);
+    window.__testChecklists.touch = buildChecklist('test-touch-checklist', [
+        { id: 'tap', label: 'Single Tap' },
+        { id: 'double_tap', label: 'Double Tap' },
+        { id: 'swipe_up', label: 'Swipe Up' },
+        { id: 'swipe_down', label: 'Swipe Down' },
+        { id: 'swipe_left', label: 'Swipe Left' },
+        { id: 'swipe_right', label: 'Swipe Right' },
+    ]);
+    window.__testChecklists.voice = buildChecklist('test-voice-checklist', [
+        { id: 'one', label: '"one"' },
+        { id: 'two', label: '"two"' },
+        { id: 'play', label: '"play"' },
+        { id: 'stop', label: '"stop"' },
+    ]);
+
+    ['hand', 'touch', 'voice'].forEach(key => {
+        const btn = document.getElementById(`test-${key}-checklist-reset`);
+        if (btn) btn.onclick = () => window.__testChecklists[key]?.reset();
+    });
 }
 
 					}
@@ -1442,11 +1527,16 @@ if (touchTestContainer && !window.__testGestureEngine) {
 				this.callbacks.onSave();
 			};
 		}
-		bindToggle(this.dom.arAutoCloseGeneralToggle, 'isArAutoCloseEnabled', () => {
+		if (this.dom.arAutoCloseGeneralToggle) {
+			this.dom.arAutoCloseGeneralToggle.checked = this.appSettings.isArAutoCloseEnabled ?? false;
+			this.dom.arAutoCloseGeneralToggle.onchange = (e) => {
+				this.appSettings.isArAutoCloseEnabled = e.target.checked;
 				if (this.dom.arAutoClosePlayback) {
-					this.dom.arAutoClosePlayback.checked = this.appSettings.isArAutoCloseEnabled;
+					this.dom.arAutoClosePlayback.checked = e.target.checked;
 				}
-			});
+				this.callbacks.onSave();
+			};
+		}
 
 		if (this.dom.arAutoClosePlayback) {
 			this.dom.arAutoClosePlayback.checked = this.appSettings.isArAutoCloseEnabled ?? false;

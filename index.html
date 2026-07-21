@@ -812,27 +812,52 @@ Email
 <canvas id="practice-preview-canvas" class="absolute inset-0 w-full h-full"></canvas>
 <div id="practice-preview-placeholder" class="absolute inset-0 flex items-center justify-center text-[10px] text-gray-500 text-center px-4">Tap "Start Camera Test" above</div>
 </div>
-<div class="p-2 rounded bg-gray-950 border border-gray-700">
+<div class="p-2 rounded bg-gray-950 border border-gray-700 mb-3">
 <span class="text-[10px] font-bold text-emerald-400 uppercase">🖐️ Detected Pose</span>
 <div id="test-hand-readout" class="font-mono text-xs text-emerald-300 mt-1">Not testing</div>
 </div>
+<div class="p-2 rounded bg-gray-950 border border-gray-700">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] font-bold text-emerald-400 uppercase">✅ Checklist</span>
+<button type="button" id="test-hand-checklist-reset" class="text-[9px] bg-gray-700 text-white px-2 py-1 rounded hover:bg-gray-600">Reset</button>
+</div>
+<div id="test-hand-checklist" class="space-y-1"></div>
+</div>
 </div>
 <div id="test-panel-touch" class="test-panel hidden">
-<p class="text-[10px] text-gray-400 mb-2">The touch engine is always listening across the whole screen (that's how gestures work in the real app too) - tap/swipe in the box below to test safely, without it affecting your real sequence.</p>
-<div id="test-area-lock-container" class="no-swipe-zone h-32 rounded-lg border-2 border-dashed border-blue-500/40 bg-blue-950 bg-opacity-20 flex items-center justify-center text-xs text-blue-300 mb-3">
-Tap or swipe anywhere in this box
+<p class="text-[10px] text-gray-400 mb-2">Isolated from your real sequence - this box has its own gesture engine, completely separate from the one running the actual game.</p>
+<div id="test-area-lock-container" class="no-swipe-zone rounded-lg border-2 border-dashed border-blue-500/40 bg-blue-950 bg-opacity-20 flex items-center justify-center text-xs text-blue-300 mb-3" style="height: 45vh; min-height: 260px; touch-action: none;">
+Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
-<div class="p-2 rounded bg-gray-950 border border-gray-700">
+<div class="p-2 rounded bg-gray-950 border border-gray-700 mb-2">
+<span class="text-[10px] font-bold text-blue-400 uppercase">📡 Raw Input (live)</span>
+<div id="test-touch-raw" class="font-mono text-[10px] text-blue-200 mt-1">No fingers down</div>
+</div>
+<div class="p-2 rounded bg-gray-950 border border-gray-700 mb-3">
 <span class="text-[10px] font-bold text-blue-400 uppercase">👆 Detected Gesture</span>
 <div id="test-touch-readout" class="font-mono text-xs text-blue-300 mt-1">Waiting for a touch gesture...</div>
+</div>
+<div class="p-2 rounded bg-gray-950 border border-gray-700">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] font-bold text-blue-400 uppercase">✅ Checklist</span>
+<button type="button" id="test-touch-checklist-reset" class="text-[9px] bg-gray-700 text-white px-2 py-1 rounded hover:bg-gray-600">Reset</button>
+</div>
+<div id="test-touch-checklist" class="space-y-1"></div>
 </div>
 </div>
 <div id="test-panel-voice" class="test-panel hidden">
 <button type="button" id="test-voice-start-btn" class="w-full py-2 mb-2 rounded-lg text-xs font-bold bg-yellow-600 hover:bg-yellow-500 text-white">▶️ Start Mic Test</button>
-<p class="text-[10px] text-gray-400 mb-2">Say your Voice Trigger word, then a number or command, same as real use.</p>
-<div class="p-2 rounded bg-gray-950 border border-gray-700">
+<p class="text-[10px] text-gray-400 mb-2">Checks for an exact word match (not "sounds like" or partial) - say each checklist word clearly on its own.</p>
+<div class="p-2 rounded bg-gray-950 border border-gray-700 mb-3">
 <span class="text-[10px] font-bold text-yellow-400 uppercase">🎤 Heard</span>
 <div id="test-voice-readout" class="font-mono text-xs text-yellow-300 mt-1">Not testing</div>
+</div>
+<div class="p-2 rounded bg-gray-950 border border-gray-700">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] font-bold text-yellow-400 uppercase">✅ Checklist (exact word match)</span>
+<button type="button" id="test-voice-checklist-reset" class="text-[9px] bg-gray-700 text-white px-2 py-1 rounded hover:bg-gray-600">Reset</button>
+</div>
+<div id="test-voice-checklist" class="space-y-1"></div>
 </div>
 </div>
 <div id="test-panel-tone" class="test-panel hidden">

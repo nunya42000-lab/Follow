@@ -296,6 +296,23 @@ export class VisionEngine {
             const rawID = processHandData(results.landmarks[0]);
             const stableID = this.engineBuffer.pushAndEvaluate(rawID);
 
+            // Handedness: MediaPipe reports Left/Right per hand. NOTE: with a front camera the
+            // label can be mirror-flipped depending on the pipeline, so which physical hand maps
+            // to "Left" vs "Right" must be confirmed on a real device - that's why this is surfaced
+            // in the Hand test readout first. `handednessFlip` in appSettings lets that be corrected
+            // without a code change once verified. The numeric pose id is untouched, so this is
+            // purely additive and never affects existing mappings.
+            let handSide = null;
+            const hArr = results.handednesses || results.handedness;
+            if (hArr && hArr[0] && hArr[0][0] && hArr[0][0].categoryName) {
+                let name = hArr[0][0].categoryName; // 'Left' or 'Right'
+                if (window.appSettings && window.appSettings.handednessFlip) {
+                    name = name === 'Left' ? 'Right' : 'Left';
+                }
+                handSide = name === 'Left' ? 'L' : 'R';
+            }
+            this._lastHandSide = handSide;
+
             if (stableID !== null && GESTURE_DICTIONARY[stableID]) {
                 // FIX: "frozen gestures... adding motion would make them better" - poses were
                 // purely static (hold one shape, done). This adds a small set of TRANSITION
@@ -317,7 +334,8 @@ export class VisionEngine {
                 // Sends a structured object downstream so app.js can use `gesture.id` or `gesture.label`
                 this.onTrigger({
                     id: stableID,
-                    label: GESTURE_DICTIONARY[stableID]
+                    label: GESTURE_DICTIONARY[stableID],
+                    hand: handSide
                 });
                 return;
             }

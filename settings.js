@@ -1465,7 +1465,7 @@ if (!window.__testChecklists) {
 				}
 				this.callbacks.onSave();
 				this.generatePrompt();
-				if (['showTimer', 'showCounter', 'autoInputMode', 'isVoiceInputEnabled', 'isArModeEnabled', 'isStealth1KeyEnabled', 'isHandGesturesEnabled', 'isGestureInputEnabled'].includes(prop)) {
+				if (['showTimer', 'showCounter', 'isVoiceInputEnabled', 'isArModeEnabled', 'isStealth1KeyEnabled', 'isHandGesturesEnabled', 'isGestureInputEnabled'].includes(prop)) {
 					this.updateHeaderVisibility();
 				}
 			};

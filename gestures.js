@@ -120,6 +120,8 @@ export class GestureEngine {
             anchorStillDistance: 15,
             anchorMinHoldTime: 150,
             chordSimultaneityWindow: 50,
+            pauseDwellRadius: 22,
+            pauseDwellTime: 400,
             debug: false
         }, config || {});
 
@@ -159,6 +161,8 @@ export class GestureEngine {
             anchorStillDistance: 'touchAnchorStillDistance',
             anchorMinHoldTime: 'touchAnchorMinHoldTime',
             chordSimultaneityWindow: 'touchChordSimultaneityWindow',
+            pauseDwellRadius: 'touchPauseDwellRadius',
+            pauseDwellTime: 'touchPauseDwellTime',
         };
         const settingKey = appSettingsKeyMap[key];
         if (settingKey && window.appSettings && window.appSettings[settingKey] !== undefined && window.appSettings[settingKey] !== null) {
@@ -185,7 +189,7 @@ export class GestureEngine {
         
         this.activePointers[e.pointerId] = {
             id: e.pointerId,
-            pts: [{ x: e.clientX, y: e.clientY }],
+            pts: [{ x: e.clientX, y: e.clientY, t: Date.now() }],
             startTime: Date.now()
         };
 
@@ -222,7 +226,7 @@ export class GestureEngine {
         }
 
         const ptr = this.activePointers[e.pointerId];
-        ptr.pts.push({ x: e.clientX, y: e.clientY });
+        ptr.pts.push({ x: e.clientX, y: e.clientY, t: Date.now() });
 
         const pointers = Object.values(this.activePointers);
         const count = pointers.length;
@@ -345,10 +349,14 @@ export class GestureEngine {
         // land multiple fingers on glass at the exact same millisecond) and each had real,
         // independent motion that differs from the other.
         const SIMULTANEITY_WINDOW_MS = this._cfg('chordSimultaneityWindow');
+        const oppositePairs = { up: 'down', down: 'up', left: 'right', right: 'left', nw: 'se', se: 'nw', ne: 'sw', sw: 'ne' };
         if (downTimeDelta <= SIMULTANEITY_WINDOW_MS && (c1.kind === 'tap' || c1.kind === 'swipe') && (c2.kind === 'tap' || c2.kind === 'swipe')) {
             const label1 = c1.kind === 'tap' ? 'tap' : c1.dir;
             const label2 = c2.kind === 'tap' ? 'tap' : c2.dir;
-            if (label1 !== label2) {
+            // Directly opposite directions (fingers converging or diverging) are pinch_swipe/
+            // expand_swipe territory, not a chord - those are handled separately in _analyze().
+            const isOppositePair = oppositePairs[label1] === label2;
+            if (label1 !== label2 && !isOppositePair) {
                 // Sort alphabetically so "up+left" and "left+up" produce the same id
                 const [a, b] = [label1, label2].sort();
                 this._emitGesture('chord', 2, { subMode: `${a}_${b}` });
@@ -477,6 +485,15 @@ export class GestureEngine {
                 if (angle >= 165) { type = 'boomerang'; }     // I-Shape (180 deg)
                 else if (angle > 125) { type = 'switchback'; } // > Shape
                 else { type = 'corner'; }                     // L Shape
+
+                // Pausing variant: if the finger visibly held still (~half a second) at the
+                // direction-change point, this is a "Pausing" gesture. Single-finger only, to
+                // match the Pausing Curves category (which has no multi-finger entries).
+                if (fingers === 1 && this._hasDwell(primaryPath)) {
+                    if (type === 'boomerang') { this._emitGesture('Pausing_boomerang', 1, { dir: meta.dir }); return; }
+                    if (type === 'switchback') { this._emitGesture('Pausing_Switchback', 1, { dir: meta.dir, winding: winding }); return; }
+                    if (type === 'corner') { this._emitGesture('Pausing_corner', 1, { dir: meta.dir, winding: winding }); return; }
+                }
             } 
             // --- 1 Segment (Swipe) ---
             else {
@@ -486,13 +503,21 @@ export class GestureEngine {
                 type = netDist > threshold ? 'swipe_long' : 'swipe';
                 meta.dir = dir;
 
+                // Pausing swipe: a swipe with a deliberate mid-path hold (~half a second).
+                // Single-finger only, matching the category. Checked before Flick since a paused
+                // swipe is by definition not a quick flick.
+                if (fingers === 1 && this._hasDwell(primaryPath)) {
+                    this._emitGesture('Pausing_swipe', 1, { dir: dir });
+                    return;
+                }
+
                 // FIX: "Flick" was listed as a selectable option (GESTURE_CATEGORIES, and your
                 // own imported preset) but the engine never actually produced this gesture id -
                 // any key mapped to it could never fire, no matter how the gesture was performed.
                 // A flick is a swipe completed quickly (snappy, short duration), as opposed to a
                 // slower, more deliberate swipe - using duration as the distinguishing factor
                 // since both can cover similar distance.
-                if (type === 'swipe') {
+                if (type === 'swipe' && fingers === 1) {
                     const swipeDuration = inputs[0].endTime - inputs[0].startTime;
                     if (swipeDuration < 200) {
                         this._emitGesture('Flick', fingers, { dir: dir });
@@ -522,19 +547,20 @@ export class GestureEngine {
             clearTimeout(this.tapStack.timer); this.tapStack.active = false;
             if (type === 'tap' && fingers === this.tapStack.fingers) {
                 const seqDist = Math.hypot(sc.x - this.tapStack.lastPos.x, sc.y - this.tapStack.lastPos.y);
-                if (seqDist > 50 && fingers === 1) {
-                    const dir = this._getDirection(sc.x - this.tapStack.lastPos.x, sc.y - this.tapStack.lastPos.y);
-                    this._emitGesture('motion_tap', fingers, { subMode: 'spatial', dir: dir });
-                    this._clearStack();
-                    return;
-                } else {
-                    this.tapStack.count++;
-                    this.tapStack.posHistory.push(ec);
-                    this.tapStack.lastPos = ec;
-                    this.tapStack.active = true;
-                    this.tapStack.timer = setTimeout(() => this._commitStack(), this._cfg('tapDelay'));
-                    return;
-                }
+                // FIX: this used to emit 'Double_tap_spatial_<dir>' (previously wrongly named
+                // 'motion_tap_spatial_<dir>') immediately the instant a 2nd tap landed far from
+                // the 1st - which meant a 3rd tap could never arrive to upgrade it into a
+                // triple_tap_spatial_line/corner/boomerang shape. Those could never fire at all
+                // as a result. Now this just accumulates like any other tap in the stack; the
+                // actual spatial-vs-plain decision (and the double vs triple distinction) is made
+                // once in _commitStack() after the tap-delay window closes, the same place the
+                // triple-tap spatial shapes were already being decided.
+                this.tapStack.count++;
+                this.tapStack.posHistory.push(ec);
+                this.tapStack.lastPos = ec;
+                this.tapStack.active = true;
+                this.tapStack.timer = setTimeout(() => this._commitStack(), this._cfg('tapDelay'));
+                return;
             }
             if (type !== 'tap' && fingers === 1 && this.tapStack.fingers === 1) {
                 this._emitGesture('motion_tap', 1, { subMode: type, dir: meta.dir, winding: meta.winding });
@@ -566,7 +592,10 @@ export class GestureEngine {
 
             if (maxDist > 50 && fingers === 1 && count >= 2) {
                 // Spatial Taps
-                if (count === 3) {
+                if (count === 2) {
+                    const dir = this._getDirection(posHistory[1].x - posHistory[0].x, posHistory[1].y - posHistory[0].y);
+                    this._emitGesture('Double_tap_spatial', 1, { dir: dir });
+                } else if (count === 3) {
                     const v1 = { x: posHistory[1].x - posHistory[0].x, y: posHistory[1].y - posHistory[0].y };
                     const v2 = { x: posHistory[2].x - posHistory[1].x, y: posHistory[2].y - posHistory[1].y };
                     const angle = Math.abs(this._getAngleDiff(v1, v2));
@@ -612,7 +641,7 @@ export class GestureEngine {
         if (meta && meta.subMode) id += '_' + meta.subMode;
         if (meta && meta.dir && meta.dir !== 'Any' && meta.dir !== 'none') id += '_' + meta.dir.toLowerCase(); 
         
-        const windingShapes = ['corner', 'triangle', 'u_shape', 'square'];
+        const windingShapes = ['corner', 'triangle', 'u_shape', 'square', 'switchback'];
         const checkType = meta && meta.subMode ? meta.subMode : baseType;
         if (meta && meta.winding && windingShapes.some(s => checkType.includes(s))) id += '_' + meta.winding; 
 
@@ -707,6 +736,26 @@ export class GestureEngine {
     }
     _getTurnDir(v1, v2) { return (v1.x * v2.y - v1.y * v2.x); }
     _getAngleDiff(v1, v2) { const a1 = Math.atan2(v1.y, v1.x)*180/Math.PI; const a2 = Math.atan2(v2.y, v2.x)*180/Math.PI; let d = Math.abs(a1-a2); if(d>180) d=360-d; return d; }
+    // Powers "Pausing" gestures: returns true if the finger held within a small radius for at
+    // least ~half a second somewhere along the path (a deliberate mid-gesture pause). Requires
+    // per-point timestamps (added at capture time). The radius keeps a naturally-slowing turn
+    // from counting - only an actual hold-still qualifies.
+    _hasDwell(pts) {
+        if (!pts || pts.length < 3) return false;
+        const DWELL_RADIUS = this._cfg('pauseDwellRadius');
+        const DWELL_MS = this._cfg('pauseDwellTime');
+        let i = 0;
+        while (i < pts.length - 1) {
+            let j = i + 1;
+            while (j < pts.length &&
+                   Math.hypot(pts[j].x - pts[i].x, pts[j].y - pts[i].y) <= DWELL_RADIUS) {
+                if ((pts[j].t - pts[i].t) >= DWELL_MS) return true;
+                j++;
+            }
+            i = (j > i + 1) ? j - 1 : i + 1; // resume from where the cluster broke
+        }
+        return false;
+    }
     _getPathLen(pts) { let l=0; for(let i=1;i<pts.length;i++) l+=Math.hypot(pts[i].x-pts[i-1].x, pts[i].y-pts[i-1].y); return l; }
     _getDirection(dx, dy) {
         const ang = Math.atan2(dy, dx) * 180 / Math.PI;

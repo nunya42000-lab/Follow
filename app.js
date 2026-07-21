@@ -130,9 +130,6 @@ const DEFAULT_APP = {
     sensorCamThresh: 30,
     isBlackoutFeatureEnabled: false,
     isHapticMorseEnabled: false,
-    showMicBtn: false,
-    showCamBtn: false,
-    autoInputMode: 'none',
     showTimer: false,
     showCounter: false,
     isHandGesturesEnabled: false,
@@ -267,7 +264,7 @@ const getState = () => appState['current_session'] || (appState['current_session
 });
 let _savedScrollY = 0;
 let _scrollLocked = false;
-const _MODAL_IDS = ['settings-modal', 'help-modal', 'developer-mode-modal', 'share-modal', 'comment-modal', 'redeem-modal', 'donate-modal', 'theme-editor-modal', 'calibration-modal', 'game-setup-modal'];
+const _MODAL_IDS = ['settings-modal', 'help-modal', 'developer-mode-modal', 'share-modal', 'comment-modal', 'redeem-modal', 'donate-modal', 'theme-editor-modal', 'game-setup-modal'];
 const startApp = () => {
     loadState();
     window.appSettings = appSettings;
@@ -525,8 +522,12 @@ const startApp = () => {
                 gestureId = gestureId - 1;
             }
             const gestureLabel = typeof gestureData === 'object' ? gestureData.label : "Gesture";
+            const handSide = (typeof gestureData === 'object' && gestureData.hand) ? gestureData.hand : null;
             const handReadout = document.getElementById('test-hand-readout');
-            if (handReadout) handReadout.textContent = `ID ${gestureId} - ${gestureLabel}`;
+            if (handReadout) {
+                const sideLabel = handSide === 'L' ? '✋ Left hand' : handSide === 'R' ? '🤚 Right hand' : '';
+                handReadout.textContent = `ID ${gestureId} - ${gestureLabel}${sideLabel ? ' | ' + sideLabel : ''}`;
+            }
             if (window.__testChecklists?.hand) window.__testChecklists.hand.mark(String(gestureId));
             // FIX: "also adds to sequence in test mode" - the vision engine is one shared
             // instance (unlike touch, which has its own fully separate test engine), so a

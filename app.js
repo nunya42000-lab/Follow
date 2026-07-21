@@ -969,8 +969,6 @@ class VoiceCommander {
             const transcript = event.results[i][0].transcript.toLowerCase();
             const words = transcript.split(/\s+/).filter(w => w !== "");
             const confidence = event.results[i][0].confidence;
-            const voiceReadout = document.getElementById('test-voice-readout');
-            if (voiceReadout) voiceReadout.textContent = `"${transcript}"` + (event.results[i].isFinal ? ` (${Math.round(confidence * 100)}%)` : ' (listening...)');
             const minConfidence = (appSettings.voiceConfidenceThreshold || 50) / 100;
             if (event.results[i].isFinal && confidence > 0 && confidence < minConfidence) {
                 continue;
@@ -1122,9 +1120,21 @@ function hexToSettingsObject(hex) {
 
 function importSettingsFromHex(hex) {
     const imported = hexToSettingsObject(hex);
+    // FIX: this used to shallow-merge profiles/customThemes (...imported would fully replace
+    // them), unlike loadState() which deep-merges those two specifically so defaults aren't lost.
+    // An older or partial hex backup could silently wipe out profile entries that didn't exist
+    // yet at export time. Matches loadState()'s merge exactly now.
     const merged = {
         ...DEFAULT_APP,
-        ...imported
+        ...imported,
+        profiles: {
+            ...DEFAULT_APP.profiles,
+            ...(imported.profiles || {})
+        },
+        customThemes: {
+            ...DEFAULT_APP.customThemes,
+            ...(imported.customThemes || {})
+        }
     };
     Object.keys(appSettings).forEach(k => delete appSettings[k]);
     Object.assign(appSettings, merged);
@@ -1450,6 +1460,18 @@ function addValue(value) {
             }
         }
     }
+}
+
+// FIX: called via `typeof resetCurrentMachine === 'function'` from the Clear hand signal, but
+// never actually defined anywhere - the guard silently evaluated false and Clear did nothing.
+// Matches the exact reset pattern already used by the tone engine's own silence-reset callback.
+function resetCurrentMachine() {
+    const state = getState();
+    state.sequences = Array.from({ length: CONFIG.MAX_MACHINES }, () => []);
+    state.nextSequenceIndex = 0;
+    state.currentRound = 1;
+    renderUI();
+    saveState();
 }
 
 function handleBackspace(e) {

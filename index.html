@@ -181,7 +181,7 @@ alert("Promise Error: " + event.reason);
 </div>
 </div>
 <div id="settings-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding-top: max(1.5rem, env(safe-area-inset-top));" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
-<div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col max-h-[95vh] overflow-hidden border border-custom m-4">
+<div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col overflow-hidden border border-custom m-4" style="max-height: calc(100vh - max(1.5rem, env(safe-area-inset-top)) - 2rem);">
 <div class="no-swipe-zone p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
 <button id="open-developer-mode-btn" class="text-xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="Developer Mode">🛠️</button>
 <button id="open-donate-btn" class="text-2xl hover:scale-110 transition-transform p-3 active:opacity-50" title="Donate">☕</button>
@@ -779,7 +779,7 @@ Email
 </div>
 </div>
 <div id="developer-mode-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding-top: max(1.5rem, env(safe-area-inset-top));" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[95] transition-opacity duration-300 opacity-0 pointer-events-none">
-<div style="display: flex; flex-direction: column; max-height: 90vh; overflow: hidden;" class="settings-modal-bg rounded-xl shadow-2xl max-w-md w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
+<div style="display: flex; flex-direction: column; max-height: calc(100vh - max(1.5rem, env(safe-area-inset-top)) - 2rem); overflow: hidden;" class="settings-modal-bg rounded-xl shadow-2xl max-w-md w-full m-4 flex flex-col border border-custom overflow-hidden">
 <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center">
 <h3 class="text-xl font-bold">🛠️ Developer Mode</h3>
 <button id="close-developer-mode-btn" class="text-2xl text-gray-400 hover:text-white leading-none">&times;</button>

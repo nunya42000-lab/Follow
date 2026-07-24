@@ -390,6 +390,7 @@ export class SettingsManager {
 			gestureToggle: document.getElementById('touchToggle'),
 			handToggle: document.getElementById('handToggle'),
 			handsignalsToggle: document.getElementById('handsignalsToggle'),
+			handednessFlipToggle: document.getElementById('handednessFlipToggle'),
 			voicecommandsToggle: document.getElementById('voicecommandsToggle'),
 			wakelockToggle: document.getElementById('wakelockToggle'),
 			newToggle: document.getElementById('newToggle'),
@@ -546,7 +547,7 @@ export class SettingsManager {
 					(key) => (this.appSettings.mappings && this.appSettings.mappings[key]) ? String(this.appSettings.mappings[key].handGesture) : 'none',
 					(key, val) => {
 						if (!this.appSettings.mappings) this.appSettings.mappings = {};
-						if (!this.appSettings.mappings[key]) this.appSettings.mappings[key] = { touch: 'none', handGesture: 'none', morse: '' };
+						if (!this.appSettings.mappings[key]) this.appSettings.mappings[key] = { touch: 'none', handGesture: 'none', morse: '', handSide: 'any' };
 						this.appSettings.mappings[key].handGesture = val === 'none' ? 'none' : parseInt(val, 10);
 						const el = document.querySelector(`#map-hand-${key}`);
 						if (el) el.value = val;
@@ -582,6 +583,24 @@ export class SettingsManager {
 				} else if (this.appSettings.mappings && this.appSettings.mappings[keyId] && this.appSettings.mappings[keyId].handGesture !== undefined) {
 					select.value = this.appSettings.mappings[keyId].handGesture;
 				}
+				// For hand rows, add a companion Left/Right/Any selector so the same pose can be
+				// mapped per-hand. Injected once (guarded by a data flag) right after the pose select.
+				if (type === 'hand' && !select.dataset.sideInjected) {
+					select.dataset.sideInjected = '1';
+					const sideSel = document.createElement('select');
+					sideSel.className = 'hand-side-select settings-input p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none shrink-0';
+					sideSel.style.width = '4.5rem';
+					sideSel.innerHTML = '<option value="any">✋ Any</option><option value="L">👈 Left</option><option value="R">👉 Right</option>';
+					const savedSide = (this.appSettings.mappings && this.appSettings.mappings[keyId] && this.appSettings.mappings[keyId].handSide) ? this.appSettings.mappings[keyId].handSide : 'any';
+					sideSel.value = savedSide;
+					sideSel.onchange = (e) => {
+						if (!this.appSettings.mappings) this.appSettings.mappings = {};
+						if (!this.appSettings.mappings[keyId]) this.appSettings.mappings[keyId] = { touch: 'none', handGesture: 'none', morse: '', handSide: 'any' };
+						this.appSettings.mappings[keyId].handSide = e.target.value;
+						this.callbacks.onSave();
+					};
+					select.insertAdjacentElement('afterend', sideSel);
+				}
 				select.onchange = (e) => {
 					if (type === 'touch') {
 						if (!this.appSettings.gestureMappings) this.appSettings.gestureMappings = {};
@@ -589,7 +608,7 @@ export class SettingsManager {
 						this.appSettings.gestureMappings[keyId].gesture = e.target.value;
 					} else {
 						if (!this.appSettings.mappings) this.appSettings.mappings = {};
-						if (!this.appSettings.mappings[keyId]) this.appSettings.mappings[keyId] = { touch: 'none', handGesture: 'none', morse: '' };
+						if (!this.appSettings.mappings[keyId]) this.appSettings.mappings[keyId] = { touch: 'none', handGesture: 'none', morse: '', handSide: 'any' };
 						this.appSettings.mappings[keyId].handGesture = e.target.value === 'none' ? 'none' : parseInt(e.target.value, 10);
 					}
 					this.callbacks.onSave();
@@ -1245,7 +1264,6 @@ if (!window.__testChecklists) {
 		bindToggle(this.dom.autoTimerToggle, 'isAutoTimerEnabled');
 		bindToggle(this.dom.autoCounterToggle, 'isAutoCounterEnabled');
 		bindToggle(this.dom.haptics, 'isHapticsEnabled');
-		bindToggle(this.dom.ecoToggle, 'isEcoModeEnabled');
 		bindToggle(this.dom.randomThemeToggle, 'isRandomThemeEnabled');
 		if (this.dom.skeletonDebugToggle) {
 			this.dom.skeletonDebugToggle.checked = !!this.appSettings.isSkeletonDebugEnabled;
@@ -1262,6 +1280,7 @@ if (!window.__testChecklists) {
 		bindToggle(this.dom.voicecommandsToggle, 'isVoiceCommandsEnabled');
 		bindToggle(this.dom.bossToggle, 'isBlackoutFeatureEnabled');
 		bindToggle(this.dom.handsignalsToggle, 'isHandSignalsEnabled');
+		bindToggle(this.dom.handednessFlipToggle, 'handednessFlip');
 		bindToggle(this.dom.speedDelete, 'isSpeedDeletingEnabled');
 		bindToggle(this.dom.volumeGesturesToggle, 'isVolumeGesturesEnabled');
 		bindToggle(this.dom.speedGesturesToggle, 'isSpeedGesturesEnabled');
@@ -1511,10 +1530,6 @@ if (!window.__testChecklists) {
 		bind(this.dom.haptics, 'isHapticsEnabled', true);
 		bind(this.dom.speedDelete, 'isSpeedDeletingEnabled', true);
 		bind(this.dom.biggerToggle, 'isStealth1KeyEnabled', true);
-		bind(this.dom.speedToggle, 'isSpeedGesturesEnabled', true);
-		bind(this.dom.volgesToggle, 'isVolumeGesturesEnabled', true);
-		bind(this.dom.deleteToggle, 'isDeleteGestureEnabled', true);
-		bind(this.dom.clearToggle, 'isClearGestureEnabled', true);
 		bind(this.dom.autoTimerToggle, 'isAutoTimerEnabled', true);
 		bind(this.dom.autoCounterToggle, 'isAutoCounterEnabled', true);
 		bind(this.dom.practiceMode, 'isPracticeModeEnabled', true);
@@ -1756,6 +1771,7 @@ if (!window.__testChecklists) {
 		if (this.dom.gestureToggle) this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
 		if (this.dom.handToggle) this.dom.handToggle.checked = !!this.appSettings.isHandGesturesEnabled;
 		if (this.dom.handsignalsToggle) this.dom.handsignalsToggle.checked = !!this.appSettings.isHandSignalsEnabled;
+		if (this.dom.handednessFlipToggle) this.dom.handednessFlipToggle.checked = !!this.appSettings.handednessFlip;
 		if (this.dom.voicecommandsToggle) this.dom.voicecommandsToggle.checked = !!this.appSettings.isVoiceCommandsEnabled;
 		if (this.dom.wakelockToggle) this.dom.wakelockToggle.checked = (typeof this.appSettings.isWakeLockEnabled === 'undefined') ? true : this.appSettings.isWakeLockEnabled;
 		if (this.dom.randomThemeToggle) this.dom.randomThemeToggle.checked = !!this.appSettings.isRandomThemeEnabled;
@@ -2027,7 +2043,7 @@ if (!window.__testChecklists) {
 		if (this.appSettings.mappings && Object.keys(this.appSettings.mappings).length > 0) return;
 		this.appSettings.mappings = {};
 		const ensure = (key) => {
-			if (!this.appSettings.mappings[key]) this.appSettings.mappings[key] = { touch: 'none', handGesture: 'none', morse: '' };
+			if (!this.appSettings.mappings[key]) this.appSettings.mappings[key] = { touch: 'none', handGesture: 'none', morse: '', handSide: 'any' };
 			return this.appSettings.mappings[key];
 		};
 		const applyHandPreset = (presetId) => {

@@ -118,8 +118,6 @@ const DEFAULT_APP = {
     isAutoTimerEnabled: false,
     isAutoCounterEnabled: false,
     isWakeLockEnabled: true,
-    isUpsidedownEnabled: false,
-    isFullScreenEnabled: false,
     isEcoModeEnabled: true,
     isLongPressAutoplayEnabled: true,
     isStealth1KeyEnabled: false,
@@ -134,6 +132,7 @@ const DEFAULT_APP = {
     showCounter: false,
     isHandGesturesEnabled: false,
     isHandSignalsEnabled: false,
+    handednessFlip: false,
     isVoiceCommandsEnabled: false,
     isToneCadenceEnabled: false,
     isPositionSwapEnabled: false,
@@ -303,6 +302,13 @@ const startApp = () => {
         onSave: () => saveState(),
         onUpdate: () => updateAllChrome(),
         onProfileSwitch: id => {
+            // Commit the current profile's live settings before switching away. Without this,
+            // runtimeSettings (which holds unsaved changes) was discarded on switch, losing any
+            // edits made since the last explicit Save - even though those same edits persist
+            // across page reloads, so the old behavior was inconsistent and surprising.
+            if (appSettings.activeProfileId && appSettings.profiles[appSettings.activeProfileId] && appSettings.runtimeSettings) {
+                appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings));
+            }
             appSettings.activeProfileId = id;
             appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings));
             saveState();
@@ -564,15 +570,23 @@ const startApp = () => {
             }
             let mappedInput = null;
             if (appSettings.mappings) {
+                // Detected hand for this gesture ('L'/'R'/null). A mapping with handSide 'L' or 'R'
+                // only fires for that hand; 'any' (or unset, i.e. every pre-existing mapping) fires
+                // for either. If handedness couldn't be read (detectedHand null), handed mappings
+                // are skipped rather than firing on the wrong hand.
+                const detectedHand = (typeof gestureData === 'object' && gestureData.hand) ? gestureData.hand : null;
                 for (const [key, mapData] of Object.entries(appSettings.mappings)) {
                     const prefix = settings.currentInput === 'key9' ? 'k9_' : settings.currentInput === 'key12' ? 'k12_' : 'piano_';
-                    if (key.startsWith(prefix) && parseInt(mapData.handGesture) === gestureId) {
-                        mappedInput = key.replace(prefix, '');
-                        break;
+                    if (!key.startsWith(prefix)) continue;
+                    if (parseInt(mapData.handGesture) !== gestureId) continue;
+                    const wantSide = mapData.handSide || 'any';
+                    if (wantSide !== 'any') {
+                        if (detectedHand === null) continue;      // can't confirm hand -> don't fire a handed mapping
+                        if (wantSide !== detectedHand) continue;  // wrong hand
                     }
+                    mappedInput = key.replace(prefix, '');
+                    break;
                 }
-            } else if (typeof mapGestureToValue === 'function') {
-                mappedInput = mapGestureToValue(gestureId, settings.currentInput);
             }
             if (mappedInput !== null) {
                 addValue(mappedInput);
@@ -1234,21 +1248,6 @@ function vibrateMorse(val) {
     if (pattern.length > 0) navigator.vibrate(pattern);
 }
 
-function handleGesture(kind) {
-    const indicator = document.getElementById('gesture-indicator');
-    if (indicator) {
-        indicator.textContent = `Gesture: ${kind.replace(/_/g, ' ')}`;
-        indicator.style.opacity = '1';
-        setTimeout(() => {
-            indicator.style.opacity = '0.3';
-            indicator.textContent = 'Area Active';
-        }, 1000);
-    }
-    const settings = getProfileSettings();
-    const mapResult = mapGestureToValue(kind, settings.currentInput);
-    if (mapResult !== null) addValue(mapResult);
-}
-
 function speak(text) {
     if (!appSettings.isAudioEnabled || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
@@ -1379,7 +1378,7 @@ function playPracticeSequence() {
         const val = practiceSequence[i];
         const settings = getProfileSettings();
         const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${val}"]`);
-        if (key) {
+        if (key && appSettings.isFlashEnabled) {
             key.classList.add('flash-active');
             setTimeout(() => key.classList.remove('flash-active'), 250 / speed);
         }
@@ -1812,7 +1811,7 @@ function playDemo() {
             const kVal = val;
             const padId = `pad-${settings.currentInput}`;
             const btn = document.querySelector(`#${padId} button[data-value="${kVal}"]`);
-            if (btn) {
+            if (btn && appSettings.isFlashEnabled) {
                 btn.classList.add('flash-active');
                 setTimeout(() => btn.classList.remove('flash-active'), 250 / speed);
             }
@@ -2042,8 +2041,6 @@ function initGestureEngine() {
         debug: false
     }, {
         onGesture: data => {
-            const touchReadout = document.getElementById('test-touch-readout');
-            if (touchReadout) touchReadout.textContent = data.name || JSON.stringify(data);
             const isPadOpen = typeof isGesturePadVisible !== 'undefined' && isGesturePadVisible;
             const isClassPresent = document.body.classList.contains('input-gestures-mode');
             const isBossActive = appSettings.isBlackoutFeatureEnabled && appSettings.isGestureInputEnabled && blackoutState.isActive;

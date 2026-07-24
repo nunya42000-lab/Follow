@@ -432,6 +432,9 @@ alert("Promise Error: " + event.reason);
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Hand Signals🖐️</span>
 <input type="checkbox" id="handsignalsToggle" class="h-6 w-6 rounded accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Swap Left/Right Hands 🔄</span>
+<input type="checkbox" id="handednessFlipToggle" class="h-6 w-6 rounded accent-indigo-500"></div>
 <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Quick Erase</span>
 <input type="checkbox" id="speeddeleteToggle" class="h-5 w-5 accent-indigo-500"></div>
@@ -1264,6 +1267,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div class="text-xs space-y-2 opacity-90 bg-black/20 p-3 rounded">
 <p><strong>🎛️ Per-Key Mapping (customizable):</strong></p>
 <p class="opacity-80">Each keypad value can be assigned its own hand pose - Settings → Mapping → Hand tab → open the 9-Key/12-Key/Piano accordion for your layout. Apply a Quick Preset (like "Finger Counts") to assign every key at once, or set individual keys by hand. Which pose categories show up in those dropdowns (Poses, Pinches, Finger Counts, Advanced Shapes) is controlled in 🛠️ Developer Mode.</p>
+<p class="opacity-80">Next to each pose is a hand selector (✋ Any / 👈 Left / 👉 Right). Leave it on Any to trigger with either hand, or pick Left/Right to make the same pose do different things depending on which hand you use - e.g. a left-hand fist for one key and a right-hand fist for another. If the detected hand comes out backwards on your device, flip "Swap Left/Right Hands 🔄" in Settings → General (the Hand test in Developer Mode shows which hand is being detected).</p>
 </div>
 <div class="text-xs space-y-2 opacity-80 bg-black/20 p-3 rounded">
 <p><strong>✋ Hand Signals (global, separate from key mapping, both hands):</strong></p>

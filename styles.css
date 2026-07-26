@@ -47,7 +47,7 @@ body.layout-swapped #input-footer { border-top: none; border-bottom: 4px solid v
 .prompt-box { width: 100%; padding: .75rem; border-radius: .5rem; font-family: monospace; font-size: .875rem; resize: none; }
 #blackout-layer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; cursor: none; touch-action: none; display: none; }
 body.blackout-active #blackout-layer { display: block; }
-.share-sheet { background-color: #1e1e1e !important; border-radius: 1.5rem 1.5rem 0 0 !important; bottom: 0; position: absolute; width: 100%; border-top: 1px solid #333; padding-bottom: 2rem; z-index: 100; transform: translateY(100%); transition: transform .3s ease-out; }
+.share-sheet { background-color: #1e1e1e !important; border-radius: 1.5rem 1.5rem 0 0 !important; bottom: 0; position: absolute; width: 100%; border-top: 1px solid #333; padding-bottom: max(2rem, calc(1rem + env(safe-area-inset-bottom))); z-index: 100; transform: translateY(100%); transition: transform .3s ease-out; max-height: calc(100vh - max(1.5rem, env(safe-area-inset-top)) - 2rem); overflow-y: auto; }
 .share-sheet.active { transform: translateY(0); }
 .share-app-icon { width: 3rem; height: 3rem; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
 body.hide-controls .control-row { display: none !important; }
@@ -92,4 +92,83 @@ body.upside-down { transform: rotate(180deg); }
 body.eco-mode { filter: brightness(0.65); }
 body.eco-mode * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 
+/* #14: Throttle class for high-frequency redraws (e.g., gesture pad canvas) */
+.throttle-render { will-change: auto; }
+.throttle-render canvas { will-change: transform; }
+
+/* ===== Split-screen / multi-window support =====
+   Orientation-only media queries (@media orientation:landscape above) don't cover the case
+   that matters most for split-screen and multi-window: a viewport that's simply NARROW,
+   independent of the device's physical orientation. iPad Split View, Android split-screen,
+   and desktop window-snapping all produce viewports like this, and their available width can
+   change continuously as the user drags the split divider - with no page reload in between. */
+
+/* Header icon row: 11 possible buttons x 48px + gaps needs ~610px to lay out without
+   crowding. That's wider than most split-screen panes, and even reachable in full-screen
+   on a standard phone once several optional icons are toggled on. Without this, flexbox's
+   default shrink behavior squishes the circular buttons into thin, hard-to-tap ovals, and
+   once they can't shrink further, the excess buttons silently overflow off the right edge
+   of the screen and become completely unreachable - not just ugly, but broken. Scrolling
+   preserves every button as a real circular, full-size tap target no matter how narrow the
+   available width gets. */
+.header-btn-row {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px; /* keeps any scrollbar-adjacent shadow from clipping button edges */
+}
+.header-btn-row::-webkit-scrollbar { display: none; }
+.header-btn-row > button { flex-shrink: 0; }
+
+/* Below ~500px width (comfortably covers narrow split-screen panes on phones and the
+   narrower iPad Split View / Slide Over sizes), keep the touch grid's circular buttons
+   proportional instead of letting a fixed 60px height fight a shrinking grid-column width -
+   that combination is what turns round buttons into thin unreadable ovals. Reuses the same
+   aspect-ratio technique already used for "Bigger Buttons" (hide-controls) mode, just scoped
+   to viewport width instead of that toggle. */
+@media (max-width: 500px) {
+  #pad-key9 .btn-pad-number,
+  #pad-key12 .btn-pad-number {
+    aspect-ratio: 1 / 1;
+    height: auto;
+    width: 100%;
+    font-size: 1.2rem;
+  }
+  /* Control row buttons (play/backspace/settings) can stay fixed-height since they're
+     rectangular, not circular - only reduce them slightly so 3 fit comfortably narrow */
+  .btn-control { height: 52px; font-size: 1.25rem; }
+  /* Header buttons shrink slightly too, so more are visible before scrolling is needed */
+  .header-btn-row > button { width: 2.5rem; height: 2.5rem; font-size: 0.9rem; }
+}
+
+/* #15: Minimal fallback CSS for critical elements (if Tailwind CDN fails) */
+@supports (display: flex) {
+  /* Basic layout fallback */
+  .flex { display: flex; }
+  .flex-col { flex-direction: column; }
+  .flex-row { flex-direction: row; }
+  .w-full { width: 100%; }
+  .h-full { height: 100%; }
+  .hidden { display: none; }
+  .items-center { align-items: center; }
+  .justify-center { justify-content: center; }
+  .p-4 { padding: 1rem; }
+  .p-6 { padding: 1.5rem; }
+  .m-4 { margin: 1rem; }
+  .rounded { border-radius: 0.25rem; }
+  .rounded-lg { border-radius: 0.5rem; }
+  .rounded-xl { border-radius: 0.75rem; }
+  .text-center { text-align: center; }
+  .font-bold { font-weight: 700; }
+  .text-white { color: white; }
+  .bg-opacity-80 { opacity: 0.8; }
+  .bg-opacity-90 { opacity: 0.9; }
+  .border { border: 1px solid currentColor; }
+  .overflow-hidden { overflow: hidden; }
+  .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+  .fixed { position: fixed; }
+  .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+  .z-50 { z-index: 50; }
+}
 

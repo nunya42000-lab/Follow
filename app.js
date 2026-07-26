@@ -22,6 +22,13 @@ const firebaseConfig = {
 };
 let db = null;
 let screenWakeLock = null;
+let _saveStateTimer = null;
+let _isFirebaseReady = false;
+let _bugReportClientId = null;
+let _lastBugReportTime = 0;
+let _bugReportCount = 0;
+const _MAX_BUG_REPORTS_PER_HOUR = 5;
+const _BUG_REPORT_WINDOW_MS = 3600000; // 1 hour
 const CONFIG = {
     MAX_MACHINES: 4,
     DEMO_DELAY_BASE_MS: 798,
@@ -311,7 +318,7 @@ const startApp = () => {
             }
             appSettings.activeProfileId = id;
             appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings));
-            saveState();
+            saveStateImmediate(); // Synchronous save to guarantee consistency before UI update
             renderUI();
         },
         onProfileAdd: name => {
@@ -1038,10 +1045,15 @@ async function initFirebaseAndComments() {
             orderBy,
             limit,
             onSnapshot,
-            serverTimestamp
+            serverTimestamp,
+            updateDoc,
+            doc
         } = await import("https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js");
+        
         const fbApp = initializeApp(firebaseConfig);
         db = getFirestore(fbApp);
+        _isFirebaseReady = true;
+        
         enableIndexedDbPersistence(db).catch(err => {
             if (err.code === 'failed-precondition') {
                 console.log('Multiple tabs open, persistence can only be enabled in one.');
@@ -1049,26 +1061,84 @@ async function initFirebaseAndComments() {
                 console.log('Browser does not support persistence');
             }
         });
+
+        // Restore a stable client ID across sessions (was previously write-only - a page
+        // refresh silently generated a new ID every time, breaking "edit your own report"
+        // and the "(yours)" tag the moment the user reloaded). Falls back to generating a
+        // new one only if nothing was ever stored.
+        if (!_bugReportClientId) {
+            _bugReportClientId = localStorage.getItem('bugReportClientId');
+            if (!_bugReportClientId) {
+                _bugReportClientId = 'client_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('bugReportClientId', _bugReportClientId);
+            }
+        }
+
+        // Restore rate-limit state too - these were plain JS variables that reset to 0 on
+        // every page load, making the "5 per hour" limit trivially bypassed by a refresh.
+        try {
+            const savedRateLimit = JSON.parse(localStorage.getItem('bugReportRateLimit') || 'null');
+            if (savedRateLimit && typeof savedRateLimit.count === 'number' && typeof savedRateLimit.windowStart === 'number') {
+                _bugReportCount = savedRateLimit.count;
+                _lastBugReportTime = savedRateLimit.windowStart;
+            }
+        } catch (e) {
+            console.warn('Could not restore bug report rate limit state', e);
+        }
+
         const submitBtn = document.getElementById('submit-comment-btn');
         const listContainer = document.getElementById('comments-list-container');
         const nameInput = document.getElementById('comment-username');
         const msgInput = document.getElementById('comment-message');
         if (submitBtn) {
             submitBtn.onclick = async () => {
-                const username = nameInput.value.trim();
+                const usernameRaw = nameInput.value.trim();
+                const username = usernameRaw || 'Anonymous'; // Name is genuinely optional per its own placeholder
                 const message = msgInput.value.trim();
-                if (!username || !message) {
-                    alert("Please enter name and message.");
+                if (!message || message.length < 10) {
+                    alert("Please describe the bug (at least 10 characters).");
                     return;
                 }
+
+                // Rate limit: max 5 bug reports per hour per session (persisted to
+                // localStorage so a refresh can't reset the counter)
+                const now = Date.now();
+                if (now - _lastBugReportTime > _BUG_REPORT_WINDOW_MS) {
+                    _bugReportCount = 0;
+                    _lastBugReportTime = now;
+                }
+                if (_bugReportCount >= _MAX_BUG_REPORTS_PER_HOUR) {
+                    const retryMs = _BUG_REPORT_WINDOW_MS - (now - _lastBugReportTime);
+                    const retryMin = Math.ceil(retryMs / 60000);
+                    showToast(`Rate limited. Try again in ${retryMin}m`);
+                    return;
+                }
+
                 submitBtn.disabled = true;
                 submitBtn.innerText = "Sending...";
                 try {
-                    await addDoc(collection(db, "comments"), {
-                        username,
-                        message,
-                        timestamp: serverTimestamp()
+                    await addDoc(collection(db, "bugReports"), {
+                        title: username, // Reporter's name, or "Anonymous" - genuinely optional
+                        description: message,
+                        timestamp: serverTimestamp(),
+                        clientId: _bugReportClientId,
+                        appVersion: '1.0', // TODO: read from manifest
+                        appSettings: {
+                            currentInput: appSettings.runtimeSettings?.currentInput,
+                            currentMode: appSettings.runtimeSettings?.currentMode,
+                            isHandGesturesEnabled: appSettings.isHandGesturesEnabled,
+                            isVoiceInputEnabled: appSettings.isVoiceInputEnabled
+                        }
                     });
+                    _bugReportCount++;
+                    try {
+                        localStorage.setItem('bugReportRateLimit', JSON.stringify({
+                            count: _bugReportCount,
+                            windowStart: _lastBugReportTime
+                        }));
+                    } catch (e) {
+                        console.warn('Could not persist rate limit state', e);
+                    }
                     msgInput.value = "";
                     submitBtn.innerText = "Sent!";
                     setTimeout(() => {
@@ -1076,30 +1146,33 @@ async function initFirebaseAndComments() {
                         submitBtn.innerText = "Send";
                     }, 2000);
                 } catch (e) {
-                    console.error("Error sending comment", e);
+                    console.error("Error sending bug report", e);
                     submitBtn.innerText = "Error";
                     submitBtn.disabled = false;
                 }
             };
         }
-        const q = query(collection(db, "comments"), orderBy("timestamp", "desc"), limit(50));
+        const q = query(collection(db, "bugReports"), orderBy("timestamp", "desc"), limit(50));
         onSnapshot(q, snapshot => {
             if (!listContainer) return;
             if (snapshot.empty) {
-                listContainer.innerHTML = '<p class="text-center text-gray-500 text-xs">No comments yet.</p>';
+                listContainer.innerHTML = '<p class="text-center text-gray-500 text-xs">No reports yet.</p>';
                 return;
             }
             listContainer.innerHTML = "";
-            snapshot.forEach(doc => {
-                const data = doc.data();
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const isOwn = data.clientId === _bugReportClientId;
                 const el = document.createElement('div');
-                el.className = "p-3 mb-2 rounded-lg bg-black bg-opacity-20 border border-gray-700";
-                el.innerHTML = `<p class="font-bold text-primary-app text-xs">${escapeHtml(data.username)}</p><p class="text-gray-300 text-sm">${escapeHtml(data.message)}</p>`;
+                el.className = `p-3 mb-2 rounded-lg bg-black bg-opacity-20 border ${isOwn ? 'border-emerald-500' : 'border-gray-700'}`;
+                el.innerHTML = `<p class="font-bold text-primary-app text-xs">${escapeHtml(data.title)}${isOwn ? ' (yours)' : ''}</p><p class="text-gray-300 text-sm">${escapeHtml(data.description)}</p>`;
                 listContainer.appendChild(el);
             });
         });
     } catch (err) {
-        console.warn('Firebase/comments unavailable (offline or blocked) - rest of the app is unaffected:', err.message);
+        _isFirebaseReady = false;
+        console.warn('Firebase/bug reports unavailable (offline or blocked) - rest of the app is unaffected:', err.message);
+        showToast('Bug reports temporarily unavailable (offline)');
     }
 }
 
@@ -1109,8 +1182,28 @@ function escapeHtml(text) {
 }
 
 function saveState() {
-    localStorage.setItem(CONFIG.STORAGE_KEY_SETTINGS, JSON.stringify(appSettings));
-    localStorage.setItem(CONFIG.STORAGE_KEY_STATE, JSON.stringify(appState));
+    // Debounce localStorage writes by 300ms to batch rapid changes (e.g., slider adjustments)
+    // and reduce I/O thrashing. Each call clears the prior timer and schedules a new one.
+    clearTimeout(_saveStateTimer);
+    _saveStateTimer = setTimeout(() => {
+        try {
+            localStorage.setItem(CONFIG.STORAGE_KEY_SETTINGS, JSON.stringify(appSettings));
+            localStorage.setItem(CONFIG.STORAGE_KEY_STATE, JSON.stringify(appState));
+        } catch (e) {
+            console.error("saveState failed (quota exceeded?)", e);
+        }
+    }, 300);
+}
+
+function saveStateImmediate() {
+    // Force synchronous write (for critical operations like profile switch)
+    clearTimeout(_saveStateTimer);
+    try {
+        localStorage.setItem(CONFIG.STORAGE_KEY_SETTINGS, JSON.stringify(appSettings));
+        localStorage.setItem(CONFIG.STORAGE_KEY_STATE, JSON.stringify(appState));
+    } catch (e) {
+        console.error("saveStateImmediate failed", e);
+    }
 }
 
 function settingsToHex() {
@@ -2554,6 +2647,34 @@ window.upsidedownToggle = async function(enable) {
         console.warn('Wake Lock failed:', err);
     }
 };
+// ===== Split-screen / multi-window resize handling =====
+// No resize or orientationchange listener existed anywhere in this file. That's fine for
+// the parts of the UI driven purely by CSS media queries (those react to viewport changes
+// on their own), but applyPositionSwapOffsets() measures element heights ONCE and bakes
+// them into inline pixel styles - it never revisits them. If the viewport changes size
+// while "layout-swapped" mode is active - exactly what happens continuously while a user
+// drags a split-screen divider, or rotates a device mid-session in a multi-window layout -
+// the input footer's cached position goes stale, and it can end up overlapping content or
+// leaving a gap. Debounced so a continuous drag-resize doesn't thrash this on every
+// intermediate frame.
+let _resizeDebounceTimer = null;
+function _handleViewportResize() {
+    clearTimeout(_resizeDebounceTimer);
+    _resizeDebounceTimer = setTimeout(() => {
+        if (document.body.classList.contains('layout-swapped')) {
+            applyPositionSwapOffsets(true);
+        }
+    }, 150);
+}
+window.addEventListener('resize', _handleViewportResize);
+window.addEventListener('orientationchange', _handleViewportResize);
+// Some mobile browsers fire visualViewport's resize event more reliably than window's
+// plain resize for certain viewport changes; listen on both where available since this is
+// purely additive (feature-detected, no downside if visualViewport is unsupported).
+if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', _handleViewportResize);
+}
+
 window.modules = modules;
 window.settingsToHex = settingsToHex;
 window.importSettingsFromHex = importSettingsFromHex;

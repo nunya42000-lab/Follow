@@ -500,6 +500,88 @@ export class SettingsManager {
 			};
 		}
 	}
+
+	// #4: Validation for hand gesture mappings
+	_getAllValidHandGestureIds() {
+		// Collect all valid gesture IDs from HAND_GESTURE_GROUPS
+		const validIds = new Set();
+		HAND_GESTURE_GROUPS.forEach(group => {
+			group.gestures.forEach(gesture => {
+				validIds.add(parseInt(gesture.id, 10));
+			});
+		});
+		return validIds;
+	}
+
+	_validateHandGestureMappings() {
+		// Check for duplicate mappings, invalid IDs, and conflicts
+		if (!this.appSettings.mappings) return { isValid: true, errors: [] };
+
+		const errors = [];
+		const validIds = this._getAllValidHandGestureIds();
+		const usedGestures = new Map(); // gesture ID -> key that maps to it
+
+		Object.entries(this.appSettings.mappings).forEach(([key, mapping]) => {
+			if (mapping.handGesture === 'none') return;
+
+			const gestureId = parseInt(mapping.handGesture, 10);
+
+			// Check if gesture ID exists
+			if (!validIds.has(gestureId)) {
+				errors.push(`Key ${key} maps to invalid gesture ID ${gestureId}`);
+				return;
+			}
+
+			// Check for duplicates (same gesture assigned to multiple keys)
+			if (usedGestures.has(gestureId)) {
+				const prevKey = usedGestures.get(gestureId);
+				// Note: duplicates are allowed if they have different hand sides (L vs R)
+				if (mapping.handSide === 'any') {
+					errors.push(`Gesture ${gestureId} assigned to both ${prevKey} and ${key}`);
+				}
+			} else {
+				usedGestures.set(gestureId, key);
+			}
+		});
+
+		return { isValid: errors.length === 0, errors };
+	}
+
+	// #7: Restore hand gesture mappings to factory defaults
+	_restoreFactoryHandMappings() {
+		if (!HAND_MAPPING_PRESETS) {
+			console.warn('Cannot restore: HAND_MAPPING_PRESETS not found');
+			return;
+		}
+
+		// For each layout, apply the first preset (usually "Finger Counts")
+		const defaultPresets = {
+			'9_hand_counts': HAND_MAPPING_PRESETS['9_hand_counts'],
+			'12_hand_counts': HAND_MAPPING_PRESETS['12_hand_counts'],
+			'piano_hand_default': HAND_MAPPING_PRESETS['piano_hand_default']
+		};
+
+		if (!this.appSettings.mappings) this.appSettings.mappings = {};
+
+		Object.entries(defaultPresets).forEach(([presetId, preset]) => {
+			if (preset && preset.map) {
+				Object.entries(preset.map).forEach(([keyId, gestureId]) => {
+					if (!this.appSettings.mappings[keyId]) {
+						this.appSettings.mappings[keyId] = { handGesture: 'none', handSide: 'any' };
+					}
+					this.appSettings.mappings[keyId].handGesture = parseInt(gestureId, 10);
+				});
+			}
+		});
+
+		this.callbacks.onSave();
+		const validation = this._validateHandGestureMappings();
+		if (!validation.isValid) {
+			console.warn('Restored mappings have validation errors:', validation.errors);
+		}
+		return validation;
+	}
+
 	bindMappingEvents() {
 		const btnMapTouch = document.getElementById('btn-map-touch');
 		const btnMapHand = document.getElementById('btn-map-hand');
@@ -610,10 +692,27 @@ export class SettingsManager {
 						if (!this.appSettings.mappings) this.appSettings.mappings = {};
 						if (!this.appSettings.mappings[keyId]) this.appSettings.mappings[keyId] = { touch: 'none', handGesture: 'none', morse: '', handSide: 'any' };
 						this.appSettings.mappings[keyId].handGesture = e.target.value === 'none' ? 'none' : parseInt(e.target.value, 10);
+						// Validate after updating
+						const validation = this._validateHandGestureMappings();
+						if (!validation.isValid) {
+							console.warn('Mapping validation issues:', validation.errors);
+						}
 					}
 					this.callbacks.onSave();
 				};
 			});
+		const restoreBtn = document.getElementById('restore-factory-mappings');
+		if (restoreBtn) {
+			restoreBtn.onclick = () => {
+				if (confirm('Restore hand gesture mappings to factory defaults? This will overwrite current mappings.')) {
+					this._restoreFactoryHandMappings();
+					if (this.callbacks.onUpdate) {
+						this.callbacks.onUpdate();
+					}
+					if (typeof showToast === 'function') showToast('Hand mappings restored to defaults 🔄');
+				}
+			};
+		}
 	}
 	bindPresetAccordion(gtype, layout, builtInPresets, keys, getCurrentValueFn, applyValueFn) {
 		const select = document.getElementById(`${gtype}-preset-${layout}-select`);

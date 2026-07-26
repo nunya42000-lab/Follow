@@ -1,6 +1,6 @@
 // sw.js
-// Version: v64 - Fault Tolerant Offline
-const CACHE_NAME = 'follow-me-v65-robust';
+// Version: v65 - Fixed icon filename mismatch (was icon-192.png, actual file is icon192.png)
+const CACHE_NAME = 'follow-me-v66-robust';
 
 // 1. CRITICAL: These MUST exist for the app to run.
 // If any of these are missing, the offline mode will fail.
@@ -26,8 +26,8 @@ const CRITICAL_ASSETS = [
 // We will TRY to cache these. If they fail (404 missing, network error), 
 // we simply skip them so the app still installs successfully.
 const OPTIONAL_ASSETS = [
-    './icon-192.png',
-    './icon-512.png',
+    './icon192.png',
+    './icon512.png',
     './qr.jpg',
     './redeem.jpg',
     'https://cdn.tailwindcss.com',

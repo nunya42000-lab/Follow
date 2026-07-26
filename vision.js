@@ -68,6 +68,8 @@ class GestureBuffer {
         this.buffer = [];
         this.maxSize = bufferSize;
         this.currentLockedGesture = null;
+        this.lockTime = null;
+        this.lockTimeout = 2000; // 2 second timeout to prevent indefinite locks
     }
 
     pushAndEvaluate(gestureID) {
@@ -77,6 +79,7 @@ class GestureBuffer {
         if (gestureID === null) {
             this.buffer = [];
             this.currentLockedGesture = null;
+            this.lockTime = null;
             return null;
         }
 
@@ -86,7 +89,16 @@ class GestureBuffer {
         }
 
         if (this.buffer.length === this.maxSize && this.buffer.every(val => val === this.buffer[0])) {
-            this.currentLockedGesture = this.buffer[0];
+            // Lock gesture only if we're not already locked to it, or if we've exceeded the timeout
+            const now = Date.now();
+            if (this.currentLockedGesture !== this.buffer[0]) {
+                this.currentLockedGesture = this.buffer[0];
+                this.lockTime = now;
+            } else if (now - this.lockTime > this.lockTimeout) {
+                // Gesture has been locked for too long; clear and re-lock to refresh
+                this.currentLockedGesture = null;
+                this.lockTime = null;
+            }
             return this.currentLockedGesture;
         }
 
@@ -170,10 +182,12 @@ export class VisionEngine {
         this.loopId = null;
         this.lastVideoTime = -1;
         this.engineBuffer = new GestureBuffer(4); // Attach buffer directly to engine state
+        this.isInitialized = false; // Flag for initialization state
+        this.initError = null; // Store init error for debugging
     }
 
     async start() {
-        if (!this.recognizer) {
+        if (!this.recognizer && !this.isInitialized) {
             this.onStatus("Loading AI (Offline)... 🧠");
             try {
                 const { FilesetResolver, GestureRecognizer } = await import("./wasm/vision_bundle.js");
@@ -186,11 +200,18 @@ export class VisionEngine {
                     runningMode: "VIDEO",
                     numHands: 2
                 });
+                this.isInitialized = true;
             } catch (e) {
-                console.error("Vision Init Error:", e);
-                this.onStatus("AI Failed ❌ (Check Files)");
+                console.error("Vision/WASM Init Error:", e.message || e);
+                this.initError = e;
+                this.isInitialized = false;
+                this.onStatus("Hand tracking unavailable ❌");
                 return;
             }
+        } else if (this.initError) {
+            // Previous initialization failed, don't retry
+            this.onStatus("Hand tracking unavailable ❌");
+            return;
         }
 
         if (this.isActive) return;

@@ -133,6 +133,7 @@ export class GestureEngine {
 
         this.activePointers = {};
         this.history = [];
+        this.maxHistorySize = 500; // Cap history array to prevent unbounded memory growth
         this.tapStack = { count: 0, fingers: 0, timer: null, posHistory: [], active: false };
         this.allowedGestures = new Set();
         this.contState = {
@@ -140,6 +141,7 @@ export class GestureEngine {
             squiggle: { isTracking: false, startX: 0, lastX: 0, direction: 0, flips: 0, hasTriggered: false },
             squiggle2F: { isTracking: false, lastX: 0, direction: 0, flips: 0, hasTriggered: false }
         };
+        this._continuousEventFrame = 0; // Frame counter for throttling continuous events
 
         this._bindHandlers();
     }
@@ -180,8 +182,25 @@ export class GestureEngine {
         t.addEventListener('pointerdown', e => this._handleDown(e), { passive: false });
         t.addEventListener('pointermove', e => this._handleMove(e), { passive: false });
         t.addEventListener('pointerup', e => this._handleUp(e), { passive: false });
-        t.addEventListener('pointercancel', e => this._handleUp(e), { passive: false });
+        t.addEventListener('pointercancel', e => {
+            this._handleUp(e);
+            this._resetContinuousState(); // Force reset on cancel to prevent stale state inheritance
+        }, { passive: false });
         t.addEventListener('contextmenu', e => e.preventDefault());
+    }
+
+    _resetContinuousState() {
+        // Called on pointercancel or when all pointers are released to clean up tracking state
+        this.contState.squiggle = {
+            isTracking: false, startX: 0, lastX: 0, direction: 0, flips: 0, hasTriggered: false
+        };
+        this.contState.squiggle2F = {
+            isTracking: false, lastX: 0, direction: 0, flips: 0, hasTriggered: false
+        };
+        this.contState.rotStartAngle = 0;
+        this.contState.rotAccumulator = 0;
+        this.contState.rotLastUpdate = 0;
+        this.contState.pinchStartDist = 0;
     }
 
     _handleDown(e) {
@@ -270,7 +289,7 @@ export class GestureEngine {
             }
         }
 
-        // 3. Twist
+        // 3. Twist (throttled to every 3rd frame to prevent event spam)
         if ((count === 2 || count === 3) && (now - this.contState.rotLastUpdate > 50)) {
             const p1 = pointers[0].pts.slice(-1)[0]; 
             const p2 = pointers[1].pts.slice(-1)[0];
@@ -282,19 +301,25 @@ export class GestureEngine {
             this.contState.rotStartAngle = currentAngle;
             
             if (Math.abs(this.contState.rotAccumulator) > 15) {
-                this.callbacks.onContinuous({ type: 'twist', fingers: count, value: this.contState.rotAccumulator > 0 ? 1 : -1 });
+                this._continuousEventFrame++;
+                if (this._continuousEventFrame % 3 === 0) { // Emit every 3rd frame
+                    this.callbacks.onContinuous({ type: 'twist', fingers: count, value: this.contState.rotAccumulator > 0 ? 1 : -1 });
+                }
                 this.contState.rotAccumulator = 0; 
                 this.contState.rotLastUpdate = now;
             }
         }
 
-        // 4. Pinch
+        // 4. Pinch (throttled to every 3rd frame to prevent event spam)
         if (count === 2 && this.contState.pinchStartDist > 0) {
             const p1 = pointers[0].pts.slice(-1)[0]; 
             const p2 = pointers[1].pts.slice(-1)[0];
             const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
             if (Math.abs(dist - this.contState.pinchStartDist) > 20) {
-                this.callbacks.onContinuous({ type: 'pinch', scale: dist / this.contState.pinchStartDist });
+                this._continuousEventFrame++;
+                if (this._continuousEventFrame % 3 === 0) { // Emit every 3rd frame
+                    this.callbacks.onContinuous({ type: 'pinch', scale: dist / this.contState.pinchStartDist });
+                }
             }
         }
     }
@@ -371,13 +396,17 @@ export class GestureEngine {
         if (!this.activePointers[e.pointerId]) return;
         this.activePointers[e.pointerId].endTime = Date.now();
         this.history.push(this.activePointers[e.pointerId]);
+        
+        // Circular buffer: cap history at maxHistorySize to prevent unbounded growth
+        if (this.history.length > this.maxHistorySize) {
+            this.history.shift();
+        }
+        
         delete this.activePointers[e.pointerId];
         
         const remaining = Object.keys(this.activePointers).length;
         if (remaining === 0) {
-            this.contState.pinchStartDist = 0;
-            this.contState.squiggle.isTracking = false;
-            this.contState.squiggle2F.isTracking = false;
+            this._resetContinuousState(); // Clean up all continuous gesture tracking
             
             if (this.contState.squiggle.hasTriggered || this.contState.squiggle2F.hasTriggered) {
                 this.history = []; 

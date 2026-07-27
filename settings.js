@@ -1846,6 +1846,21 @@ if (!window.__testChecklists) {
 		if (this.dom.upsidedownToggle) {
 			this.dom.upsidedownToggle.checked = !!this.appSettings.showUpsideDownBtn;
 		}
+		if (this.dom.headerPlayToggle) this.dom.headerPlayToggle.checked = !!this.appSettings.showHeaderPlayBtn;
+		if (this.dom.headerDeleteToggle) this.dom.headerDeleteToggle.checked = !!this.appSettings.showHeaderDeleteBtn;
+		if (this.dom.headerSettingsToggle) this.dom.headerSettingsToggle.checked = !!this.appSettings.showHeaderSettingsBtn;
+		if (this.dom.headerRedeemToggle) this.dom.headerRedeemToggle.checked = !!this.appSettings.showHeaderRedeemBtn;
+		if (this.dom.headerShareToggle) this.dom.headerShareToggle.checked = !!this.appSettings.showHeaderShareBtn;
+		if (this.dom.headerThemeCycleToggle) this.dom.headerThemeCycleToggle.checked = !!this.appSettings.showHeaderThemeCycleBtn;
+		if (this.dom.headerAddMachineToggle) this.dom.headerAddMachineToggle.checked = !!this.appSettings.showHeaderAddMachineBtn;
+		if (this.dom.headerUiSizeToggle) this.dom.headerUiSizeToggle.checked = !!this.appSettings.showHeaderUiSizeBtns;
+		if (this.dom.headerSeqSizeToggle) this.dom.headerSeqSizeToggle.checked = !!this.appSettings.showHeaderSeqSizeBtns;
+		if (this.dom.headerCycleInputToggle) this.dom.headerCycleInputToggle.checked = !!this.appSettings.showHeaderCycleInputBtn;
+		if (this.dom.headerNotepadToggle) this.dom.headerNotepadToggle.checked = !!this.appSettings.showHeaderNotepadBtn;
+		if (this.dom.headerHelpToggle) this.dom.headerHelpToggle.checked = !!this.appSettings.showHeaderHelpBtn;
+		if (this.dom.headerDevModeToggle) this.dom.headerDevModeToggle.checked = !!this.appSettings.showHeaderDevModeBtn;
+		if (this.dom.headerResetToggle) this.dom.headerResetToggle.checked = !!this.appSettings.showHeaderResetBtn;
+		if (this.dom.headerNukeToggle) this.dom.headerNukeToggle.checked = !!this.appSettings.showHeaderNukeBtn;
 		if (this.dom.arSpeedSelect) {
 			const speedVal = this.appSettings.arPlaybackSpeed || 1.0;
 			this.dom.arSpeedSelect.value = String(speedVal);

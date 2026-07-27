@@ -321,8 +321,12 @@ alert("Promise Error: " + event.reason);
 </select>
 </div>
 </div>
-<div class="mt-6 pt-4 border-t border-custom">
-<h4 class="font-bold text-sm mb-3 text-primary-app">Voice Settings 🗣️</h4>
+<details class="mt-6 group bg-gray-900 rounded-lg border border-gray-700 open:bg-gray-800 transition-colors shadow-sm">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app outline-none">
+<span>Voice Settings 🗣️</span>
+<span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+</summary>
+<div class="p-3 border-t border-gray-700 bg-black/20 space-y-3">
 <div class="mb-4 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
 <label class="text-xs font-bold uppercase text-muted-custom mb-2 block">Voice Profile</label>
 <select id="voice-preset-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
@@ -346,11 +350,38 @@ alert("Promise Error: " + event.reason);
 <button id="test-voice-btn" class="w-full py-2 bg-gray-700 text-white rounded font-bold text-xs mt-3">Test Voice 🔊</button>
 </div>
 </div>
+</details>
 </div>
 <div id="tab-general" class="tab-content">
 <div class="space-y-4">
 <div class="p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
-<label class="text-xs font-bold uppercase text-muted-custom mb-2 block">New Header Buttons 🆕</label>
+<div class="flex justify-between items-center mb-2">
+<label class="text-xs font-bold uppercase text-muted-custom">Theme 🎨</label>
+<button id="open-theme-editor" class="text-xs bg-purple-600 hover:bg-purple-500 text-white px-2 py-1 rounded font-bold">EDITOR</button>
+</div>
+<select id="theme-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
+<div class="grid grid-cols-2 gap-2">
+<button id="theme-add" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button>
+<button id="theme-save" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">SAVE 💾</button>
+<button id="theme-rename" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button>
+<button id="theme-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
+</div>
+<div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-700">
+<span class="font-bold text-sm text-muted-custom">Random Theme 🎲</span>
+<input type="checkbox" id="randomThemeToggle" class="h-6 w-6 accent-indigo-500">
+</div>
+<div class="mt-3 pt-3 border-t border-gray-700">
+<label class="text-xs font-bold uppercase text-muted-custom mb-1 block">Font 🔤</label>
+<select id="font-select" class="settings-input w-full p-2 rounded font-bold">
+<option value="'Inter', sans-serif">Inter (Default)</option>
+<option value="'Poppins', sans-serif">Poppins</option>
+<option value="'Roboto Mono', monospace">Roboto Mono</option>
+<option value="'Comfortaa', cursive">Comfortaa</option>
+<option value="system-ui, sans-serif">System Default</option>
+<option value="Georgia, serif">Georgia (Serif)</option>
+</select>
+</div>
+</div>
 <div class="grid grid-cols-2 gap-3">
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Play ▶️</span>
@@ -382,37 +413,6 @@ alert("Promise Error: " + event.reason);
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Cycle Input 🔀</span>
 <input type="checkbox" id="headerCycleInputToggle" class="h-6 w-6 accent-indigo-500"></div>
-</div>
-</div>
-<div class="p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
-<div class="flex justify-between items-center mb-2">
-<label class="text-xs font-bold uppercase text-muted-custom">Theme 🎨</label>
-<button id="open-theme-editor" class="text-xs bg-purple-600 hover:bg-purple-500 text-white px-2 py-1 rounded font-bold">EDITOR</button>
-</div>
-<select id="theme-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
-<div class="grid grid-cols-2 gap-2">
-<button id="theme-add" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button>
-<button id="theme-save" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">SAVE 💾</button>
-<button id="theme-rename" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button>
-<button id="theme-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
-</div>
-<div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-700">
-<span class="font-bold text-sm text-muted-custom">Random Theme 🎲</span>
-<input type="checkbox" id="randomThemeToggle" class="h-6 w-6 accent-indigo-500">
-</div>
-<div class="mt-3 pt-3 border-t border-gray-700">
-<label class="text-xs font-bold uppercase text-muted-custom mb-1 block">Font 🔤</label>
-<select id="font-select" class="settings-input w-full p-2 rounded font-bold">
-<option value="'Inter', sans-serif">Inter (Default)</option>
-<option value="'Poppins', sans-serif">Poppins</option>
-<option value="'Roboto Mono', monospace">Roboto Mono</option>
-<option value="'Comfortaa', cursive">Comfortaa</option>
-<option value="system-ui, sans-serif">System Default</option>
-<option value="Georgia, serif">Georgia (Serif)</option>
-</select>
-</div>
-</div>
-<div class="grid grid-cols-2 gap-3">
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Timer ⏱️</span>
 <input type="checkbox" id="timerToggle" class="h-6 w-6 accent-indigo-500"></div>

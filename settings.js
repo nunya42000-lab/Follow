@@ -1863,6 +1863,70 @@ if (!window.__testChecklists) {
 		} else {
 			header.classList.remove('header-hidden');
 		}
+		this.rebuildInfiniteHeaderScroll();
+	}
+	// Master order of every header button id, matching their HTML order.
+	_headerBtnOrder() {
+		return ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerupsidedownbtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headercycleinputbtn'];
+	}
+	// Builds the "infinite toolbar" feel: clones the visible button set once before and once
+	// after the real set, then keeps the scroll position invisibly wrapped within the real
+	// (middle) copy so it always looks like there's more to scroll in either direction.
+	rebuildInfiniteHeaderScroll() {
+		const row = document.getElementById('header-btn-row');
+		if (!row) return;
+		// Clear out any clones from a previous build (settings can change which buttons show).
+		row.querySelectorAll('[data-clone-id]').forEach(el => el.remove());
+		const visibleIds = this._headerBtnOrder().filter(id => {
+			const el = document.getElementById(id);
+			return el && !el.classList.contains('hidden');
+		});
+		if (visibleIds.length === 0) return;
+		const buildCloneSet = () => {
+			const frag = document.createDocumentFragment();
+			visibleIds.forEach(id => {
+				const source = document.getElementById(id);
+				const clone = source.cloneNode(true);
+				clone.removeAttribute('id');
+				clone.dataset.cloneId = id;
+				frag.appendChild(clone);
+			});
+			return frag;
+		};
+		const firstReal = document.getElementById(visibleIds[0]);
+		row.insertBefore(buildCloneSet(), firstReal);
+		row.appendChild(buildCloneSet());
+		// Measure the real (middle) set's width from the actual rendered buttons, then start
+		// the scroll position there so both directions have a clone set to scroll into.
+		requestAnimationFrame(() => {
+			const realFirst = document.getElementById(visibleIds[0]);
+			const realLast = document.getElementById(visibleIds[visibleIds.length - 1]);
+			if (!realFirst || !realLast) return;
+			const setWidth = (realLast.offsetLeft + realLast.offsetWidth) - realFirst.offsetLeft;
+			row.scrollLeft = realFirst.offsetLeft;
+			row._infiniteSetWidth = setWidth;
+			row._infiniteRealStart = realFirst.offsetLeft;
+		});
+		// The scroll listener and click delegation only need to be attached once ever.
+		if (!row._infiniteScrollBound) {
+			row._infiniteScrollBound = true;
+			row.addEventListener('scroll', () => {
+				const setWidth = row._infiniteSetWidth;
+				const realStart = row._infiniteRealStart;
+				if (!setWidth || realStart === undefined) return;
+				if (row.scrollLeft <= realStart - setWidth + 2) {
+					row.scrollLeft += setWidth;
+				} else if (row.scrollLeft >= realStart + setWidth - 2) {
+					row.scrollLeft -= setWidth;
+				}
+			});
+			row.addEventListener('click', (e) => {
+				const cloneBtn = e.target.closest('[data-clone-id]');
+				if (!cloneBtn) return;
+				const real = document.getElementById(cloneBtn.dataset.cloneId);
+				if (real) real.click();
+			});
+		}
 	}
 	hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }
 	hslToHex(h, s, l) { s /= 100; l /= 100; let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0; if (0 <= h && h < 60) { r = c; g = x; b = 0; } else if (60 <= h && h < 120) { r = x; g = c; b = 0; } else if (120 <= h && h < 180) { r = 0; g = c; b = x; } else if (180 <= h && h < 240) { r = 0; g = x; b = c; } else if (240 <= h && h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; } r = Math.round((r + m) * 255).toString(16); g = Math.round((g + m) * 255).toString(16); b = Math.round((b + m) * 255).toString(16); if (r.length === 1) r = "0" + r; if (g.length === 1) g = "0" + g; if (b.length === 1) b = "0" + b; return "#" + r + g + b; }

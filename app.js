@@ -45,7 +45,21 @@ const DEFAULT_PROFILE_SETTINGS = {
     sequenceLength: 20,
     machineCount: 1,
     simonChunkSize: 40,
-    simonInterSequenceDelay: 0
+    simonInterSequenceDelay: 0,
+    isUniqueRoundsAutoClearEnabled: true,
+    isPracticeModeEnabled: false,
+    isAutoplayEnabled: false,
+    isFlashEnabled: true,
+    isAudioEnabled: true,
+    isHapticMorseEnabled: false,
+    playbackSpeed: 1.0,
+    pauseSetting: 'none',
+    voicePitch: 1.0,
+    voiceRate: 1.0,
+    voiceVolume: 1.0,
+    selectedVoice: null,
+    voicePresets: {},
+    activeVoicePresetId: 'standard'
 };
 const PREMADE_PROFILES = {
     'profile_1': {
@@ -351,7 +365,7 @@ const getState = () => appState['current_session'] || (appState['current_session
 });
 let _savedScrollY = 0;
 let _scrollLocked = false;
-const _MODAL_IDS = ['settings-modal', 'help-modal', 'developer-mode-modal', 'share-modal', 'comment-modal', 'redeem-modal', 'donate-modal', 'theme-editor-modal', 'game-setup-modal'];
+const _MODAL_IDS = ['settings-modal', 'help-modal', 'share-modal', 'comment-modal', 'redeem-modal', 'donate-modal', 'theme-editor-modal', 'game-setup-modal'];
 const startApp = () => {
     loadState();
     window.appSettings = appSettings;
@@ -567,8 +581,8 @@ const startApp = () => {
     window.toneSequenceTester = toneSequenceTester;
     const toneEngine = new ToneEngine(val => {
         smartTracker.handleTone(val);
-   const devModal = document.getElementById('developer-mode-modal');
-    if (devModal && !devModal.classList.contains('opacity-0')) {
+   const devTab = document.getElementById('tab-devmode');
+    if (devTab && devTab.classList.contains('active')) {
         const historyEl = document.getElementById('tone-test-history');
         if (historyEl) {
             historyEl.textContent += (historyEl.textContent ? ", " : "") + val;
@@ -1237,11 +1251,11 @@ function loadState() {
             if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
             if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
             if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
-            if (typeof appSettings.isUniqueRoundsAutoClearEnabled === 'undefined') appSettings.isUniqueRoundsAutoClearEnabled = true;
+            if (typeof appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled === 'undefined') appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled = true;
             if (typeof appSettings.showTimer === 'undefined') appSettings.showTimer = false;
             if (typeof appSettings.showCounter === 'undefined') appSettings.showCounter = false;
-            if (!appSettings.voicePresets) appSettings.voicePresets = {};
-            if (!appSettings.activeVoicePresetId) appSettings.activeVoicePresetId = 'standard';
+            if (!appSettings.runtimeSettings.voicePresets) appSettings.runtimeSettings.voicePresets = {};
+            if (!appSettings.runtimeSettings.activeVoicePresetId) appSettings.runtimeSettings.activeVoicePresetId = 'standard';
             if (!appSettings.gestureResizeMode) appSettings.gestureResizeMode = 'global';
             if (!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS));
             if (appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
@@ -1269,7 +1283,7 @@ function vibrate() {
 }
 
 function vibrateMorse(val) {
-    if (!navigator.vibrate || !appSettings.isHapticMorseEnabled) return;
+    if (!navigator.vibrate || !appSettings.runtimeSettings.isHapticMorseEnabled) return;
     let num = parseInt(val);
     if (isNaN(num)) {
         const map = {
@@ -1292,7 +1306,7 @@ function vibrateMorse(val) {
         else if (num <= 9) patternStr = "--" + (".").repeat(num - 6);
         else patternStr = "---" + (".").repeat(num - 10);
     }
-    const speed = appSettings.playbackSpeed || 1.0;
+    const speed = appSettings.runtimeSettings.playbackSpeed || 1.0;
     const factor = 1.0 / speed;
     const DOT = 100 * factor,
         DASH = 300 * factor,
@@ -1307,18 +1321,18 @@ function vibrateMorse(val) {
 }
 
 function speak(text) {
-    if (!appSettings.isAudioEnabled || !window.speechSynthesis) return;
+    if (!appSettings.runtimeSettings.isAudioEnabled || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'en-US';
-    if (appSettings.selectedVoice) {
+    if (appSettings.runtimeSettings.selectedVoice) {
         const voices = window.speechSynthesis.getVoices();
-        const v = voices.find(voice => voice.name === appSettings.selectedVoice);
+        const v = voices.find(voice => voice.name === appSettings.runtimeSettings.selectedVoice);
         if (v) u.voice = v;
     }
-    let p = appSettings.voicePitch || 1.0;
-    let r = appSettings.voiceRate || 1.0;
-    u.volume = appSettings.voiceVolume || 1.0;
+    let p = appSettings.runtimeSettings.voicePitch || 1.0;
+    let r = appSettings.runtimeSettings.voiceRate || 1.0;
+    u.volume = appSettings.runtimeSettings.voiceVolume || 1.0;
     u.pitch = Math.min(2, Math.max(0.1, p));
     u.rate = Math.min(10, Math.max(0.1, r));
     window.speechSynthesis.speak(u);
@@ -1425,7 +1439,7 @@ function startPracticeRound() {
 
 function playPracticeSequence() {
     let i = 0;
-    const speed = appSettings.playbackSpeed || 1.0;
+    const speed = appSettings.runtimeSettings.playbackSpeed || 1.0;
     disableInput(true);
 
     function next() {
@@ -1436,7 +1450,7 @@ function playPracticeSequence() {
         const val = practiceSequence[i];
         const settings = getProfileSettings();
         const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${val}"]`);
-        if (key && appSettings.isFlashEnabled) {
+        if (key && appSettings.runtimeSettings.isFlashEnabled) {
             key.classList.add('flash-active');
             setTimeout(() => key.classList.remove('flash-active'), 250 / speed);
         }
@@ -1451,7 +1465,7 @@ function addValue(value) {
     vibrate();
     const state = getState();
     const settings = getProfileSettings();
-    if (appSettings.isPracticeModeEnabled) {
+    if (appSettings.runtimeSettings.isPracticeModeEnabled) {
         if (practiceSequence.length === 0) return;
         if (value == practiceSequence[practiceInputIndex]) {
             practiceInputIndex++;
@@ -1473,12 +1487,12 @@ function addValue(value) {
     const isUnique = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS;
     let limit;
     if (isUnique) {
-        limit = appSettings.isUniqueRoundsAutoClearEnabled ? roundNum : settings.sequenceLength;
+        limit = appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled ? roundNum : settings.sequenceLength;
     } else {
         limit = settings.sequenceLength;
     }
     if (state.sequences[targetIndex] && state.sequences[targetIndex].length >= limit) {
-        if (isUnique && appSettings.isUniqueRoundsAutoClearEnabled) {
+        if (isUnique && appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled) {
             showToast("Round Full - Reset? 🛑");
             vibrate();
         }
@@ -1502,12 +1516,12 @@ function addValue(value) {
     state.nextSequenceIndex++;
     renderUI();
     saveState();
-    if (appSettings.isAutoplayEnabled) {
+    if (appSettings.runtimeSettings.isAutoplayEnabled) {
         if (settings.currentMode === CONFIG.MODES.SIMON) {
             const justFilled = (state.nextSequenceIndex - 1) % settings.machineCount;
             if (justFilled === settings.machineCount - 1) setTimeout(playDemo, 250);
         } else {
-            if (appSettings.isUniqueRoundsAutoClearEnabled) {
+            if (appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled) {
                 if (state.sequences[0].length >= roundNum) {
                     disableInput(true);
                     setTimeout(playDemo, 250);
@@ -1628,7 +1642,7 @@ function renderUI() {
     if (document.body.classList.contains('layout-swapped')) {
         setTimeout(() => applyPositionSwapOffsets(true), 0);
     }
-    if (appSettings.isPracticeModeEnabled) {
+    if (appSettings.runtimeSettings.isPracticeModeEnabled) {
         const header = document.createElement('h2');
         header.className = "text-2xl font-bold text-center w-full mt-4 mb-4";
         header.style.color = "var(--text-main)";
@@ -1786,7 +1800,7 @@ function playDemo() {
     playbackResumeCallback = null;
     const settings = getProfileSettings();
     const state = getState();
-    const speed = appSettings.playbackSpeed || 1.0;
+    const speed = appSettings.runtimeSettings.playbackSpeed || 1.0;
     const playBtn = document.querySelector('button[data-action="play-demo"]');
     let seqsToPlay = [];
     if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
@@ -1834,7 +1848,7 @@ function playDemo() {
         if (cIdx >= chunks.length) {
             isDemoPlaying = false;
             if (playBtn) playBtn.textContent = "▶";
-            if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.isUniqueRoundsAutoClearEnabled) {
+            if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled) {
                 setTimeout(() => {
                     if (!isDemoPlaying) {
                         state.currentRound++;
@@ -1869,12 +1883,12 @@ function playDemo() {
             const kVal = val;
             const padId = `pad-${settings.currentInput}`;
             const btn = document.querySelector(`#${padId} button[data-value="${kVal}"]`);
-            if (btn && appSettings.isFlashEnabled) {
+            if (btn && appSettings.runtimeSettings.isFlashEnabled) {
                 btn.classList.add('flash-active');
                 setTimeout(() => btn.classList.remove('flash-active'), 250 / speed);
             }
             speak(val);
-            if (appSettings.isHapticMorseEnabled) vibrateMorse(val);
+            if (appSettings.runtimeSettings.isHapticMorseEnabled) vibrateMorse(val);
             nIdx++;
             schedule(playNum, CONFIG.DEMO_DELAY_BASE_MS / speed);
         }
@@ -2177,18 +2191,18 @@ function initGestureEngine() {
                 return;
             }
             if (data.type === 'twist' && data.fingers === 3 && appSettings.isVolumeGesturesEnabled) {
-                let newVol = appSettings.voiceVolume || 1.0;
+                let newVol = appSettings.runtimeSettings.voiceVolume || 1.0;
                 newVol += data.value * 0.05;
-                appSettings.voiceVolume = Math.min(1.0, Math.max(0.0, newVol));
+                appSettings.runtimeSettings.voiceVolume = Math.min(1.0, Math.max(0.0, newVol));
                 saveState();
-                showToast(`Volume: ${(appSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
+                showToast(`Volume: ${(appSettings.runtimeSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
             }
             if (data.type === 'twist' && data.fingers === 2 && appSettings.isSpeedGesturesEnabled) {
-                let newSpeed = appSettings.playbackSpeed || 1.0;
+                let newSpeed = appSettings.runtimeSettings.playbackSpeed || 1.0;
                 newSpeed += data.value * 0.05;
-                appSettings.playbackSpeed = Math.min(2.0, Math.max(0.5, newSpeed));
+                appSettings.runtimeSettings.playbackSpeed = Math.min(2.0, Math.max(0.5, newSpeed));
                 saveState();
-                showToast(`Speed: ${(appSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
+                showToast(`Speed: ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
             }
             if (data.type === 'pinch') {
                 const mode = appSettings.gestureResizeMode || 'global';
@@ -2269,9 +2283,9 @@ function initGlobalListeners() {
                 if (appSettings.isLongPressAutoplayEnabled) {
                     timers.longPress = setTimeout(() => {
                         lpTriggered = true;
-                        appSettings.isAutoplayEnabled = !appSettings.isAutoplayEnabled;
+                        appSettings.runtimeSettings.isAutoplayEnabled = !appSettings.runtimeSettings.isAutoplayEnabled;
                         modules.settings.updateUIFromSettings();
-                        showToast(`Autoplay: ${appSettings.isAutoplayEnabled ? "ON" : "OFF"}`);
+                        showToast(`Autoplay: ${appSettings.runtimeSettings.isAutoplayEnabled ? "ON" : "OFF"}`);
                         ignoreNextClick = true;
                         setTimeout(() => ignoreNextClick = false, 500);
                     }, 800);
@@ -2373,7 +2387,7 @@ function initGlobalListeners() {
         document.body.addEventListener('mouseup', handleResume);
         document.body.addEventListener('touchend', handleResume);
         document.getElementById('close-settings').addEventListener('click', () => {
-            if (appSettings.isPracticeModeEnabled) {
+            if (appSettings.runtimeSettings.isPracticeModeEnabled) {
                 setTimeout(startPracticeRound, 500);
             }
         });
@@ -2629,7 +2643,12 @@ function initGlobalListeners() {
         if (headerHelp) headerHelp.onclick = () => { document.getElementById('open-help-button')?.click(); };
 
         const headerDevMode = document.getElementById('headerdevmodebtn');
-        if (headerDevMode) headerDevMode.onclick = () => { document.getElementById('open-developer-mode-btn')?.click(); };
+        if (headerDevMode) headerDevMode.onclick = () => {
+            if (modules.settings) {
+                modules.settings.openSettings();
+                setTimeout(() => document.querySelector('.tab-btn[data-tab="devmode"]')?.click(), 50);
+            }
+        };
 
         const headerReset = document.getElementById('headerresetbtn');
         if (headerReset) headerReset.onclick = () => { document.querySelector('button[data-action="restore-defaults"]')?.click(); };

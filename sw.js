@@ -1,6 +1,6 @@
 // sw.js
 // Version: v64 - Fault Tolerant Offline
-const CACHE_NAME = 'follow-me-v67-grid-tabs';
+const CACHE_NAME = 'follow-me-v68-devmode-tab';
 
 // 1. CRITICAL: These MUST exist for the app to run.
 // If any of these are missing, the offline mode will fail.

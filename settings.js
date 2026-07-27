@@ -398,7 +398,7 @@ export class SettingsManager {
 			handsignalsToggle: document.getElementById('handsignalsToggle'),
 			handednessFlipToggle: document.getElementById('handednessFlipToggle'),
 			voicecommandsToggle: document.getElementById('voicecommandsToggle'),
-			wakelockToggle: document.getElementById('wakelockToggle'),
+			wakelockToggle: document.getElementById('wakelockToggle'), quickWakelockBtn: document.getElementById('quick-wakelock-toggle'),
 			newToggle: document.getElementById('newToggle'),
 			headerswapbtn: document.getElementById('headerswapbtn'),
 			headerplaybtn: document.getElementById('headerplaybtn'), headerdeletebtn: document.getElementById('headerdeletebtn'), headersettingsbtn: document.getElementById('headersettingsbtn'), headerredeembtn: document.getElementById('headerredeembtn'), headersharebtn: document.getElementById('headersharebtn'), headerthemecyclebtn: document.getElementById('headerthemecyclebtn'), headeraddmachinebtn: document.getElementById('headeraddmachinebtn'), headeruiupbtn: document.getElementById('headeruiupbtn'), headeruidownbtn: document.getElementById('headeruidownbtn'), headersequpbtn: document.getElementById('headersequpbtn'), headerseqdownbtn: document.getElementById('headerseqdownbtn'), headercycleinputbtn: document.getElementById('headercycleinputbtn'),
@@ -415,7 +415,6 @@ export class SettingsManager {
 			quickResizeUp: document.getElementById('quick-resize-up'), quickResizeDown: document.getElementById('quick-resize-down'),
 			quickCardSizeUp: document.getElementById('quick-cardsize-up'), quickCardSizeDown: document.getElementById('quick-cardsize-down'),
 			openShareInside: document.getElementById('open-share-button'), closeShareBtn: document.getElementById('close-share'), closeHelpBtn: document.getElementById('close-help'), closeHelpBtnBottom: document.getElementById('close-help-btn-bottom'), openHelpBtn: document.getElementById('open-help-button'), promptDisplay: document.getElementById('prompt-display'), copyPromptBtn: document.getElementById('copy-prompt-btn'), generatePromptBtn: document.getElementById('generate-prompt-btn'),
-			developerModeModal: document.getElementById('developer-mode-modal'), openDeveloperModeBtn: document.getElementById('open-developer-mode-btn'), closeDeveloperModeBtn: document.getElementById('close-developer-mode-btn'),
 			restoreBtn: document.querySelector('button[data-action="restore-defaults"]'),
 			nukeBtn: document.querySelector('button[data-action="nuke-app"]'),
 			redeemModal: document.getElementById('redeem-modal'),
@@ -483,7 +482,18 @@ export class SettingsManager {
 				if (typeof window.wakelockToggle === 'function') {
 					window.wakelockToggle(this.appSettings.isWakeLockEnabled);
 				}
+				this.updateQuickWakelockBtn();
 			});
+		if (this.dom.quickWakelockBtn) {
+			this.dom.quickWakelockBtn.onclick = () => {
+				this.appSettings.isWakeLockEnabled = !this.appSettings.isWakeLockEnabled;
+				if (this.dom.wakelockToggle) this.dom.wakelockToggle.checked = this.appSettings.isWakeLockEnabled;
+				if (typeof window.wakelockToggle === 'function') window.wakelockToggle(this.appSettings.isWakeLockEnabled);
+				this.callbacks.onSave();
+				this.updateQuickWakelockBtn();
+			};
+			this.updateQuickWakelockBtn();
+		}
 		if (this.dom.fullscreenToggle) {
 			this.dom.fullscreenToggle.onchange = (e) => {
 				this.appSettings.showFullscreenBtn = e.target.checked;
@@ -720,7 +730,7 @@ export class SettingsManager {
 			opt.textContent = i + '%';
 			this.dom.playbackSpeed.appendChild(opt);
 		}
-		this.dom.playbackSpeed.value = (this.appSettings.playbackSpeed || 1.0).toFixed(2);
+		this.dom.playbackSpeed.value = (this.appSettings.runtimeSettings.playbackSpeed || 1.0).toFixed(2);
 	}
 	populateARSpeedDropdown() {
 		if (!this.dom.arSpeedSelect) return;
@@ -760,16 +770,16 @@ export class SettingsManager {
 		this.dom.voicePresetSelect.appendChild(grp1);
 		const grp2 = document.createElement('optgroup');
 		grp2.label = "My Voices";
-		if (this.appSettings.voicePresets) {
-			Object.keys(this.appSettings.voicePresets).forEach(k => {
+		if (this.appSettings.runtimeSettings.voicePresets) {
+			Object.keys(this.appSettings.runtimeSettings.voicePresets).forEach(k => {
 					const el = document.createElement('option');
 					el.value = k;
-					el.textContent = this.appSettings.voicePresets[k].name;
+					el.textContent = this.appSettings.runtimeSettings.voicePresets[k].name;
 					grp2.appendChild(el);
 				});
 		}
 		this.dom.voicePresetSelect.appendChild(grp2);
-		this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
+		this.dom.voicePresetSelect.value = this.appSettings.runtimeSettings.activeVoicePresetId || 'standard';
 	}
 	isHighQualityVoice(voice) {
 		const name = voice.name.toLowerCase();
@@ -794,17 +804,17 @@ export class SettingsManager {
 				this.dom.voiceNameSelect.appendChild(opt);
 				if (isHQ && !bestQualityVoice) bestQualityVoice = voice;
 			});
-		if (!this.appSettings.selectedVoice && bestQualityVoice) {
-			this.appSettings.selectedVoice = bestQualityVoice.name;
+		if (!this.appSettings.runtimeSettings.selectedVoice && bestQualityVoice) {
+			this.appSettings.runtimeSettings.selectedVoice = bestQualityVoice.name;
 			this.callbacks.onSave();
 		}
-		this.dom.voiceNameSelect.value = this.appSettings.selectedVoice || '';
+		this.dom.voiceNameSelect.value = this.appSettings.runtimeSettings.selectedVoice || '';
 	}
 	applyVoicePreset(id) {
-		let preset = this.appSettings.voicePresets[id] || PREMADE_VOICE_PRESETS[id] || PREMADE_VOICE_PRESETS['standard'];
-		this.appSettings.voicePitch = preset.pitch;
-		this.appSettings.voiceRate = preset.rate;
-		this.appSettings.voiceVolume = preset.volume;
+		let preset = this.appSettings.runtimeSettings.voicePresets[id] || PREMADE_VOICE_PRESETS[id] || PREMADE_VOICE_PRESETS['standard'];
+		this.appSettings.runtimeSettings.voicePitch = preset.pitch;
+		this.appSettings.runtimeSettings.voiceRate = preset.rate;
+		this.appSettings.runtimeSettings.voiceVolume = preset.volume;
 		this.updateUIFromSettings();
 		this.callbacks.onSave();
 	}
@@ -813,7 +823,7 @@ export class SettingsManager {
 	updateColorFromSliders() { const h = parseInt(this.dom.ftHue.value); const s = parseInt(this.dom.ftSat.value); const l = parseInt(this.dom.ftLit.value); const hex = this.hslToHex(h, s, l); this.dom.ftPreview.style.backgroundColor = hex; if (this.tempTheme) { this.tempTheme[this.currentTargetKey] = hex; this.updatePreview(); } }
 	openThemeEditor() { if (!this.dom.editorModal) return; const activeId = this.appSettings.activeTheme; const source = this.appSettings.customThemes[activeId] || PREMADE_THEMES[activeId] || PREMADE_THEMES['default']; this.tempTheme = { ...source }; this.dom.edName.value = this.tempTheme.name; this.dom.targetBtns.forEach(b => b.classList.remove('active', 'bg-primary-app')); this.dom.targetBtns[2].classList.add('active', 'bg-primary-app'); this.currentTargetKey = 'bubble'; const [h, s, l] = this.hexToHsl(this.tempTheme.bubble); this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l; this.dom.ftPreview.style.backgroundColor = this.tempTheme.bubble; this.updatePreview(); this.dom.editorModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.editorModal.querySelector('div').classList.remove('scale-90'); }
 	updatePreview() { const t = this.tempTheme; if (!this.dom.edPreview) return; this.dom.edPreview.style.backgroundColor = t.bgMain; this.dom.edPreview.style.color = t.text; this.dom.edPreviewCard.style.backgroundColor = t.bgCard; this.dom.edPreviewCard.style.color = t.text; this.dom.edPreviewCard.style.border = '1px solid rgba(255,255,255,0.1)'; this.dom.edPreviewBtn.style.backgroundColor = t.bubble; this.dom.edPreviewBtn.style.color = t.text; }
-	testVoice() { if (window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("Testing 1 2 3."); if (this.appSettings.selectedVoice) { const v = window.speechSynthesis.getVoices().find(voice => voice.name === this.appSettings.selectedVoice); if (v) u.voice = v; } let p = parseFloat(this.dom.voicePitch.value); let r = parseFloat(this.dom.voiceRate.value); let v = parseFloat(this.dom.voiceVolume.value); u.pitch = p; u.rate = r; u.volume = v; window.speechSynthesis.speak(u); } }
+	testVoice() { if (window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("Testing 1 2 3."); if (this.appSettings.runtimeSettings.selectedVoice) { const v = window.speechSynthesis.getVoices().find(voice => voice.name === this.appSettings.runtimeSettings.selectedVoice); if (v) u.voice = v; } let p = parseFloat(this.dom.voicePitch.value); let r = parseFloat(this.dom.voiceRate.value); let v = parseFloat(this.dom.voiceVolume.value); u.pitch = p; u.rate = r; u.volume = v; window.speechSynthesis.speak(u); } }
 	openShare() { this.qrScale = 100; if (this.updateQR) this.updateQR(); if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); if (this.dom.shareModal) { this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => this.dom.shareModal.querySelector('.share-sheet').classList.add('active'), 10); } if (window.lockBodyScroll) window.lockBodyScroll(); }
 	closeShare() { if (this.dom.shareModal) { this.dom.shareModal.querySelector('.share-sheet').classList.remove('active'); setTimeout(() => this.dom.shareModal.classList.add('opacity-0', 'pointer-events-none'), 300); } if (window.unlockBodyScroll) window.unlockBodyScroll(); }
 	toggleRedeem(show) { if (show) { if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.add('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'auto'; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.remove('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'none'; } if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
@@ -853,14 +863,10 @@ export class SettingsManager {
 	}
 	initListeners() {
 	try {
-			const openDevBtn = document.getElementById('open-developer-mode-btn');
-			const closeDevBtn = document.getElementById('close-developer-mode-btn');
-			const devModal = document.getElementById('developer-mode-modal');
 			const settingsModalEl = document.getElementById('settings-modal');
-			if (openDevBtn && devModal) {
-				openDevBtn.onclick = () => {
-					if (!window.__testAreaSetup) {
-						window.__testAreaSetup = true;
+			{
+				if (!window.__testAreaSetup) {
+					window.__testAreaSetup = true;
 						let activeTestTab = 'hand';
 						const tabButtons = {
 							hand: document.getElementById('test-tab-btn-hand'),
@@ -1165,19 +1171,7 @@ if (!window.__testChecklists) {
     });
 }
 
-					}
-					devModal.classList.remove('opacity-0', 'pointer-events-none');
-					if (settingsModalEl) settingsModalEl.classList.add('opacity-0', 'pointer-events-none');
-					if (window.lockBodyScroll) window.lockBodyScroll();
-				};
-			}
-			if (closeDevBtn && devModal) {
-				closeDevBtn.onclick = () => {
-					if (window.__stopAllDevModeTests) window.__stopAllDevModeTests();
-					devModal.classList.add('opacity-0', 'pointer-events-none');
-					if (settingsModalEl) settingsModalEl.classList.remove('opacity-0', 'pointer-events-none');
-					if (window.unlockBodyScroll) window.unlockBodyScroll();
-				};
+				}
 			}
 		} catch (e) {
 			console.error('Developer Mode wiring failed:', e);
@@ -1373,15 +1367,15 @@ if (!window.__testChecklists) {
 		if (this.dom.voiceTestBtn) this.dom.voiceTestBtn.onclick = () => this.testVoice();
 		if (this.dom.voiceNameSelect) {
 			this.dom.voiceNameSelect.onchange = (e) => {
-				this.appSettings.selectedVoice = e.target.value || null;
+				this.appSettings.runtimeSettings.selectedVoice = e.target.value || null;
 				this.callbacks.onSave();
 				this.testVoice();
 			};
 		}
 		const updateVoiceLive = () => {
-			if (this.dom.voicePitch) this.appSettings.voicePitch = parseFloat(this.dom.voicePitch.value);
-			if (this.dom.voiceRate) this.appSettings.voiceRate = parseFloat(this.dom.voiceRate.value);
-			if (this.dom.voiceVolume) this.appSettings.voiceVolume = parseFloat(this.dom.voiceVolume.value);
+			if (this.dom.voicePitch) this.appSettings.runtimeSettings.voicePitch = parseFloat(this.dom.voicePitch.value);
+			if (this.dom.voiceRate) this.appSettings.runtimeSettings.voiceRate = parseFloat(this.dom.voiceRate.value);
+			if (this.dom.voiceVolume) this.appSettings.runtimeSettings.voiceVolume = parseFloat(this.dom.voiceVolume.value);
 		};
 		if (this.dom.voicePitch) this.dom.voicePitch.oninput = updateVoiceLive;
 		if (this.dom.voiceRate) this.dom.voiceRate.oninput = updateVoiceLive;
@@ -1434,7 +1428,7 @@ if (!window.__testChecklists) {
 				});
 		}
 		if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.onchange = (e) => {
-			this.appSettings.activeVoicePresetId = e.target.value;
+			this.appSettings.runtimeSettings.activeVoicePresetId = e.target.value;
 			this.applyVoicePreset(e.target.value);
 		};
 		if (this.dom.voicePresetAdd) {
@@ -1442,8 +1436,8 @@ if (!window.__testChecklists) {
 				const n = prompt("New Voice Preset Name:");
 				if (n) {
 					const id = 'vp_' + Date.now();
-					this.appSettings.voicePresets[id] = { name: n, pitch: this.appSettings.voicePitch, rate: this.appSettings.voiceRate, volume: this.appSettings.voiceVolume };
-					this.appSettings.activeVoicePresetId = id;
+					this.appSettings.runtimeSettings.voicePresets[id] = { name: n, pitch: this.appSettings.runtimeSettings.voicePitch, rate: this.appSettings.runtimeSettings.voiceRate, volume: this.appSettings.runtimeSettings.voiceVolume };
+					this.appSettings.runtimeSettings.activeVoicePresetId = id;
 					this.populateVoicePresetDropdown();
 					this.callbacks.onSave();
 				}
@@ -1451,13 +1445,13 @@ if (!window.__testChecklists) {
 		}
 		if (this.dom.voicePresetSave) {
 			this.dom.voicePresetSave.onclick = () => {
-				const id = this.appSettings.activeVoicePresetId;
+				const id = this.appSettings.runtimeSettings.activeVoicePresetId;
 				if (typeof PREMADE_VOICE_PRESETS !== 'undefined' && PREMADE_VOICE_PRESETS[id]) {
 					alert("Cannot save over built-in presets. Create a new one.");
 					return;
 				}
-				if (this.appSettings.voicePresets[id]) {
-					this.appSettings.voicePresets[id] = { ...this.appSettings.voicePresets[id], pitch: parseFloat(this.dom.voicePitch.value), rate: parseFloat(this.dom.voiceRate.value), volume: parseFloat(this.dom.voiceVolume.value) };
+				if (this.appSettings.runtimeSettings.voicePresets[id]) {
+					this.appSettings.runtimeSettings.voicePresets[id] = { ...this.appSettings.runtimeSettings.voicePresets[id], pitch: parseFloat(this.dom.voicePitch.value), rate: parseFloat(this.dom.voiceRate.value), volume: parseFloat(this.dom.voiceVolume.value) };
 					this.callbacks.onSave();
 					alert("Voice Preset Saved!");
 				}
@@ -1465,14 +1459,14 @@ if (!window.__testChecklists) {
 		}
 		if (this.dom.voicePresetDelete) {
 			this.dom.voicePresetDelete.onclick = () => {
-				const id = this.appSettings.activeVoicePresetId;
+				const id = this.appSettings.runtimeSettings.activeVoicePresetId;
 				if (typeof PREMADE_VOICE_PRESETS !== 'undefined' && PREMADE_VOICE_PRESETS[id]) {
 					alert("Cannot delete built-in.");
 					return;
 				}
 				if (confirm("Delete this voice preset?")) {
-					delete this.appSettings.voicePresets[id];
-					this.appSettings.activeVoicePresetId = 'standard';
+					delete this.appSettings.runtimeSettings.voicePresets[id];
+					this.appSettings.runtimeSettings.activeVoicePresetId = 'standard';
 					this.populateVoicePresetDropdown();
 					this.applyVoicePreset('standard');
 				}
@@ -1480,11 +1474,11 @@ if (!window.__testChecklists) {
 		}
 		if (this.dom.voicePresetRename) {
 			this.dom.voicePresetRename.onclick = () => {
-				const id = this.appSettings.activeVoicePresetId;
+				const id = this.appSettings.runtimeSettings.activeVoicePresetId;
 				if (typeof PREMADE_VOICE_PRESETS !== 'undefined' && PREMADE_VOICE_PRESETS[id]) return alert("Cannot rename built-in.");
-				const n = prompt("Rename:", this.appSettings.voicePresets[id].name);
+				const n = prompt("Rename:", this.appSettings.runtimeSettings.voicePresets[id].name);
 				if (n) {
-					this.appSettings.voicePresets[id].name = n;
+					this.appSettings.runtimeSettings.voicePresets[id].name = n;
 					this.populateVoicePresetDropdown();
 					this.callbacks.onSave();
 				}
@@ -1516,7 +1510,7 @@ if (!window.__testChecklists) {
 		bind(this.dom.input, 'currentInput', false);
 		bind(this.dom.machines, 'machineCount', false, true);
 		bind(this.dom.seqLength, 'sequenceLength', false, true);
-		bind(this.dom.autoClear, 'isUniqueRoundsAutoClearEnabled', true);
+		bind(this.dom.autoClear, 'isUniqueRoundsAutoClearEnabled', false);
 		bind(this.dom.longPressToggle, 'isLongPressAutoplayEnabled', true);
 		bind(this.dom.timerToggle, 'showTimer', true);
 		bind(this.dom.counterToggle, 'showCounter', true);
@@ -1539,24 +1533,24 @@ if (!window.__testChecklists) {
 		['input', 'machines', 'seqLength', 'playbackSpeed', 'delay', 'chunk'].forEach(id => {
 				if (this.dom[id]) this.dom[id].addEventListener('change', () => this.generatePrompt());
 			});
-		if (this.dom.autoplay) this.dom.autoplay.onchange = (e) => { this.appSettings.isAutoplayEnabled = e.target.checked; if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = e.target.checked; this.callbacks.onSave(); };
-		if (this.dom.audio) this.dom.audio.onchange = (e) => { this.appSettings.isAudioEnabled = e.target.checked; if (this.dom.quickAudio) this.dom.quickAudio.checked = e.target.checked; this.callbacks.onSave(); };
-		if (this.dom.quickAutoplay) this.dom.quickAutoplay.onchange = (e) => { this.appSettings.isAutoplayEnabled = e.target.checked; if (this.dom.autoplay) this.dom.autoplay.checked = e.target.checked; this.callbacks.onSave(); };
-		if (this.dom.quickAudio) this.dom.quickAudio.onchange = (e) => { this.appSettings.isAudioEnabled = e.target.checked; if (this.dom.audio) this.dom.audio.checked = e.target.checked; this.callbacks.onSave(); };
+		if (this.dom.autoplay) this.dom.autoplay.onchange = (e) => { this.appSettings.runtimeSettings.isAutoplayEnabled = e.target.checked; if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = e.target.checked; this.callbacks.onSave(); };
+		if (this.dom.audio) this.dom.audio.onchange = (e) => { this.appSettings.runtimeSettings.isAudioEnabled = e.target.checked; if (this.dom.quickAudio) this.dom.quickAudio.checked = e.target.checked; this.callbacks.onSave(); };
+		if (this.dom.quickAutoplay) this.dom.quickAutoplay.onchange = (e) => { this.appSettings.runtimeSettings.isAutoplayEnabled = e.target.checked; if (this.dom.autoplay) this.dom.autoplay.checked = e.target.checked; this.callbacks.onSave(); };
+		if (this.dom.quickAudio) this.dom.quickAudio.onchange = (e) => { this.appSettings.runtimeSettings.isAudioEnabled = e.target.checked; if (this.dom.audio) this.dom.audio.checked = e.target.checked; this.callbacks.onSave(); };
 		if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = !e.target.checked; if (this.dom.showWelcome) this.dom.showWelcome.checked = !e.target.checked; this.callbacks.onSave(); };
 		if (this.dom.showWelcome) this.dom.showWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = e.target.checked; if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !e.target.checked; this.callbacks.onSave(); };
-		bind(this.dom.hapticMorse, 'isHapticMorseEnabled', true);
-		if (this.dom.playbackSpeed) this.dom.playbackSpeed.onchange = (e) => { this.appSettings.playbackSpeed = parseFloat(e.target.value); this.callbacks.onSave(); this.generatePrompt(); };
+		bind(this.dom.hapticMorse, 'isHapticMorseEnabled', false);
+		if (this.dom.playbackSpeed) this.dom.playbackSpeed.onchange = (e) => { this.appSettings.runtimeSettings.playbackSpeed = parseFloat(e.target.value); this.callbacks.onSave(); this.generatePrompt(); };
 		bind(this.dom.chunk, 'simonChunkSize', false, true);
-		bind(this.dom.flash, 'isFlashEnabled', true);
-		bind(this.dom.pause, 'pauseSetting', true);
+		bind(this.dom.flash, 'isFlashEnabled', false);
+		bind(this.dom.pause, 'pauseSetting', false);
 		if (this.dom.delay) this.dom.delay.onchange = (e) => { this.appSettings.runtimeSettings.simonInterSequenceDelay = parseFloat(e.target.value) * 1000; this.callbacks.onSave(); this.generatePrompt(); };
 		bind(this.dom.haptics, 'isHapticsEnabled', true);
 		bind(this.dom.speedDelete, 'isSpeedDeletingEnabled', true);
 		bind(this.dom.biggerToggle, 'isStealth1KeyEnabled', true);
 		bind(this.dom.autoTimerToggle, 'isAutoTimerEnabled', true);
 		bind(this.dom.autoCounterToggle, 'isAutoCounterEnabled', true);
-		bind(this.dom.practiceMode, 'isPracticeModeEnabled', true);
+		bind(this.dom.practiceMode, 'isPracticeModeEnabled', false);
 		if (this.dom.uiScale) this.dom.uiScale.onchange = (e) => { this.appSettings.globalUiScale = parseInt(e.target.value); this.callbacks.onUpdate(); };
 		if (this.dom.seqSize) this.dom.seqSize.onchange = (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onUpdate(); };
 		if (this.dom.seqFontSize) this.dom.seqFontSize.onchange = (e) => { this.appSettings.uiFontSizeMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onSave(); this.callbacks.onUpdate(); };
@@ -1606,15 +1600,17 @@ if (!window.__testChecklists) {
 		if (this.dom.closeHelpBtn) this.dom.closeHelpBtn.onclick = () => { if (this.dom.helpModal) this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none'); if (window.unlockBodyScroll) window.unlockBodyScroll(); };
 		if (this.dom.closeHelpBtnBottom) this.dom.closeHelpBtnBottom.onclick = () => { if (this.dom.helpModal) this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none'); if (window.unlockBodyScroll) window.unlockBodyScroll(); };
 		if (this.dom.openHelpBtn) this.dom.openHelpBtn.onclick = () => { this.generatePrompt(); if (this.dom.helpModal) this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); if (window.lockBodyScroll) window.lockBodyScroll(); };
-		if (this.dom.closeSettingsBtn) this.dom.closeSettingsBtn.onclick = () => { this.callbacks.onSave(); if (this.dom.settingsModal) { this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.add('scale-90'); } if (window.unlockBodyScroll) window.unlockBodyScroll(); };
+		if (this.dom.closeSettingsBtn) this.dom.closeSettingsBtn.onclick = () => { if (window.__stopAllDevModeTests) window.__stopAllDevModeTests(); this.callbacks.onSave(); if (this.dom.settingsModal) { this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.add('scale-90'); } if (window.unlockBodyScroll) window.unlockBodyScroll(); };
 		if (this.dom.tabs) {
 			this.dom.tabs.forEach(btn => {
 					btn.onclick = () => {
 						const parent = btn.parentElement.parentElement;
+						const wasDevmodeActive = parent.querySelector('.tab-content.active')?.id === 'tab-devmode';
+						const target = btn.dataset.tab;
+						if (wasDevmodeActive && target !== 'devmode' && window.__stopAllDevModeTests) window.__stopAllDevModeTests();
 						parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 						parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 						btn.classList.add('active');
-						const target = btn.dataset.tab;
 						if (target === 'help-voice') this.generatePrompt();
 						const tabEl = document.getElementById(`tab-${target}`);
 						if (tabEl) tabEl.classList.add('active');
@@ -1624,7 +1620,7 @@ if (!window.__testChecklists) {
 		if (this.dom.settingsModal) this.setupTabSwipe(this.dom.settingsModal);
 		if (this.dom.helpModal) this.setupTabSwipe(this.dom.helpModal);
 		if (this.dom.openShareInside) this.dom.openShareInside.onclick = () => this.openShare();
-		if (this.dom.closeShareBtn) this.dom.closeShareBtn.onclick = () => { this.closeShare(); this.openSettings(); };
+		if (this.dom.closeShareBtn) this.dom.closeShareBtn.onclick = () => { this.closeShare(); };
 		let rScale = 100;
 		const updateRedeem = () => { if(this.dom.redeemImg) this.dom.redeemImg.style.transform = `scale(${rScale/100})`; };
 		if (this.dom.closeRedeemBtn) this.dom.closeRedeemBtn.onclick = () => this.toggleRedeem(false);
@@ -1718,6 +1714,12 @@ if (!window.__testChecklists) {
 	// (see renderUI's number-box creation in app.js), so what the user sees here is a true
 	// preview of the real app - not an approximation - letting them size things correctly
 	// for their specific device before ever seeing the real sequence area.
+	updateQuickWakelockBtn() {
+		if (!this.dom.quickWakelockBtn) return;
+		const on = !!this.appSettings.isWakeLockEnabled;
+		this.dom.quickWakelockBtn.textContent = on ? '🔒' : '🔓';
+		this.dom.quickWakelockBtn.style.opacity = on ? '1' : '0.5';
+	}
 	updateWelcomeSample() {
 		const holder = document.getElementById('welcome-sample-sequence');
 		if (!holder) return;
@@ -1764,8 +1766,8 @@ if (!window.__testChecklists) {
 		if (this.dom.mode) this.dom.mode.value = ps.currentMode;
 		if (this.dom.machines) this.dom.machines.value = ps.machineCount;
 		if (this.dom.seqLength) this.dom.seqLength.value = ps.sequenceLength;
-		if (this.dom.autoClear) this.dom.autoClear.checked = this.appSettings.isUniqueRoundsAutoClearEnabled;
-		if (this.dom.autoplay) this.dom.autoplay.checked = this.appSettings.isAutoplayEnabled;
+		if (this.dom.autoClear) this.dom.autoClear.checked = this.appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled;
+		if (this.dom.autoplay) this.dom.autoplay.checked = this.appSettings.runtimeSettings.isAutoplayEnabled;
 		if (this.dom.filterToggles) {
 			if (!this.appSettings.activeGestureFilters) {
 				this.appSettings.activeGestureFilters = ['Poses', 'Pinches', 'Counts', 'Shapes', 'Motion', 'Transitions', 'Combos', ...Object.keys(GESTURE_CATEGORIES)];
@@ -1776,13 +1778,15 @@ if (!window.__testChecklists) {
 			this.applyHandGestureFilters();
 		}
 		this.applyTouchGestureOptions();
-		if (this.dom.audio) this.dom.audio.checked = this.appSettings.isAudioEnabled;
-		if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = this.appSettings.isAutoplayEnabled;
-		if (this.dom.quickAudio) this.dom.quickAudio.checked = this.appSettings.isAudioEnabled;
+		if (this.dom.audio) this.dom.audio.checked = this.appSettings.runtimeSettings.isAudioEnabled;
+		if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = this.appSettings.runtimeSettings.isAutoplayEnabled;
+		if (this.dom.quickAudio) this.dom.quickAudio.checked = this.appSettings.runtimeSettings.isAudioEnabled;
 		if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !this.appSettings.showWelcomeScreen;
 		if (this.dom.showWelcome) this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
-		if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.isHapticMorseEnabled;
-		if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = (this.appSettings.playbackSpeed || 1.0).toFixed(2);
+		if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.runtimeSettings.isHapticMorseEnabled;
+		if (this.dom.flash) this.dom.flash.checked = this.appSettings.runtimeSettings.isFlashEnabled;
+		if (this.dom.pause) this.dom.pause.value = this.appSettings.runtimeSettings.pauseSetting || 'none';
+		if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = (this.appSettings.runtimeSettings.playbackSpeed || 1.0).toFixed(2);
 		if (this.dom.voiceTriggerSelect) {
 			this.dom.voiceTriggerSelect.value = this.appSettings.voiceTriggerWord || 'set';
 			this.dom.voiceTriggerSelect.onchange = (e) => {
@@ -1793,12 +1797,12 @@ if (!window.__testChecklists) {
 		}
 		if (this.dom.chunk) this.dom.chunk.value = ps.simonChunkSize;
 		if (this.dom.delay) this.dom.delay.value = (ps.simonInterSequenceDelay / 1000);
-		if (this.dom.voicePitch) this.dom.voicePitch.value = this.appSettings.voicePitch || 1.0;
+		if (this.dom.voicePitch) this.dom.voicePitch.value = this.appSettings.runtimeSettings.voicePitch || 1.0;
 		this.populateVoiceNameDropdown();
-		if (this.dom.voiceRate) this.dom.voiceRate.value = this.appSettings.voiceRate || 1.0;
-		if (this.dom.voiceVolume) this.dom.voiceVolume.value = this.appSettings.voiceVolume || 1.0;
-		if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.value = this.appSettings.activeVoicePresetId || 'standard';
-		if (this.dom.practiceMode) this.dom.practiceMode.checked = this.appSettings.isPracticeModeEnabled;
+		if (this.dom.voiceRate) this.dom.voiceRate.value = this.appSettings.runtimeSettings.voiceRate || 1.0;
+		if (this.dom.voiceVolume) this.dom.voiceVolume.value = this.appSettings.runtimeSettings.voiceVolume || 1.0;
+		if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.value = this.appSettings.runtimeSettings.activeVoicePresetId || 'standard';
+		if (this.dom.practiceMode) this.dom.practiceMode.checked = this.appSettings.runtimeSettings.isPracticeModeEnabled;
 		if (this.dom.biggerToggle) this.dom.biggerToggle.checked = this.appSettings.isStealth1KeyEnabled;
 		if (this.dom.arcamToggle) this.dom.arcamToggle.checked = !!this.appSettings.isArModeEnabled;
 		if (this.dom.voiceToggle) this.dom.voiceToggle.checked = !!this.appSettings.isVoiceInputEnabled;
@@ -1861,6 +1865,7 @@ if (!window.__testChecklists) {
 		if (this.dom.headerDevModeToggle) this.dom.headerDevModeToggle.checked = !!this.appSettings.showHeaderDevModeBtn;
 		if (this.dom.headerResetToggle) this.dom.headerResetToggle.checked = !!this.appSettings.showHeaderResetBtn;
 		if (this.dom.headerNukeToggle) this.dom.headerNukeToggle.checked = !!this.appSettings.showHeaderNukeBtn;
+		this.updateQuickWakelockBtn();
 		if (this.dom.arSpeedSelect) {
 			const speedVal = this.appSettings.arPlaybackSpeed || 1.0;
 			this.dom.arSpeedSelect.value = String(speedVal);

@@ -58,7 +58,7 @@ alert("Promise Error: " + event.reason);
 <button id="headernukebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Nuke App">☢️</button>
 <button id="headernotepadbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Notepad">📝</button>
 <button id="headerhelpbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Help">📚</button>
-<button id="headerdevmodebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Developer Mode">🛠️</button>
+<button id="headermodeswitchbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Switch Game Mode">🎮</button>
 </div>
 </div>
 </header>
@@ -209,7 +209,7 @@ alert("Promise Error: " + event.reason);
 <div id="settings-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding-top: max(1.5rem, env(safe-area-inset-top));" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
 <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col overflow-hidden border border-custom m-4" style="max-height: calc(100vh - max(1.5rem, env(safe-area-inset-top)) - 2rem);">
 <div class="no-swipe-zone p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
-<button id="quick-wakelock-toggle" class="text-xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="Keep Screen Awake">🔒</button>
+<button id="settings-lock-toggle" class="text-xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="Lock Settings">🔓</button>
 <button id="open-donate-btn" class="text-2xl hover:scale-110 transition-transform p-3 active:opacity-50" title="Donate">☕</button>
 <button id="open-redeem-btn-settings" class="text-2xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="ID">🆔</button>
 <button id="open-share-button" class="text-xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="Share">📤</button>
@@ -408,8 +408,8 @@ alert("Promise Error: " + event.reason);
 <span class="font-bold text-sm text-muted-custom">Help 📚</span>
 <input type="checkbox" id="headerHelpToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm text-muted-custom">Dev Mode 🛠️</span>
-<input type="checkbox" id="headerDevModeToggle" class="h-6 w-6 accent-indigo-500"></div>
+<span class="font-bold text-sm text-muted-custom">Mode Switch 🎮</span>
+<input type="checkbox" id="headerModeSwitchToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Redeem 🆔</span>
 <input type="checkbox" id="headerRedeemToggle" class="h-6 w-6 accent-indigo-500"></div>

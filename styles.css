@@ -16,6 +16,8 @@ input, textarea, .selectable-text { -webkit-user-select: text !important; user-s
 .tab-btn:hover { opacity: .8; }
 .tab-btn.active { border-bottom-color: var(--seq-bubble); opacity: 1; color: var(--seq-bubble); }
 .settings-tab-bar { display: flex !important; }
+.settings-locked .settings-tab-bar,
+.settings-locked .overflow-y-auto.flex-grow { pointer-events: none !important; opacity: 0.45; filter: grayscale(0.3); }
 .help-tab-bar { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; }
 .help-tab-bar .tab-btn { padding: 8px 4px !important; font-size: 0.75rem !important; }
 .tab-content { display: none; }

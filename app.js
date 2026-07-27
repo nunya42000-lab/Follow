@@ -159,7 +159,7 @@ const DEFAULT_APP = {
     showHeaderCycleInputBtn: false,
     showHeaderNotepadBtn: true,
     showHeaderHelpBtn: false,
-    showHeaderDevModeBtn: false,
+    showHeaderModeSwitchBtn: false,
     showHeaderResetBtn: false,
     showHeaderNukeBtn: false,
     notepadText: '',
@@ -173,6 +173,7 @@ const DEFAULT_APP = {
     voiceConfidenceThreshold: 50,
     toneVolumeThreshold: -85,
     isSliderLockEnabled: false,
+    isSettingsLockEnabled: false,
     touchAnchorStillDistance: 15,
     touchAnchorMinHoldTime: 150,
     touchChordSimultaneityWindow: 50,
@@ -2642,12 +2643,15 @@ function initGlobalListeners() {
         const headerHelp = document.getElementById('headerhelpbtn');
         if (headerHelp) headerHelp.onclick = () => { document.getElementById('open-help-button')?.click(); };
 
-        const headerDevMode = document.getElementById('headerdevmodebtn');
-        if (headerDevMode) headerDevMode.onclick = () => {
-            if (modules.settings) {
-                modules.settings.openSettings();
-                setTimeout(() => document.querySelector('.tab-btn[data-tab="devmode"]')?.click(), 50);
-            }
+        const headerModeSwitch = document.getElementById('headermodeswitchbtn');
+        if (headerModeSwitch) headerModeSwitch.onclick = () => {
+            const settings = getProfileSettings();
+            settings.currentMode = settings.currentMode === CONFIG.MODES.SIMON ? CONFIG.MODES.UNIQUE_ROUNDS : CONFIG.MODES.SIMON;
+            const sel = document.getElementById('mode-select');
+            if (sel) sel.value = settings.currentMode;
+            renderUI();
+            saveState();
+            showToast(`Mode: ${settings.currentMode === CONFIG.MODES.SIMON ? 'Simon Says' : 'Unique'} 🎮`);
         };
 
         const headerReset = document.getElementById('headerresetbtn');

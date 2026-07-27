@@ -391,18 +391,18 @@ export class SettingsManager {
 			longPressToggle: document.getElementById('apshortcutToggle'),
 			timerToggle: document.getElementById('timerToggle'),
 			headerPlayToggle: document.getElementById('headerPlayToggle'), headerDeleteToggle: document.getElementById('headerDeleteToggle'), headerSettingsToggle: document.getElementById('headerSettingsToggle'), headerRedeemToggle: document.getElementById('headerRedeemToggle'), headerShareToggle: document.getElementById('headerShareToggle'), headerThemeCycleToggle: document.getElementById('headerThemeCycleToggle'), headerAddMachineToggle: document.getElementById('headerAddMachineToggle'), headerUiSizeToggle: document.getElementById('headerUiSizeToggle'), headerSeqSizeToggle: document.getElementById('headerSeqSizeToggle'), headerCycleInputToggle: document.getElementById('headerCycleInputToggle'),
-			headerNotepadToggle: document.getElementById('headerNotepadToggle'), headerHelpToggle: document.getElementById('headerHelpToggle'), headerDevModeToggle: document.getElementById('headerDevModeToggle'), headerResetToggle: document.getElementById('headerResetToggle'), headerNukeToggle: document.getElementById('headerNukeToggle'),
+			headerNotepadToggle: document.getElementById('headerNotepadToggle'), headerHelpToggle: document.getElementById('headerHelpToggle'), headerModeSwitchToggle: document.getElementById('headerModeSwitchToggle'), headerResetToggle: document.getElementById('headerResetToggle'), headerNukeToggle: document.getElementById('headerNukeToggle'),
 			counterToggle: document.getElementById('counterToggle'),
 			gestureToggle: document.getElementById('touchToggle'),
 			handToggle: document.getElementById('handToggle'),
 			handsignalsToggle: document.getElementById('handsignalsToggle'),
 			handednessFlipToggle: document.getElementById('handednessFlipToggle'),
 			voicecommandsToggle: document.getElementById('voicecommandsToggle'),
-			wakelockToggle: document.getElementById('wakelockToggle'), quickWakelockBtn: document.getElementById('quick-wakelock-toggle'),
+			wakelockToggle: document.getElementById('wakelockToggle'), settingsLockBtn: document.getElementById('settings-lock-toggle'),
 			newToggle: document.getElementById('newToggle'),
 			headerswapbtn: document.getElementById('headerswapbtn'),
 			headerplaybtn: document.getElementById('headerplaybtn'), headerdeletebtn: document.getElementById('headerdeletebtn'), headersettingsbtn: document.getElementById('headersettingsbtn'), headerredeembtn: document.getElementById('headerredeembtn'), headersharebtn: document.getElementById('headersharebtn'), headerthemecyclebtn: document.getElementById('headerthemecyclebtn'), headeraddmachinebtn: document.getElementById('headeraddmachinebtn'), headeruiupbtn: document.getElementById('headeruiupbtn'), headeruidownbtn: document.getElementById('headeruidownbtn'), headersequpbtn: document.getElementById('headersequpbtn'), headerseqdownbtn: document.getElementById('headerseqdownbtn'), headercycleinputbtn: document.getElementById('headercycleinputbtn'),
-			headernotepadbtn: document.getElementById('headernotepadbtn'), headerhelpbtn: document.getElementById('headerhelpbtn'), headerdevmodebtn: document.getElementById('headerdevmodebtn'), headerresetbtn: document.getElementById('headerresetbtn'), headernukebtn: document.getElementById('headernukebtn'),
+			headernotepadbtn: document.getElementById('headernotepadbtn'), headerhelpbtn: document.getElementById('headerhelpbtn'), headermodeswitchbtn: document.getElementById('headermodeswitchbtn'), headerresetbtn: document.getElementById('headerresetbtn'), headernukebtn: document.getElementById('headernukebtn'),
 			uiScale: document.getElementById('ui-scale-select'),
 			seqSize: document.getElementById('seq-size-select'),
 			seqFontSize: document.getElementById('seq-font-size-select'),
@@ -482,17 +482,14 @@ export class SettingsManager {
 				if (typeof window.wakelockToggle === 'function') {
 					window.wakelockToggle(this.appSettings.isWakeLockEnabled);
 				}
-				this.updateQuickWakelockBtn();
 			});
-		if (this.dom.quickWakelockBtn) {
-			this.dom.quickWakelockBtn.onclick = () => {
-				this.appSettings.isWakeLockEnabled = !this.appSettings.isWakeLockEnabled;
-				if (this.dom.wakelockToggle) this.dom.wakelockToggle.checked = this.appSettings.isWakeLockEnabled;
-				if (typeof window.wakelockToggle === 'function') window.wakelockToggle(this.appSettings.isWakeLockEnabled);
+		if (this.dom.settingsLockBtn) {
+			this.dom.settingsLockBtn.onclick = () => {
+				this.appSettings.isSettingsLockEnabled = !this.appSettings.isSettingsLockEnabled;
 				this.callbacks.onSave();
-				this.updateQuickWakelockBtn();
+				this.applySettingsLockState();
 			};
-			this.updateQuickWakelockBtn();
+			this.applySettingsLockState();
 		}
 		if (this.dom.fullscreenToggle) {
 			this.dom.fullscreenToggle.onchange = (e) => {
@@ -1280,7 +1277,7 @@ if (!window.__testChecklists) {
 		bindToggle(this.dom.headerCycleInputToggle, 'showHeaderCycleInputBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerNotepadToggle, 'showHeaderNotepadBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerHelpToggle, 'showHeaderHelpBtn', () => this.updateHeaderVisibility());
-		bindToggle(this.dom.headerDevModeToggle, 'showHeaderDevModeBtn', () => this.updateHeaderVisibility());
+		bindToggle(this.dom.headerModeSwitchToggle, 'showHeaderModeSwitchBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerResetToggle, 'showHeaderResetBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerNukeToggle, 'showHeaderNukeBtn', () => this.updateHeaderVisibility());
 		if (this.dom.skeletonDebugToggle) {
@@ -1714,11 +1711,15 @@ if (!window.__testChecklists) {
 	// (see renderUI's number-box creation in app.js), so what the user sees here is a true
 	// preview of the real app - not an approximation - letting them size things correctly
 	// for their specific device before ever seeing the real sequence area.
-	updateQuickWakelockBtn() {
-		if (!this.dom.quickWakelockBtn) return;
-		const on = !!this.appSettings.isWakeLockEnabled;
-		this.dom.quickWakelockBtn.textContent = on ? '🔒' : '🔓';
-		this.dom.quickWakelockBtn.style.opacity = on ? '1' : '0.5';
+	applySettingsLockState() {
+		if (!this.dom.settingsLockBtn) return;
+		const locked = !!this.appSettings.isSettingsLockEnabled;
+		this.dom.settingsLockBtn.textContent = locked ? '🔒' : '🔓';
+		this.dom.settingsLockBtn.title = locked ? 'Settings Locked - tap to unlock' : 'Lock Settings';
+		if (this.dom.settingsModal) {
+			const card = this.dom.settingsModal.querySelector('.settings-modal-bg');
+			if (card) card.classList.toggle('settings-locked', locked);
+		}
 	}
 	updateWelcomeSample() {
 		const holder = document.getElementById('welcome-sample-sequence');
@@ -1862,10 +1863,10 @@ if (!window.__testChecklists) {
 		if (this.dom.headerCycleInputToggle) this.dom.headerCycleInputToggle.checked = !!this.appSettings.showHeaderCycleInputBtn;
 		if (this.dom.headerNotepadToggle) this.dom.headerNotepadToggle.checked = !!this.appSettings.showHeaderNotepadBtn;
 		if (this.dom.headerHelpToggle) this.dom.headerHelpToggle.checked = !!this.appSettings.showHeaderHelpBtn;
-		if (this.dom.headerDevModeToggle) this.dom.headerDevModeToggle.checked = !!this.appSettings.showHeaderDevModeBtn;
+		if (this.dom.headerModeSwitchToggle) this.dom.headerModeSwitchToggle.checked = !!this.appSettings.showHeaderModeSwitchBtn;
 		if (this.dom.headerResetToggle) this.dom.headerResetToggle.checked = !!this.appSettings.showHeaderResetBtn;
 		if (this.dom.headerNukeToggle) this.dom.headerNukeToggle.checked = !!this.appSettings.showHeaderNukeBtn;
-		this.updateQuickWakelockBtn();
+		this.applySettingsLockState();
 		if (this.dom.arSpeedSelect) {
 			const speedVal = this.appSettings.arPlaybackSpeed || 1.0;
 			this.dom.arSpeedSelect.value = String(speedVal);
@@ -1926,13 +1927,13 @@ if (!window.__testChecklists) {
 		if (this.dom.headercycleinputbtn) this.dom.headercycleinputbtn.classList.toggle('hidden', !this.appSettings.showHeaderCycleInputBtn);
 		if (this.dom.headernotepadbtn) this.dom.headernotepadbtn.classList.toggle('hidden', !this.appSettings.showHeaderNotepadBtn);
 		if (this.dom.headerhelpbtn) this.dom.headerhelpbtn.classList.toggle('hidden', !this.appSettings.showHeaderHelpBtn);
-		if (this.dom.headerdevmodebtn) this.dom.headerdevmodebtn.classList.toggle('hidden', !this.appSettings.showHeaderDevModeBtn);
+		if (this.dom.headermodeswitchbtn) this.dom.headermodeswitchbtn.classList.toggle('hidden', !this.appSettings.showHeaderModeSwitchBtn);
 		if (this.dom.headerresetbtn) this.dom.headerresetbtn.classList.toggle('hidden', !this.appSettings.showHeaderResetBtn);
 		if (this.dom.headernukebtn) this.dom.headernukebtn.classList.toggle('hidden', !this.appSettings.showHeaderNukeBtn);
 		if (this.dom.headertonebtn) {
 			this.dom.headertonebtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
 		}
-		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderCycleInputBtn || this.appSettings.showHeaderNotepadBtn || this.appSettings.showHeaderHelpBtn || this.appSettings.showHeaderDevModeBtn || this.appSettings.showHeaderResetBtn || this.appSettings.showHeaderNukeBtn;
+		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderCycleInputBtn || this.appSettings.showHeaderNotepadBtn || this.appSettings.showHeaderHelpBtn || this.appSettings.showHeaderModeSwitchBtn || this.appSettings.showHeaderResetBtn || this.appSettings.showHeaderNukeBtn;
 		if (!showTimer && !showCounter && !showMic && !showCam && !showGesture && !showStealth && !showHand && !showSwap && !this.appSettings.isToneCadenceEnabled && !anyNewBtnShown) {
 			header.classList.add('header-hidden');
 		} else {
@@ -1942,7 +1943,7 @@ if (!window.__testChecklists) {
 	}
 	// Master order of every header button id, matching their HTML order.
 	_headerBtnOrder() {
-		return ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerupsidedownbtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headerdevmodebtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn'];
+		return ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerupsidedownbtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn'];
 	}
 	// Builds the "infinite toolbar" feel: clones the visible button set once before and once
 	// after the real set, then keeps the scroll position invisibly wrapped within the real

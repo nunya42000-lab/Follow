@@ -46,8 +46,8 @@ const HAND_MAPPING_PRESETS = {
 		name: "Shapes & Combos",
 		type: 'key9',
 		map: {
-			'k9_1': '200', 'k9_2': '201', 'k9_3': '203', 'k9_4': '12', 'k9_5': '20',
-			'k9_6': '36', 'k9_7': '40', 'k9_8': '56', 'k9_9': '101'
+			'k9_1': '12', 'k9_2': '18', 'k9_3': '20', 'k9_4': '32', 'k9_5': '36',
+			'k9_6': '56', 'k9_7': '105', 'k9_8': '104', 'k9_9': '600'
 		}
 	},
 	'12_hand_counts': {
@@ -63,9 +63,9 @@ const HAND_MAPPING_PRESETS = {
 		name: "Shapes & Combos",
 		type: 'key12',
 		map: {
-			'k12_1': '200', 'k12_2': '201', 'k12_3': '203', 'k12_4': '300', 'k12_5': '301',
-			'k12_6': '302', 'k12_7': '303', 'k12_8': '14', 'k12_9': '22',
-			'k12_10': '40', 'k12_11': '52', 'k12_12': '56'
+			'k12_1': '0', 'k12_2': '18', 'k12_3': '32', 'k12_4': '40', 'k12_5': '56',
+			'k12_6': '60', 'k12_7': '101', 'k12_8': '102', 'k12_9': '103',
+			'k12_10': '104', 'k12_11': '105', 'k12_12': '601'
 		}
 	},
 	'piano_hand_default': {
@@ -81,9 +81,9 @@ const HAND_MAPPING_PRESETS = {
 		name: "Shapes & Combos",
 		type: 'piano',
 		map: {
-			'piano_C': '200', 'piano_D': '201', 'piano_E': '203', 'piano_F': '101', 'piano_G': '102',
-			'piano_A': '103', 'piano_B': '40',
-			'piano_1': '42', 'piano_2': '44', 'piano_3': '52', 'piano_4': '54', 'piano_5': '58'
+			'piano_C': '0', 'piano_D': '18', 'piano_E': '32', 'piano_F': '40', 'piano_G': '56',
+			'piano_A': '60', 'piano_B': '101',
+			'piano_1': '102', 'piano_2': '103', 'piano_3': '104', 'piano_4': '105', 'piano_5': '601'
 		}
 	}
 };
@@ -178,8 +178,8 @@ const GESTURE_PRESETS = {
 		type: 'key9',
 		map: {
 			'k9_1': 'tap', 'k9_2': 'double_tap', 'k9_3': 'triple_tap',
-			'k9_4': 'tap_2f', 'k9_5': 'double_tap_2f', 'k9_6': 'triple_tap_2f',
-			'k9_7': 'tap_3f', 'k9_8': 'double_tap_3f', 'k9_9': 'triple_tap_3f'
+			'k9_4': 'tap_2f_any', 'k9_5': 'double_tap_2f_any', 'k9_6': 'triple_tap_2f_any',
+			'k9_7': 'tap_3f_any', 'k9_8': 'double_tap_3f_any', 'k9_9': 'triple_tap_3f_any'
 		}
 	},
 	'9_spatial': {
@@ -205,8 +205,8 @@ const GESTURE_PRESETS = {
 		type: 'key12',
 		map: {
 			'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
-			'k12_5': 'tap_2f', 'k12_6': 'double_tap_2f', 'k12_7': 'triple_tap_2f', 'k12_8': 'long_tap_2f',
-			'k12_9': 'tap_3f', 'k12_10': 'double_tap_3f', 'k12_11': 'triple_tap_3f', 'k12_12': 'long_tap_3f'
+			'k12_5': 'tap_2f_any', 'k12_6': 'double_tap_2f_any', 'k12_7': 'triple_tap_2f_any', 'k12_8': 'long_tap_2f_any',
+			'k12_9': 'tap_3f_any', 'k12_10': 'double_tap_3f_any', 'k12_11': 'triple_tap_3f_any', 'k12_12': 'long_tap_3f_any'
 		}
 	},
 	'12_swipes': {
@@ -224,7 +224,7 @@ const GESTURE_PRESETS = {
 		map: {
 			'k12_1': 'Flick_up', 'k12_2': 'Flick_down', 'k12_3': 'Flick_left', 'k12_4': 'Flick_right',
 			'k12_5': 'Flick_nw', 'k12_6': 'Flick_ne', 'k12_7': 'Flick_sw', 'k12_8': 'Flick_se',
-			'k12_9': 'tap_2f', 'k12_10': 'double_tap_2f', 'k12_11': 'tap_3f', 'k12_12': 'double_tap_3f'
+			'k12_9': 'tap_2f_any', 'k12_10': 'double_tap_2f_any', 'k12_11': 'tap_3f_any', 'k12_12': 'double_tap_3f_any'
 		}
 	},
 	'piano_taps': {
@@ -253,10 +253,10 @@ const GESTURE_PRESETS = {
 		name: "Multi-Finger",
 		type: 'piano',
 		map: {
-			'piano_C': 'tap_2f', 'piano_D': 'double_tap_2f', 'piano_E': 'triple_tap_2f', 'piano_F': 'long_tap_2f',
-			'piano_G': 'tap_3f', 'piano_A': 'double_tap_3f', 'piano_B': 'triple_tap_3f',
+			'piano_C': 'tap_2f_any', 'piano_D': 'double_tap_2f_any', 'piano_E': 'triple_tap_2f_any', 'piano_F': 'long_tap_2f_any',
+			'piano_G': 'tap_3f_any', 'piano_A': 'double_tap_3f_any', 'piano_B': 'triple_tap_3f_any',
 			'piano_1': 'swipe_up_2f', 'piano_2': 'swipe_down_2f', 'piano_3': 'swipe_left_2f',
-			'piano_4': 'swipe_right_2f', 'piano_5': 'long_tap_3f'
+			'piano_4': 'swipe_right_2f', 'piano_5': 'long_tap_3f_any'
 		}
 	}
 };

@@ -9,7 +9,7 @@ alert("Promise Error: " + event.reason);
 };
 </script>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Follow Me</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
@@ -19,7 +19,7 @@ alert("Promise Error: " + event.reason);
 <style> body { touch-action: none; overscroll-behavior: none; } </style>
 <meta property="og:title" content="Follow Me">
 <meta property="og:description" content="Memory Skill Game">
-<meta property="og:image" content="icon512.png">
+<meta property="og:image" content="icon.png">
 <meta property="og:url" content="https://nunya42000-lab.github.io/Follow/">
 <meta property="og:type" content="website">
 </head>
@@ -30,7 +30,7 @@ alert("Promise Error: " + event.reason);
 </div>
 <header id="aux-control-header" class="fixed top-0 left-0 right-0 z-40 p-2 pt-safe-top transition-transform duration-300 pointer-events-none">
 <div class="max-w-7xl mx-auto w-full flex justify-between items-start">
-<div class="flex gap-2 pointer-events-auto header-btn-row">
+<div id="header-btn-row" class="flex gap-2 pointer-events-auto overflow-x-auto overflow-y-hidden" style="touch-action: pan-x; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
 <button id="headertimerbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">⏱️</button>
 <button id="headercounterbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">#</button>
 <button id="headervoicebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🎤</button>
@@ -42,11 +42,23 @@ alert("Promise Error: " + event.reason);
 <button id="headerfullscreenbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔲</button>
 <button id="headerupsidedownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🙃</button>
 <button id="headerswapbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔄</button>
+<button id="headerplaybtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Play">▶️</button>
+<button id="headerdeletebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Delete">⌫</button>
+<button id="headersettingsbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Settings">⚙️</button>
+<button id="headerredeembtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Redeem">🆔</button>
+<button id="headersharebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Share">📤</button>
+<button id="headerthemecyclebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Cycle Theme">🎨</button>
+<button id="headeraddmachinebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Add Machine">➕</button>
+<button id="headeruiupbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="UI Size Up">🔍+</button>
+<button id="headeruidownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="UI Size Down">🔍-</button>
+<button id="headersequpbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Sequence Size Up">🔢+</button>
+<button id="headerseqdownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Sequence Size Down">🔢-</button>
+<button id="headercycleinputbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Cycle Input">🔀</button>
 </div>
 </div>
 </header>
-<div id="game-setup-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding-top: max(1.5rem, env(safe-area-inset-top));" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
-<div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom" style="max-height: calc(100vh - max(1.5rem, env(safe-area-inset-top)) - 2rem); overflow: hidden;">
+<div id="game-setup-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
+<div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
 <div class="flex items-center justify-between border-b border-custom pb-3 mb-4 relative">
 <div class="flex items-center space-x-2">
 <button id="quick-resize-down" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">-</button>
@@ -83,8 +95,8 @@ alert("Promise Error: " + event.reason);
 </div>
 </div>
 </div>
-<div id="theme-editor-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding-top: max(1.5rem, env(safe-area-inset-top));" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[100] transition-opacity duration-300 opacity-0 pointer-events-none">
-<div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-md w-full transform scale-90 transition-transform duration-300 flex flex-col border border-custom overflow-hidden" style="max-height: calc(100vh - max(1.5rem, env(safe-area-inset-top)) - 2rem);">
+<div id="theme-editor-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[100] transition-opacity duration-300 opacity-0 pointer-events-none">
+<div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-md w-full transform scale-90 transition-transform duration-300 flex flex-col border border-custom max-h-[95vh] overflow-hidden">
 <h3 class="text-xl font-bold mb-4">🎨 Theme Editor</h3>
 <div class="overflow-y-auto px-1 flex-grow">
 <div class="mb-4">
@@ -131,20 +143,20 @@ alert("Promise Error: " + event.reason);
 </div>
 </div>
 </div>
-<div id="redeem-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding-top: max(1.5rem, env(safe-area-inset-top));" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
+<div id="redeem-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
 <button id="close-redeem-btn" class="absolute top-4 right-4 z-50 bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600">✕</button>
 <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex gap-4">
 <button id="redeem-zoom-out" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">-</button>
 <button id="redeem-zoom-in" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">+</button>
 </div>
-<div class="relative w-full max-w-[280px] flex flex-col items-center justify-center p-4" style="height: min(95vh, calc(100vh - max(1.5rem, env(safe-area-inset-top)) - 2rem));">
+<div class="relative w-full max-w-[280px] h-[95vh] flex flex-col items-center justify-center p-4">
 <div class="bg-white p-2 rounded-lg shadow-2xl w-full h-full flex items-center justify-center overflow-hidden">
 <img id="redeem-img" src="redeem.jpg" alt="Redeem Barcode" class="w-full h-full object-contain transition-transform duration-200">
 </div>
 </div>
 </div>
-<div id="donate-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding-top: max(1.5rem, env(safe-area-inset-top));" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[140] transition-opacity duration-300 opacity-0 pointer-events-none">
-<div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom flex flex-col text-center overflow-y-auto" style="max-height: calc(100vh - max(1.5rem, env(safe-area-inset-top)) - 2rem);">
+<div id="donate-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[140] transition-opacity duration-300 opacity-0 pointer-events-none">
+<div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom flex flex-col text-center">
 <h3 class="text-2xl font-bold mb-2">Buy me a Coffee? ☕</h3>
 <p class="text-sm opacity-80 mb-6">If this app helps you win, consider sending a tip!</p>
 <div class="space-y-6">
@@ -337,6 +349,41 @@ alert("Promise Error: " + event.reason);
 </div>
 <div id="tab-general" class="tab-content">
 <div class="space-y-4">
+<div class="p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
+<label class="text-xs font-bold uppercase text-muted-custom mb-2 block">New Header Buttons 🆕</label>
+<div class="grid grid-cols-2 gap-3">
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Play ▶️</span>
+<input type="checkbox" id="headerPlayToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Delete ⌫</span>
+<input type="checkbox" id="headerDeleteToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Settings ⚙️</span>
+<input type="checkbox" id="headerSettingsToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Redeem 🆔</span>
+<input type="checkbox" id="headerRedeemToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Share 📤</span>
+<input type="checkbox" id="headerShareToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Theme Cycle 🎨</span>
+<input type="checkbox" id="headerThemeCycleToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Add Machine ➕</span>
+<input type="checkbox" id="headerAddMachineToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">UI Size 🔍±</span>
+<input type="checkbox" id="headerUiSizeToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Sequence Size 🔢±</span>
+<input type="checkbox" id="headerSeqSizeToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Cycle Input 🔀</span>
+<input type="checkbox" id="headerCycleInputToggle" class="h-6 w-6 accent-indigo-500"></div>
+</div>
+</div>
 <div class="p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
 <div class="flex justify-between items-center mb-2">
 <label class="text-xs font-bold uppercase text-muted-custom">Theme 🎨</label>
@@ -629,10 +676,6 @@ alert("Promise Error: " + event.reason);
 </details>
 </div>
 <div id="section-map-hand" class="hidden space-y-4">
-<div class="flex items-center justify-between mb-3 p-3 bg-gray-800 rounded-lg border border-gray-700">
-<span class="text-xs font-bold text-gray-400">Hand Gesture Mappings</span>
-<button type="button" id="restore-factory-mappings" class="py-2 px-4 text-xs bg-emerald-600 hover:bg-emerald-500 rounded text-white font-bold transition shadow">🔄 Restore Defaults</button>
-</div>
 <details class="group bg-gray-900 rounded-lg border border-gray-700 open:bg-gray-800 transition-colors shadow-sm">
 <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-emerald-400 outline-none">
 <span>9-Key Layout</span>
@@ -749,7 +792,7 @@ alert("Promise Error: " + event.reason);
 <div id="share-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-60 z-[90] opacity-0 pointer-events-none transition-opacity duration-300">
 <div class="share-sheet">
 <div class="flex items-center gap-3 px-5 pt-4 pb-2">
-<img src="icon192.png" alt="Follow Me" class="w-12 h-12 rounded-xl shadow-lg border border-gray-700 shrink-0" onerror="this.style.display='none'">
+<img src="icon.png" alt="Follow Me" class="w-12 h-12 rounded-xl shadow-lg border border-gray-700 shrink-0" onerror="this.style.display='none'">
 <h3 class="font-bold text-lg text-white flex-1">Share Follow Me 📤</h3>
 <button id="close-share" class="text-2xl text-gray-400 hover:text-white leading-none">&times;</button>
 </div>
@@ -1092,8 +1135,8 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 </div>
 </div>
-<div id="help-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding-top: max(1.5rem, env(safe-area-inset-top));" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
-<div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col border border-custom overflow-hidden" style="max-height: calc(100vh - max(1.5rem, env(safe-area-inset-top)) - 2rem);">
+<div id="help-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
+<div class="settings-modal-bg rounded-xl shadow-2xl max-w-lg w-full m-4 flex flex-col max-h-[90vh] border border-custom overflow-hidden">
 <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center">
 <h3 class="text-2xl font-bold">Manual 📘</h3>
 <button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button>
@@ -1346,8 +1389,8 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 </div>
 </div>
-<div id="comment-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding-top: max(1.5rem, env(safe-area-inset-top));" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[120] transition-opacity duration-300 opacity-0 pointer-events-none hidden">
-<div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom overflow-y-auto" style="max-height: calc(100vh - max(1.5rem, env(safe-area-inset-top)) - 2rem);">
+<div id="comment-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[120] transition-opacity duration-300 opacity-0 pointer-events-none hidden">
+<div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom">
 <h3 class="font-bold text-lg mb-4">Send Feedback 💬</h3>
 <input type="text" id="comment-username" class="settings-input w-full p-2 rounded mb-2 text-sm" placeholder="Name (Optional)">
 <textarea id="comment-message" class="settings-input w-full p-2 rounded mb-4 text-sm h-24 resize-none" placeholder="Message..."></textarea>

@@ -386,6 +386,7 @@ export class SettingsManager {
 			biggerToggle: document.getElementById('biggerToggle'),
 			longPressToggle: document.getElementById('apshortcutToggle'),
 			timerToggle: document.getElementById('timerToggle'),
+			headerPlayToggle: document.getElementById('headerPlayToggle'), headerDeleteToggle: document.getElementById('headerDeleteToggle'), headerSettingsToggle: document.getElementById('headerSettingsToggle'), headerRedeemToggle: document.getElementById('headerRedeemToggle'), headerShareToggle: document.getElementById('headerShareToggle'), headerThemeCycleToggle: document.getElementById('headerThemeCycleToggle'), headerAddMachineToggle: document.getElementById('headerAddMachineToggle'), headerUiSizeToggle: document.getElementById('headerUiSizeToggle'), headerSeqSizeToggle: document.getElementById('headerSeqSizeToggle'), headerCycleInputToggle: document.getElementById('headerCycleInputToggle'),
 			counterToggle: document.getElementById('counterToggle'),
 			gestureToggle: document.getElementById('touchToggle'),
 			handToggle: document.getElementById('handToggle'),
@@ -395,6 +396,7 @@ export class SettingsManager {
 			wakelockToggle: document.getElementById('wakelockToggle'),
 			newToggle: document.getElementById('newToggle'),
 			headerswapbtn: document.getElementById('headerswapbtn'),
+			headerplaybtn: document.getElementById('headerplaybtn'), headerdeletebtn: document.getElementById('headerdeletebtn'), headersettingsbtn: document.getElementById('headersettingsbtn'), headerredeembtn: document.getElementById('headerredeembtn'), headersharebtn: document.getElementById('headersharebtn'), headerthemecyclebtn: document.getElementById('headerthemecyclebtn'), headeraddmachinebtn: document.getElementById('headeraddmachinebtn'), headeruiupbtn: document.getElementById('headeruiupbtn'), headeruidownbtn: document.getElementById('headeruidownbtn'), headersequpbtn: document.getElementById('headersequpbtn'), headerseqdownbtn: document.getElementById('headerseqdownbtn'), headercycleinputbtn: document.getElementById('headercycleinputbtn'),
 			uiScale: document.getElementById('ui-scale-select'),
 			seqSize: document.getElementById('seq-size-select'),
 			seqFontSize: document.getElementById('seq-font-size-select'),
@@ -500,88 +502,6 @@ export class SettingsManager {
 			};
 		}
 	}
-
-	// #4: Validation for hand gesture mappings
-	_getAllValidHandGestureIds() {
-		// Collect all valid gesture IDs from HAND_GESTURE_GROUPS
-		const validIds = new Set();
-		HAND_GESTURE_GROUPS.forEach(group => {
-			group.gestures.forEach(gesture => {
-				validIds.add(parseInt(gesture.id, 10));
-			});
-		});
-		return validIds;
-	}
-
-	_validateHandGestureMappings() {
-		// Check for duplicate mappings, invalid IDs, and conflicts
-		if (!this.appSettings.mappings) return { isValid: true, errors: [] };
-
-		const errors = [];
-		const validIds = this._getAllValidHandGestureIds();
-		const usedGestures = new Map(); // gesture ID -> key that maps to it
-
-		Object.entries(this.appSettings.mappings).forEach(([key, mapping]) => {
-			if (mapping.handGesture === 'none') return;
-
-			const gestureId = parseInt(mapping.handGesture, 10);
-
-			// Check if gesture ID exists
-			if (!validIds.has(gestureId)) {
-				errors.push(`Key ${key} maps to invalid gesture ID ${gestureId}`);
-				return;
-			}
-
-			// Check for duplicates (same gesture assigned to multiple keys)
-			if (usedGestures.has(gestureId)) {
-				const prevKey = usedGestures.get(gestureId);
-				// Note: duplicates are allowed if they have different hand sides (L vs R)
-				if (mapping.handSide === 'any') {
-					errors.push(`Gesture ${gestureId} assigned to both ${prevKey} and ${key}`);
-				}
-			} else {
-				usedGestures.set(gestureId, key);
-			}
-		});
-
-		return { isValid: errors.length === 0, errors };
-	}
-
-	// #7: Restore hand gesture mappings to factory defaults
-	_restoreFactoryHandMappings() {
-		if (!HAND_MAPPING_PRESETS) {
-			console.warn('Cannot restore: HAND_MAPPING_PRESETS not found');
-			return;
-		}
-
-		// For each layout, apply the first preset (usually "Finger Counts")
-		const defaultPresets = {
-			'9_hand_counts': HAND_MAPPING_PRESETS['9_hand_counts'],
-			'12_hand_counts': HAND_MAPPING_PRESETS['12_hand_counts'],
-			'piano_hand_default': HAND_MAPPING_PRESETS['piano_hand_default']
-		};
-
-		if (!this.appSettings.mappings) this.appSettings.mappings = {};
-
-		Object.entries(defaultPresets).forEach(([presetId, preset]) => {
-			if (preset && preset.map) {
-				Object.entries(preset.map).forEach(([keyId, gestureId]) => {
-					if (!this.appSettings.mappings[keyId]) {
-						this.appSettings.mappings[keyId] = { handGesture: 'none', handSide: 'any' };
-					}
-					this.appSettings.mappings[keyId].handGesture = parseInt(gestureId, 10);
-				});
-			}
-		});
-
-		this.callbacks.onSave();
-		const validation = this._validateHandGestureMappings();
-		if (!validation.isValid) {
-			console.warn('Restored mappings have validation errors:', validation.errors);
-		}
-		return validation;
-	}
-
 	bindMappingEvents() {
 		const btnMapTouch = document.getElementById('btn-map-touch');
 		const btnMapHand = document.getElementById('btn-map-hand');
@@ -692,27 +612,10 @@ export class SettingsManager {
 						if (!this.appSettings.mappings) this.appSettings.mappings = {};
 						if (!this.appSettings.mappings[keyId]) this.appSettings.mappings[keyId] = { touch: 'none', handGesture: 'none', morse: '', handSide: 'any' };
 						this.appSettings.mappings[keyId].handGesture = e.target.value === 'none' ? 'none' : parseInt(e.target.value, 10);
-						// Validate after updating
-						const validation = this._validateHandGestureMappings();
-						if (!validation.isValid) {
-							console.warn('Mapping validation issues:', validation.errors);
-						}
 					}
 					this.callbacks.onSave();
 				};
 			});
-		const restoreBtn = document.getElementById('restore-factory-mappings');
-		if (restoreBtn) {
-			restoreBtn.onclick = () => {
-				if (confirm('Restore hand gesture mappings to factory defaults? This will overwrite current mappings.')) {
-					this._restoreFactoryHandMappings();
-					if (this.callbacks.onUpdate) {
-						this.callbacks.onUpdate();
-					}
-					if (typeof showToast === 'function') showToast('Hand mappings restored to defaults 🔄');
-				}
-			};
-		}
 	}
 	bindPresetAccordion(gtype, layout, builtInPresets, keys, getCurrentValueFn, applyValueFn) {
 		const select = document.getElementById(`${gtype}-preset-${layout}-select`);
@@ -1364,6 +1267,16 @@ if (!window.__testChecklists) {
 		bindToggle(this.dom.autoCounterToggle, 'isAutoCounterEnabled');
 		bindToggle(this.dom.haptics, 'isHapticsEnabled');
 		bindToggle(this.dom.randomThemeToggle, 'isRandomThemeEnabled');
+		bindToggle(this.dom.headerPlayToggle, 'showHeaderPlayBtn', () => this.updateHeaderVisibility());
+		bindToggle(this.dom.headerDeleteToggle, 'showHeaderDeleteBtn', () => this.updateHeaderVisibility());
+		bindToggle(this.dom.headerSettingsToggle, 'showHeaderSettingsBtn', () => this.updateHeaderVisibility());
+		bindToggle(this.dom.headerRedeemToggle, 'showHeaderRedeemBtn', () => this.updateHeaderVisibility());
+		bindToggle(this.dom.headerShareToggle, 'showHeaderShareBtn', () => this.updateHeaderVisibility());
+		bindToggle(this.dom.headerThemeCycleToggle, 'showHeaderThemeCycleBtn', () => this.updateHeaderVisibility());
+		bindToggle(this.dom.headerAddMachineToggle, 'showHeaderAddMachineBtn', () => this.updateHeaderVisibility());
+		bindToggle(this.dom.headerUiSizeToggle, 'showHeaderUiSizeBtns', () => this.updateHeaderVisibility());
+		bindToggle(this.dom.headerSeqSizeToggle, 'showHeaderSeqSizeBtns', () => this.updateHeaderVisibility());
+		bindToggle(this.dom.headerCycleInputToggle, 'showHeaderCycleInputBtn', () => this.updateHeaderVisibility());
 		if (this.dom.skeletonDebugToggle) {
 			this.dom.skeletonDebugToggle.checked = !!this.appSettings.isSkeletonDebugEnabled;
 			this.dom.skeletonDebugToggle.onchange = (e) => {
@@ -1929,10 +1842,23 @@ if (!window.__testChecklists) {
 		if(stealthBtn) stealthBtn.classList.toggle('hidden', !showStealth);
 		if(handBtn) handBtn.classList.toggle('hidden', !showHand);
 		if(this.dom.headerswapbtn) this.dom.headerswapbtn.classList.toggle('hidden', !showSwap);
+		if (this.dom.headerplaybtn) this.dom.headerplaybtn.classList.toggle('hidden', !this.appSettings.showHeaderPlayBtn);
+		if (this.dom.headerdeletebtn) this.dom.headerdeletebtn.classList.toggle('hidden', !this.appSettings.showHeaderDeleteBtn);
+		if (this.dom.headersettingsbtn) this.dom.headersettingsbtn.classList.toggle('hidden', !this.appSettings.showHeaderSettingsBtn);
+		if (this.dom.headerredeembtn) this.dom.headerredeembtn.classList.toggle('hidden', !this.appSettings.showHeaderRedeemBtn);
+		if (this.dom.headersharebtn) this.dom.headersharebtn.classList.toggle('hidden', !this.appSettings.showHeaderShareBtn);
+		if (this.dom.headerthemecyclebtn) this.dom.headerthemecyclebtn.classList.toggle('hidden', !this.appSettings.showHeaderThemeCycleBtn);
+		if (this.dom.headeraddmachinebtn) this.dom.headeraddmachinebtn.classList.toggle('hidden', !this.appSettings.showHeaderAddMachineBtn);
+		if (this.dom.headeruiupbtn) this.dom.headeruiupbtn.classList.toggle('hidden', !this.appSettings.showHeaderUiSizeBtns);
+		if (this.dom.headeruidownbtn) this.dom.headeruidownbtn.classList.toggle('hidden', !this.appSettings.showHeaderUiSizeBtns);
+		if (this.dom.headersequpbtn) this.dom.headersequpbtn.classList.toggle('hidden', !this.appSettings.showHeaderSeqSizeBtns);
+		if (this.dom.headerseqdownbtn) this.dom.headerseqdownbtn.classList.toggle('hidden', !this.appSettings.showHeaderSeqSizeBtns);
+		if (this.dom.headercycleinputbtn) this.dom.headercycleinputbtn.classList.toggle('hidden', !this.appSettings.showHeaderCycleInputBtn);
 		if (this.dom.headertonebtn) {
 			this.dom.headertonebtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
 		}
-		if (!showTimer && !showCounter && !showMic && !showCam && !showGesture && !showStealth && !showHand && !showSwap && !this.appSettings.isToneCadenceEnabled) {
+		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderCycleInputBtn;
+		if (!showTimer && !showCounter && !showMic && !showCam && !showGesture && !showStealth && !showHand && !showSwap && !this.appSettings.isToneCadenceEnabled && !anyNewBtnShown) {
 			header.classList.add('header-hidden');
 		} else {
 			header.classList.remove('header-hidden');

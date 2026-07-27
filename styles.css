@@ -15,6 +15,10 @@ input, textarea, .selectable-text { -webkit-user-select: text !important; user-s
 .tab-btn { padding: 10px; flex: 1; text-align: center; font-weight: 700; font-size: .9rem; border-bottom: 2px solid transparent; opacity: .6; cursor: pointer; transition: all .2s; }
 .tab-btn:hover { opacity: .8; }
 .tab-btn.active { border-bottom-color: var(--seq-bubble); opacity: 1; color: var(--seq-bubble); }
+.settings-tab-bar { display: flex !important; }
+.help-tab-bar { display: flex !important; overflow-x: auto !important; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.help-tab-bar::-webkit-scrollbar { display: none; }
+.help-tab-bar .tab-btn { flex: none !important; flex-shrink: 0 !important; white-space: nowrap !important; padding-left: 1rem !important; padding-right: 1rem !important; }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 #app { padding-top: 1rem; display: flex; flex-direction: column; }
@@ -56,6 +60,7 @@ body.hide-controls .control-row { display: none !important; }
 #aux-control-header button { pointer-events: auto; flex-shrink: 0 !important; min-width: 3rem !important; min-height: 3rem !important; width: 3rem !important; height: 3rem !important; }
 #header-btn-row::-webkit-scrollbar { display: none; }
 #header-btn-row { display: flex !important; gap: 0.5rem !important; overflow-x: auto !important; overflow-y: hidden !important; scrollbar-width: none; -ms-overflow-style: none; }
+#redeem-modal.redeem-bright { background-color: #ffffff !important; }
 .header-btn-active { background-color: var(--seq-bubble) !important; border-color: var(--text-main) !important; box-shadow: 0 0 10px var(--seq-bubble) !important; }
 body.input-gestures-mode #input-footer { display: none !important; }
 body.input-gestures-mode #gesture-pad-wrapper { display: block !important; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 30; background: rgba(0, 0, 0, 0.05); }

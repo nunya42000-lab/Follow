@@ -1183,12 +1183,13 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <h3 class="text-2xl font-bold">Manual 📘</h3>
 <button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button>
 </div>
-<div class="help-tab-bar flex border-b border-custom bg-black bg-opacity-10 overflow-x-auto no-scrollbar">
-<div class="tab-btn active flex-none whitespace-nowrap px-4" data-tab="help-about">Basics</div>
-<div class="tab-btn flex-none whitespace-nowrap px-4" data-tab="help-settings">Master Settings</div>
-<div class="tab-btn flex-none whitespace-nowrap px-4" data-tab="help-vision">Hand Tracking</div>
-<div class="tab-btn flex-none whitespace-nowrap px-4" data-tab="help-gestures">Touch Gestures</div>
-<div class="tab-btn flex-none whitespace-nowrap px-4" data-tab="help-voice">AI Voice</div>
+<div class="help-tab-bar grid grid-cols-3 border-b border-custom bg-black bg-opacity-10">
+<div class="tab-btn active" data-tab="help-about">Basics</div>
+<div class="tab-btn" data-tab="help-buttons">Buttons</div>
+<div class="tab-btn" data-tab="help-settings">Settings</div>
+<div class="tab-btn" data-tab="help-vision">Hand</div>
+<div class="tab-btn" data-tab="help-gestures">Touch</div>
+<div class="tab-btn" data-tab="help-voice">Voice</div>
 </div>
 <div class="p-5 overflow-y-auto leading-relaxed space-y-4 text-sm flex-grow">
 <div id="tab-help-about" class="tab-content active space-y-4">
@@ -1216,6 +1217,20 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 </div>
 </div>
+<div class="space-y-3">
+<strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Sizing Things Right</strong>
+<p class="text-xs opacity-90">The very first screen you see has "UI" and "Cards" +/- buttons with a live sample sequence underneath. Adjust both until the sample numbers fit neatly on one row - most people find 5 fits best. Since every device and screen is different, this is worth doing once up front rather than guessing through Settings later.</p>
+</div>
+<div class="space-y-3">
+<strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Left & Right Hand Mapping</strong>
+<p class="text-xs opacity-90">Every hand-pose mapping now has an Any / Left / Right selector next to it (Settings → Mapping → Hand tab). Leave it on Any to trigger with either hand, or set Left and Right differently so the same pose does two different things depending on which hand you use. If detection reads the wrong hand on your device, flip "Swap Left/Right Hands" in Settings → General.</p>
+</div>
+<div class="space-y-3">
+<strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Backup & Restore</strong>
+<p class="text-xs opacity-90">Settings → General → Backup / Restore lets you export your entire configuration (including custom presets and profiles) as a short text code, and paste one back in to restore it - handy before resetting, switching devices, or just keeping a safety copy.</p>
+</div>
+</div>
+<div id="tab-help-buttons" class="tab-content space-y-4">
 <div class="space-y-3">
 <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Top Menu Icons</strong>
 <ul class="space-y-2 text-xs opacity-90">
@@ -1248,18 +1263,6 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </ul>
 </div>
 <p class="text-[10px] text-gray-500 italic">Each icon above only appears in the header once its matching toggle is turned on in Settings → General. When enough are on to overflow one row, the header becomes a horizontally-scrolling toolbar - drag left or right, it loops continuously in both directions.</p>
-<div class="space-y-3">
-<strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Sizing Things Right</strong>
-<p class="text-xs opacity-90">The very first screen you see has "UI" and "Cards" +/- buttons with a live sample sequence underneath. Adjust both until the sample numbers fit neatly on one row - most people find 5 fits best. Since every device and screen is different, this is worth doing once up front rather than guessing through Settings later.</p>
-</div>
-<div class="space-y-3">
-<strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Left & Right Hand Mapping</strong>
-<p class="text-xs opacity-90">Every hand-pose mapping now has an Any / Left / Right selector next to it (Settings → Mapping → Hand tab). Leave it on Any to trigger with either hand, or set Left and Right differently so the same pose does two different things depending on which hand you use. If detection reads the wrong hand on your device, flip "Swap Left/Right Hands" in Settings → General.</p>
-</div>
-<div class="space-y-3">
-<strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Backup & Restore</strong>
-<p class="text-xs opacity-90">Settings → General → Backup / Restore lets you export your entire configuration (including custom presets and profiles) as a short text code, and paste one back in to restore it - handy before resetting, switching devices, or just keeping a safety copy.</p>
-</div>
 </div>
 <div id="tab-help-settings" class="tab-content space-y-3">
 <p class="text-xs opacity-80 mb-3">Every toggle, slider, and switch in the Settings menu explained.</p>

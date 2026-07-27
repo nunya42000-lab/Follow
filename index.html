@@ -54,18 +54,31 @@ alert("Promise Error: " + event.reason);
 <button id="headersequpbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Sequence Size Up">🔢+</button>
 <button id="headerseqdownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Sequence Size Down">🔢-</button>
 <button id="headercycleinputbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Cycle Input">🔀</button>
+<button id="headerresetbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Factory Reset">♻️</button>
+<button id="headernukebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Nuke App">☢️</button>
 <button id="headernotepadbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Notepad">📝</button>
+<button id="headerhelpbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Help">📚</button>
+<button id="headerdevmodebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Developer Mode">🛠️</button>
 </div>
 </div>
 </header>
 <div id="game-setup-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
 <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
 <div class="flex items-center justify-between border-b border-custom pb-3 mb-4 relative">
-<div class="flex items-center space-x-2">
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold text-muted-custom uppercase tracking-wide">UI</span>
 <button id="quick-resize-down" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">-</button>
 <button id="quick-resize-up" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">+</button>
 </div>
-<h3 class="text-2xl font-bold text-center flex-grow">Follow Me v1.0</h3>
+<div class="flex items-center gap-2">
+<button id="quick-cardsize-down" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">-</button>
+<button id="quick-cardsize-up" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">+</button>
+<span class="text-xs font-bold text-muted-custom uppercase tracking-wide">Cards</span>
+</div>
+</div>
+<div class="mb-5">
+<div id="welcome-sample-sequence" class="flex flex-wrap gap-2 justify-center p-3 rounded-lg bg-[var(--card-bg)] border border-custom min-h-[64px] items-center"></div>
+<p class="text-[10px] text-center text-muted-custom mt-1.5">Adjust UI and Cards above until 5 numbers fit neatly on one row</p>
 </div>
 <div class="overflow-y-auto py-2 px-1">
 <div class="mb-6">
@@ -144,7 +157,7 @@ alert("Promise Error: " + event.reason);
 </div>
 </div>
 </div>
-<div id="redeem-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
+<div id="redeem-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-white flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
 <button id="close-redeem-btn" class="absolute top-4 right-4 z-50 bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600">✕</button>
 <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex gap-4">
 <button id="redeem-zoom-out" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">-</button>
@@ -394,6 +407,12 @@ alert("Promise Error: " + event.reason);
 <span class="font-bold text-sm text-muted-custom">Settings ⚙️</span>
 <input type="checkbox" id="headerSettingsToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Help 📚</span>
+<input type="checkbox" id="headerHelpToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Dev Mode 🛠️</span>
+<input type="checkbox" id="headerDevModeToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Redeem 🆔</span>
 <input type="checkbox" id="headerRedeemToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
@@ -414,6 +433,12 @@ alert("Promise Error: " + event.reason);
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Cycle Input 🔀</span>
 <input type="checkbox" id="headerCycleInputToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Reset ♻️</span>
+<input type="checkbox" id="headerResetToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Nuke ☢️</span>
+<input type="checkbox" id="headerNukeToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Timer ⏱️</span>
 <input type="checkbox" id="timerToggle" class="h-6 w-6 accent-indigo-500"></div>
@@ -835,6 +860,10 @@ Email
 <h3 class="text-xl font-bold">📝 Notepad</h3>
 <button id="close-notepad-btn" class="text-2xl text-gray-400 hover:text-white leading-none">&times;</button>
 </div>
+<div class="flex gap-2 p-3 border-b border-custom shrink-0">
+<button id="notepad-copy-all-btn" class="flex-1 py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold transition">📋 Copy All</button>
+<button id="notepad-erase-btn" class="flex-1 py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold transition">🗑️ Erase</button>
+</div>
 <textarea id="notepad-textarea" class="flex-1 w-full p-4 bg-transparent text-[var(--text-main)] resize-none outline-none text-base" placeholder="Type anything..." style="min-height: 200px;"></textarea>
 </div>
 </div>
@@ -846,10 +875,10 @@ Email
 </div>
 <div style="overflow-y: auto; flex: 1 1 0%; min-height: 0;" class="p-4 space-y-4 overflow-y-auto">
 <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
-<h4 class="font-bold text-sm mb-2 text-primary-app">Backup / Restore (Hex) 💾</h4>
-<p class="text-[10px] text-gray-400 mb-2">Export your full settings (including custom presets) as a hex code before resetting, or paste one back in to restore it.</p>
-<button id="hex-export-btn" type="button" class="w-full py-2 mb-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">Export to Hex</button>
-<textarea id="hex-output" class="w-full h-20 bg-gray-950 border border-gray-600 rounded p-2 text-[10px] font-mono text-green-400 resize-none mb-2" placeholder="Paste a hex code here to import, or export above..."></textarea>
+<h4 class="font-bold text-sm mb-2 text-primary-app">Backup / Restore 💾</h4>
+<p class="text-[10px] text-gray-400 mb-2">Export your full settings (including custom presets) as a backup code before resetting, or paste one back in to restore it.</p>
+<button id="hex-export-btn" type="button" class="w-full py-2 mb-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">Export Backup Code</button>
+<textarea id="hex-output" class="w-full h-20 bg-gray-950 border border-gray-600 rounded p-2 text-[10px] font-mono text-green-400 resize-none mb-2" placeholder="Paste a backup code here to import, or export above..."></textarea>
 <div class="grid grid-cols-2 gap-2">
 <button id="hex-copy-btn" type="button" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">Copy</button>
 <button id="hex-import-btn" type="button" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">Import</button>
@@ -1201,9 +1230,36 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔄</span> <strong>Position Swap:</strong> Move the input keypad from the bottom of the screen to the top.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔲</span> <strong>Full Screen:</strong> Hide the browser's address bar and UI chrome.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🙃</span> <strong>Upside Down:</strong> Flip the entire interface 180° (for a partner facing you).</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">▶️</span> <strong>Play:</strong> Play back the current sequence.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">⌫</span> <strong>Delete:</strong> Remove the last entry from the sequence.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">⚙️</span> <strong>Settings:</strong> Quick access to the Settings menu.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📚</span> <strong>Help:</strong> Quick access to this Help menu.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🛠️</span> <strong>Dev Mode:</strong> Quick access to Developer Mode.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🆔</span> <strong>Redeem:</strong> Quick access to your redeem code/barcode.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📤</span> <strong>Share:</strong> Quick access to sharing the app.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🎨</span> <strong>Theme Cycle:</strong> Step through every saved theme, one tap at a time.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">➕</span> <strong>Add Machine:</strong> Add another independent sequence (Simon mode), up to 4.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔍±</span> <strong>UI Size:</strong> Two buttons that grow/shrink the whole interface.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔢±</span> <strong>Sequence Size:</strong> Two buttons that grow/shrink just the number cards.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔀</span> <strong>Cycle Input:</strong> Step through 9-Key → 12-Key → Piano layouts.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">♻️</span> <strong>Reset:</strong> Factory reset - restores default settings (asks to confirm first).</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">☢️</span> <strong>Nuke:</strong> Full wipe - clears saved data, browser cache, and forces a fresh reload (asks to confirm first). Use if the app is behaving strangely after an update.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📝</span> <strong>Notepad:</strong> A simple scratchpad that opens the keyboard immediately. Long-press this icon (instead of tapping) to instantly copy the whole note to your clipboard.</li>
 </ul>
 </div>
-<p class="text-[10px] text-gray-500 italic">Each icon above only appears in the header once its matching toggle is turned on in Settings → General.</p>
+<p class="text-[10px] text-gray-500 italic">Each icon above only appears in the header once its matching toggle is turned on in Settings → General. When enough are on to overflow one row, the header becomes a horizontally-scrolling toolbar - drag left or right, it loops continuously in both directions.</p>
+</div>
+<div class="space-y-3">
+<strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Sizing Things Right</strong>
+<p class="text-xs opacity-90">The very first screen you see has "UI" and "Cards" +/- buttons with a live sample sequence underneath. Adjust both until the sample numbers fit neatly on one row - most people find 5 fits best. Since every device and screen is different, this is worth doing once up front rather than guessing through Settings later.</p>
+</div>
+<div class="space-y-3">
+<strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Left & Right Hand Mapping</strong>
+<p class="text-xs opacity-90">Every hand-pose mapping now has an Any / Left / Right selector next to it (Settings → Mapping → Hand tab). Leave it on Any to trigger with either hand, or set Left and Right differently so the same pose does two different things depending on which hand you use. If detection reads the wrong hand on your device, flip "Swap Left/Right Hands" in Settings → General.</p>
+</div>
+<div class="space-y-3">
+<strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Backup & Restore</strong>
+<p class="text-xs opacity-90">Settings → General → Backup / Restore lets you export your entire configuration (including custom presets and profiles) as a short text code, and paste one back in to restore it - handy before resetting, switching devices, or just keeping a safety copy.</p>
 </div>
 <div id="tab-help-settings" class="tab-content space-y-3">
 <p class="text-xs opacity-80 mb-3">Every toggle, slider, and switch in the Settings menu explained.</p>

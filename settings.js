@@ -89,12 +89,17 @@ const HAND_MAPPING_PRESETS = {
 };
 const GESTURE_CATEGORIES = {
 	'Anchors': [
-		'anchor_tap_2f', 'anchor_swipe_up_2f', 'anchor_swipe_down_2f', 'anchor_swipe_left_2f', 'anchor_swipe_right_2f'
+		'anchor_tap_2f', 'anchor_swipe_up_2f', 'anchor_swipe_down_2f', 'anchor_swipe_left_2f', 'anchor_swipe_right_2f',
+		'anchor_swipe_nw_2f', 'anchor_swipe_ne_2f', 'anchor_swipe_sw_2f', 'anchor_swipe_se_2f'
 	],
 	'Chords': [
-		'chord_down_left_2f', 'chord_down_right_2f', 'chord_down_tap_2f', 'chord_down_up_2f',
-		'chord_left_right_2f', 'chord_left_tap_2f', 'chord_left_up_2f',
-		'chord_right_tap_2f', 'chord_right_up_2f',
+		'chord_down_left_2f', 'chord_down_ne_2f', 'chord_down_nw_2f', 'chord_down_right_2f', 'chord_down_se_2f', 'chord_down_sw_2f', 'chord_down_tap_2f',
+		'chord_left_ne_2f', 'chord_left_nw_2f', 'chord_left_se_2f', 'chord_left_sw_2f', 'chord_left_tap_2f', 'chord_left_up_2f',
+		'chord_ne_nw_2f', 'chord_ne_right_2f', 'chord_ne_se_2f', 'chord_ne_tap_2f', 'chord_ne_up_2f',
+		'chord_nw_right_2f', 'chord_nw_sw_2f', 'chord_nw_tap_2f', 'chord_nw_up_2f',
+		'chord_right_se_2f', 'chord_right_sw_2f', 'chord_right_tap_2f', 'chord_right_up_2f',
+		'chord_se_sw_2f', 'chord_se_tap_2f', 'chord_se_up_2f',
+		'chord_sw_tap_2f', 'chord_sw_up_2f',
 		'chord_tap_up_2f'
 	],
 	'Taps': [
@@ -146,9 +151,8 @@ const GESTURE_CATEGORIES = {
 		'switchback_up_ccw', 'switchback_down_ccw', 'switchback_left_ccw', 'switchback_right_ccw', 'switchback_nw_ccw', 'switchback_ne_ccw', 'switchback_sw_ccw', 'switchback_se_ccw'
 	],
 	'Zigzags': [
-		'zigzag_any', 'zigzag_any_cw', 'zigzag_any_ccw',
-		'zigzag_up_cw', 'zigzag_down_cw', 'zigzag_left_cw', 'zigzag_right_cw', 'zigzag_nw_cw', 'zigzag_ne_cw', 'zigzag_sw_cw', 'zigzag_se_cw',
-		'zigzag_up_ccw', 'zigzag_down_ccw', 'zigzag_left_ccw', 'zigzag_right_ccw', 'zigzag_nw_ccw', 'zigzag_ne_ccw', 'zigzag_sw_ccw', 'zigzag_se_ccw'
+		'zigzag_any', 'zigzag_up', 'zigzag_down', 'zigzag_left', 'zigzag_right', 'zigzag_nw', 'zigzag_ne', 'zigzag_sw', 'zigzag_se',
+		'long_zigzag_any', 'long_zigzag_up', 'long_zigzag_down', 'long_zigzag_left', 'long_zigzag_right', 'long_zigzag_nw', 'long_zigzag_ne', 'long_zigzag_sw', 'long_zigzag_se'
 	],
 	'Corners & Shapes': [
 		'corner_any', 'corner_cw', 'corner_ccw', 'corner_up_cw', 'corner_right_cw', 'corner_down_cw', 'corner_left_cw', 'corner_up_ccw', 'corner_left_ccw', 'corner_down_ccw', 'corner_right_ccw',
@@ -387,7 +391,7 @@ export class SettingsManager {
 			longPressToggle: document.getElementById('apshortcutToggle'),
 			timerToggle: document.getElementById('timerToggle'),
 			headerPlayToggle: document.getElementById('headerPlayToggle'), headerDeleteToggle: document.getElementById('headerDeleteToggle'), headerSettingsToggle: document.getElementById('headerSettingsToggle'), headerRedeemToggle: document.getElementById('headerRedeemToggle'), headerShareToggle: document.getElementById('headerShareToggle'), headerThemeCycleToggle: document.getElementById('headerThemeCycleToggle'), headerAddMachineToggle: document.getElementById('headerAddMachineToggle'), headerUiSizeToggle: document.getElementById('headerUiSizeToggle'), headerSeqSizeToggle: document.getElementById('headerSeqSizeToggle'), headerCycleInputToggle: document.getElementById('headerCycleInputToggle'),
-			headerNotepadToggle: document.getElementById('headerNotepadToggle'),
+			headerNotepadToggle: document.getElementById('headerNotepadToggle'), headerHelpToggle: document.getElementById('headerHelpToggle'), headerDevModeToggle: document.getElementById('headerDevModeToggle'), headerResetToggle: document.getElementById('headerResetToggle'), headerNukeToggle: document.getElementById('headerNukeToggle'),
 			counterToggle: document.getElementById('counterToggle'),
 			gestureToggle: document.getElementById('touchToggle'),
 			handToggle: document.getElementById('handToggle'),
@@ -398,7 +402,7 @@ export class SettingsManager {
 			newToggle: document.getElementById('newToggle'),
 			headerswapbtn: document.getElementById('headerswapbtn'),
 			headerplaybtn: document.getElementById('headerplaybtn'), headerdeletebtn: document.getElementById('headerdeletebtn'), headersettingsbtn: document.getElementById('headersettingsbtn'), headerredeembtn: document.getElementById('headerredeembtn'), headersharebtn: document.getElementById('headersharebtn'), headerthemecyclebtn: document.getElementById('headerthemecyclebtn'), headeraddmachinebtn: document.getElementById('headeraddmachinebtn'), headeruiupbtn: document.getElementById('headeruiupbtn'), headeruidownbtn: document.getElementById('headeruidownbtn'), headersequpbtn: document.getElementById('headersequpbtn'), headerseqdownbtn: document.getElementById('headerseqdownbtn'), headercycleinputbtn: document.getElementById('headercycleinputbtn'),
-			headernotepadbtn: document.getElementById('headernotepadbtn'),
+			headernotepadbtn: document.getElementById('headernotepadbtn'), headerhelpbtn: document.getElementById('headerhelpbtn'), headerdevmodebtn: document.getElementById('headerdevmodebtn'), headerresetbtn: document.getElementById('headerresetbtn'), headernukebtn: document.getElementById('headernukebtn'),
 			uiScale: document.getElementById('ui-scale-select'),
 			seqSize: document.getElementById('seq-size-select'),
 			seqFontSize: document.getElementById('seq-font-size-select'),
@@ -409,6 +413,7 @@ export class SettingsManager {
 			helpModal: document.getElementById('help-modal'), setupModal: document.getElementById('game-setup-modal'), shareModal: document.getElementById('share-modal'), closeSetupBtn: document.getElementById('close-game-setup-modal'), quickSettings: document.getElementById('quick-open-settings'), quickHelp: document.getElementById('quick-open-help'),
 			quickAutoplay: document.getElementById('quick-autoplay-toggle'), quickAudio: document.getElementById('quick-audio-toggle'), dontShowWelcome: document.getElementById('dont-introToggle'),
 			quickResizeUp: document.getElementById('quick-resize-up'), quickResizeDown: document.getElementById('quick-resize-down'),
+			quickCardSizeUp: document.getElementById('quick-cardsize-up'), quickCardSizeDown: document.getElementById('quick-cardsize-down'),
 			openShareInside: document.getElementById('open-share-button'), closeShareBtn: document.getElementById('close-share'), closeHelpBtn: document.getElementById('close-help'), closeHelpBtnBottom: document.getElementById('close-help-btn-bottom'), openHelpBtn: document.getElementById('open-help-button'), promptDisplay: document.getElementById('prompt-display'), copyPromptBtn: document.getElementById('copy-prompt-btn'), generatePromptBtn: document.getElementById('generate-prompt-btn'),
 			developerModeModal: document.getElementById('developer-mode-modal'), openDeveloperModeBtn: document.getElementById('open-developer-mode-btn'), closeDeveloperModeBtn: document.getElementById('close-developer-mode-btn'),
 			restoreBtn: document.querySelector('button[data-action="restore-defaults"]'),
@@ -811,7 +816,7 @@ export class SettingsManager {
 	testVoice() { if (window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("Testing 1 2 3."); if (this.appSettings.selectedVoice) { const v = window.speechSynthesis.getVoices().find(voice => voice.name === this.appSettings.selectedVoice); if (v) u.voice = v; } let p = parseFloat(this.dom.voicePitch.value); let r = parseFloat(this.dom.voiceRate.value); let v = parseFloat(this.dom.voiceVolume.value); u.pitch = p; u.rate = r; u.volume = v; window.speechSynthesis.speak(u); } }
 	openShare() { this.qrScale = 100; if (this.updateQR) this.updateQR(); if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); if (this.dom.shareModal) { this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => this.dom.shareModal.querySelector('.share-sheet').classList.add('active'), 10); } if (window.lockBodyScroll) window.lockBodyScroll(); }
 	closeShare() { if (this.dom.shareModal) { this.dom.shareModal.querySelector('.share-sheet').classList.remove('active'); setTimeout(() => this.dom.shareModal.classList.add('opacity-0', 'pointer-events-none'), 300); } if (window.unlockBodyScroll) window.unlockBodyScroll(); }
-	toggleRedeem(show) { if (show) { if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.style.pointerEvents = 'auto'; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.style.pointerEvents = 'none'; } if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
+	toggleRedeem(show) { if (show) { if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.add('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'auto'; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.remove('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'none'; } if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
 	toggleDonate(show) { if (show) { if (this.dom.donateModal) { this.dom.donateModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'auto'; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.donateModal) { this.dom.donateModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'none'; } if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
 	setupTabSwipe(modal) {
 		const content = modal.querySelector('.settings-modal-bg');
@@ -1212,8 +1217,8 @@ if (!window.__testChecklists) {
 			const hexOutput = document.getElementById('hex-output');
 			if (exportBtn && hexOutput) {
 				exportBtn.onclick = () => {
-					if (typeof window.settingsToHex === 'function') {
-						hexOutput.value = window.settingsToHex();
+					if (typeof window.settingsToBase64 === 'function') {
+						hexOutput.value = window.settingsToBase64();
 						if (typeof showToast === 'function') showToast('Settings exported ⬇️');
 					}
 				};
@@ -1229,16 +1234,16 @@ if (!window.__testChecklists) {
 			}
 			if (importBtn && hexOutput) {
 				importBtn.onclick = () => {
-					const hex = hexOutput.value.trim();
-					if (!hex) { alert('Paste a hex code first.'); return; }
+					const code = hexOutput.value.trim();
+					if (!code) { alert('Paste a backup code first.'); return; }
 					if (!confirm('This will replace ALL current settings with the imported ones. Continue?')) return;
 					try {
-						if (typeof window.importSettingsFromHex === 'function') {
-							window.importSettingsFromHex(hex);
+						if (typeof window.importSettingsFromBase64 === 'function') {
+							window.importSettingsFromBase64(code);
 							if (typeof showToast === 'function') showToast('Settings imported ✅');
 						}
 					} catch (e) {
-						alert('Import failed - that doesn\'t look like a valid settings hex code.');
+						alert('Import failed - that doesn\'t look like a valid backup code.');
 						console.error(e);
 					}
 				};
@@ -1280,6 +1285,10 @@ if (!window.__testChecklists) {
 		bindToggle(this.dom.headerSeqSizeToggle, 'showHeaderSeqSizeBtns', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerCycleInputToggle, 'showHeaderCycleInputBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerNotepadToggle, 'showHeaderNotepadBtn', () => this.updateHeaderVisibility());
+		bindToggle(this.dom.headerHelpToggle, 'showHeaderHelpBtn', () => this.updateHeaderVisibility());
+		bindToggle(this.dom.headerDevModeToggle, 'showHeaderDevModeBtn', () => this.updateHeaderVisibility());
+		bindToggle(this.dom.headerResetToggle, 'showHeaderResetBtn', () => this.updateHeaderVisibility());
+		bindToggle(this.dom.headerNukeToggle, 'showHeaderNukeBtn', () => this.updateHeaderVisibility());
 		if (this.dom.skeletonDebugToggle) {
 			this.dom.skeletonDebugToggle.checked = !!this.appSettings.isSkeletonDebugEnabled;
 			this.dom.skeletonDebugToggle.onchange = (e) => {
@@ -1666,8 +1675,24 @@ if (!window.__testChecklists) {
 				}
 			};
 		}
-		if (this.dom.quickResizeUp) this.dom.quickResizeUp.onclick = () => { this.appSettings.globalUiScale = Math.min(200, this.appSettings.globalUiScale + 10); this.callbacks.onUpdate(); };
-		if (this.dom.quickResizeDown) this.dom.quickResizeDown.onclick = () => { this.appSettings.globalUiScale = Math.max(50, this.appSettings.globalUiScale - 10); this.callbacks.onUpdate(); };
+		if (this.dom.quickResizeUp) this.dom.quickResizeUp.onclick = () => { this.appSettings.globalUiScale = Math.min(200, this.appSettings.globalUiScale + 10); this.callbacks.onSave(); this.callbacks.onUpdate(); this.updateWelcomeSample(); };
+		if (this.dom.quickResizeDown) this.dom.quickResizeDown.onclick = () => { this.appSettings.globalUiScale = Math.max(50, this.appSettings.globalUiScale - 10); this.callbacks.onSave(); this.callbacks.onUpdate(); this.updateWelcomeSample(); };
+		if (this.dom.quickCardSizeUp) this.dom.quickCardSizeUp.onclick = () => {
+			this.appSettings.uiScaleMultiplier = Math.min(3.0, (this.appSettings.uiScaleMultiplier || 1.0) + 0.1);
+			const sel = document.getElementById('seq-size-select');
+			if (sel) sel.value = Math.round(this.appSettings.uiScaleMultiplier * 100);
+			this.callbacks.onSave();
+			this.callbacks.onUpdate();
+			this.updateWelcomeSample();
+		};
+		if (this.dom.quickCardSizeDown) this.dom.quickCardSizeDown.onclick = () => {
+			this.appSettings.uiScaleMultiplier = Math.max(0.5, (this.appSettings.uiScaleMultiplier || 1.0) - 0.1);
+			const sel = document.getElementById('seq-size-select');
+			if (sel) sel.value = Math.round(this.appSettings.uiScaleMultiplier * 100);
+			this.callbacks.onSave();
+			this.callbacks.onUpdate();
+			this.updateWelcomeSample();
+		};
 		if (this.dom.gestureTapSlider) {
 			this.dom.gestureTapSlider.oninput = (e) => {
 				const val = parseInt(e.target.value);
@@ -1688,7 +1713,29 @@ if (!window.__testChecklists) {
 	populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
 	populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
 	openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
-	openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
+	openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); this.updateWelcomeSample(); }
+	// Renders 1-5 using the exact same markup/sizing formula as the real sequence bubbles
+	// (see renderUI's number-box creation in app.js), so what the user sees here is a true
+	// preview of the real app - not an approximation - letting them size things correctly
+	// for their specific device before ever seeing the real sequence area.
+	updateWelcomeSample() {
+		const holder = document.getElementById('welcome-sample-sequence');
+		if (!holder) return;
+		holder.innerHTML = '';
+		const scale = this.appSettings.uiScaleMultiplier || 1.0;
+		const boxSize = 40 * scale;
+		const fontMult = this.appSettings.uiFontSizeMultiplier || 1.0;
+		const fontSizePx = boxSize * 0.5 * fontMult;
+		[1, 2, 3, 4, 5].forEach(num => {
+			const span = document.createElement('span');
+			span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold";
+			span.style.width = boxSize + 'px';
+			span.style.height = boxSize + 'px';
+			span.style.fontSize = fontSizePx + 'px';
+			span.textContent = num;
+			holder.appendChild(span);
+		});
+	}
 	closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); if (window.unlockBodyScroll) window.unlockBodyScroll(); }
 	generatePrompt() {
 		if (!this.dom.promptDisplay) return;
@@ -1858,10 +1905,14 @@ if (!window.__testChecklists) {
 		if (this.dom.headerseqdownbtn) this.dom.headerseqdownbtn.classList.toggle('hidden', !this.appSettings.showHeaderSeqSizeBtns);
 		if (this.dom.headercycleinputbtn) this.dom.headercycleinputbtn.classList.toggle('hidden', !this.appSettings.showHeaderCycleInputBtn);
 		if (this.dom.headernotepadbtn) this.dom.headernotepadbtn.classList.toggle('hidden', !this.appSettings.showHeaderNotepadBtn);
+		if (this.dom.headerhelpbtn) this.dom.headerhelpbtn.classList.toggle('hidden', !this.appSettings.showHeaderHelpBtn);
+		if (this.dom.headerdevmodebtn) this.dom.headerdevmodebtn.classList.toggle('hidden', !this.appSettings.showHeaderDevModeBtn);
+		if (this.dom.headerresetbtn) this.dom.headerresetbtn.classList.toggle('hidden', !this.appSettings.showHeaderResetBtn);
+		if (this.dom.headernukebtn) this.dom.headernukebtn.classList.toggle('hidden', !this.appSettings.showHeaderNukeBtn);
 		if (this.dom.headertonebtn) {
 			this.dom.headertonebtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
 		}
-		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderCycleInputBtn || this.appSettings.showHeaderNotepadBtn;
+		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderCycleInputBtn || this.appSettings.showHeaderNotepadBtn || this.appSettings.showHeaderHelpBtn || this.appSettings.showHeaderDevModeBtn || this.appSettings.showHeaderResetBtn || this.appSettings.showHeaderNukeBtn;
 		if (!showTimer && !showCounter && !showMic && !showCam && !showGesture && !showStealth && !showHand && !showSwap && !this.appSettings.isToneCadenceEnabled && !anyNewBtnShown) {
 			header.classList.add('header-hidden');
 		} else {
@@ -1871,7 +1922,7 @@ if (!window.__testChecklists) {
 	}
 	// Master order of every header button id, matching their HTML order.
 	_headerBtnOrder() {
-		return ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerupsidedownbtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headercycleinputbtn', 'headernotepadbtn'];
+		return ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerupsidedownbtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headerdevmodebtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn'];
 	}
 	// Builds the "infinite toolbar" feel: clones the visible button set once before and once
 	// after the real set, then keeps the scroll position invisibly wrapped within the real

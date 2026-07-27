@@ -144,6 +144,10 @@ const DEFAULT_APP = {
     showHeaderSeqSizeBtns: false,
     showHeaderCycleInputBtn: false,
     showHeaderNotepadBtn: false,
+    showHeaderHelpBtn: false,
+    showHeaderDevModeBtn: false,
+    showHeaderResetBtn: false,
+    showHeaderNukeBtn: false,
     notepadText: '',
     isVoiceCommandsEnabled: false,
     isToneCadenceEnabled: false,
@@ -1159,31 +1163,36 @@ function saveState() {
     localStorage.setItem(CONFIG.STORAGE_KEY_STATE, JSON.stringify(appState));
 }
 
-function settingsToHex() {
+function settingsToBase64() {
     const json = JSON.stringify(appSettings);
     const bytes = new TextEncoder().encode(json);
-    return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    let binary = '';
+    bytes.forEach(b => binary += String.fromCharCode(b));
+    // URL-safe variant: standard base64's +/ can cause issues when copy-pasted, and the
+    // trailing = padding is unnecessary noise for a string that's just going to be read back.
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-function hexToSettingsObject(hex) {
-    const clean = hex.trim().replace(/\s+/g, '');
-    if (!(/^[0-9a-fA-F]+$/).test(clean) || clean.length % 2 !== 0) {
-        throw new Error('Not a valid hex string');
+function base64ToSettingsObject(b64) {
+    const clean = b64.trim().replace(/\s+/g, '');
+    if (!(/^[A-Za-z0-9_-]+$/).test(clean)) {
+        throw new Error('Not a valid backup string');
     }
-    const bytes = new Uint8Array(clean.length / 2);
-    for (let i = 0; i < clean.length; i += 2) {
-        bytes[i / 2] = parseInt(clean.substr(i, 2), 16);
-    }
+    // Restore standard base64 form (padding + original alphabet) before decoding.
+    let standard = clean.replace(/-/g, '+').replace(/_/g, '/');
+    while (standard.length % 4 !== 0) standard += '=';
+    const binary = atob(standard);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     const json = new TextDecoder().decode(bytes);
     return JSON.parse(json);
 }
 
-function importSettingsFromHex(hex) {
-    const imported = hexToSettingsObject(hex);
-    // FIX: this used to shallow-merge profiles/customThemes (...imported would fully replace
-    // them), unlike loadState() which deep-merges those two specifically so defaults aren't lost.
-    // An older or partial hex backup could silently wipe out profile entries that didn't exist
-    // yet at export time. Matches loadState()'s merge exactly now.
+function importSettingsFromBase64(b64) {
+    const imported = base64ToSettingsObject(b64);
+    // Deep-merges profiles/customThemes with defaults (matches loadState()'s behavior) so an
+    // older or partial backup can't silently wipe out profile entries that didn't exist yet
+    // at export time.
     const merged = {
         ...DEFAULT_APP,
         ...imported,
@@ -2023,12 +2032,41 @@ function setupARLogic() {
 
 function mapGestureToValue(kind, currentInput) {
     const saved = appSettings.gestureMappings || ({});
+    const windingShapeBases = ['corner', 'triangle', 'u_shape', 'square', 'switchback', 'motion_tap_corner'];
+    const directions = ['up', 'down', 'left', 'right', 'nw', 'ne', 'sw', 'se'];
     const matches = (target, incoming) => {
         if (!target) return false;
         if (target === incoming) return true;
+
+        // Winding-shape wildcards: these gestures always emit both a direction AND a winding
+        // (e.g. "corner_up_cw"), so a plain trailing "_any" strip can never match them - this
+        // handles base_any (any dir, any winding), base_cw/base_ccw (any dir, that winding),
+        // and base_any_cw/base_any_ccw (same as base_cw/base_ccw, alternate spelling).
+        for (const base of windingShapeBases) {
+            if (!target.startsWith(base + '_')) continue;
+            const rest = target.slice(base.length + 1); // e.g. 'any', 'any_cw', 'cw', 'ccw'
+            let wantWinding = null;
+            if (rest === 'any') wantWinding = null;
+            else if (rest === 'any_cw' || rest === 'cw') wantWinding = 'cw';
+            else if (rest === 'any_ccw' || rest === 'ccw') wantWinding = 'ccw';
+            else continue;
+            for (const dir of directions) {
+                const windingsToCheck = wantWinding ? [wantWinding] : ['cw', 'ccw'];
+                for (const w of windingsToCheck) {
+                    if (incoming === base + '_' + dir + '_' + w) return true;
+                }
+            }
+        }
+
         if (target.endsWith('_any')) {
             const base = target.replace('_any', '');
-            if (incoming.startsWith(base)) return true;
+            // Precise match: incoming must be exactly base, or base + exactly one direction/
+            // alignment token - not merely start with base (which risks matching an unrelated
+            // gesture family, e.g. "swipe_any" incorrectly matching "swipe_long_up" or
+            // "swipe_up_2f" just because both start with "swipe").
+            if (incoming === base) return true;
+            const suffixTokens = ['up', 'down', 'left', 'right', 'nw', 'ne', 'sw', 'se', 'vertical', 'horizontal', 'diagonal_se', 'diagonal_sw'];
+            if (suffixTokens.some(s => incoming === base + '_' + s)) return true;
         }
         return false;
     };
@@ -2531,7 +2569,29 @@ function initGlobalListeners() {
         const notepadTextarea = document.getElementById('notepad-textarea');
         const closeNotepadBtn = document.getElementById('close-notepad-btn');
         if (headerNotepad && notepadModal && notepadTextarea) {
+            let notepadLongPressTimer = null;
+            let notepadWasLongPress = false;
+            const copyNotepadToClipboard = () => {
+                const text = appSettings.notepadText || '';
+                if (!text) { showToast('Notepad is empty 📝'); return; }
+                navigator.clipboard?.writeText(text).then(() => {
+                    showToast('Note copied to clipboard 📋');
+                }).catch(() => showToast('Copy failed - try again'));
+                if (navigator.vibrate) navigator.vibrate(50);
+            };
+            headerNotepad.addEventListener('pointerdown', () => {
+                notepadWasLongPress = false;
+                notepadLongPressTimer = setTimeout(() => {
+                    notepadWasLongPress = true;
+                    copyNotepadToClipboard();
+                }, 600);
+            });
+            const cancelNotepadLongPress = () => { if (notepadLongPressTimer) { clearTimeout(notepadLongPressTimer); notepadLongPressTimer = null; } };
+            headerNotepad.addEventListener('pointerup', cancelNotepadLongPress);
+            headerNotepad.addEventListener('pointerleave', cancelNotepadLongPress);
+            headerNotepad.addEventListener('pointercancel', cancelNotepadLongPress);
             headerNotepad.onclick = () => {
+                if (notepadWasLongPress) { notepadWasLongPress = false; return; }
                 notepadTextarea.value = appSettings.notepadText || '';
                 notepadModal.classList.remove('opacity-0', 'pointer-events-none');
                 if (window.lockBodyScroll) window.lockBodyScroll();
@@ -2543,6 +2603,17 @@ function initGlobalListeners() {
                 appSettings.notepadText = notepadTextarea.value;
                 saveState();
             };
+            const copyAllBtn = document.getElementById('notepad-copy-all-btn');
+            if (copyAllBtn) copyAllBtn.onclick = () => copyNotepadToClipboard();
+            const eraseBtn = document.getElementById('notepad-erase-btn');
+            if (eraseBtn) eraseBtn.onclick = () => {
+                if (!appSettings.notepadText) return;
+                if (!confirm('Erase the entire note? This can\'t be undone.')) return;
+                notepadTextarea.value = '';
+                appSettings.notepadText = '';
+                saveState();
+                showToast('Note erased 🗑️');
+            };
         }
         if (closeNotepadBtn && notepadModal && notepadTextarea) {
             closeNotepadBtn.onclick = () => {
@@ -2551,6 +2622,17 @@ function initGlobalListeners() {
                 if (window.unlockBodyScroll) window.unlockBodyScroll();
             };
         }
+        const headerHelp = document.getElementById('headerhelpbtn');
+        if (headerHelp) headerHelp.onclick = () => { document.getElementById('open-help-button')?.click(); };
+
+        const headerDevMode = document.getElementById('headerdevmodebtn');
+        if (headerDevMode) headerDevMode.onclick = () => { document.getElementById('open-developer-mode-btn')?.click(); };
+
+        const headerReset = document.getElementById('headerresetbtn');
+        if (headerReset) headerReset.onclick = () => { document.querySelector('button[data-action="restore-defaults"]')?.click(); };
+
+        const headerNuke = document.getElementById('headernukebtn');
+        if (headerNuke) headerNuke.onclick = () => { document.querySelector('button[data-action="nuke-app"]')?.click(); };
         if (headerTimer) {
             headerTimer.textContent = "00:00";
             headerTimer.style.fontSize = "0.75rem";
@@ -2714,8 +2796,8 @@ window.upsidedownToggle = async function(enable) {
     }
 };
 window.modules = modules;
-window.settingsToHex = settingsToHex;
-window.importSettingsFromHex = importSettingsFromHex;
+window.settingsToBase64 = settingsToBase64;
+window.importSettingsFromBase64 = importSettingsFromBase64;
 window.lockBodyScroll = lockBodyScroll;
 window.unlockBodyScroll = unlockBodyScroll;
 document.addEventListener('DOMContentLoaded', startApp);

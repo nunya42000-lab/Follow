@@ -112,14 +112,14 @@ const GESTURE_CATEGORIES = {
 		'triple_tap_spatial_boomerang_down', 'triple_tap_spatial_boomerang_left', 'triple_tap_spatial_boomerang_right'
 	],
 	'Multi-Finger Taps': [
-		'tap_2f', 'tap_2f_vertical', 'tap_2f_horizontal', 'tap_2f_diagonal_se', 'tap_2f_diagonal_sw',
-		'double_tap_2f', 'double_tap_2f_vertical', 'double_tap_2f_horizontal', 'double_tap_2f_diagonal_se', 'double_tap_2f_diagonal_sw',
-		'triple_tap_2f', 'triple_tap_2f_vertical', 'triple_tap_2f_horizontal', 'triple_tap_2f_diagonal_se', 'triple_tap_2f_diagonal_sw',
-		'long_tap_2f', 'long_tap_2f_vertical', 'long_tap_2f_horizontal', 'long_tap_2f_diagonal_se', 'long_tap_2f_diagonal_sw',
-		'tap_3f', 'tap_3f_vertical', 'tap_3f_horizontal', 'tap_3f_diagonal_se', 'tap_3f_diagonal_sw',
-		'double_tap_3f', 'double_tap_3f_vertical', 'double_tap_3f_horizontal', 'double_tap_3f_diagonal_se', 'double_tap_3f_diagonal_sw',
-		'triple_tap_3f', 'triple_tap_3f_vertical', 'triple_tap_3f_horizontal', 'triple_tap_3f_diagonal_se', 'triple_tap_3f_diagonal_sw',
-		'long_tap_3f', 'long_tap_3f_vertical', 'long_tap_3f_horizontal', 'long_tap_3f_diagonal_se', 'long_tap_3f_diagonal_sw'
+		'tap_2f_any', 'tap_2f_vertical', 'tap_2f_horizontal', 'tap_2f_diagonal_se', 'tap_2f_diagonal_sw',
+		'double_tap_2f_any', 'double_tap_2f_vertical', 'double_tap_2f_horizontal', 'double_tap_2f_diagonal_se', 'double_tap_2f_diagonal_sw',
+		'triple_tap_2f_any', 'triple_tap_2f_vertical', 'triple_tap_2f_horizontal', 'triple_tap_2f_diagonal_se', 'triple_tap_2f_diagonal_sw',
+		'long_tap_2f_any', 'long_tap_2f_vertical', 'long_tap_2f_horizontal', 'long_tap_2f_diagonal_se', 'long_tap_2f_diagonal_sw',
+		'tap_3f_any', 'tap_3f_vertical', 'tap_3f_horizontal', 'tap_3f_diagonal_se', 'tap_3f_diagonal_sw',
+		'double_tap_3f_any', 'double_tap_3f_vertical', 'double_tap_3f_horizontal', 'double_tap_3f_diagonal_se', 'double_tap_3f_diagonal_sw',
+		'triple_tap_3f_any', 'triple_tap_3f_vertical', 'triple_tap_3f_horizontal', 'triple_tap_3f_diagonal_se', 'triple_tap_3f_diagonal_sw',
+		'long_tap_3f_any', 'long_tap_3f_vertical', 'long_tap_3f_horizontal', 'long_tap_3f_diagonal_se', 'long_tap_3f_diagonal_sw'
 	],
 	'Swipes': [
 		'swipe_any', 'swipe_up', 'swipe_down', 'swipe_left', 'swipe_right', 'swipe_nw', 'swipe_ne', 'swipe_sw', 'swipe_se'
@@ -387,6 +387,7 @@ export class SettingsManager {
 			longPressToggle: document.getElementById('apshortcutToggle'),
 			timerToggle: document.getElementById('timerToggle'),
 			headerPlayToggle: document.getElementById('headerPlayToggle'), headerDeleteToggle: document.getElementById('headerDeleteToggle'), headerSettingsToggle: document.getElementById('headerSettingsToggle'), headerRedeemToggle: document.getElementById('headerRedeemToggle'), headerShareToggle: document.getElementById('headerShareToggle'), headerThemeCycleToggle: document.getElementById('headerThemeCycleToggle'), headerAddMachineToggle: document.getElementById('headerAddMachineToggle'), headerUiSizeToggle: document.getElementById('headerUiSizeToggle'), headerSeqSizeToggle: document.getElementById('headerSeqSizeToggle'), headerCycleInputToggle: document.getElementById('headerCycleInputToggle'),
+			headerNotepadToggle: document.getElementById('headerNotepadToggle'),
 			counterToggle: document.getElementById('counterToggle'),
 			gestureToggle: document.getElementById('touchToggle'),
 			handToggle: document.getElementById('handToggle'),
@@ -397,6 +398,7 @@ export class SettingsManager {
 			newToggle: document.getElementById('newToggle'),
 			headerswapbtn: document.getElementById('headerswapbtn'),
 			headerplaybtn: document.getElementById('headerplaybtn'), headerdeletebtn: document.getElementById('headerdeletebtn'), headersettingsbtn: document.getElementById('headersettingsbtn'), headerredeembtn: document.getElementById('headerredeembtn'), headersharebtn: document.getElementById('headersharebtn'), headerthemecyclebtn: document.getElementById('headerthemecyclebtn'), headeraddmachinebtn: document.getElementById('headeraddmachinebtn'), headeruiupbtn: document.getElementById('headeruiupbtn'), headeruidownbtn: document.getElementById('headeruidownbtn'), headersequpbtn: document.getElementById('headersequpbtn'), headerseqdownbtn: document.getElementById('headerseqdownbtn'), headercycleinputbtn: document.getElementById('headercycleinputbtn'),
+			headernotepadbtn: document.getElementById('headernotepadbtn'),
 			uiScale: document.getElementById('ui-scale-select'),
 			seqSize: document.getElementById('seq-size-select'),
 			seqFontSize: document.getElementById('seq-font-size-select'),
@@ -1277,6 +1279,7 @@ if (!window.__testChecklists) {
 		bindToggle(this.dom.headerUiSizeToggle, 'showHeaderUiSizeBtns', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerSeqSizeToggle, 'showHeaderSeqSizeBtns', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerCycleInputToggle, 'showHeaderCycleInputBtn', () => this.updateHeaderVisibility());
+		bindToggle(this.dom.headerNotepadToggle, 'showHeaderNotepadBtn', () => this.updateHeaderVisibility());
 		if (this.dom.skeletonDebugToggle) {
 			this.dom.skeletonDebugToggle.checked = !!this.appSettings.isSkeletonDebugEnabled;
 			this.dom.skeletonDebugToggle.onchange = (e) => {
@@ -1854,10 +1857,11 @@ if (!window.__testChecklists) {
 		if (this.dom.headersequpbtn) this.dom.headersequpbtn.classList.toggle('hidden', !this.appSettings.showHeaderSeqSizeBtns);
 		if (this.dom.headerseqdownbtn) this.dom.headerseqdownbtn.classList.toggle('hidden', !this.appSettings.showHeaderSeqSizeBtns);
 		if (this.dom.headercycleinputbtn) this.dom.headercycleinputbtn.classList.toggle('hidden', !this.appSettings.showHeaderCycleInputBtn);
+		if (this.dom.headernotepadbtn) this.dom.headernotepadbtn.classList.toggle('hidden', !this.appSettings.showHeaderNotepadBtn);
 		if (this.dom.headertonebtn) {
 			this.dom.headertonebtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
 		}
-		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderCycleInputBtn;
+		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderCycleInputBtn || this.appSettings.showHeaderNotepadBtn;
 		if (!showTimer && !showCounter && !showMic && !showCam && !showGesture && !showStealth && !showHand && !showSwap && !this.appSettings.isToneCadenceEnabled && !anyNewBtnShown) {
 			header.classList.add('header-hidden');
 		} else {
@@ -1867,7 +1871,7 @@ if (!window.__testChecklists) {
 	}
 	// Master order of every header button id, matching their HTML order.
 	_headerBtnOrder() {
-		return ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerupsidedownbtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headercycleinputbtn'];
+		return ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerupsidedownbtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headercycleinputbtn', 'headernotepadbtn'];
 	}
 	// Builds the "infinite toolbar" feel: clones the visible button set once before and once
 	// after the real set, then keeps the scroll position invisibly wrapped within the real
@@ -1926,6 +1930,19 @@ if (!window.__testChecklists) {
 				const real = document.getElementById(cloneBtn.dataset.cloneId);
 				if (real) real.click();
 			});
+			// Keeps clones showing the real button's current text (e.g. the live timer/counter)
+			// instead of a frozen snapshot from whenever they were built.
+			const syncObserver = new MutationObserver((mutations) => {
+				const seen = new Set();
+				mutations.forEach(m => {
+					const real = m.target.nodeType === 3 ? m.target.parentElement : m.target;
+					if (!real || !real.id || seen.has(real.id)) return;
+					seen.add(real.id);
+					const clones = row.querySelectorAll(`[data-clone-id="${real.id}"]`);
+					clones.forEach(c => { c.textContent = real.textContent; });
+				});
+			});
+			syncObserver.observe(row, { characterData: true, childList: true, subtree: true });
 		}
 	}
 	hexToHsl(hex) { let r = 0, g = 0, b = 0; if (hex.length === 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } else if (hex.length === 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; } r /= 255; g /= 255; b /= 255; let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin, h = 0, s = 0, l = 0; if (delta === 0) h = 0; else if (cmax === r) h = ((g - b) / delta) % 6; else if (cmax === g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4; h = Math.round(h * 60); if (h < 0) h += 360; l = (cmax + cmin) / 2; s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1)); s = +(s * 100).toFixed(1); l = +(l * 100).toFixed(1); return [h, s, l]; }

@@ -54,6 +54,7 @@ alert("Promise Error: " + event.reason);
 <button id="headersequpbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Sequence Size Up">🔢+</button>
 <button id="headerseqdownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Sequence Size Down">🔢-</button>
 <button id="headercycleinputbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Cycle Input">🔀</button>
+<button id="headernotepadbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Notepad">📝</button>
 </div>
 </div>
 </header>
@@ -413,6 +414,9 @@ alert("Promise Error: " + event.reason);
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Cycle Input 🔀</span>
 <input type="checkbox" id="headerCycleInputToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Notepad 📝</span>
+<input type="checkbox" id="headerNotepadToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Timer ⏱️</span>
 <input type="checkbox" id="timerToggle" class="h-6 w-6 accent-indigo-500"></div>
@@ -823,6 +827,15 @@ Text
 Email
 </button>
 </div>
+</div>
+</div>
+<div id="notepad-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding-top: max(1.5rem, env(safe-area-inset-top));" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[100] transition-opacity duration-300 opacity-0 pointer-events-none">
+<div style="display: flex; flex-direction: column; max-height: calc(100vh - max(1.5rem, env(safe-area-inset-top)) - 2rem);" class="settings-modal-bg rounded-xl shadow-2xl max-w-md w-full h-full m-4 flex flex-col border border-custom overflow-hidden">
+<div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center shrink-0">
+<h3 class="text-xl font-bold">📝 Notepad</h3>
+<button id="close-notepad-btn" class="text-2xl text-gray-400 hover:text-white leading-none">&times;</button>
+</div>
+<textarea id="notepad-textarea" class="flex-1 w-full p-4 bg-transparent text-[var(--text-main)] resize-none outline-none text-base" placeholder="Type anything..." style="min-height: 200px;"></textarea>
 </div>
 </div>
 <div id="developer-mode-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding-top: max(1.5rem, env(safe-area-inset-top));" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[95] transition-opacity duration-300 opacity-0 pointer-events-none">

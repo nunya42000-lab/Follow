@@ -93,12 +93,12 @@ const PREMADE_PROFILES = {
     }
 };
 const DEFAULT_APP = {
-    globalUiScale: 100,
-    uiScaleMultiplier: 1.0,
-    showWelcomeScreen: true,
-    gestureResizeMode: 'global',
+    globalUiScale: 110,
+    uiScaleMultiplier: 2.4,
+    showWelcomeScreen: false,
+    gestureResizeMode: 'none',
     playbackSpeed: 1.0,
-    isAutoplayEnabled: true,
+    isAutoplayEnabled: false,
     isUniqueRoundsAutoClearEnabled: true,
     isAudioEnabled: true,
     isHapticsEnabled: true,
@@ -107,8 +107,8 @@ const DEFAULT_APP = {
     isSpeedDeletingEnabled: true,
     isSpeedGesturesEnabled: false,
     isVolumeGesturesEnabled: false,
-    isArModeEnabled: false,
-   isArAutoCloseEnabled: false,
+    isArModeEnabled: true,
+   isArAutoCloseEnabled: true,
   isVoiceInputEnabled: false,
     arPlaybackSpeed: 1.00,
     voiceTriggerWord: 'set',
@@ -116,11 +116,11 @@ const DEFAULT_APP = {
     isDeleteGestureEnabled: true,
     isClearGestureEnabled: true,
     isAutoTimerEnabled: false,
-    isAutoCounterEnabled: false,
+    isAutoCounterEnabled: true,
     isWakeLockEnabled: true,
     isEcoModeEnabled: true,
     isLongPressAutoplayEnabled: true,
-    isStealth1KeyEnabled: false,
+    isStealth1KeyEnabled: true,
     activeTheme: 'default',
     customThemes: {},
     isRandomThemeEnabled: false,
@@ -129,24 +129,26 @@ const DEFAULT_APP = {
     isBlackoutFeatureEnabled: false,
     isHapticMorseEnabled: false,
     showTimer: false,
-    showCounter: false,
+    showCounter: true,
     isHandGesturesEnabled: false,
     isHandSignalsEnabled: false,
     handednessFlip: false,
-    showHeaderPlayBtn: false,
+    showHeaderPlayBtn: true,
     showHeaderDeleteBtn: false,
-    showHeaderSettingsBtn: false,
-    showHeaderRedeemBtn: false,
-    showHeaderShareBtn: false,
+    showHeaderSettingsBtn: true,
+    showHeaderRedeemBtn: true,
+    showHeaderShareBtn: true,
     showHeaderThemeCycleBtn: false,
     showHeaderAddMachineBtn: false,
     showHeaderUiSizeBtns: false,
     showHeaderSeqSizeBtns: false,
     showHeaderCycleInputBtn: false,
+    showHeaderNotepadBtn: false,
+    notepadText: '',
     isVoiceCommandsEnabled: false,
     isToneCadenceEnabled: false,
-    isPositionSwapEnabled: false,
-    isSkeletonDebugEnabled: false,
+    isPositionSwapEnabled: true,
+    isSkeletonDebugEnabled: true,
     activeFontFamily: "'Inter', sans-serif",
     handGestureCooldown: 600,
     handHoldFrames: 4,
@@ -166,8 +168,43 @@ const DEFAULT_APP = {
     selectedVoice: null,
     voicePresets: {},
     activeVoicePresetId: 'standard',
-    isGestureInputEnabled: false,
-    gestureMappings: {}
+    isGestureInputEnabled: true,
+    gestureMappings: {},
+    mappings: {
+        'k9_1': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },
+        'k9_2': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },
+        'k9_3': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },
+        'k9_4': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },
+        'k9_5': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },
+        'k9_6': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },
+        'k9_7': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },
+        'k9_8': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },
+        'k9_9': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },
+        'k12_1': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },
+        'k12_2': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },
+        'k12_3': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },
+        'k12_4': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },
+        'k12_5': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },
+        'k12_6': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },
+        'k12_7': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },
+        'k12_8': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },
+        'k12_9': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },
+        'k12_10': { touch: 'none', handGesture: 12, morse: '', handSide: 'any' },
+        'k12_11': { touch: 'none', handGesture: 20, morse: '', handSide: 'any' },
+        'k12_12': { touch: 'none', handGesture: 36, morse: '', handSide: 'any' },
+        'piano_C': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },
+        'piano_D': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },
+        'piano_E': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },
+        'piano_F': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },
+        'piano_G': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },
+        'piano_A': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },
+        'piano_B': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },
+        'piano_1': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },
+        'piano_2': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },
+        'piano_3': { touch: 'none', handGesture: 12, morse: '', handSide: 'any' },
+        'piano_4': { touch: 'none', handGesture: 20, morse: '', handSide: 'any' },
+        'piano_5': { touch: 'none', handGesture: 36, morse: '', handSide: 'any' }
+    }
 };
 const DEFAULT_MAPPINGS = {
     'k9_1': 'tap',
@@ -667,41 +704,6 @@ const startApp = () => {
     initGestureEngine();
     setupARLogic();
     renderUI();
-};
-const DEFAULT_HAND_MAPPINGS = {
-    'k9_1': 'hand_1_up',
-    'k9_2': 'hand_2_up',
-    'k9_3': 'hand_3_up',
-    'k9_4': 'hand_4_up',
-    'k9_5': 'hand_5_up',
-    'k9_6': 'hand_1_down',
-    'k9_7': 'hand_2_down',
-    'k9_8': 'hand_3_down',
-    'k9_9': 'hand_4_down',
-    'k12_1': 'hand_1_up',
-    'k12_2': 'hand_2_up',
-    'k12_3': 'hand_3_up',
-    'k12_4': 'hand_4_up',
-    'k12_5': 'hand_5_up',
-    'k12_6': 'hand_1_down',
-    'k12_7': 'hand_2_down',
-    'k12_8': 'hand_3_down',
-    'k12_9': 'hand_4_down',
-    'k12_10': 'hand_5_down',
-    'k12_11': 'hand_1_right',
-    'k12_12': 'hand_1_left',
-    'piano_C': 'hand_1_up',
-    'piano_D': 'hand_2_up',
-    'piano_E': 'hand_3_up',
-    'piano_F': 'hand_4_up',
-    'piano_G': 'hand_5_up',
-    'piano_A': 'hand_1_right',
-    'piano_B': 'hand_1_left',
-    'piano_1': 'hand_1_down',
-    'piano_2': 'hand_2_down',
-    'piano_3': 'hand_3_down',
-    'piano_4': 'hand_4_down',
-    'piano_5': 'hand_5_down'
 };
 class ToneEngine {
     constructor(onInputCallback, onDebug) {
@@ -1999,10 +2001,7 @@ function mapGestureToValue(kind, currentInput) {
     const checkMatch = key => {
         const m = saved[key] || ({});
         const touchG = m.gesture || DEFAULT_MAPPINGS[key];
-        if (matches(touchG, kind)) return true;
-        const handG = m.hand || DEFAULT_HAND_MAPPINGS[key];
-        if (matches(handG, kind)) return true;
-        return false;
+        return matches(touchG, kind);
     };
     if (currentInput === CONFIG.INPUTS.PIANO) {
         const keys = ['C', 'D', 'E', 'F', 'G', 'A', 'B', '1', '2', '3', '4', '5'];
@@ -2492,6 +2491,32 @@ function initGlobalListeners() {
             saveState();
             showToast(`Input: ${settings.currentInput} 🔀`);
         };
+
+        const headerNotepad = document.getElementById('headernotepadbtn');
+        const notepadModal = document.getElementById('notepad-modal');
+        const notepadTextarea = document.getElementById('notepad-textarea');
+        const closeNotepadBtn = document.getElementById('close-notepad-btn');
+        if (headerNotepad && notepadModal && notepadTextarea) {
+            headerNotepad.onclick = () => {
+                notepadTextarea.value = appSettings.notepadText || '';
+                notepadModal.classList.remove('opacity-0', 'pointer-events-none');
+                if (window.lockBodyScroll) window.lockBodyScroll();
+                // Small delay lets the modal actually become visible/interactive first -
+                // focusing immediately on the same tick can fail to raise the keyboard on mobile.
+                setTimeout(() => notepadTextarea.focus(), 50);
+            };
+            notepadTextarea.oninput = () => {
+                appSettings.notepadText = notepadTextarea.value;
+                saveState();
+            };
+        }
+        if (closeNotepadBtn && notepadModal && notepadTextarea) {
+            closeNotepadBtn.onclick = () => {
+                notepadTextarea.blur();
+                notepadModal.classList.add('opacity-0', 'pointer-events-none');
+                if (window.unlockBodyScroll) window.unlockBodyScroll();
+            };
+        }
         if (headerTimer) {
             headerTimer.textContent = "00:00";
             headerTimer.style.fontSize = "0.75rem";

@@ -53,6 +53,10 @@ alert("Promise Error: " + event.reason);
 <button id="headeruidownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="UI Size Down">🔍-</button>
 <button id="headersequpbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Sequence Size Up">🔢+</button>
 <button id="headerseqdownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Sequence Size Down">🔢-</button>
+<button id="headervolupbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Volume Up">🔊+</button>
+<button id="headervoldownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Volume Down">🔊-</button>
+<button id="headerspeedupbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Speed Up">🐇+</button>
+<button id="headerspeeddownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Speed Down">🐇-</button>
 <button id="headercycleinputbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Cycle Input">🔀</button>
 <button id="headerresetbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Factory Reset">♻️</button>
 <button id="headernukebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Nuke App">☢️</button>
@@ -93,6 +97,10 @@ alert("Promise Error: " + event.reason);
 <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
 <label class="font-semibold">Audio</label>
 <input type="checkbox" id="quick-audio-toggle" class="h-6 w-6 rounded accent-indigo-500">
+</div>
+<div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
+<label class="font-semibold">Lock Settings 🔒</label>
+<input type="checkbox" id="welcome-settings-lock-toggle" class="h-6 w-6 rounded accent-indigo-500">
 </div>
 </div>
 <div class="grid grid-cols-2 gap-4 mb-2">
@@ -333,38 +341,10 @@ alert("Promise Error: " + event.reason);
 </select>
 </div>
 </div>
-<details class="mt-6 group bg-gray-900 rounded-lg border border-gray-700 open:bg-gray-800 transition-colors shadow-sm">
-<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app outline-none">
-<span>Voice Settings 🗣️</span>
-<span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
-</summary>
-<div class="p-3 border-t border-gray-700 bg-black/20 space-y-3">
-<div class="mb-4 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
-<label class="text-xs font-bold uppercase text-muted-custom mb-2 block">Voice Profile</label>
-<select id="voice-preset-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
-<div class="grid grid-cols-2 gap-2">
-<button id="voice-preset-add" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button>
-<button id="voice-preset-save" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">SAVE 💾</button>
-<button id="voice-preset-rename" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button>
-<button id="voice-preset-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
-</div>
-</div>
-<div class="mb-3 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
-<label class="text-xs font-bold uppercase text-muted-custom mb-2 block">System Voice</label>
-<select id="voice-name-select" class="settings-input w-full p-2 rounded text-sm font-semibold"></select>
-<p class="text-[10px] text-gray-400 mt-2">Voices marked ⭐ are natural/enhanced voices your device offers - much less robotic than the plain default.</p>
-</div>
-<div class="space-y-3 p-2 bg-black bg-opacity-20 rounded-lg">
-<div><label class="block text-xs font-bold mb-1">Pitch / Tone</label><input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
-<div><label class="block text-xs font-bold mb-1">Speed</label><input type="range" id="voice-rate" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
-<div><label class="block text-xs font-bold mb-1">Volume</label><input type="range" id="voice-volume" min="0" max="1" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
-</div>
-<button id="test-voice-btn" class="w-full py-2 bg-gray-700 text-white rounded font-bold text-xs mt-3">Test Voice 🔊</button>
-</div>
-</div>
-</details>
+<!-- Voice Settings accordion moved to the top of the General tab, above Haptics -->
 </div>
 <div id="tab-general" class="tab-content">
+<!-- Voice Settings accordion relocated to Dev Mode, above Haptic Output Mapping -->
 <div class="space-y-4">
 <div class="p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
 <div class="flex justify-between items-center mb-2">
@@ -428,6 +408,12 @@ alert("Promise Error: " + event.reason);
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Sequence Size 🔢±</span>
 <input type="checkbox" id="headerSeqSizeToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Volume 🔊±</span>
+<input type="checkbox" id="headerVolumeToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Speed 🐇±</span>
+<input type="checkbox" id="headerSpeedToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Cycle Input 🔀</span>
 <input type="checkbox" id="headerCycleInputToggle" class="h-6 w-6 accent-indigo-500"></div>
@@ -918,6 +904,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <span class="font-bold text-xs text-red-300">🔒 Lock Sliders (prevent accidental changes)</span>
 <input type="checkbox" id="sliderLockToggle" class="h-5 w-5 accent-red-500">
 </label>
+<button id="restore-sensitivity-defaults-btn" class="w-full py-2 mb-3 text-xs font-bold bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition">↩️ Restore Defaults</button>
 <p class="text-[10px] font-bold uppercase text-blue-400 mt-3 mb-1">Touch</p>
 <div class="sensitivity-slider mb-4">
 <div class="flex justify-between mb-1"><label class="text-xs font-bold">Tap Speed (ms)</label><span id="gesture-tap-val" class="text-xs font-mono">300ms</span></div>
@@ -979,6 +966,16 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div class="flex justify-between mb-1"><label class="text-xs font-bold">Hold Frames to Lock In</label><span id="gesture-handhold-val" class="text-xs font-mono">4</span></div>
 <input type="range" id="gesture-handhold-slider" min="1" max="10" step="1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
 <p class="text-[10px] text-gray-400 mt-1">How many consecutive matching camera frames before a pose is confirmed. Lower = snappier but jumpier; higher = steadier but slower to register.</p>
+</div>
+<div class="sensitivity-slider mb-4">
+<div class="flex justify-between mb-1"><label class="text-xs font-bold">Motion Gesture Distance</label><span id="gesture-handmotion-val" class="text-xs font-mono">12%</span></div>
+<input type="range" id="gesture-handmotion-slider" min="5" max="30" step="1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+<p class="text-[10px] text-gray-400 mt-1">How far your hand must move (as % of frame) for Swipes, Boomerang, Zigzag, or Circular Sweep to register. Lower = triggers on smaller movements.</p>
+</div>
+<div class="sensitivity-slider mb-4">
+<div class="flex justify-between mb-1"><label class="text-xs font-bold">Pinch Precision</label><span id="gesture-pinchprecision-val" class="text-xs font-mono">6%</span></div>
+<input type="range" id="gesture-pinchprecision-slider" min="3" max="12" step="1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+<p class="text-[10px] text-gray-400 mt-1">How close your fingertips must be (as % of frame) to register as a Pinch. Higher = more forgiving of imprecise pinches.</p>
 </div>
 <p class="text-[10px] font-bold uppercase text-yellow-400 mt-4 mb-1">Voice</p>
 <div class="sensitivity-slider mb-4">
@@ -1093,6 +1090,36 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <input type="checkbox" class="gesture-filter-toggle h-4 w-4 accent-blue-500" data-group="Chords" checked>
 <span class="text-xs font-medium text-gray-300">Chords (2 fingers, different actions)</span>
 </label>
+</div>
+</div>
+</details>
+<details class="mt-6 group bg-gray-900 rounded-lg border border-gray-700 open:bg-gray-800 transition-colors shadow-sm">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app outline-none">
+<span>Voice Settings 🗣️</span>
+<span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+</summary>
+<div class="p-3 border-t border-gray-700 bg-black/20 space-y-3">
+<div class="mb-4 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
+<label class="text-xs font-bold uppercase text-muted-custom mb-2 block">Voice Profile</label>
+<select id="voice-preset-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
+<div class="grid grid-cols-2 gap-2">
+<button id="voice-preset-add" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button>
+<button id="voice-preset-save" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">SAVE 💾</button>
+<button id="voice-preset-rename" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button>
+<button id="voice-preset-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
+</div>
+</div>
+<div class="mb-3 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
+<label class="text-xs font-bold uppercase text-muted-custom mb-2 block">System Voice</label>
+<select id="voice-name-select" class="settings-input w-full p-2 rounded text-sm font-semibold"></select>
+<p class="text-[10px] text-gray-400 mt-2">Voices marked ⭐ are natural/enhanced voices your device offers - much less robotic than the plain default.</p>
+</div>
+<div class="space-y-3 p-2 bg-black bg-opacity-20 rounded-lg">
+<div><label class="block text-xs font-bold mb-1">Pitch / Tone</label><input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
+<div><label class="block text-xs font-bold mb-1">Speed</label><input type="range" id="voice-rate" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
+<div><label class="block text-xs font-bold mb-1">Volume</label><input type="range" id="voice-volume" min="0" max="1" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
+</div>
+<button id="test-voice-btn" class="w-full py-2 bg-gray-700 text-white rounded font-bold text-xs mt-3">Test Voice 🔊</button>
 </div>
 </div>
 </details>

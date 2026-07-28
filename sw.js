@@ -1,18 +1,18 @@
 // sw.js
-// Version: v64 - Fault Tolerant Offline
-const CACHE_NAME = 'follow-me-v69-lock-modeswitch';
+// Version: v70 - Fault Tolerant Offline, merged JS bundle
+const CACHE_NAME = 'follow-me-v70-merged-bundle';
 
 // 1. CRITICAL: These MUST exist for the app to run.
 // If any of these are missing, the offline mode will fail.
+// NOTE: app.js, gestures.js, settings.js, and vision.js were merged into a
+// single app.js bundle - the three separate entries are gone deliberately,
+// not an oversight.
 const CRITICAL_ASSETS = [
     './',
     './index.html',
     './styles.css',
     './app.js',
-    './settings.js',
-    './gestures.js',
     './manifest.json',
-    './vision.js',
     './wasm/vision_bundle.js',
     './wasm/vision_wasm_internal.js',
     './wasm/vision_wasm_internal.wasm',
@@ -26,12 +26,10 @@ const CRITICAL_ASSETS = [
 // We will TRY to cache these. If they fail (404 missing, network error), 
 // we simply skip them so the app still installs successfully.
 const OPTIONAL_ASSETS = [
-    './icon-192.png',
-    './icon-512.png',
+    './icon192.png',
+    './icon512.png',
     './qr.jpg',
     './redeem.jpg',
-    'https://cdn.tailwindcss.com',
-    'https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap',
     'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js',
     'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js'
 ];

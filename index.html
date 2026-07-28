@@ -53,6 +53,10 @@ alert("Promise Error: " + event.reason);
 <button id="headeruidownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="UI Size Down">🔍-</button>
 <button id="headersequpbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Sequence Size Up">🔢+</button>
 <button id="headerseqdownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Sequence Size Down">🔢-</button>
+<button id="headervolupbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Volume Up">🔊+</button>
+<button id="headervoldownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Volume Down">🔊-</button>
+<button id="headerspeedupbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Speed Up">🐇+</button>
+<button id="headerspeeddownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Speed Down">🐇-</button>
 <button id="headercycleinputbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Cycle Input">🔀</button>
 <button id="headerresetbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Factory Reset">♻️</button>
 <button id="headernukebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Nuke App">☢️</button>
@@ -93,6 +97,10 @@ alert("Promise Error: " + event.reason);
 <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
 <label class="font-semibold">Audio</label>
 <input type="checkbox" id="quick-audio-toggle" class="h-6 w-6 rounded accent-indigo-500">
+</div>
+<div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
+<label class="font-semibold">Lock Settings 🔒</label>
+<input type="checkbox" id="welcome-settings-lock-toggle" class="h-6 w-6 rounded accent-indigo-500">
 </div>
 </div>
 <div class="grid grid-cols-2 gap-4 mb-2">
@@ -333,38 +341,11 @@ alert("Promise Error: " + event.reason);
 </select>
 </div>
 </div>
-<details class="mt-6 group bg-gray-900 rounded-lg border border-gray-700 open:bg-gray-800 transition-colors shadow-sm">
-<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app outline-none">
-<span>Voice Settings 🗣️</span>
-<span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
-</summary>
-<div class="p-3 border-t border-gray-700 bg-black/20 space-y-3">
-<div class="mb-4 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
-<label class="text-xs font-bold uppercase text-muted-custom mb-2 block">Voice Profile</label>
-<select id="voice-preset-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
-<div class="grid grid-cols-2 gap-2">
-<button id="voice-preset-add" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button>
-<button id="voice-preset-save" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">SAVE 💾</button>
-<button id="voice-preset-rename" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button>
-<button id="voice-preset-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
+<!-- Voice Settings accordion moved to the top of the General tab, above Haptics -->
 </div>
-</div>
-<div class="mb-3 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
-<label class="text-xs font-bold uppercase text-muted-custom mb-2 block">System Voice</label>
-<select id="voice-name-select" class="settings-input w-full p-2 rounded text-sm font-semibold"></select>
-<p class="text-[10px] text-gray-400 mt-2">Voices marked ⭐ are natural/enhanced voices your device offers - much less robotic than the plain default.</p>
-</div>
-<div class="space-y-3 p-2 bg-black bg-opacity-20 rounded-lg">
-<div><label class="block text-xs font-bold mb-1">Pitch / Tone</label><input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
-<div><label class="block text-xs font-bold mb-1">Speed</label><input type="range" id="voice-rate" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
-<div><label class="block text-xs font-bold mb-1">Volume</label><input type="range" id="voice-volume" min="0" max="1" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
-</div>
-<button id="test-voice-btn" class="w-full py-2 bg-gray-700 text-white rounded font-bold text-xs mt-3">Test Voice 🔊</button>
-</div>
-</div>
-</details>
 </div>
 <div id="tab-general" class="tab-content">
+<!-- Voice Settings accordion relocated to Dev Mode, above Haptic Output Mapping -->
 <div class="space-y-4">
 <div class="p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
 <div class="flex justify-between items-center mb-2">
@@ -428,6 +409,12 @@ alert("Promise Error: " + event.reason);
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Sequence Size 🔢±</span>
 <input type="checkbox" id="headerSeqSizeToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Volume 🔊±</span>
+<input type="checkbox" id="headerVolumeToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Speed 🐇±</span>
+<input type="checkbox" id="headerSpeedToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Cycle Input 🔀</span>
 <input type="checkbox" id="headerCycleInputToggle" class="h-6 w-6 accent-indigo-500"></div>
@@ -918,6 +905,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <span class="font-bold text-xs text-red-300">🔒 Lock Sliders (prevent accidental changes)</span>
 <input type="checkbox" id="sliderLockToggle" class="h-5 w-5 accent-red-500">
 </label>
+<button id="restore-sensitivity-defaults-btn" class="w-full py-2 mb-3 text-xs font-bold bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition">↩️ Restore Defaults</button>
 <p class="text-[10px] font-bold uppercase text-blue-400 mt-3 mb-1">Touch</p>
 <div class="sensitivity-slider mb-4">
 <div class="flex justify-between mb-1"><label class="text-xs font-bold">Tap Speed (ms)</label><span id="gesture-tap-val" class="text-xs font-mono">300ms</span></div>
@@ -979,6 +967,16 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div class="flex justify-between mb-1"><label class="text-xs font-bold">Hold Frames to Lock In</label><span id="gesture-handhold-val" class="text-xs font-mono">4</span></div>
 <input type="range" id="gesture-handhold-slider" min="1" max="10" step="1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
 <p class="text-[10px] text-gray-400 mt-1">How many consecutive matching camera frames before a pose is confirmed. Lower = snappier but jumpier; higher = steadier but slower to register.</p>
+</div>
+<div class="sensitivity-slider mb-4">
+<div class="flex justify-between mb-1"><label class="text-xs font-bold">Motion Gesture Distance</label><span id="gesture-handmotion-val" class="text-xs font-mono">12%</span></div>
+<input type="range" id="gesture-handmotion-slider" min="5" max="30" step="1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+<p class="text-[10px] text-gray-400 mt-1">How far your hand must move (as % of frame) for Swipes, Boomerang, Zigzag, or Circular Sweep to register. Lower = triggers on smaller movements.</p>
+</div>
+<div class="sensitivity-slider mb-4">
+<div class="flex justify-between mb-1"><label class="text-xs font-bold">Pinch Precision</label><span id="gesture-pinchprecision-val" class="text-xs font-mono">6%</span></div>
+<input type="range" id="gesture-pinchprecision-slider" min="3" max="12" step="1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+<p class="text-[10px] text-gray-400 mt-1">How close your fingertips must be (as % of frame) to register as a Pinch. Higher = more forgiving of imprecise pinches.</p>
 </div>
 <p class="text-[10px] font-bold uppercase text-yellow-400 mt-4 mb-1">Voice</p>
 <div class="sensitivity-slider mb-4">
@@ -1096,6 +1094,35 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 </div>
 </details>
+<details class="mt-6 group bg-gray-900 rounded-lg border border-gray-700 open:bg-gray-800 transition-colors shadow-sm">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app outline-none">
+<span>Voice Settings 🗣️</span>
+<span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+</summary>
+<div class="p-3 border-t border-gray-700 bg-black/20 space-y-3">
+<div class="mb-4 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
+<label class="text-xs font-bold uppercase text-muted-custom mb-2 block">Voice Profile</label>
+<select id="voice-preset-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
+<div class="grid grid-cols-2 gap-2">
+<button id="voice-preset-add" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button>
+<button id="voice-preset-save" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">SAVE 💾</button>
+<button id="voice-preset-rename" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button>
+<button id="voice-preset-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
+</div>
+</div>
+<div class="mb-3 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
+<label class="text-xs font-bold uppercase text-muted-custom mb-2 block">System Voice</label>
+<select id="voice-name-select" class="settings-input w-full p-2 rounded text-sm font-semibold"></select>
+<p class="text-[10px] text-gray-400 mt-2">Voices marked ⭐ are natural/enhanced voices your device offers - much less robotic than the plain default.</p>
+</div>
+<div class="space-y-3 p-2 bg-black bg-opacity-20 rounded-lg">
+<div><label class="block text-xs font-bold mb-1">Pitch / Tone</label><input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
+<div><label class="block text-xs font-bold mb-1">Speed</label><input type="range" id="voice-rate" min="0.5" max="2" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
+<div><label class="block text-xs font-bold mb-1">Volume</label><input type="range" id="voice-volume" min="0" max="1" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
+</div>
+<button id="test-voice-btn" class="w-full py-2 bg-gray-700 text-white rounded font-bold text-xs mt-3">Test Voice 🔊</button>
+</div>
+</details>
 <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
 <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
 <span>Haptic Output Mapping 📳</span>
@@ -1173,13 +1200,14 @@ Email
 <h3 class="text-2xl font-bold">Manual 📘</h3>
 <button id="close-help" class="text-2xl opacity-70 hover:opacity-100">&times;</button>
 </div>
-<div class="help-tab-bar grid grid-cols-3 border-b border-custom bg-black bg-opacity-10">
+<div class="help-tab-bar grid grid-cols-4 border-b border-custom bg-black bg-opacity-10">
 <div class="tab-btn active" data-tab="help-about">Basics</div>
 <div class="tab-btn" data-tab="help-buttons">Buttons</div>
 <div class="tab-btn" data-tab="help-settings">Settings</div>
 <div class="tab-btn" data-tab="help-vision">Hand</div>
 <div class="tab-btn" data-tab="help-gestures">Touch</div>
 <div class="tab-btn" data-tab="help-voice">Voice</div>
+<div class="tab-btn" data-tab="help-tone">Tone</div>
 </div>
 <div class="p-5 overflow-y-auto leading-relaxed space-y-4 text-sm flex-grow">
 <div id="tab-help-about" class="tab-content active space-y-4">
@@ -1219,6 +1247,10 @@ Email
 <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Backup & Restore</strong>
 <p class="text-xs opacity-90">Settings → General → Backup / Restore lets you export your entire configuration (including custom presets and profiles) as a short text code, and paste one back in to restore it - handy before resetting, switching devices, or just keeping a safety copy.</p>
 </div>
+<div class="space-y-3">
+<strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Lock Settings 🔒</strong>
+<p class="text-xs opacity-90">The welcome screen (and the lock icon inside Settings) both toggle the same Settings Lock - turn it on to stop someone else from changing your setup mid-game. Either one unlocks it again just as easily.</p>
+</div>
 </div>
 <div id="tab-help-buttons" class="tab-content space-y-4">
 <div class="space-y-3">
@@ -1235,17 +1267,19 @@ Email
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔄</span> <strong>Position Swap:</strong> Move the input keypad from the bottom of the screen to the top.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔲</span> <strong>Full Screen:</strong> Hide the browser's address bar and UI chrome.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🙃</span> <strong>Upside Down:</strong> Flip the entire interface 180° (for a partner facing you).</li>
-<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">▶️</span> <strong>Play:</strong> Play back the current sequence.</li>
-<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">⌫</span> <strong>Delete:</strong> Remove the last entry from the sequence.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">▶️</span> <strong>Play:</strong> Play back the current sequence. Long-press toggles Autoplay on/off if "AP Shortcut" is enabled in Settings → General.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">⌫</span> <strong>Delete:</strong> Remove the last entry. Press and hold to delete repeatedly if "Quick Erase" is on in Settings → General.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">⚙️</span> <strong>Settings:</strong> Quick access to the Settings menu.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📚</span> <strong>Help:</strong> Quick access to this Help menu.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🛠️</span> <strong>Dev Mode:</strong> Quick access to Developer Mode.</li>
-<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🆔</span> <strong>Redeem:</strong> Quick access to your redeem code/barcode.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🆔</span> <strong>Redeem:</strong> Quick access to your redeem code/barcode. Eco Mode automatically pauses while this is open, so the code stays easy to scan.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📤</span> <strong>Share:</strong> Quick access to sharing the app.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🎨</span> <strong>Theme Cycle:</strong> Step through every saved theme, one tap at a time.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">➕</span> <strong>Add Machine:</strong> Add another independent sequence (Simon mode), up to 4.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔍±</span> <strong>UI Size:</strong> Two buttons that grow/shrink the whole interface.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔢±</span> <strong>Sequence Size:</strong> Two buttons that grow/shrink just the number cards.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔊±</span> <strong>Volume:</strong> Two buttons that raise/lower the text-to-speech volume, same value the twist-gesture and voice "louder"/"quieter" commands adjust.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🐇±</span> <strong>Speed:</strong> Two buttons that raise/lower playback speed, same value the twist-gesture and voice "faster"/"slower" commands adjust.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔀</span> <strong>Cycle Input:</strong> Step through 9-Key → 12-Key → Piano layouts.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">♻️</span> <strong>Reset:</strong> Factory reset - restores default settings (asks to confirm first).</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">☢️</span> <strong>Nuke:</strong> Full wipe - clears saved data, browser cache, and forces a fresh reload (asks to confirm first). Use if the app is behaving strangely after an update.</li>
@@ -1268,7 +1302,7 @@ Email
 <p><strong>Machines:</strong> Track up to 4 completely independent sequences simultaneously.</p>
 <p><strong>Length:</strong> Maximum sequence boundary per machine.</p>
 <p><strong>Auto-Advance (Unique):</strong> Automatically clears the sequence for the next round after playback finishes.</p>
-<p><strong>Practice Mode 🎓:</strong> Runs a dummy round with random numbers mimicking your current settings to test layouts.</p>
+<p><strong>Practice Mode 🎓:</strong> A real Simon-Says style test using your current settings - plays a random round, waits for you to repeat it back (through any input method, including Tone Cadence), then grows the sequence by one and replays it from the start. Says "Correct" and advances, or "Wrong" and replays the same round again.</p>
 </div>
 </details>
 <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
@@ -1360,10 +1394,9 @@ Email
 </summary>
 <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
 <p>Opens from the wrench icon in the top-left of the Settings header. Holds the more technical, fine-tuning controls:</p>
-<p><strong>Tap Speed (ms):</strong> How fast you must release your finger for it to count as a tap. Higher = easier to tap, harder to swipe.</p>
-<p><strong>Swipe Distance (px):</strong> How far your finger must drag before it triggers a swipe. Higher = prevents accidental swipes.</p>
-<p><strong>Long Press Time, Tap Wiggle Room, Spatial Tap Precision, Long Swipe Distance, Multi-Finger Swipe Sync:</strong> Five more fine-tuning sliders for the touch engine - each has its own explanation directly under its slider.</p>
-<p><strong>Populate Hand/Touch Gesture Menus:</strong> Two separate filter groups. Hand controls which pose categories (Poses, Pinches, Finger Counts, Advanced Shapes) show up in the Hand tab's dropdowns; Touch controls which of the 13 touch categories (Taps, Swipes, Boomerangs, etc.) show up in the Touch tab's dropdowns.</p>
+<p><strong>Voice Settings 🗣️:</strong> Text-to-speech voice, Pitch/Speed/Volume, and saved voice profiles - moved here from General.</p>
+<p><strong>Sensitivity 🎛️:</strong> Every timing/distance threshold the Touch, Hand, Voice, and Tone Cadence engines use, grouped by input method - each slider explains itself underneath. "Restore Defaults" resets all of them at once (locks out while sliders are locked).</p>
+<p><strong>Populate Hand/Touch Gesture Menus:</strong> Two separate filter groups. Hand controls which pose/motion categories (Static Poses, Pinches, Finger Counts, Combos, Advanced Vision Shapes, Directional Swipes, Motion Transitions) show up in the Hand tab's dropdowns; Touch controls which touch categories (Taps, Swipes, Boomerangs, Chords, etc.) show up in the Touch tab's dropdowns.</p>
 <p><strong>Haptic Output Mapping:</strong> Customize the dot/dash vibration pattern for each of the 12 possible values, used when the Playback tab's Morse toggle is on.</p>
 </div>
 </details>
@@ -1375,8 +1408,18 @@ Email
 </div>
 <div class="text-xs space-y-2 opacity-90 bg-black/20 p-3 rounded">
 <p><strong>🎛️ Per-Key Mapping (customizable):</strong></p>
-<p class="opacity-80">Each keypad value can be assigned its own hand pose - Settings → Mapping → Hand tab → open the 9-Key/12-Key/Piano accordion for your layout. Apply a Quick Preset (like "Finger Counts") to assign every key at once, or set individual keys by hand. Which pose categories show up in those dropdowns (Poses, Pinches, Finger Counts, Advanced Shapes) is controlled in 🛠️ Developer Mode.</p>
+<p class="opacity-80">Each keypad value can be assigned its own hand pose or motion - Settings → Mapping → Hand tab → open the 9-Key/12-Key/Piano accordion for your layout. Apply a Quick Preset (like "Finger Counts") to assign every key at once, or set individual keys by hand. Which of the 7 categories below show up in those dropdowns is controlled in 🛠️ Developer Mode.</p>
 <p class="opacity-80">Next to each pose is a hand selector (✋ Any / 👈 Left / 👉 Right). Leave it on Any to trigger with either hand, or pick Left/Right to make the same pose do different things depending on which hand you use - e.g. a left-hand fist for one key and a right-hand fist for another. If the detected hand comes out backwards on your device, flip "Swap Left/Right Hands 🔄" in Settings → General (the Hand test in Developer Mode shows which hand is being detected).</p>
+</div>
+<div class="text-xs space-y-2 opacity-90 bg-black/20 p-3 rounded">
+<p><strong>🪃 Motion Shapes & Directional Swipes</strong></p>
+<p class="opacity-70">Unlike poses, these read your hand's movement through space rather than its shape - any hand shape works as long as you move it clearly. A brief, deliberate motion won't register; give it a real, unhurried movement.</p>
+<p><strong>👆👇👈👉 Swipe Up / Down / Left / Right:</strong> Move your hand clearly in one direction.</p>
+<p><strong>🪃 Boomerang Pattern:</strong> Move out, then back to roughly where you started.</p>
+<p><strong>⚡ Zigzag Motion:</strong> Move back and forth three or more times, like scrubbing.</p>
+<p><strong>🔄 Circular Sweep:</strong> Trace most of a full circle, either direction.</p>
+<p><strong>⚓ Anchor Hold:</strong> Hold your hand still in one spot for about half a second.</p>
+<p class="opacity-60 text-[10px]">Left/Right depends on your camera's mirroring, same as hand-side detection above - "Swap Left/Right Hands" corrects both together. Sensitivity (how far the hand must move to count) is adjustable in Settings → Developer Mode → Sensitivity → Hand.</p>
 </div>
 <div class="text-xs space-y-2 opacity-80 bg-black/20 p-3 rounded">
 <p><strong>✋ Hand Signals (global, separate from key mapping, both hands):</strong></p>
@@ -1400,31 +1443,95 @@ Email
 <div id="tab-help-gestures" class="tab-content space-y-4">
 <div class="bg-gray-800 p-2 rounded border border-gray-600">
 <strong class="text-white text-xs block mb-1">The Gesture Pad</strong>
-<p class="text-[10px] opacity-70">These touch commands work on the transparent "Gesture Pad" (opened via the 🗒️ icon) or when Boss Mode Gestures are enabled. Assign any of them to a keypad value in Settings → Mapping → Touch tab; a Quick Preset can assign a whole layout at once.</p>
+<p class="text-[10px] opacity-70">These touch commands work on the transparent "Gesture Pad" (opened via the 🗒️ icon) or when Boss Mode Gestures are enabled. Assign any of them to a keypad value in Settings → Mapping → Touch tab; a Quick Preset can assign a whole layout at once. There are 100+ individually-named gestures across 7 categories - too many to list one by one, so this explains how the names are built, plus real examples from each category.</p>
+</div>
+<div class="bg-blue-900/30 p-3 rounded-lg border border-blue-500/30">
+<strong class="text-blue-300 block mb-1">🧩 How the names are built</strong>
+<p class="text-xs opacity-90">Most names follow <code class="bg-black/30 px-1 rounded">shape_direction_winding_fingers</code>, left to right, dropping any piece that doesn't apply:</p>
+<ul class="list-disc pl-4 text-xs opacity-90 space-y-1 mt-1">
+<li><strong>shape</strong> - what you drew: swipe, boomerang, switchback, corner, zigzag, triangle, u_shape, square, chord, anchor, tap/double_tap/triple_tap/long_tap...</li>
+<li><strong>direction</strong> - up/down/left/right/nw/ne/sw/se (where the shape starts), or <code class="bg-black/30 px-1 rounded">any</code> to match every direction with one mapping.</li>
+<li><strong>winding</strong> - <code class="bg-black/30 px-1 rounded">cw</code>/<code class="bg-black/30 px-1 rounded">ccw</code>, only on shapes that turn (switchback, corner, triangle, u_shape, square).</li>
+<li><strong>fingers</strong> - <code class="bg-black/30 px-1 rounded">_2f</code> / <code class="bg-black/30 px-1 rounded">_3f</code> suffix for 2 or 3 fingers at once; no suffix means 1 finger.</li>
+</ul>
+<p class="text-xs opacity-90 mt-1">Example: <code class="bg-black/30 px-1 rounded">switchback_up_cw</code> = a switchback, starting upward, curving clockwise, one finger. Picking the <code class="bg-black/30 px-1 rounded">_any</code> version of a shape matches every direction/winding at once.</p>
 </div>
 <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
 <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white">
-<span>💨 Basic Swipes & Taps</span>
+<span>👆 Taps & Spatial Taps</span>
 <span class="group-open:rotate-180 transition-transform">▼</span>
 </summary>
 <div class="p-3 text-xs opacity-90 space-y-2 border-t border-gray-700 mt-2 pt-2">
-<p><strong>1-Finger Swipe:</strong> Up, Down, Left, Right.</p>
-<p><strong>2-Finger & 3-Finger:</strong> Multi-touch swipes in any direction.</p>
-<p><strong>Corners:</strong> Swipe diagonally (e.g., Up-Right).</p>
-<p><strong>Taps:</strong> Single, Double, Triple, and Long Presses (Hold).</p>
+<p><strong>Taps:</strong> tap, double_tap, triple_tap, long_tap (press and hold).</p>
+<p><strong>Multi-Finger Taps:</strong> the same 4, at once with 2 or 3 fingers, aligned vertically/horizontally/diagonally - e.g. <code class="bg-black/30 px-1 rounded">double_tap_2f_horizontal</code>.</p>
+<p><strong>Spatial Taps:</strong> a double or triple tap where each tap lands somewhere <em>different</em> on screen instead of the same spot. Two taps read as a direction (<code class="bg-black/30 px-1 rounded">Double_tap_spatial_up</code>); three taps read as a line, corner, or boomerang shape depending on the angle between them.</p>
 </div>
 </details>
 <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
 <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white">
-<span>📐 Complex Shapes</span>
+<span>💨 Swipes, Long Swipes &amp; Flicks</span>
 <span class="group-open:rotate-180 transition-transform">▼</span>
 </summary>
-<div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
-<p><strong>Boomerang (I-Shape):</strong> Swipe UP then DOWN without lifting.</p>
-<p><strong>Switchback (V-Shape):</strong> Swipe RIGHT then DOWN-LEFT without lifting.</p>
-<p><strong>Square/Triangle:</strong> Draw the continuous shape.</p>
-<p><strong>Twists:</strong> Rotate two or three fingers in a circle.</p>
-<p><strong>Squiggle:</strong> Rapidly scrub back and forth.</p>
+<div class="p-3 text-xs opacity-90 space-y-2 border-t border-gray-700 mt-2 pt-2">
+<p><strong>Swipe:</strong> one clean motion in a direction, 1 finger.</p>
+<p><strong>Long Swipe:</strong> the same, but covering extra distance - a separate, longer-throw version of the same 8 directions.</p>
+<p><strong>Flick:</strong> a swipe completed fast (under ~200ms) - a quick snap rather than a deliberate drag.</p>
+<p><strong>Multi-Finger Swipes:</strong> the same swipe, with 2 or 3 fingers moving together.</p>
+</div>
+</details>
+<details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white">
+<span>📐 Shapes</span>
+<span class="group-open:rotate-180 transition-transform">▼</span>
+</summary>
+<div class="p-3 text-xs opacity-90 space-y-2 border-t border-gray-700 mt-2 pt-2">
+<p><strong>Boomerang:</strong> out then back (I-shape) - e.g. swipe up, then down, without lifting.</p>
+<p><strong>Switchback:</strong> out then a sharp-but-not-full reversal (like a ">" shape).</p>
+<p><strong>Corner:</strong> a right-angle-ish turn (L-shape).</p>
+<p><strong>Zigzag / Long Zigzag:</strong> 3-4 segments that alternate turn direction (left-right-left...).</p>
+<p><strong>Triangle / U-Shape / Square:</strong> 3-4 segment shapes that curve the <em>same</em> way throughout; Triangle and Square close back near the start, U-Shape doesn't.</p>
+<p class="opacity-60 text-[10px]">Corner/Triangle/U-Shape/Square all carry a winding (cw/ccw) since they turn; Boomerang and Zigzag don't.</p>
+</div>
+</details>
+<details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white">
+<span>🤏 Chords, Anchors &amp; Pinch/Expand Swipes</span>
+<span class="group-open:rotate-180 transition-transform">▼</span>
+</summary>
+<div class="p-3 text-xs opacity-90 space-y-2 border-t border-gray-700 mt-2 pt-2">
+<p><strong>Chord:</strong> 2 fingers land together and move independently in <em>different</em> directions - e.g. one goes up while the other goes left. Named alphabetically: <code class="bg-black/30 px-1 rounded">chord_left_up_2f</code>.</p>
+<p><strong>Anchor:</strong> one finger touches down first and stays still (a modifier, like holding Shift) while a second finger taps or swipes - <code class="bg-black/30 px-1 rounded">anchor_tap_2f</code>, <code class="bg-black/30 px-1 rounded">anchor_swipe_up_2f</code>, etc.</p>
+<p><strong>Pinch Swipe / Expand Swipe:</strong> 2 fingers swiping together in the same direction while also drawing closer together (pinch) or further apart (expand) as they move.</p>
+</div>
+</details>
+<details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white">
+<span>⏸️ Pausing Curves</span>
+<span class="group-open:rotate-180 transition-transform">▼</span>
+</summary>
+<div class="p-3 text-xs opacity-90 space-y-2 border-t border-gray-700 mt-2 pt-2">
+<p>Any Swipe, Boomerang, Switchback, or Corner performed with a deliberate ~half-second hold partway through, instead of one continuous motion - e.g. swipe up, pause, continue. 1-finger only. Same direction/winding suffixes as the shapes above (<code class="bg-black/30 px-1 rounded">Pausing_Switchback_up_cw</code>).</p>
+</div>
+</details>
+<details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white">
+<span>🎯 Motion Gestures (tap, then move)</span>
+<span class="group-open:rotate-180 transition-transform">▼</span>
+</summary>
+<div class="p-3 text-xs opacity-90 space-y-2 border-t border-gray-700 mt-2 pt-2">
+<p>A tap that's immediately followed by a swipe, boomerang, or corner without lifting between the two - reads as a distinct combo, separate from just doing the shape on its own. 1-finger only.</p>
+</div>
+</details>
+<details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-white">
+<span>🌀 Continuous Gestures (toggle-based, not key-mapped)</span>
+<span class="group-open:rotate-180 transition-transform">▼</span>
+</summary>
+<div class="p-3 text-xs opacity-90 space-y-2 border-t border-gray-700 mt-2 pt-2">
+<p class="opacity-70">These aren't in the mapping dropdowns - each has its own on/off toggle in Settings → General instead, listed in the Settings tab above.</p>
+<p><strong>Twist:</strong> rotate 2 or 3 fingers like turning a dial - 3 fingers adjusts Volume, 2 fingers adjusts Speed (both also have header ± buttons and voice commands - see Buttons and Voice tabs).</p>
+<p><strong>Pinch/Resize:</strong> standard pinch-to-zoom, mapped to scaling the UI or the sequence cards.</p>
+<p><strong>Squiggle:</strong> rapid back-and-forth scrubbing - 1 finger erases, 2 fingers clears the round.</p>
 </div>
 </details>
 </div>
@@ -1433,7 +1540,8 @@ Email
 <strong class="text-blue-300 block mb-1">🎤 In-App Voice Input</strong>
 <p class="text-xs opacity-90 mb-2">Turn on "Voice Input" in Settings → General, then tap the 🎤 header icon to start listening. Say your Voice Trigger word (default "Set"), then a number, letter, or command in the same breath.</p>
 <p class="text-xs opacity-90"><strong>Examples:</strong> "Set 1 2 3" enters those values. "Set Play" plays back. Requires "Voice Commands" also on in Settings → General.</p>
-<p class="text-xs opacity-90 mt-2"><strong>Commands:</strong> play / start / go &nbsp;•&nbsp; stop / pause &nbsp;•&nbsp; clear / reset &nbsp;•&nbsp; delete / backspace / undo / back &nbsp;•&nbsp; settings / options</p>
+<p class="text-xs opacity-90 mt-2"><strong>Commands:</strong> play / start / go &nbsp;•&nbsp; stop / pause &nbsp;•&nbsp; clear / reset &nbsp;•&nbsp; delete / backspace / undo / back &nbsp;•&nbsp; settings / options &nbsp;•&nbsp; louder &nbsp;•&nbsp; quieter &nbsp;•&nbsp; faster &nbsp;•&nbsp; slower</p>
+<p class="text-[10px] opacity-60 mt-1">Volume/speed commands are single words (not "volume up") to match how the recognizer listens for one word right after your trigger.</p>
 </div>
 <h4 class="font-bold text-lg text-primary-app mb-2">AI Assistant Prompt 🤖</h4>
 <p class="mb-4 opacity-90 text-xs">Copy this prompt into an AI Audio Assistant (like ChatGPT Voice) to play with a dynamic AI caller that adapts to your current configuration.</p>
@@ -1443,6 +1551,29 @@ Email
 <div class="flex justify-end space-x-2 mt-2">
 <button id="generate-prompt-btn" class="bg-green-600 hover:bg-green-500 text-white text-xs font-bold px-4 py-2 rounded shadow">🔄 Update</button>
 <button id="copy-prompt-btn" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded shadow">📋 Copy</button>
+</div>
+</div>
+<div id="tab-help-tone" class="tab-content space-y-4">
+<div class="bg-blue-900/30 p-3 rounded-lg border border-blue-500/30">
+<strong class="text-blue-300 block mb-1">🎵 Tone Cadence</strong>
+<p class="text-xs opacity-90">Hum or whistle to play a real Simon-Says memory game, hands and eyes free. Turn on "Tone Cadence Mode" in Settings → General plus "Practice Mode" in Settings → Game, then tap the 🎵 header icon to start. <strong>9-Key layout only</strong> for now - switching to 12-Key or Piano turns it off.</p>
+</div>
+<div class="text-xs space-y-2 opacity-90 bg-black/20 p-3 rounded">
+<p><strong>🎼 How a round plays out:</strong></p>
+<p>Once, at the very start of a session, you'll hear 8 tones - a quick "get ready" cue. Then each round plays the sequence so far once, plays it again immediately as your cue to answer, and starts listening. Hum it back correctly and the sequence grows by one note and replays from the start; get it wrong and the same round repeats. This continues up to 20 notes, exactly like Simon Says.</p>
+</div>
+<div class="text-xs space-y-2 opacity-90 bg-black/20 p-3 rounded">
+<p><strong>⏱️ Timing (this is the part that trips people up):</strong></p>
+<p>The app's own playback is a rigid 0.2 seconds of tone followed by 0.8 seconds of silence per note. Your hummed-back answer doesn't need to match that rigidly - the listening side is intentionally more forgiving, since nobody hums with machine timing. Aim for a short, clear chirp with a real pause after it, and don't rush; a snappier chirp-pause-chirp rhythm reads more reliably than one smooth continuous melody.</p>
+</div>
+<div class="text-xs space-y-2 opacity-80 bg-black/20 p-3 rounded">
+<p><strong>💡 Tips:</strong></p>
+<ul class="list-disc pl-4 space-y-1">
+<li>Needs microphone permission, and picks up any sound source loud enough - humming, whistling, or a played note all work.</li>
+<li>Volume Threshold, plus the tone/hand/touch sensitivity sliders, are all in Settings → Developer Mode → Sensitivity if it's missing quiet notes or picking up background noise.</li>
+<li>The Tone test in 🛠️ Developer Mode plays an arbitrary typed sequence and shows the live detected pitch and note name - useful for finding your comfortable range before relying on it during a real round.</li>
+<li>The exact tones are still being finalized on our end, so exact notes/frequencies may change - the round structure and timing described above won't.</li>
+</ul>
 </div>
 </div>
 </div>

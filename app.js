@@ -5,6 +5,21 @@
 // file boundaries for navigation during audits.
 // ============================================================
 
+// --- Tone Cadence: single source of truth for the 9 notes (C4-D5, diatonic major scale, A440 12-TET) ---
+// Playback (ToneSequenceTester), mic-input detection (ToneEngine), and both UI note-name displays
+// all read from this one table so the numbers can never drift out of sync with each other.
+const TONE_TABLE = [
+    { n: 1, f: 261.63, name: 'C' },
+    { n: 2, f: 293.66, name: 'D' },
+    { n: 3, f: 329.63, name: 'E' },
+    { n: 4, f: 349.23, name: 'F' },
+    { n: 5, f: 392.00, name: 'G' },
+    { n: 6, f: 440.00, name: 'A' },
+    { n: 7, f: 493.88, name: 'B' },
+    { n: 8, f: 523.25, name: 'C' },
+    { n: 9, f: 587.33, name: 'D' }
+];
+
 // ===== FORMERLY: gestures.js =====
 // gestures.js
 // Version: v100 - "I-Shape" Boomerangs & Switchbacks
@@ -2459,7 +2474,7 @@ if (clearToneHistoryBtn) {
 						const stopBtn = document.getElementById('tone-test-stop-btn');
 						const seqInput = document.getElementById('tone-test-sequence');
 						const progressEl = document.getElementById('tone-test-progress');
-						const noteNames = ['', 'C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D'];
+						const noteNames = ['', ...TONE_TABLE.map(t => t.name)];
 						if (playBtn) {
 							playBtn.onclick = () => {
 								if (!window.toneSequenceTester || window.toneSequenceTester.isPlaying) return;
@@ -4167,17 +4182,7 @@ const startApp = () => {
             this.audioCtx = null;
             this.isPlaying = false;
             this.stopRequested = false;
-            this.TONES = {
-                1: 261.63,
-                2: 293.66,
-                3: 329.63,
-                4: 349.23,
-                5: 392.00,
-                6: 440.00,
-                7: 493.88,
-                8: 523.25,
-                9: 587.33
-            };
+            this.TONES = Object.fromEntries(TONE_TABLE.map(t => [t.n, t.f]));
         }
         _initAudio() {
             if (!this.audioCtx) {
@@ -4247,7 +4252,7 @@ const startApp = () => {
         if (debug.error) {
             text = `🎵 Mic error: ${debug.error}`;
         } else if (debug.note) {
-            text = `🎵 ${['', 'C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D'][debug.note]} (${debug.freq}Hz) #${debug.note}`;
+            text = `🎵 ${(TONE_TABLE.find(t => t.n === debug.note) || {}).name || '?'} (${debug.freq}Hz) #${debug.note}`;
         } else if (debug.freq) {
             text = `🎵 ${debug.freq}Hz (no note match)`;
         } else {
@@ -4441,34 +4446,7 @@ class ToneEngine {
         this.micSrc = null;
         this.isActive = false;
         this.loopId = null;
-        this.TONES = [{
-            n: 1,
-            f: 261.63
-        }, {
-            n: 2,
-            f: 293.66
-        }, {
-            n: 3,
-            f: 329.63
-        }, {
-            n: 4,
-            f: 349.23
-        }, {
-            n: 5,
-            f: 392.00
-        }, {
-            n: 6,
-            f: 440.00
-        }, {
-            n: 7,
-            f: 493.88
-        }, {
-            n: 8,
-            f: 523.25
-        }, {
-            n: 9,
-            f: 587.33
-        }];
+        this.TONES = TONE_TABLE;
         this.audioThresh = -70;
         this.currentTone = null;
         this.toneStartTime = 0;
@@ -4557,6 +4535,25 @@ class ToneEngine {
         }
         return refinedLag > 0 ? sampleRate / refinedLag : -1;
     }
+    // Finds the closest tone to a detected frequency, not just the first one within tolerance.
+    // Fixes a real bug: the old code used TONES.find() with a flat +/-4% window per note, and
+    // since C4-D5 is a diatonic major scale (whole+half steps), the two half-step gaps (E4-F4,
+    // B4-C5) are narrower than the whole-step gaps -- their +/-4% windows overlapped, and .find()
+    // always resolved the overlap to whichever note came first in the array, regardless of which
+    // was actually closer. A flat-of-F4 hum could get silently misread as E4, and a flat-of-C5
+    // hum as B4. This keeps the same +/-4% acceptance width but guarantees the nearest note wins.
+    _matchNearestTone(freq) {
+        let best = null,
+            bestDist = Infinity;
+        for (const t of this.TONES) {
+            const dist = Math.abs(t.f - freq);
+            if (dist < bestDist) {
+                bestDist = dist;
+                best = t;
+            }
+        }
+        return (best && bestDist < best.f * 0.04) ? best : null;
+    }
     loop() {
         if (!this.isActive) return;
         const timeData = new Float32Array(this.analyser.fftSize);
@@ -4569,7 +4566,7 @@ class ToneEngine {
         const now = Date.now();
         if (maxVal > (appSettings.toneVolumeThreshold || this.audioThresh)) {
             const freq = this._detectPitch(timeData, this.audioCtx.sampleRate);
-            const match = freq > 0 ? this.TONES.find(t => Math.abs(t.f - freq) < t.f * 0.04) : null;
+            const match = freq > 0 ? this._matchNearestTone(freq) : null;
             if (this.onDebug) this.onDebug({
                 freq: freq > 0 ? Math.round(freq) : null,
                 note: match ? match.n : null,

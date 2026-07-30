@@ -1855,7 +1855,7 @@ class SettingsManager {
 			longPressToggle: document.getElementById('apshortcutToggle'),
 			timerToggle: document.getElementById('timerToggle'),
 			headerPlayToggle: document.getElementById('headerPlayToggle'), headerDeleteToggle: document.getElementById('headerDeleteToggle'), headerSettingsToggle: document.getElementById('headerSettingsToggle'), headerRedeemToggle: document.getElementById('headerRedeemToggle'), headerShareToggle: document.getElementById('headerShareToggle'), headerThemeCycleToggle: document.getElementById('headerThemeCycleToggle'), headerAddMachineToggle: document.getElementById('headerAddMachineToggle'), headerUiSizeToggle: document.getElementById('headerUiSizeToggle'), headerSeqSizeToggle: document.getElementById('headerSeqSizeToggle'), headerVolumeToggle: document.getElementById('headerVolumeToggle'), headerSpeedToggle: document.getElementById('headerSpeedToggle'), headerCycleInputToggle: document.getElementById('headerCycleInputToggle'),
-			headerNotepadToggle: document.getElementById('headerNotepadToggle'), headerHelpToggle: document.getElementById('headerHelpToggle'), headerModeSwitchToggle: document.getElementById('headerModeSwitchToggle'), headerResetToggle: document.getElementById('headerResetToggle'), headerNukeToggle: document.getElementById('headerNukeToggle'),
+			headerNotepadToggle: document.getElementById('headerNotepadToggle'), headerHelpToggle: document.getElementById('headerHelpToggle'), headerModeSwitchToggle: document.getElementById('headerModeSwitchToggle'), headerResetToggle: document.getElementById('headerResetToggle'), headerNukeToggle: document.getElementById('headerNukeToggle'), headerInfiniteScrollToggle: document.getElementById('headerInfiniteScrollToggle'),
 			counterToggle: document.getElementById('counterToggle'),
 			gestureToggle: document.getElementById('touchToggle'),
 			handToggle: document.getElementById('handToggle'),
@@ -1868,6 +1868,7 @@ class SettingsManager {
 			headerplaybtn: document.getElementById('headerplaybtn'), headerdeletebtn: document.getElementById('headerdeletebtn'), headersettingsbtn: document.getElementById('headersettingsbtn'), headerredeembtn: document.getElementById('headerredeembtn'), headersharebtn: document.getElementById('headersharebtn'), headerthemecyclebtn: document.getElementById('headerthemecyclebtn'), headeraddmachinebtn: document.getElementById('headeraddmachinebtn'), headeruiupbtn: document.getElementById('headeruiupbtn'), headeruidownbtn: document.getElementById('headeruidownbtn'), headersequpbtn: document.getElementById('headersequpbtn'), headerseqdownbtn: document.getElementById('headerseqdownbtn'), headervolupbtn: document.getElementById('headervolupbtn'), headervoldownbtn: document.getElementById('headervoldownbtn'), headerspeedupbtn: document.getElementById('headerspeedupbtn'), headerspeeddownbtn: document.getElementById('headerspeeddownbtn'), headercycleinputbtn: document.getElementById('headercycleinputbtn'),
 			headernotepadbtn: document.getElementById('headernotepadbtn'), headerhelpbtn: document.getElementById('headerhelpbtn'), headermodeswitchbtn: document.getElementById('headermodeswitchbtn'), headerresetbtn: document.getElementById('headerresetbtn'), headernukebtn: document.getElementById('headernukebtn'),
 			uiScale: document.getElementById('ui-scale-select'),
+			headerScale: document.getElementById('header-scale-select'),
 			seqSize: document.getElementById('seq-size-select'),
 			seqFontSize: document.getElementById('seq-font-size-select'),
 			gestureMode: document.getElementById('gesture-mode-select'),
@@ -2803,6 +2804,7 @@ if (!window.__testChecklists) {
 		bindToggle(this.dom.headerSpeedToggle, 'showHeaderSpeedBtns', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerCycleInputToggle, 'showHeaderCycleInputBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerNotepadToggle, 'showHeaderNotepadBtn', () => this.updateHeaderVisibility());
+		bindToggle(this.dom.headerInfiniteScrollToggle, 'isHeaderInfiniteScrollEnabled', true);
 		bindToggle(this.dom.headerHelpToggle, 'showHeaderHelpBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerModeSwitchToggle, 'showHeaderModeSwitchBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerResetToggle, 'showHeaderResetBtn', () => this.updateHeaderVisibility());
@@ -3077,6 +3079,15 @@ if (!window.__testChecklists) {
 		bind(this.dom.autoCounterToggle, 'isAutoCounterEnabled', true);
 		bind(this.dom.practiceMode, 'isPracticeModeEnabled', false);
 		if (this.dom.uiScale) this.dom.uiScale.onchange = (e) => { this.appSettings.globalUiScale = parseInt(e.target.value); this.callbacks.onUpdate(); };
+		if (this.dom.headerScale) this.dom.headerScale.onchange = (e) => {
+			this.appSettings.headerIconScale = parseInt(e.target.value);
+			this.applyHeaderScale();
+			// Width/gap update live via the CSS custom property, which existing clones inherit
+			// automatically - but Timer/Counter's font-size is a frozen inline-style snapshot
+			// from whenever cloneNode(true) ran, so clones need rebuilding to pick up the new one.
+			this.rebuildInfiniteHeaderScroll();
+			this.callbacks.onSave();
+		};
 		if (this.dom.seqSize) this.dom.seqSize.onchange = (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onUpdate(); };
 		if (this.dom.seqFontSize) this.dom.seqFontSize.onchange = (e) => { this.appSettings.uiFontSizeMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onSave(); this.callbacks.onUpdate(); };
 		if (this.dom.handToggle) {
@@ -3350,6 +3361,7 @@ if (!window.__testChecklists) {
 		if (this.dom.autoTimerToggle) this.dom.autoTimerToggle.checked = !!this.appSettings.isAutoTimerEnabled;
 		if (this.dom.autoCounterToggle) this.dom.autoCounterToggle.checked = !!this.appSettings.isAutoCounterEnabled;
 		if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
+		if (this.dom.headerScale) this.dom.headerScale.value = this.appSettings.headerIconScale || 100;
 		if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
 		if (this.dom.seqFontSize) this.dom.seqFontSize.value = Math.round((this.appSettings.uiFontSizeMultiplier || 1.0) * 100);
 		if (this.dom.gestureTapSlider) {
@@ -3393,6 +3405,7 @@ if (!window.__testChecklists) {
 		if (this.dom.headerSpeedToggle) this.dom.headerSpeedToggle.checked = !!this.appSettings.showHeaderSpeedBtns;
 		if (this.dom.headerCycleInputToggle) this.dom.headerCycleInputToggle.checked = !!this.appSettings.showHeaderCycleInputBtn;
 		if (this.dom.headerNotepadToggle) this.dom.headerNotepadToggle.checked = !!this.appSettings.showHeaderNotepadBtn;
+		if (this.dom.headerInfiniteScrollToggle) this.dom.headerInfiniteScrollToggle.checked = this.appSettings.isHeaderInfiniteScrollEnabled !== false;
 		if (this.dom.headerHelpToggle) this.dom.headerHelpToggle.checked = !!this.appSettings.showHeaderHelpBtn;
 		if (this.dom.headerModeSwitchToggle) this.dom.headerModeSwitchToggle.checked = !!this.appSettings.showHeaderModeSwitchBtn;
 		if (this.dom.headerResetToggle) this.dom.headerResetToggle.checked = !!this.appSettings.showHeaderResetBtn;
@@ -3474,6 +3487,7 @@ if (!window.__testChecklists) {
 		} else {
 			header.classList.remove('header-hidden');
 		}
+		this.applyHeaderScale();
 		this.rebuildInfiniteHeaderScroll();
 	}
 	// Master order of every header button id, matching their HTML order.
@@ -3483,11 +3497,36 @@ if (!window.__testChecklists) {
 	// Builds the "infinite toolbar" feel: clones the visible button set once before and once
 	// after the real set, then keeps the scroll position invisibly wrapped within the real
 	// (middle) copy so it always looks like there's more to scroll in either direction.
+	// Applies the Header Size setting via a CSS custom property, so it also covers the
+	// infinite-scroll clones below without needing to touch them individually.
+	applyHeaderScale() {
+		const row = document.getElementById('header-btn-row');
+		if (!row) return;
+		const scale = (this.appSettings.headerIconScale || 100) / 100;
+		row.style.setProperty('--header-icon-scale', scale);
+		// Timer and Counter get their own smaller inline font-size (set once at startup) so text
+		// like "00:00" fits the circle instead of a single emoji's size - a CSS rule can't win
+		// against that inline style, so it needs to be explicitly rescaled here too, using the
+		// same base sizes as that original setup (0.75rem / 1.2rem).
+		const headerTimer = document.getElementById('headertimerbtn');
+		const headerCounter = document.getElementById('headercounterbtn');
+		if (headerTimer) headerTimer.style.fontSize = (0.75 * scale) + 'rem';
+		if (headerCounter) headerCounter.style.fontSize = (1.2 * scale) + 'rem';
+	}
 	rebuildInfiniteHeaderScroll() {
 		const row = document.getElementById('header-btn-row');
 		if (!row) return;
-		// Clear out any clones from a previous build (settings can change which buttons show).
+		// Clear out any clones from a previous build (settings can change which buttons show,
+		// and this feature itself can now be toggled off).
 		row.querySelectorAll('[data-clone-id]').forEach(el => el.remove());
+		if (!this.appSettings.isHeaderInfiniteScrollEnabled) {
+			// Clearing these makes the scroll listener's own guard clause below no-op safely,
+			// without needing to detach it - it already bails when setWidth is falsy.
+			row._infiniteSetWidth = null;
+			row._infiniteRealStart = undefined;
+			row.scrollLeft = 0;
+			return;
+		}
 		const visibleIds = this._headerBtnOrder().filter(id => {
 			const el = document.getElementById(id);
 			return el && !el.classList.contains('hidden');
@@ -3956,6 +3995,8 @@ const DEFAULT_APP = {
     notepadText: '',
     isVoiceCommandsEnabled: true,
     isToneCadenceEnabled: false,
+    isHeaderInfiniteScrollEnabled: true,
+    headerIconScale: 100,
     toneCalibration: {
         isCalibrated: false,
         notes: {}

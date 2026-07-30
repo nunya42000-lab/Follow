@@ -57,10 +57,17 @@ body.blackout-active #blackout-layer { display: block; }
 .share-app-icon { width: 3rem; height: 3rem; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
 body.hide-controls .control-row { display: none !important; }
 #aux-control-header { padding-top: max(0.5rem, env(safe-area-inset-top)); background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%); pointer-events: none; }
+/* Header Size setting: independent scale for the header icon row (on top of the general UI
+   Scale), applied via a CSS custom property so it also covers the infinite-scroll clones,
+   which are plain cloneNode(true) copies of these same buttons. Width/height/gap are handled
+   by the pre-existing !important rules below (folded into their formulas) since those already
+   win the cascade regardless of specificity - a separate non-important rule here would just be
+   dead weight. font-size has no competing !important declaration, so it's set directly here. */
+#header-btn-row button { font-size: calc(1.25rem * var(--header-icon-scale, 1)); }
 #aux-control-header.header-hidden { transform: translateY(-100%); }
-#aux-control-header button { pointer-events: auto; flex-shrink: 0 !important; min-width: 3rem !important; min-height: 3rem !important; width: 3rem !important; height: 3rem !important; }
+#aux-control-header button { pointer-events: auto; flex-shrink: 0 !important; min-width: calc(3rem * var(--header-icon-scale, 1)) !important; min-height: calc(3rem * var(--header-icon-scale, 1)) !important; width: calc(3rem * var(--header-icon-scale, 1)) !important; height: calc(3rem * var(--header-icon-scale, 1)) !important; }
 #header-btn-row::-webkit-scrollbar { display: none; }
-#header-btn-row { display: flex !important; gap: 0.5rem !important; overflow-x: auto !important; overflow-y: hidden !important; scrollbar-width: none; -ms-overflow-style: none; }
+#header-btn-row { display: flex !important; gap: calc(0.5rem * var(--header-icon-scale, 1)) !important; overflow-x: auto !important; overflow-y: hidden !important; scrollbar-width: none; -ms-overflow-style: none; }
 #redeem-modal.redeem-bright { background-color: #ffffff !important; }
 .header-btn-active { background-color: var(--seq-bubble) !important; border-color: var(--text-main) !important; box-shadow: 0 0 10px var(--seq-bubble) !important; }
 body.input-gestures-mode #input-footer { display: none !important; }

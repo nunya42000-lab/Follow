@@ -2492,6 +2492,40 @@ if (clearToneHistoryBtn) {
 								if (progressEl) progressEl.textContent = 'Stopped';
 							};
 						}
+						// --- TONE CALIBRATION: status readout + Recalibrate / Remove ---
+						const calibrationStatusEl = document.getElementById('tone-calibration-status');
+						const updateCalibrationStatus = () => {
+							if (!calibrationStatusEl) return;
+							const cal = appSettings.toneCalibration;
+							if (cal && cal.isCalibrated) {
+								const n = Object.keys(cal.notes || {}).length;
+								calibrationStatusEl.textContent = `Calibrated (${n}/8 notes captured)`;
+							} else {
+								calibrationStatusEl.textContent = 'Not yet calibrated — runs automatically on first session';
+							}
+						};
+						updateCalibrationStatus();
+						window.__updateToneCalibrationStatus = updateCalibrationStatus;
+						const recalBtn = document.getElementById('tone-recalibrate-btn');
+						if (recalBtn) {
+							recalBtn.onclick = async () => {
+								recalBtn.disabled = true;
+								disableInput(true);
+								await runToneCalibration();
+								disableInput(false);
+								recalBtn.disabled = false;
+								updateCalibrationStatus();
+							};
+						}
+						const removeCalBtn = document.getElementById('tone-remove-calibration-btn');
+						if (removeCalBtn) {
+							removeCalBtn.onclick = () => {
+								appSettings.toneCalibration = { isCalibrated: false, notes: {} };
+								saveState();
+								updateCalibrationStatus();
+								showToast('Tone calibration removed — standard tones restored 🗑️');
+							};
+						}
 						// --- TOUCH TEST: Dedicated local engine to prevent dropping unmapped inputs ---
 const touchTestContainer = document.getElementById('test-area-lock-container');
 if (touchTestContainer && !window.__testGestureEngine) {
@@ -3887,6 +3921,10 @@ const DEFAULT_APP = {
     notepadText: '',
     isVoiceCommandsEnabled: true,
     isToneCadenceEnabled: false,
+    toneCalibration: {
+        isCalibrated: false,
+        notes: {}
+    },
     isPositionSwapEnabled: true,
     isSkeletonDebugEnabled: true,
     activeFontFamily: "'Inter', sans-serif",
@@ -4542,10 +4580,23 @@ class ToneEngine {
     // always resolved the overlap to whichever note came first in the array, regardless of which
     // was actually closer. A flat-of-F4 hum could get silently misread as E4, and a flat-of-C5
     // hum as B4. This keeps the same +/-4% acceptance width but guarantees the nearest note wins.
+    // Returns TONES with each note's frequency swapped for this user's calibrated reading, where
+    // one exists (appSettings.toneCalibration.notes). Notes never calibrated -- either because
+    // calibration hasn't run yet, or because they're outside the 8-tone calibration set (note 1) --
+    // fall back to the standard 12-TET frequency. Playback is unaffected by any of this; only
+    // matching a detected hum to a note uses the calibrated center.
+    _effectiveTones() {
+        const cal = (typeof appSettings !== 'undefined' && appSettings.toneCalibration && appSettings.toneCalibration.notes) || {};
+        return this.TONES.map(t => ({
+            n: t.n,
+            name: t.name,
+            f: (typeof cal[t.n] === 'number' ? cal[t.n] : t.f)
+        }));
+    }
     _matchNearestTone(freq) {
         let best = null,
             bestDist = Infinity;
-        for (const t of this.TONES) {
+        for (const t of this._effectiveTones()) {
             const dist = Math.abs(t.f - freq);
             if (dist < bestDist) {
                 bestDist = dist;
@@ -4553,6 +4604,41 @@ class ToneEngine {
             }
         }
         return (best && bestDist < best.f * 0.04) ? best : null;
+    }
+    // Samples the mic for windowMs, collecting valid pitch readings, and returns their median --
+    // robust to a single noisy frame, unlike taking the first or last reading. targetIdealFreq is
+    // used only as a loose (+/-30%) sanity bound to reject octave errors and unrelated noise; the
+    // whole point of calibration is to capture wherever the user's true pitch actually lands, even
+    // if it's meaningfully off from the ideal, so this is deliberately much wider than the +/-4%
+    // acceptance window used during real gameplay matching.
+    _listenForPitch(targetIdealFreq, windowMs) {
+        const readings = [];
+        const start = performance.now();
+        return new Promise(resolve => {
+            const sample = () => {
+                const timeData = new Float32Array(this.analyser.fftSize);
+                this.analyser.getFloatTimeDomainData(timeData);
+                const freqData = new Float32Array(this.analyser.frequencyBinCount);
+                this.analyser.getFloatFrequencyData(freqData);
+                let maxVal = -Infinity;
+                for (let i = 0; i < freqData.length; i++)
+                    if (freqData[i] > maxVal) maxVal = freqData[i];
+                if (maxVal > (appSettings.toneVolumeThreshold || this.audioThresh)) {
+                    const freq = this._detectPitch(timeData, this.audioCtx.sampleRate);
+                    if (freq > 0 && Math.abs(freq - targetIdealFreq) < targetIdealFreq * 0.3) {
+                        readings.push(freq);
+                    }
+                }
+                if (performance.now() - start >= windowMs) {
+                    if (readings.length === 0) return resolve(null);
+                    readings.sort((a, b) => a - b);
+                    resolve(readings[Math.floor(readings.length / 2)]);
+                } else {
+                    requestAnimationFrame(sample);
+                }
+            };
+            requestAnimationFrame(sample);
+        });
     }
     loop() {
         if (!this.isActive) return;
@@ -4930,6 +5016,8 @@ function loadState() {
             if (!appSettings.runtimeSettings.voicePresets) appSettings.runtimeSettings.voicePresets = {};
             if (!appSettings.runtimeSettings.activeVoicePresetId) appSettings.runtimeSettings.activeVoicePresetId = 'standard';
             if (!appSettings.gestureResizeMode) appSettings.gestureResizeMode = 'global';
+            if (!appSettings.toneCalibration || typeof appSettings.toneCalibration !== 'object') appSettings.toneCalibration = { isCalibrated: false, notes: {} };
+            if (!appSettings.toneCalibration.notes) appSettings.toneCalibration.notes = {};
             if (!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS));
             if (appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
         } else {
@@ -5146,12 +5234,20 @@ function playPracticeSequence() {
 // rigid 200ms tone / 800ms silence; the hummed-back input is intentionally read with more
 // forgiving windows (ToneEngine's own 100-350ms tone / 600-1100ms silence) since a human
 // won't reproduce that timing exactly.
+//
+// Until a calibration profile exists, the 8-tone cue doubles as the calibration pass (see
+// runToneCalibration): once appSettings.toneCalibration.isCalibrated is true, it goes back to
+// being a plain orientation cue and this branch is skipped every session after that.
 async function playPracticeSequenceViaTone() {
     disableInput(true);
     const tester = window.toneSequenceTester;
     if (practiceSequence.length === 1) {
-        await tester.playSequence([2, 3, 4, 5, 6, 7, 8, 9], 200, 800);
-        await new Promise(r => setTimeout(r, 400));
+        if (!appSettings.toneCalibration.isCalibrated) {
+            await runToneCalibration();
+        } else {
+            await tester.playSequence([2, 3, 4, 5, 6, 7, 8, 9], 200, 800);
+            await new Promise(r => setTimeout(r, 400));
+        }
     }
     await tester.playSequence(practiceSequence, 200, 800);
     await new Promise(r => setTimeout(r, 400));
@@ -5159,6 +5255,56 @@ async function playPracticeSequenceViaTone() {
     disableInput(false);
     if (window.toneEngine && !window.toneEngine.isActive) window.toneEngine.start();
 }
+
+// Runs once automatically (see playPracticeSequenceViaTone), or on demand from the Dev Mode
+// "Recalibrate" button. Plays each of the same 8 orientation tones one at a time, then listens
+// for the user's hum of that same note before moving to the next -- can't listen while the tone
+// itself is still playing, since the mic would just pick up the speaker. Whatever's captured
+// becomes that note's detection center going forward (see ToneEngine._effectiveTones); any note
+// that doesn't get a clean reading just keeps using the standard tone for itself, not a guess.
+//
+// Does NOT wrap disableInput -- playPracticeSequenceViaTone's existing bracket already covers
+// the automatic path, and the manual Recalibrate button wraps its own call, so this can be
+// invoked from either place without double-managing that state.
+async function runToneCalibration() {
+    const tester = window.toneSequenceTester;
+    const engine = window.toneEngine;
+    if (!tester || !engine) return;
+    if (!engine.isActive) await engine.start();
+    if (!engine.isActive) {
+        // Mic never came online (permission denied, or unavailable) -- don't mark this as a
+        // completed calibration, so it tries again next session instead of getting stuck on
+        // whatever the defaults are. Fall back to the plain orientation cue for now.
+        await tester.playSequence([2, 3, 4, 5, 6, 7, 8, 9], 200, 800);
+        await new Promise(r => setTimeout(r, 400));
+        return;
+    }
+    if (engine.loopId) cancelAnimationFrame(engine.loopId); // pause normal gameplay listening while calibration runs its own
+    showToast('🎵 Calibrating Tone Cadence — hum each note back as you hear it');
+    const sequence = [2, 3, 4, 5, 6, 7, 8, 9];
+    const results = {};
+    for (const n of sequence) {
+        const target = TONE_TABLE.find(t => t.n === n);
+        await tester.playTone(target.f, 200);
+        await new Promise(r => setTimeout(r, 250)); // let any acoustic tail settle before listening
+        showToast(`🎵 Your turn: hum "${target.name}"`);
+        const freq = await engine._listenForPitch(target.f, 1800);
+        if (freq) {
+            results[n] = freq;
+            showToast(`✅ Got "${target.name}": ${Math.round(freq)}Hz`);
+        } else {
+            showToast(`⚠️ Didn't catch "${target.name}" — using the standard tone for it`);
+        }
+        await new Promise(r => setTimeout(r, 300));
+    }
+    appSettings.toneCalibration.notes = { ...appSettings.toneCalibration.notes, ...results };
+    appSettings.toneCalibration.isCalibrated = true;
+    saveState();
+    showToast('🎵 Calibration complete ✅');
+    engine.loop(); // resume normal gameplay listening
+    if (window.__updateToneCalibrationStatus) window.__updateToneCalibrationStatus();
+}
+
 
 function addValue(value) {
     vibrate();

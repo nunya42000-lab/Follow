@@ -1855,7 +1855,7 @@ class SettingsManager {
 			longPressToggle: document.getElementById('apshortcutToggle'),
 			timerToggle: document.getElementById('timerToggle'),
 			headerPlayToggle: document.getElementById('headerPlayToggle'), headerDeleteToggle: document.getElementById('headerDeleteToggle'), headerSettingsToggle: document.getElementById('headerSettingsToggle'), headerRedeemToggle: document.getElementById('headerRedeemToggle'), headerShareToggle: document.getElementById('headerShareToggle'), headerThemeCycleToggle: document.getElementById('headerThemeCycleToggle'), headerAddMachineToggle: document.getElementById('headerAddMachineToggle'), headerUiSizeToggle: document.getElementById('headerUiSizeToggle'), headerSeqSizeToggle: document.getElementById('headerSeqSizeToggle'), headerVolumeToggle: document.getElementById('headerVolumeToggle'), headerSpeedToggle: document.getElementById('headerSpeedToggle'), headerCycleInputToggle: document.getElementById('headerCycleInputToggle'),
-			headerNotepadToggle: document.getElementById('headerNotepadToggle'), headerHelpToggle: document.getElementById('headerHelpToggle'), headerModeSwitchToggle: document.getElementById('headerModeSwitchToggle'), headerResetToggle: document.getElementById('headerResetToggle'), headerNukeToggle: document.getElementById('headerNukeToggle'), headerInfiniteScrollToggle: document.getElementById('headerInfiniteScrollToggle'),
+			headerNotepadToggle: document.getElementById('headerNotepadToggle'), headerHelpToggle: document.getElementById('headerHelpToggle'), headerModeSwitchToggle: document.getElementById('headerModeSwitchToggle'), headerResetToggle: document.getElementById('headerResetToggle'), headerNukeToggle: document.getElementById('headerNukeToggle'), headerInfiniteScrollToggle: document.getElementById('headerInfiniteScrollToggle'), inputRegulatorToggle: document.getElementById('inputRegulatorToggle'),
 			counterToggle: document.getElementById('counterToggle'),
 			gestureToggle: document.getElementById('touchToggle'),
 			handToggle: document.getElementById('handToggle'),
@@ -1869,6 +1869,7 @@ class SettingsManager {
 			headernotepadbtn: document.getElementById('headernotepadbtn'), headerhelpbtn: document.getElementById('headerhelpbtn'), headermodeswitchbtn: document.getElementById('headermodeswitchbtn'), headerresetbtn: document.getElementById('headerresetbtn'), headernukebtn: document.getElementById('headernukebtn'),
 			uiScale: document.getElementById('ui-scale-select'),
 			headerScale: document.getElementById('header-scale-select'),
+			fontScale: document.getElementById('font-scale-select'),
 			seqSize: document.getElementById('seq-size-select'),
 			seqFontSize: document.getElementById('seq-font-size-select'),
 			gestureMode: document.getElementById('gesture-mode-select'),
@@ -2805,6 +2806,7 @@ if (!window.__testChecklists) {
 		bindToggle(this.dom.headerCycleInputToggle, 'showHeaderCycleInputBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerNotepadToggle, 'showHeaderNotepadBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerInfiniteScrollToggle, 'isHeaderInfiniteScrollEnabled', true);
+		bindToggle(this.dom.inputRegulatorToggle, 'isInputRegulatorEnabled');
 		bindToggle(this.dom.headerHelpToggle, 'showHeaderHelpBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerModeSwitchToggle, 'showHeaderModeSwitchBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerResetToggle, 'showHeaderResetBtn', () => this.updateHeaderVisibility());
@@ -3088,6 +3090,11 @@ if (!window.__testChecklists) {
 			this.rebuildInfiniteHeaderScroll();
 			this.callbacks.onSave();
 		};
+		if (this.dom.fontScale) this.dom.fontScale.onchange = (e) => {
+			this.appSettings.keypadFontScale = parseInt(e.target.value);
+			this.applyKeypadFontScale();
+			this.callbacks.onSave();
+		};
 		if (this.dom.seqSize) this.dom.seqSize.onchange = (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onUpdate(); };
 		if (this.dom.seqFontSize) this.dom.seqFontSize.onchange = (e) => { this.appSettings.uiFontSizeMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onSave(); this.callbacks.onUpdate(); };
 		if (this.dom.handToggle) {
@@ -3362,6 +3369,7 @@ if (!window.__testChecklists) {
 		if (this.dom.autoCounterToggle) this.dom.autoCounterToggle.checked = !!this.appSettings.isAutoCounterEnabled;
 		if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
 		if (this.dom.headerScale) this.dom.headerScale.value = this.appSettings.headerIconScale || 100;
+		if (this.dom.fontScale) this.dom.fontScale.value = this.appSettings.keypadFontScale || 100;
 		if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
 		if (this.dom.seqFontSize) this.dom.seqFontSize.value = Math.round((this.appSettings.uiFontSizeMultiplier || 1.0) * 100);
 		if (this.dom.gestureTapSlider) {
@@ -3406,6 +3414,7 @@ if (!window.__testChecklists) {
 		if (this.dom.headerCycleInputToggle) this.dom.headerCycleInputToggle.checked = !!this.appSettings.showHeaderCycleInputBtn;
 		if (this.dom.headerNotepadToggle) this.dom.headerNotepadToggle.checked = !!this.appSettings.showHeaderNotepadBtn;
 		if (this.dom.headerInfiniteScrollToggle) this.dom.headerInfiniteScrollToggle.checked = this.appSettings.isHeaderInfiniteScrollEnabled !== false;
+		if (this.dom.inputRegulatorToggle) this.dom.inputRegulatorToggle.checked = this.appSettings.isInputRegulatorEnabled !== false;
 		if (this.dom.headerHelpToggle) this.dom.headerHelpToggle.checked = !!this.appSettings.showHeaderHelpBtn;
 		if (this.dom.headerModeSwitchToggle) this.dom.headerModeSwitchToggle.checked = !!this.appSettings.showHeaderModeSwitchBtn;
 		if (this.dom.headerResetToggle) this.dom.headerResetToggle.checked = !!this.appSettings.showHeaderResetBtn;
@@ -3488,6 +3497,7 @@ if (!window.__testChecklists) {
 			header.classList.remove('header-hidden');
 		}
 		this.applyHeaderScale();
+		this.applyKeypadFontScale();
 		this.rebuildInfiniteHeaderScroll();
 	}
 	// Master order of every header button id, matching their HTML order.
@@ -3535,6 +3545,13 @@ if (!window.__testChecklists) {
 				seq.style.paddingTop = (header.getBoundingClientRect().height + extraGapPx) + 'px';
 			});
 		});
+	}
+	// Applies the Font Size setting to the keypad's number and control-row buttons via a CSS
+	// custom property, scoped to #input-footer so it covers both the 9-key and 12-key layouts.
+	applyKeypadFontScale() {
+		const footer = document.getElementById('input-footer');
+		if (!footer) return;
+		footer.style.setProperty('--keypad-font-scale', (this.appSettings.keypadFontScale || 100) / 100);
 	}
 	rebuildInfiniteHeaderScroll() {
 		const row = document.getElementById('header-btn-row');
@@ -4018,8 +4035,10 @@ const DEFAULT_APP = {
     notepadText: '',
     isVoiceCommandsEnabled: true,
     isToneCadenceEnabled: false,
+    isInputRegulatorEnabled: true,
     isHeaderInfiniteScrollEnabled: true,
     headerIconScale: 100,
+    keypadFontScale: 100,
     toneCalibration: {
         isCalibrated: false,
         notes: {}
@@ -4196,6 +4215,10 @@ let isPlaybackPaused = false;
 let playbackResumeCallback = null;
 let practiceSequence = [];
 let practiceInputIndex = 0;
+// Input Regulator: last accepted-input timestamp per machine slot (targetIndex), used to reject
+// a same-machine input that arrives within 2s of the previous one. Intentionally not persisted -
+// a reload naturally clearing any in-progress cooldown is harmless and expected.
+let lastMachineInputTime = {};
 let ignoreNextClick = false;
 let voiceModule = null;
 let isGesturePadVisible = false;
@@ -5428,6 +5451,15 @@ function addValue(value) {
     }
     let targetIndex = 0;
     if (settings.currentMode === CONFIG.MODES.SIMON) targetIndex = state.nextSequenceIndex % settings.machineCount;
+    // Input Regulator: silently ignore this input if the SAME machine slot already accepted one
+    // within the last 2 seconds. Scoped per machine (not globally) so a genuine fast burst of
+    // DIFFERENT machines' inputs in multi-machine mode isn't blocked - only the same machine
+    // firing twice in quick succession is, which is the actual signature of an accidental
+    // double-input (a misfired tap/gesture), not a deliberate rapid entry.
+    if (appSettings.isInputRegulatorEnabled) {
+        const now = Date.now();
+        if (now - (lastMachineInputTime[targetIndex] || 0) < 2000) return;
+    }
     const roundNum = parseInt(state.currentRound) || 1;
     const isUnique = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS;
     let limit;
@@ -5459,6 +5491,7 @@ function addValue(value) {
     if (!state.sequences[targetIndex]) state.sequences[targetIndex] = [];
     state.sequences[targetIndex].push(value);
     state.nextSequenceIndex++;
+    if (appSettings.isInputRegulatorEnabled) lastMachineInputTime[targetIndex] = Date.now();
     renderUI();
     saveState();
     if (appSettings.runtimeSettings.isAutoplayEnabled) {
@@ -5486,6 +5519,10 @@ function resetCurrentMachine() {
     state.sequences = Array.from({ length: CONFIG.MAX_MACHINES }, () => []);
     state.nextSequenceIndex = 0;
     state.currentRound = 1;
+    // Input Regulator tracks per-machine cooldowns purely by timestamp - without this, a fresh
+    // sequence starting right after a Clear could inherit a stale cooldown from whatever was
+    // entered just before the clear, blocking its own legitimate first input.
+    lastMachineInputTime = {};
     renderUI();
     saveState();
 }
@@ -5799,6 +5836,12 @@ function playDemo() {
                         state.currentRound++;
                         state.sequences[0] = [];
                         state.nextSequenceIndex = 0;
+                        // Same reasoning as resetCurrentMachine: without this, a round that
+                        // finishes and restarts quickly (short early rounds especially) could
+                        // have its own legitimate first input blocked by the regulator, which
+                        // would otherwise still be "cooling down" from the previous round's
+                        // final input landing on the same machine slot.
+                        lastMachineInputTime = {};
                         renderUI();
                         showToast(`Round ${state.currentRound}`);
                         saveState();
@@ -6261,6 +6304,7 @@ function initGlobalListeners() {
                     s.currentRound = 1;
                     s.sequences[0] = [];
                     s.nextSequenceIndex = 0;
+                    lastMachineInputTime = {};
                     renderUI();
                     saveState();
                     showToast("Reset to Round 1");

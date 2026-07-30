@@ -3512,6 +3512,29 @@ if (!window.__testChecklists) {
 		const headerCounter = document.getElementById('headercounterbtn');
 		if (headerTimer) headerTimer.style.fontSize = (0.75 * scale) + 'rem';
 		if (headerCounter) headerCounter.style.fontSize = (1.2 * scale) + 'rem';
+		this.updateSequenceContainerOffset();
+	}
+	// Keeps the sequence display clear of the header, whose real rendered height now changes
+	// with the Header Size setting. A flat Tailwind padding class can't track a value that
+	// changes at runtime, so this measures the header's actual current height directly (via
+	// getBoundingClientRect, not a parallel formula that would need to stay in sync with the
+	// scale math above) and sets that plus a small fixed gap as the sequence container's own
+	// top offset. Runs every time applyHeaderScale runs, so it's correct on load and after any
+	// scale change, at every step - not just the two or three values that happened to be tested.
+	updateSequenceContainerOffset() {
+		const header = document.getElementById('aux-control-header');
+		const seq = document.getElementById('sequence-container');
+		if (!header || !seq) return;
+		const extraGapPx = 20;
+		// Deferred two frames out: a change to a size-affecting CSS custom property doesn't
+		// always resolve to updated getBoundingClientRect() geometry within the same
+		// synchronous script execution, even after forcing a reflow - there's a real (if brief)
+		// transition in play. Reading on the frame after next reliably catches the settled value.
+		requestAnimationFrame(() => {
+			requestAnimationFrame(() => {
+				seq.style.paddingTop = (header.getBoundingClientRect().height + extraGapPx) + 'px';
+			});
+		});
 	}
 	rebuildInfiniteHeaderScroll() {
 		const row = document.getElementById('header-btn-row');

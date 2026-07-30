@@ -5456,7 +5456,10 @@ function addValue(value) {
     // DIFFERENT machines' inputs in multi-machine mode isn't blocked - only the same machine
     // firing twice in quick succession is, which is the actual signature of an accidental
     // double-input (a misfired tap/gesture), not a deliberate rapid entry.
-    if (appSettings.isInputRegulatorEnabled) {
+    // SIMON mode only: UNIQUE_ROUNDS always targets machine slot 0 for every input regardless
+    // of machineCount, so this same check there would floor EVERY input in the sequence at 2
+    // seconds apart - unplayable for anything longer than a couple of items.
+    if (appSettings.isInputRegulatorEnabled && settings.currentMode === CONFIG.MODES.SIMON) {
         const now = Date.now();
         if (now - (lastMachineInputTime[targetIndex] || 0) < 2000) return;
     }
@@ -5491,7 +5494,7 @@ function addValue(value) {
     if (!state.sequences[targetIndex]) state.sequences[targetIndex] = [];
     state.sequences[targetIndex].push(value);
     state.nextSequenceIndex++;
-    if (appSettings.isInputRegulatorEnabled) lastMachineInputTime[targetIndex] = Date.now();
+    if (appSettings.isInputRegulatorEnabled && settings.currentMode === CONFIG.MODES.SIMON) lastMachineInputTime[targetIndex] = Date.now();
     renderUI();
     saveState();
     if (appSettings.runtimeSettings.isAutoplayEnabled) {

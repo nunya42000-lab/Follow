@@ -64,6 +64,9 @@ body.hide-controls .control-row { display: none !important; }
    win the cascade regardless of specificity - a separate non-important rule here would just be
    dead weight. font-size has no competing !important declaration, so it's set directly here. */
 #header-btn-row button { font-size: calc(1.25rem * var(--header-icon-scale, 1)); }
+/* Font Size setting: independent scale for the keypad's own number and control-row buttons
+   (Play/Backspace/Settings), separate from Header Size (icons) and the general UI Scale. */
+.btn-pad-number, .btn-control { font-size: calc(1.5rem * var(--keypad-font-scale, 1)); }
 #aux-control-header.header-hidden { transform: translateY(-100%); }
 #aux-control-header button { pointer-events: auto; flex-shrink: 0 !important; min-width: calc(3rem * var(--header-icon-scale, 1)) !important; min-height: calc(3rem * var(--header-icon-scale, 1)) !important; width: calc(3rem * var(--header-icon-scale, 1)) !important; height: calc(3rem * var(--header-icon-scale, 1)) !important; }
 #header-btn-row::-webkit-scrollbar { display: none; }

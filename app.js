@@ -667,7 +667,14 @@ class GestureEngine {
         
         const windingShapes = ['corner', 'triangle', 'u_shape', 'square', 'switchback'];
         const checkType = meta && meta.subMode ? meta.subMode : baseType;
-        if (meta && meta.winding && windingShapes.some(s => checkType.includes(s))) id += '_' + meta.winding; 
+        // FIX: checkType.includes(s) was case-sensitive, so 'Pausing_Switchback' (capital S,
+        // matching GESTURE_CATEGORIES' exact listed spelling) never matched the lowercase
+        // 'switchback' entry in windingShapes below - the 16 Pausing_Switchback_<dir>_cw/ccw
+        // options were selectable in every mapping dropdown but could never actually fire, since
+        // the engine always emitted the id without its winding suffix. Comparing lowercased
+        // fixes it without touching the emitted id's own capitalization (which must stay
+        // exactly as GESTURE_CATEGORIES spells it for the mapping lookup to match).
+        if (meta && meta.winding && windingShapes.some(s => checkType.toLowerCase().includes(s))) id += '_' + meta.winding; 
 
         if (fingers > 1) id += '_' + fingers + 'f';
 
@@ -1146,6 +1153,7 @@ function processHandData(landmarks) {
 
     return gestureID;
 }
+window.processHandData = processHandData;
 
 class VisionEngine {
     constructor(onTrigger, onStatus) {
@@ -2277,8 +2285,35 @@ class SettingsManager {
 	openThemeEditor() { if (!this.dom.editorModal) return; const activeId = this.appSettings.activeTheme; const source = this.appSettings.customThemes[activeId] || PREMADE_THEMES[activeId] || PREMADE_THEMES['default']; this.tempTheme = { ...source }; this.dom.edName.value = this.tempTheme.name; this.dom.targetBtns.forEach(b => b.classList.remove('active', 'bg-primary-app')); this.dom.targetBtns[2].classList.add('active', 'bg-primary-app'); this.currentTargetKey = 'bubble'; const [h, s, l] = this.hexToHsl(this.tempTheme.bubble); this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l; this.dom.ftPreview.style.backgroundColor = this.tempTheme.bubble; this.updatePreview(); this.dom.editorModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.editorModal.querySelector('div').classList.remove('scale-90'); }
 	updatePreview() { const t = this.tempTheme; if (!this.dom.edPreview) return; this.dom.edPreview.style.backgroundColor = t.bgMain; this.dom.edPreview.style.color = t.text; this.dom.edPreviewCard.style.backgroundColor = t.bgCard; this.dom.edPreviewCard.style.color = t.text; this.dom.edPreviewCard.style.border = '1px solid rgba(255,255,255,0.1)'; this.dom.edPreviewBtn.style.backgroundColor = t.bubble; this.dom.edPreviewBtn.style.color = t.text; }
 	testVoice() { if (window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("Testing 1 2 3."); if (this.appSettings.runtimeSettings.selectedVoice) { const v = window.speechSynthesis.getVoices().find(voice => voice.name === this.appSettings.runtimeSettings.selectedVoice); if (v) u.voice = v; } let p = parseFloat(this.dom.voicePitch.value); let r = parseFloat(this.dom.voiceRate.value); let v = parseFloat(this.dom.voiceVolume.value); u.pitch = p; u.rate = r; u.volume = v; window.speechSynthesis.speak(u); } }
-	openShare() { this.qrScale = 100; if (this.updateQR) this.updateQR(); if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); if (this.dom.shareModal) { this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => this.dom.shareModal.querySelector('.share-sheet').classList.add('active'), 10); } if (window.lockBodyScroll) window.lockBodyScroll(); }
-	closeShare() { if (this.dom.shareModal) { this.dom.shareModal.querySelector('.share-sheet').classList.remove('active'); setTimeout(() => this.dom.shareModal.classList.add('opacity-0', 'pointer-events-none'), 300); } if (window.unlockBodyScroll) window.unlockBodyScroll(); }
+	openShare() { 
+		this.qrScale = 100; 
+		if (this.updateQR) this.updateQR(); 
+		// Remember whether Settings was open before hiding it, so closeShare() only restores it
+		// when Share was opened from inside Settings -- not when opened standalone from the
+		// header button, where Settings was never open to begin with.
+		this._settingsWasOpenBeforeShare = !!(this.dom.settingsModal && !this.dom.settingsModal.classList.contains('pointer-events-none'));
+		if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); 
+		if (this.dom.shareModal) { this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => this.dom.shareModal.querySelector('.share-sheet').classList.add('active'), 10); } 
+		if (window.lockBodyScroll) window.lockBodyScroll(); 
+	}
+	closeShare() { 
+		if (this._settingsWasOpenBeforeShare && this.dom.settingsModal) {
+			this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none');
+		}
+		if (this.dom.shareModal) { 
+			this.dom.shareModal.querySelector('.share-sheet').classList.remove('active'); 
+			setTimeout(() => {
+				this.dom.shareModal.classList.add('opacity-0', 'pointer-events-none');
+				// unlockBodyScroll's own check for "is any modal still visible" only works if it
+				// runs AFTER shareModal's hide classes are actually applied -- calling it before
+				// this setTimeout (as before) meant it always saw Share as still visible and
+				// permanently skipped unlocking, leaving the page stuck unable to scroll.
+				if (window.unlockBodyScroll) window.unlockBodyScroll();
+			}, 300); 
+		} else if (window.unlockBodyScroll) {
+			window.unlockBodyScroll();
+		}
+	}
 	toggleRedeem(show) { if (show) { if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.add('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'auto'; } if (document.body.classList.contains('eco-mode')) { document.body.classList.remove('eco-mode'); this._ecoModeSuspendedForRedeem = true; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.remove('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'none'; } if (this._ecoModeSuspendedForRedeem && this.appSettings.isEcoModeEnabled) { document.body.classList.add('eco-mode'); } this._ecoModeSuspendedForRedeem = false; if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
 	toggleDonate(show) { if (show) { if (this.dom.donateModal) { this.dom.donateModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'auto'; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.donateModal) { this.dom.donateModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'none'; } if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
 	setupTabSwipe(modal) {
@@ -4461,6 +4496,7 @@ const startApp = () => {
             }
         }
     });
+    window.voiceModule = voiceModule;
     if (appSettings.isRandomThemeEnabled) {
         const allThemeKeys = [...Object.keys(PREMADE_THEMES), ...Object.keys(appSettings.customThemes || ({}))];
         if (allThemeKeys.length > 0) {
@@ -6535,10 +6571,15 @@ function initGlobalListeners() {
             let notepadLongPressTimer = null;
             let notepadWasLongPress = false;
             const copyNotepadToClipboard = () => {
-                const text = appSettings.notepadText || '';
+                // Selection-aware: if the user has text highlighted in the textarea, copy just
+                // that; otherwise fall back to the whole note. The header long-press triggers
+                // this with the modal closed (no meaningful selection ever exists then), so it
+                // naturally always takes the "whole note" path without needing special-casing.
+                const hasSelection = notepadTextarea.selectionStart !== notepadTextarea.selectionEnd;
+                const text = hasSelection ? notepadTextarea.value.substring(notepadTextarea.selectionStart, notepadTextarea.selectionEnd) : (appSettings.notepadText || '');
                 if (!text) { showToast('Notepad is empty 📝'); return; }
                 navigator.clipboard?.writeText(text).then(() => {
-                    showToast('Note copied to clipboard 📋');
+                    showToast(hasSelection ? 'Selection copied 📋' : 'Note copied to clipboard 📋');
                 }).catch(() => showToast('Copy failed - try again'));
                 if (navigator.vibrate) navigator.vibrate(50);
             };
@@ -6566,8 +6607,47 @@ function initGlobalListeners() {
                 appSettings.notepadText = notepadTextarea.value;
                 saveState();
             };
-            const copyAllBtn = document.getElementById('notepad-copy-all-btn');
-            if (copyAllBtn) copyAllBtn.onclick = () => copyNotepadToClipboard();
+            const selectAllBtn = document.getElementById('notepad-selectall-btn');
+            if (selectAllBtn) selectAllBtn.onclick = () => {
+                notepadTextarea.focus();
+                notepadTextarea.select();
+            };
+            const cutBtn = document.getElementById('notepad-cut-btn');
+            if (cutBtn) cutBtn.onclick = async () => {
+                const start = notepadTextarea.selectionStart;
+                const end = notepadTextarea.selectionEnd;
+                if (start === end) { showToast('Select some text first ✂️'); return; }
+                const selected = notepadTextarea.value.substring(start, end);
+                try {
+                    await navigator.clipboard.writeText(selected);
+                    notepadTextarea.value = notepadTextarea.value.slice(0, start) + notepadTextarea.value.slice(end);
+                    notepadTextarea.setSelectionRange(start, start);
+                    appSettings.notepadText = notepadTextarea.value;
+                    saveState();
+                    showToast('Cut ✂️');
+                } catch (e) {
+                    showToast('Cut failed - try again');
+                }
+            };
+            const copyBtn = document.getElementById('notepad-copy-btn');
+            if (copyBtn) copyBtn.onclick = () => copyNotepadToClipboard();
+            const pasteBtn = document.getElementById('notepad-paste-btn');
+            if (pasteBtn) pasteBtn.onclick = async () => {
+                try {
+                    const clipText = await navigator.clipboard.readText();
+                    if (!clipText) { showToast('Clipboard is empty 📋'); return; }
+                    const start = notepadTextarea.selectionStart;
+                    const end = notepadTextarea.selectionEnd;
+                    notepadTextarea.value = notepadTextarea.value.slice(0, start) + clipText + notepadTextarea.value.slice(end);
+                    const newPos = start + clipText.length;
+                    notepadTextarea.setSelectionRange(newPos, newPos);
+                    appSettings.notepadText = notepadTextarea.value;
+                    saveState();
+                    showToast('Pasted 📥');
+                } catch (e) {
+                    showToast('Paste blocked - your browser needs clipboard permission for this');
+                }
+            };
             const eraseBtn = document.getElementById('notepad-erase-btn');
             if (eraseBtn) eraseBtn.onclick = () => {
                 if (!appSettings.notepadText) return;

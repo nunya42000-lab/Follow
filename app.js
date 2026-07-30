@@ -3525,7 +3525,7 @@ if (!window.__testChecklists) {
 		const header = document.getElementById('aux-control-header');
 		const seq = document.getElementById('sequence-container');
 		if (!header || !seq) return;
-		const extraGapPx = 20;
+		const extraGapPx = 10;
 		// Deferred two frames out: a change to a size-affecting CSS custom property doesn't
 		// always resolve to updated getBoundingClientRect() geometry within the same
 		// synchronous script execution, even after forcing a reflow - there's a real (if brief)

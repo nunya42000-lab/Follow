@@ -125,4 +125,151 @@ body.upside-down { transform: rotate(180deg); }
 body.eco-mode { filter: brightness(0.65); }
 body.eco-mode * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 
+/* ============================================================
+   MAIN AREA: plain CSS for every Tailwind utility class used in the header and keypad, using
+   Tailwind's own documented default values, so this region no longer depends on the CDN loading
+   at all. Modals intentionally keep using Tailwind for now. This is what actually broke Header
+   Size and Font Size before - Tailwind can't load in the dev sandbox, so any bug specific to a
+   Tailwind-generated rule (like .btn-control's own text-xl fighting a plain CSS rule) was
+   invisible until tested on a real device. Defining the exact same class names here means the
+   HTML doesn't need to change at all - browsers just use whichever rule exists, and if Tailwind
+   also happens to load, both would produce identical output since these match its own values.
+   ============================================================ */
+.border-custom { border-color: var(--border); }
+.border { border-width: 1px; border-style: solid; }
+/* Settings modal header icon row (lock/coffee/ID/share/feedback/help): specifically hardened
+   per Jay's flag that this exact row broke during a past Tailwind-removal attempt. These are
+   modal-only classes (the modal itself still intentionally uses Tailwind for everything else),
+   added here only because this specific row was named as a known risk, not as a policy of
+   converting modals generally. */
+.p-3 { padding: 0.75rem; }
+.text-2xl { font-size: 1.5rem; line-height: 2rem; }
+.opacity-70 { opacity: 0.7; }
+.hover\:opacity-100:hover { opacity: 1; }
+.hover\:scale-110:hover { transform: scale(1.1); }
+.active\:opacity-50:active { opacity: 0.5; }
+/* text-muted-custom: same issue as border-custom - referenced throughout the app (Settings
+   labels, this sequence display) but never actually defined anywhere. --text-main exists at
+   full brightness; this is a reasonable dimmed complement to it, matching the common "muted
+   secondary text" convention this class name clearly intends. */
+.text-muted-custom { color: rgba(229, 229, 229, 0.6); }
+/* Sequence display cards: this is the actual dynamically-rendered content in #sequence-container
+   (the "5 5 6 3"-style number cards) - renderUI() replaces the container's className entirely
+   with these classes once real content exists, so the base flex/flex-col classes only apply to
+   the empty state. machineCount is capped at MAX_MACHINES (4), so grid-cols only ever needs 1-4. */
+.gap-4 { gap: 1rem; }
+.max-w-5xl { max-width: 64rem; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.rounded-xl { border-radius: 0.75rem; }
+.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+.shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); }
+.min-h-\[100px\] { min-height: 100px; }
+.pb-2 { padding-bottom: 0.5rem; }
+.border-b { border-bottom-width: 1px; border-bottom-style: solid; }
+.uppercase { text-transform: uppercase; }
+.tracking-wider { letter-spacing: 0.05em; }
+.text-\[10px\] { font-size: 10px; }
+.space-x-3 > * + * { margin-left: 0.75rem; }
+.opacity-50 { opacity: 0.5; }
+.opacity-60 { opacity: 0.6; }
+.transition-opacity { transition-property: opacity; transition-timing-function: cubic-bezier(0.4,0,0.2,1); transition-duration: 150ms; }
+.hover\:text-red-400:hover { color: #f87171; }
+.hover\:text-red-600:hover { color: #dc2626; }
+.justify-items-center { justify-items: center; }
+.flex-wrap { flex-wrap: wrap; }
+.border-opacity-20 { border-color: rgba(255, 255, 255, 0.03); }
+/* Header active-state indicators: fullscreen/upside-down buttons get a colored ring when their
+   mode is on. Always added/removed as a pair, so one combined selector matches how they're
+   actually used rather than two separate rules that would each be correct alone but redundant. */
+.ring-2.ring-emerald-500 { box-shadow: 0 0 0 2px #10b981; }
+/* Tone Cadence header button on/off state - renamed from Tailwind's slash-opacity syntax
+   (bg-indigo-900/40) to plain class names, since safely escaping a literal "/" in a CSS class
+   selector is needlessly fragile compared to just naming the two states directly. */
+.tone-btn-on { background-color: #4f46e5 !important; }
+.tone-btn-off { background-color: rgba(49, 46, 129, 0.4) !important; color: #a5b4fc !important; }
+/* Toast notification slide/fade - the only piece of the toast covered here, since the rest of
+   its styling doesn't use any Tailwind classes needing replacement. */
+.-translate-y-10 { transform: translateY(-2.5rem); }
+/* Practice Mode: the header text above the sequence area, and its big pulsing START button -
+   shadow renamed from Tailwind's arbitrary-value bracket syntax for the same reason as above. */
+.mt-4 { margin-top: 1rem; }
+.mb-4 { margin-bottom: 1rem; }
+.w-48 { width: 12rem; }
+.h-48 { height: 12rem; }
+.bg-green-600 { background-color: #16a34a; }
+.hover\:bg-green-500:hover { background-color: #22c55e; }
+.text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+.practice-start-glow { box-shadow: 0 0 40px rgba(22, 163, 74, 0.5); }
+.hover\:scale-105:hover { transform: scale(1.05); }
+.block { display: block; }
+.animate-pulse { animation: tw-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+@keyframes tw-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.bg-gray-800 { background-color: #1f2937; }
+.border-gray-600 { border-color: #4b5563; }
+.bg-red-600 { background-color: #dc2626; }
+.bottom-0 { bottom: 0; }
+.left-0 { left: 0; }
+.right-0 { right: 0; }
+.top-0 { top: 0; }
+.fixed { position: fixed; }
+.relative { position: relative; }
+.flex { display: flex; }
+.grid { display: grid; }
+.flex-col { flex-direction: column; }
+.flex-grow { flex-grow: 1; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.text-center { text-align: center; }
+.font-bold { font-weight: 700; }
+.text-white { color: #fff; }
+.text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+.text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.col-span-1 { grid-column: span 1 / span 1; }
+.col-span-3 { grid-column: span 3 / span 3; }
+.h-40 { height: 10rem; }
+.h-full { height: 100%; }
+.w-full { width: 100%; }
+.max-w-2xl { max-width: 42rem; }
+.max-w-7xl { max-width: 80rem; }
+.max-w-lg { max-width: 32rem; }
+.max-w-md { max-width: 28rem; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.m-4 { margin: 1rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.p-2 { padding: 0.5rem; }
+.p-4 { padding: 1rem; }
+.pb-1 { padding-bottom: 0.25rem; }
+.pb-32 { padding-bottom: 8rem; }
+.pt-0 { padding-top: 0; }
+.pt-6 { padding-top: 1.5rem; }
+.opacity-80 { opacity: 0.8; }
+.overflow-x-auto { overflow-x: auto; }
+.overflow-y-hidden { overflow-y: hidden; }
+.pointer-events-auto { pointer-events: auto; }
+.rounded-full { border-radius: 9999px; }
+.rounded-lg { border-radius: 0.5rem; }
+.z-40 { z-index: 40; }
+.shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); }
+.shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+.transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4,0,0.2,1); transition-duration: 150ms; }
+.transition-colors { transition-property: color, background-color, border-color; transition-timing-function: cubic-bezier(0.4,0,0.2,1); transition-duration: 150ms; }
+.transition-transform { transition-property: transform; transition-timing-function: cubic-bezier(0.4,0,0.2,1); transition-duration: 150ms; }
+.duration-200 { transition-duration: 200ms; }
+.duration-300 { transition-duration: 300ms; }
+.active\:scale-95:active { transform: scale(0.95); }
+@media (min-width: 768px) { .md\:p-4 { padding: 1rem; } }
+/* Header icon buttons: rounded-full/bg-gray-800/border-gray-600/text-white/font-bold/flex/
+   shadow-lg/active-scale are already covered by the generic utility classes above (every header
+   button uses those same class names) - width/height/font-size/gap are handled separately by
+   the Header Size !important rules elsewhere in this file, which already need to win regardless
+   of Tailwind for the scaling feature to work, so nothing further needed here. */
+
 

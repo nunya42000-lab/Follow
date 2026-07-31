@@ -28,7 +28,7 @@ alert("Promise Error: " + event.reason);
 <div id="ar-container" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 z-[-1] pointer-events-none hidden">
 <video id="ar-background-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
 </div>
-<header id="aux-control-header" class="fixed top-0 left-0 right-0 z-40 p-2 pt-safe-top transition-transform duration-300 pointer-events-none">
+<header id="aux-control-header" class="fixed top-0 left-0 right-0 z-40 p-2 transition-transform duration-300 pointer-events-none">
 <div class="max-w-7xl mx-auto w-full flex justify-between items-start">
 <div id="header-btn-row" class="flex gap-2 pointer-events-auto overflow-x-auto overflow-y-hidden" style="touch-action: pan-x; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
 <button id="headertimerbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">⏱️</button>
@@ -235,11 +235,11 @@ alert("Promise Error: " + event.reason);
 <div class="mb-5 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
 <label class="text-xs font-bold uppercase text-muted-custom mb-2 block">Profiles</label>
 <select id="config-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
-<div class="grid grid-cols-2 gap-2">
-<button id="config-add" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button>
-<button id="config-save" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">SAVE 💾</button>
-<button id="config-rename" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button>
-<button id="config-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
+<div class="grid grid-cols-4 gap-1">
+<button id="config-add" class="py-1.5 text-[10px] bg-blue-600 hover:bg-blue-500 rounded text-white font-bold transition shadow">NEW</button>
+<button id="config-save" class="py-1.5 text-[10px] bg-green-600 hover:bg-green-500 rounded text-white font-bold transition shadow">SAVE</button>
+<button id="config-rename" class="py-1.5 text-[10px] bg-gray-600 hover:bg-gray-500 rounded text-white font-bold transition shadow">RENAME</button>
+<button id="config-delete" class="py-1.5 text-[10px] bg-red-600 hover:bg-red-500 rounded text-white font-bold transition shadow">DELETE</button>
 </div>
 </div>
 <div class="grid grid-cols-2 gap-3 mb-4">
@@ -353,11 +353,11 @@ alert("Promise Error: " + event.reason);
 <button id="open-theme-editor" class="text-xs bg-purple-600 hover:bg-purple-500 text-white px-2 py-1 rounded font-bold">EDITOR</button>
 </div>
 <select id="theme-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
-<div class="grid grid-cols-2 gap-2">
-<button id="theme-add" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button>
-<button id="theme-save" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">SAVE 💾</button>
-<button id="theme-rename" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button>
-<button id="theme-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
+<div class="grid grid-cols-4 gap-1">
+<button id="theme-add" class="py-1.5 text-[10px] bg-blue-600 hover:bg-blue-500 rounded text-white font-bold transition shadow">NEW</button>
+<button id="theme-save" class="py-1.5 text-[10px] bg-green-600 hover:bg-green-500 rounded text-white font-bold transition shadow">SAVE</button>
+<button id="theme-rename" class="py-1.5 text-[10px] bg-gray-600 hover:bg-gray-500 rounded text-white font-bold transition shadow">RENAME</button>
+<button id="theme-delete" class="py-1.5 text-[10px] bg-red-600 hover:bg-red-500 rounded text-white font-bold transition shadow">DELETE</button>
 </div>
 <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-700">
 <span class="font-bold text-sm text-muted-custom">Random Theme 🎲</span>
@@ -1137,11 +1137,11 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div class="mb-4 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
 <label class="text-xs font-bold uppercase text-muted-custom mb-2 block">Voice Profile</label>
 <select id="voice-preset-select" class="settings-input w-full p-2 rounded mb-3 font-bold"></select>
-<div class="grid grid-cols-2 gap-2">
-<button id="voice-preset-add" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">NEW</button>
-<button id="voice-preset-save" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">SAVE 💾</button>
-<button id="voice-preset-rename" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">RENAME</button>
-<button id="voice-preset-delete" class="py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold">DELETE</button>
+<div class="grid grid-cols-4 gap-1">
+<button id="voice-preset-add" class="py-1.5 text-[10px] bg-blue-600 hover:bg-blue-500 rounded text-white font-bold transition shadow">NEW</button>
+<button id="voice-preset-save" class="py-1.5 text-[10px] bg-green-600 hover:bg-green-500 rounded text-white font-bold transition shadow">SAVE</button>
+<button id="voice-preset-rename" class="py-1.5 text-[10px] bg-gray-600 hover:bg-gray-500 rounded text-white font-bold transition shadow">RENAME</button>
+<button id="voice-preset-delete" class="py-1.5 text-[10px] bg-red-600 hover:bg-red-500 rounded text-white font-bold transition shadow">DELETE</button>
 </div>
 </div>
 <div class="mb-3 p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
@@ -1641,7 +1641,7 @@ Email
 <div id="gesture-indicator" class="text-center text-sm opacity-80">Use gestures here — swipes, taps, multi-finger.</div>
 </div>
 </div>
-<footer id="input-footer" class="fixed bottom-0 left-0 right-0 p-2 md:p-4 shadow-2xl z-40 safe-area-bottom transition-colors duration-200">
+<footer id="input-footer" class="fixed bottom-0 left-0 right-0 p-2 md:p-4 shadow-2xl z-40 transition-colors duration-200">
 <div id="pad-key9" class="max-w-md mx-auto">
 <div class="grid grid-cols-3 gap-3 mb-2">
 <button data-value="1" class="btn-input btn-pad-number">1</button>
@@ -1655,10 +1655,10 @@ Email
 <button data-value="9" class="btn-input btn-pad-number">9</button>
 </div>
 <div class="grid grid-cols-3 gap-2 control-row">
-<button data-action="reset-unique-rounds" class="reset-button btn-input btn-control !bg-red-600 text-sm font-bold col-span-3 mb-2" style="display:none">RESET ROUNDS</button>
-<button data-action="play-demo" class="btn-input btn-control !bg-primary-app col-span-1 text-white text-xl">▶</button>
+<button data-action="reset-unique-rounds" class="reset-button btn-input btn-control bg-red-600 text-sm font-bold col-span-3 mb-2" style="display:none">RESET ROUNDS</button>
+<button data-action="play-demo" class="btn-input btn-control bg-primary-app col-span-1 text-white text-xl">▶</button>
 <button data-action="backspace" class="btn-input btn-control col-span-1 text-xl">←</button>
-<button data-action="open-settings" class="btn-input btn-control !bg-primary-app col-span-1 text-white text-xl">⚙️</button>
+<button data-action="open-settings" class="btn-input btn-control bg-primary-app col-span-1 text-white text-xl">⚙️</button>
 </div>
 </div>
 <div id="pad-key12" class="max-w-lg mx-auto" style="display: none;">
@@ -1677,10 +1677,10 @@ Email
 <button data-value="12" class="btn-input btn-pad-number">12</button>
 </div>
 <div class="grid grid-cols-3 gap-2 control-row">
-<button data-action="reset-unique-rounds" class="reset-button btn-input btn-control !bg-red-600 text-sm font-bold col-span-3 mb-2" style="display:none">RESET ROUNDS</button>
-<button data-action="play-demo" class="btn-input btn-control !bg-primary-app col-span-1 text-white text-xl">▶</button>
+<button data-action="reset-unique-rounds" class="reset-button btn-input btn-control bg-red-600 text-sm font-bold col-span-3 mb-2" style="display:none">RESET ROUNDS</button>
+<button data-action="play-demo" class="btn-input btn-control bg-primary-app col-span-1 text-white text-xl">▶</button>
 <button data-action="backspace" class="btn-input btn-control col-span-1 text-xl">←</button>
-<button data-action="open-settings" class="btn-input btn-control !bg-primary-app col-span-1 text-white text-xl">⚙️</button>
+<button data-action="open-settings" class="btn-input btn-control bg-primary-app col-span-1 text-white text-xl">⚙️</button>
 </div>
 </div>
 <div id="pad-piano" class="max-w-2xl mx-auto pt-0 pb-1" style="display:none;">
@@ -1701,10 +1701,10 @@ Email
 <button data-value="5" class="piano-key-black btn-input btn-pad-number black-5">5</button>
 </div>
 <div class="grid grid-cols-3 gap-2 max-w-lg mx-auto control-row">
-<button data-action="reset-unique-rounds" class="reset-button btn-input btn-control !bg-red-600 text-sm font-bold col-span-3 mb-2" style="display:none">RESET ROUNDS</button>
-<button data-action="play-demo" class="btn-input btn-control !bg-primary-app col-span-1 text-white text-xl">▶</button>
+<button data-action="reset-unique-rounds" class="reset-button btn-input btn-control bg-red-600 text-sm font-bold col-span-3 mb-2" style="display:none">RESET ROUNDS</button>
+<button data-action="play-demo" class="btn-input btn-control bg-primary-app col-span-1 text-white text-xl">▶</button>
 <button data-action="backspace" class="btn-input btn-control col-span-1 text-xl">←</button>
-<button data-action="open-settings" class="btn-input btn-control !bg-primary-app col-span-1 text-white text-xl">⚙️</button>
+<button data-action="open-settings" class="btn-input btn-control bg-primary-app col-span-1 text-white text-xl">⚙️</button>
 </div>
 </div>
 </footer>

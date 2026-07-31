@@ -2102,8 +2102,14 @@ class SettingsManager {
 		if (!select) return;
 		const storeKey = gtype === 'touch' ? 'customTouchPresets' : 'customHandPresets';
 		if (!this.appSettings[storeKey]) this.appSettings[storeKey] = {};
+		// Tracks which preset was last explicitly applied/created/renamed for THIS dropdown,
+		// persisted in appSettings (unlike the DOM's own select.value, which resets to blank on
+		// every fresh page load regardless of what the underlying Key 1-9 mappings actually are -
+		// that's why this always showed "-- Select Preset --" instead of the active preset, the
+		// way the profile and theme dropdowns already correctly do).
+		if (!this.appSettings.activeMappingPreset) this.appSettings.activeMappingPreset = {};
+		const setActive = (val) => { this.appSettings.activeMappingPreset[select.id] = val; };
 		const populate = () => {
-			const currentVal = select.value;
 			select.innerHTML = '<option value="">-- Select Preset --</option>';
 			const builtInGroup = document.createElement('optgroup');
 			builtInGroup.label = 'Built-in';
@@ -2125,15 +2131,16 @@ class SettingsManager {
 					customGroup.appendChild(opt);
 				});
 			select.appendChild(customGroup);
-			select.value = currentVal;
+			select.value = this.appSettings.activeMappingPreset[select.id] || '';
 		};
 		populate();
 		select.onchange = () => {
 			const val = select.value;
-			if (!val) return;
+			if (!val) { setActive(''); return; }
 			const preset = builtInPresets[val] || this.appSettings[storeKey][val];
 			if (!preset) return;
 			Object.keys(preset.map).forEach(key => applyValueFn(key, preset.map[key]));
+			setActive(val);
 			this.callbacks.onSave();
 			if (typeof showToast === 'function') showToast(`Applied: ${preset.name} ⚡`);
 		};
@@ -2151,9 +2158,9 @@ class SettingsManager {
 			if (!name) return;
 			const id = 'custom_' + Date.now();
 			this.appSettings[storeKey][id] = { name, layout, map: snapshotCurrentMap() };
+			setActive(id);
 			this.callbacks.onSave();
 			populate();
-			select.value = id;
 		};
 		if (saveBtn) saveBtn.onclick = () => {
 			const val = select.value;
@@ -2168,9 +2175,9 @@ class SettingsManager {
 			const newName = prompt("Rename:", this.appSettings[storeKey][val].name);
 			if (newName) {
 				this.appSettings[storeKey][val].name = newName;
+				setActive(val);
 				this.callbacks.onSave();
 				populate();
-				select.value = val;
 			}
 		};
 		if (deleteBtn) deleteBtn.onclick = () => {
@@ -2178,6 +2185,7 @@ class SettingsManager {
 			if (!val || !this.appSettings[storeKey][val]) { alert("Cannot delete a built-in preset."); return; }
 			if (confirm("Delete this preset?")) {
 				delete this.appSettings[storeKey][val];
+				setActive('');
 				this.callbacks.onSave();
 				populate();
 			}
@@ -2934,10 +2942,10 @@ if (!window.__testChecklists) {
 		}
 		if (this.dom.headertonebtn) {
 			this.dom.headertonebtn.addEventListener('click', () => {
-					const isActive = this.dom.headertonebtn.classList.contains('bg-indigo-600');
+					const isActive = this.dom.headertonebtn.classList.contains('tone-btn-on');
 					if (isActive) {
-						this.dom.headertonebtn.classList.remove('bg-indigo-600', 'text-white');
-						this.dom.headertonebtn.classList.add('bg-indigo-900/40', 'text-indigo-300');
+						this.dom.headertonebtn.classList.remove('tone-btn-on');
+						this.dom.headertonebtn.classList.add('tone-btn-off');
 						this.dom.headertonebtn.textContent = '🎵 Tones Off';
 						document.getElementById('tone-debug-indicator')?.classList.add('hidden');
 						if (typeof toneEngine !== 'undefined') toneEngine.stop();
@@ -2947,8 +2955,8 @@ if (!window.__testChecklists) {
 							if (typeof showToast === 'function') showToast('Tone Cadence currently supports 9-Key input only 🎵');
 							return;
 						}
-						this.dom.headertonebtn.classList.add('bg-indigo-600', 'text-white');
-						this.dom.headertonebtn.classList.remove('bg-indigo-900/40', 'text-indigo-300');
+						this.dom.headertonebtn.classList.add('tone-btn-on');
+						this.dom.headertonebtn.classList.remove('tone-btn-off');
 						this.dom.headertonebtn.textContent = '🎵 Tones ON';
 						document.getElementById('tone-debug-indicator')?.classList.remove('hidden');
 						if (typeof toneEngine !== 'undefined') toneEngine.start();
@@ -5652,7 +5660,7 @@ function renderUI() {
             state.currentRound = 1;
             const btn = document.createElement('button');
             btn.textContent = "START";
-            btn.className = "w-48 h-48 rounded-full bg-green-600 hover:bg-green-500 text-white text-3xl font-bold shadow-[0_0_40px_rgba(22,163,74,0.5)] transition-all transform hover:scale-105 active:scale-95 animate-pulse mx-auto block";
+            btn.className = "w-48 h-48 rounded-full bg-green-600 hover:bg-green-500 text-white text-3xl font-bold practice-start-glow transition-all transform hover:scale-105 active:scale-95 animate-pulse mx-auto block";
             btn.onclick = () => {
                 btn.style.display = 'none';
                 startPracticeRound();

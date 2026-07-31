@@ -64,9 +64,24 @@ body.hide-controls .control-row { display: none !important; }
    win the cascade regardless of specificity - a separate non-important rule here would just be
    dead weight. font-size has no competing !important declaration, so it's set directly here. */
 #header-btn-row button { font-size: calc(1.25rem * var(--header-icon-scale, 1)); }
-/* Font Size setting: independent scale for the keypad's own number and control-row buttons
-   (Play/Backspace/Settings), separate from Header Size (icons) and the general UI Scale. */
-.btn-pad-number, .btn-control { font-size: calc(1.5rem * var(--keypad-font-scale, 1)); }
+/* Font Size setting: independent scale for the keypad's number/control buttons AND the Settings
+   modal's text, separate from Header Size (icons only) and the general UI Scale. !important is
+   required here for the same reason it was for Header Size: .btn-control's Play/Backspace/
+   Settings buttons carry their own Tailwind text-xl/text-sm classes directly in the HTML, which
+   sit at equal CSS specificity to a plain class rule here - without !important, whichever loads
+   later wins unpredictably rather than this rule reliably winning. */
+.btn-pad-number, .btn-control { font-size: calc(1.5rem * var(--app-font-scale, 1)) !important; }
+/* Settings modal: overrides every Tailwind text-size utility actually used inside it with a
+   scaled version at matching !important weight, using the same base rem values Tailwind itself
+   uses for each class so 100% renders identically to the unscaled original. Scoped to
+   #settings-modal specifically so it doesn't touch the same classes used elsewhere (Help modal,
+   other modals) that this setting was never asked to affect. */
+#settings-modal .text-xs { font-size: calc(0.75rem * var(--app-font-scale, 1)) !important; }
+#settings-modal .text-sm { font-size: calc(0.875rem * var(--app-font-scale, 1)) !important; }
+#settings-modal .text-base { font-size: calc(1rem * var(--app-font-scale, 1)) !important; }
+#settings-modal .text-lg { font-size: calc(1.125rem * var(--app-font-scale, 1)) !important; }
+#settings-modal .text-xl { font-size: calc(1.25rem * var(--app-font-scale, 1)) !important; }
+#settings-modal .text-2xl { font-size: calc(1.5rem * var(--app-font-scale, 1)) !important; }
 #aux-control-header.header-hidden { transform: translateY(-100%); }
 #aux-control-header button { pointer-events: auto; flex-shrink: 0 !important; min-width: calc(3rem * var(--header-icon-scale, 1)) !important; min-height: calc(3rem * var(--header-icon-scale, 1)) !important; width: calc(3rem * var(--header-icon-scale, 1)) !important; height: calc(3rem * var(--header-icon-scale, 1)) !important; }
 #header-btn-row::-webkit-scrollbar { display: none; }

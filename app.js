@@ -3091,8 +3091,8 @@ if (!window.__testChecklists) {
 			this.callbacks.onSave();
 		};
 		if (this.dom.fontScale) this.dom.fontScale.onchange = (e) => {
-			this.appSettings.keypadFontScale = parseInt(e.target.value);
-			this.applyKeypadFontScale();
+			this.appSettings.appFontScale = parseInt(e.target.value);
+			this.applyFontScale();
 			this.callbacks.onSave();
 		};
 		if (this.dom.seqSize) this.dom.seqSize.onchange = (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onUpdate(); };
@@ -3369,7 +3369,7 @@ if (!window.__testChecklists) {
 		if (this.dom.autoCounterToggle) this.dom.autoCounterToggle.checked = !!this.appSettings.isAutoCounterEnabled;
 		if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
 		if (this.dom.headerScale) this.dom.headerScale.value = this.appSettings.headerIconScale || 100;
-		if (this.dom.fontScale) this.dom.fontScale.value = this.appSettings.keypadFontScale || 100;
+		if (this.dom.fontScale) this.dom.fontScale.value = this.appSettings.appFontScale || 100;
 		if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
 		if (this.dom.seqFontSize) this.dom.seqFontSize.value = Math.round((this.appSettings.uiFontSizeMultiplier || 1.0) * 100);
 		if (this.dom.gestureTapSlider) {
@@ -3497,7 +3497,7 @@ if (!window.__testChecklists) {
 			header.classList.remove('header-hidden');
 		}
 		this.applyHeaderScale();
-		this.applyKeypadFontScale();
+		this.applyFontScale();
 		this.rebuildInfiniteHeaderScroll();
 	}
 	// Master order of every header button id, matching their HTML order.
@@ -3535,23 +3535,34 @@ if (!window.__testChecklists) {
 		const header = document.getElementById('aux-control-header');
 		const seq = document.getElementById('sequence-container');
 		if (!header || !seq) return;
-		const extraGapPx = 10;
+		// Minimal - just enough to guarantee no visual touching/overlap given sub-pixel
+		// measurement variance, not a deliberate visual gap. Not user-configurable; this is a
+		// correctness margin, not a preference.
+		const minGapPx = 4;
 		// Deferred two frames out: a change to a size-affecting CSS custom property doesn't
 		// always resolve to updated getBoundingClientRect() geometry within the same
 		// synchronous script execution, even after forcing a reflow - there's a real (if brief)
 		// transition in play. Reading on the frame after next reliably catches the settled value.
 		requestAnimationFrame(() => {
 			requestAnimationFrame(() => {
-				seq.style.paddingTop = (header.getBoundingClientRect().height + extraGapPx) + 'px';
+				if (document.body.classList.contains('layout-swapped')) {
+					// In swapped mode, #app's own paddingTop (set by applyPositionSwapOffsets)
+					// already accounts for BOTH the header's height and the now-top-anchored
+					// input footer's height, plus its own small built-in gap. Re-adding header
+					// height here on top of that would double-count it - that's exactly the
+					// "unnecessary padding above the cards" bug. Nothing extra needed here.
+					seq.style.paddingTop = '0px';
+				} else {
+					seq.style.paddingTop = (header.getBoundingClientRect().height + minGapPx) + 'px';
+				}
 			});
 		});
 	}
-	// Applies the Font Size setting to the keypad's number and control-row buttons via a CSS
-	// custom property, scoped to #input-footer so it covers both the 9-key and 12-key layouts.
-	applyKeypadFontScale() {
-		const footer = document.getElementById('input-footer');
-		if (!footer) return;
-		footer.style.setProperty('--keypad-font-scale', (this.appSettings.keypadFontScale || 100) / 100);
+	// Applies the Font Size setting via a CSS custom property on body, so it reaches both the
+	// keypad's number/control buttons and the Settings modal's text (labels, headings, option
+	// text) - independent of Header Size (icons only) and the general UI Scale.
+	applyFontScale() {
+		document.body.style.setProperty('--app-font-scale', (this.appSettings.appFontScale || 100) / 100);
 	}
 	rebuildInfiniteHeaderScroll() {
 		const row = document.getElementById('header-btn-row');
@@ -4038,7 +4049,7 @@ const DEFAULT_APP = {
     isInputRegulatorEnabled: true,
     isHeaderInfiniteScrollEnabled: true,
     headerIconScale: 100,
-    keypadFontScale: 100,
+    appFontScale: 100,
     toneCalibration: {
         isCalibrated: false,
         notes: {}
@@ -5581,6 +5592,10 @@ function applyPositionSwapOffsets(isActive) {
         app.style.paddingTop = '';
         app.style.paddingBottom = '';
     }
+    // Without this, #sequence-container keeps whatever padding-top it last had from before the
+    // toggle (stale, computed for the OTHER mode), stacking on top of the paddingTop set above
+    // instead of the two ever agreeing on which one is responsible for the gap.
+    if (window.modules && window.modules.settings) window.modules.settings.updateSequenceContainerOffset();
 }
 
 function renderUI() {

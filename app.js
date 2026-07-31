@@ -3032,10 +3032,15 @@ if (!window.__testChecklists) {
 				if (isGlobal) {
 					this.appSettings[prop] = val;
 					if (prop === 'activeTheme') this.callbacks.onUpdate();
-					if (prop === 'isPracticeModeEnabled') this.callbacks.onUpdate();
 				} else {
 					this.appSettings.runtimeSettings[prop] = val;
 				}
+				// Was only reachable inside the isGlobal branch above, but this checkbox is
+				// wired with isGlobal=false (correctly, since isPracticeModeEnabled belongs in
+				// runtimeSettings) - meaning the UI refresh this line exists for never actually
+				// fired. The setting saved correctly; the START button/header just never
+				// appeared until something unrelated happened to trigger a re-render later.
+				if (prop === 'isPracticeModeEnabled') this.callbacks.onUpdate();
 				this.callbacks.onSave();
 				this.generatePrompt();
 				if (['showTimer', 'showCounter', 'isVoiceInputEnabled', 'isArModeEnabled', 'isStealth1KeyEnabled', 'isHandGesturesEnabled', 'isGestureInputEnabled'].includes(prop)) {

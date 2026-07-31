@@ -2109,6 +2109,24 @@ class SettingsManager {
 		// way the profile and theme dropdowns already correctly do).
 		if (!this.appSettings.activeMappingPreset) this.appSettings.activeMappingPreset = {};
 		const setActive = (val) => { this.appSettings.activeMappingPreset[select.id] = val; };
+		// If no preset was ever explicitly picked from THIS dropdown, the current Key 1-9
+		// mappings might still have gotten to their present values some other way - loaded from
+		// a saved profile, or just whatever a fresh default happens to start with - and could
+		// still exactly match a known preset's mapping even though nobody clicked it here. Check
+		// for that before falling back to the empty placeholder, matching how the profile/theme
+		// dropdowns always show something meaningful rather than "nothing selected."
+		const detectMatchingPreset = () => {
+			const allPresets = { ...builtInPresets };
+			Object.keys(this.appSettings[storeKey]).forEach(id => {
+				if (this.appSettings[storeKey][id].layout === layout) allPresets[id] = this.appSettings[storeKey][id];
+			});
+			for (const id of Object.keys(allPresets)) {
+				const preset = allPresets[id];
+				const isMatch = keys.every(key => String(getCurrentValueFn(key)) === String(preset.map[key]));
+				if (isMatch) return id;
+			}
+			return '';
+		};
 		const populate = () => {
 			select.innerHTML = '<option value="">-- Select Preset --</option>';
 			const builtInGroup = document.createElement('optgroup');
@@ -2131,7 +2149,7 @@ class SettingsManager {
 					customGroup.appendChild(opt);
 				});
 			select.appendChild(customGroup);
-			select.value = this.appSettings.activeMappingPreset[select.id] || '';
+			select.value = this.appSettings.activeMappingPreset[select.id] || detectMatchingPreset() || '';
 		};
 		populate();
 		select.onchange = () => {

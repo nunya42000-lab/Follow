@@ -1,4 +1,54 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+/* Preflight equivalent: Tailwind's base reset normally strips the browser's own default button/
+   form-control chrome (gray background, 3D outset border, default padding/margins) before any
+   utility classes are even applied. Removing Tailwind removed this too, not just the utilities -
+   every button/input without its OWN explicit background/border class was quietly falling back
+   to raw browser defaults. Element-level selectors here are deliberately low specificity, so
+   any of the explicit utility classes added throughout this project (bg-*, border-*, p-*, etc.)
+   continue to correctly override this, exactly as they did against Tailwind's own Preflight.
+   The universal border-style default below matters more than it looks: several border-*
+   utilities in this file only ever set border-WIDTH (matching Tailwind's own utilities, which
+   rely on Preflight's global border-style:solid default) - without this, border-style stays
+   "none" from the shorthand reset below, which forces the computed border-width to collapse to
+   0 regardless of what any width-only class specifies, making the border invisible even though
+   the width "wins" on paper. */
+*, ::before, ::after {
+    border-width: 0;
+    border-style: solid;
+    border-color: currentColor;
+}
+button, input, select, textarea {
+    font-family: inherit;
+    font-size: 100%;
+    font-weight: inherit;
+    line-height: inherit;
+    color: inherit;
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+    background-image: none;
+    border-radius: 0;
+}
+button, select {
+    text-transform: none;
+}
+button, [type='button'], [type='reset'], [type='submit'] {
+    -webkit-appearance: button;
+    appearance: button;
+    cursor: pointer;
+}
+h1, h2, h3, h4, h5, h6, p, blockquote, figure {
+    margin: 0;
+}
+ul, ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+img, svg, video, canvas {
+    display: block;
+    max-width: 100%;
+}
 /* Defensive safety net: every modal's and test-tab's open/closed state depends on these three
    classes actually applying. If they don't, a "closed" element stays visible/interactive,
    invisibly overlapping whatever's really underneath it. */
@@ -252,6 +302,7 @@ body.eco-mode * { animation-duration: 0.01ms !important; transition-duration: 0.
 .pt-6 { padding-top: 1.5rem; }
 .opacity-80 { opacity: 0.8; }
 .overflow-x-auto { overflow-x: auto; }
+.overflow-y-auto { overflow-y: auto; }
 .overflow-y-hidden { overflow-y: hidden; }
 .pointer-events-auto { pointer-events: auto; }
 .rounded-full { border-radius: 9999px; }

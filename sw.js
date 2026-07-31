@@ -1,12 +1,9 @@
 // sw.js
-// Version: v70 - Fault Tolerant Offline, merged JS bundle
-const CACHE_NAME = 'follow-me-v70-merged-bundle';
+// Version: v64 - Fault Tolerant Offline
+const CACHE_NAME = 'follow-me-v70-no-tailwind';
 
 // 1. CRITICAL: These MUST exist for the app to run.
 // If any of these are missing, the offline mode will fail.
-// NOTE: app.js, gestures.js, settings.js, and vision.js were merged into a
-// single app.js bundle - the three separate entries are gone deliberately,
-// not an oversight.
 const CRITICAL_ASSETS = [
     './',
     './index.html',
@@ -17,7 +14,6 @@ const CRITICAL_ASSETS = [
     './wasm/vision_wasm_internal.js',
     './wasm/vision_wasm_internal.wasm',
     './wasm/gesture_recognizer.task',
-    'https://cdn.tailwindcss.com',
     'https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap'
 ];
 
@@ -30,6 +26,7 @@ const OPTIONAL_ASSETS = [
     './icon512.png',
     './qr.jpg',
     './redeem.jpg',
+    'https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap',
     'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js',
     'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js'
 ];

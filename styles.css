@@ -319,6 +319,230 @@ body.eco-mode * { animation-duration: 0.01ms !important; transition-duration: 0.
    the transform, since it needs to combine centering with the slide toggle rather than let a
    generic -translate-y-10 class silently replace the centering transform when toggled. */
 #toast-notification { transform: translateX(-50%); }
+/* ============================================================
+   MODALS: Tailwind CDN is now fully removed from the page (per explicit request - it was still
+   loading and cached by the service worker this whole time, even though the main-area work
+   above already had its own plain-CSS coverage). Everything below fills in what the modals
+   relied on Tailwind for. Same approach as the main area: exact Tailwind default values, same
+   class names, so no HTML needs to change except the few arbitrary-value cases noted inline.
+   ============================================================ */
+.bg-blue-600 { background-color: #2563eb; }
+.bg-emerald-600 { background-color: #059669; }
+.bg-gray-600 { background-color: #4b5563; }
+.bg-gray-700 { background-color: #374151; }
+.bg-gray-900 { background-color: #111827; }
+.bg-gray-950 { background-color: #030712; }
+.bg-indigo-600 { background-color: #4f46e5; }
+.bg-purple-600 { background-color: #9333ea; }
+.bg-purple-950 { background-color: #3b0764; }
+.bg-blue-950 { background-color: #172554; }
+.bg-red-900 { background-color: #7f1d1d; }
+.bg-transparent { background-color: transparent; }
+.bg-white { background-color: #fff; }
+.bg-yellow-600 { background-color: #ca8a04; }
+.bg-yellow-700 { background-color: #a16207; }
+.text-blue-200 { color: #bfdbfe; }
+.text-blue-300 { color: #93c5fd; }
+.text-blue-400 { color: #60a5fa; }
+.text-emerald-300 { color: #6ee7b7; }
+.text-emerald-400 { color: #34d399; }
+.text-gray-200 { color: #e5e7eb; }
+.text-gray-300 { color: #d1d5db; }
+.text-gray-400 { color: #9ca3af; }
+.text-gray-500 { color: #6b7280; }
+.text-green-400 { color: #4ade80; }
+.text-purple-300 { color: #d8b4fe; }
+.text-purple-400 { color: #c084fc; }
+.text-red-300 { color: #fca5a5; }
+.text-yellow-300 { color: #fde047; }
+.text-yellow-400 { color: #facc15; }
+.border-blue-400 { border-color: #60a5fa; }
+.border-blue-500 { border-color: #3b82f6; }
+.border-gray-700 { border-color: #374151; }
+.border-red-500 { border-color: #ef4444; }
+.border-yellow-500 { border-color: #eab308; }
+.h-2 { height: 0.5rem; }
+.h-4 { height: 1rem; }
+.h-6 { height: 1.5rem; }
+.h-7 { height: 1.75rem; }
+.h-9 { height: 2.25rem; }
+.h-14 { height: 3.5rem; }
+.h-80 { height: 20rem; }
+.w-4 { width: 1rem; }
+.w-6 { width: 1.5rem; }
+.w-7 { width: 1.75rem; }
+.w-14 { width: 3.5rem; }
+.w-16 { width: 4rem; }
+.w-80 { width: 20rem; }
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-5 { margin-bottom: 1.25rem; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-8 { margin-top: 2rem; }
+.p-1 { padding: 0.25rem; }
+.p-5 { padding: 1.25rem; }
+.pt-2 { padding-top: 0.5rem; }
+.pt-3 { padding-top: 0.75rem; }
+.pt-4 { padding-top: 1rem; }
+.px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+.px-5 { padding-left: 1.25rem; padding-right: 1.25rem; }
+.px-8 { padding-left: 2rem; padding-right: 2rem; }
+.py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+.py-1\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+.py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+.gap-1 { gap: 0.25rem; }
+.top-2 { top: 0.5rem; }
+.z-10 { z-index: 10; }
+.appearance-none { appearance: none; }
+.aspect-video { aspect-ratio: 16 / 9; }
+.border-2 { border-width: 2px; }
+.border-b-2 { border-bottom-width: 2px; }
+.border-dashed { border-style: dashed; }
+.border-t { border-top-width: 1px; border-top-style: solid; }
+.break-words { overflow-wrap: break-word; }
+.col-span-2 { grid-column: span 2 / span 2; }
+.flex-1 { flex: 1 1 0%; }
+.font-medium { font-weight: 500; }
+.font-normal { font-weight: 400; }
+.font-semibold { font-weight: 600; }
+.leading-none { line-height: 1; }
+.object-cover { object-fit: cover; }
+.outline-none { outline: 2px solid transparent; outline-offset: 2px; }
+.overflow-hidden { overflow: hidden; }
+.resize-none { resize: none; }
+.rounded { border-radius: 0.25rem; }
+.rounded-t-lg { border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; }
+.scale-90 { transform: scale(0.9); }
+.select-none { user-select: none; }
+.shadow { box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1); }
+.shrink-0 { flex-shrink: 0; }
+.space-y-1 > * + * { margin-top: 0.25rem; }
+.space-y-2 > * + * { margin-top: 0.5rem; }
+.space-y-3 > * + * { margin-top: 0.75rem; }
+.space-y-4 > * + * { margin-top: 1rem; }
+.transform { transform: translate(0, 0); }
+.transition { transition-property: color, background-color, border-color, box-shadow, transform, opacity; transition-timing-function: cubic-bezier(0.4,0,0.2,1); transition-duration: 150ms; }
+.active\:bg-gray-700:active { background-color: #374151; }
+.hover\:bg-blue-500:hover { background-color: #3b82f6; }
+.hover\:bg-emerald-500:hover { background-color: #10b981; }
+.hover\:bg-gray-500:hover { background-color: #6b7280; }
+.hover\:bg-gray-600:hover { background-color: #4b5563; }
+.hover\:bg-purple-500:hover { background-color: #a855f7; }
+.hover\:bg-red-500:hover { background-color: #ef4444; }
+.hover\:bg-red-700:hover { background-color: #b91c1c; }
+.hover\:bg-yellow-500:hover { background-color: #eab308; }
+.hover\:bg-yellow-600:hover { background-color: #ca8a04; }
+.hover\:text-emerald-400:hover { color: #34d399; }
+.hover\:text-white:hover { color: #fff; }
+.accent-blue-500 { accent-color: #3b82f6; }
+.accent-emerald-500 { accent-color: #10b981; }
+.accent-indigo-500 { accent-color: #6366f1; }
+/* Arbitrary-value and slash-opacity classes: escaped exactly rather than renamed, since these
+   are all static HTML (unlike the earlier JS-generated cases) and there are enough of them here
+   that renaming each one in the HTML would be its own large, error-prone editing pass. */
+.bg-\[var\(--card-bg\)\] { background-color: var(--card-bg); }
+.text-\[var\(--text-main\)\] { color: var(--text-main); }
+.max-h-\[90vh\] { max-height: 90vh; }
+.min-h-\[1\.5rem\] { min-height: 1.5rem; }
+.text-\[10px\] { font-size: 10px; }
+.text-\[9px\] { font-size: 9px; }
+.scale-x-\[-1\] { transform: scaleX(-1); }
+.z-\[80\] { z-index: 80; }
+.z-\[90\] { z-index: 90; }
+.bg-black\/20 { background-color: rgba(0, 0, 0, 0.2); }
+.bg-black\/30 { background-color: rgba(0, 0, 0, 0.3); }
+.bg-black\/40 { background-color: rgba(0, 0, 0, 0.4); }
+.bg-blue-900\/10 { background-color: rgba(30, 58, 138, 0.1); }
+.bg-emerald-900\/10 { background-color: rgba(6, 78, 59, 0.1); }
+.border-blue-500\/20 { border-color: rgba(59, 130, 246, 0.2); }
+.border-blue-500\/30 { border-color: rgba(59, 130, 246, 0.3); }
+.border-blue-500\/40 { border-color: rgba(59, 130, 246, 0.4); }
+.border-emerald-500\/20 { border-color: rgba(16, 185, 129, 0.2); }
+.border-emerald-500\/30 { border-color: rgba(16, 185, 129, 0.3); }
+.border-purple-500\/30 { border-color: rgba(168, 85, 247, 0.3); }
+.border-red-500\/30 { border-color: rgba(239, 68, 68, 0.3); }
+.border-yellow-500\/30 { border-color: rgba(234, 179, 8, 0.3); }
+.bg-black.bg-opacity-20 { background-color: rgba(0, 0, 0, 0.2); }
+.bg-black.bg-opacity-30 { background-color: rgba(0, 0, 0, 0.3); }
+.bg-black.bg-opacity-50 { background-color: rgba(0, 0, 0, 0.5); }
+.bg-black.bg-opacity-90 { background-color: rgba(0, 0, 0, 0.9); }
+.border-opacity-30 { border-color: rgba(255, 255, 255, 0.05); }
+.border-opacity-50 { border-color: rgba(255, 255, 255, 0.08); }
+/* group-open / open: (details/summary accordion arrows and backgrounds) */
+.group[open] .group-open\:rotate-180 { transform: rotate(180deg); }
+details[open].open\:bg-gray-800 { background-color: #1f2937; }
+details[open].open\:bg-opacity-50 { background-color: rgba(0, 0, 0, 0.5); }
+/* Remaining modals (Redeem, Share, Notepad, Theme Editor, Donate, Game Setup, Comment, Help). */
+.active\:scale-95:active { transform: scale(0.95); }
+.bg-blue-900\/30 { background-color: rgba(30, 58, 138, 0.3); }
+.bg-white\/5 { background-color: rgba(255, 255, 255, 0.05); }
+.border-white\/10 { border-color: rgba(255, 255, 255, 0.1); }
+details[open].open\:bg-white\/10 { background-color: rgba(255, 255, 255, 0.1); }
+.bg-opacity-10 { background-color: rgba(0, 0, 0, 0.1); }
+.bg-opacity-95 { background-color: rgba(0, 0, 0, 0.95); }
+.border-gray-500 { border-color: #6b7280; }
+.text-red-400 { color: #f87171; }
+.hover\:bg-blue-500:hover { background-color: #3b82f6; }
+.hover\:bg-gray-600:hover { background-color: #4b5563; }
+.hover\:bg-green-500:hover { background-color: #22c55e; }
+.hover\:bg-secondary-app:hover { background-color: #6366f1; }
+.hover\:opacity-90:hover { opacity: 0.9; }
+.opacity-90 { opacity: 0.9; }
+/* Donate modal brand-color buttons (PayPal blue, Cash App green) - arbitrary hex values escaped
+   the same way as the other bracket-syntax classes above. */
+.bg-\[\#0070BA\] { background-color: #0070BA; }
+.bg-\[\#00D632\] { background-color: #00D632; }
+.hover\:bg-\[\#005ea6\]:hover { background-color: #005ea6; }
+.hover\:bg-\[\#00bf2c\]:hover { background-color: #00bf2c; }
+/* Gradient banner: these three classes only ever appear together on one element, so a combined
+   selector defining the complete gradient directly is simpler and safer than trying to
+   replicate Tailwind's CSS-variable gradient-stop composition for a single use case. */
+.bg-gradient-to-r.from-blue-900\/40.to-purple-900\/40 { background-image: linear-gradient(to right, rgba(30,58,138,0.4), rgba(88,28,135,0.4)); }
+.bottom-6 { bottom: 1.5rem; }
+.top-4 { top: 1rem; }
+.right-4 { right: 1rem; }
+.left-1\/2 { left: 50%; }
+.-translate-x-1\/2 { transform: translateX(-50%); }
+.grid-cols-7 { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.grid-cols-10 { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+.h-1 { height: 0.25rem; }
+.h-12 { height: 3rem; }
+.w-12 { width: 3rem; }
+.h-8 { height: 2rem; }
+.h-10 { height: 2.5rem; }
+.h-24 { height: 6rem; }
+.w-8 { width: 2rem; }
+.w-10 { width: 2.5rem; }
+.italic { font-style: italic; }
+.justify-end { justify-content: flex-end; }
+.leading-5 { line-height: 1.25rem; }
+.leading-relaxed { line-height: 1.625; }
+.list-disc { list-style-type: disc; }
+.underline { text-decoration-line: underline; }
+.tracking-wide { letter-spacing: 0.025em; }
+.max-h-32 { max-height: 8rem; }
+.max-h-\[95vh\] { max-height: 95vh; }
+.max-w-\[280px\] { max-width: 280px; }
+.max-w-sm { max-width: 24rem; }
+.min-h-\[64px\] { min-height: 64px; }
+.mr-2 { margin-right: 0.5rem; }
+.mt-1\.5 { margin-top: 0.375rem; }
+.pl-4 { padding-left: 1rem; }
+.pb-3 { padding-bottom: 0.75rem; }
+.p-1\.5 { padding: 0.375rem; }
+.p-6 { padding: 1.5rem; }
+.px-1 { padding-left: 0.25rem; padding-right: 0.25rem; }
+.px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+.space-x-2 > * + * { margin-left: 0.5rem; }
+.space-y-6 > * + * { margin-top: 1.5rem; }
+.text-\[11px\] { font-size: 11px; }
+.z-\[60\] { z-index: 60; }
+.z-\[120\] { z-index: 120; }
+.z-\[130\] { z-index: 130; }
+.z-\[140\] { z-index: 140; }
 #toast-notification.-translate-y-10 { transform: translateX(-50%) translateY(-2.5rem); }
 #tone-debug-indicator { transform: translateX(-50%); }
 

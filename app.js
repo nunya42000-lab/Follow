@@ -1413,7 +1413,7 @@ class VisionEngine {
             }
         }
 
-        // Also draw onto the small Developer Mode practice preview canvas, if it's open
+        // Also draw onto the small Advanced practice preview canvas, if it's open
         const miniCanvas = document.getElementById('practice-preview-canvas');
         if (miniCanvas) {
             const miniCtx = miniCanvas.getContext('2d');
@@ -2724,7 +2724,7 @@ if (!window.__testChecklists) {
 				}
 			}
 		} catch (e) {
-			console.error('Developer Mode wiring failed:', e);
+			console.error('Advanced wiring failed:', e);
 		}
 		try {
 			const openCommentBtn = document.getElementById('open-comment-modal');
@@ -5421,7 +5421,7 @@ async function playPracticeSequenceViaTone() {
     if (window.toneEngine && !window.toneEngine.isActive) window.toneEngine.start();
 }
 
-// Runs once automatically (see playPracticeSequenceViaTone), or on demand from the Dev Mode
+// Runs once automatically (see playPracticeSequenceViaTone), or on demand from the Advanced
 // "Recalibrate" button. Plays each of the same 8 orientation tones one at a time, then listens
 // for the user's hum of that same note before moving to the next -- can't listen while the tone
 // itself is still playing, since the mic would just pick up the speaker. Whatever's captured

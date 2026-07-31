@@ -271,5 +271,55 @@ body.eco-mode * { animation-duration: 0.01ms !important; transition-duration: 0.
    button uses those same class names) - width/height/font-size/gap are handled separately by
    the Header Size !important rules elsewhere in this file, which already need to win regardless
    of Tailwind for the scaling feature to work, so nothing further needed here. */
+/* AR playback/recording, toast, tone-debug indicator: these sit in a region I'd initially left
+   out of scope entirely, not just under-covered - genuinely missed until specifically checked.
+   Elements needing BOTH a fixed horizontal-centering transform AND a separate toggled transform
+   (record button's press-scale, toast's slide animation) get dedicated ID rules rather than
+   generic classes, since Tailwind composes multiple transform utilities via CSS variables and a
+   simple "one class = one transform value" approach can't replicate that - two generic
+   transform classes on the same element would just override each other, not combine. */
+.inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+.bg-black { background-color: #000; }
+.touch-none { touch-action: none; }
+.object-contain { object-fit: contain; }
+.absolute { position: absolute; }
+.top-8 { top: 2rem; }
+.right-8 { right: 2rem; }
+.left-8 { left: 2rem; }
+.top-20 { top: 5rem; }
+.top-32 { top: 8rem; }
+.bottom-10 { bottom: 2.5rem; }
+.left-1\/2 { left: 50%; }
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+.text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+.text-xs { font-size: 0.75rem; line-height: 1rem; }
+.text-indigo-300 { color: #a5b4fc; }
+.font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.cursor-pointer { cursor: pointer; }
+.h-5 { height: 1.25rem; }
+.w-5 { width: 1.25rem; }
+.h-20 { height: 5rem; }
+.w-20 { width: 5rem; }
+.border-4 { border-width: 4px; }
+.border-white { border-color: #fff; }
+.accent-red-500 { accent-color: #ef4444; }
+.z-50 { z-index: 50; }
+.z-\[99\] { z-index: 99; }
+.z-\[100\] { z-index: 100; }
+.z-\[101\] { z-index: 101; }
+.bg-black.bg-opacity-60 { background-color: rgba(0, 0, 0, 0.6); }
+.bg-black.bg-opacity-80 { background-color: rgba(0, 0, 0, 0.8); }
+.ar-record-glow { box-shadow: 0 0 20px rgba(255, 0, 0, 0.8); }
+.ar-record-btn-pos { transform: translateX(-50%); }
+.ar-record-btn-pos:active { transform: translateX(-50%) scale(0.95); }
+/* Toast: left-1/2 handles horizontal centering (generic, safe on its own); this ID rule handles
+   the transform, since it needs to combine centering with the slide toggle rather than let a
+   generic -translate-y-10 class silently replace the centering transform when toggled. */
+#toast-notification { transform: translateX(-50%); }
+#toast-notification.-translate-y-10 { transform: translateX(-50%) translateY(-2.5rem); }
+#tone-debug-indicator { transform: translateX(-50%); }
 
 

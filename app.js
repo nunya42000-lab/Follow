@@ -7023,7 +7023,7 @@ function initGlobalListeners() {
                     btnRow.classList.add('header-just-unhidden');
                     unhideGraceTimer = setTimeout(() => {
                         btnRow.classList.remove('header-just-unhidden');
-                    }, 100);
+                    }, 400);
                 }
             });
         })();

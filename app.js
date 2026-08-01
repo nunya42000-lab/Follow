@@ -7016,8 +7016,10 @@ function initGlobalListeners() {
                 // pointer-events on the row goes from none to auto the instant
                 // auto-hide-inactive is removed above - without this guard, a fast second tap
                 // in roughly the same spot during that slide-in could land on a button before
-                // the user can actually see it's there. Only applies on the real reveal (the
-                // row was genuinely hidden); a touch while it's already visible needs no delay.
+                // the user can actually see it's there. 400ms matches the full transform
+                // transition, so buttons stay inert for the entire slide-in, not just part of
+                // it. Only applies on the real reveal (the row was genuinely hidden); a touch
+                // while it's already visible needs no delay.
                 if (wasInactive && btnRow) {
                     clearTimeout(unhideGraceTimer);
                     btnRow.classList.add('header-just-unhidden');

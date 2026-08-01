@@ -151,10 +151,14 @@ header#aux-control-header.auto-hide-header-enabled.auto-hide-inactive #header-bt
 }
 /* Brief input-blocking window right after the header unhides via touch (see the pointerdown
    handler in initGlobalListeners in app.js). The buttons take .4s to visually finish sliding
-   into place; this keeps them non-interactive for the first 100ms of that so a fast second tap
+   into place; this keeps them non-interactive for the full 400ms of that so a fast second tap
    near the same spot can't land on a button before it's actually visible. Purely blocks
-   pointer-events - doesn't touch the transform/opacity animation above. */
-#header-btn-row.header-just-unhidden {
+   pointer-events - doesn't touch the transform/opacity animation above. Must target the
+   buttons directly, not just the row: #aux-control-header button (above) explicitly sets
+   pointer-events:auto on every button, which overrides whatever the row would otherwise pass
+   down through inheritance, so a row-only rule here has no effect on the buttons themselves. */
+#header-btn-row.header-just-unhidden,
+#header-btn-row.header-just-unhidden button {
     pointer-events: none;
 }
 #redeem-modal.redeem-bright { background-color: #ffffff !important; }

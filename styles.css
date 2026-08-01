@@ -56,7 +56,7 @@ img, svg, video, canvas {
 .pointer-events-none { pointer-events: none !important; }
 .hidden { display: none !important; }
 :root { --bg-main: #000000; --card-bg: #121212; --seq-bubble: #4f46e5; --btn-bg: #1a1a1a; --text-main: #e5e5e5; --border: rgba(255, 255, 255, 0.15); }
-body { background-color: var(--bg-main); color: var(--text-main); transition: background-color .3s, color .3s; min-height: 100vh; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+body { background-color: var(--bg-main); color: var(--text-main); transition: background-color .3s, color .3s; min-height: 100vh; min-height: 100dvh; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
 input, textarea, .selectable-text { -webkit-user-select: text !important; user-select: text !important; -webkit-touch-callout: default !important; cursor: auto; touch-action: auto; }
 .settings-modal-bg { background-color: var(--card-bg) !important; color: var(--text-main) !important; border: 1px solid var(--border); }
 .settings-input { background-color: var(--bg-main) !important; color: var(--text-main) !important; border: 1px solid var(--border) !important; }
@@ -75,7 +75,7 @@ input, textarea, .selectable-text { -webkit-user-select: text !important; user-s
 #app { padding-top: 1rem; display: flex; flex-direction: column; }
 @media (orientation:landscape) { #app {padding-top: 0;} #sequence-container { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: .5rem !important; } #sequence-container>div { margin: 0 !important; } }
 #sequence-container { justify-content: flex-start !important; padding-top: 1rem; width: 100%; }
-#input-footer { background-color: var(--card-bg); border-top: 4px solid var(--seq-bubble); padding-bottom: max(.5rem, env(safe-area-inset-bottom)); max-height: 70vh; overflow-y: auto; }
+#input-footer { background-color: var(--card-bg); border-top: 4px solid var(--seq-bubble); padding-bottom: calc(max(.5rem, env(safe-area-inset-bottom)) + var(--inputs-padding-extra, 0px)); max-height: 70vh; overflow-y: auto; }
 /* Position Swap: #input-footer's top/bottom placement and paddingTop/paddingBottom on #app
    are set inline by applyPositionSwapOffsets() in app.js, since they depend on measured
    element heights. This just flips the border + padding so it still looks correct at the top. */
@@ -142,7 +142,7 @@ body.hide-controls .control-row { display: none !important; }
    auto for the whole header area. Drop-in uses a back-out ease for a slight overshoot/settle
    (reads as "dropping"); hiding uses a slower, purely-decelerating ease at a longer duration
    (reads as "floating" rather than dropping in reverse), per the specified enter/exit feel. */
-header#aux-control-header.auto-hide-header-enabled { pointer-events: auto; }
+header#aux-control-header.auto-hide-header-enabled { pointer-events: auto !important; }
 header#aux-control-header.auto-hide-header-enabled #header-btn-row {
     transition: transform .4s cubic-bezier(.34,1.56,.64,1), opacity .3s ease-in;
 }

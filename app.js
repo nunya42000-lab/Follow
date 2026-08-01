@@ -129,7 +129,7 @@ const HAND_GESTURE_GROUPS = [
 
 // --- End merged content ---
 
-class GestureEngine {
+class TouchGestureEngine {
     constructor(targetElement, config, callbacks) {
         this.target = targetElement || document.body;
         this.config = Object.assign({
@@ -149,7 +149,7 @@ class GestureEngine {
         }, config || {});
 
         this.callbacks = Object.assign({
-            onGesture: (data) => console.log('Gesture:', data), 
+            onTouchGesture: (data) => console.log('Gesture:', data), 
             onContinuous: (data) => console.log('Continuous:', data), 
             onDebug: (msg) => {}
         }, callbacks || {});
@@ -157,7 +157,7 @@ class GestureEngine {
         this.activePointers = {};
         this.history = [];
         this.tapStack = { count: 0, fingers: 0, timer: null, posHistory: [], active: false };
-        this.allowedGestures = new Set();
+        this.allowedTouchGestures = new Set();
         this.contState = {
             rotStartAngle: 0, rotAccumulator: 0, rotLastUpdate: 0, pinchStartDist: 0,
             squiggle: { isTracking: false, startX: 0, lastX: 0, direction: 0, flips: 0, hasTriggered: false },
@@ -174,13 +174,13 @@ class GestureEngine {
     // default if appSettings isn't available yet.
     _cfg(key) {
         const appSettingsKeyMap = {
-            tapDelay: 'gestureTapDelay',
-            swipeThreshold: 'gestureSwipeDist',
-            longPressTime: 'gestureLongPressTime',
-            tapPrecision: 'gestureTapPrecision',
-            spatialThreshold: 'gestureSpatialThreshold',
-            longSwipeThreshold: 'gestureLongSwipeThreshold',
-            multiSwipeThreshold: 'gestureMultiSwipeThreshold',
+            tapDelay: 'touchGestureTapDelay',
+            swipeThreshold: 'touchGestureSwipeDist',
+            longPressTime: 'touchGestureLongPressTime',
+            tapPrecision: 'touchGestureTapPrecision',
+            spatialThreshold: 'touchGestureSpatialThreshold',
+            longSwipeThreshold: 'touchGestureLongSwipeThreshold',
+            multiSwipeThreshold: 'touchGestureMultiSwipeThreshold',
             anchorStillDistance: 'touchAnchorStillDistance',
             anchorMinHoldTime: 'touchAnchorMinHoldTime',
             chordSimultaneityWindow: 'touchChordSimultaneityWindow',
@@ -195,7 +195,7 @@ class GestureEngine {
     }
 
     updateAllowed(list) {
-        this.allowedGestures = new Set(list);
+        this.allowedTouchGestures = new Set(list);
     }
 
     _bindHandlers() {
@@ -364,8 +364,8 @@ class GestureEngine {
         // Anchor: first-down finger held still, second finger acted - inherently sequential
         // (that's the whole point of a modifier), so no simultaneity requirement here.
         if (c1.kind === 'still' && (c2.kind === 'tap' || c2.kind === 'swipe')) {
-            if (c2.kind === 'tap') this._emitGesture('anchor', 2, { subMode: 'tap' });
-            else this._emitGesture('anchor', 2, { subMode: 'swipe', dir: c2.dir });
+            if (c2.kind === 'tap') this._emitTouchGesture('anchor', 2, { subMode: 'tap' });
+            else this._emitTouchGesture('anchor', 2, { subMode: 'swipe', dir: c2.dir });
             return true;
         }
 
@@ -383,7 +383,7 @@ class GestureEngine {
             if (label1 !== label2 && !isOppositePair) {
                 // Sort alphabetically so "up+left" and "left+up" produce the same id
                 const [a, b] = [label1, label2].sort();
-                this._emitGesture('chord', 2, { subMode: `${a}_${b}` });
+                this._emitTouchGesture('chord', 2, { subMode: `${a}_${b}` });
                 return true;
             }
         }
@@ -451,7 +451,7 @@ class GestureEngine {
                  const dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
                  if (endSpan < startSpan * 0.7) { type = 'pinch_swipe'; meta.dir = dir; }
                  else if (endSpan > startSpan * 1.3) { type = 'expand_swipe'; meta.dir = dir; }
-                 this._emitGesture(type, fingers, meta); return;
+                 this._emitTouchGesture(type, fingers, meta); return;
              }
         }
 
@@ -514,9 +514,9 @@ class GestureEngine {
                 // direction-change point, this is a "Pausing" gesture. Single-finger only, to
                 // match the Pausing Curves category (which has no multi-finger entries).
                 if (fingers === 1 && this._hasDwell(primaryPath)) {
-                    if (type === 'boomerang') { this._emitGesture('Pausing_boomerang', 1, { dir: meta.dir }); return; }
-                    if (type === 'switchback') { this._emitGesture('Pausing_Switchback', 1, { dir: meta.dir, winding: winding }); return; }
-                    if (type === 'corner') { this._emitGesture('Pausing_corner', 1, { dir: meta.dir, winding: winding }); return; }
+                    if (type === 'boomerang') { this._emitTouchGesture('Pausing_boomerang', 1, { dir: meta.dir }); return; }
+                    if (type === 'switchback') { this._emitTouchGesture('Pausing_Switchback', 1, { dir: meta.dir, winding: winding }); return; }
+                    if (type === 'corner') { this._emitTouchGesture('Pausing_corner', 1, { dir: meta.dir, winding: winding }); return; }
                 }
             } 
             // --- 1 Segment (Swipe) ---
@@ -531,7 +531,7 @@ class GestureEngine {
                 // Single-finger only, matching the category. Checked before Flick since a paused
                 // swipe is by definition not a quick flick.
                 if (fingers === 1 && this._hasDwell(primaryPath)) {
-                    this._emitGesture('Pausing_swipe', 1, { dir: dir });
+                    this._emitTouchGesture('Pausing_swipe', 1, { dir: dir });
                     return;
                 }
 
@@ -544,7 +544,7 @@ class GestureEngine {
                 if (type === 'swipe' && fingers === 1) {
                     const swipeDuration = inputs[0].endTime - inputs[0].startTime;
                     if (swipeDuration < 200) {
-                        this._emitGesture('Flick', fingers, { dir: dir });
+                        this._emitTouchGesture('Flick', fingers, { dir: dir });
                         return;
                     }
                 }
@@ -587,7 +587,7 @@ class GestureEngine {
                 return;
             }
             if (type !== 'tap' && fingers === 1 && this.tapStack.fingers === 1) {
-                this._emitGesture('motion_tap', 1, { subMode: type, dir: meta.dir, winding: meta.winding });
+                this._emitTouchGesture('motion_tap', 1, { subMode: type, dir: meta.dir, winding: meta.winding });
                 this._clearStack();
                 return;
             }
@@ -603,7 +603,7 @@ class GestureEngine {
             }; 
             return; 
         }
-        this._emitGesture(type, fingers, meta);
+        this._emitTouchGesture(type, fingers, meta);
     }
 
     _commitStack() { 
@@ -618,7 +618,7 @@ class GestureEngine {
                 // Spatial Taps
                 if (count === 2) {
                     const dir = this._getDirection(posHistory[1].x - posHistory[0].x, posHistory[1].y - posHistory[0].y);
-                    this._emitGesture('Double_tap_spatial', 1, { dir: dir });
+                    this._emitTouchGesture('Double_tap_spatial', 1, { dir: dir });
                 } else if (count === 3) {
                     const v1 = { x: posHistory[1].x - posHistory[0].x, y: posHistory[1].y - posHistory[0].y };
                     const v2 = { x: posHistory[2].x - posHistory[1].x, y: posHistory[2].y - posHistory[1].y };
@@ -646,13 +646,13 @@ class GestureEngine {
                         if(dirMap[combo]) finalDir = dirMap[combo];
                         else finalDir = this._getDirection(v1.x + v2.x, v1.y + v2.y); 
                     }
-                    this._emitGesture('triple_tap', fingers, { subMode: subMode, dir: finalDir });
+                    this._emitTouchGesture('triple_tap', fingers, { subMode: subMode, dir: finalDir });
                 }
             } else { 
                 let type = 'tap'; 
                 if (count === 2) type = 'double_tap'; 
                 if (count === 3) type = 'triple_tap'; 
-                this._emitGesture(type, fingers, { align: align }); 
+                this._emitTouchGesture(type, fingers, { align: align }); 
             }
             this._clearStack(); 
         } 
@@ -660,7 +660,7 @@ class GestureEngine {
 
     _clearStack() { this.tapStack = { active: false, count: 0, fingers: 0, posHistory: [], timer: null }; }
 
-    _emitGesture(baseType, fingers, meta, overrideName = null) {
+    _emitTouchGesture(baseType, fingers, meta, overrideName = null) {
         let id = baseType;
         if (meta && meta.subMode) id += '_' + meta.subMode;
         if (meta && meta.dir && meta.dir !== 'Any' && meta.dir !== 'none') id += '_' + meta.dir.toLowerCase(); 
@@ -695,12 +695,12 @@ class GestureEngine {
 
         // Helper to check allow list
         const tryFallback = (candidate) => {
-            if (this.allowedGestures && this.allowedGestures.has(candidate)) { finalId = candidate; return true; }
+            if (this.allowedTouchGestures && this.allowedTouchGestures.has(candidate)) { finalId = candidate; return true; }
             return false;
         };
 
         // Try exact match first
-        if (this.allowedGestures && this.allowedGestures.size > 0 && !this.allowedGestures.has(finalId)) {
+        if (this.allowedTouchGestures && this.allowedTouchGestures.size > 0 && !this.allowedTouchGestures.has(finalId)) {
             
             if (id.startsWith('swipe_long_')) {
                 if (tryFallback(id.replace('swipe_long_', 'swipe_'))) {}
@@ -716,7 +716,7 @@ class GestureEngine {
                 }
             }
 
-            if (!this.allowedGestures.has(finalId)) {
+            if (!this.allowedTouchGestures.has(finalId)) {
                 const dirs = ['_up','_down','_left','_right','_nw','_ne','_sw','_se'];
                 for (let d of dirs) {
                     if (finalId.includes(d)) {
@@ -727,10 +727,10 @@ class GestureEngine {
             }
         }
 
-        if (this.allowedGestures && this.allowedGestures.size > 0 && !this.allowedGestures.has(finalId)) return;
+        if (this.allowedTouchGestures && this.allowedTouchGestures.size > 0 && !this.allowedTouchGestures.has(finalId)) return;
         
         const name = overrideName || finalId;
-        this.callbacks.onGesture({ id: finalId, base: baseType, fingers: fingers, meta: meta, name: name });
+        this.callbacks.onTouchGesture({ id: finalId, base: baseType, fingers: fingers, meta: meta, name: name });
     }
 
     // --- UTILS ---
@@ -896,27 +896,27 @@ const GESTURE_DICTIONARY = {
 };
 
 // --- 2. TEMPORAL DEBOUNCE BUFFER ---
-class GestureBuffer {
+class HandGestureBuffer {
     constructor(bufferSize = 4) {
         this.buffer = [];
         this.maxSize = bufferSize;
-        this.currentLockedGesture = null;
+        this.currentLockedHandGesture = null;
         this.lockTime = null;
         this.lockTimeout = 2000; // 2 second timeout to prevent indefinite locks
     }
 
-    pushAndEvaluate(gestureID) {
+    pushAndEvaluate(handGestureID) {
         // Reads live so the Hold Frames slider takes effect immediately without restarting tracking
         this.maxSize = (window.appSettings && window.appSettings.handHoldFrames) || 4;
 
-        if (gestureID === null) {
+        if (handGestureID === null) {
             this.buffer = [];
-            this.currentLockedGesture = null;
+            this.currentLockedHandGesture = null;
             this.lockTime = null;
             return null;
         }
 
-        this.buffer.push(gestureID);
+        this.buffer.push(handGestureID);
         if (this.buffer.length > this.maxSize) {
             this.buffer.shift();
         }
@@ -924,18 +924,18 @@ class GestureBuffer {
         if (this.buffer.length === this.maxSize && this.buffer.every(val => val === this.buffer[0])) {
             // Lock gesture only if we're not already locked to it, or if we've exceeded the timeout
             const now = Date.now();
-            if (this.currentLockedGesture !== this.buffer[0]) {
-                this.currentLockedGesture = this.buffer[0];
+            if (this.currentLockedHandGesture !== this.buffer[0]) {
+                this.currentLockedHandGesture = this.buffer[0];
                 this.lockTime = now;
             } else if (now - this.lockTime > this.lockTimeout) {
                 // Gesture has been locked for too long; clear and re-lock to refresh
-                this.currentLockedGesture = null;
+                this.currentLockedHandGesture = null;
                 this.lockTime = null;
             }
-            return this.currentLockedGesture;
+            return this.currentLockedHandGesture;
         }
 
-        return this.currentLockedGesture; 
+        return this.currentLockedHandGesture; 
     }
 }
 
@@ -972,7 +972,7 @@ class HandMotionTracker {
     // rarely visible in practice, but it's a real ambiguity worth knowing about, not silently
     // resolved.
     push(x, y) {
-        // Read live (same pattern as GestureBuffer.maxSize below) so the Sensitivity slider
+        // Read live (same pattern as HandGestureBuffer.maxSize below) so the Sensitivity slider
         // takes effect immediately without restarting hand tracking.
         this.minSwipeDist = ((window.appSettings && window.appSettings.handMotionMinDistance) || 12) / 100;
         const now = Date.now();
@@ -1116,7 +1116,7 @@ function processHandData(landmarks) {
     
     const palmFacing = crossProduct > 0 ? 1 : 0; 
     
-    let gestureID = (baseMask << 1) | palmFacing;
+    let handGestureID = (baseMask << 1) | palmFacing;
 
     const pinchThreshold = ((window.appSettings && window.appSettings.handPinchThreshold) || 5.5) / 100;
     const dThumbIndex = dist3D(n[4], n[8]);
@@ -1134,24 +1134,24 @@ function processHandData(landmarks) {
                        dist3D(n[12], centerTip) < 0.08;
 
     if (isChefKiss) {
-        gestureID = 104;
+        handGestureID = 104;
     } else if (dThumbIndex < pinchThreshold) {
-        gestureID = (M || R || P) ? 105 : 100;
+        handGestureID = (M || R || P) ? 105 : 100;
     } else if (dThumbMiddle < pinchThreshold) {
-        gestureID = 101;
+        handGestureID = 101;
     } else if (dThumbRing < pinchThreshold) {
-        gestureID = 102;
+        handGestureID = 102;
     } else if (dThumbPinky < pinchThreshold) {
-        gestureID = 103;
+        handGestureID = 103;
     } else if (T === 1 && I === 0 && M === 0 && R === 0 && P === 0) {
         // Thumb is the only finger extended - "thumb up" (id 32/33) can't tell up from down on
         // its own, since that's about which side of the hand faces the camera, not which way the
         // thumb points. Checking the thumb tip's position relative to its own base joint (not
         // just the wrist) gives a genuine, independent up/down reading.
-        gestureID = (n[4].y < n[2].y) ? 600 : 601; // image y increases downward, so smaller y = higher up = thumbs up
+        handGestureID = (n[4].y < n[2].y) ? 600 : 601; // image y increases downward, so smaller y = higher up = thumbs up
     }
 
-    return gestureID;
+    return handGestureID;
 }
 window.processHandData = processHandData;
 
@@ -1164,7 +1164,7 @@ class VisionEngine {
         this.isActive = false;
         this.loopId = null;
         this.lastVideoTime = -1;
-        this.engineBuffer = new GestureBuffer(4); // Attach buffer directly to engine state
+        this.engineBuffer = new HandGestureBuffer(4); // Attach buffer directly to engine state
         this.motionTracker = new HandMotionTracker(); // Boomerang/Zigzag/Anchor Hold/Circular Sweep/Swipes
         this.isInitialized = false; // Flag for initialization state
         this.initError = null; // Store init error for debugging
@@ -1731,7 +1731,7 @@ const GESTURE_PRESETS = {
 };
 const CRAYONS = ["#000000", "#1F75FE", "#1CA9C9", "#0D98BA", "#FFFFFF", "#C5D0E6", "#B0B7C6", "#AF4035", "#F5F5F5", "#FEFEFA", "#FFFAFA", "#F0F8FF", "#F8F8FF", "#F5F5DC", "#FFFACD", "#FAFAD2", "#FFFFE0", "#FFFFF0", "#FFFF00", "#FFEFD5", "#FFE4B5", "#FFDAB9", "#EEE8AA", "#F0E68C", "#BDB76B", "#E6E6FA", "#D8BFD8", "#DDA0DD", "#EE82EE", "#DA70D6", "#FF00FF", "#BA55D3", "#9370DB", "#8A2BE2", "#9400D3", "#9932CC", "#8B008B", "#800000", "#4B0082", "#483D8B", "#6A5ACD", "#7B68EE", "#ADFF2F", "#7FFF00", "#7CFC00", "#00FF00", "#32CD32", "#98FB98", "#90EE90", "#00FA9A", "#00FF7F", "#3CB371", "#2E8B57", "#228B22", "#008000", "#006400", "#9ACD32", "#6B8E23", "#808000", "#556B2F", "#66CDAA", "#8FBC8F", "#20B2AA", "#008B8B", "#008080", "#00FFFF", "#00CED1", "#40E0D0", "#48D1CC", "#AFEEEE", "#7FFFD4", "#B0E0E6", "#5F9EA0", "#4682B4", "#6495ED", "#00BFFF", "#1E90FF", "#ADD8E6", "#87CEEB", "#87CEFA", "#191970", "#000080", "#0000FF", "#0000CD", "#4169E1", "#8A2BE2", "#4B0082", "#FFE4C4", "#FFEBCD", "#F5DEB3", "#DEB887", "#D2B48C", "#BC8F8F", "#F4A460", "#DAA520", "#B8860B", "#CD853F", "#D2691E", "#8B4513", "#A0522D", "#A52A2A", "#800000", "#FFA07A", "#FA8072", "#E9967A", "#F08080", "#CD5C5C", "#DC143C", "#B22222", "#FF0000", "#FF4500", "#FF6347", "#FF7F50", "#FF8C00", "#FFA500", "#FFD700", "#FFFF00", "#808000", "#556B2F", "#6B8E23", "#999999", "#808080", "#666666", "#333333", "#222222", "#111111", "#0A0A0A", "#000000"];
 class SettingsManager {
-	formatGestureLabel(id) {
+	formatTouchGestureLabel(id) {
 		const compass = { up: 'Up', down: 'Down', left: 'Left', right: 'Right', nw: 'NW', ne: 'NE', sw: 'SW', se: 'SE', cw: 'CW', ccw: 'CCW', any: 'Any' };
 		return id.split('_').map(part => {
 				if (part === '2f') return '(2-Finger)';
@@ -1751,7 +1751,7 @@ class SettingsManager {
 				if (!active.includes(category)) return;
 				optionsHTML += `<optgroup label="${category}">`;
 				GESTURE_CATEGORIES[category].forEach(id => {
-						optionsHTML += `<option value="${id}">${this.formatGestureLabel(id)}</option>`;
+						optionsHTML += `<option value="${id}">${this.formatTouchGestureLabel(id)}</option>`;
 					});
 				optionsHTML += `</optgroup>`;
 			});
@@ -1764,7 +1764,7 @@ class SettingsManager {
 				} else if (currentValue && currentValue !== 'none') {
 					const opt = document.createElement('option');
 					opt.value = currentValue;
-					opt.textContent = this.formatGestureLabel(currentValue) + ' (filtered)';
+					opt.textContent = this.formatTouchGestureLabel(currentValue) + ' (filtered)';
 					select.appendChild(opt);
 					select.value = currentValue;
 				} else {
@@ -1804,8 +1804,6 @@ class SettingsManager {
 				const group = HAND_GESTURE_GROUPS.find(g => g.id === groupIdByFilter[filterName]);
 				if (group) options.push(...group.gestures);
 			});
-		const HAND_SIGNAL_IDS = [];
-		options = options.filter(g => !HAND_SIGNAL_IDS.includes(String(g.id)));
 		const optionsHTML = '<option value="none">🚫 Unassigned</option>' +
 		options.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
 		document.querySelectorAll('select[id^="map-hand-"]').forEach(select => {
@@ -1839,10 +1837,10 @@ class SettingsManager {
 			input: document.getElementById('input-select'), mode: document.getElementById('mode-select'), practiceMode: document.getElementById('practice-mode-toggle'), machines: document.getElementById('machines-select'), seqLength: document.getElementById('seq-length-select'),
 			autoClear: document.getElementById('autoclear-toggle'), autoplay: document.getElementById('autoplay-toggle'), flash: document.getElementById('flash-toggle'),
 			pause: document.getElementById('pause-select'), audio: document.getElementById('audio-toggle'), hapticMorse: document.getElementById('haptic-morse-toggle'), playbackSpeed: document.getElementById('playback-speed-select'), chunk: document.getElementById('chunk-select'), delay: document.getElementById('delay-select'), haptics: document.getElementById('hapticsToggle'),
-			speedGesturesToggle: document.getElementById('speedToggle'),
-			volumeGesturesToggle: document.getElementById('volgesToggle'),
-			deleteGestureToggle: document.getElementById('deleteToggle'),
-			clearGestureToggle: document.getElementById('clearToggle'),
+			speedTouchGesturesToggle: document.getElementById('speedToggle'),
+			volumeTouchGesturesToggle: document.getElementById('volgesToggle'),
+			deleteTouchGestureToggle: document.getElementById('deleteToggle'),
+			clearTouchGestureToggle: document.getElementById('clearToggle'),
 			autoTimerToggle: document.getElementById('autotimerToggle'),
 			autoCounterToggle: document.getElementById('autocounterToggle'),
 			arcamToggle: document.getElementById('arcamToggle'),
@@ -1858,7 +1856,7 @@ class SettingsManager {
 			headerPlayToggle: document.getElementById('headerPlayToggle'), headerDeleteToggle: document.getElementById('headerDeleteToggle'), headerSettingsToggle: document.getElementById('headerSettingsToggle'), headerRedeemToggle: document.getElementById('headerRedeemToggle'), headerShareToggle: document.getElementById('headerShareToggle'), headerThemeCycleToggle: document.getElementById('headerThemeCycleToggle'), headerAddMachineToggle: document.getElementById('headerAddMachineToggle'), headerUiSizeToggle: document.getElementById('headerUiSizeToggle'), headerSeqSizeToggle: document.getElementById('headerSeqSizeToggle'), headerVolumeToggle: document.getElementById('headerVolumeToggle'), headerSpeedToggle: document.getElementById('headerSpeedToggle'), headerCycleInputToggle: document.getElementById('headerCycleInputToggle'),
 			headerNotepadToggle: document.getElementById('headerNotepadToggle'), headerHelpToggle: document.getElementById('headerHelpToggle'), headerModeSwitchToggle: document.getElementById('headerModeSwitchToggle'), headerResetToggle: document.getElementById('headerResetToggle'), headerNukeToggle: document.getElementById('headerNukeToggle'), headerInfiniteScrollToggle: document.getElementById('headerInfiniteScrollToggle'), inputRegulatorToggle: document.getElementById('inputRegulatorToggle'),
 			counterToggle: document.getElementById('counterToggle'),
-			gestureToggle: document.getElementById('touchToggle'),
+			touchGestureToggle: document.getElementById('touchToggle'),
 			handToggle: document.getElementById('handToggle'),
 			handsignalsToggle: document.getElementById('handsignalsToggle'),
 			handednessFlipToggle: document.getElementById('handednessFlipToggle'),
@@ -1873,7 +1871,7 @@ class SettingsManager {
 			fontScale: document.getElementById('font-scale-select'),
 			seqSize: document.getElementById('seq-size-select'),
 			seqFontSize: document.getElementById('seq-font-size-select'),
-			gestureMode: document.getElementById('gesture-mode-select'),
+			touchResizeModeSelect: document.getElementById('gesture-mode-select'),
 			closeSettingsBtn: document.getElementById('close-settings'),
 			tabs: document.querySelectorAll('.tab-btn'),
 			contents: document.querySelectorAll('.tab-content'),
@@ -1896,11 +1894,13 @@ class SettingsManager {
 			btnCashMain: document.getElementById('btn-cashapp-main'), btnPaypalMain: document.getElementById('btn-paypal-main'),
 			copyLinkBtn: document.getElementById('copy-link-button'), nativeShareBtn: document.getElementById('native-share-button'),
 			chatShareBtn: document.getElementById('chat-share-button'), emailShareBtn: document.getElementById('email-share-button'),
-			gestureTapSlider: document.getElementById('gesture-tap-slider'),
-			gestureSwipeSlider: document.getElementById('gesture-swipe-slider'),
-			gestureTapVal: document.getElementById('gesture-tap-val'),
-			gestureSwipeVal: document.getElementById('gesture-swipe-val'),
+			touchGestureTapSlider: document.getElementById('gesture-tap-slider'),
+			touchGestureSwipeSlider: document.getElementById('gesture-swipe-slider'),
+			touchGestureTapVal: document.getElementById('gesture-tap-val'),
+			touchGestureSwipeVal: document.getElementById('gesture-swipe-val'),
 			voiceTriggerSelect: document.getElementById('voice-trigger-select'),
+			headerPaddingSelect: document.getElementById('header-padding-select'),
+			inputsPaddingSelect: document.getElementById('inputs-padding-select'),
 			upsidedownToggle: document.getElementById('upsidedownToggle'),
 			fullscreenToggle: document.getElementById('fullscreenToggle'),
 			ecoToggle: document.getElementById('ecoToggle'),
@@ -1925,10 +1925,10 @@ class SettingsManager {
 		this.populateMappingUI();
 		this.populateMorseUI();
 		this.updateUIFromSettings();
-		if(this.dom.gestureToggle){
-			this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
-			this.dom.gestureToggle.addEventListener('change', (e) => {
-					this.appSettings.isGestureInputEnabled = !!e.target.checked;
+		if(this.dom.touchGestureToggle){
+			this.dom.touchGestureToggle.checked = !!this.appSettings.isTouchGestureInputEnabled;
+			this.dom.touchGestureToggle.addEventListener('change', (e) => {
+					this.appSettings.isTouchGestureInputEnabled = !!e.target.checked;
 					this.callbacks.onSave();
 					this.updateHeaderVisibility();
 					this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
@@ -2018,11 +2018,11 @@ class SettingsManager {
 		};
 		['key9', 'key12', 'piano'].forEach(layout => {
 				this.bindPresetAccordion('touch', layout, filterPresetsByType(GESTURE_PRESETS, layout), LAYOUT_KEYS[layout],
-					(key) => (this.appSettings.gestureMappings && this.appSettings.gestureMappings[key]) ? this.appSettings.gestureMappings[key].gesture : 'none',
+					(key) => (this.appSettings.touchGestureMappings && this.appSettings.touchGestureMappings[key]) ? this.appSettings.touchGestureMappings[key].gesture : 'none',
 					(key, val) => {
-						if (!this.appSettings.gestureMappings) this.appSettings.gestureMappings = {};
-						if (!this.appSettings.gestureMappings[key]) this.appSettings.gestureMappings[key] = {};
-						this.appSettings.gestureMappings[key].gesture = val;
+						if (!this.appSettings.touchGestureMappings) this.appSettings.touchGestureMappings = {};
+						if (!this.appSettings.touchGestureMappings[key]) this.appSettings.touchGestureMappings[key] = {};
+						this.appSettings.touchGestureMappings[key].gesture = val;
 						const el = document.querySelector(`#map-touch-${key}`);
 						if (el) el.value = val;
 					});
@@ -2060,8 +2060,8 @@ class SettingsManager {
 				const keyId = select.dataset.key;
 				const type = select.dataset.type;
 				if (type === 'touch') {
-					if (this.appSettings.gestureMappings && this.appSettings.gestureMappings[keyId] && this.appSettings.gestureMappings[keyId].gesture) {
-						select.value = this.appSettings.gestureMappings[keyId].gesture;
+					if (this.appSettings.touchGestureMappings && this.appSettings.touchGestureMappings[keyId] && this.appSettings.touchGestureMappings[keyId].gesture) {
+						select.value = this.appSettings.touchGestureMappings[keyId].gesture;
 					}
 				} else if (this.appSettings.mappings && this.appSettings.mappings[keyId] && this.appSettings.mappings[keyId].handGesture !== undefined) {
 					select.value = this.appSettings.mappings[keyId].handGesture;
@@ -2086,9 +2086,9 @@ class SettingsManager {
 				}
 				select.onchange = (e) => {
 					if (type === 'touch') {
-						if (!this.appSettings.gestureMappings) this.appSettings.gestureMappings = {};
-						if (!this.appSettings.gestureMappings[keyId]) this.appSettings.gestureMappings[keyId] = {};
-						this.appSettings.gestureMappings[keyId].gesture = e.target.value;
+						if (!this.appSettings.touchGestureMappings) this.appSettings.touchGestureMappings = {};
+						if (!this.appSettings.touchGestureMappings[keyId]) this.appSettings.touchGestureMappings[keyId] = {};
+						this.appSettings.touchGestureMappings[keyId].gesture = e.target.value;
 					} else {
 						if (!this.appSettings.mappings) this.appSettings.mappings = {};
 						if (!this.appSettings.mappings[keyId]) this.appSettings.mappings[keyId] = { touch: 'none', handGesture: 'none', morse: '', handSide: 'any' };
@@ -2311,8 +2311,93 @@ class SettingsManager {
 	buildColorGrid() { if (!this.dom.editorGrid) return; this.dom.editorGrid.innerHTML = ''; CRAYONS.forEach(color => { const btn = document.createElement('div'); btn.style.backgroundColor = color; btn.className = "w-full h-6 rounded cursor-pointer border border-gray-700 hover:scale-125 transition-transform shadow-sm"; btn.onclick = () => this.applyColorToTarget(color); this.dom.editorGrid.appendChild(btn); }); }
 	applyColorToTarget(hex) { if (!this.tempTheme) return; this.tempTheme[this.currentTargetKey] = hex; const [h, s, l] = this.hexToHsl(hex); this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l; this.dom.ftPreview.style.backgroundColor = hex; if (this.dom.ftContainer.classList.contains('hidden')) { this.dom.ftContainer.classList.remove('hidden'); this.dom.ftToggle.style.display = 'none'; } this.updatePreview(); }
 	updateColorFromSliders() { const h = parseInt(this.dom.ftHue.value); const s = parseInt(this.dom.ftSat.value); const l = parseInt(this.dom.ftLit.value); const hex = this.hslToHex(h, s, l); this.dom.ftPreview.style.backgroundColor = hex; if (this.tempTheme) { this.tempTheme[this.currentTargetKey] = hex; this.updatePreview(); } }
-	openThemeEditor() { if (!this.dom.editorModal) return; const activeId = this.appSettings.activeTheme; const source = this.appSettings.customThemes[activeId] || PREMADE_THEMES[activeId] || PREMADE_THEMES['default']; this.tempTheme = { ...source }; this.dom.edName.value = this.tempTheme.name; this.dom.targetBtns.forEach(b => b.classList.remove('active', 'bg-primary-app')); this.dom.targetBtns[2].classList.add('active', 'bg-primary-app'); this.currentTargetKey = 'bubble'; const [h, s, l] = this.hexToHsl(this.tempTheme.bubble); this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l; this.dom.ftPreview.style.backgroundColor = this.tempTheme.bubble; this.updatePreview(); this.dom.editorModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.editorModal.querySelector('div').classList.remove('scale-90'); }
-	updatePreview() { const t = this.tempTheme; if (!this.dom.edPreview) return; this.dom.edPreview.style.backgroundColor = t.bgMain; this.dom.edPreview.style.color = t.text; this.dom.edPreviewCard.style.backgroundColor = t.bgCard; this.dom.edPreviewCard.style.color = t.text; this.dom.edPreviewCard.style.border = '1px solid rgba(255,255,255,0.1)'; this.dom.edPreviewBtn.style.backgroundColor = t.bubble; this.dom.edPreviewBtn.style.color = t.text; }
+	// Extracts a 5-color theme from a photo: downscale to a small canvas (color distribution
+	// doesn't need full resolution), quantize pixels into coarse buckets to find the most
+	// frequent colors, filter those for visual diversity so the result isn't 5 near-identical
+	// shades, then assign by actual properties rather than just frequency order - most frequent
+	// candidate for the background (the photo's dominant tone), highest saturation for the
+	// accent (an accent that's actually vibrant), and text is computed for guaranteed contrast
+	// against the chosen background rather than pulled from the photo, since readability
+	// shouldn't be left to chance the way a decorative color can be.
+	buildThemeFromImage(file) {
+		return new Promise((resolve, reject) => {
+			const img = new Image();
+			const url = URL.createObjectURL(file);
+			img.onload = () => {
+				URL.revokeObjectURL(url);
+				try {
+					const size = 80;
+					const canvas = document.createElement('canvas');
+					canvas.width = size;
+					canvas.height = size;
+					const ctx = canvas.getContext('2d');
+					ctx.drawImage(img, 0, 0, size, size);
+					const data = ctx.getImageData(0, 0, size, size).data;
+					const buckets = {};
+					for (let i = 0; i < data.length; i += 4) {
+						if (data[i + 3] < 128) continue; // skip mostly-transparent pixels
+						const r = Math.round(data[i] / 16) * 16;
+						const g = Math.round(data[i + 1] / 16) * 16;
+						const b = Math.round(data[i + 2] / 16) * 16;
+						const key = r + ',' + g + ',' + b;
+						buckets[key] = (buckets[key] || 0) + 1;
+					}
+					const sorted = Object.entries(buckets).sort((a, b) => b[1] - a[1]);
+					if (sorted.length === 0) { resolve(null); return; }
+					const rgbToHex = (r, g, b) => '#' + [r, g, b].map(v => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0')).join('');
+					const luminance = (r, g, b) => 0.299 * r + 0.587 * g + 0.114 * b;
+					const dist = (a, b) => Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2);
+					const candidates = [];
+					for (const [key, count] of sorted) {
+						const [r, g, b] = key.split(',').map(Number);
+						if (candidates.some(c => dist(c.rgb, [r, g, b]) < 40)) continue;
+						const hex = rgbToHex(r, g, b);
+						const [, s, l] = this.hexToHsl(hex);
+						candidates.push({ rgb: [r, g, b], hex, count, luminance: luminance(r, g, b), sat: s, lit: l });
+						if (candidates.length >= 12) break;
+					}
+					if (candidates.length === 0) { resolve(null); return; }
+					const bgMain = candidates[0];
+					const bubble = [...candidates].sort((a, b) => b.sat - a.sat)[0];
+					let bgCard = candidates.find(c => c !== bgMain && c !== bubble && Math.abs(c.luminance - bgMain.luminance) < 60);
+					if (!bgCard) {
+						const [h, s, l] = this.hexToHsl(bgMain.hex);
+						const adjustedL = bgMain.luminance < 128 ? Math.min(95, l + 12) : Math.max(5, l - 12);
+						bgCard = { hex: this.hslToHex(h, s, adjustedL) };
+					}
+					let btn = candidates.find(c => c !== bgMain && c !== bubble && c !== bgCard);
+					if (!btn) {
+						const [h, s, l] = this.hexToHsl(bgCard.hex);
+						const adjustedL = bgMain.luminance < 128 ? Math.max(5, l - 10) : Math.min(95, l + 10);
+						btn = { hex: this.hslToHex(h, s, adjustedL) };
+					}
+					const text = bgMain.luminance < 128 ? '#f5f5f5' : '#111827';
+					resolve({ bgMain: bgMain.hex, bgCard: bgCard.hex, bubble: bubble.hex, btn: btn.hex, text });
+				} catch (err) {
+					reject(err);
+				}
+			};
+			img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not load image')); };
+			img.src = url;
+		});
+	}
+	selectThemeTarget(key) {
+		this.currentTargetKey = key;
+		this.dom.targetBtns.forEach(b => {
+			const isActive = b.dataset.target === key;
+			b.classList.toggle('bg-primary-app', isActive);
+			b.classList.toggle('text-white', isActive);
+		});
+		if (this.tempTheme) {
+			const [h, s, l] = this.hexToHsl(this.tempTheme[key]);
+			this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l;
+			this.dom.ftPreview.style.backgroundColor = this.tempTheme[key];
+			const nativePicker = document.getElementById('native-color-picker');
+			if (nativePicker) nativePicker.value = this.tempTheme[key];
+		}
+	}
+	openThemeEditor() { if (!this.dom.editorModal) return; const activeId = this.appSettings.activeTheme; const source = this.appSettings.customThemes[activeId] || PREMADE_THEMES[activeId] || PREMADE_THEMES['default']; this.tempTheme = { ...source }; this.dom.edName.value = this.tempTheme.name; this.selectThemeTarget('bubble'); this.updatePreview(); this.dom.editorModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.editorModal.querySelector('div').classList.remove('scale-90'); }
+	updatePreview() { const t = this.tempTheme; if (!this.dom.edPreview) return; this.dom.edPreview.style.backgroundColor = t.bgMain; this.dom.edPreview.style.color = t.text; this.dom.edPreviewCard.style.backgroundColor = t.bgCard; this.dom.edPreviewCard.style.color = t.text; this.dom.edPreviewCard.style.border = '1px solid rgba(255,255,255,0.1)'; this.dom.edPreviewBtn.style.backgroundColor = t.bubble; this.dom.edPreviewBtn.style.color = t.text; const kp = document.getElementById('preview-keypad-btn'); if (kp) { kp.style.backgroundColor = t.btn; kp.style.color = t.text; } const hb = document.getElementById('preview-header-btn'); if (hb) { hb.style.backgroundColor = t.bubble; hb.style.color = '#fff'; } }
 	testVoice() { if (window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("Testing 1 2 3."); if (this.appSettings.runtimeSettings.selectedVoice) { const v = window.speechSynthesis.getVoices().find(voice => voice.name === this.appSettings.runtimeSettings.selectedVoice); if (v) u.voice = v; } let p = parseFloat(this.dom.voicePitch.value); let r = parseFloat(this.dom.voiceRate.value); let v = parseFloat(this.dom.voiceVolume.value); u.pitch = p; u.rate = r; u.volume = v; window.speechSynthesis.speak(u); } }
 	openShare() { 
 		this.qrScale = 100; 
@@ -2592,17 +2677,17 @@ if (clearToneHistoryBtn) {
 						}
 						// --- TOUCH TEST: Dedicated local engine to prevent dropping unmapped inputs ---
 const touchTestContainer = document.getElementById('test-area-lock-container');
-if (touchTestContainer && !window.__testGestureEngine) {
-    window.__testGestureEngine = new GestureEngine(touchTestContainer, {
-        tapDelay: window.appSettings.gestureTapDelay || 300,
-        swipeThreshold: window.appSettings.gestureSwipeDist || 30,
-        longPressTime: window.appSettings.gestureLongPressTime || 300,
-        tapPrecision: window.appSettings.gestureTapPrecision || 30,
-        spatialThreshold: window.appSettings.gestureSpatialThreshold || 10,
-        longSwipeThreshold: window.appSettings.gestureLongSwipeThreshold || 150,
-        multiSwipeThreshold: window.appSettings.gestureMultiSwipeThreshold || 10
+if (touchTestContainer && !window.__testTouchGestureEngine) {
+    window.__testTouchGestureEngine = new TouchGestureEngine(touchTestContainer, {
+        tapDelay: window.appSettings.touchGestureTapDelay || 300,
+        swipeThreshold: window.appSettings.touchGestureSwipeDist || 30,
+        longPressTime: window.appSettings.touchGestureLongPressTime || 300,
+        tapPrecision: window.appSettings.touchGestureTapPrecision || 30,
+        spatialThreshold: window.appSettings.touchGestureSpatialThreshold || 10,
+        longSwipeThreshold: window.appSettings.touchGestureLongSwipeThreshold || 150,
+        multiSwipeThreshold: window.appSettings.touchGestureMultiSwipeThreshold || 10
     }, {
-        onGesture: (data) => {
+        onTouchGesture: (data) => {
             const readout = document.getElementById('test-touch-readout');
             if (readout) readout.textContent = data.name || JSON.stringify(data);
             if (window.__testChecklists?.touch) window.__testChecklists.touch.mark(data.id || data.name);
@@ -2613,7 +2698,7 @@ if (touchTestContainer && !window.__testGestureEngine) {
         }
     });
     
-    window.__testGestureEngine.updateAllowed([]);
+    window.__testTouchGestureEngine.updateAllowed([]);
     
     // Raw input feedback - "the touch pad should show what it receives" - separate from the
     // classified gesture readout, this shows exactly what's physically touching the screen.
@@ -2761,10 +2846,17 @@ if (!window.__testChecklists) {
 			const copyBtn = document.getElementById('hex-copy-btn');
 			const hexOutput = document.getElementById('hex-output');
 			if (exportBtn && hexOutput) {
-				exportBtn.onclick = () => {
-					if (typeof window.settingsToBase64 === 'function') {
-						hexOutput.value = window.settingsToBase64();
+				exportBtn.onclick = async () => {
+					if (typeof window.settingsToBackupCode !== 'function') return;
+					try {
+						exportBtn.disabled = true;
+						hexOutput.value = await window.settingsToBackupCode();
 						if (typeof showToast === 'function') showToast('Settings exported ⬇️');
+					} catch (e) {
+						console.error('Export failed:', e);
+						alert('Export failed - this browser may not support the compression this needs.');
+					} finally {
+						exportBtn.disabled = false;
 					}
 				};
 			}
@@ -2778,18 +2870,21 @@ if (!window.__testChecklists) {
 				};
 			}
 			if (importBtn && hexOutput) {
-				importBtn.onclick = () => {
+				importBtn.onclick = async () => {
 					const code = hexOutput.value.trim();
 					if (!code) { alert('Paste a backup code first.'); return; }
 					if (!confirm('This will replace ALL current settings with the imported ones. Continue?')) return;
 					try {
-						if (typeof window.importSettingsFromBase64 === 'function') {
-							window.importSettingsFromBase64(code);
+						importBtn.disabled = true;
+						if (typeof window.importSettingsFromBackupCode === 'function') {
+							await window.importSettingsFromBackupCode(code);
 							if (typeof showToast === 'function') showToast('Settings imported ✅');
 						}
 					} catch (e) {
 						alert('Import failed - that doesn\'t look like a valid backup code.');
 						console.error(e);
+					} finally {
+						importBtn.disabled = false;
 					}
 				};
 			}
@@ -2818,6 +2913,31 @@ if (!window.__testChecklists) {
 		} catch (e) {
 			console.error('Header order reset wiring failed:', e);
 		}
+		try {
+			const resetGeneralOrderBtn = document.getElementById('general-order-reset-btn');
+			if (resetGeneralOrderBtn) {
+				resetGeneralOrderBtn.onclick = () => {
+					if (!confirm('Reset General toggle order and unhide everything?')) return;
+					delete this.appSettings.generalToggleOrder;
+					this.appSettings.hiddenGeneralToggles = [];
+					const grid = document.getElementById('general-toggle-grid');
+					if (grid) {
+						DEFAULT_GENERAL_TOGGLE_ORDER.forEach(id => {
+							const cb = document.getElementById(id);
+							if (cb && cb.parentElement) {
+								cb.parentElement.classList.remove('hidden');
+								grid.appendChild(cb.parentElement);
+							}
+						});
+					}
+					this.callbacks.onSave();
+					this.renderGeneralOrderList();
+					if (typeof showToast === 'function') showToast('General toggle order reset ↩️');
+				};
+			}
+		} catch (e) {
+			console.error('General toggle order reset wiring failed:', e);
+		}
 		const bindToggle = (el, prop, updateHeader = false) => {
 			if (!el) return;
 			el.onchange = (e) => {
@@ -2830,7 +2950,7 @@ if (!window.__testChecklists) {
 		bindToggle(this.dom.counterToggle, 'showCounter', true);
 		bindToggle(this.dom.voiceToggle, 'isVoiceInputEnabled', true);
 		bindToggle(this.dom.toneCadenceToggle, 'isToneCadenceEnabled', true);
-		bindToggle(this.dom.gestureToggle, 'isGestureInputEnabled', true);
+		bindToggle(this.dom.touchGestureToggle, 'isTouchGestureInputEnabled', true);
 		bindToggle(this.dom.handToggle, 'isHandGesturesEnabled', true);
 		bindToggle(this.dom.arcamToggle, 'isArModeEnabled', true);
 		bindToggle(this.dom.biggerToggle, 'isStealth1KeyEnabled', true);
@@ -2878,10 +2998,10 @@ if (!window.__testChecklists) {
 		bindToggle(this.dom.handsignalsToggle, 'isHandSignalsEnabled');
 		bindToggle(this.dom.handednessFlipToggle, 'handednessFlip');
 		bindToggle(this.dom.speedDelete, 'isSpeedDeletingEnabled');
-		bindToggle(this.dom.volumeGesturesToggle, 'isVolumeGesturesEnabled');
-		bindToggle(this.dom.speedGesturesToggle, 'isSpeedGesturesEnabled');
-		bindToggle(this.dom.deleteGestureToggle, 'isDeleteGestureEnabled');
-		bindToggle(this.dom.clearGestureToggle, 'isClearGestureEnabled');
+		bindToggle(this.dom.volumeTouchGesturesToggle, 'isVolumeTouchGesturesEnabled');
+		bindToggle(this.dom.speedTouchGesturesToggle, 'isSpeedTouchGesturesEnabled');
+		bindToggle(this.dom.deleteTouchGestureToggle, 'isDeleteTouchGestureEnabled');
+		bindToggle(this.dom.clearTouchGestureToggle, 'isClearTouchGestureEnabled');
 		if (this.dom.introToggle) {
 			this.dom.introToggle.onchange = (e) => {
 				this.appSettings.showWelcomeScreen = e.target.checked;
@@ -2899,20 +3019,42 @@ if (!window.__testChecklists) {
 		}
 		if (this.dom.targetBtns) {
 			this.dom.targetBtns.forEach(btn => {
-					btn.onclick = () => {
-						this.dom.targetBtns.forEach(b => { b.classList.remove('active', 'bg-primary-app'); b.classList.add('opacity-60'); });
-						btn.classList.add('active', 'bg-primary-app');
-						btn.classList.remove('opacity-60');
-						this.currentTargetKey = btn.dataset.target;
-						if (this.tempTheme) {
-							const [h, s, l] = this.hexToHsl(this.tempTheme[this.currentTargetKey]);
-							if (this.dom.ftHue) this.dom.ftHue.value = h;
-							if (this.dom.ftSat) this.dom.ftSat.value = s;
-							if (this.dom.ftLit) this.dom.ftLit.value = l;
-							if (this.dom.ftPreview) this.dom.ftPreview.style.backgroundColor = this.tempTheme[this.currentTargetKey];
-						}
-					};
+					btn.onclick = () => this.selectThemeTarget(btn.dataset.target);
 				});
+		}
+		const nativePicker = document.getElementById('native-color-picker');
+		if (nativePicker) {
+			nativePicker.oninput = () => this.applyColorToTarget(nativePicker.value);
+		}
+		const imageBtn = document.getElementById('theme-image-btn');
+		const imageInput = document.getElementById('theme-image-input');
+		if (imageBtn && imageInput) {
+			imageBtn.onclick = () => imageInput.click();
+			imageInput.onchange = () => {
+				const file = imageInput.files && imageInput.files[0];
+				if (!file) return;
+				imageBtn.disabled = true;
+				imageBtn.textContent = 'Analyzing...';
+				this.buildThemeFromImage(file).then(theme => {
+						if (!this.tempTheme) return; // editor closed mid-processing - nothing to apply to
+						if (!theme) { if (typeof showToast === 'function') showToast('Could not read that image'); return; }
+						this.tempTheme.bgMain = theme.bgMain;
+						this.tempTheme.bgCard = theme.bgCard;
+						this.tempTheme.bubble = theme.bubble;
+						this.tempTheme.btn = theme.btn;
+						this.tempTheme.text = theme.text;
+						this.selectThemeTarget(this.currentTargetKey || 'bubble');
+						this.updatePreview();
+						if (typeof showToast === 'function') showToast('Theme built from photo 🖼️');
+					}).catch(err => {
+						console.error('Image theme extraction failed:', err);
+						if (typeof showToast === 'function') showToast('Could not read that image');
+					}).finally(() => {
+						imageBtn.disabled = false;
+						imageBtn.textContent = 'Choose a Photo';
+						imageInput.value = '';
+					});
+			};
 		}
 		[this.dom.ftHue, this.dom.ftSat, this.dom.ftLit].forEach(sl => { if (sl) sl.oninput = () => this.updateColorFromSliders(); });
 		if (this.dom.ftToggle) {
@@ -3085,7 +3227,7 @@ if (!window.__testChecklists) {
 				if (prop === 'isPracticeModeEnabled') this.callbacks.onUpdate();
 				this.callbacks.onSave();
 				this.generatePrompt();
-				if (['showTimer', 'showCounter', 'isVoiceInputEnabled', 'isArModeEnabled', 'isStealth1KeyEnabled', 'isHandGesturesEnabled', 'isGestureInputEnabled'].includes(prop)) {
+				if (['showTimer', 'showCounter', 'isVoiceInputEnabled', 'isArModeEnabled', 'isStealth1KeyEnabled', 'isHandGesturesEnabled', 'isTouchGestureInputEnabled'].includes(prop)) {
 					this.updateHeaderVisibility();
 				}
 			};
@@ -3127,7 +3269,7 @@ if (!window.__testChecklists) {
 		if (this.dom.playbackSpeed) this.dom.playbackSpeed.onchange = (e) => { this.appSettings.runtimeSettings.playbackSpeed = parseFloat(e.target.value); this.callbacks.onSave(); this.generatePrompt(); };
 		bind(this.dom.chunk, 'simonChunkSize', false, true);
 		bind(this.dom.flash, 'isFlashEnabled', false);
-		bind(this.dom.pause, 'pauseSetting', false);
+		if (this.dom.pause) this.dom.pause.onchange = (e) => { this.appSettings.runtimeSettings.pauseSetting = parseFloat(e.target.value) * 1000; this.callbacks.onSave(); this.generatePrompt(); };
 		if (this.dom.delay) this.dom.delay.onchange = (e) => { this.appSettings.runtimeSettings.simonInterSequenceDelay = parseFloat(e.target.value) * 1000; this.callbacks.onSave(); this.generatePrompt(); };
 		bind(this.dom.haptics, 'isHapticsEnabled', true);
 		bind(this.dom.speedDelete, 'isSpeedDeletingEnabled', true);
@@ -3181,7 +3323,9 @@ if (!window.__testChecklists) {
 				this.callbacks.onSave();
 			};
 		}
-		if (this.dom.gestureMode) this.dom.gestureMode.onchange = (e) => { this.appSettings.gestureResizeMode = e.target.value; this.callbacks.onSave(); };
+		if (this.dom.touchResizeModeSelect) this.dom.touchResizeModeSelect.onchange = (e) => { this.appSettings.touchResizeMode = e.target.value; this.callbacks.onSave(); };
+		if (this.dom.headerPaddingSelect) this.dom.headerPaddingSelect.onchange = (e) => { this.appSettings.headerPadding = parseInt(e.target.value, 10); this.applyHeaderPadding(); this.callbacks.onSave(); };
+		if (this.dom.inputsPaddingSelect) this.dom.inputsPaddingSelect.onchange = (e) => { this.appSettings.inputsPadding = parseInt(e.target.value, 10); this.applyInputsPadding(); this.callbacks.onSave(); };
 		if (this.dom.themeAdd) this.dom.themeAdd.onclick = () => { const n = prompt("Name:"); if (n) { const id = 'c_' + Date.now(); this.appSettings.customThemes[id] = { ...PREMADE_THEMES['default'], name: n }; this.appSettings.activeTheme = id; this.callbacks.onSave(); this.callbacks.onUpdate(); this.populateThemeDropdown(); this.openThemeEditor(); } };
 		if (this.dom.themeRename) this.dom.themeRename.onclick = () => { const id = this.appSettings.activeTheme; if (PREMADE_THEMES[id]) return alert("Cannot rename built-in."); const n = prompt("Rename:", this.appSettings.customThemes[id].name); if (n) { this.appSettings.customThemes[id].name = n; this.callbacks.onSave(); this.populateThemeDropdown(); } };
 		if (this.dom.themeDelete) this.dom.themeDelete.onclick = () => { if (PREMADE_THEMES[this.appSettings.activeTheme]) return alert("Cannot delete built-in."); if (confirm("Delete?")) { delete this.appSettings.customThemes[this.appSettings.activeTheme]; this.appSettings.activeTheme = 'default'; this.callbacks.onSave(); this.callbacks.onUpdate(); this.populateThemeDropdown(); } };
@@ -3287,19 +3431,19 @@ if (!window.__testChecklists) {
 			this.callbacks.onUpdate();
 			this.updateWelcomeSample();
 		};
-		if (this.dom.gestureTapSlider) {
-			this.dom.gestureTapSlider.oninput = (e) => {
+		if (this.dom.touchGestureTapSlider) {
+			this.dom.touchGestureTapSlider.oninput = (e) => {
 				const val = parseInt(e.target.value);
-				this.appSettings.gestureTapDelay = val;
-				if (this.dom.gestureTapVal) this.dom.gestureTapVal.textContent = val + 'ms';
+				this.appSettings.touchGestureTapDelay = val;
+				if (this.dom.touchGestureTapVal) this.dom.touchGestureTapVal.textContent = val + 'ms';
 				this.callbacks.onSave();
 			};
 		}
-		if (this.dom.gestureSwipeSlider) {
-			this.dom.gestureSwipeSlider.oninput = (e) => {
+		if (this.dom.touchGestureSwipeSlider) {
+			this.dom.touchGestureSwipeSlider.oninput = (e) => {
 				const val = parseInt(e.target.value);
-				this.appSettings.gestureSwipeDist = val;
-				if (this.dom.gestureSwipeVal) this.dom.gestureSwipeVal.textContent = val + 'px';
+				this.appSettings.touchGestureSwipeDist = val;
+				if (this.dom.touchGestureSwipeVal) this.dom.touchGestureSwipeVal.textContent = val + 'px';
 				this.callbacks.onSave();
 			};
 		}
@@ -3364,6 +3508,8 @@ if (!window.__testChecklists) {
 		this.dom.promptDisplay.value = promptText;
 	}
 	updateUIFromSettings() {
+		this.applySavedGeneralToggleOrder();
+		this.renderGeneralOrderList();
 		const ps = this.appSettings.runtimeSettings;
 		if (this.dom.input) this.dom.input.value = ps.currentInput;
 		if (this.dom.mode) this.dom.mode.value = ps.currentMode;
@@ -3388,7 +3534,7 @@ if (!window.__testChecklists) {
 		if (this.dom.showWelcome) this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
 		if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.runtimeSettings.isHapticMorseEnabled;
 		if (this.dom.flash) this.dom.flash.checked = this.appSettings.runtimeSettings.isFlashEnabled;
-		if (this.dom.pause) this.dom.pause.value = this.appSettings.runtimeSettings.pauseSetting || 'none';
+		if (this.dom.pause) this.dom.pause.value = (this.appSettings.runtimeSettings.pauseSetting || 0) / 1000;
 		if (this.dom.playbackSpeed) this.dom.playbackSpeed.value = (this.appSettings.runtimeSettings.playbackSpeed || 1.0).toFixed(2);
 		if (this.dom.voiceTriggerSelect) {
 			this.dom.voiceTriggerSelect.value = this.appSettings.voiceTriggerWord || 'set';
@@ -3416,10 +3562,10 @@ if (!window.__testChecklists) {
 		if (this.dom.calibCamSlider) this.dom.calibCamSlider.value = this.appSettings.sensorCamThresh || 30;
 		if (this.dom.haptics) this.dom.haptics.checked = (typeof this.appSettings.isHapticsEnabled === 'undefined') ? true : this.appSettings.isHapticsEnabled;
 		if (this.dom.speedDelete) this.dom.speedDelete.checked = (typeof this.appSettings.isSpeedDeletingEnabled === 'undefined') ? true : this.appSettings.isSpeedDeletingEnabled;
-		if (this.dom.speedGesturesToggle) this.dom.speedGesturesToggle.checked = !!this.appSettings.isSpeedGesturesEnabled;
-		if (this.dom.volumeGesturesToggle) this.dom.volumeGesturesToggle.checked = !!this.appSettings.isVolumeGesturesEnabled;
-		if (this.dom.deleteGestureToggle) this.dom.deleteGestureToggle.checked = !!this.appSettings.isDeleteGestureEnabled;
-		if (this.dom.clearGestureToggle) this.dom.clearGestureToggle.checked = !!this.appSettings.isClearGestureEnabled;
+		if (this.dom.speedTouchGesturesToggle) this.dom.speedTouchGesturesToggle.checked = !!this.appSettings.isSpeedTouchGesturesEnabled;
+		if (this.dom.volumeTouchGesturesToggle) this.dom.volumeTouchGesturesToggle.checked = !!this.appSettings.isVolumeTouchGesturesEnabled;
+		if (this.dom.deleteTouchGestureToggle) this.dom.deleteTouchGestureToggle.checked = !!this.appSettings.isDeleteTouchGestureEnabled;
+		if (this.dom.clearTouchGestureToggle) this.dom.clearTouchGestureToggle.checked = !!this.appSettings.isClearTouchGestureEnabled;
 		if (this.dom.autoTimerToggle) this.dom.autoTimerToggle.checked = !!this.appSettings.isAutoTimerEnabled;
 		if (this.dom.autoCounterToggle) this.dom.autoCounterToggle.checked = !!this.appSettings.isAutoCounterEnabled;
 		if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
@@ -3427,19 +3573,23 @@ if (!window.__testChecklists) {
 		if (this.dom.fontScale) this.dom.fontScale.value = this.appSettings.appFontScale || 100;
 		if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
 		if (this.dom.seqFontSize) this.dom.seqFontSize.value = Math.round((this.appSettings.uiFontSizeMultiplier || 1.0) * 100);
-		if (this.dom.gestureTapSlider) {
-			const tapVal = this.appSettings.gestureTapDelay || 300;
-			this.dom.gestureTapSlider.value = tapVal;
-			this.dom.gestureTapVal.textContent = tapVal + 'ms';
+		if (this.dom.touchGestureTapSlider) {
+			const tapVal = this.appSettings.touchGestureTapDelay || 300;
+			this.dom.touchGestureTapSlider.value = tapVal;
+			this.dom.touchGestureTapVal.textContent = tapVal + 'ms';
 		}
-		if (this.dom.gestureSwipeSlider) {
-			const swipeVal = this.appSettings.gestureSwipeDist || 30;
-			this.dom.gestureSwipeSlider.value = swipeVal;
-			this.dom.gestureSwipeVal.textContent = swipeVal + 'px';
+		if (this.dom.touchGestureSwipeSlider) {
+			const swipeVal = this.appSettings.touchGestureSwipeDist || 30;
+			this.dom.touchGestureSwipeSlider.value = swipeVal;
+			this.dom.touchGestureSwipeVal.textContent = swipeVal + 'px';
 		}
-		if (this.dom.gestureMode) this.dom.gestureMode.value = this.appSettings.gestureResizeMode || 'global';
+		if (this.dom.touchResizeModeSelect) this.dom.touchResizeModeSelect.value = this.appSettings.touchResizeMode || 'global';
+		if (this.dom.headerPaddingSelect) this.dom.headerPaddingSelect.value = this.appSettings.headerPadding || 0;
+		if (this.dom.inputsPaddingSelect) this.dom.inputsPaddingSelect.value = this.appSettings.inputsPadding || 0;
+		this.applyHeaderPadding();
+		this.applyInputsPadding();
 		if (this.dom.bossToggle) this.dom.bossToggle.checked = this.appSettings.isBlackoutFeatureEnabled;
-		if (this.dom.gestureToggle) this.dom.gestureToggle.checked = !!this.appSettings.isGestureInputEnabled;
+		if (this.dom.touchGestureToggle) this.dom.touchGestureToggle.checked = !!this.appSettings.isTouchGestureInputEnabled;
 		if (this.dom.handToggle) this.dom.handToggle.checked = !!this.appSettings.isHandGesturesEnabled;
 		if (this.dom.handsignalsToggle) this.dom.handsignalsToggle.checked = !!this.appSettings.isHandSignalsEnabled;
 		if (this.dom.handednessFlipToggle) this.dom.handednessFlipToggle.checked = !!this.appSettings.handednessFlip;
@@ -3489,7 +3639,7 @@ if (!window.__testChecklists) {
 		const counterBtn = document.getElementById('headercounterbtn');
 		const micBtn = document.getElementById('headervoicebtn');
 		const camBtn = document.getElementById('headerarcambtn');
-		const gestureBtn = document.getElementById('headertouchbtn');
+		const touchGestureBtn = document.getElementById('headertouchbtn');
 		const stealthBtn = document.getElementById('headerbiggerbtn');
 		const handBtn = document.getElementById('headerhandbtn');
 		if (!header) return;
@@ -3497,7 +3647,7 @@ if (!window.__testChecklists) {
 		const showCounter = !!this.appSettings.showCounter;
 		const showMic = !!this.appSettings.isVoiceInputEnabled;
 		const showCam = !!this.appSettings.isArModeEnabled;
-		const showGesture = !!this.appSettings.isGestureInputEnabled;
+		const showTouchGesture = !!this.appSettings.isTouchGestureInputEnabled;
 		const showStealth = !!this.appSettings.isStealth1KeyEnabled;
 		const showHand = !!this.appSettings.isHandGesturesEnabled;
 		if (this.dom.headerfullscreenbtn) {
@@ -3519,7 +3669,7 @@ if (!window.__testChecklists) {
 		if(counterBtn) counterBtn.classList.toggle('hidden', !showCounter);
 		if(micBtn) micBtn.classList.toggle('hidden', !showMic);
 		if(camBtn) camBtn.classList.toggle('hidden', !showCam);
-		if(gestureBtn) gestureBtn.classList.toggle('hidden', !showGesture);
+		if(touchGestureBtn) touchGestureBtn.classList.toggle('hidden', !showTouchGesture);
 		if(stealthBtn) stealthBtn.classList.toggle('hidden', !showStealth);
 		if(handBtn) handBtn.classList.toggle('hidden', !showHand);
 		if(this.dom.headerswapbtn) this.dom.headerswapbtn.classList.toggle('hidden', !showSwap);
@@ -3548,7 +3698,7 @@ if (!window.__testChecklists) {
 			this.dom.headertonebtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
 		}
 		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderVolumeBtns || this.appSettings.showHeaderSpeedBtns || this.appSettings.showHeaderCycleInputBtn || this.appSettings.showHeaderNotepadBtn || this.appSettings.showHeaderHelpBtn || this.appSettings.showHeaderModeSwitchBtn || this.appSettings.showHeaderResetBtn || this.appSettings.showHeaderNukeBtn;
-		if (!showTimer && !showCounter && !showMic && !showCam && !showGesture && !showStealth && !showHand && !showSwap && !this.appSettings.isToneCadenceEnabled && !anyNewBtnShown) {
+		if (!showTimer && !showCounter && !showMic && !showCam && !showTouchGesture && !showStealth && !showHand && !showSwap && !this.appSettings.isToneCadenceEnabled && !anyNewBtnShown) {
 			header.classList.add('header-hidden');
 		} else {
 			header.classList.remove('header-hidden');
@@ -3660,9 +3810,124 @@ if (!window.__testChecklists) {
 			container.appendChild(row);
 		});
 	}
-	// Builds the "infinite toolbar" feel: clones the visible button set once before and once
-	// after the real set, then keeps the scroll position invisibly wrapped within the real
-	// (middle) copy so it always looks like there's more to scroll in either direction.
+	// Same live-DOM-order approach as _headerBtnOrder, adapted for the General tab's toggle
+	// grid: each grid child is a wrapper div (label + checkbox), identified by its checkbox's
+	// id rather than having an id of its own, so this reads getElementById(id).parentElement
+	// for each known toggle id and returns them in their current DOM order.
+	_generalToggleOrder() {
+		const grid = document.getElementById('general-toggle-grid');
+		if (!grid) return [];
+		return [...grid.children].map(child => {
+			const cb = child.querySelector('input[type="checkbox"]');
+			return cb ? cb.id : null;
+		}).filter(Boolean);
+	}
+	_generalToggleLabels() {
+		return { randomThemeToggle: 'Random Theme 🎲', autoHideHeaderToggle: 'Auto Hide Header 👻', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerModeSwitchToggle: 'Mode Switch 🎮', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', headerThemeCycleToggle: 'Theme Cycle 🎨', headerAddMachineToggle: 'Add Machine ➕', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', headerCycleInputToggle: 'Cycle Input 🔀', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', introToggle: 'Show Intro', upsidedownToggle: 'Upside Down 🙃', fullscreenToggle: 'Full Screen 🔲', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', bossToggle: 'Boss Mode 🌑', newToggle: 'Position Swap 🔄', biggerToggle: 'Bigger Buttons', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥' };
+	}
+	// Moves a toggle's WRAPPER div one position earlier/later, same index-based-then-reapply
+	// approach as _moveHeaderBtn (not raw siblings) - safe here too since a hidden toggle still
+	// occupies a real DOM position, same failure mode that approach avoids for the header.
+	_moveGeneralToggle(id, direction) {
+		const grid = document.getElementById('general-toggle-grid');
+		if (!grid) return;
+		const order = this._generalToggleOrder();
+		const i = order.indexOf(id);
+		const j = direction === 'up' ? i - 1 : i + 1;
+		if (i === -1 || j < 0 || j >= order.length) return;
+		[order[i], order[j]] = [order[j], order[i]];
+		order.forEach(cbId => {
+			const cb = document.getElementById(cbId);
+			if (cb && cb.parentElement) grid.appendChild(cb.parentElement);
+		});
+		this.appSettings.generalToggleOrder = order;
+		this.callbacks.onSave();
+		this.renderGeneralOrderList();
+	}
+	// Hides/shows a toggle's wrapper div. The underlying setting itself is untouched either way
+	// - hiding only removes the control from view, it doesn't reset or disable what it controls.
+	_toggleGeneralToggleVisibility(id) {
+		const cb = document.getElementById(id);
+		if (!cb || !cb.parentElement) return;
+		if (!Array.isArray(this.appSettings.hiddenGeneralToggles)) this.appSettings.hiddenGeneralToggles = [];
+		const hidden = this.appSettings.hiddenGeneralToggles;
+		const idx = hidden.indexOf(id);
+		if (idx === -1) {
+			hidden.push(id);
+			cb.parentElement.classList.add('hidden');
+		} else {
+			hidden.splice(idx, 1);
+			cb.parentElement.classList.remove('hidden');
+		}
+		this.callbacks.onSave();
+		this.renderGeneralOrderList();
+	}
+	// Applies a saved custom order and hidden set to the real DOM on boot. No-op if there's no
+	// saved order, or if it's stale (doesn't exactly match the current set of real toggle ids -
+	// e.g. after an update that added/removed a General toggle).
+	applySavedGeneralToggleOrder() {
+		const grid = document.getElementById('general-toggle-grid');
+		if (!grid) return;
+		const saved = this.appSettings.generalToggleOrder;
+		const current = this._generalToggleOrder();
+		if (Array.isArray(saved) && saved.length > 0) {
+			const sameSet = saved.length === current.length && saved.every(id => current.includes(id));
+			if (sameSet) {
+				saved.forEach(id => {
+					const cb = document.getElementById(id);
+					if (cb && cb.parentElement) grid.appendChild(cb.parentElement);
+				});
+			}
+		}
+		if (Array.isArray(this.appSettings.hiddenGeneralToggles)) {
+			this.appSettings.hiddenGeneralToggles.forEach(id => {
+				const cb = document.getElementById(id);
+				if (cb && cb.parentElement) cb.parentElement.classList.add('hidden');
+			});
+		}
+	}
+	renderGeneralOrderList() {
+		const container = document.getElementById('general-order-list');
+		if (!container) return;
+		const labels = this._generalToggleLabels();
+		const order = this._generalToggleOrder();
+		const hidden = Array.isArray(this.appSettings.hiddenGeneralToggles) ? this.appSettings.hiddenGeneralToggles : [];
+		container.innerHTML = '';
+		order.forEach((id, i) => {
+			const row = document.createElement('div');
+			row.className = 'flex items-center justify-between p-2 rounded bg-gray-950 border border-gray-700';
+			const isHidden = hidden.includes(id);
+			const label = document.createElement('span');
+			label.className = 'text-xs font-bold' + (isHidden ? ' opacity-40' : '');
+			label.textContent = labels[id] || id;
+			const btns = document.createElement('div');
+			btns.className = 'flex gap-1';
+			const upBtn = document.createElement('button');
+			upBtn.type = 'button';
+			upBtn.className = 'w-7 h-7 rounded bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold disabled:opacity-30';
+			upBtn.textContent = '▲';
+			upBtn.disabled = i === 0;
+			upBtn.onclick = () => this._moveGeneralToggle(id, 'up');
+			const downBtn = document.createElement('button');
+			downBtn.type = 'button';
+			downBtn.className = 'w-7 h-7 rounded bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold disabled:opacity-30';
+			downBtn.textContent = '▼';
+			downBtn.disabled = i === order.length - 1;
+			downBtn.onclick = () => this._moveGeneralToggle(id, 'down');
+			const hideBtn = document.createElement('button');
+			hideBtn.type = 'button';
+			hideBtn.className = 'w-7 h-7 rounded text-xs font-bold ' + (isHidden ? 'bg-indigo-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-white');
+			hideBtn.textContent = isHidden ? '🚫' : '👁️';
+			hideBtn.title = isHidden ? 'Hidden - tap to show' : 'Tap to hide';
+			hideBtn.onclick = () => this._toggleGeneralToggleVisibility(id);
+			btns.appendChild(upBtn);
+			btns.appendChild(downBtn);
+			btns.appendChild(hideBtn);
+			row.appendChild(label);
+			row.appendChild(btns);
+			container.appendChild(row);
+		});
+	}
 	// Applies the Header Size setting via a CSS custom property, so it also covers the
 	// infinite-scroll clones below without needing to touch them individually.
 	applyHeaderScale() {
@@ -3709,7 +3974,8 @@ if (!window.__testChecklists) {
 					// "unnecessary padding above the cards" bug. Nothing extra needed here.
 					seq.style.paddingTop = '0px';
 				} else {
-					seq.style.paddingTop = (header.getBoundingClientRect().height + minGapPx) + 'px';
+					const userExtra = this.appSettings.headerPadding || 0;
+					seq.style.paddingTop = (header.getBoundingClientRect().height + minGapPx + userExtra) + 'px';
 				}
 			});
 		});
@@ -3720,6 +3986,24 @@ if (!window.__testChecklists) {
 	applyFontScale() {
 		document.body.style.setProperty('--app-font-scale', (this.appSettings.appFontScale || 100) / 100);
 	}
+	// Extra breathing room between the fixed header and the sequence cards below it.
+	// updateSequenceContainerOffset() is the real, authoritative mechanism for this spacing (it
+	// measures the header's actual height and sets an inline style, which always wins over any
+	// stylesheet rule) - this setting is read directly inside that function rather than through
+	// a CSS custom property, since a property here would just get silently overridden.
+	applyHeaderPadding() {
+		this.updateSequenceContainerOffset();
+	}
+	// Extra bottom breathing room so the keypad clears the device's own nav bar. Read by the
+	// same visualViewport-based positioning in app.merged.js's initRealViewportHeight that
+	// already keeps #input-footer above the browser's own chrome - this is added on top of
+	// that automatic offset as a manual, per-device safety margin, not a replacement for it.
+	applyInputsPadding() {
+		document.body.style.setProperty('--inputs-padding-extra', (this.appSettings.inputsPadding || 0) + 'px');
+	}
+	// Builds the "infinite toolbar" feel: clones the visible button set once before and once
+	// after the real set, then keeps the scroll position invisibly wrapped within the real
+	// (middle) copy so it always looks like there's more to scroll in either direction.
 	rebuildInfiniteHeaderScroll() {
 		const row = document.getElementById('header-btn-row');
 		if (!row) return;
@@ -3753,6 +4037,25 @@ if (!window.__testChecklists) {
 		const firstReal = document.getElementById(visibleIds[0]);
 		row.insertBefore(buildCloneSet(), firstReal);
 		row.appendChild(buildCloneSet());
+		// Clones from cloneNode() never carry JS listeners (.onclick, addEventListener) - only
+		// the real buttons respond to anything. Delegating from the row and forwarding an
+		// equivalent event to the real button (by data-clone-id) makes every clone transparently
+		// proxy to its real counterpart's existing handlers, whatever those happen to be - click-
+		// only buttons, press-and-hold buttons like Timer/Counter, all covered the same way
+		// without needing per-button special-casing.
+		if (!row._cloneForwardingBound) {
+			row._cloneForwardingBound = true;
+			['click', 'mousedown', 'mouseup', 'mouseleave', 'touchstart', 'touchend'].forEach(type => {
+				row.addEventListener(type, (e) => {
+					const cloneEl = e.target.closest('[data-clone-id]');
+					if (!cloneEl) return;
+					const real = document.getElementById(cloneEl.dataset.cloneId);
+					if (!real) return;
+					const forwardType = type === 'touchstart' ? 'mousedown' : type === 'touchend' ? 'mouseup' : type;
+					real.dispatchEvent(new MouseEvent(forwardType, { bubbles: true, cancelable: true }));
+				}, { passive: true });
+			});
+		}
 		// Measure the real (middle) set's width from the actual rendered buttons, then start
 		// the scroll position there so both directions have a clone set to scroll into.
 		requestAnimationFrame(() => {
@@ -3803,24 +4106,23 @@ if (!window.__testChecklists) {
 	populateMappingUI() {
 		if (!this.dom) return;
 		if (!this.appSettings) return;
-		if (!this.appSettings.gestureMappings || Object.keys(this.appSettings.gestureMappings).length === 0) {
-			this.applyDefaultGestureMappings();
+		if (!this.appSettings.touchGestureMappings || Object.keys(this.appSettings.touchGestureMappings).length === 0) {
+			this.applyDefaultTouchGestureMappings();
 		}
 		this.applyDefaultMappingsIfEmpty();
-		if (!this.appSettings.gestureProfiles) this.appSettings.gestureProfiles = {};
 		const tapSlider = document.getElementById('gesture-tap-slider');
 		const swipeSlider = document.getElementById('gesture-swipe-slider');
 		const tapVal = document.getElementById('gesture-tap-val');
 		const swipeVal = document.getElementById('gesture-swipe-val');
-		if (tapSlider) tapSlider.value = this.appSettings.gestureTapDelay || 300;
-		if (swipeSlider) swipeSlider.value = this.appSettings.gestureSwipeDist || 30;
-		if (tapVal) tapVal.textContent = (this.appSettings.gestureTapDelay || 300) + 'ms';
-		if (swipeVal) swipeVal.textContent = (this.appSettings.gestureSwipeDist || 30) + 'px';
+		if (tapSlider) tapSlider.value = this.appSettings.touchGestureTapDelay || 300;
+		if (swipeSlider) swipeSlider.value = this.appSettings.touchGestureSwipeDist || 30;
+		if (tapVal) tapVal.textContent = (this.appSettings.touchGestureTapDelay || 300) + 'ms';
+		if (swipeVal) swipeVal.textContent = (this.appSettings.touchGestureSwipeDist || 30) + 'px';
 		{
 			if(tapSlider) {
 				tapSlider.oninput = (e) => {
 					const val = parseInt(e.target.value);
-					this.appSettings.gestureTapDelay = val;
+					this.appSettings.touchGestureTapDelay = val;
 					if(tapVal) tapVal.textContent = val + 'ms';
 					this.callbacks.onSave();
 				};
@@ -3828,17 +4130,17 @@ if (!window.__testChecklists) {
 			if(swipeSlider) {
 				swipeSlider.oninput = (e) => {
 					const val = parseInt(e.target.value);
-					this.appSettings.gestureSwipeDist = val;
+					this.appSettings.touchGestureSwipeDist = val;
 					if(swipeVal) swipeVal.textContent = val + 'px';
 					this.callbacks.onSave();
 				};
 			}
 			const moreSliders = [
-				{ id: 'gesture-longpress-slider', valId: 'gesture-longpress-val', prop: 'gestureLongPressTime', unit: 'ms', def: 300 },
-				{ id: 'gesture-tapprecision-slider', valId: 'gesture-tapprecision-val', prop: 'gestureTapPrecision', unit: 'px', def: 30 },
-				{ id: 'gesture-spatial-slider', valId: 'gesture-spatial-val', prop: 'gestureSpatialThreshold', unit: 'px', def: 10 },
-				{ id: 'gesture-longswipe-slider', valId: 'gesture-longswipe-val', prop: 'gestureLongSwipeThreshold', unit: 'px', def: 150 },
-				{ id: 'gesture-multiswipe-slider', valId: 'gesture-multiswipe-val', prop: 'gestureMultiSwipeThreshold', unit: 'px', def: 10 },
+				{ id: 'gesture-longpress-slider', valId: 'gesture-longpress-val', prop: 'touchGestureLongPressTime', unit: 'ms', def: 300 },
+				{ id: 'gesture-tapprecision-slider', valId: 'gesture-tapprecision-val', prop: 'touchGestureTapPrecision', unit: 'px', def: 30 },
+				{ id: 'gesture-spatial-slider', valId: 'gesture-spatial-val', prop: 'touchGestureSpatialThreshold', unit: 'px', def: 10 },
+				{ id: 'gesture-longswipe-slider', valId: 'gesture-longswipe-val', prop: 'touchGestureLongSwipeThreshold', unit: 'px', def: 150 },
+				{ id: 'gesture-multiswipe-slider', valId: 'gesture-multiswipe-val', prop: 'touchGestureMultiSwipeThreshold', unit: 'px', def: 10 },
 				{ id: 'gesture-handcooldown-slider', valId: 'gesture-handcooldown-val', prop: 'handGestureCooldown', unit: 'ms', def: 2000 },
 				{ id: 'gesture-handhold-slider', valId: 'gesture-handhold-val', prop: 'handHoldFrames', unit: '', def: 4 },
 				{ id: 'voice-confidence-slider', valId: 'voice-confidence-val', prop: 'voiceConfidenceThreshold', unit: '%', def: 50 },
@@ -3894,8 +4196,8 @@ if (!window.__testChecklists) {
 		// default when the property is missing (either `appSettings.X || def` or the explicit
 		// `!== undefined ? X : def` check in the moreSliders loop above), so this can't drift
 		// out of sync with a second, separately-maintained defaults list.
-		['gestureTapDelay', 'gestureSwipeDist', 'gestureLongPressTime', 'gestureTapPrecision',
-		 'gestureSpatialThreshold', 'gestureLongSwipeThreshold', 'gestureMultiSwipeThreshold',
+		['touchGestureTapDelay', 'touchGestureSwipeDist', 'touchGestureLongPressTime', 'touchGestureTapPrecision',
+		 'touchGestureSpatialThreshold', 'touchGestureLongSwipeThreshold', 'touchGestureMultiSwipeThreshold',
 		 'handGestureCooldown', 'handHoldFrames', 'voiceConfidenceThreshold', 'toneVolumeThreshold',
 		 'touchAnchorStillDistance', 'touchAnchorMinHoldTime', 'touchChordSimultaneityWindow',
 		 'handMotionMinDistance', 'handPinchThreshold'
@@ -3982,8 +4284,8 @@ if (!window.__testChecklists) {
 				};
 			});
 	}
-	applyDefaultGestureMappings() {
-		this.appSettings.gestureMappings = this.appSettings.gestureMappings || {};
+	applyDefaultTouchGestureMappings() {
+		this.appSettings.touchGestureMappings = this.appSettings.touchGestureMappings || {};
 		const defaults = {
 			'k9_1': { gesture: 'tap' },
 			'k9_2': { gesture: 'double_tap' },
@@ -4019,7 +4321,7 @@ if (!window.__testChecklists) {
 			'piano_4': { gesture: 'swipe_ne_2f' },
 			'piano_5': { gesture: 'swipe_right_2f' }
 		};
-		this.appSettings.gestureMappings = Object.assign({}, defaults, this.appSettings.gestureMappings || {});
+		this.appSettings.touchGestureMappings = Object.assign({}, defaults, this.appSettings.touchGestureMappings || {});
 	}
 	applyDefaultMappingsIfEmpty() {
 		if (this.appSettings.mappings && Object.keys(this.appSettings.mappings).length > 0) return;
@@ -4061,6 +4363,9 @@ let screenWakeLock = null;
 // separately from _headerBtnOrder() (which reads live DOM order once buttons may have been
 // dragged around) specifically so "Reset to Default Order" has a fixed target to restore to.
 const DEFAULT_HEADER_BTN_ORDER = ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerupsidedownbtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn'];
+// The General tab's original, as-shipped toggle order (matching static HTML order) - same
+// purpose as DEFAULT_HEADER_BTN_ORDER above: a fixed target for "Reset to Default Order".
+const DEFAULT_GENERAL_TOGGLE_ORDER = ['randomThemeToggle', 'autoHideHeaderToggle', 'headerPlayToggle', 'headerDeleteToggle', 'headerSettingsToggle', 'headerHelpToggle', 'headerModeSwitchToggle', 'headerRedeemToggle', 'headerShareToggle', 'headerThemeCycleToggle', 'headerAddMachineToggle', 'headerUiSizeToggle', 'headerSeqSizeToggle', 'headerVolumeToggle', 'headerSpeedToggle', 'headerCycleInputToggle', 'headerResetToggle', 'headerNukeToggle', 'timerToggle', 'autotimerToggle', 'counterToggle', 'autocounterToggle', 'headerNotepadToggle', 'headerInfiniteScrollToggle', 'inputRegulatorToggle', 'hapticsToggle', 'introToggle', 'upsidedownToggle', 'fullscreenToggle', 'ecoToggle', 'wakelockToggle', 'voiceToggle', 'voicecommandsToggle', 'toneToggle', 'touchToggle', 'bossToggle', 'newToggle', 'biggerToggle', 'arcamToggle', 'arAutoCloseGeneralToggle', 'handToggle', 'skeletonDebugToggle', 'handsignalsToggle', 'handednessFlipToggle', 'speeddeleteToggle', 'apshortcutToggle', 'volgesToggle', 'speedToggle', 'deleteToggle', 'clearToggle'];
 const CONFIG = {
     MAX_MACHINES: 4,
     DEMO_DELAY_BASE_MS: 798,
@@ -4092,7 +4397,7 @@ const DEFAULT_PROFILE_SETTINGS = {
     isAudioEnabled: true,
     isHapticMorseEnabled: false,
     playbackSpeed: 1.0,
-    pauseSetting: 'none',
+    pauseSetting: 0,
     voicePitch: 1.0,
     voiceRate: 1.0,
     voiceVolume: 1.0,
@@ -4149,25 +4454,24 @@ const DEFAULT_APP = {
     globalUiScale: 120,
     uiScaleMultiplier: 2.4,
     showWelcomeScreen: false,
-    gestureResizeMode: 'none',
+    touchResizeMode: 'none',
     playbackSpeed: 1.0,
     isAutoplayEnabled: false,
     isUniqueRoundsAutoClearEnabled: true,
     isAudioEnabled: true,
     isHapticsEnabled: true,
     isFlashEnabled: true,
-    pauseSetting: 'none',
+    pauseSetting: 0,
     isSpeedDeletingEnabled: true,
-    isSpeedGesturesEnabled: false,
-    isVolumeGesturesEnabled: false,
+    isSpeedTouchGesturesEnabled: false,
+    isVolumeTouchGesturesEnabled: false,
     isArModeEnabled: true,
    isArAutoCloseEnabled: true,
   isVoiceInputEnabled: false,
     arPlaybackSpeed: 1.00,
     voiceTriggerWord: 'set',
-    gestureHoldFrames: 30,
-    isDeleteGestureEnabled: true,
-    isClearGestureEnabled: true,
+    isDeleteTouchGestureEnabled: true,
+    isClearTouchGestureEnabled: true,
     isAutoTimerEnabled: false,
     isAutoCounterEnabled: true,
     isWakeLockEnabled: true,
@@ -4211,6 +4515,8 @@ const DEFAULT_APP = {
     isHeaderInfiniteScrollEnabled: true,
     headerIconScale: 110,
     appFontScale: 110,
+    headerPadding: 0,
+    inputsPadding: 0,
     toneCalibration: {
         isCalibrated: false,
         notes: {}
@@ -4240,8 +4546,8 @@ const DEFAULT_APP = {
     selectedVoice: null,
     voicePresets: {},
     activeVoicePresetId: 'standard',
-    isGestureInputEnabled: true,
-    gestureMappings: {
+    isTouchGestureInputEnabled: true,
+    touchGestureMappings: {
         'k9_1': { gesture: 'Double_tap_spatial_nw' },
         'k9_2': { gesture: 'Double_tap_spatial_up' },
         'k9_3': { gesture: 'Double_tap_spatial_ne' },
@@ -4335,7 +4641,6 @@ const DEFAULT_APP = {
         'Flicks',
         'Pausing Curves'
     ],
-    gestureProfiles: {},
     customTouchPresets: {},
     customHandPresets: {},
     activeMappingPreset: {
@@ -4417,7 +4722,7 @@ let appState = {};
 let modules = {
     settings: null,
     vision: null,
-    gestureEngine: null
+    touchGestureEngine: null
 };
 let timers = {
     speedDelete: null,
@@ -4429,7 +4734,7 @@ let timers = {
     playback: null,
     tap: null
 };
-let gestureState = {
+let touchGestureState = {
     startDist: 0,
     startScale: 1,
     isPinching: false
@@ -4438,15 +4743,6 @@ let blackoutState = {
     isActive: false,
     lastShake: 0
 };
-let gestureInputState = {
-    startX: 0,
-    startY: 0,
-    startTime: 0,
-    maxTouches: 0,
-    isTapCandidate: false,
-    tapCount: 0
-};
-let isDeleting = false;
 let isDemoPlaying = false;
 let isPlaybackPaused = false;
 let playbackResumeCallback = null;
@@ -4458,7 +4754,7 @@ let practiceInputIndex = 0;
 let lastMachineInputTime = {};
 let ignoreNextClick = false;
 let voiceModule = null;
-let isGesturePadVisible = false;
+let isTouchGesturePadVisible = false;
 let simpleTimer = {
     interval: null,
     startTime: 0,
@@ -4659,8 +4955,8 @@ const startApp = () => {
         if (testEl) testEl.textContent = text;
     });
     window.toneEngine = toneEngine;
-    let gestureHistory = [];
-    let gestureCooldownUntil = 0;
+    let handGestureHistory = [];
+    let handGestureCooldownUntil = 0;
     if (typeof VisionEngine !== 'function') {
         console.warn('VisionEngine unavailable (wasm/vision_bundle.js not found) - hand tracking disabled.');
         modules.vision = {
@@ -4671,26 +4967,26 @@ const startApp = () => {
             stop() {}
         };
     } else {
-        modules.vision = new VisionEngine(gestureData => {
+        modules.vision = new VisionEngine(handGestureData => {
             const settings = getProfileSettings();
-            if (Date.now() < gestureCooldownUntil) {
+            if (Date.now() < handGestureCooldownUntil) {
                 return;
             }
-            if (!gestureData || gestureData === "none") {
+            if (!handGestureData || handGestureData === "none") {
                 return;
             }
-            let gestureId = typeof gestureData === 'object' ? gestureData.id : gestureData;
-            if (typeof gestureId === 'number' && gestureId >= 0 && gestureId <= 63 && gestureId % 2 === 1) {
-                gestureId = gestureId - 1;
+            let handGestureId = typeof handGestureData === 'object' ? handGestureData.id : handGestureData;
+            if (typeof handGestureId === 'number' && handGestureId >= 0 && handGestureId <= 63 && handGestureId % 2 === 1) {
+                handGestureId = handGestureId - 1;
             }
-            const gestureLabel = typeof gestureData === 'object' ? gestureData.label : "Gesture";
-            const handSide = (typeof gestureData === 'object' && gestureData.hand) ? gestureData.hand : null;
+            const handGestureLabel = typeof handGestureData === 'object' ? handGestureData.label : "Gesture";
+            const handSide = (typeof handGestureData === 'object' && handGestureData.hand) ? handGestureData.hand : null;
             const handReadout = document.getElementById('test-hand-readout');
             if (handReadout) {
                 const sideLabel = handSide === 'L' ? '✋ Left hand' : handSide === 'R' ? '🤚 Right hand' : '';
-                handReadout.textContent = `ID ${gestureId} - ${gestureLabel}${sideLabel ? ' | ' + sideLabel : ''}`;
+                handReadout.textContent = `ID ${handGestureId} - ${handGestureLabel}${sideLabel ? ' | ' + sideLabel : ''}`;
             }
-            if (window.__testChecklists?.hand) window.__testChecklists.hand.mark(String(gestureId));
+            if (window.__testChecklists?.hand) window.__testChecklists.hand.mark(String(handGestureId));
             // FIX: "also adds to sequence in test mode" - the vision engine is one shared
             // instance (unlike touch, which has its own fully separate test engine), so a
             // detection during a camera test was also flowing straight into real input handling
@@ -4699,28 +4995,28 @@ const startApp = () => {
             // just never reach Hand Signals or the real per-key mapping.
             if (window.__handTestModeActive) return;
             if (appSettings.isHandGesturesEnabled && appSettings.isHandSignalsEnabled) {
-                if (gestureId === 'TWO_HAND_CLEAR') {
+                if (handGestureId === 'TWO_HAND_CLEAR') {
                     showToast("Hand Signal: Clear 🧹✊✊");
                     if (typeof resetCurrentMachine === 'function') resetCurrentMachine();
-                    gestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
+                    handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
                     return;
                 }
-                if (gestureId === 'TWO_HAND_DELETE') {
+                if (handGestureId === 'TWO_HAND_DELETE') {
                     showToast("Hand Signal: Delete 🔙👎👎");
                     if (typeof handleBackspace === 'function') handleBackspace();
-                    gestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
+                    handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
                     return;
                 }
-                if (gestureId === 'TWO_HAND_PLAY') {
+                if (handGestureId === 'TWO_HAND_PLAY') {
                     showToast("Hand Signal: Playing ▶️👍👍");
                     playDemo();
-                    gestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
+                    handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
                     return;
                 }
-                if (gestureId === 'TWO_HAND_STOP') {
+                if (handGestureId === 'TWO_HAND_STOP') {
                     isDemoPlaying = false;
                     showToast("Hand Signal: Stopped 🛑✋✋");
-                    gestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
+                    handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
                     return;
                 }
             }
@@ -4730,11 +5026,11 @@ const startApp = () => {
                 // only fires for that hand; 'any' (or unset, i.e. every pre-existing mapping) fires
                 // for either. If handedness couldn't be read (detectedHand null), handed mappings
                 // are skipped rather than firing on the wrong hand.
-                const detectedHand = (typeof gestureData === 'object' && gestureData.hand) ? gestureData.hand : null;
+                const detectedHand = (typeof handGestureData === 'object' && handGestureData.hand) ? handGestureData.hand : null;
                 for (const [key, mapData] of Object.entries(appSettings.mappings)) {
                     const prefix = settings.currentInput === 'key9' ? 'k9_' : settings.currentInput === 'key12' ? 'k12_' : 'piano_';
                     if (!key.startsWith(prefix)) continue;
-                    if (parseInt(mapData.handGesture) !== gestureId) continue;
+                    if (parseInt(mapData.handGesture) !== handGestureId) continue;
                     const wantSide = mapData.handSide || 'any';
                     if (wantSide !== 'any') {
                         if (detectedHand === null) continue;      // can't confirm hand -> don't fire a handed mapping
@@ -4746,10 +5042,10 @@ const startApp = () => {
             }
             if (mappedInput !== null) {
                 addValue(mappedInput);
-                showToast(`Hand: ${mappedInput} (${gestureLabel}) 🖐️`);
+                showToast(`Hand: ${mappedInput} (${handGestureLabel}) 🖐️`);
                 document.body.style.backgroundColor = '#222';
                 setTimeout(() => document.body.style.backgroundColor = '', 100);
-                gestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
+                handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
             }
         }, status => showToast(status));
     }
@@ -4831,7 +5127,7 @@ const startApp = () => {
     initFirebaseAndComments();
     modules.settings.updateHeaderVisibility();
     initGlobalListeners();
-    initGestureEngine();
+    initTouchGestureEngine();
     setupARLogic();
     renderUI();
 };
@@ -5299,33 +5595,120 @@ function saveState() {
     localStorage.setItem(CONFIG.STORAGE_KEY_STATE, JSON.stringify(appState));
 }
 
-function settingsToBase64() {
-    const json = JSON.stringify(appSettings);
-    const bytes = new TextEncoder().encode(json);
-    let binary = '';
-    bytes.forEach(b => binary += String.fromCharCode(b));
-    // URL-safe variant: standard base64's +/ can cause issues when copy-pasted, and the
-    // trailing = padding is unnecessary noise for a string that's just going to be read back.
-    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-function base64ToSettingsObject(b64) {
-    const clean = b64.trim().replace(/\s+/g, '');
-    if (!(/^[A-Za-z0-9_-]+$/).test(clean)) {
-        throw new Error('Not a valid backup string');
+// Custom backup encoding: gzip compression (native CompressionStream) does the vast majority of
+// the size reduction - JSON with this much repeated key/value structure (50 toggles, 5 profiles
+// sharing the same ~19 keys, etc.) compresses very well. The base85-style text encoding on top
+// is a smaller, secondary win over plain base64 (~85 symbols per character instead of 64, so
+// ~6.4 bits/char instead of 6). Deliberately NOT base122: that scheme's efficiency comes from
+// using non-ASCII UTF-8/16 code points, and a backup code's whole job is to survive being
+// copy-pasted through arbitrary text fields - exactly the kind of transmission that has already
+// corrupted a plain base64 string once in this project (a document upload silently dropped a
+// closing brace and inserted stray spaces). A pure, curated-safe ASCII alphabet is the more
+// reliable trade here, even at a smaller size win than base122 would give.
+const BACKUP_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%()*+,-./:;=?@[]^_`{}';
+// BACKUP_ALPHABET is deliberately missing: space, " ' \ and any character with special meaning
+// in URLs/HTML/shells that copy-paste through a browser could realistically mangle.
+function bytesToBackupCode(bytes) {
+    const base = BACKUP_ALPHABET.length; // 85
+    let big = 0n;
+    for (let i = 0; i < bytes.length; i++) big = (big << 8n) | BigInt(bytes[i]);
+    let out = '';
+    if (big === 0n) out = BACKUP_ALPHABET[0];
+    while (big > 0n) {
+        out = BACKUP_ALPHABET[Number(big % BigInt(base))] + out;
+        big = big / BigInt(base);
     }
-    // Restore standard base64 form (padding + original alphabet) before decoding.
-    let standard = clean.replace(/-/g, '+').replace(/_/g, '/');
-    while (standard.length % 4 !== 0) standard += '=';
-    const binary = atob(standard);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    const json = new TextDecoder().decode(bytes);
+    // Byte length is encoded separately (see settingsToBackupCode) rather than inferred from
+    // leading-zero padding tricks - simpler and unambiguous for a one-shot encode/decode pair
+    // that doesn't need to support streaming or partial reads.
+    return out;
+}
+function backupCodeToBytes(code, byteLength) {
+    const base = BACKUP_ALPHABET.length;
+    const map = {};
+    for (let i = 0; i < BACKUP_ALPHABET.length; i++) map[BACKUP_ALPHABET[i]] = i;
+    let big = 0n;
+    for (const ch of code) {
+        if (!(ch in map)) throw new Error('Not a valid backup code');
+        big = big * BigInt(base) + BigInt(map[ch]);
+    }
+    const bytes = new Uint8Array(byteLength);
+    for (let i = byteLength - 1; i >= 0; i--) {
+        bytes[i] = Number(big & 0xFFn);
+        big = big >> 8n;
+    }
+    return bytes;
+}
+async function gzipCompress(text) {
+    const bytes = new TextEncoder().encode(text);
+    const cs = new CompressionStream('gzip');
+    const writer = cs.writable.getWriter();
+    writer.write(bytes);
+    writer.close();
+    const chunks = [];
+    const reader = cs.readable.getReader();
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+    }
+    const totalLen = chunks.reduce((n, c) => n + c.length, 0);
+    const out = new Uint8Array(totalLen);
+    let offset = 0;
+    for (const c of chunks) { out.set(c, offset); offset += c.length; }
+    return out;
+}
+async function gzipDecompress(bytes) {
+    const ds = new DecompressionStream('gzip');
+    const writer = ds.writable.getWriter();
+    writer.write(bytes);
+    writer.close();
+    const chunks = [];
+    const reader = ds.readable.getReader();
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+    }
+    const totalLen = chunks.reduce((n, c) => n + c.length, 0);
+    const out = new Uint8Array(totalLen);
+    let offset = 0;
+    for (const c of chunks) { out.set(c, offset); offset += c.length; }
+    return new TextDecoder().decode(out);
+}
+async function settingsToBackupCode() {
+    const json = JSON.stringify(appSettings);
+    const compressed = await gzipCompress(json);
+    // Byte length prefix (base36, dot-separated) so the decoder knows exactly how many bytes to
+    // reconstruct - the encoding above doesn't preserve leading zero bytes on its own.
+    return compressed.length.toString(36) + '.' + bytesToBackupCode(compressed);
+}
+async function backupCodeToSettingsObject(code) {
+    const clean = code.trim().replace(/\s+/g, '');
+    const dotIndex = clean.indexOf('.');
+    // Old-format fallback: backup codes exported before this update are plain base64 (no "."
+    // separator, standard/URL-safe base64 alphabet only) - detecting and still accepting them
+    // means a code someone already saved doesn't silently stop working after this change.
+    if (dotIndex === -1 || !/^[0-9a-z]+$/.test(clean.slice(0, dotIndex))) {
+        if (/^[A-Za-z0-9_-]+$/.test(clean)) {
+            let standard = clean.replace(/-/g, '+').replace(/_/g, '/');
+            while (standard.length % 4 !== 0) standard += '=';
+            const binary = atob(standard);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            return JSON.parse(new TextDecoder().decode(bytes));
+        }
+        throw new Error('Not a valid backup code');
+    }
+    const byteLength = parseInt(clean.slice(0, dotIndex), 36);
+    const body = clean.slice(dotIndex + 1);
+    if (!Number.isFinite(byteLength) || byteLength < 0) throw new Error('Not a valid backup code');
+    const bytes = backupCodeToBytes(body, byteLength);
+    const json = await gzipDecompress(bytes);
     return JSON.parse(json);
 }
-
-function importSettingsFromBase64(b64) {
-    const imported = base64ToSettingsObject(b64);
+async function importSettingsFromBackupCode(code) {
+    const imported = await backupCodeToSettingsObject(code);
     // Deep-merges profiles/customThemes with defaults (matches loadState()'s behavior) so an
     // older or partial backup can't silently wipe out profile entries that didn't exist yet
     // at export time.
@@ -5375,7 +5758,7 @@ function loadState() {
             if (typeof appSettings.showCounter === 'undefined') appSettings.showCounter = false;
             if (!appSettings.runtimeSettings.voicePresets) appSettings.runtimeSettings.voicePresets = {};
             if (!appSettings.runtimeSettings.activeVoicePresetId) appSettings.runtimeSettings.activeVoicePresetId = 'standard';
-            if (!appSettings.gestureResizeMode) appSettings.gestureResizeMode = 'global';
+            if (!appSettings.touchResizeMode) appSettings.touchResizeMode = 'global';
             if (!appSettings.toneCalibration || typeof appSettings.toneCalibration !== 'object') appSettings.toneCalibration = { isCalibrated: false, notes: {} };
             if (!appSettings.toneCalibration.notes) appSettings.toneCalibration.notes = {};
             if (!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS));
@@ -5849,12 +6232,12 @@ function renderUI() {
         const gpWrap = document.getElementById('gesture-pad-wrapper');
         const pad = document.getElementById('gesture-pad');
         if (gpWrap) {
-            const isGlobalGestureOn = appSettings.isGestureInputEnabled;
-            const isBossGestureOn = appSettings.isBlackoutFeatureEnabled && appSettings.isGestureInputEnabled && blackoutState.isActive;
-            if (isGlobalGestureOn && isGesturePadVisible || isBossGestureOn) {
+            const isGlobalTouchGestureOn = appSettings.isTouchGestureInputEnabled;
+            const isBossTouchGestureOn = appSettings.isBlackoutFeatureEnabled && appSettings.isTouchGestureInputEnabled && blackoutState.isActive;
+            if (isGlobalTouchGestureOn && isTouchGesturePadVisible || isBossTouchGestureOn) {
                 document.body.classList.add('input-gestures-mode');
                 gpWrap.classList.remove('hidden');
-                if (isBossGestureOn) {
+                if (isBossTouchGestureOn) {
                     gpWrap.style.zIndex = '10001';
                     if (pad) {
                         pad.style.opacity = '0.05';
@@ -6021,7 +6404,7 @@ function renderUI() {
         hMic.classList.toggle('header-btn-active', isVoiceActive);
     }
     if (hCam) hCam.classList.toggle('header-btn-active', document.body.classList.contains('ar-active'));
-    if (hGest) hGest.classList.toggle('header-btn-active', isGesturePadVisible);
+    if (hGest) hGest.classList.toggle('header-btn-active', isTouchGesturePadVisible);
     document.querySelectorAll('.reset-button').forEach(b => {
         b.style.display = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? 'block' : 'none';
     });
@@ -6058,6 +6441,7 @@ function playDemo() {
     seqsToPlay.forEach(s => {
         if (s.length > maxLen) maxLen = s.length;
     });
+    let roundIdx = 0;
     for (let i = 0; i < maxLen; i += chunkSize) {
         for (let m = 0; m < seqsToPlay.length; m++) {
             const seq = seqsToPlay[m];
@@ -6066,10 +6450,12 @@ function playDemo() {
                 chunks.push({
                     machine: m,
                     nums: slice,
-                    isNewRound: m === 0 && i === 0 && chunks.length === 0
+                    isNewRound: m === 0 && i === 0 && chunks.length === 0,
+                    roundIdx: roundIdx
                 });
             }
         }
+        roundIdx++;
     }
     let cIdx = 0;
     let totalCount = 0;
@@ -6114,7 +6500,8 @@ function playDemo() {
             return;
         }
         const chunk = chunks[cIdx];
-        const machineDelay = settings.simonInterSequenceDelay || 0;
+        const roundDelay = settings.simonInterSequenceDelay || 0;
+        const pauseDelay = settings.pauseSetting || 0;
         let nIdx = 0;
 
         function playNum() {
@@ -6124,7 +6511,13 @@ function playDemo() {
             }
             if (nIdx >= chunk.nums.length) {
                 cIdx++;
-                schedule(nextChunk, machineDelay);
+                // Same round (chunkSize-sized block), different machine: this is the
+                // "lose track of which sequence you're on" moment pauseSetting exists for.
+                // Advancing to the next round of chunks (looping back to machine 0, or simply
+                // reaching the end): use the existing between-rounds delay instead.
+                const next = chunks[cIdx];
+                const isSameRoundNextMachine = next && next.roundIdx === chunk.roundIdx;
+                schedule(nextChunk, isSameRoundNextMachine ? pauseDelay : roundDelay);
                 return;
             }
             const val = chunk.nums[nIdx];
@@ -6297,8 +6690,8 @@ function setupARLogic() {
     }
 } 
 
-function mapGestureToValue(kind, currentInput) {
-    const saved = appSettings.gestureMappings || ({});
+function mapTouchGestureToValue(kind, currentInput) {
+    const saved = appSettings.touchGestureMappings || ({});
     const windingShapeBases = ['corner', 'triangle', 'u_shape', 'square', 'switchback', 'motion_tap_corner'];
     const directions = ['up', 'down', 'left', 'right', 'nw', 'ne', 'sw', 'se'];
     const matches = (target, incoming) => {
@@ -6360,9 +6753,9 @@ function mapGestureToValue(kind, currentInput) {
 }
 
 function updateEngineConstraints() {
-    if (!modules.gestureEngine) return;
+    if (!modules.touchGestureEngine) return;
     const settings = getProfileSettings();
-    const saved = appSettings.gestureMappings || ({});
+    const saved = appSettings.touchGestureMappings || ({});
     const getG = key => saved[key] && saved[key].gesture ? saved[key].gesture : DEFAULT_MAPPINGS[key];
     const activeList = [];
     if (settings.currentInput === CONFIG.INPUTS.PIANO) {
@@ -6372,29 +6765,29 @@ function updateEngineConstraints() {
     } else if (settings.currentInput === CONFIG.INPUTS.KEY9) {
         for (let i = 1; i <= 9; i++) activeList.push(getG('k9_' + i));
     }
-    if (appSettings.isDeleteGestureEnabled) activeList.push('delete');
-    if (appSettings.isClearGestureEnabled) activeList.push('clear');
-    modules.gestureEngine.updateAllowed(activeList);
+    if (appSettings.isDeleteTouchGestureEnabled) activeList.push('delete');
+    if (appSettings.isClearTouchGestureEnabled) activeList.push('clear');
+    modules.touchGestureEngine.updateAllowed(activeList);
 }
 
-function initGestureEngine() {
-    const engine = new GestureEngine(document.body, {
-        tapDelay: appSettings.gestureTapDelay || 300,
-        swipeThreshold: appSettings.gestureSwipeDist || 30,
-        longPressTime: appSettings.gestureLongPressTime || 300,
-        tapPrecision: appSettings.gestureTapPrecision || 30,
-        spatialThreshold: appSettings.gestureSpatialThreshold || 10,
-        longSwipeThreshold: appSettings.gestureLongSwipeThreshold || 150,
-        multiSwipeThreshold: appSettings.gestureMultiSwipeThreshold || 10,
+function initTouchGestureEngine() {
+    const engine = new TouchGestureEngine(document.body, {
+        tapDelay: appSettings.touchGestureTapDelay || 300,
+        swipeThreshold: appSettings.touchGestureSwipeDist || 30,
+        longPressTime: appSettings.touchGestureLongPressTime || 300,
+        tapPrecision: appSettings.touchGestureTapPrecision || 30,
+        spatialThreshold: appSettings.touchGestureSpatialThreshold || 10,
+        longSwipeThreshold: appSettings.touchGestureLongSwipeThreshold || 150,
+        multiSwipeThreshold: appSettings.touchGestureMultiSwipeThreshold || 10,
         debug: false
     }, {
-        onGesture: data => {
-            const isPadOpen = typeof isGesturePadVisible !== 'undefined' && isGesturePadVisible;
+        onTouchGesture: data => {
+            const isPadOpen = typeof isTouchGesturePadVisible !== 'undefined' && isTouchGesturePadVisible;
             const isClassPresent = document.body.classList.contains('input-gestures-mode');
-            const isBossActive = appSettings.isBlackoutFeatureEnabled && appSettings.isGestureInputEnabled && blackoutState.isActive;
+            const isBossActive = appSettings.isBlackoutFeatureEnabled && appSettings.isTouchGestureInputEnabled && blackoutState.isActive;
             if (isPadOpen || isClassPresent || isBossActive) {
                 const settings = getProfileSettings();
-                const mapResult = mapGestureToValue(data.name, settings.currentInput);
+                const mapResult = mapTouchGestureToValue(data.name, settings.currentInput);
                 const indicator = document.getElementById('gesture-indicator');
                 if (mapResult !== null) {
                     addValue(mapResult);
@@ -6419,7 +6812,7 @@ function initGestureEngine() {
         onContinuous: data => {
             console.log("Continuous Gesture:", data.type, "Fingers:", data.fingers);
             if (data.type === 'squiggle' && data.fingers === 1) {
-                if (appSettings.isDeleteGestureEnabled) {
+                if (appSettings.isDeleteTouchGestureEnabled) {
                     handleBackspace();
                     showToast("Deleted ⌫");
                     vibrate();
@@ -6427,7 +6820,7 @@ function initGestureEngine() {
                 return;
             }
             if (data.type === 'squiggle' && data.fingers === 2) {
-                if (appSettings.isClearGestureEnabled) {
+                if (appSettings.isClearTouchGestureEnabled) {
                     const s = getState();
                     s.sequences = Array.from({
                         length: CONFIG.MAX_MACHINES
@@ -6440,14 +6833,14 @@ function initGestureEngine() {
                 }
                 return;
             }
-            if (data.type === 'twist' && data.fingers === 3 && appSettings.isVolumeGesturesEnabled) {
+            if (data.type === 'twist' && data.fingers === 3 && appSettings.isVolumeTouchGesturesEnabled) {
                 let newVol = appSettings.runtimeSettings.voiceVolume || 1.0;
                 newVol += data.value * 0.05;
                 appSettings.runtimeSettings.voiceVolume = Math.min(1.0, Math.max(0.0, newVol));
                 saveState();
                 showToast(`Volume: ${(appSettings.runtimeSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
             }
-            if (data.type === 'twist' && data.fingers === 2 && appSettings.isSpeedGesturesEnabled) {
+            if (data.type === 'twist' && data.fingers === 2 && appSettings.isSpeedTouchGesturesEnabled) {
                 let newSpeed = appSettings.runtimeSettings.playbackSpeed || 1.0;
                 newSpeed += data.value * 0.05;
                 appSettings.runtimeSettings.playbackSpeed = Math.min(2.0, Math.max(0.5, newSpeed));
@@ -6455,19 +6848,19 @@ function initGestureEngine() {
                 showToast(`Speed: ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
             }
             if (data.type === 'pinch') {
-                const mode = appSettings.gestureResizeMode || 'global';
+                const mode = appSettings.touchResizeMode || 'global';
                 if (mode === 'none') return;
-                if (!gestureState.isPinching) {
-                    gestureState.isPinching = true;
-                    gestureState.startGlobal = appSettings.globalUiScale;
-                    gestureState.startSeq = appSettings.uiScaleMultiplier;
+                if (!touchGestureState.isPinching) {
+                    touchGestureState.isPinching = true;
+                    touchGestureState.startGlobal = appSettings.globalUiScale;
+                    touchGestureState.startSeq = appSettings.uiScaleMultiplier;
                 }
-                clearTimeout(gestureState.resetTimer);
-                gestureState.resetTimer = setTimeout(() => {
-                    gestureState.isPinching = false;
+                clearTimeout(touchGestureState.resetTimer);
+                touchGestureState.resetTimer = setTimeout(() => {
+                    touchGestureState.isPinching = false;
                 }, 250);
                 if (mode === 'sequence') {
-                    let raw = gestureState.startSeq * data.scale;
+                    let raw = touchGestureState.startSeq * data.scale;
                     let newScale = Math.round(raw * 10) / 10;
                     if (newScale !== appSettings.uiScaleMultiplier) {
                         appSettings.uiScaleMultiplier = Math.min(3.0, Math.max(0.5, newScale));
@@ -6475,7 +6868,7 @@ function initGestureEngine() {
                         showToast(`Cards: ${(appSettings.uiScaleMultiplier * 100).toFixed(0)}% 🔍`);
                     }
                 } else {
-                    let raw = gestureState.startGlobal * data.scale;
+                    let raw = touchGestureState.startGlobal * data.scale;
                     let newScale = Math.round(raw / 10) * 10;
                     if (newScale !== appSettings.globalUiScale) {
                         appSettings.globalUiScale = Math.min(200, Math.max(50, newScale));
@@ -6486,7 +6879,7 @@ function initGestureEngine() {
             }
         }
     });
-    modules.gestureEngine = engine;
+    modules.touchGestureEngine = engine;
     updateEngineConstraints();
     const originalRender = renderUI;
     renderUI = function() {
@@ -6610,16 +7003,13 @@ function initGlobalListeners() {
             }
             handleBackspace(null);
             if (!appSettings.isSpeedDeletingEnabled) return;
-            isDeleting = false;
             timers.initialDelay = setTimeout(() => {
-                isDeleting = true;
                 timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL);
             }, CONFIG.SPEED_DELETE_DELAY);
         };
         const stopDelete = () => {
             clearTimeout(timers.initialDelay);
             clearInterval(timers.speedDelete);
-            setTimeout(() => isDeleting = false, 50);
         };
         // FIX: the header Delete button only had a single-tap handler, unlike the keypad's
         // own backspace keys which already support press-and-hold speed delete. startDelete/
@@ -6701,7 +7091,7 @@ function initGlobalListeners() {
         const bl = document.getElementById('blackout-layer');
         if (bl) {
             bl.addEventListener('touchstart', e => {
-                if (appSettings.isGestureInputEnabled) return;
+                if (appSettings.isTouchGestureInputEnabled) return;
                 if (e.touches.length === 1) {
                     e.preventDefault();
                     const t = e.touches[0];
@@ -6739,7 +7129,7 @@ function initGlobalListeners() {
         const headerCounter = document.getElementById('headercounterbtn');
         const headerMic = document.getElementById('headervoicebtn');
         const headerCam = document.getElementById('headerarcambtn');
-        const headerGesture = document.getElementById('headertouchbtn');
+        const headerTouchGesture = document.getElementById('headertouchbtn');
         const headerHand = document.getElementById('headerhandbtn');
         if (headerHand) {
             headerHand.onclick = () => {
@@ -7193,13 +7583,13 @@ function initGlobalListeners() {
                 headerMic.classList.toggle('header-btn-active', isActive);
             };
         }
-        if (headerGesture) {
-            headerGesture.onclick = () => {
-                isGesturePadVisible = !isGesturePadVisible;
-                headerGesture.classList.toggle('header-btn-active', isGesturePadVisible);
+        if (headerTouchGesture) {
+            headerTouchGesture.onclick = () => {
+                isTouchGesturePadVisible = !isTouchGesturePadVisible;
+                headerTouchGesture.classList.toggle('header-btn-active', isTouchGesturePadVisible);
                 const gpWrap = document.getElementById('gesture-pad-wrapper');
                 if (gpWrap) {
-                    if (isGesturePadVisible) {
+                    if (isTouchGesturePadVisible) {
                         gpWrap.classList.remove('hidden');
                         showToast("Pad Visible 🗒️");
                     } else {
@@ -7235,8 +7625,39 @@ window.upsidedownToggle = async function(enable) {
     }
 };
 window.modules = modules;
-window.settingsToBase64 = settingsToBase64;
-window.importSettingsFromBase64 = importSettingsFromBase64;
+window.settingsToBackupCode = settingsToBackupCode;
+window.importSettingsFromBackupCode = importSettingsFromBackupCode;
 window.lockBodyScroll = lockBodyScroll;
 window.unlockBodyScroll = unlockBodyScroll;
+// Real, live viewport height tracking: 100dvh (in styles.css) handles most of this already, but
+// window.visualViewport is more reliable still for the specific "browser nav chrome partially
+// covers the bottom of the screen" case this was written for - it reports the actual visible
+// area, live, including through keyboard-open/nav-bar-transition states dvh doesn't always
+// catch cleanly. Setting a --real-vh custom property lets any part of the layout opt into this
+// more precise value instead of only relying on the CSS unit.
+(function initRealViewportHeight() {
+    const footer = document.getElementById('input-footer');
+    const apply = () => {
+        const vv = window.visualViewport;
+        const h = (vv && vv.height) || window.innerHeight;
+        document.documentElement.style.setProperty('--real-vh', h + 'px');
+        if (vv && footer && !document.body.classList.contains('layout-swapped')) {
+            // The gap between the full layout viewport and the currently-visible visual
+            // viewport is exactly how much browser chrome (nav bar, keyboard, etc.) is
+            // currently covering the bottom of the screen - offsetting the footer by that
+            // amount keeps it genuinely visible instead of relying on bottom:0 alone. Skipped
+            // while Position Swap is active, since that feature positions the footer via top
+            // instead and this would otherwise silently fight it.
+            const offset = window.innerHeight - vv.height - vv.offsetTop;
+            footer.style.bottom = Math.max(0, offset) + 'px';
+        }
+    };
+    apply();
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', apply);
+        window.visualViewport.addEventListener('scroll', apply);
+    }
+    window.addEventListener('resize', apply);
+    window.addEventListener('orientationchange', () => setTimeout(apply, 150));
+})();
 document.addEventListener('DOMContentLoaded', startApp);

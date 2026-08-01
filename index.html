@@ -124,19 +124,44 @@ alert("Promise Error: " + event.reason);
 <label class="block text-xs font-bold mb-1 text-muted-custom">Theme Name</label>
 <input type="text" id="theme-name-input" class="settings-input w-full p-2 rounded border border-custom" placeholder="My Theme">
 </div>
+<div class="mb-4 p-3 rounded-lg border border-custom bg-black bg-opacity-20">
+<label class="block text-xs font-bold mb-1 text-muted-custom">🖼️ Build From a Photo</label>
+<p class="text-[10px] text-gray-400 mb-2">Pulls the most common colors out of any picture and sorts them into the 5 slots below automatically - fine-tune anything after.</p>
+<input type="file" id="theme-image-input" accept="image/*" class="hidden">
+<button type="button" id="theme-image-btn" class="w-full py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white transition">Choose a Photo</button>
+</div>
 <div class="mb-4">
 <label class="block text-xs font-bold mb-2 text-muted-custom">Select Element:</label>
-<div class="grid grid-cols-3 gap-2">
-<button class="target-btn active p-2 text-xs font-bold rounded border border-custom bg-primary-app" data-target="bgMain">Background</button>
-<button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="bgCard">Cards/Modals</button>
-<button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="bubble">Seq Bubble</button>
-<button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="btn">Keypad Btn</button>
-<button class="target-btn p-2 text-xs font-bold rounded border border-custom opacity-60" data-target="text">Text/Num</button>
+<div class="grid grid-cols-1 gap-2" id="target-btn-group">
+<button class="target-btn w-full p-2 text-xs font-bold rounded border border-custom text-left" data-target="bgMain">
+<span class="block">Page Background</span>
+<span class="block font-normal opacity-70 text-[10px]">Also: Settings/Mapping input field backgrounds</span>
+</button>
+<button class="target-btn w-full p-2 text-xs font-bold rounded border border-custom text-left" data-target="bgCard">
+<span class="block">Cards &amp; Modals</span>
+<span class="block font-normal opacity-70 text-[10px]">Settings, Help, and every other modal - also sets the automatic light/dark border tint</span>
+</button>
+<button class="target-btn w-full p-2 text-xs font-bold rounded border border-custom text-left" data-target="bubble">
+<span class="block">Accent / Highlight</span>
+<span class="block font-normal opacity-70 text-[10px]">Sequence cards, Play &amp; Settings buttons, active tab underline, active header button glow</span>
+</button>
+<button class="target-btn w-full p-2 text-xs font-bold rounded border border-custom text-left" data-target="btn">
+<span class="block">Keypad Buttons</span>
+<span class="block font-normal opacity-70 text-[10px]">The number/control button background on the main keypad</span>
+</button>
+<button class="target-btn w-full p-2 text-xs font-bold rounded border border-custom text-left" data-target="text">
+<span class="block">Main Text</span>
+<span class="block font-normal opacity-70 text-[10px]">Body text, labels, and headings throughout the app</span>
+</button>
 </div>
 </div>
 <div class="mb-4">
 <label class="block text-xs font-bold mb-2 text-muted-custom">Palette</label>
 <div id="color-grid" class="grid grid-cols-10 gap-1 mb-3 h-40 overflow-y-auto border border-gray-700 p-1 rounded"></div>
+<div class="flex items-center gap-2 mb-3">
+<input type="color" id="native-color-picker" class="w-10 h-10 rounded border border-gray-700 cursor-pointer bg-transparent">
+<label for="native-color-picker" class="text-[10px] text-gray-400 flex-grow">Pick any exact color, not just the palette above</label>
+</div>
 <div id="fine-tune-container" class="hidden bg-black bg-opacity-20 p-3 rounded border border-gray-700">
 <label class="block text-xs font-bold mb-2">Fine Tune</label>
 <div class="flex space-x-2 items-center">
@@ -155,7 +180,11 @@ alert("Promise Error: " + event.reason);
 <span class="font-bold">Preview</span>
 <button class="px-3 py-1 rounded text-sm font-bold transition-colors" id="preview-btn">Bubble</button>
 </div>
-<div class="p-4 rounded font-bold text-center text-sm transition-colors" id="preview-card">Keypad Button</div>
+<div class="p-4 rounded font-bold text-center text-sm transition-colors mb-2" id="preview-card">Card / Modal</div>
+<div class="flex gap-2">
+<div class="flex-1 p-3 rounded-full font-bold text-center text-sm transition-colors" id="preview-keypad-btn">5</div>
+<div class="flex-1 p-3 rounded-full font-bold text-center text-sm transition-colors" id="preview-header-btn">👁️</div>
+</div>
 </div>
 </div>
 <div class="flex space-x-3 mt-2 pt-3 border-t border-custom">
@@ -318,9 +347,10 @@ alert("Promise Error: " + event.reason);
 <div>
 <label class="block text-xs font-bold mb-1 text-muted-custom">Pause</label>
 <select id="pause-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="none">None</option>
-<option value="short">Short</option>
-<option value="long">Long</option>
+<option value="0">0s</option><option value="0.1">0.1s</option><option value="0.2">0.2s</option>
+<option value="0.3">0.3s</option><option value="0.4">0.4s</option><option value="0.5">0.5s</option>
+<option value="0.6">0.6s</option><option value="0.7">0.7s</option><option value="0.8">0.8s</option>
+<option value="0.9">0.9s</option><option value="1.0">1.0s</option>
 </select>
 </div>
 </div>
@@ -335,8 +365,10 @@ alert("Promise Error: " + event.reason);
 <div>
 <label class="block text-xs font-bold mb-1 text-muted-custom">Delay</label>
 <select id="delay-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="0">0s</option><option value="0.2">0.2s</option><option value="0.4">0.4s</option>
-<option value="0.6">0.6s</option><option value="0.8">0.8s</option><option value="1.0">1.0s</option>
+<option value="0">0s</option><option value="0.1">0.1s</option><option value="0.2">0.2s</option>
+<option value="0.3">0.3s</option><option value="0.4">0.4s</option><option value="0.5">0.5s</option>
+<option value="0.6">0.6s</option><option value="0.7">0.7s</option><option value="0.8">0.8s</option>
+<option value="0.9">0.9s</option><option value="1.0">1.0s</option>
 </select>
 </div>
 </div>
@@ -370,7 +402,7 @@ alert("Promise Error: " + event.reason);
 </select>
 </div>
 </div>
-<div class="grid grid-cols-2 gap-3">
+<div class="grid grid-cols-2 gap-3" id="general-toggle-grid">
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Random Theme 🎲</span>
 <input type="checkbox" id="randomThemeToggle" class="h-6 w-6 accent-indigo-500"></div>
@@ -604,6 +636,33 @@ alert("Promise Error: " + event.reason);
 <option value="set">SET</option>
 <option value="nexus">NEXUS</option>
 <option value="track">TRACK</option>
+</select>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3 mt-4">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Header Padding</label>
+<select id="header-padding-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="0">0px</option>
+<option value="8">8px</option>
+<option value="16">16px</option>
+<option value="24">24px</option>
+<option value="32">32px</option>
+<option value="40">40px</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Inputs Padding</label>
+<select id="inputs-padding-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="0">0px</option>
+<option value="10">10px</option>
+<option value="20">20px</option>
+<option value="30">30px</option>
+<option value="40">40px</option>
+<option value="50">50px</option>
+<option value="60">60px</option>
+<option value="70">70px</option>
+<option value="80">80px</option>
 </select>
 </div>
 </div>
@@ -929,6 +988,17 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <p class="text-[10px] text-gray-400 mb-3">Sets the order header buttons appear in, left to right. Only affects order, not which ones show - that's still controlled by each button's own toggle in General.</p>
 <div id="header-order-list" class="space-y-1 max-h-64 overflow-y-auto"></div>
 <button type="button" id="header-order-reset-btn" class="w-full py-2 mt-3 text-xs font-bold bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition">↩️ Reset to Default Order</button>
+</div>
+</details>
+<details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
+<span>General Toggle Order 🔀</span>
+<span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+</summary>
+<div class="p-3 border-t border-gray-700">
+<p class="text-[10px] text-gray-400 mb-3">Sets the order toggles appear in on the General tab, and can hide ones you never use - a hidden toggle's setting stays exactly as it was, it just won't be adjustable here until shown again.</p>
+<div id="general-order-list" class="space-y-1 max-h-64 overflow-y-auto"></div>
+<button type="button" id="general-order-reset-btn" class="w-full py-2 mt-3 text-xs font-bold bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition">↩️ Reset to Default Order</button>
 </div>
 </details>
 <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
@@ -1291,6 +1361,12 @@ Email
 <p class="text-xs opacity-90">The very first screen you see has "UI" and "Cards" +/- buttons with a live sample sequence underneath. Adjust both until the sample numbers fit neatly on one row - most people find 5 fits best. Since every device and screen is different, this is worth doing once up front rather than guessing through Settings later.</p>
 </div>
 <div class="space-y-3">
+<strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Avoiding Interruptions</strong>
+<p class="text-xs opacity-90">Like any app in a browser tab, a phone call, notification, or accidental back-swipe can knock you out of a round mid-sequence. Two device-level settings help:</p>
+<p class="text-xs opacity-90"><strong>Pin the app (Android):</strong> Open Recent Apps, find Follow Me, tap its icon at the top of the card, then choose "Pin". This locks the screen to just this app until you unpin it (usually back + overview, held together) - notifications can still show, but taps and swipes can't accidentally leave the app or open anything else.</p>
+<p class="text-xs opacity-90"><strong>Turn on Do Not Disturb:</strong> Swipe down from the top for Quick Settings and tap Do Not Disturb, or find it under Settings → Sound. This silences calls and notifications for as long as you leave it on.</p>
+</div>
+<div class="space-y-3">
 <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Left & Right Hand Mapping</strong>
 <p class="text-xs opacity-90">Every hand-pose mapping now has an Any / Left / Right selector next to it (Settings → Mapping → Hand tab). Leave it on Any to trigger with either hand, or set Left and Right differently so the same pose does two different things depending on which hand you use. If detection reads the wrong hand on your device, flip "Swap Left/Right Hands" in Settings → General.</p>
 </div>
@@ -1424,6 +1500,8 @@ Email
 <p><strong>Header Size:</strong> Independent scale for just the header's icon row, on top of UI Scale.</p>
 <p><strong>Font Size:</strong> Independent scale for the keypad's number/control buttons and the Settings menu's text, on top of UI Scale.</p>
 <p><strong>Number Size:</strong> Adjusts the font size of the text inside the sequence cards.</p>
+<p><strong>Header Padding:</strong> Extra space between the header and the sequence cards below it, on top of the small built-in gap that always keeps them from touching.</p>
+<p><strong>Inputs Padding:</strong> Extra space at the bottom of the keypad, in case your device's own navigation bar sits close enough to cover part of it.</p>
 <p><strong>AR Playback Speed:</strong> The speed at which your recorded AR background clips play back.</p>
 <p><strong>Resize Gesture:</strong> Maps the pinch-to-zoom gesture to scale the Global UI, the Sequence Cards, or disables it.</p>
 <p><strong>Voice Trigger:</strong> The specific word the app listens for before logging your spoken numbers or a command (e.g., "Set 1 2 3" or "Set Play").</p>
@@ -1451,6 +1529,7 @@ Email
 <p>Opens as its own tab in Settings, alongside Game/General/Mapping. Holds the more technical, fine-tuning controls:</p>
 <p><strong>Test &amp; Practice 🎯:</strong> One-tap tests for the Hand, Touch, Voice, and Tone engines - fully independent of your real settings, so trying one never affects actual gameplay.</p>
 <p><strong>Header 🔀:</strong> Sets the left-to-right order of header buttons using ▲/▼ next to each one. Only reorders - whether a button shows at all is still its own toggle in General.</p>
+<p><strong>General Toggle Order 🔀:</strong> Sets the order every toggle appears in on the General tab, and can hide ones you never touch using the 👁️/🚫 button - a hidden toggle's setting stays exactly as it was, it's just not shown until you un-hide it here.</p>
 <p><strong>Voice Settings 🗣️:</strong> Text-to-speech voice, Pitch/Speed/Volume, and saved voice profiles - moved here from General.</p>
 <p><strong>Sensitivity 🎛️:</strong> Every timing/distance threshold the Touch, Hand, Voice, and Tone Cadence engines use, grouped by input method - each slider explains itself underneath. "Restore Defaults" resets all of them at once (locks out while sliders are locked).</p>
 <p><strong>Populate Hand/Touch Gesture Menus:</strong> Two separate filter groups. Hand controls which pose/motion categories (Static Poses, Pinches, Finger Counts, Combos, Advanced Vision Shapes, Directional Swipes, Motion Transitions) show up in the Hand tab's dropdowns; Touch controls which touch categories (Taps, Swipes, Boomerangs, Chords, etc.) show up in the Touch tab's dropdowns.</p>

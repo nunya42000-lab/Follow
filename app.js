@@ -3558,10 +3558,17 @@ if (!window.__testChecklists) {
 		this.rebuildInfiniteHeaderScroll();
 		this.renderHeaderOrderList();
 		const autoHideOn = !!this.appSettings.isAutoHideHeaderEnabled;
+		const wasAlreadyOn = header.classList.contains('auto-hide-header-enabled');
 		header.classList.toggle('auto-hide-header-enabled', autoHideOn);
-		if (autoHideOn) {
+		if (autoHideOn && !wasAlreadyOn) {
+			// Only reset to hidden on the actual off-to-on transition. This function runs on
+			// nearly every settings change while the feature stays on, so unconditionally
+			// re-hiding here (as an earlier version did) meant any unrelated change - toggling
+			// a header button, changing Header Size, anything - would snap a just-revealed
+			// header straight back to hidden before the 5s timer ever got to run out on its
+			// own, making a real reveal effectively impossible to see or use.
 			header.classList.add('auto-hide-inactive');
-		} else {
+		} else if (!autoHideOn) {
 			header.classList.remove('auto-hide-inactive');
 			if (window.__clearAutoHideHeaderTimer) window.__clearAutoHideHeaderTimer();
 		}

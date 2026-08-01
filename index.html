@@ -227,7 +227,7 @@ alert("Promise Error: " + event.reason);
 <div class="tab-btn active" data-tab="mode">Game</div>
 <div class="tab-btn" data-tab="general">General</div>
 <div class="tab-btn" data-tab="mapping">Mapping</div>
-<div class="tab-btn" data-tab="devmode">Advanced</div>
+<div class="tab-btn" data-tab="advanced">Advanced</div>
 </div>
 <div class="overflow-y-auto flex-grow p-5 space-y-4">
 <div id="tab-mode" class="tab-content active">
@@ -358,10 +358,6 @@ alert("Promise Error: " + event.reason);
 <button id="theme-rename" class="py-1.5 text-[10px] bg-gray-600 hover:bg-gray-500 rounded text-white font-bold transition shadow">RENAME</button>
 <button id="theme-delete" class="py-1.5 text-[10px] bg-red-600 hover:bg-red-500 rounded text-white font-bold transition shadow">DELETE</button>
 </div>
-<div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-700">
-<span class="font-bold text-sm text-muted-custom">Random Theme 🎲</span>
-<input type="checkbox" id="randomThemeToggle" class="h-6 w-6 accent-indigo-500">
-</div>
 <div class="mt-3 pt-3 border-t border-gray-700">
 <label class="text-xs font-bold uppercase text-muted-custom mb-1 block">Font 🔤</label>
 <select id="font-select" class="settings-input w-full p-2 rounded font-bold">
@@ -375,6 +371,12 @@ alert("Promise Error: " + event.reason);
 </div>
 </div>
 <div class="grid grid-cols-2 gap-3">
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Random Theme 🎲</span>
+<input type="checkbox" id="randomThemeToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Auto Hide Header 👻</span>
+<input type="checkbox" id="autoHideHeaderToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Play ▶️</span>
 <input type="checkbox" id="headerPlayToggle" class="h-6 w-6 accent-indigo-500"></div>
@@ -815,7 +817,7 @@ alert("Promise Error: " + event.reason);
 </details>
 </div>
 </div>
-<div id="tab-devmode" class="tab-content space-y-4">
+<div id="tab-advanced" class="tab-content space-y-4">
 <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
 <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
 <span>Test &amp; Practice 🎯</span>
@@ -916,6 +918,17 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div id="tone-test-progress" class="text-[10px] font-mono text-purple-300 text-center">Not playing</div>
 </div>
 </div>
+</div>
+</details>
+<details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
+<span>Header 🔀</span>
+<span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+</summary>
+<div class="p-3 border-t border-gray-700">
+<p class="text-[10px] text-gray-400 mb-3">Sets the order header buttons appear in, left to right. Only affects order, not which ones show - that's still controlled by each button's own toggle in General.</p>
+<div id="header-order-list" class="space-y-1 max-h-64 overflow-y-auto"></div>
+<button type="button" id="header-order-reset-btn" class="w-full py-2 mt-3 text-xs font-bold bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition">↩️ Reset to Default Order</button>
 </div>
 </details>
 <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
@@ -1394,6 +1407,7 @@ Email
 <div><strong>Speed Gesture:</strong> 2-finger twist adjusts speed.</div>
 <div><strong>Delete Gesture:</strong> 1-finger squiggle erases.</div>
 <div><strong>Clear Gesture:</strong> 2-finger squiggle nukes the round.</div>
+<div><strong>Auto Hide Header 👻:</strong> Hides header buttons until you touch the header area - they drop in, then float away again after 5 seconds of no touches there.</div>
 <div><strong>Infinite Header Scroll:</strong> Keeps the header's icon row looping continuously when dragged, instead of stopping at the first/last icon.</div>
 <div><strong>Input Regulator 🚦:</strong> Simon Says only - enforces a short cooldown per machine so the same slot can't be spammed faster than intended.</div>
 </div>
@@ -1436,6 +1450,7 @@ Email
 <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
 <p>Opens as its own tab in Settings, alongside Game/General/Mapping. Holds the more technical, fine-tuning controls:</p>
 <p><strong>Test &amp; Practice 🎯:</strong> One-tap tests for the Hand, Touch, Voice, and Tone engines - fully independent of your real settings, so trying one never affects actual gameplay.</p>
+<p><strong>Header 🔀:</strong> Sets the left-to-right order of header buttons using ▲/▼ next to each one. Only reorders - whether a button shows at all is still its own toggle in General.</p>
 <p><strong>Voice Settings 🗣️:</strong> Text-to-speech voice, Pitch/Speed/Volume, and saved voice profiles - moved here from General.</p>
 <p><strong>Sensitivity 🎛️:</strong> Every timing/distance threshold the Touch, Hand, Voice, and Tone Cadence engines use, grouped by input method - each slider explains itself underneath. "Restore Defaults" resets all of them at once (locks out while sliders are locked).</p>
 <p><strong>Populate Hand/Touch Gesture Menus:</strong> Two separate filter groups. Hand controls which pose/motion categories (Static Poses, Pinches, Finger Counts, Combos, Advanced Vision Shapes, Directional Swipes, Motion Transitions) show up in the Hand tab's dropdowns; Touch controls which touch categories (Taps, Swipes, Boomerangs, Chords, etc.) show up in the Touch tab's dropdowns.</p>

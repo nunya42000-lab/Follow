@@ -1387,15 +1387,16 @@ class VisionEngine {
             this.debugCtx = this.debugCanvas.getContext('2d');
         }
 
-        // FIX: "2 skeleton hands during testing" - this fullscreen overlay had no idea Dev
-        // Mode's practice preview was open, and the Settings modal doesn't cover edge-to-edge,
-        // so the fullscreen skeleton stayed visible in the margins behind the modal at the same
-        // moment the mini preview canvas below drew the same hand again. Reusing the same
-        // active-tab check already used elsewhere (the Tone history readout) to detect Dev
-        // Mode is the current view, so exactly one skeleton renders at a time instead of both.
-        const devTab = document.getElementById('tab-devmode');
-        const isDevModeActive = !!(devTab && devTab.classList.contains('active'));
-        this.debugCanvas.style.display = isDevModeActive ? 'none' : '';
+        // FIX: "2 skeleton hands during testing" - this fullscreen overlay had no idea the
+        // Advanced tab's practice preview was open, and the Settings modal doesn't cover
+        // edge-to-edge, so the fullscreen skeleton stayed visible in the margins behind the
+        // modal at the same moment the mini preview canvas below drew the same hand again.
+        // Reusing the same active-tab check already used elsewhere (the Tone history readout)
+        // to detect Advanced is the current view, so exactly one skeleton renders at a time
+        // instead of both.
+        const advancedTab = document.getElementById('tab-advanced');
+        const isAdvancedTabActive = !!(advancedTab && advancedTab.classList.contains('active'));
+        this.debugCanvas.style.display = isAdvancedTabActive ? 'none' : '';
 
         const ctx = this.debugCtx;
         const canvas = this.debugCanvas;
@@ -1407,7 +1408,7 @@ class VisionEngine {
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        if (!isDevModeActive && results.landmarks) {
+        if (!isAdvancedTabActive && results.landmarks) {
             for (const landmarks of results.landmarks) {
                 this._drawHand(ctx, landmarks, canvas.width, canvas.height);
             }
@@ -1833,7 +1834,7 @@ class SettingsManager {
 			voicePresetRename: document.getElementById('voice-preset-rename'),
 			voicePresetDelete: document.getElementById('voice-preset-delete'),
 			voicePitch: document.getElementById('voice-pitch'), voiceRate: document.getElementById('voice-rate'), voiceVolume: document.getElementById('voice-volume'), voiceTestBtn: document.getElementById('test-voice-btn'), voiceNameSelect: document.getElementById('voice-name-select'),
-			settingsModal: document.getElementById('settings-modal'), themeSelect: document.getElementById('theme-select'), themeAdd: document.getElementById('theme-add'), themeRename: document.getElementById('theme-rename'), themeDelete: document.getElementById('theme-delete'), themeSave: document.getElementById('theme-save'), randomThemeToggle: document.getElementById('randomThemeToggle'), skeletonDebugToggle: document.getElementById('skeletonDebugToggle'), fontSelect: document.getElementById('font-select'),
+			settingsModal: document.getElementById('settings-modal'), themeSelect: document.getElementById('theme-select'), themeAdd: document.getElementById('theme-add'), themeRename: document.getElementById('theme-rename'), themeDelete: document.getElementById('theme-delete'), themeSave: document.getElementById('theme-save'), randomThemeToggle: document.getElementById('randomThemeToggle'), autoHideHeaderToggle: document.getElementById('autoHideHeaderToggle'), skeletonDebugToggle: document.getElementById('skeletonDebugToggle'), fontSelect: document.getElementById('font-select'),
 			configSelect: document.getElementById('config-select'), quickConfigSelect: document.getElementById('quick-config-select'), configAdd: document.getElementById('config-add'), configRename: document.getElementById('config-rename'), configDelete: document.getElementById('config-delete'), configSave: document.getElementById('config-save'),
 			input: document.getElementById('input-select'), mode: document.getElementById('mode-select'), practiceMode: document.getElementById('practice-mode-toggle'), machines: document.getElementById('machines-select'), seqLength: document.getElementById('seq-length-select'),
 			autoClear: document.getElementById('autoclear-toggle'), autoplay: document.getElementById('autoplay-toggle'), flash: document.getElementById('flash-toggle'),
@@ -2419,7 +2420,7 @@ class SettingsManager {
 						Object.keys(tabButtons).forEach(key => {
 								if (tabButtons[key]) tabButtons[key].onclick = () => switchTestTab(key);
 							});
-						window.__stopAllDevModeTests = stopAllTests;
+						window.__stopAllAdvancedTests = stopAllTests;
 						const handStartBtn = document.getElementById('test-hand-start-btn');
 						const handPlaceholder = document.getElementById('practice-preview-placeholder');
 						const previewVideo = document.getElementById('practice-preview-video');
@@ -2795,6 +2796,28 @@ if (!window.__testChecklists) {
 		} catch (e) {
 			console.error('Hex export/import wiring failed:', e);
 		}
+		try {
+			const resetOrderBtn = document.getElementById('header-order-reset-btn');
+			if (resetOrderBtn) {
+				resetOrderBtn.onclick = () => {
+					if (!confirm('Reset header button order to default?')) return;
+					delete this.appSettings.headerBtnOrder;
+					const row = document.getElementById('header-btn-row');
+					if (row) {
+						DEFAULT_HEADER_BTN_ORDER.forEach(id => {
+							const el = document.getElementById(id);
+							if (el) row.appendChild(el);
+						});
+					}
+					this.callbacks.onSave();
+					this.renderHeaderOrderList();
+					this.rebuildInfiniteHeaderScroll();
+					if (typeof showToast === 'function') showToast('Header order reset ↩️');
+				};
+			}
+		} catch (e) {
+			console.error('Header order reset wiring failed:', e);
+		}
 		const bindToggle = (el, prop, updateHeader = false) => {
 			if (!el) return;
 			el.onchange = (e) => {
@@ -2818,6 +2841,7 @@ if (!window.__testChecklists) {
 		bindToggle(this.dom.autoCounterToggle, 'isAutoCounterEnabled');
 		bindToggle(this.dom.haptics, 'isHapticsEnabled');
 		bindToggle(this.dom.randomThemeToggle, 'isRandomThemeEnabled');
+		bindToggle(this.dom.autoHideHeaderToggle, 'isAutoHideHeaderEnabled', true);
 		bindToggle(this.dom.headerPlayToggle, 'showHeaderPlayBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerDeleteToggle, 'showHeaderDeleteBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerSettingsToggle, 'showHeaderSettingsBtn', () => this.updateHeaderVisibility());
@@ -3174,14 +3198,14 @@ if (!window.__testChecklists) {
 		if (this.dom.closeHelpBtn) this.dom.closeHelpBtn.onclick = () => { if (this.dom.helpModal) this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none'); if (window.unlockBodyScroll) window.unlockBodyScroll(); };
 		if (this.dom.closeHelpBtnBottom) this.dom.closeHelpBtnBottom.onclick = () => { if (this.dom.helpModal) this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none'); if (window.unlockBodyScroll) window.unlockBodyScroll(); };
 		if (this.dom.openHelpBtn) this.dom.openHelpBtn.onclick = () => { this.generatePrompt(); if (this.dom.helpModal) this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); if (window.lockBodyScroll) window.lockBodyScroll(); };
-		if (this.dom.closeSettingsBtn) this.dom.closeSettingsBtn.onclick = () => { if (window.__stopAllDevModeTests) window.__stopAllDevModeTests(); this.callbacks.onSave(); if (this.dom.settingsModal) { this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.add('scale-90'); } if (window.unlockBodyScroll) window.unlockBodyScroll(); };
+		if (this.dom.closeSettingsBtn) this.dom.closeSettingsBtn.onclick = () => { if (window.__stopAllAdvancedTests) window.__stopAllAdvancedTests(); this.callbacks.onSave(); if (this.dom.settingsModal) { this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.add('scale-90'); } if (window.unlockBodyScroll) window.unlockBodyScroll(); };
 		if (this.dom.tabs) {
 			this.dom.tabs.forEach(btn => {
 					btn.onclick = () => {
 						const parent = btn.parentElement.parentElement;
-						const wasDevmodeActive = parent.querySelector('.tab-content.active')?.id === 'tab-devmode';
+						const wasAdvancedActive = parent.querySelector('.tab-content.active')?.id === 'tab-advanced';
 						const target = btn.dataset.tab;
-						if (wasDevmodeActive && target !== 'devmode' && window.__stopAllDevModeTests) window.__stopAllDevModeTests();
+						if (wasAdvancedActive && target !== 'advanced' && window.__stopAllAdvancedTests) window.__stopAllAdvancedTests();
 						parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 						parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 						btn.classList.add('active');
@@ -3422,6 +3446,7 @@ if (!window.__testChecklists) {
 		if (this.dom.voicecommandsToggle) this.dom.voicecommandsToggle.checked = !!this.appSettings.isVoiceCommandsEnabled;
 		if (this.dom.wakelockToggle) this.dom.wakelockToggle.checked = (typeof this.appSettings.isWakeLockEnabled === 'undefined') ? true : this.appSettings.isWakeLockEnabled;
 		if (this.dom.randomThemeToggle) this.dom.randomThemeToggle.checked = !!this.appSettings.isRandomThemeEnabled;
+		if (this.dom.autoHideHeaderToggle) this.dom.autoHideHeaderToggle.checked = !!this.appSettings.isAutoHideHeaderEnabled;
 		if (this.dom.skeletonDebugToggle) this.dom.skeletonDebugToggle.checked = !!this.appSettings.isSkeletonDebugEnabled;
 		if (this.dom.fontSelect) this.dom.fontSelect.value = this.appSettings.activeFontFamily || "'Inter', sans-serif";
 		if (this.dom.newToggle) this.dom.newToggle.checked = !!this.appSettings.isPositionSwapEnabled;
@@ -3458,6 +3483,7 @@ if (!window.__testChecklists) {
 		this.updateHeaderVisibility();
 	}
 	updateHeaderVisibility() {
+		this.applySavedHeaderOrder();
 		const header = document.getElementById('aux-control-header');
 		const timerBtn = document.getElementById('headertimerbtn');
 		const counterBtn = document.getElementById('headercounterbtn');
@@ -3530,10 +3556,102 @@ if (!window.__testChecklists) {
 		this.applyHeaderScale();
 		this.applyFontScale();
 		this.rebuildInfiniteHeaderScroll();
+		this.renderHeaderOrderList();
+		const autoHideOn = !!this.appSettings.isAutoHideHeaderEnabled;
+		header.classList.toggle('auto-hide-header-enabled', autoHideOn);
+		if (autoHideOn) {
+			header.classList.add('auto-hide-inactive');
+		} else {
+			header.classList.remove('auto-hide-inactive');
+			if (window.__clearAutoHideHeaderTimer) window.__clearAutoHideHeaderTimer();
+		}
 	}
-	// Master order of every header button id, matching their HTML order.
+	// Master order of every header button id. Reads the live DOM order rather than a hardcoded
+	// list, so a custom order (set via the Header accordion, or restored from a saved order on
+	// boot) is automatically reflected everywhere this is used - there's no separate list that
+	// could drift out of sync with what's actually in the DOM.
 	_headerBtnOrder() {
-		return ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerupsidedownbtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn'];
+		const row = document.getElementById('header-btn-row');
+		if (!row) return [];
+		return [...row.children].filter(el => el.id && !el.dataset.cloneId).map(el => el.id);
+	}
+	// Short labels for the Header reordering list - matches the wording used in Help's Buttons
+	// tab, condensed to fit a single line per row.
+	_headerBtnLabels() {
+		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerupsidedownbtn: '🙃 Upside Down', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headerresetbtn: '♻️ Reset', headernukebtn: '☢️ Nuke', headernotepadbtn: '📝 Notepad' };
+	}
+	// Moves a button one position earlier/later in the LOGICAL order (from _headerBtnOrder,
+	// which already excludes clones), then reapplies that full order to the real DOM via
+	// appendChild in sequence. Deliberately not based on raw DOM siblings: a hidden button still
+	// occupies a real DOM position, and infinite-scroll clones sit adjacent to the visible real
+	// set - either one means an element's actual next/previous sibling is often not its neighbor
+	// in the intended order, which silently moved the wrong (or no) element in an earlier
+	// version of this.
+	_moveHeaderBtn(id, direction) {
+		const row = document.getElementById('header-btn-row');
+		if (!row) return;
+		const order = this._headerBtnOrder();
+		const i = order.indexOf(id);
+		const j = direction === 'up' ? i - 1 : i + 1;
+		if (i === -1 || j < 0 || j >= order.length) return;
+		[order[i], order[j]] = [order[j], order[i]];
+		order.forEach(btnId => {
+			const el = document.getElementById(btnId);
+			if (el) row.appendChild(el);
+		});
+		this.appSettings.headerBtnOrder = order;
+		this.callbacks.onSave();
+		this.renderHeaderOrderList();
+		this.rebuildInfiniteHeaderScroll();
+	}
+	// Applies a saved custom order to the real DOM on boot, before anything else (like the
+	// infinite-scroll clone builder) reads button order. No-op if there's no saved order, or if
+	// it's stale (doesn't exactly match the current set of real button ids - e.g. after an
+	// update that added/removed a header button).
+	applySavedHeaderOrder() {
+		const row = document.getElementById('header-btn-row');
+		const saved = this.appSettings.headerBtnOrder;
+		if (!row || !Array.isArray(saved) || saved.length === 0) return;
+		const current = this._headerBtnOrder();
+		const sameSet = saved.length === current.length && saved.every(id => current.includes(id));
+		if (!sameSet) return;
+		saved.forEach(id => {
+			const el = document.getElementById(id);
+			if (el) row.appendChild(el);
+		});
+	}
+	renderHeaderOrderList() {
+		const container = document.getElementById('header-order-list');
+		if (!container) return;
+		const labels = this._headerBtnLabels();
+		const order = this._headerBtnOrder();
+		container.innerHTML = '';
+		order.forEach((id, i) => {
+			const row = document.createElement('div');
+			row.className = 'flex items-center justify-between p-2 rounded bg-gray-950 border border-gray-700';
+			const label = document.createElement('span');
+			label.className = 'text-xs font-bold';
+			label.textContent = labels[id] || id;
+			const btns = document.createElement('div');
+			btns.className = 'flex gap-1';
+			const upBtn = document.createElement('button');
+			upBtn.type = 'button';
+			upBtn.className = 'w-7 h-7 rounded bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold disabled:opacity-30';
+			upBtn.textContent = '▲';
+			upBtn.disabled = i === 0;
+			upBtn.onclick = () => this._moveHeaderBtn(id, 'up');
+			const downBtn = document.createElement('button');
+			downBtn.type = 'button';
+			downBtn.className = 'w-7 h-7 rounded bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold disabled:opacity-30';
+			downBtn.textContent = '▼';
+			downBtn.disabled = i === order.length - 1;
+			downBtn.onclick = () => this._moveHeaderBtn(id, 'down');
+			btns.appendChild(upBtn);
+			btns.appendChild(downBtn);
+			row.appendChild(label);
+			row.appendChild(btns);
+			container.appendChild(row);
+		});
 	}
 	// Builds the "infinite toolbar" feel: clones the visible button set once before and once
 	// after the real set, then keeps the scroll position invisibly wrapped within the real
@@ -3932,6 +4050,10 @@ const firebaseConfig = {
 };
 let db = null;
 let screenWakeLock = null;
+// The header's original, as-shipped button order (matching static HTML order) - kept
+// separately from _headerBtnOrder() (which reads live DOM order once buttons may have been
+// dragged around) specifically so "Reset to Default Order" has a fixed target to restore to.
+const DEFAULT_HEADER_BTN_ORDER = ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerupsidedownbtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn'];
 const CONFIG = {
     MAX_MACHINES: 4,
     DEMO_DELAY_BASE_MS: 798,
@@ -4078,6 +4200,7 @@ const DEFAULT_APP = {
     isVoiceCommandsEnabled: true,
     isToneCadenceEnabled: false,
     isInputRegulatorEnabled: true,
+    isAutoHideHeaderEnabled: false,
     isHeaderInfiniteScrollEnabled: true,
     headerIconScale: 100,
     appFontScale: 100,
@@ -4440,8 +4563,8 @@ const startApp = () => {
     const toneEngine = new ToneEngine(val => {
         addValue(val);
         showToast(`🎵 Tone: ${val}`);
-   const devTab = document.getElementById('tab-devmode');
-    if (devTab && devTab.classList.contains('active')) {
+   const advancedTab = document.getElementById('tab-advanced');
+    if (advancedTab && advancedTab.classList.contains('active')) {
         const historyEl = document.getElementById('tone-test-history');
         if (historyEl) {
             historyEl.textContent += (historyEl.textContent ? ", " : "") + val;
@@ -5327,6 +5450,24 @@ function applyTheme(themeKey) {
     const b = parseInt(hex.substring(4, 6), 16) || 0;
     const isDark = 0.299 * r + 0.587 * g + 0.114 * b < 128;
     body.style.setProperty('--border', isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)');
+    // The number-box (the actual sequence cards) sits directly on --seq-bubble, which can be
+    // dark or light independent of whether the overall theme is dark or light - --text-main is
+    // calibrated for the general theme background, not this specific one, so reusing it here
+    // produced dark-on-dark or light-on-light text depending on the theme. Computed the same way
+    // as isDark above, just from the bubble color instead of the card color.
+    const bHex = t.bubble.replace('#', '');
+    const br = parseInt(bHex.substring(0, 2), 16) || 0;
+    const bg = parseInt(bHex.substring(2, 4), 16) || 0;
+    const bb = parseInt(bHex.substring(4, 6), 16) || 0;
+    const bubbleIsDark = 0.299 * br + 0.587 * bg + 0.114 * bb < 128;
+    body.style.setProperty('--seq-bubble-text', bubbleIsDark ? '#ffffff' : '#111827');
+    // Several accent-color utility classes throughout the app (text-blue-400, text-emerald-400,
+    // etc.) use fixed light-toned values that read fine against a dark card background but lose
+    // most of their contrast against a light one. Rather than hand-picking a value per class per
+    // theme, this single class lets one CSS block override just the problematic ones - and
+    // covers custom themes automatically too, since it's driven by the same luminance check
+    // already being used for --border above, not a hardcoded list of theme names.
+    body.classList.toggle('theme-is-light', !isDark);
 }
 
 function updateAllChrome() {
@@ -6284,6 +6425,24 @@ function initGestureEngine() {
 
 function initGlobalListeners() {
     try {
+        // Auto Hide Header: reveals the button row on any touch/click in the header area (the
+        // header itself gets pointer-events re-enabled via CSS while this mode is on, so this
+        // fires even when the buttons are currently invisible/transformed away), then re-hides
+        // after 5s of no further touches there. window.__clearAutoHideHeaderTimer lets
+        // updateHeaderVisibility cancel a pending re-hide immediately if the setting gets turned
+        // off mid-countdown.
+        (() => {
+            const header = document.getElementById('aux-control-header');
+            if (!header) return;
+            let hideTimer = null;
+            window.__clearAutoHideHeaderTimer = () => { clearTimeout(hideTimer); hideTimer = null; };
+            header.addEventListener('pointerdown', () => {
+                if (!appSettings.isAutoHideHeaderEnabled) return;
+                header.classList.remove('auto-hide-inactive');
+                clearTimeout(hideTimer);
+                hideTimer = setTimeout(() => { header.classList.add('auto-hide-inactive'); }, 5000);
+            });
+        })();
         document.querySelectorAll('.btn-pad-number').forEach(b => {
             const press = e => {
                 if (e) {

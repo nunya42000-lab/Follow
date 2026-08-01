@@ -1935,7 +1935,7 @@ class SettingsManager {
 					this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
 				});
 		}
-		const bindToggle = (toggleElement, settingKey, applyCallback) => {
+		const bindToggleWithCallback = (toggleElement, settingKey, applyCallback) => {
 			if (toggleElement) {
 				let defaultState = settingKey === 'isWakeLockEnabled' ? true : false;
 				toggleElement.checked = this.appSettings[settingKey] ?? defaultState;
@@ -1946,7 +1946,7 @@ class SettingsManager {
 				};
 			}
 		};
-		bindToggle(this.dom.wakelockToggle, 'isWakeLockEnabled', () => {
+		bindToggleWithCallback(this.dom.wakelockToggle, 'isWakeLockEnabled', () => {
 				if (typeof window.wakelockToggle === 'function') {
 					window.wakelockToggle(this.appSettings.isWakeLockEnabled);
 				}
@@ -1973,7 +1973,7 @@ class SettingsManager {
 				this.callbacks.onSave();
 			};
 		}
-		bindToggle(this.dom.ecoToggle, 'isEcoModeEnabled', () => {
+		bindToggleWithCallback(this.dom.ecoToggle, 'isEcoModeEnabled', () => {
 				document.body.classList.toggle('eco-mode', this.appSettings.isEcoModeEnabled);
 			});
 		if (this.dom.arSpeedSelect) {
@@ -2947,20 +2947,7 @@ if (!window.__testChecklists) {
 				if (updateHeader) this.updateHeaderVisibility();
 			};
 		};
-		bindToggle(this.dom.timerToggle, 'showTimer', true);
-		bindToggle(this.dom.counterToggle, 'showCounter', true);
-		bindToggle(this.dom.voiceToggle, 'isVoiceInputEnabled', true);
-		bindToggle(this.dom.toneCadenceToggle, 'isToneCadenceEnabled', true);
-		bindToggle(this.dom.touchGestureToggle, 'isTouchGestureInputEnabled', true);
-		bindToggle(this.dom.handToggle, 'isHandGesturesEnabled', true);
-		bindToggle(this.dom.arcamToggle, 'isArModeEnabled', true);
-		bindToggle(this.dom.biggerToggle, 'isStealth1KeyEnabled', true);
-		bindToggle(this.dom.fullscreenToggle, 'showFullscreenBtn', true);
-		bindToggle(this.dom.upsidedownToggle, 'showUpsideDownBtn', true);
 		bindToggle(this.dom.newToggle, 'isPositionSwapEnabled', true);
-		bindToggle(this.dom.autoTimerToggle, 'isAutoTimerEnabled');
-		bindToggle(this.dom.autoCounterToggle, 'isAutoCounterEnabled');
-		bindToggle(this.dom.haptics, 'isHapticsEnabled');
 		bindToggle(this.dom.randomThemeToggle, 'isRandomThemeEnabled');
 		bindToggle(this.dom.autoHideHeaderToggle, 'isAutoHideHeaderEnabled', true);
 		bindToggle(this.dom.headerPlayToggle, 'showHeaderPlayBtn', () => this.updateHeaderVisibility());
@@ -2998,7 +2985,6 @@ if (!window.__testChecklists) {
 		bindToggle(this.dom.bossToggle, 'isBlackoutFeatureEnabled');
 		bindToggle(this.dom.handsignalsToggle, 'isHandSignalsEnabled');
 		bindToggle(this.dom.handednessFlipToggle, 'handednessFlip');
-		bindToggle(this.dom.speedDelete, 'isSpeedDeletingEnabled');
 		bindToggle(this.dom.volumeTouchGesturesToggle, 'isVolumeTouchGesturesEnabled');
 		bindToggle(this.dom.speedTouchGesturesToggle, 'isSpeedTouchGesturesEnabled');
 		bindToggle(this.dom.deleteTouchGestureToggle, 'isDeleteTouchGestureEnabled');
@@ -3108,22 +3094,6 @@ if (!window.__testChecklists) {
 					this.callbacks.onSave();
 					this.updateHeaderVisibility();
 				});
-		}
-		if (this.dom.fullscreenToggle) {
-			this.dom.fullscreenToggle.checked = !!this.appSettings.showFullscreenBtn;
-			this.dom.fullscreenToggle.onchange = (e) => {
-				this.appSettings.showFullscreenBtn = e.target.checked;
-				this.updateHeaderVisibility();
-				this.callbacks.onSave();
-			};
-		}
-		if (this.dom.upsidedownToggle) {
-			this.dom.upsidedownToggle.checked = !!this.appSettings.showUpsideDownBtn;
-			this.dom.upsidedownToggle.onchange = (e) => {
-				this.appSettings.showUpsideDownBtn = e.target.checked;
-				this.updateHeaderVisibility();
-				this.callbacks.onSave();
-			};
 		}
 		if (this.dom.headertonebtn) {
 			this.dom.headertonebtn.addEventListener('click', () => {
@@ -3590,6 +3560,8 @@ if (!window.__testChecklists) {
 		this.applyHeaderPadding();
 		this.applyInputsPadding();
 		if (this.dom.bossToggle) this.dom.bossToggle.checked = this.appSettings.isBlackoutFeatureEnabled;
+		if (this.dom.arAutoCloseGeneralToggle) this.dom.arAutoCloseGeneralToggle.checked = this.appSettings.isArAutoCloseEnabled ?? false;
+		if (this.dom.arAutoClosePlayback) this.dom.arAutoClosePlayback.checked = this.appSettings.isArAutoCloseEnabled ?? false;
 		if (this.dom.touchGestureToggle) this.dom.touchGestureToggle.checked = !!this.appSettings.isTouchGestureInputEnabled;
 		if (this.dom.handToggle) this.dom.handToggle.checked = !!this.appSettings.isHandGesturesEnabled;
 		if (this.dom.handsignalsToggle) this.dom.handsignalsToggle.checked = !!this.appSettings.isHandSignalsEnabled;
@@ -4870,8 +4842,8 @@ const startApp = () => {
     const headerupsidedownbtn = document.getElementById('headerupsidedownbtn');
     if (headerupsidedownbtn) {
         headerupsidedownbtn.onclick = () => {
-            document.body.classList.toggle('rotate-180');
-            if (document.body.classList.contains('rotate-180')) {
+            document.body.classList.toggle('upside-down');
+            if (document.body.classList.contains('upside-down')) {
                 headerupsidedownbtn.classList.add('ring-2', 'ring-emerald-500');
                 showToast("Upside Down Mode: ON 🙃");
             } else {
@@ -7028,14 +7000,31 @@ function initGlobalListeners() {
         // off mid-countdown.
         (() => {
             const header = document.getElementById('aux-control-header');
+            const btnRow = document.getElementById('header-btn-row');
             if (!header) return;
             let hideTimer = null;
+            let unhideGraceTimer = null;
             window.__clearAutoHideHeaderTimer = () => { clearTimeout(hideTimer); hideTimer = null; };
             header.addEventListener('pointerdown', () => {
                 if (!appSettings.isAutoHideHeaderEnabled) return;
+                const wasInactive = header.classList.contains('auto-hide-inactive');
                 header.classList.remove('auto-hide-inactive');
                 clearTimeout(hideTimer);
                 hideTimer = setTimeout(() => { header.classList.add('auto-hide-inactive'); }, 5000);
+                // The buttons take .4s to visually slide/fade into place (see the
+                // auto-hide-header-enabled #header-btn-row transition in styles.css), but
+                // pointer-events on the row goes from none to auto the instant
+                // auto-hide-inactive is removed above - without this guard, a fast second tap
+                // in roughly the same spot during that slide-in could land on a button before
+                // the user can actually see it's there. Only applies on the real reveal (the
+                // row was genuinely hidden); a touch while it's already visible needs no delay.
+                if (wasInactive && btnRow) {
+                    clearTimeout(unhideGraceTimer);
+                    btnRow.classList.add('header-just-unhidden');
+                    unhideGraceTimer = setTimeout(() => {
+                        btnRow.classList.remove('header-just-unhidden');
+                    }, 100);
+                }
             });
         })();
         document.querySelectorAll('.btn-pad-number').forEach(b => {
@@ -7794,3 +7783,17 @@ window.unlockBodyScroll = unlockBodyScroll;
     window.addEventListener('orientationchange', () => setTimeout(apply, 150));
 })();
 document.addEventListener('DOMContentLoaded', startApp);
+
+// Registers the service worker so the CRITICAL_ASSETS/OPTIONAL_ASSETS precaching and offline
+// support defined in sw.js actually take effect - previously nothing called .register() at all,
+// so sw.js was never installed by the browser despite being fully present and referenced by the
+// Nuke App button's cleanup logic. Deferred to the window 'load' event (not DOMContentLoaded) so
+// registration doesn't compete with initial page resources for bandwidth/priority - this is the
+// standard recommended pattern for PWA service worker registration.
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => {
+            console.warn('[SW] Registration failed:', err);
+        });
+    });
+}

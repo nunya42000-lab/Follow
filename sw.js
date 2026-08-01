@@ -1,24 +1,29 @@
 // sw.js
-// Version: v64 - Fault Tolerant Offline
-const CACHE_NAME = 'follow-me-v70-no-tailwind';
+// Version: v71 - Fault Tolerant Offline (moved wasm/hand-tracking assets AND the external
+// Google Fonts URL out of CRITICAL_ASSETS. Both were still subject to cache.addAll()'s
+// all-or-nothing failure mode - app.js already treats missing wasm files as a normal,
+// gracefully-degraded case, and an external CDN request has no business being able to block
+// caching of the app's own local files if it's slow, blocked, or briefly unreachable. Verified
+// live: with the old critical list, a failing fonts.googleapis.com fetch alone (independent of
+// the wasm files) was enough to silently prevent index.html/styles.css/app.js/manifest.json
+// from ever being cached.)
+const CACHE_NAME = 'follow-me-v71-optional-wasm-and-fonts';
 
 // 1. CRITICAL: These MUST exist for the app to run.
 // If any of these are missing, the offline mode will fail.
+// Deliberately LOCAL-ONLY - see version comment above for why the external fonts URL was
+// removed from this list.
 const CRITICAL_ASSETS = [
     './',
     './index.html',
     './styles.css',
     './app.js',
-    './manifest.json',
-    './wasm/vision_bundle.js',
-    './wasm/vision_wasm_internal.js',
-    './wasm/vision_wasm_internal.wasm',
-    './wasm/gesture_recognizer.task',
-    'https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap'
+    './manifest.json'
 ];
 
 
-// 2. OPTIONAL: Images & External Links.
+// 2. OPTIONAL: Images, external links, and hand-tracking assets that the app already
+// handles the absence of gracefully (see VisionEngine unavailable warning in app.js).
 // We will TRY to cache these. If they fail (404 missing, network error), 
 // we simply skip them so the app still installs successfully.
 const OPTIONAL_ASSETS = [
@@ -26,6 +31,10 @@ const OPTIONAL_ASSETS = [
     './icon512.png',
     './qr.jpg',
     './redeem.jpg',
+    './wasm/vision_bundle.js',
+    './wasm/vision_wasm_internal.js',
+    './wasm/vision_wasm_internal.wasm',
+    './wasm/gesture_recognizer.task',
     'https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap',
     'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js',
     'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js'

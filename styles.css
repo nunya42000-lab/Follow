@@ -57,7 +57,7 @@ img, svg, video, canvas {
 .hidden { display: none !important; }
 :root { --bg-main: #000000; --card-bg: #121212; --seq-bubble: #4f46e5; --btn-bg: #1a1a1a; --text-main: #e5e5e5; --border: rgba(255, 255, 255, 0.15); }
 body { margin: 0; background-color: var(--bg-main); color: var(--text-main); transition: background-color .3s, color .3s; min-height: 100vh; min-height: 100dvh; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
-input, textarea, .selectable-text { -webkit-user-select: text !important; user-select: text !important; -webkit-touch-callout: default !important; cursor: auto; touch-action: auto; }
+input, textarea { -webkit-user-select: text !important; user-select: text !important; -webkit-touch-callout: default !important; cursor: auto; touch-action: auto; }
 .settings-modal-bg { background-color: var(--card-bg) !important; color: var(--text-main) !important; border: 1px solid var(--border); }
 .settings-input { background-color: var(--bg-main) !important; color: var(--text-main) !important; border: 1px solid var(--border) !important; }
 .bg-primary-app { background-color: var(--seq-bubble) !important; color: var(--seq-bubble-text, var(--text-main)) !important; }
@@ -98,13 +98,10 @@ body.layout-swapped #input-footer { border-top: none; border-bottom: 4px solid v
 .black-3 { left: calc((100% / 7)*4 - (10% / 2)); width: 10%; }
 .black-4 { left: calc((100% / 7)*5 - (10% / 2)); width: 10%; }
 .black-5 { left: calc((100% / 7)*6 - (10% / 2)); width: 10%; }
-.vis-bar { background-color: var(--seq-bubble); }
-.prompt-box { width: 100%; padding: .75rem; border-radius: .5rem; font-family: monospace; font-size: .875rem; resize: none; }
 #blackout-layer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; cursor: none; touch-action: none; display: none; }
 body.blackout-active #blackout-layer { display: block; }
 .share-sheet { background-color: #1e1e1e !important; border-radius: 1.5rem 1.5rem 0 0 !important; bottom: 0; position: absolute; width: 100%; border-top: 1px solid #333; padding-bottom: 2rem; z-index: 100; transform: translateY(100%); transition: transform .3s ease-out; }
 .share-sheet.active { transform: translateY(0); }
-.share-app-icon { width: 3rem; height: 3rem; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
 body.hide-controls .control-row { display: none !important; }
 #aux-control-header { padding-top: max(0.5rem, env(safe-area-inset-top)); padding-bottom: 0.25rem; background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%); pointer-events: none; }
 /* Header Size setting: independent scale for the header icon row (on top of the general UI
@@ -152,6 +149,14 @@ header#aux-control-header.auto-hide-header-enabled.auto-hide-inactive #header-bt
     pointer-events: none;
     transition: transform .8s cubic-bezier(.16,.84,.44,1), opacity .8s ease-out;
 }
+/* Brief input-blocking window right after the header unhides via touch (see the pointerdown
+   handler in initGlobalListeners in app.js). The buttons take .4s to visually finish sliding
+   into place; this keeps them non-interactive for the first 100ms of that so a fast second tap
+   near the same spot can't land on a button before it's actually visible. Purely blocks
+   pointer-events - doesn't touch the transform/opacity animation above. */
+#header-btn-row.header-just-unhidden {
+    pointer-events: none;
+}
 #redeem-modal.redeem-bright { background-color: #ffffff !important; }
 .header-btn-active { background-color: var(--seq-bubble) !important; border-color: var(--text-main) !important; box-shadow: 0 0 10px var(--seq-bubble) !important; }
 body.input-gestures-mode #input-footer { display: none !important; }
@@ -175,17 +180,14 @@ body.fullscreen-mode #aux-control-header { background: linear-gradient(to bottom
 body.ar-active { background: transparent !important; overflow: hidden; }
 body.ar-active #blackout-layer,
 body.ar-active #sequence-container { display: none !important; }
-body.ar-active .main-app-wrapper,
 body.ar-active #app { background: transparent !important; }
 body.ar-active .card, body.ar-active .btn-input, body.ar-active .number-box,
 body.ar-active .settings-modal-bg { background-color: rgba(18, 18, 18, 0.75) !important; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); border-color: rgba(255, 255, 255, 0.3); }
 body.ar-active header { background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 100%);}
 #ar-ui-layer { display: none; position: fixed; bottom: 0; left: 0; width: 100%; flex-direction: column; align-items: center; padding-bottom: calc(2rem + env(safe-area-inset-bottom)); background: linear-gradient(transparent, rgba(0,0,0,0.9) 80%); gap: 20px; z-index: 10001; }
 body.ar-active #ar-ui-layer { display: flex; } 
-.ar-speed-control { background: rgba(0,0,0,0.7); padding: 12px 20px; border-radius: 20px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; width: 80%; max-width: 300px; color: white; }
 #ar-speed-slider { width: 100%; accent-color: var(--seq-bubble); margin-top: 10px; }
-.ar-btns { display: flex; gap: 20px; align-items: center; }
-#ar-rec-btn { width: 85px; height: 85px; x border-radius: 50%; border: 4px solid white; background: #ff3b30; color: white; font-weight: 900; font-size: 0.75rem; box-shadow: 0 0 20px rgba(255,59,48,0.4); }
+#ar-rec-btn { width: 85px; height: 85px; border-radius: 50%; border: 4px solid white; background: #ff3b30; color: white; font-weight: 900; font-size: 0.75rem; box-shadow: 0 0 20px rgba(255,59,48,0.4); }
 #ar-pause-btn { width: 85px; height: 85px; border-radius: 50%; border: 4px solid #ffcc00; background: #1a1a1a; color: #ffcc00; font-weight: 900; font-size: 0.8rem; }
 body.upside-down { transform: rotate(180deg); }
 body.eco-mode { filter: brightness(0.65); }
@@ -531,7 +533,6 @@ body.eco-mode * { animation-duration: 0.01ms !important; transition-duration: 0.
 .border-emerald-500\/30 { border-color: rgba(16, 185, 129, 0.3); }
 .border-purple-500\/30 { border-color: rgba(168, 85, 247, 0.3); }
 .border-red-500\/30 { border-color: rgba(239, 68, 68, 0.3); }
-.border-yellow-500\/30 { border-color: rgba(234, 179, 8, 0.3); }
 .bg-black.bg-opacity-20 { background-color: rgba(0, 0, 0, 0.2); }
 .bg-black.bg-opacity-30 { background-color: rgba(0, 0, 0, 0.3); }
 .bg-black.bg-opacity-50 { background-color: rgba(0, 0, 0, 0.5); }

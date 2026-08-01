@@ -1862,7 +1862,7 @@ class SettingsManager {
 			handsignalsToggle: document.getElementById('handsignalsToggle'),
 			handednessFlipToggle: document.getElementById('handednessFlipToggle'),
 			voicecommandsToggle: document.getElementById('voicecommandsToggle'),
-			wakelockToggle: document.getElementById('wakelockToggle'), settingsLockBtn: document.getElementById('settings-lock-toggle'),
+			wakelockToggle: document.getElementById('wakelockToggle'), dndToggle: document.getElementById('dndToggle'), floatModeToggle: document.getElementById('floatModeToggle'), pinnedModeToggle: document.getElementById('pinnedModeToggle'), settingsLockBtn: document.getElementById('settings-lock-toggle'),
 			newToggle: document.getElementById('newToggle'),
 			headerswapbtn: document.getElementById('headerswapbtn'),
 			headerplaybtn: document.getElementById('headerplaybtn'), headerdeletebtn: document.getElementById('headerdeletebtn'), headersettingsbtn: document.getElementById('headersettingsbtn'), headerredeembtn: document.getElementById('headerredeembtn'), headersharebtn: document.getElementById('headersharebtn'), headerthemecyclebtn: document.getElementById('headerthemecyclebtn'), headeraddmachinebtn: document.getElementById('headeraddmachinebtn'), headeruiupbtn: document.getElementById('headeruiupbtn'), headeruidownbtn: document.getElementById('headeruidownbtn'), headersequpbtn: document.getElementById('headersequpbtn'), headerseqdownbtn: document.getElementById('headerseqdownbtn'), headervolupbtn: document.getElementById('headervolupbtn'), headervoldownbtn: document.getElementById('headervoldownbtn'), headerspeedupbtn: document.getElementById('headerspeedupbtn'), headerspeeddownbtn: document.getElementById('headerspeeddownbtn'), headercycleinputbtn: document.getElementById('headercycleinputbtn'),
@@ -2948,6 +2948,30 @@ if (!window.__testChecklists) {
 			};
 		};
 		bindToggle(this.dom.newToggle, 'isPositionSwapEnabled', true);
+		if (this.dom.pinnedModeToggle) {
+			this.dom.pinnedModeToggle.checked = !!this.appSettings.isPinnedModeEnabled;
+			this.dom.pinnedModeToggle.onchange = async (e) => {
+				this.appSettings.isPinnedModeEnabled = e.target.checked;
+				this.callbacks.onSave();
+				if (e.target.checked) await enterPinnedMode();
+				else await exitPinnedMode();
+			};
+		}
+		bindToggle(this.dom.dndToggle, 'isDndEnabled');
+		// Float Window is transient, not a persisted setting: a PiP window cannot be reopened on
+		// load without a fresh user gesture, so the checkbox reflects live PiP state instead of
+		// something stored. enterFloatMode() unchecks it again if the browser refuses.
+		if (this.dom.floatModeToggle) {
+			this.dom.floatModeToggle.checked = !!document.pictureInPictureElement;
+			this.dom.floatModeToggle.onchange = async (e) => {
+				if (e.target.checked) {
+					const ok = await enterFloatMode();
+					if (!ok) e.target.checked = false;
+				} else {
+					await exitFloatMode();
+				}
+			};
+		}
 		bindToggle(this.dom.randomThemeToggle, 'isRandomThemeEnabled');
 		bindToggle(this.dom.autoHideHeaderToggle, 'isAutoHideHeaderEnabled', true);
 		bindToggle(this.dom.headerPlayToggle, 'showHeaderPlayBtn', () => this.updateHeaderVisibility());
@@ -3570,6 +3594,9 @@ if (!window.__testChecklists) {
 		if (this.dom.wakelockToggle) this.dom.wakelockToggle.checked = (typeof this.appSettings.isWakeLockEnabled === 'undefined') ? true : this.appSettings.isWakeLockEnabled;
 		if (this.dom.randomThemeToggle) this.dom.randomThemeToggle.checked = !!this.appSettings.isRandomThemeEnabled;
 		if (this.dom.autoHideHeaderToggle) this.dom.autoHideHeaderToggle.checked = !!this.appSettings.isAutoHideHeaderEnabled;
+		if (this.dom.dndToggle) this.dom.dndToggle.checked = !!this.appSettings.isDndEnabled;
+		if (this.dom.floatModeToggle) this.dom.floatModeToggle.checked = !!document.pictureInPictureElement;
+		if (this.dom.pinnedModeToggle) this.dom.pinnedModeToggle.checked = !!this.appSettings.isPinnedModeEnabled;
 		if (this.dom.skeletonDebugToggle) this.dom.skeletonDebugToggle.checked = !!this.appSettings.isSkeletonDebugEnabled;
 		if (this.dom.fontSelect) this.dom.fontSelect.value = this.appSettings.activeFontFamily || "'Inter', sans-serif";
 		if (this.dom.newToggle) this.dom.newToggle.checked = !!this.appSettings.isPositionSwapEnabled;
@@ -3796,7 +3823,7 @@ if (!window.__testChecklists) {
 		}).filter(Boolean);
 	}
 	_generalToggleLabels() {
-		return { randomThemeToggle: 'Random Theme 🎲', autoHideHeaderToggle: 'Auto Hide Header 👻', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerModeSwitchToggle: 'Mode Switch 🎮', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', headerThemeCycleToggle: 'Theme Cycle 🎨', headerAddMachineToggle: 'Add Machine ➕', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', headerCycleInputToggle: 'Cycle Input 🔀', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', introToggle: 'Show Intro', upsidedownToggle: 'Upside Down 🙃', fullscreenToggle: 'Full Screen 🔲', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', bossToggle: 'Boss Mode 🌑', newToggle: 'Position Swap 🔄', biggerToggle: 'Bigger Buttons', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥' };
+		return { randomThemeToggle: 'Random Theme 🎲', autoHideHeaderToggle: 'Auto Hide Header 👻', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerModeSwitchToggle: 'Mode Switch 🎮', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', headerThemeCycleToggle: 'Theme Cycle 🎨', headerAddMachineToggle: 'Add Machine ➕', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', headerCycleInputToggle: 'Cycle Input 🔀', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', introToggle: 'Show Intro', upsidedownToggle: 'Upside Down 🙃', fullscreenToggle: 'Full Screen 🔲', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', dndToggle: 'Do Not Disturb 🔕', floatModeToggle: 'Float Window 🪟', pinnedModeToggle: 'Pinned Mode 📌', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', bossToggle: 'Boss Mode 🌑', newToggle: 'Position Swap 🔄', biggerToggle: 'Bigger Buttons', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥' };
 	}
 	// Moves a toggle's WRAPPER div one position earlier/later, same index-based-then-reapply
 	// approach as _moveHeaderBtn (not raw siblings) - safe here too since a hidden toggle still
@@ -4266,7 +4293,7 @@ if (!window.__testChecklists) {
 							if(char === '-') pattern.push(DASH);
 							pattern.push(GAP);
 						}
-						if(pattern.length) navigator.vibrate(pattern);
+						if(pattern.length) hapticPulse(pattern);
 					}
 				};
 			});
@@ -4352,7 +4379,7 @@ let screenWakeLock = null;
 const DEFAULT_HEADER_BTN_ORDER = ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerupsidedownbtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn'];
 // The General tab's original, as-shipped toggle order (matching static HTML order) - same
 // purpose as DEFAULT_HEADER_BTN_ORDER above: a fixed target for "Reset to Default Order".
-const DEFAULT_GENERAL_TOGGLE_ORDER = ['randomThemeToggle', 'autoHideHeaderToggle', 'headerPlayToggle', 'headerDeleteToggle', 'headerSettingsToggle', 'headerHelpToggle', 'headerModeSwitchToggle', 'headerRedeemToggle', 'headerShareToggle', 'headerThemeCycleToggle', 'headerAddMachineToggle', 'headerUiSizeToggle', 'headerSeqSizeToggle', 'headerVolumeToggle', 'headerSpeedToggle', 'headerCycleInputToggle', 'headerResetToggle', 'headerNukeToggle', 'timerToggle', 'autotimerToggle', 'counterToggle', 'autocounterToggle', 'headerNotepadToggle', 'headerInfiniteScrollToggle', 'inputRegulatorToggle', 'hapticsToggle', 'introToggle', 'upsidedownToggle', 'fullscreenToggle', 'ecoToggle', 'wakelockToggle', 'voiceToggle', 'voicecommandsToggle', 'toneToggle', 'touchToggle', 'bossToggle', 'newToggle', 'biggerToggle', 'arcamToggle', 'arAutoCloseGeneralToggle', 'handToggle', 'skeletonDebugToggle', 'handsignalsToggle', 'handednessFlipToggle', 'speeddeleteToggle', 'apshortcutToggle', 'volgesToggle', 'speedToggle', 'deleteToggle', 'clearToggle'];
+const DEFAULT_GENERAL_TOGGLE_ORDER = ['randomThemeToggle', 'autoHideHeaderToggle', 'headerPlayToggle', 'headerDeleteToggle', 'headerSettingsToggle', 'headerHelpToggle', 'headerModeSwitchToggle', 'headerRedeemToggle', 'headerShareToggle', 'headerThemeCycleToggle', 'headerAddMachineToggle', 'headerUiSizeToggle', 'headerSeqSizeToggle', 'headerVolumeToggle', 'headerSpeedToggle', 'headerCycleInputToggle', 'headerResetToggle', 'headerNukeToggle', 'timerToggle', 'autotimerToggle', 'counterToggle', 'autocounterToggle', 'headerNotepadToggle', 'headerInfiniteScrollToggle', 'inputRegulatorToggle', 'hapticsToggle', 'introToggle', 'upsidedownToggle', 'fullscreenToggle', 'ecoToggle', 'wakelockToggle', 'dndToggle', 'floatModeToggle', 'pinnedModeToggle', 'voiceToggle', 'voicecommandsToggle', 'toneToggle', 'touchToggle', 'bossToggle', 'newToggle', 'biggerToggle', 'arcamToggle', 'arAutoCloseGeneralToggle', 'handToggle', 'skeletonDebugToggle', 'handsignalsToggle', 'handednessFlipToggle', 'speeddeleteToggle', 'apshortcutToggle', 'volgesToggle', 'speedToggle', 'deleteToggle', 'clearToggle'];
 const CONFIG = {
     MAX_MACHINES: 4,
     DEMO_DELAY_BASE_MS: 798,
@@ -4462,6 +4489,8 @@ const DEFAULT_APP = {
     isAutoTimerEnabled: false,
     isAutoCounterEnabled: true,
     isWakeLockEnabled: true,
+    isDndEnabled: false,
+    isPinnedModeEnabled: false,
     isEcoModeEnabled: true,
     isLongPressAutoplayEnabled: true,
     isStealth1KeyEnabled: true,
@@ -4824,6 +4853,7 @@ const _MODAL_IDS = ['settings-modal', 'help-modal', 'share-modal', 'comment-moda
 const startApp = () => {
     loadState();
     window.appSettings = appSettings;
+    restorePinnedModeOnBoot();
     if (appSettings.isEcoModeEnabled) document.body.classList.add('eco-mode');
     const headerfullscreenbtn = document.getElementById('headerfullscreenbtn');
     if (headerfullscreenbtn) {
@@ -5880,11 +5910,23 @@ function loadState() {
     }
 }
 
+// Single choke point for every vibration in the app. Do Not Disturb suppresses all haptics
+// here, so a future raw navigator.vibrate() call added elsewhere is the only way to bypass DND -
+// route new haptics through this instead. Deliberately does NOT check isHapticsEnabled: the
+// call sites that used raw navigator.vibrate() were never haptics-setting gated (alarm/alert
+// style buzzes), and this preserves that behaviour while still honouring DND.
+function hapticPulse(pattern) {
+    if (appSettings.isDndEnabled) return;
+    if (!navigator.vibrate) return;
+    navigator.vibrate(pattern);
+}
 function vibrate() {
+    if (appSettings.isDndEnabled) return;
     if (appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10);
 }
 
 function vibrateMorse(val) {
+    if (appSettings.isDndEnabled) return;
     if (!navigator.vibrate || !appSettings.runtimeSettings.isHapticMorseEnabled) return;
     let num = parseInt(val);
     if (isNaN(num)) {
@@ -5923,6 +5965,7 @@ function vibrateMorse(val) {
 }
 
 function speak(text) {
+    if (appSettings.isDndEnabled) return;
     if (!appSettings.runtimeSettings.isAudioEnabled || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
@@ -5974,6 +6017,7 @@ function unlockBodyScroll() {
 }
 
 function showToast(msg) {
+    if (appSettings.isDndEnabled) return;
     const t = document.getElementById('toast-notification');
     const m = document.getElementById('toast-message');
     if (!t || !m) return;
@@ -6179,7 +6223,7 @@ function addValue(value) {
             }
         } else {
             speak("Wrong");
-            navigator.vibrate(500);
+            hapticPulse(500);
             setTimeout(() => playPracticeSequence(), 1500);
         }
         return;
@@ -7239,7 +7283,7 @@ function initGlobalListeners() {
                     }
                     if (val !== null) {
                         addValue(val.toString());
-                        if (navigator.vibrate) navigator.vibrate(20);
+                        hapticPulse(20);
                     }
                 }
             }, {
@@ -7480,7 +7524,7 @@ function initGlobalListeners() {
                 navigator.clipboard?.writeText(text).then(() => {
                     showToast(hasSelection ? 'Selection copied 📋' : 'Note copied to clipboard 📋');
                 }).catch(() => showToast('Copy failed - try again'));
-                if (navigator.vibrate) navigator.vibrate(50);
+                hapticPulse(50);
             };
             headerNotepad.addEventListener('pointerdown', () => {
                 notepadWasLongPress = false;
@@ -7784,6 +7828,237 @@ window.unlockBodyScroll = unlockBodyScroll;
     window.addEventListener('resize', apply);
     window.addEventListener('orientationchange', () => setTimeout(apply, 150));
 })();
+// ===== Float Mode (always-on-top window) =====
+// The Document Picture-in-Picture API would be the natural fit here, but it is desktop-only
+// (Chrome/Edge 130+, Firefox 151 - Chrome for Android does not support it), and this app targets
+// mobile. Video-element Picture-in-Picture IS supported on Android Chrome, so this renders the
+// live sequence into a canvas, pipes that canvas through captureStream() into a hidden <video>,
+// and puts THAT into PiP. Result: a real floating always-on-top window on Android.
+//
+// Deliberately view-only: touches on a PiP window go to the window's own controls, not to page
+// content, so there is no way to make the floating copy interactive. It mirrors the sequence for
+// reference while you're in another app.
+//
+// It reads the rendered .number-box elements rather than any internal sequence array, so it
+// stays correct across every game mode (Simon, Unique Rounds, practice) without knowing about
+// any of them - whatever is on screen is what floats.
+let floatCanvas = null, floatVideo = null, floatStream = null, floatTimer = null;
+
+function floatModeSupported() {
+    return !!(document.pictureInPictureEnabled && HTMLCanvasElement.prototype.captureStream);
+}
+
+function readVisibleSequence() {
+    const container = document.getElementById('sequence-container');
+    if (!container) return [];
+    return Array.from(container.querySelectorAll('.number-box'))
+        .map(el => (el.textContent || '').trim())
+        .filter(t => t.length);
+}
+
+function drawFloatFrame() {
+    if (!floatCanvas) return;
+    const ctx = floatCanvas.getContext('2d');
+    const cs = getComputedStyle(document.body);
+    const bg = cs.getPropertyValue('--bg-main').trim() || '#111827';
+    const bubble = cs.getPropertyValue('--seq-bubble').trim() || '#6366f1';
+    const textCol = cs.getPropertyValue('--text-main').trim() || '#ffffff';
+    const W = floatCanvas.width, H = floatCanvas.height;
+
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    const vals = readVisibleSequence();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    if (!vals.length) {
+        ctx.fillStyle = textCol;
+        ctx.font = '600 26px system-ui, sans-serif';
+        ctx.fillText('No sequence yet', W / 2, H / 2);
+        return;
+    }
+
+    const n = vals.length;
+    let cols = Math.max(1, Math.min(n, Math.ceil(Math.sqrt(n * W / H))));
+    let rows = Math.ceil(n / cols);
+    const gap = 10;
+    const size = Math.max(24, Math.min(
+        (W - gap * (cols + 1)) / cols,
+        (H - gap * (rows + 1)) / rows
+    ));
+    const gridW = cols * size + gap * (cols - 1);
+    const gridH = rows * size + gap * (rows - 1);
+    const startX = (W - gridW) / 2;
+    const startY = (H - gridH) / 2;
+    const radius = Math.min(12, size * 0.22);
+
+    ctx.font = `700 ${Math.round(size * 0.5)}px system-ui, sans-serif`;
+    for (let i = 0; i < n; i++) {
+        const c = i % cols, r = Math.floor(i / cols);
+        const x = startX + c * (size + gap);
+        const y = startY + r * (size + gap);
+        ctx.fillStyle = bubble;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(x, y, size, size, radius);
+        else ctx.rect(x, y, size, size);
+        ctx.fill();
+        ctx.fillStyle = pickReadableInk(bubble);
+        ctx.fillText(vals[i], x + size / 2, y + size / 2);
+    }
+}
+
+// The bubble colour is user-themable, so white text isn't always readable on it. Same luminance
+// reasoning the theme system already uses for card text.
+function pickReadableInk(bgColor) {
+    const probe = document.createElement('div');
+    probe.style.color = bgColor;
+    document.body.appendChild(probe);
+    const rgb = getComputedStyle(probe).color.match(/\d+/g);
+    probe.remove();
+    if (!rgb) return '#ffffff';
+    const [r, g, b] = rgb.map(Number);
+    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return lum > 0.6 ? '#111111' : '#ffffff';
+}
+
+async function enterFloatMode() {
+    if (!floatModeSupported()) {
+        showToast('Floating window not supported on this browser 🪟');
+        return false;
+    }
+    try {
+        if (!floatCanvas) {
+            floatCanvas = document.createElement('canvas');
+            floatCanvas.width = 480;
+            floatCanvas.height = 270;
+        }
+        if (!floatVideo) {
+            floatVideo = document.createElement('video');
+            floatVideo.muted = true;
+            floatVideo.playsInline = true;
+            floatVideo.setAttribute('playsinline', '');
+            // Kept in the DOM but off-screen: a display:none video cannot enter PiP, and some
+            // browsers refuse to keep a fully detached element playing.
+            floatVideo.style.cssText = 'position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none;';
+            document.body.appendChild(floatVideo);
+            floatVideo.addEventListener('leavepictureinpicture', () => {
+                stopFloatLoop();
+                const t = document.getElementById('floatModeToggle');
+                if (t) t.checked = false;
+            });
+        }
+        drawFloatFrame();
+        if (!floatStream) {
+            floatStream = floatCanvas.captureStream(5);
+            floatVideo.srcObject = floatStream;
+        }
+        await floatVideo.play();
+        await floatVideo.requestPictureInPicture();
+        if (floatTimer) clearInterval(floatTimer);
+        floatTimer = setInterval(drawFloatFrame, 200);
+        return true;
+    } catch (err) {
+        console.warn('[FloatMode] could not open floating window:', err);
+        showToast('Could not open floating window 🪟');
+        stopFloatLoop();
+        return false;
+    }
+}
+
+function stopFloatLoop() {
+    if (floatTimer) { clearInterval(floatTimer); floatTimer = null; }
+}
+
+async function exitFloatMode() {
+    stopFloatLoop();
+    try {
+        if (document.pictureInPictureElement) await document.exitPictureInPicture();
+    } catch (err) {
+        console.warn('[FloatMode] exit failed:', err);
+    }
+}
+
+// ===== Pinned Mode =====
+// Android's own screen pinning cannot be triggered from web code (it is a user-initiated system
+// setting, with no API in any browser), so this is the in-app equivalent: fullscreen to drop the
+// browser chrome and system bars, plus a history trap so the Android back gesture re-enters the
+// app instead of leaving it.
+//
+// Deliberately always escapable - trapping someone in a web page with no way out is hostile and
+// browsers rightly fight it. The back gesture is absorbed but explains itself via a toast, the
+// settings toggle stays reachable, and fullscreen is exited the moment pinning is turned off.
+let pinnedPopHandler = null;
+let pinnedFullscreenRearm = null;
+
+async function requestAppFullscreen() {
+    const el = document.documentElement;
+    try {
+        if (document.fullscreenElement) return true;
+        if (el.requestFullscreen) { await el.requestFullscreen({ navigationUI: 'hide' }); return true; }
+        if (el.webkitRequestFullscreen) { el.webkitRequestFullscreen(); return true; }
+    } catch (err) {
+        // Fullscreen is a nice-to-have here - the back trap is what actually does the pinning,
+        // so a refusal (iOS, permission policy, already-exiting) must not abort pinned mode.
+        console.warn('[Pinned] fullscreen refused:', err && err.message);
+    }
+    return false;
+}
+
+function armPinnedBackTrap() {
+    if (pinnedPopHandler) return;
+    history.pushState({ pinned: true }, '');
+    pinnedPopHandler = () => {
+        if (!appSettings.isPinnedModeEnabled) return;
+        // Re-push so the back gesture lands back on our own entry instead of unwinding out of
+        // the app. Toast explains why, so this never feels like the app has frozen.
+        history.pushState({ pinned: true }, '');
+        showToast('Pinned 📌 - turn off Pinned Mode in Settings to leave');
+    };
+    window.addEventListener('popstate', pinnedPopHandler);
+}
+
+function disarmPinnedBackTrap() {
+    if (!pinnedPopHandler) return;
+    window.removeEventListener('popstate', pinnedPopHandler);
+    pinnedPopHandler = null;
+}
+
+async function enterPinnedMode() {
+    document.body.classList.add('pinned-mode');
+    armPinnedBackTrap();
+    await requestAppFullscreen();
+    showToast('Pinned 📌 - back gesture is blocked');
+}
+
+async function exitPinnedMode() {
+    document.body.classList.remove('pinned-mode');
+    disarmPinnedBackTrap();
+    if (pinnedFullscreenRearm) {
+        window.removeEventListener('pointerdown', pinnedFullscreenRearm);
+        pinnedFullscreenRearm = null;
+    }
+    try {
+        if (document.fullscreenElement && document.exitFullscreen) await document.exitFullscreen();
+    } catch (err) {
+        console.warn('[Pinned] exit fullscreen failed:', err && err.message);
+    }
+}
+
+// Pinned Mode survives a reload, but fullscreen cannot be re-entered without a user gesture, so
+// the back trap re-arms immediately and fullscreen waits for the very next tap.
+function restorePinnedModeOnBoot() {
+    if (!appSettings.isPinnedModeEnabled) return;
+    document.body.classList.add('pinned-mode');
+    armPinnedBackTrap();
+    pinnedFullscreenRearm = () => {
+        window.removeEventListener('pointerdown', pinnedFullscreenRearm);
+        pinnedFullscreenRearm = null;
+        if (appSettings.isPinnedModeEnabled) requestAppFullscreen();
+    };
+    window.addEventListener('pointerdown', pinnedFullscreenRearm, { once: false });
+}
+
 document.addEventListener('DOMContentLoaded', startApp);
 
 // Registers the service worker so the CRITICAL_ASSETS/OPTIONAL_ASSETS precaching and offline

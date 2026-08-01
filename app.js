@@ -1467,6 +1467,7 @@ class VisionEngine {
 const PREMADE_THEMES = {
 	'default': { name: "Default Dark", bgMain: "#000000", bgCard: "#121212", bubble: "#4f46e5", btn: "#1a1a1a", text: "#e5e5e5" },
 	'light': { name: "Light Mode", bgMain: "#f3f4f6", bgCard: "#ffffff", bubble: "#4f46e5", btn: "#e5e7eb", text: "#111827" },
+	'sunlight': { name: "Sunlight ☀️", bgMain: "#e8e8e2", bgCard: "#ffffff", bubble: "#d97706", btn: "#d6d3c7", text: "#000000" },
 	'matrix': { name: "The Matrix", bgMain: "#000000", bgCard: "#0f2b0f", bubble: "#003300", btn: "#001100", text: "#00ff41" },
 	'dracula': { name: "Vampire", bgMain: "#282a36", bgCard: "#44475a", bubble: "#ff5555", btn: "#6272a4", text: "#f8f8f2" },
 	'neon': { name: "Neon City", bgMain: "#0b0014", bgCard: "#180029", bubble: "#d900ff", btn: "#24003d", text: "#00eaff" },
@@ -3955,11 +3956,24 @@ if (!window.__testChecklists) {
 	updateSequenceContainerOffset() {
 		const header = document.getElementById('aux-control-header');
 		const seq = document.getElementById('sequence-container');
-		if (!header || !seq) return;
-		// Minimal - just enough to guarantee no visual touching/overlap given sub-pixel
-		// measurement variance, not a deliberate visual gap. Not user-configurable; this is a
-		// correctness margin, not a preference.
-		const minGapPx = 4;
+		const app = document.getElementById('app');
+		if (!header || !seq || !app) return;
+		// Matches the sequence cards' own internal number-wrap gap (gap-2, i.e. 0.5rem - the
+		// space between rows of numbers when a sequence wraps within one card) so that at
+		// Header Padding = 0 the visible space above the first row of cards reads the same as
+		// that internal row gap. Confirmed against a real rendered, wrapped sequence in the
+		// sandbox (measured 9.59375px against a 9.6px/0.5rem target) rather than assumed -
+		// initially targeted the wrong gap entirely (gap-4, the space between separate
+		// multi-machine card blocks) before a real screenshot clarified which gap this was
+		// actually about. Read dynamically (not hardcoded in px) so it stays correct as UI
+		// Scale changes root font-size.
+		const targetGapPx = parseFloat(getComputedStyle(document.documentElement).fontSize) / 2;
+		// #app (sequence-container's own parent) has its own separate padding-top (1rem
+		// normally, 0 in landscape, 4rem in fullscreen-mode - see styles.css), which stacks
+		// underneath whatever gets set here, since sequence-container nests inside #app.
+		// Subtracting it keeps the TOTAL visible gap correct through all of those variants,
+		// without needing to touch that rule itself.
+		const appPaddingTop = parseFloat(getComputedStyle(app).paddingTop) || 0;
 		// Deferred two frames out: a change to a size-affecting CSS custom property doesn't
 		// always resolve to updated getBoundingClientRect() geometry within the same
 		// synchronous script execution, even after forcing a reflow - there's a real (if brief)
@@ -3975,7 +3989,8 @@ if (!window.__testChecklists) {
 					seq.style.paddingTop = '0px';
 				} else {
 					const userExtra = this.appSettings.headerPadding || 0;
-					seq.style.paddingTop = (header.getBoundingClientRect().height + minGapPx + userExtra) + 'px';
+					const total = header.getBoundingClientRect().height + targetGapPx + userExtra - appPaddingTop;
+					seq.style.paddingTop = Math.max(0, total) + 'px';
 				}
 			});
 		});
@@ -4389,7 +4404,7 @@ const DEFAULT_PROFILE_SETTINGS = {
     sequenceLength: 20,
     machineCount: 1,
     simonChunkSize: 40,
-    simonInterSequenceDelay: 0,
+    simonInterSequenceDelay: 200,
     isUniqueRoundsAutoClearEnabled: true,
     isPracticeModeEnabled: false,
     isAutoplayEnabled: false,
@@ -4397,7 +4412,7 @@ const DEFAULT_PROFILE_SETTINGS = {
     isAudioEnabled: true,
     isHapticMorseEnabled: false,
     playbackSpeed: 1.0,
-    pauseSetting: 0,
+    pauseSetting: 200,
     voicePitch: 1.0,
     voiceRate: 1.0,
     voiceVolume: 1.0,
@@ -4419,7 +4434,7 @@ const PREMADE_PROFILES = {
             ...DEFAULT_PROFILE_SETTINGS,
             machineCount: 2,
             simonChunkSize: 40,
-            simonInterSequenceDelay: 0
+            simonInterSequenceDelay: 200
         },
         theme: 'default'
     },
@@ -4461,7 +4476,7 @@ const DEFAULT_APP = {
     isAudioEnabled: true,
     isHapticsEnabled: true,
     isFlashEnabled: true,
-    pauseSetting: 0,
+    pauseSetting: 200,
     isSpeedDeletingEnabled: true,
     isSpeedTouchGesturesEnabled: false,
     isVolumeTouchGesturesEnabled: false,
@@ -4528,7 +4543,7 @@ const DEFAULT_APP = {
     handHoldFrames: 4,
     voiceConfidenceThreshold: 50,
     toneVolumeThreshold: -85,
-    isSliderLockEnabled: false,
+    isSliderLockEnabled: true,
     isSettingsLockEnabled: false,
     touchAnchorStillDistance: 15,
     touchAnchorMinHoldTime: 150,
@@ -4680,6 +4695,58 @@ const DEFAULT_APP = {
         'headerspeeddownbtn',
         'headerresetbtn',
         'headernukebtn'
+    ],
+    generalToggleOrder: [
+        'randomThemeToggle',
+        'headerThemeCycleToggle',
+        'autoHideHeaderToggle',
+        'headerInfiniteScrollToggle',
+        'headerModeSwitchToggle',
+        'headerAddMachineToggle',
+        'headerCycleInputToggle',
+        'introToggle',
+        'headerSettingsToggle',
+        'headerHelpToggle',
+        'headerRedeemToggle',
+        'headerShareToggle',
+        'headerDeleteToggle',
+        'headerPlayToggle',
+        'headerUiSizeToggle',
+        'headerSeqSizeToggle',
+        'headerSpeedToggle',
+        'headerVolumeToggle',
+        'headerResetToggle',
+        'headerNukeToggle',
+        'timerToggle',
+        'autotimerToggle',
+        'counterToggle',
+        'autocounterToggle',
+        'headerNotepadToggle',
+        'fullscreenToggle',
+        'inputRegulatorToggle',
+        'hapticsToggle',
+        'ecoToggle',
+        'wakelockToggle',
+        'newToggle',
+        'upsidedownToggle',
+        'biggerToggle',
+        'bossToggle',
+        'arcamToggle',
+        'arAutoCloseGeneralToggle',
+        'voiceToggle',
+        'voicecommandsToggle',
+        'toneToggle',
+        'touchToggle',
+        'handToggle',
+        'handsignalsToggle',
+        'skeletonDebugToggle',
+        'handednessFlipToggle',
+        'speeddeleteToggle',
+        'apshortcutToggle',
+        'volgesToggle',
+        'speedToggle',
+        'deleteToggle',
+        'clearToggle'
     ]
 };
 const DEFAULT_MAPPINGS = {
@@ -5676,8 +5743,49 @@ async function gzipDecompress(bytes) {
     for (const c of chunks) { out.set(c, offset); offset += c.length; }
     return new TextDecoder().decode(out);
 }
+// Returns only the parts of `current` that differ from `defaults`, recursing into plain
+// objects (profiles, runtimeSettings, customThemes, etc.) so a single customized profile among
+// five doesn't force including all five. Arrays are compared as whole values (not diffed
+// element-by-element) since they're effectively all-or-nothing customizations here
+// (headerBtnOrder, activeGestureFilters, etc.) - diffing inside them would add real complexity
+// for very little size benefit given how this app actually uses arrays in settings.
+function diffAgainstDefaults(current, defaults) {
+    const isPlainObject = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+    const diff = {};
+    for (const key of Object.keys(current)) {
+        const cv = current[key];
+        const dv = defaults ? defaults[key] : undefined;
+        if (isPlainObject(cv) && isPlainObject(dv)) {
+            const nested = diffAgainstDefaults(cv, dv);
+            if (Object.keys(nested).length > 0) diff[key] = nested;
+        } else if (Array.isArray(cv)) {
+            if (JSON.stringify(cv) !== JSON.stringify(dv)) diff[key] = cv;
+        } else if (cv !== dv) {
+            diff[key] = cv;
+        }
+    }
+    return diff;
+}
+// Reconstructs a full settings object from a diff (as produced above) layered onto defaults.
+// A full, non-diffed object works here too - merging it onto defaults just means every default
+// key gets overwritten by the (complete) "diff", which is exactly correct and is what keeps
+// this compatible with any backup code from before diffing existed.
+function mergeWithDefaults(diff, defaults) {
+    const isPlainObject = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+    const out = JSON.parse(JSON.stringify(defaults));
+    for (const key of Object.keys(diff)) {
+        const dv = diff[key];
+        if (isPlainObject(dv) && isPlainObject(out[key])) {
+            out[key] = mergeWithDefaults(dv, out[key]);
+        } else {
+            out[key] = dv;
+        }
+    }
+    return out;
+}
 async function settingsToBackupCode() {
-    const json = JSON.stringify(appSettings);
+    const diff = diffAgainstDefaults(appSettings, DEFAULT_APP);
+    const json = JSON.stringify(diff);
     const compressed = await gzipCompress(json);
     // Byte length prefix (base36, dot-separated) so the decoder knows exactly how many bytes to
     // reconstruct - the encoding above doesn't preserve leading zero bytes on its own.
@@ -5709,21 +5817,10 @@ async function backupCodeToSettingsObject(code) {
 }
 async function importSettingsFromBackupCode(code) {
     const imported = await backupCodeToSettingsObject(code);
-    // Deep-merges profiles/customThemes with defaults (matches loadState()'s behavior) so an
-    // older or partial backup can't silently wipe out profile entries that didn't exist yet
-    // at export time.
-    const merged = {
-        ...DEFAULT_APP,
-        ...imported,
-        profiles: {
-            ...DEFAULT_APP.profiles,
-            ...(imported.profiles || {})
-        },
-        customThemes: {
-            ...DEFAULT_APP.customThemes,
-            ...(imported.customThemes || {})
-        }
-    };
+    // mergeWithDefaults handles this generally now (recursing into profiles/customThemes/
+    // runtimeSettings/etc. the same way it handles everything else), so no special-casing is
+    // needed here the way the old direct-spread approach required.
+    const merged = mergeWithDefaults(imported, DEFAULT_APP);
     Object.keys(appSettings).forEach(k => delete appSettings[k]);
     Object.assign(appSettings, merged);
     saveState();
@@ -6228,6 +6325,11 @@ function applyPositionSwapOffsets(isActive) {
 function renderUI() {
     const container = document.getElementById('sequence-container');
     if (!container) return;
+    // Re-validates the header-to-cards gap right as cards become visible, rather than relying
+    // solely on the one-time boot calculation (applyHeaderScale) - the header's true rendered
+    // height can still be settling at that early point (icon fonts, layout timing), and this is
+    // exactly the moment any drift would actually be visible to the user.
+    if (window.modules && window.modules.settings) window.modules.settings.updateSequenceContainerOffset();
     try {
         const gpWrap = document.getElementById('gesture-pad-wrapper');
         const pad = document.getElementById('gesture-pad');
@@ -7627,6 +7729,8 @@ window.upsidedownToggle = async function(enable) {
 window.modules = modules;
 window.settingsToBackupCode = settingsToBackupCode;
 window.importSettingsFromBackupCode = importSettingsFromBackupCode;
+window.diffAgainstDefaults = diffAgainstDefaults;
+window.mergeWithDefaults = mergeWithDefaults;
 window.lockBodyScroll = lockBodyScroll;
 window.unlockBodyScroll = unlockBodyScroll;
 // Real, live viewport height tracking: 100dvh (in styles.css) handles most of this already, but

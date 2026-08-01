@@ -4466,10 +4466,10 @@ const PREMADE_PROFILES = {
     }
 };
 const DEFAULT_APP = {
-    globalUiScale: 120,
-    uiScaleMultiplier: 2.4,
-    showWelcomeScreen: false,
-    touchResizeMode: 'none',
+    globalUiScale: 100,
+    uiScaleMultiplier: 2.2,
+    showWelcomeScreen: true,
+    touchResizeMode: 'global',
     playbackSpeed: 1.0,
     isAutoplayEnabled: false,
     isUniqueRoundsAutoClearEnabled: true,
@@ -4480,7 +4480,7 @@ const DEFAULT_APP = {
     isSpeedDeletingEnabled: true,
     isSpeedTouchGesturesEnabled: false,
     isVolumeTouchGesturesEnabled: false,
-    isArModeEnabled: true,
+    isArModeEnabled: false,
    isArAutoCloseEnabled: true,
   isVoiceInputEnabled: false,
     arPlaybackSpeed: 1.00,
@@ -4507,7 +4507,7 @@ const DEFAULT_APP = {
     handednessFlip: false,
     showHeaderPlayBtn: false,
     showHeaderDeleteBtn: false,
-    showHeaderSettingsBtn: true,
+    showHeaderSettingsBtn: false,
     showHeaderRedeemBtn: true,
     showHeaderShareBtn: true,
     showHeaderThemeCycleBtn: false,
@@ -4517,7 +4517,7 @@ const DEFAULT_APP = {
     showHeaderVolumeBtns: false,
     showHeaderSpeedBtns: false,
     showHeaderCycleInputBtn: false,
-    showHeaderNotepadBtn: true,
+    showHeaderNotepadBtn: false,
     showHeaderHelpBtn: false,
     showHeaderModeSwitchBtn: false,
     showHeaderResetBtn: false,
@@ -4527,16 +4527,16 @@ const DEFAULT_APP = {
     isToneCadenceEnabled: false,
     isInputRegulatorEnabled: false,
     isAutoHideHeaderEnabled: false,
-    isHeaderInfiniteScrollEnabled: true,
-    headerIconScale: 110,
-    appFontScale: 110,
+    isHeaderInfiniteScrollEnabled: false,
+    headerIconScale: 120,
+    appFontScale: 100,
     headerPadding: 0,
     inputsPadding: 0,
     toneCalibration: {
         isCalibrated: false,
         notes: {}
     },
-    isPositionSwapEnabled: true,
+    isPositionSwapEnabled: false,
     isSkeletonDebugEnabled: true,
     activeFontFamily: "'Inter', sans-serif",
     handGestureCooldown: 600,
@@ -5753,8 +5753,11 @@ function diffAgainstDefaults(current, defaults) {
     const isPlainObject = v => v !== null && typeof v === 'object' && !Array.isArray(v);
     const diff = {};
     for (const key of Object.keys(current)) {
+        // Not part of the current schema at all - almost always the old name of something
+        // that got renamed, or a fully-removed feature. Not a real difference to preserve.
+        if (!defaults || !(key in defaults)) continue;
         const cv = current[key];
-        const dv = defaults ? defaults[key] : undefined;
+        const dv = defaults[key];
         if (isPlainObject(cv) && isPlainObject(dv)) {
             const nested = diffAgainstDefaults(cv, dv);
             if (Object.keys(nested).length > 0) diff[key] = nested;
@@ -5860,6 +5863,31 @@ function loadState() {
             if (!appSettings.toneCalibration.notes) appSettings.toneCalibration.notes = {};
             if (!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS));
             if (appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
+            // Legacy pauseSetting values ('none'/'short'/'long') predate its conversion to a
+            // numeric millisecond value (matching simonInterSequenceDelay's format) - a leftover
+            // string here isn't a preference to respect, it's an invalid value under the current
+            // schema that would break the numeric dropdown/playback logic outright.
+            const migratePause = v => (typeof v === 'string' ? 0 : v);
+            appSettings.runtimeSettings.pauseSetting = migratePause(appSettings.runtimeSettings.pauseSetting);
+            Object.values(appSettings.profiles || {}).forEach(p => {
+                if (p && p.settings) p.settings.pauseSetting = migratePause(p.settings.pauseSetting);
+            });
+            // Removes keys that don't exist in the current DEFAULT_APP schema at all - almost
+            // always the old name of something that got renamed (gestureResizeMode ->
+            // touchResizeMode, gestureMappings -> touchGestureMappings, etc.) or a feature that
+            // was fully removed (gestureProfiles, gestureHoldFrames). These aren't preferences
+            // to preserve; a spread merge like the one above only fills in MISSING keys, so
+            // without this they'd otherwise persist in localStorage forever, across every future
+            // update, regardless of which JS build actually runs.
+            const pruneOrphaned = (obj, schema) => {
+                if (!obj || !schema) return;
+                Object.keys(obj).forEach(k => { if (!(k in schema)) delete obj[k]; });
+            };
+            pruneOrphaned(appSettings, DEFAULT_APP);
+            pruneOrphaned(appSettings.runtimeSettings, DEFAULT_APP.runtimeSettings);
+            Object.values(appSettings.profiles || {}).forEach(p => {
+                if (p && p.settings) pruneOrphaned(p.settings, DEFAULT_PROFILE_SETTINGS);
+            });
         } else {
             appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles['profile_1'].settings));
         }
@@ -7731,6 +7759,7 @@ window.settingsToBackupCode = settingsToBackupCode;
 window.importSettingsFromBackupCode = importSettingsFromBackupCode;
 window.diffAgainstDefaults = diffAgainstDefaults;
 window.mergeWithDefaults = mergeWithDefaults;
+window.DEFAULT_APP = DEFAULT_APP;
 window.lockBodyScroll = lockBodyScroll;
 window.unlockBodyScroll = unlockBodyScroll;
 // Real, live viewport height tracking: 100dvh (in styles.css) handles most of this already, but

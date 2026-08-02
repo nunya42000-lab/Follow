@@ -1,21 +1,48 @@
 {
   "name": "Follow Me",
   "short_name": "Follow Me",
+  "description": "Memory Skill Game",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "description": "A multi-mode sequence tracking assistant.",
+  "orientation": "any",
+  "categories": ["games", "entertainment", "utilities"],
   "icons": [
     {
-      "src": "./icon192.png",
+      "src": "icon192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "./icon512.png",
+      "src": "icon192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Follow Me Main Sequence Game Screen"
+    },
+    {
+      "src": "screenshot-mobile.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Follow Me Mobile Gameplay"
     }
   ]
 }

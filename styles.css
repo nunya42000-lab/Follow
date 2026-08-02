@@ -196,6 +196,13 @@ body.ar-active #ar-ui-layer { display: flex; }
 body.upside-down { transform: rotate(180deg); }
 body.eco-mode { filter: brightness(0.65); }
 body.eco-mode * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+/* Pinned Mode: the class was already being added/removed on body but had no rule, so it was a
+   visual no-op - the only feedback was the header button's ring highlight, which can scroll out
+   of view in the infinite-scroll row. Uses a fixed ::after overlay rather than a box-shadow on
+   body itself, since body's own paint layer can sit behind other fixed-position elements (header,
+   footer, modals) that cover the viewport. pointer-events: none so it never blocks a tap. Emerald
+   matches ring-emerald-500, the color already used for every other "on" state in the app. */
+body.pinned-mode::after { content: ''; position: fixed; inset: 0; z-index: 10010; pointer-events: none; box-shadow: inset 0 0 0 3px #10b981; }
 
 /* ============================================================
    MAIN AREA: plain CSS for every Tailwind utility class used in the header and keypad, using

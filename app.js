@@ -3035,12 +3035,6 @@ if (!window.__testChecklists) {
 		bindToggle(this.dom.speedTouchGesturesToggle, 'isSpeedTouchGesturesEnabled');
 		bindToggle(this.dom.deleteTouchGestureToggle, 'isDeleteTouchGestureEnabled');
 		bindToggle(this.dom.clearTouchGestureToggle, 'isClearTouchGestureEnabled');
-		if (this.dom.introToggle) {
-			this.dom.introToggle.onchange = (e) => {
-				this.appSettings.showWelcomeScreen = e.target.checked;
-				this.callbacks.onSave();
-			};
-		}
 		if (this.dom.wakelockToggle) {
 			this.dom.wakelockToggle.onchange = (e) => {
 				this.appSettings.isWakeLockEnabled = e.target.checked;
@@ -3575,8 +3569,6 @@ if (!window.__testChecklists) {
 		if (this.dom.longPressToggle) this.dom.longPressToggle.checked = (typeof this.appSettings.isLongPressAutoplayEnabled === 'undefined') ? true : this.appSettings.isLongPressAutoplayEnabled;
 		if (this.dom.timerToggle) this.dom.timerToggle.checked = !!this.appSettings.showTimer;
 		if (this.dom.counterToggle) this.dom.counterToggle.checked = !!this.appSettings.showCounter;
-		if (this.dom.calibAudioSlider) this.dom.calibAudioSlider.value = this.appSettings.sensorAudioThresh || -85;
-		if (this.dom.calibCamSlider) this.dom.calibCamSlider.value = this.appSettings.sensorCamThresh || 30;
 		if (this.dom.haptics) this.dom.haptics.checked = (typeof this.appSettings.isHapticsEnabled === 'undefined') ? true : this.appSettings.isHapticsEnabled;
 		if (this.dom.speedDelete) this.dom.speedDelete.checked = (typeof this.appSettings.isSpeedDeletingEnabled === 'undefined') ? true : this.appSettings.isSpeedDeletingEnabled;
 		if (this.dom.speedTouchGesturesToggle) this.dom.speedTouchGesturesToggle.checked = !!this.appSettings.isSpeedTouchGesturesEnabled;
@@ -4519,8 +4511,6 @@ const DEFAULT_APP = {
     activeTheme: 'default',
     customThemes: {},
     isRandomThemeEnabled: false,
-    sensorAudioThresh: -85,
-    sensorCamThresh: 30,
     isBlackoutFeatureEnabled: false,
     isHapticMorseEnabled: false,
     showTimer: false,

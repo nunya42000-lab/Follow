@@ -1,14 +1,7 @@
-// sw.js
-// Version: v73 - PiP rename, duplicate header-button toggles removed, pinned-mode CSS, dead-code
-// cleanup - bumping the cache name so clients still on v72's stale cache (confirmed via
-// screenshots showing "Float Window" and the old Show-Header-Button toggles) pick up the real
-// fixes on next visit instead of continuing to run pre-fix code indefinitely.
-const CACHE_NAME = 'follow-me-v74-pip-dedup';
 
-// 1. CRITICAL: These MUST exist for the app to run.
-// If any of these are missing, the offline mode will fail.
-// Deliberately LOCAL-ONLY - see version comment above for why the external fonts URL was
-// removed from this list.
+const CACHE_NAME = 'follow-me-v75-final';
+
+
 const CRITICAL_ASSETS = [
     './',
     './index.html',
@@ -18,10 +11,6 @@ const CRITICAL_ASSETS = [
 ];
 
 
-// 2. OPTIONAL: Images, external links, and hand-tracking assets that the app already
-// handles the absence of gracefully (see VisionEngine unavailable warning in app.js).
-// We will TRY to cache these. If they fail (404 missing, network error), 
-// we simply skip them so the app still installs successfully.
 const OPTIONAL_ASSETS = [
     './icon192.png',
     './icon512.png',

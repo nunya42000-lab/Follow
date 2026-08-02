@@ -1825,7 +1825,7 @@ class SettingsManager {
 			filterToggles: document.querySelectorAll('.gesture-filter-toggle'),
 			toneCadenceToggle: document.getElementById('toneToggle'),
 			headertonebtn: document.getElementById('headertonebtn'),
-			headerfullscreenbtn: document.getElementById('headerfullscreenbtn'),
+			headerfullscreenbtn: document.getElementById('headerfullscreenbtn'), headerpinnedbtn: document.getElementById('headerpinnedbtn'), headerdndbtn: document.getElementById('headerdndbtn'), headerfloatbtn: document.getElementById('headerfloatbtn'),
 			headerupsidedownbtn: document.getElementById('headerupsidedownbtn'),
 			voicePresetSelect: document.getElementById('voice-preset-select'),
 			voicePresetAdd: document.getElementById('voice-preset-add'),
@@ -1903,7 +1903,7 @@ class SettingsManager {
 			headerPaddingSelect: document.getElementById('header-padding-select'),
 			inputsPaddingSelect: document.getElementById('inputs-padding-select'),
 			upsidedownToggle: document.getElementById('upsidedownToggle'),
-			fullscreenToggle: document.getElementById('fullscreenToggle'),
+			fullscreenToggle: document.getElementById('fullscreenToggle'), showPinnedBtnToggle: document.getElementById('showPinnedBtnToggle'), showDndBtnToggle: document.getElementById('showDndBtnToggle'), showFloatBtnToggle: document.getElementById('showFloatBtnToggle'),
 			ecoToggle: document.getElementById('ecoToggle'),
 			arSpeedSelect: document.getElementById('ar-speed-select')
 		};
@@ -2953,22 +2953,65 @@ if (!window.__testChecklists) {
 			this.dom.pinnedModeToggle.onchange = async (e) => {
 				this.appSettings.isPinnedModeEnabled = e.target.checked;
 				this.callbacks.onSave();
+				const headerBtn = document.getElementById('headerpinnedbtn');
+				if (headerBtn) {
+					headerBtn.classList.toggle('ring-2', e.target.checked);
+					headerBtn.classList.toggle('ring-emerald-500', e.target.checked);
+				}
 				if (e.target.checked) await enterPinnedMode();
 				else await exitPinnedMode();
 			};
 		}
-		bindToggle(this.dom.dndToggle, 'isDndEnabled');
+		if (this.dom.dndToggle) {
+			this.dom.dndToggle.checked = !!this.appSettings.isDndEnabled;
+			this.dom.dndToggle.onchange = (e) => {
+				this.appSettings.isDndEnabled = e.target.checked;
+				this.callbacks.onSave();
+				const headerBtn = document.getElementById('headerdndbtn');
+				if (headerBtn) {
+					headerBtn.classList.toggle('ring-2', e.target.checked);
+					headerBtn.classList.toggle('ring-emerald-500', e.target.checked);
+				}
+			};
+		}
+		if (this.dom.showPinnedBtnToggle) {
+			this.dom.showPinnedBtnToggle.onchange = (e) => {
+				this.appSettings.showPinnedBtn = e.target.checked;
+				this.updateHeaderVisibility();
+				this.callbacks.onSave();
+			};
+		}
+		if (this.dom.showDndBtnToggle) {
+			this.dom.showDndBtnToggle.onchange = (e) => {
+				this.appSettings.showDndBtn = e.target.checked;
+				this.updateHeaderVisibility();
+				this.callbacks.onSave();
+			};
+		}
+		if (this.dom.showFloatBtnToggle) {
+			this.dom.showFloatBtnToggle.onchange = (e) => {
+				this.appSettings.showFloatBtn = e.target.checked;
+				this.updateHeaderVisibility();
+				this.callbacks.onSave();
+			};
+		}
 		// Float Window is transient, not a persisted setting: a PiP window cannot be reopened on
 		// load without a fresh user gesture, so the checkbox reflects live PiP state instead of
 		// something stored. enterFloatMode() unchecks it again if the browser refuses.
 		if (this.dom.floatModeToggle) {
 			this.dom.floatModeToggle.checked = !!document.pictureInPictureElement;
 			this.dom.floatModeToggle.onchange = async (e) => {
+				const headerBtn = document.getElementById('headerfloatbtn');
 				if (e.target.checked) {
 					const ok = await enterFloatMode();
 					if (!ok) e.target.checked = false;
+					if (headerBtn) {
+						headerBtn.classList.toggle('ring-2', ok);
+						headerBtn.classList.toggle('ring-emerald-500', ok);
+					}
 				} else {
 					await exitFloatMode();
+					if (headerBtn) headerBtn.classList.remove('ring-2', 'ring-emerald-500');
 				}
 			};
 		}
@@ -3595,6 +3638,9 @@ if (!window.__testChecklists) {
 		if (this.dom.randomThemeToggle) this.dom.randomThemeToggle.checked = !!this.appSettings.isRandomThemeEnabled;
 		if (this.dom.autoHideHeaderToggle) this.dom.autoHideHeaderToggle.checked = !!this.appSettings.isAutoHideHeaderEnabled;
 		if (this.dom.dndToggle) this.dom.dndToggle.checked = !!this.appSettings.isDndEnabled;
+		if (this.dom.showPinnedBtnToggle) this.dom.showPinnedBtnToggle.checked = !!this.appSettings.showPinnedBtn;
+		if (this.dom.showDndBtnToggle) this.dom.showDndBtnToggle.checked = !!this.appSettings.showDndBtn;
+		if (this.dom.showFloatBtnToggle) this.dom.showFloatBtnToggle.checked = !!this.appSettings.showFloatBtn;
 		if (this.dom.floatModeToggle) this.dom.floatModeToggle.checked = !!document.pictureInPictureElement;
 		if (this.dom.pinnedModeToggle) this.dom.pinnedModeToggle.checked = !!this.appSettings.isPinnedModeEnabled;
 		if (this.dom.skeletonDebugToggle) this.dom.skeletonDebugToggle.checked = !!this.appSettings.isSkeletonDebugEnabled;
@@ -3657,6 +3703,9 @@ if (!window.__testChecklists) {
 				this.dom.headerfullscreenbtn.classList.add('hidden');
 			}
 		}
+		if (this.dom.headerpinnedbtn) this.dom.headerpinnedbtn.classList.toggle('hidden', !this.appSettings.showPinnedBtn);
+		if (this.dom.headerdndbtn) this.dom.headerdndbtn.classList.toggle('hidden', !this.appSettings.showDndBtn);
+		if (this.dom.headerfloatbtn) this.dom.headerfloatbtn.classList.toggle('hidden', !this.appSettings.showFloatBtn);
 		if (this.dom.headerupsidedownbtn) {
 			if (this.appSettings.showUpsideDownBtn) {
 				this.dom.headerupsidedownbtn.classList.remove('hidden');
@@ -3735,7 +3784,7 @@ if (!window.__testChecklists) {
 	// Short labels for the Header reordering list - matches the wording used in Help's Buttons
 	// tab, condensed to fit a single line per row.
 	_headerBtnLabels() {
-		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerupsidedownbtn: '🙃 Upside Down', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headerresetbtn: '♻️ Reset', headernukebtn: '☢️ Nuke', headernotepadbtn: '📝 Notepad' };
+		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerpinnedbtn: '📌 Pinned Mode', headerdndbtn: '🔕 Do Not Disturb', headerfloatbtn: '🪟 Float Window', headerupsidedownbtn: '🙃 Upside Down', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headerresetbtn: '♻️ Reset', headernukebtn: '☢️ Nuke', headernotepadbtn: '📝 Notepad' };
 	}
 	// Moves a button one position earlier/later in the LOGICAL order (from _headerBtnOrder,
 	// which already excludes clones), then reapplies that full order to the real DOM via
@@ -3823,7 +3872,7 @@ if (!window.__testChecklists) {
 		}).filter(Boolean);
 	}
 	_generalToggleLabels() {
-		return { randomThemeToggle: 'Random Theme 🎲', autoHideHeaderToggle: 'Auto Hide Header 👻', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerModeSwitchToggle: 'Mode Switch 🎮', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', headerThemeCycleToggle: 'Theme Cycle 🎨', headerAddMachineToggle: 'Add Machine ➕', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', headerCycleInputToggle: 'Cycle Input 🔀', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', introToggle: 'Show Intro', upsidedownToggle: 'Upside Down 🙃', fullscreenToggle: 'Full Screen 🔲', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', dndToggle: 'Do Not Disturb 🔕', floatModeToggle: 'Float Window 🪟', pinnedModeToggle: 'Pinned Mode 📌', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', bossToggle: 'Boss Mode 🌑', newToggle: 'Position Swap 🔄', biggerToggle: 'Bigger Buttons', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥' };
+		return { randomThemeToggle: 'Random Theme 🎲', autoHideHeaderToggle: 'Auto Hide Header 👻', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerModeSwitchToggle: 'Mode Switch 🎮', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', headerThemeCycleToggle: 'Theme Cycle 🎨', headerAddMachineToggle: 'Add Machine ➕', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', headerCycleInputToggle: 'Cycle Input 🔀', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', introToggle: 'Show Intro', upsidedownToggle: 'Upside Down 🙃', fullscreenToggle: 'Full Screen 🔲', showPinnedBtnToggle: 'Show Pinned Header Button', showDndBtnToggle: 'Show DND Header Button', showFloatBtnToggle: 'Show Float Header Button', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', dndToggle: 'Do Not Disturb 🔕', floatModeToggle: 'Float Window 🪟', pinnedModeToggle: 'Pinned Mode 📌', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', bossToggle: 'Boss Mode 🌑', newToggle: 'Position Swap 🔄', biggerToggle: 'Bigger Buttons', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥' };
 	}
 	// Moves a toggle's WRAPPER div one position earlier/later, same index-based-then-reapply
 	// approach as _moveHeaderBtn (not raw siblings) - safe here too since a hidden toggle still
@@ -4376,10 +4425,10 @@ let screenWakeLock = null;
 // The header's original, as-shipped button order (matching static HTML order) - kept
 // separately from _headerBtnOrder() (which reads live DOM order once buttons may have been
 // dragged around) specifically so "Reset to Default Order" has a fixed target to restore to.
-const DEFAULT_HEADER_BTN_ORDER = ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerupsidedownbtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn'];
+const DEFAULT_HEADER_BTN_ORDER = ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn', 'headerfloatbtn'];
 // The General tab's original, as-shipped toggle order (matching static HTML order) - same
 // purpose as DEFAULT_HEADER_BTN_ORDER above: a fixed target for "Reset to Default Order".
-const DEFAULT_GENERAL_TOGGLE_ORDER = ['randomThemeToggle', 'autoHideHeaderToggle', 'headerPlayToggle', 'headerDeleteToggle', 'headerSettingsToggle', 'headerHelpToggle', 'headerModeSwitchToggle', 'headerRedeemToggle', 'headerShareToggle', 'headerThemeCycleToggle', 'headerAddMachineToggle', 'headerUiSizeToggle', 'headerSeqSizeToggle', 'headerVolumeToggle', 'headerSpeedToggle', 'headerCycleInputToggle', 'headerResetToggle', 'headerNukeToggle', 'timerToggle', 'autotimerToggle', 'counterToggle', 'autocounterToggle', 'headerNotepadToggle', 'headerInfiniteScrollToggle', 'inputRegulatorToggle', 'hapticsToggle', 'introToggle', 'upsidedownToggle', 'fullscreenToggle', 'ecoToggle', 'wakelockToggle', 'dndToggle', 'floatModeToggle', 'pinnedModeToggle', 'voiceToggle', 'voicecommandsToggle', 'toneToggle', 'touchToggle', 'bossToggle', 'newToggle', 'biggerToggle', 'arcamToggle', 'arAutoCloseGeneralToggle', 'handToggle', 'skeletonDebugToggle', 'handsignalsToggle', 'handednessFlipToggle', 'speeddeleteToggle', 'apshortcutToggle', 'volgesToggle', 'speedToggle', 'deleteToggle', 'clearToggle'];
+const DEFAULT_GENERAL_TOGGLE_ORDER = ['randomThemeToggle', 'autoHideHeaderToggle', 'headerPlayToggle', 'headerDeleteToggle', 'headerSettingsToggle', 'headerHelpToggle', 'headerModeSwitchToggle', 'headerRedeemToggle', 'headerShareToggle', 'headerThemeCycleToggle', 'headerAddMachineToggle', 'headerUiSizeToggle', 'headerSeqSizeToggle', 'headerVolumeToggle', 'headerSpeedToggle', 'headerCycleInputToggle', 'headerResetToggle', 'headerNukeToggle', 'timerToggle', 'autotimerToggle', 'counterToggle', 'autocounterToggle', 'headerNotepadToggle', 'headerInfiniteScrollToggle', 'inputRegulatorToggle', 'hapticsToggle', 'introToggle', 'upsidedownToggle', 'fullscreenToggle', 'showPinnedBtnToggle', 'showDndBtnToggle', 'showFloatBtnToggle', 'ecoToggle', 'wakelockToggle', 'dndToggle', 'floatModeToggle', 'pinnedModeToggle', 'voiceToggle', 'voicecommandsToggle', 'toneToggle', 'touchToggle', 'bossToggle', 'newToggle', 'biggerToggle', 'arcamToggle', 'arAutoCloseGeneralToggle', 'handToggle', 'skeletonDebugToggle', 'handsignalsToggle', 'handednessFlipToggle', 'speeddeleteToggle', 'apshortcutToggle', 'volgesToggle', 'speedToggle', 'deleteToggle', 'clearToggle'];
 const CONFIG = {
     MAX_MACHINES: 4,
     DEMO_DELAY_BASE_MS: 798,
@@ -4550,6 +4599,9 @@ const DEFAULT_APP = {
     touchAnchorMinHoldTime: 150,
     touchChordSimultaneityWindow: 50,
     showFullscreenBtn: true,
+    showPinnedBtn: true,
+    showDndBtn: true,
+    showFloatBtn: true,
     showUpsideDownBtn: false,
     uiFontSizeMultiplier: 2.5,
     activeProfileId: 'profile_1',
@@ -4866,6 +4918,49 @@ const startApp = () => {
             } else {
                 document.exitFullscreen();
                 headerfullscreenbtn.classList.remove('ring-2', 'ring-emerald-500');
+            }
+        };
+    }
+    const headerpinnedbtn = document.getElementById('headerpinnedbtn');
+    if (headerpinnedbtn) {
+        headerpinnedbtn.onclick = async () => {
+            const enabling = !appSettings.isPinnedModeEnabled;
+            appSettings.isPinnedModeEnabled = enabling;
+            if (typeof saveState === 'function') saveState();
+            headerpinnedbtn.classList.toggle('ring-2', enabling);
+            headerpinnedbtn.classList.toggle('ring-emerald-500', enabling);
+            const modalToggle = document.getElementById('pinnedModeToggle');
+            if (modalToggle) modalToggle.checked = enabling;
+            if (enabling) await enterPinnedMode();
+            else await exitPinnedMode();
+        };
+    }
+    const headerdndbtn = document.getElementById('headerdndbtn');
+    if (headerdndbtn) {
+        headerdndbtn.onclick = () => {
+            const enabling = !appSettings.isDndEnabled;
+            appSettings.isDndEnabled = enabling;
+            if (typeof saveState === 'function') saveState();
+            headerdndbtn.classList.toggle('ring-2', enabling);
+            headerdndbtn.classList.toggle('ring-emerald-500', enabling);
+            const modalToggle = document.getElementById('dndToggle');
+            if (modalToggle) modalToggle.checked = enabling;
+            if (typeof showToast === 'function') showToast(enabling ? 'Do Not Disturb on 🔕' : 'Do Not Disturb off');
+        };
+    }
+    const headerfloatbtn = document.getElementById('headerfloatbtn');
+    if (headerfloatbtn) {
+        headerfloatbtn.onclick = async () => {
+            const modalToggle = document.getElementById('floatModeToggle');
+            if (document.pictureInPictureElement) {
+                await exitFloatMode();
+                headerfloatbtn.classList.remove('ring-2', 'ring-emerald-500');
+                if (modalToggle) modalToggle.checked = false;
+            } else {
+                const ok = await enterFloatMode();
+                headerfloatbtn.classList.toggle('ring-2', ok);
+                headerfloatbtn.classList.toggle('ring-emerald-500', ok);
+                if (modalToggle) modalToggle.checked = ok;
             }
         };
     }
@@ -7946,6 +8041,8 @@ async function enterFloatMode() {
                 stopFloatLoop();
                 const t = document.getElementById('floatModeToggle');
                 if (t) t.checked = false;
+                const b = document.getElementById('headerfloatbtn');
+                if (b) b.classList.remove('ring-2', 'ring-emerald-500');
             });
         }
         drawFloatFrame();

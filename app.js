@@ -1905,7 +1905,8 @@ class SettingsManager {
 			upsidedownToggle: document.getElementById('upsidedownToggle'),
 			fullscreenToggle: document.getElementById('fullscreenToggle'),
 			ecoToggle: document.getElementById('ecoToggle'),
-			arSpeedSelect: document.getElementById('ar-speed-select')
+			arSpeedSelect: document.getElementById('ar-speed-select'),
+			commentsDeletionPinInput: document.getElementById('comments-deletion-pin')
 		};
 		this.tempTheme = null;
 		this.initListeners();
@@ -2842,6 +2843,81 @@ if (!window.__testChecklists) {
 			console.error('Comment modal wiring failed:', e);
 		}
 		try {
+			const pinPromptModal = document.getElementById('pin-prompt-modal');
+			const pinPromptInput = document.getElementById('pin-prompt-input');
+			const pinPromptCancel = document.getElementById('pin-prompt-cancel');
+			const pinPromptConfirm = document.getElementById('pin-prompt-confirm');
+			const commentsListContainer = document.getElementById('comments-list-container');
+			
+			let pendingDeleteCommentId = null;
+			
+			const togglePinPromptModal = (show) => {
+				if (!pinPromptModal) return;
+				if (show) {
+					pinPromptModal.classList.remove('hidden');
+					setTimeout(() => {
+						pinPromptModal.classList.remove('opacity-0', 'pointer-events-none');
+						pinPromptModal.querySelector('div')?.classList.remove('scale-90');
+						if (pinPromptInput) pinPromptInput.focus();
+					}, 10);
+				} else {
+					pinPromptModal.querySelector('div')?.classList.add('scale-90');
+					pinPromptModal.classList.add('opacity-0');
+					setTimeout(() => {
+						pinPromptModal.classList.add('pointer-events-none');
+						pinPromptModal.classList.add('hidden');
+					}, 300);
+					if (pinPromptInput) pinPromptInput.value = '';
+					pendingDeleteCommentId = null;
+				}
+			};
+			
+			if (commentsListContainer) {
+				commentsListContainer.addEventListener('click', (e) => {
+					if (e.target.classList.contains('delete-comment-btn')) {
+						pendingDeleteCommentId = e.target.dataset.commentId;
+						togglePinPromptModal(true);
+					}
+				});
+			}
+			
+			if (pinPromptCancel) {
+				pinPromptCancel.onclick = () => togglePinPromptModal(false);
+			}
+			
+			if (pinPromptConfirm) {
+				pinPromptConfirm.onclick = async () => {
+					if (!pendingDeleteCommentId || !pinPromptInput) return;
+					
+					const enteredPin = pinPromptInput.value;
+					const savedPin = appSettings.commentsDeletionPin || '';
+					
+					if (enteredPin !== savedPin) {
+						alert('Incorrect PIN');
+						return;
+					}
+					
+					try {
+						await deleteDoc(doc(db, 'comments', pendingDeleteCommentId));
+						togglePinPromptModal(false);
+					} catch (err) {
+						console.error('Error deleting comment:', err);
+						alert('Failed to delete comment');
+					}
+				};
+			}
+			
+			if (pinPromptInput) {
+				pinPromptInput.addEventListener('keypress', (e) => {
+					if (e.key === 'Enter') {
+						pinPromptConfirm?.click();
+					}
+				});
+			}
+		} catch (e) {
+			console.error('Comment delete modal wiring failed:', e);
+		}
+		try {
 			const exportBtn = document.getElementById('hex-export-btn');
 			const importBtn = document.getElementById('hex-import-btn');
 			const copyBtn = document.getElementById('hex-copy-btn');
@@ -3631,6 +3707,13 @@ if (!window.__testChecklists) {
 			this.dom.arSpeedSelect.value = String(speedVal);
 		}
 		this.updateHeaderVisibility();
+		if (this.dom.commentsDeletionPinInput) {
+			this.dom.commentsDeletionPinInput.value = this.appSettings.commentsDeletionPin || '';
+			this.dom.commentsDeletionPinInput.onchange = (e) => {
+				this.appSettings.commentsDeletionPin = e.target.value;
+				this.callbacks.onSave();
+			};
+		}
 	}
 	updateHeaderVisibility() {
 		this.applySavedHeaderOrder();
@@ -4566,6 +4649,7 @@ const DEFAULT_APP = {
     selectedVoice: null,
     voicePresets: {},
     activeVoicePresetId: 'standard',
+    commentsDeletionPin: '',
     isTouchGestureInputEnabled: true,
     touchGestureMappings: {
         'k9_1': { gesture: 'Double_tap_spatial_nw' },
@@ -5648,6 +5732,8 @@ async function initFirebaseAndComments() {
             enableIndexedDbPersistence,
             collection,
             addDoc,
+            deleteDoc,
+            doc,
             query,
             orderBy,
             limit,
@@ -5708,7 +5794,10 @@ async function initFirebaseAndComments() {
                 const data = doc.data();
                 const el = document.createElement('div');
                 el.className = "p-3 mb-2 rounded-lg bg-black bg-opacity-20 border border-gray-700";
-                el.innerHTML = `<p class="font-bold text-primary-app text-xs">${escapeHtml(data.username)}</p><p class="text-gray-300 text-sm">${escapeHtml(data.message)}</p>`;
+                el.dataset.commentId = doc.id;
+                const hasPinSet = appSettings.commentsDeletionPin && appSettings.commentsDeletionPin.trim().length > 0;
+                const deleteBtn = hasPinSet ? `<button class="delete-comment-btn text-xs bg-red-600 hover:bg-red-500 px-2 py-1 rounded text-white ml-2" data-comment-id="${doc.id}">🗑️</button>` : '';
+                el.innerHTML = `<div class="flex justify-between items-start"><div class="flex-1"><p class="font-bold text-primary-app text-xs">${escapeHtml(data.username)}</p><p class="text-gray-300 text-sm">${escapeHtml(data.message)}</p></div>${deleteBtn}</div>`;
                 listContainer.appendChild(el);
             });
         });

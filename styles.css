@@ -323,6 +323,9 @@ body.pinned-mode::after { content: ''; position: fixed; inset: 0; z-index: 10010
 .max-w-md { max-width: 28rem; }
 .mx-auto { margin-left: auto; margin-right: auto; }
 .m-4 { margin: 1rem; }
+.ml-1 { margin-left: 0.25rem; }
+.ml-2 { margin-left: 0.5rem; }
+.ml-3 { margin-left: 0.75rem; }
 .mb-2 { margin-bottom: 0.5rem; }
 .mb-6 { margin-bottom: 1.5rem; }
 .p-2 { padding: 0.5rem; }

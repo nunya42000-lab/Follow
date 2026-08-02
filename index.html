@@ -1251,6 +1251,12 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 </details>
 <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
+<h4 class="font-bold text-sm mb-2 text-primary-app">Comments Deletion PIN 🔐</h4>
+<p class="text-[10px] text-gray-400 mb-2">Set a PIN to enable deletion of any comment from the feedback modal. Leave blank to disable deletions.</p>
+<input type="password" id="comments-deletion-pin" class="settings-input w-full p-2 rounded text-sm mb-2" placeholder="Set PIN (numbers only, e.g., 1234)">
+<p class="text-[10px] text-gray-400">PIN is stored locally only. Use numbers or letters.</p>
+</div>
+<div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
 <h4 class="font-bold text-sm mb-2 text-primary-app">Backup / Restore 💾</h4>
 <p class="text-[10px] text-gray-400 mb-2">Export your full settings (including custom presets) as a backup code before resetting, or paste one back in to restore it.</p>
 <button id="hex-export-btn" type="button" class="w-full py-2 mb-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">Export Backup Code</button>
@@ -1564,6 +1570,7 @@ Email
 <p><strong>Sensitivity 🎛️:</strong> Every timing/distance threshold the Touch, Hand, Voice, and Tone Cadence engines use, grouped by input method - each slider explains itself underneath. "Restore Defaults" resets all of them at once (locks out while sliders are locked).</p>
 <p><strong>Populate Hand/Touch Gesture Menus:</strong> Two separate filter groups. Hand controls which pose/motion categories (Static Poses, Pinches, Finger Counts, Combos, Advanced Vision Shapes, Directional Swipes, Motion Transitions) show up in the Hand tab's dropdowns; Touch controls which touch categories (Taps, Swipes, Boomerangs, Chords, etc.) show up in the Touch tab's dropdowns.</p>
 <p><strong>Haptic Output Mapping:</strong> Customize the dot/dash vibration pattern for each of the 12 possible values, used when the Playback section's Morse toggle is on.</p>
+<p><strong>Comments Deletion PIN 🔐:</strong> Set a PIN to enable deletion of any comment from the feedback modal (💬 button in Settings header). When a PIN is set, a 🗑️ delete button appears next to each comment. Tap it to enter your PIN and delete that comment. Leave blank to disable deletions.</p>
 <p><strong>Backup / Restore 💾:</strong> Export your entire configuration (including custom presets and profiles) as a short text code, and paste one back in to restore it.</p>
 <p><strong>Settings Presets 🎯:</strong> A dropdown of ready-made configurations, right below Backup / Restore. Pick one and tap Copy, then paste the code into the Backup / Restore box above and tap Import to actually apply it - the preset box itself only ever shows you the code, it doesn't apply anything on its own.</p>
 </div>
@@ -1759,6 +1766,16 @@ Email
 <div class="flex space-x-2">
 <button id="close-comment-modal" class="flex-1 bg-gray-700 py-2 rounded text-white font-bold text-xs">Close</button>
 <button id="submit-comment-btn" class="flex-1 bg-blue-600 py-2 rounded text-white font-bold text-xs">Send</button>
+</div>
+</div>
+</div>
+<div id="pin-prompt-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none hidden">
+<div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom">
+<h3 class="font-bold text-lg mb-4">🔐 Enter PIN to Delete</h3>
+<input type="password" id="pin-prompt-input" class="settings-input w-full p-2 rounded mb-4 text-sm" placeholder="PIN" autocomplete="off">
+<div class="flex space-x-2">
+<button id="pin-prompt-cancel" class="flex-1 bg-gray-700 py-2 rounded text-white font-bold text-xs">Cancel</button>
+<button id="pin-prompt-confirm" class="flex-1 bg-red-600 py-2 rounded text-white font-bold text-xs">Delete</button>
 </div>
 </div>
 </div>

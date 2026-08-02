@@ -4873,6 +4873,9 @@ const _MODAL_IDS = ['settings-modal', 'help-modal', 'share-modal', 'comment-moda
 const startApp = () => {
     loadState();
     window.appSettings = appSettings;
+    document.addEventListener('fullscreenchange', () => {
+        document.body.classList.toggle('fullscreen-mode', !!document.fullscreenElement);
+    });
     restorePinnedModeOnBoot();
     if (appSettings.isDndEnabled) {
         const dndBtn = document.getElementById('headerdndbtn');

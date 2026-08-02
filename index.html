@@ -39,8 +39,8 @@ alert("Promise Error: " + event.reason);
 <button id="headerarcambtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">📷</button>
 <button id="headerbiggerbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">⌨️</button>
 <button id="headerfullscreenbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔲</button>
-<button id="headerpinnedbtn"class="w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">📌</button>
-<button id="headerdndbtn"class="w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔕</button>
+<button id="headerpinnedbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">📌</button>
+<button id="headerdndbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔕</button>
 <button id="headerupsidedownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🙃</button>
 <button id="headerswapbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔄</button>
 <button id="headerplaybtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Play">▶️</button>
@@ -64,7 +64,7 @@ alert("Promise Error: " + event.reason);
 <button id="headernotepadbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Notepad">📝</button>
 <button id="headerhelpbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Help">📚</button>
 <button id="headermodeswitchbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Switch Game Mode">🎮</button>
-<button id="headerpipbtn" class="w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Picture in Picture">🪟</button>
+<button id="headerpipbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Picture in Picture">🪟</button>
 </div>
 </div>
 </header>
@@ -1260,6 +1260,13 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <button id="hex-import-btn" type="button" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">Import</button>
 </div>
 </div>
+<div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
+<h4 class="font-bold text-sm mb-2 text-primary-app">Settings Presets 🎯</h4>
+<p class="text-[10px] text-gray-400 mb-2">Pick a preset, copy its code below, then paste it into the backup code box above and tap Import.</p>
+<select id="preset-select" class="w-full p-2 mb-2 bg-gray-800 border border-gray-600 rounded text-white text-xs"></select>
+<textarea id="preset-output" readonly class="w-full h-20 bg-gray-950 border border-gray-600 rounded p-2 text-[10px] font-mono text-green-400 resize-none mb-2"></textarea>
+<button id="preset-copy-btn" type="button" class="w-full py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">Copy</button>
+</div>
 </div>
 </div>
 <div class="mt-8 pt-4 border-t border-gray-700 flex justify-between items-center w-full">
@@ -1387,6 +1394,10 @@ Email
 <p class="text-xs opacity-90">Settings → Advanced → Backup / Restore lets you export your entire configuration (including custom presets and profiles) as a short text code, and paste one back in to restore it - handy before resetting, switching devices, or just keeping a safety copy.</p>
 </div>
 <div class="space-y-3">
+<strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Settings Presets 🎯</strong>
+<p class="text-xs opacity-90">Settings → Advanced → Settings Presets, right below Backup / Restore, has a dropdown of ready-made configurations. Pick one, tap Copy, then paste that code into the Backup / Restore box above it and tap Import to apply it.</p>
+</div>
+<div class="space-y-3">
 <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Lock Settings 🔒</strong>
 <p class="text-xs opacity-90">The welcome screen (and the lock icon inside Settings) both toggle the same Settings Lock - turn it on to stop someone else from changing your setup mid-game. Either one unlocks it again just as easily.</p>
 </div>
@@ -1428,7 +1439,7 @@ Email
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🪟</span> <strong>Picture in Picture:</strong> Opens a small always-on-top window showing your sequence, so you can read it while using another app.</li>
 </ul>
 </div>
-<p class="text-[10px] text-gray-500 italic">Each icon above only appears in the header once its matching toggle is turned on in Settings → General, except Pinned Mode, Do Not Disturb, and Picture in Picture, which are always shown. When enough are on to overflow one row, the header becomes a horizontally-scrolling toolbar - drag left or right, it loops continuously in both directions.</p>
+<p class="text-[10px] text-gray-500 italic">Each icon above only appears in the header once its matching toggle is turned on in Settings → General. When enough are on to overflow one row, the header becomes a horizontally-scrolling toolbar - drag left or right, it loops continuously in both directions.</p>
 </div>
 <div id="tab-help-settings" class="tab-content space-y-3">
 <p class="text-xs opacity-80 mb-3">Every toggle, slider, and switch in the Settings menu explained.</p>
@@ -1480,9 +1491,9 @@ Email
 <div><strong>Boss Mode 🌑:</strong> Shake to black out screen.</div>
 <div><strong>BM Gestures:</strong> Automatic when Touch Gesture and Boss Mode are both on - no separate toggle needed.</div>
 <div><strong>Wake Lock 💡:</strong> Prevents screen sleeping.</div>
-<div><strong>Do Not Disturb 🔕:</strong> Silences every interruption the app makes - toast popups, all vibration/haptics (including morse buzzes), and spoken audio. Off by default. Doesn't touch your phone's own system Do Not Disturb, which no web app can control. Has a header button (🔕), always shown, right next to Full Screen.</div>
-<div><strong>Picture in Picture 🪟:</strong> Opens a small always-on-top window showing your current sequence, so you can read it while using another app. View-only - you can't tap the sequence in the floating window. Closes when you switch it off or close the window. Has a header button (🪟), always shown, placed last in the row.</div>
-<div><strong>Pinned Mode 📌:</strong> Goes fullscreen and blocks the back gesture so you can't accidentally swipe out mid-sequence. Turn it off here to leave. This is the app's own lock - it can't trigger Android's system screen pinning, which has no web API. Has a header button (📌), always shown, right next to Full Screen.</div>
+<div><strong>Do Not Disturb 🔕:</strong> Silences every interruption the app makes - toast popups, all vibration/haptics (including morse buzzes), and spoken audio. The Settings toggle only shows or hides its header button (🔕), right next to Full Screen - tap that header button to actually turn Do Not Disturb on and off. Off by default. Doesn't touch your phone's own system Do Not Disturb, which no web app can control.</div>
+<div><strong>Picture in Picture 🪟:</strong> Opens a small always-on-top window showing your current sequence, so you can read it while using another app. View-only - you can't tap the sequence in the floating window. The Settings toggle only shows or hides its header button (🪟), placed last in the row - tap that header button to actually open or close Picture in Picture.</div>
+<div><strong>Pinned Mode 📌:</strong> Goes fullscreen and blocks the back gesture so you can't accidentally swipe out mid-sequence. The Settings toggle only shows or hides its header button (📌), right next to Full Screen - tap that header button to actually turn Pinned Mode on and off, or to leave once it's on. This is the app's own lock - it can't trigger Android's system screen pinning, which has no web API.</div>
 <div><strong>Upside Down:</strong> Flips the entire UI 180°.</div>
 <div><strong>Full Screen:</strong> Hides browser bars.</div>
 <div><strong>Eco Mode 🔋:</strong> Reduces animations/framerate.</div>
@@ -1554,6 +1565,7 @@ Email
 <p><strong>Populate Hand/Touch Gesture Menus:</strong> Two separate filter groups. Hand controls which pose/motion categories (Static Poses, Pinches, Finger Counts, Combos, Advanced Vision Shapes, Directional Swipes, Motion Transitions) show up in the Hand tab's dropdowns; Touch controls which touch categories (Taps, Swipes, Boomerangs, Chords, etc.) show up in the Touch tab's dropdowns.</p>
 <p><strong>Haptic Output Mapping:</strong> Customize the dot/dash vibration pattern for each of the 12 possible values, used when the Playback section's Morse toggle is on.</p>
 <p><strong>Backup / Restore 💾:</strong> Export your entire configuration (including custom presets and profiles) as a short text code, and paste one back in to restore it.</p>
+<p><strong>Settings Presets 🎯:</strong> A dropdown of ready-made configurations, right below Backup / Restore. Pick one and tap Copy, then paste the code into the Backup / Restore box above and tap Import to actually apply it - the preset box itself only ever shows you the code, it doesn't apply anything on its own.</p>
 </div>
 </details>
 </div>

@@ -56,7 +56,8 @@ img, svg, video, canvas {
 .pointer-events-none { pointer-events: none !important; }
 .hidden { display: none !important; }
 :root { --bg-main: #000000; --card-bg: #121212; --seq-bubble: #4f46e5; --btn-bg: #1a1a1a; --text-main: #e5e5e5; --border: rgba(255, 255, 255, 0.15); }
-body { margin: 0; background-color: var(--bg-main); color: var(--text-main); transition: background-color .3s, color .3s; min-height: 100vh; min-height: 100dvh; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+html { height: 100%; overflow: hidden; overscroll-behavior: none; }
+body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; background-color: var(--bg-main); color: var(--text-main); transition: background-color .3s, color .3s; min-height: 100vh; min-height: 100dvh; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
 input, textarea { -webkit-user-select: text !important; user-select: text !important; -webkit-touch-callout: default !important; cursor: auto; touch-action: auto; }
 .settings-modal-bg { background-color: var(--card-bg) !important; color: var(--text-main) !important; border: 1px solid var(--border); }
 .settings-input { background-color: var(--bg-main) !important; color: var(--text-main) !important; border: 1px solid var(--border) !important; }
@@ -603,6 +604,7 @@ details[open].open\:bg-white\/10 { background-color: rgba(255, 255, 255, 0.1); }
 .underline { text-decoration-line: underline; }
 .tracking-wide { letter-spacing: 0.025em; }
 .max-h-32 { max-height: 8rem; }
+.max-h-64 { max-height: 16rem; }
 .max-h-\[95vh\] { max-height: 95vh; }
 .max-w-\[280px\] { max-width: 280px; }
 .max-w-sm { max-width: 24rem; }

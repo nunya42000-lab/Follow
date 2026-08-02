@@ -1,8 +1,9 @@
 // sw.js
-// Version: v72 - manifest.json updated (added id, scope, explicit icon purpose) - bumping the
-// cache name so clients with the old cached manifest.json pick up the change on next visit,
-// rather than continuing to serve the stale precached copy indefinitely.
-const CACHE_NAME = 'follow-me-v72-manifest-update';
+// Version: v73 - PiP rename, duplicate header-button toggles removed, pinned-mode CSS, dead-code
+// cleanup - bumping the cache name so clients still on v72's stale cache (confirmed via
+// screenshots showing "Float Window" and the old Show-Header-Button toggles) pick up the real
+// fixes on next visit instead of continuing to run pre-fix code indefinitely.
+const CACHE_NAME = 'follow-me-v73-pip-dedup';
 
 // 1. CRITICAL: These MUST exist for the app to run.
 // If any of these are missing, the offline mode will fail.

@@ -2893,6 +2893,31 @@ if (!window.__testChecklists) {
 			console.error('Hex export/import wiring failed:', e);
 		}
 		try {
+			const presetSelect = document.getElementById('preset-select');
+			const presetOutput = document.getElementById('preset-output');
+			const presetCopyBtn = document.getElementById('preset-copy-btn');
+			if (presetSelect && presetOutput) {
+				presetSelect.innerHTML = SETTINGS_PRESETS.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+				const showSelected = () => {
+					const chosen = SETTINGS_PRESETS.find(p => p.id === presetSelect.value) || SETTINGS_PRESETS[0];
+					presetOutput.value = chosen ? chosen.code : '';
+				};
+				presetSelect.onchange = showSelected;
+				showSelected();
+			}
+			if (presetCopyBtn && presetOutput) {
+				presetCopyBtn.onclick = () => {
+					if (!presetOutput.value) return;
+					presetOutput.select();
+					navigator.clipboard?.writeText(presetOutput.value).then(() => {
+							if (typeof showToast === 'function') showToast('Copied to clipboard 📋');
+						}).catch(() => document.execCommand('copy'));
+				};
+			}
+		} catch (e) {
+			console.error('Settings presets wiring failed:', e);
+		}
+		try {
 			const resetOrderBtn = document.getElementById('header-order-reset-btn');
 			if (resetOrderBtn) {
 				resetOrderBtn.onclick = () => {
@@ -2948,52 +2973,13 @@ if (!window.__testChecklists) {
 			};
 		};
 		bindToggle(this.dom.newToggle, 'isPositionSwapEnabled', true);
-		if (this.dom.pinnedModeToggle) {
-			this.dom.pinnedModeToggle.checked = !!this.appSettings.isPinnedModeEnabled;
-			this.dom.pinnedModeToggle.onchange = async (e) => {
-				this.appSettings.isPinnedModeEnabled = e.target.checked;
-				this.callbacks.onSave();
-				const headerBtn = document.getElementById('headerpinnedbtn');
-				if (headerBtn) {
-					headerBtn.classList.toggle('ring-2', e.target.checked);
-					headerBtn.classList.toggle('ring-emerald-500', e.target.checked);
-				}
-				if (e.target.checked) await enterPinnedMode();
-				else await exitPinnedMode();
-			};
-		}
-		if (this.dom.dndToggle) {
-			this.dom.dndToggle.checked = !!this.appSettings.isDndEnabled;
-			this.dom.dndToggle.onchange = (e) => {
-				this.appSettings.isDndEnabled = e.target.checked;
-				this.callbacks.onSave();
-				const headerBtn = document.getElementById('headerdndbtn');
-				if (headerBtn) {
-					headerBtn.classList.toggle('ring-2', e.target.checked);
-					headerBtn.classList.toggle('ring-emerald-500', e.target.checked);
-				}
-			};
-		}
-		// Picture in Picture is transient, not a persisted setting: a PiP window cannot be reopened on
-		// load without a fresh user gesture, so the checkbox reflects live PiP state instead of
-		// something stored. enterPipMode() unchecks it again if the browser refuses.
-		if (this.dom.pipToggle) {
-			this.dom.pipToggle.checked = !!document.pictureInPictureElement;
-			this.dom.pipToggle.onchange = async (e) => {
-				const headerBtn = document.getElementById('headerpipbtn');
-				if (e.target.checked) {
-					const ok = await enterPipMode();
-					if (!ok) e.target.checked = false;
-					if (headerBtn) {
-						headerBtn.classList.toggle('ring-2', ok);
-						headerBtn.classList.toggle('ring-emerald-500', ok);
-					}
-				} else {
-					await exitPipMode();
-					if (headerBtn) headerBtn.classList.remove('ring-2', 'ring-emerald-500');
-				}
-			};
-		}
+		// Pinned Mode / DND / PiP toggles work exactly like every other header-button toggle
+		// (headerPlayToggle, headerDeleteToggle, etc. below): checking the box only reveals the
+		// header button. The header button itself is what actually turns the feature on/off when
+		// tapped - see the headerpinnedbtn/headerdndbtn/headerpipbtn click handlers.
+		bindToggle(this.dom.pinnedModeToggle, 'showPinnedBtn', true);
+		bindToggle(this.dom.dndToggle, 'showDndBtn', true);
+		bindToggle(this.dom.pipToggle, 'showPipBtn', true);
 		bindToggle(this.dom.randomThemeToggle, 'isRandomThemeEnabled');
 		bindToggle(this.dom.autoHideHeaderToggle, 'isAutoHideHeaderEnabled', true);
 		bindToggle(this.dom.headerPlayToggle, 'showHeaderPlayBtn', () => this.updateHeaderVisibility());
@@ -3608,9 +3594,9 @@ if (!window.__testChecklists) {
 		if (this.dom.wakelockToggle) this.dom.wakelockToggle.checked = (typeof this.appSettings.isWakeLockEnabled === 'undefined') ? true : this.appSettings.isWakeLockEnabled;
 		if (this.dom.randomThemeToggle) this.dom.randomThemeToggle.checked = !!this.appSettings.isRandomThemeEnabled;
 		if (this.dom.autoHideHeaderToggle) this.dom.autoHideHeaderToggle.checked = !!this.appSettings.isAutoHideHeaderEnabled;
-		if (this.dom.dndToggle) this.dom.dndToggle.checked = !!this.appSettings.isDndEnabled;
-		if (this.dom.pipToggle) this.dom.pipToggle.checked = !!document.pictureInPictureElement;
-		if (this.dom.pinnedModeToggle) this.dom.pinnedModeToggle.checked = !!this.appSettings.isPinnedModeEnabled;
+		if (this.dom.dndToggle) this.dom.dndToggle.checked = !!this.appSettings.showDndBtn;
+		if (this.dom.pipToggle) this.dom.pipToggle.checked = !!this.appSettings.showPipBtn;
+		if (this.dom.pinnedModeToggle) this.dom.pinnedModeToggle.checked = !!this.appSettings.showPinnedBtn;
 		if (this.dom.skeletonDebugToggle) this.dom.skeletonDebugToggle.checked = !!this.appSettings.isSkeletonDebugEnabled;
 		if (this.dom.fontSelect) this.dom.fontSelect.value = this.appSettings.activeFontFamily || "'Inter', sans-serif";
 		if (this.dom.newToggle) this.dom.newToggle.checked = !!this.appSettings.isPositionSwapEnabled;
@@ -3678,6 +3664,9 @@ if (!window.__testChecklists) {
 				this.dom.headerupsidedownbtn.classList.add('hidden');
 			}
 		}
+		if (this.dom.headerpinnedbtn) this.dom.headerpinnedbtn.classList.toggle('hidden', !this.appSettings.showPinnedBtn);
+		if (this.dom.headerdndbtn) this.dom.headerdndbtn.classList.toggle('hidden', !this.appSettings.showDndBtn);
+		if (this.dom.headerpipbtn) this.dom.headerpipbtn.classList.toggle('hidden', !this.appSettings.showPipBtn);
 		const showSwap = !!this.appSettings.isPositionSwapEnabled;
 		if(timerBtn) timerBtn.classList.toggle('hidden', !showTimer);
 		if(counterBtn) counterBtn.classList.toggle('hidden', !showCounter);
@@ -4420,7 +4409,7 @@ const DEFAULT_PROFILE_SETTINGS = {
     simonInterSequenceDelay: 200,
     isUniqueRoundsAutoClearEnabled: true,
     isPracticeModeEnabled: false,
-    isAutoplayEnabled: false,
+    isAutoplayEnabled: true,
     isFlashEnabled: true,
     isAudioEnabled: true,
     isHapticMorseEnabled: false,
@@ -4520,7 +4509,7 @@ const DEFAULT_APP = {
     handednessFlip: false,
     showHeaderPlayBtn: false,
     showHeaderDeleteBtn: false,
-    showHeaderSettingsBtn: false,
+    showHeaderSettingsBtn: true,
     showHeaderRedeemBtn: true,
     showHeaderShareBtn: true,
     showHeaderThemeCycleBtn: false,
@@ -4530,7 +4519,7 @@ const DEFAULT_APP = {
     showHeaderVolumeBtns: false,
     showHeaderSpeedBtns: false,
     showHeaderCycleInputBtn: false,
-    showHeaderNotepadBtn: false,
+    showHeaderNotepadBtn: true,
     showHeaderHelpBtn: false,
     showHeaderModeSwitchBtn: false,
     showHeaderResetBtn: false,
@@ -4562,6 +4551,9 @@ const DEFAULT_APP = {
     touchAnchorMinHoldTime: 150,
     touchChordSimultaneityWindow: 50,
     showFullscreenBtn: true,
+    showPinnedBtn: false,
+    showDndBtn: false,
+    showPipBtn: false,
     showUpsideDownBtn: false,
     uiFontSizeMultiplier: 2.5,
     activeProfileId: 'profile_1',
@@ -4679,25 +4671,28 @@ const DEFAULT_APP = {
         'headertimerbtn',
         'headercounterbtn',
         'headernotepadbtn',
-        'headersharebtn',
-        'headerredeembtn',
-        'headersettingsbtn',
-        'headerhelpbtn',
-        'headerfullscreenbtn',
-        'headerupsidedownbtn',
-        'headerswapbtn',
-        'headerbiggerbtn',
-        'headerarcambtn',
-        'headertouchbtn',
-        'headerhandbtn',
-        'headervoicebtn',
-        'headertonebtn',
         'headerplaybtn',
         'headerdeletebtn',
-        'headeraddmachinebtn',
+        'headersettingsbtn',
+        'headerhelpbtn',
+        'headersharebtn',
+        'headerredeembtn',
+        'headervoicebtn',
+        'headertonebtn',
+        'headertouchbtn',
+        'headerhandbtn',
+        'headerarcambtn',
+        'headerbiggerbtn',
+        'headerfullscreenbtn',
+        'headerpinnedbtn',
+        'headerdndbtn',
+        'headerpipbtn',
+        'headerswapbtn',
+        'headerupsidedownbtn',
+        'headerthemecyclebtn',
         'headercycleinputbtn',
         'headermodeswitchbtn',
-        'headerthemecyclebtn',
+        'headeraddmachinebtn',
         'headeruiupbtn',
         'headeruidownbtn',
         'headersequpbtn',
@@ -4710,40 +4705,42 @@ const DEFAULT_APP = {
         'headernukebtn'
     ],
     generalToggleOrder: [
-        'randomThemeToggle',
-        'headerThemeCycleToggle',
         'autoHideHeaderToggle',
         'headerInfiniteScrollToggle',
+        'randomThemeToggle',
+        'headerThemeCycleToggle',
         'headerModeSwitchToggle',
-        'headerAddMachineToggle',
         'headerCycleInputToggle',
+        'headerAddMachineToggle',
         'introToggle',
+        'headerUiSizeToggle',
+        'headerSeqSizeToggle',
+        'headerVolumeToggle',
+        'headerSpeedToggle',
         'headerSettingsToggle',
         'headerHelpToggle',
         'headerRedeemToggle',
         'headerShareToggle',
-        'headerDeleteToggle',
         'headerPlayToggle',
-        'headerUiSizeToggle',
-        'headerSeqSizeToggle',
-        'headerSpeedToggle',
-        'headerVolumeToggle',
-        'headerResetToggle',
-        'headerNukeToggle',
+        'headerDeleteToggle',
         'timerToggle',
         'autotimerToggle',
         'counterToggle',
         'autocounterToggle',
         'headerNotepadToggle',
-        'fullscreenToggle',
+        'bossToggle',
         'inputRegulatorToggle',
         'hapticsToggle',
+        'biggerToggle',
+        'pipToggle',
+        'upsidedownToggle',
+        'newToggle',
+        'fullscreenToggle',
+        'pinnedModeToggle',
         'ecoToggle',
         'wakelockToggle',
-        'newToggle',
-        'upsidedownToggle',
-        'biggerToggle',
-        'bossToggle',
+        'headerResetToggle',
+        'headerNukeToggle',
         'arcamToggle',
         'arAutoCloseGeneralToggle',
         'voiceToggle',
@@ -4758,10 +4755,21 @@ const DEFAULT_APP = {
         'apshortcutToggle',
         'volgesToggle',
         'speedToggle',
+        'clearToggle',
         'deleteToggle',
-        'clearToggle'
+        'dndToggle'
     ]
 };
+// Curated backup-code presets, offered in Advanced Settings so a preset can be handed to a
+// player by having them paste the code into Import above (see the Backup/Restore block right
+// above that section). "Default" is an intentionally-empty diff - it exists so every entry in
+// the dropdown behaves the same way (pick one, copy one code, paste it in) rather than being a
+// special case, even though picking Default is equivalent to just using Reset Settings.
+// New presets get added here as plain {name, code} entries.
+const SETTINGS_PRESETS = [
+    { id: 'default', name: 'Default (New Player)', code: 'm.xmhNj`V-16N$xovQJJ^`qG9_Wn:' },
+    { id: 'preset1', name: 'Preset 1', code: '52.1mS#XVd.Dq@{YbdPa555f)@IB#pkT.m[an{Lde=VpQ4L]+Q#UoY_5I@Vt2H]Y5LDu:fP_MGJHBV?!?[FNzTMD/fW*8FoC);1.twH(G:+H-ln{o=9a5cj7V4[q7tmMypBrqVG}_`YYn5b?sN93O77)`_^9Au{8er8dHh,VtJkdQ/,+w05mf#AS*AJM`}?,V3scBZP^dKiin:aSBJH`bPxt}dW/xzD(pm]VW4' }
+];
 const DEFAULT_MAPPINGS = {
     'k9_1': 'tap',
     'k9_2': 'double_tap',
@@ -4866,6 +4874,10 @@ const startApp = () => {
     loadState();
     window.appSettings = appSettings;
     restorePinnedModeOnBoot();
+    if (appSettings.isDndEnabled) {
+        const dndBtn = document.getElementById('headerdndbtn');
+        if (dndBtn) dndBtn.classList.add('ring-2', 'ring-emerald-500');
+    }
     if (appSettings.isEcoModeEnabled) document.body.classList.add('eco-mode');
     const headerfullscreenbtn = document.getElementById('headerfullscreenbtn');
     if (headerfullscreenbtn) {
@@ -4889,8 +4901,6 @@ const startApp = () => {
             if (typeof saveState === 'function') saveState();
             headerpinnedbtn.classList.toggle('ring-2', enabling);
             headerpinnedbtn.classList.toggle('ring-emerald-500', enabling);
-            const modalToggle = document.getElementById('pinnedModeToggle');
-            if (modalToggle) modalToggle.checked = enabling;
             if (enabling) await enterPinnedMode();
             else await exitPinnedMode();
         };
@@ -4903,24 +4913,19 @@ const startApp = () => {
             if (typeof saveState === 'function') saveState();
             headerdndbtn.classList.toggle('ring-2', enabling);
             headerdndbtn.classList.toggle('ring-emerald-500', enabling);
-            const modalToggle = document.getElementById('dndToggle');
-            if (modalToggle) modalToggle.checked = enabling;
             if (typeof showToast === 'function') showToast(enabling ? 'Do Not Disturb on 🔕' : 'Do Not Disturb off');
         };
     }
     const headerpipbtn = document.getElementById('headerpipbtn');
     if (headerpipbtn) {
         headerpipbtn.onclick = async () => {
-            const modalToggle = document.getElementById('pipToggle');
             if (document.pictureInPictureElement) {
                 await exitPipMode();
                 headerpipbtn.classList.remove('ring-2', 'ring-emerald-500');
-                if (modalToggle) modalToggle.checked = false;
             } else {
                 const ok = await enterPipMode();
                 headerpipbtn.classList.toggle('ring-2', ok);
                 headerpipbtn.classList.toggle('ring-emerald-500', ok);
-                if (modalToggle) modalToggle.checked = ok;
             }
         };
     }
@@ -8107,6 +8112,8 @@ async function exitPinnedMode() {
 function restorePinnedModeOnBoot() {
     if (!appSettings.isPinnedModeEnabled) return;
     document.body.classList.add('pinned-mode');
+    const headerBtn = document.getElementById('headerpinnedbtn');
+    if (headerBtn) headerBtn.classList.add('ring-2', 'ring-emerald-500');
     armPinnedBackTrap();
     pinnedFullscreenRearm = () => {
         window.removeEventListener('pointerdown', pinnedFullscreenRearm);

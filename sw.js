@@ -3,7 +3,7 @@
 // cleanup - bumping the cache name so clients still on v72's stale cache (confirmed via
 // screenshots showing "Float Window" and the old Show-Header-Button toggles) pick up the real
 // fixes on next visit instead of continuing to run pre-fix code indefinitely.
-const CACHE_NAME = 'follow-me-v73-pip-dedup';
+const CACHE_NAME = 'follow-me-v74-pip-dedup';
 
 // 1. CRITICAL: These MUST exist for the app to run.
 // If any of these are missing, the offline mode will fail.

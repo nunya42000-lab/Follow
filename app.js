@@ -1825,7 +1825,7 @@ class SettingsManager {
 			filterToggles: document.querySelectorAll('.gesture-filter-toggle'),
 			toneCadenceToggle: document.getElementById('toneToggle'),
 			headertonebtn: document.getElementById('headertonebtn'),
-			headerfullscreenbtn: document.getElementById('headerfullscreenbtn'), headerpinnedbtn: document.getElementById('headerpinnedbtn'), headerdndbtn: document.getElementById('headerdndbtn'), headerfloatbtn: document.getElementById('headerfloatbtn'),
+			headerfullscreenbtn: document.getElementById('headerfullscreenbtn'), headerpinnedbtn: document.getElementById('headerpinnedbtn'), headerdndbtn: document.getElementById('headerdndbtn'), headerpipbtn: document.getElementById('headerpipbtn'),
 			headerupsidedownbtn: document.getElementById('headerupsidedownbtn'),
 			voicePresetSelect: document.getElementById('voice-preset-select'),
 			voicePresetAdd: document.getElementById('voice-preset-add'),
@@ -1862,7 +1862,7 @@ class SettingsManager {
 			handsignalsToggle: document.getElementById('handsignalsToggle'),
 			handednessFlipToggle: document.getElementById('handednessFlipToggle'),
 			voicecommandsToggle: document.getElementById('voicecommandsToggle'),
-			wakelockToggle: document.getElementById('wakelockToggle'), dndToggle: document.getElementById('dndToggle'), floatModeToggle: document.getElementById('floatModeToggle'), pinnedModeToggle: document.getElementById('pinnedModeToggle'), settingsLockBtn: document.getElementById('settings-lock-toggle'),
+			wakelockToggle: document.getElementById('wakelockToggle'), dndToggle: document.getElementById('dndToggle'), pipToggle: document.getElementById('pipToggle'), pinnedModeToggle: document.getElementById('pinnedModeToggle'), settingsLockBtn: document.getElementById('settings-lock-toggle'),
 			newToggle: document.getElementById('newToggle'),
 			headerswapbtn: document.getElementById('headerswapbtn'),
 			headerplaybtn: document.getElementById('headerplaybtn'), headerdeletebtn: document.getElementById('headerdeletebtn'), headersettingsbtn: document.getElementById('headersettingsbtn'), headerredeembtn: document.getElementById('headerredeembtn'), headersharebtn: document.getElementById('headersharebtn'), headerthemecyclebtn: document.getElementById('headerthemecyclebtn'), headeraddmachinebtn: document.getElementById('headeraddmachinebtn'), headeruiupbtn: document.getElementById('headeruiupbtn'), headeruidownbtn: document.getElementById('headeruidownbtn'), headersequpbtn: document.getElementById('headersequpbtn'), headerseqdownbtn: document.getElementById('headerseqdownbtn'), headervolupbtn: document.getElementById('headervolupbtn'), headervoldownbtn: document.getElementById('headervoldownbtn'), headerspeedupbtn: document.getElementById('headerspeedupbtn'), headerspeeddownbtn: document.getElementById('headerspeeddownbtn'), headercycleinputbtn: document.getElementById('headercycleinputbtn'),
@@ -1903,7 +1903,7 @@ class SettingsManager {
 			headerPaddingSelect: document.getElementById('header-padding-select'),
 			inputsPaddingSelect: document.getElementById('inputs-padding-select'),
 			upsidedownToggle: document.getElementById('upsidedownToggle'),
-			fullscreenToggle: document.getElementById('fullscreenToggle'), showPinnedBtnToggle: document.getElementById('showPinnedBtnToggle'), showDndBtnToggle: document.getElementById('showDndBtnToggle'), showFloatBtnToggle: document.getElementById('showFloatBtnToggle'),
+			fullscreenToggle: document.getElementById('fullscreenToggle'),
 			ecoToggle: document.getElementById('ecoToggle'),
 			arSpeedSelect: document.getElementById('ar-speed-select')
 		};
@@ -2974,43 +2974,22 @@ if (!window.__testChecklists) {
 				}
 			};
 		}
-		if (this.dom.showPinnedBtnToggle) {
-			this.dom.showPinnedBtnToggle.onchange = (e) => {
-				this.appSettings.showPinnedBtn = e.target.checked;
-				this.updateHeaderVisibility();
-				this.callbacks.onSave();
-			};
-		}
-		if (this.dom.showDndBtnToggle) {
-			this.dom.showDndBtnToggle.onchange = (e) => {
-				this.appSettings.showDndBtn = e.target.checked;
-				this.updateHeaderVisibility();
-				this.callbacks.onSave();
-			};
-		}
-		if (this.dom.showFloatBtnToggle) {
-			this.dom.showFloatBtnToggle.onchange = (e) => {
-				this.appSettings.showFloatBtn = e.target.checked;
-				this.updateHeaderVisibility();
-				this.callbacks.onSave();
-			};
-		}
-		// Float Window is transient, not a persisted setting: a PiP window cannot be reopened on
+		// Picture in Picture is transient, not a persisted setting: a PiP window cannot be reopened on
 		// load without a fresh user gesture, so the checkbox reflects live PiP state instead of
-		// something stored. enterFloatMode() unchecks it again if the browser refuses.
-		if (this.dom.floatModeToggle) {
-			this.dom.floatModeToggle.checked = !!document.pictureInPictureElement;
-			this.dom.floatModeToggle.onchange = async (e) => {
-				const headerBtn = document.getElementById('headerfloatbtn');
+		// something stored. enterPipMode() unchecks it again if the browser refuses.
+		if (this.dom.pipToggle) {
+			this.dom.pipToggle.checked = !!document.pictureInPictureElement;
+			this.dom.pipToggle.onchange = async (e) => {
+				const headerBtn = document.getElementById('headerpipbtn');
 				if (e.target.checked) {
-					const ok = await enterFloatMode();
+					const ok = await enterPipMode();
 					if (!ok) e.target.checked = false;
 					if (headerBtn) {
 						headerBtn.classList.toggle('ring-2', ok);
 						headerBtn.classList.toggle('ring-emerald-500', ok);
 					}
 				} else {
-					await exitFloatMode();
+					await exitPipMode();
 					if (headerBtn) headerBtn.classList.remove('ring-2', 'ring-emerald-500');
 				}
 			};
@@ -3638,10 +3617,7 @@ if (!window.__testChecklists) {
 		if (this.dom.randomThemeToggle) this.dom.randomThemeToggle.checked = !!this.appSettings.isRandomThemeEnabled;
 		if (this.dom.autoHideHeaderToggle) this.dom.autoHideHeaderToggle.checked = !!this.appSettings.isAutoHideHeaderEnabled;
 		if (this.dom.dndToggle) this.dom.dndToggle.checked = !!this.appSettings.isDndEnabled;
-		if (this.dom.showPinnedBtnToggle) this.dom.showPinnedBtnToggle.checked = !!this.appSettings.showPinnedBtn;
-		if (this.dom.showDndBtnToggle) this.dom.showDndBtnToggle.checked = !!this.appSettings.showDndBtn;
-		if (this.dom.showFloatBtnToggle) this.dom.showFloatBtnToggle.checked = !!this.appSettings.showFloatBtn;
-		if (this.dom.floatModeToggle) this.dom.floatModeToggle.checked = !!document.pictureInPictureElement;
+		if (this.dom.pipToggle) this.dom.pipToggle.checked = !!document.pictureInPictureElement;
 		if (this.dom.pinnedModeToggle) this.dom.pinnedModeToggle.checked = !!this.appSettings.isPinnedModeEnabled;
 		if (this.dom.skeletonDebugToggle) this.dom.skeletonDebugToggle.checked = !!this.appSettings.isSkeletonDebugEnabled;
 		if (this.dom.fontSelect) this.dom.fontSelect.value = this.appSettings.activeFontFamily || "'Inter', sans-serif";
@@ -3703,9 +3679,6 @@ if (!window.__testChecklists) {
 				this.dom.headerfullscreenbtn.classList.add('hidden');
 			}
 		}
-		if (this.dom.headerpinnedbtn) this.dom.headerpinnedbtn.classList.toggle('hidden', !this.appSettings.showPinnedBtn);
-		if (this.dom.headerdndbtn) this.dom.headerdndbtn.classList.toggle('hidden', !this.appSettings.showDndBtn);
-		if (this.dom.headerfloatbtn) this.dom.headerfloatbtn.classList.toggle('hidden', !this.appSettings.showFloatBtn);
 		if (this.dom.headerupsidedownbtn) {
 			if (this.appSettings.showUpsideDownBtn) {
 				this.dom.headerupsidedownbtn.classList.remove('hidden');
@@ -3784,7 +3757,7 @@ if (!window.__testChecklists) {
 	// Short labels for the Header reordering list - matches the wording used in Help's Buttons
 	// tab, condensed to fit a single line per row.
 	_headerBtnLabels() {
-		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerpinnedbtn: '📌 Pinned Mode', headerdndbtn: '🔕 Do Not Disturb', headerfloatbtn: '🪟 Float Window', headerupsidedownbtn: '🙃 Upside Down', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headerresetbtn: '♻️ Reset', headernukebtn: '☢️ Nuke', headernotepadbtn: '📝 Notepad' };
+		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerpinnedbtn: '📌 Pinned Mode', headerdndbtn: '🔕 Do Not Disturb', headerpipbtn: '🪟 Picture in Picture', headerupsidedownbtn: '🙃 Upside Down', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headerresetbtn: '♻️ Reset', headernukebtn: '☢️ Nuke', headernotepadbtn: '📝 Notepad' };
 	}
 	// Moves a button one position earlier/later in the LOGICAL order (from _headerBtnOrder,
 	// which already excludes clones), then reapplies that full order to the real DOM via
@@ -3872,7 +3845,7 @@ if (!window.__testChecklists) {
 		}).filter(Boolean);
 	}
 	_generalToggleLabels() {
-		return { randomThemeToggle: 'Random Theme 🎲', autoHideHeaderToggle: 'Auto Hide Header 👻', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerModeSwitchToggle: 'Mode Switch 🎮', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', headerThemeCycleToggle: 'Theme Cycle 🎨', headerAddMachineToggle: 'Add Machine ➕', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', headerCycleInputToggle: 'Cycle Input 🔀', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', introToggle: 'Show Intro', upsidedownToggle: 'Upside Down 🙃', fullscreenToggle: 'Full Screen 🔲', showPinnedBtnToggle: 'Show Pinned Header Button', showDndBtnToggle: 'Show DND Header Button', showFloatBtnToggle: 'Show Float Header Button', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', dndToggle: 'Do Not Disturb 🔕', floatModeToggle: 'Float Window 🪟', pinnedModeToggle: 'Pinned Mode 📌', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', bossToggle: 'Boss Mode 🌑', newToggle: 'Position Swap 🔄', biggerToggle: 'Bigger Buttons', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥' };
+		return { randomThemeToggle: 'Random Theme 🎲', autoHideHeaderToggle: 'Auto Hide Header 👻', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerModeSwitchToggle: 'Mode Switch 🎮', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', headerThemeCycleToggle: 'Theme Cycle 🎨', headerAddMachineToggle: 'Add Machine ➕', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', headerCycleInputToggle: 'Cycle Input 🔀', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', introToggle: 'Show Intro', upsidedownToggle: 'Upside Down 🙃', fullscreenToggle: 'Full Screen 🔲', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', dndToggle: 'Do Not Disturb 🔕', pipToggle: 'Picture in Picture 🪟', pinnedModeToggle: 'Pinned Mode 📌', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', bossToggle: 'Boss Mode 🌑', newToggle: 'Position Swap 🔄', biggerToggle: 'Bigger Buttons', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥' };
 	}
 	// Moves a toggle's WRAPPER div one position earlier/later, same index-based-then-reapply
 	// approach as _moveHeaderBtn (not raw siblings) - safe here too since a hidden toggle still
@@ -4425,10 +4398,10 @@ let screenWakeLock = null;
 // The header's original, as-shipped button order (matching static HTML order) - kept
 // separately from _headerBtnOrder() (which reads live DOM order once buttons may have been
 // dragged around) specifically so "Reset to Default Order" has a fixed target to restore to.
-const DEFAULT_HEADER_BTN_ORDER = ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn', 'headerfloatbtn'];
+const DEFAULT_HEADER_BTN_ORDER = ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn', 'headerpipbtn'];
 // The General tab's original, as-shipped toggle order (matching static HTML order) - same
 // purpose as DEFAULT_HEADER_BTN_ORDER above: a fixed target for "Reset to Default Order".
-const DEFAULT_GENERAL_TOGGLE_ORDER = ['randomThemeToggle', 'autoHideHeaderToggle', 'headerPlayToggle', 'headerDeleteToggle', 'headerSettingsToggle', 'headerHelpToggle', 'headerModeSwitchToggle', 'headerRedeemToggle', 'headerShareToggle', 'headerThemeCycleToggle', 'headerAddMachineToggle', 'headerUiSizeToggle', 'headerSeqSizeToggle', 'headerVolumeToggle', 'headerSpeedToggle', 'headerCycleInputToggle', 'headerResetToggle', 'headerNukeToggle', 'timerToggle', 'autotimerToggle', 'counterToggle', 'autocounterToggle', 'headerNotepadToggle', 'headerInfiniteScrollToggle', 'inputRegulatorToggle', 'hapticsToggle', 'introToggle', 'upsidedownToggle', 'fullscreenToggle', 'showPinnedBtnToggle', 'showDndBtnToggle', 'showFloatBtnToggle', 'ecoToggle', 'wakelockToggle', 'dndToggle', 'floatModeToggle', 'pinnedModeToggle', 'voiceToggle', 'voicecommandsToggle', 'toneToggle', 'touchToggle', 'bossToggle', 'newToggle', 'biggerToggle', 'arcamToggle', 'arAutoCloseGeneralToggle', 'handToggle', 'skeletonDebugToggle', 'handsignalsToggle', 'handednessFlipToggle', 'speeddeleteToggle', 'apshortcutToggle', 'volgesToggle', 'speedToggle', 'deleteToggle', 'clearToggle'];
+const DEFAULT_GENERAL_TOGGLE_ORDER = ['randomThemeToggle', 'autoHideHeaderToggle', 'headerPlayToggle', 'headerDeleteToggle', 'headerSettingsToggle', 'headerHelpToggle', 'headerModeSwitchToggle', 'headerRedeemToggle', 'headerShareToggle', 'headerThemeCycleToggle', 'headerAddMachineToggle', 'headerUiSizeToggle', 'headerSeqSizeToggle', 'headerVolumeToggle', 'headerSpeedToggle', 'headerCycleInputToggle', 'headerResetToggle', 'headerNukeToggle', 'timerToggle', 'autotimerToggle', 'counterToggle', 'autocounterToggle', 'headerNotepadToggle', 'headerInfiniteScrollToggle', 'inputRegulatorToggle', 'hapticsToggle', 'introToggle', 'upsidedownToggle', 'fullscreenToggle', 'ecoToggle', 'wakelockToggle', 'dndToggle', 'pipToggle', 'pinnedModeToggle', 'voiceToggle', 'voicecommandsToggle', 'toneToggle', 'touchToggle', 'bossToggle', 'newToggle', 'biggerToggle', 'arcamToggle', 'arAutoCloseGeneralToggle', 'handToggle', 'skeletonDebugToggle', 'handsignalsToggle', 'handednessFlipToggle', 'speeddeleteToggle', 'apshortcutToggle', 'volgesToggle', 'speedToggle', 'deleteToggle', 'clearToggle'];
 const CONFIG = {
     MAX_MACHINES: 4,
     DEMO_DELAY_BASE_MS: 798,
@@ -4599,9 +4572,6 @@ const DEFAULT_APP = {
     touchAnchorMinHoldTime: 150,
     touchChordSimultaneityWindow: 50,
     showFullscreenBtn: true,
-    showPinnedBtn: true,
-    showDndBtn: true,
-    showFloatBtn: true,
     showUpsideDownBtn: false,
     uiFontSizeMultiplier: 2.5,
     activeProfileId: 'profile_1',
@@ -4948,18 +4918,18 @@ const startApp = () => {
             if (typeof showToast === 'function') showToast(enabling ? 'Do Not Disturb on 🔕' : 'Do Not Disturb off');
         };
     }
-    const headerfloatbtn = document.getElementById('headerfloatbtn');
-    if (headerfloatbtn) {
-        headerfloatbtn.onclick = async () => {
-            const modalToggle = document.getElementById('floatModeToggle');
+    const headerpipbtn = document.getElementById('headerpipbtn');
+    if (headerpipbtn) {
+        headerpipbtn.onclick = async () => {
+            const modalToggle = document.getElementById('pipToggle');
             if (document.pictureInPictureElement) {
-                await exitFloatMode();
-                headerfloatbtn.classList.remove('ring-2', 'ring-emerald-500');
+                await exitPipMode();
+                headerpipbtn.classList.remove('ring-2', 'ring-emerald-500');
                 if (modalToggle) modalToggle.checked = false;
             } else {
-                const ok = await enterFloatMode();
-                headerfloatbtn.classList.toggle('ring-2', ok);
-                headerfloatbtn.classList.toggle('ring-emerald-500', ok);
+                const ok = await enterPipMode();
+                headerpipbtn.classList.toggle('ring-2', ok);
+                headerpipbtn.classList.toggle('ring-emerald-500', ok);
                 if (modalToggle) modalToggle.checked = ok;
             }
         };
@@ -7923,23 +7893,23 @@ window.unlockBodyScroll = unlockBodyScroll;
     window.addEventListener('resize', apply);
     window.addEventListener('orientationchange', () => setTimeout(apply, 150));
 })();
-// ===== Float Mode (always-on-top window) =====
+// ===== Picture in Picture (always-on-top window) =====
 // The Document Picture-in-Picture API would be the natural fit here, but it is desktop-only
 // (Chrome/Edge 130+, Firefox 151 - Chrome for Android does not support it), and this app targets
 // mobile. Video-element Picture-in-Picture IS supported on Android Chrome, so this renders the
 // live sequence into a canvas, pipes that canvas through captureStream() into a hidden <video>,
-// and puts THAT into PiP. Result: a real floating always-on-top window on Android.
+// and puts THAT into PiP. Result: a real always-on-top window on Android.
 //
 // Deliberately view-only: touches on a PiP window go to the window's own controls, not to page
-// content, so there is no way to make the floating copy interactive. It mirrors the sequence for
+// content, so there is no way to make the PiP copy interactive. It mirrors the sequence for
 // reference while you're in another app.
 //
 // It reads the rendered .number-box elements rather than any internal sequence array, so it
 // stays correct across every game mode (Simon, Unique Rounds, practice) without knowing about
-// any of them - whatever is on screen is what floats.
-let floatCanvas = null, floatVideo = null, floatStream = null, floatTimer = null;
+// any of them - whatever is on screen is what shows in the PiP window.
+let pipCanvas = null, pipVideo = null, pipStream = null, pipTimer = null;
 
-function floatModeSupported() {
+function pipSupported() {
     return !!(document.pictureInPictureEnabled && HTMLCanvasElement.prototype.captureStream);
 }
 
@@ -7951,14 +7921,14 @@ function readVisibleSequence() {
         .filter(t => t.length);
 }
 
-function drawFloatFrame() {
-    if (!floatCanvas) return;
-    const ctx = floatCanvas.getContext('2d');
+function drawPipFrame() {
+    if (!pipCanvas) return;
+    const ctx = pipCanvas.getContext('2d');
     const cs = getComputedStyle(document.body);
     const bg = cs.getPropertyValue('--bg-main').trim() || '#111827';
     const bubble = cs.getPropertyValue('--seq-bubble').trim() || '#6366f1';
     const textCol = cs.getPropertyValue('--text-main').trim() || '#ffffff';
-    const W = floatCanvas.width, H = floatCanvas.height;
+    const W = pipCanvas.width, H = pipCanvas.height;
 
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
@@ -8017,62 +7987,62 @@ function pickReadableInk(bgColor) {
     return lum > 0.6 ? '#111111' : '#ffffff';
 }
 
-async function enterFloatMode() {
-    if (!floatModeSupported()) {
-        showToast('Floating window not supported on this browser 🪟');
+async function enterPipMode() {
+    if (!pipSupported()) {
+        showToast('Picture-in-Picture not supported on this browser 🪟');
         return false;
     }
     try {
-        if (!floatCanvas) {
-            floatCanvas = document.createElement('canvas');
-            floatCanvas.width = 480;
-            floatCanvas.height = 270;
+        if (!pipCanvas) {
+            pipCanvas = document.createElement('canvas');
+            pipCanvas.width = 480;
+            pipCanvas.height = 270;
         }
-        if (!floatVideo) {
-            floatVideo = document.createElement('video');
-            floatVideo.muted = true;
-            floatVideo.playsInline = true;
-            floatVideo.setAttribute('playsinline', '');
+        if (!pipVideo) {
+            pipVideo = document.createElement('video');
+            pipVideo.muted = true;
+            pipVideo.playsInline = true;
+            pipVideo.setAttribute('playsinline', '');
             // Kept in the DOM but off-screen: a display:none video cannot enter PiP, and some
             // browsers refuse to keep a fully detached element playing.
-            floatVideo.style.cssText = 'position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none;';
-            document.body.appendChild(floatVideo);
-            floatVideo.addEventListener('leavepictureinpicture', () => {
-                stopFloatLoop();
-                const t = document.getElementById('floatModeToggle');
+            pipVideo.style.cssText = 'position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none;';
+            document.body.appendChild(pipVideo);
+            pipVideo.addEventListener('leavepictureinpicture', () => {
+                stopPipLoop();
+                const t = document.getElementById('pipToggle');
                 if (t) t.checked = false;
-                const b = document.getElementById('headerfloatbtn');
+                const b = document.getElementById('headerpipbtn');
                 if (b) b.classList.remove('ring-2', 'ring-emerald-500');
             });
         }
-        drawFloatFrame();
-        if (!floatStream) {
-            floatStream = floatCanvas.captureStream(5);
-            floatVideo.srcObject = floatStream;
+        drawPipFrame();
+        if (!pipStream) {
+            pipStream = pipCanvas.captureStream(5);
+            pipVideo.srcObject = pipStream;
         }
-        await floatVideo.play();
-        await floatVideo.requestPictureInPicture();
-        if (floatTimer) clearInterval(floatTimer);
-        floatTimer = setInterval(drawFloatFrame, 200);
+        await pipVideo.play();
+        await pipVideo.requestPictureInPicture();
+        if (pipTimer) clearInterval(pipTimer);
+        pipTimer = setInterval(drawPipFrame, 200);
         return true;
     } catch (err) {
-        console.warn('[FloatMode] could not open floating window:', err);
-        showToast('Could not open floating window 🪟');
-        stopFloatLoop();
+        console.warn('[PiP] could not open Picture-in-Picture:', err);
+        showToast('Could not open Picture-in-Picture 🪟');
+        stopPipLoop();
         return false;
     }
 }
 
-function stopFloatLoop() {
-    if (floatTimer) { clearInterval(floatTimer); floatTimer = null; }
+function stopPipLoop() {
+    if (pipTimer) { clearInterval(pipTimer); pipTimer = null; }
 }
 
-async function exitFloatMode() {
-    stopFloatLoop();
+async function exitPipMode() {
+    stopPipLoop();
     try {
         if (document.pictureInPictureElement) await document.exitPictureInPicture();
     } catch (err) {
-        console.warn('[FloatMode] exit failed:', err);
+        console.warn('[PiP] exit failed:', err);
     }
 }
 

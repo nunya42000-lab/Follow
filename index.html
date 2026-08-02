@@ -39,8 +39,8 @@ alert("Promise Error: " + event.reason);
 <button id="headerarcambtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">📷</button>
 <button id="headerbiggerbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">⌨️</button>
 <button id="headerfullscreenbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔲</button>
-<button id="headerpinnedbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">📌</button>
-<button id="headerdndbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔕</button>
+<button id="headerpinnedbtn"class="w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">📌</button>
+<button id="headerdndbtn"class="w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔕</button>
 <button id="headerupsidedownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🙃</button>
 <button id="headerswapbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔄</button>
 <button id="headerplaybtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Play">▶️</button>
@@ -64,7 +64,7 @@ alert("Promise Error: " + event.reason);
 <button id="headernotepadbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Notepad">📝</button>
 <button id="headerhelpbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Help">📚</button>
 <button id="headermodeswitchbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Switch Game Mode">🎮</button>
-<button id="headerfloatbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Float Window">🪟</button>
+<button id="headerpipbtn" class="w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Picture in Picture">🪟</button>
 </div>
 </div>
 </header>
@@ -503,20 +503,11 @@ alert("Promise Error: " + event.reason);
 <span class="font-bold text-sm text-muted-custom">Do Not Disturb 🔕</span>
 <input type="checkbox" id="dndToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm text-muted-custom">Show DND Header Button</span>
-<input type="checkbox" id="showDndBtnToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm text-muted-custom">Float Window 🪟</span>
-<input type="checkbox" id="floatModeToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm text-muted-custom">Show Float Header Button</span>
-<input type="checkbox" id="showFloatBtnToggle" class="h-5 w-5 accent-indigo-500"></div>
+<span class="font-bold text-sm text-muted-custom">Picture in Picture 🪟</span>
+<input type="checkbox" id="pipToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Pinned Mode 📌</span>
 <input type="checkbox" id="pinnedModeToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm text-muted-custom">Show Pinned Header Button</span>
-<input type="checkbox" id="showPinnedBtnToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Voice Input 🎤</span>
 <input type="checkbox" id="voiceToggle" class="h-5 w-5 accent-indigo-500"></div>
@@ -1434,10 +1425,10 @@ Email
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">♻️</span> <strong>Reset:</strong> Factory reset - restores default settings (asks to confirm first).</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">☢️</span> <strong>Nuke:</strong> Full wipe - clears saved data, browser cache, and forces a fresh reload (asks to confirm first). Use if the app is behaving strangely after an update.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📝</span> <strong>Notepad:</strong> A simple scratchpad that opens the keyboard immediately. Long-press this icon (instead of tapping) to instantly copy the whole note to your clipboard.</li>
-<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🪟</span> <strong>Float Window:</strong> Opens a small always-on-top window showing your sequence, so you can read it while using another app.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🪟</span> <strong>Picture in Picture:</strong> Opens a small always-on-top window showing your sequence, so you can read it while using another app.</li>
 </ul>
 </div>
-<p class="text-[10px] text-gray-500 italic">Each icon above only appears in the header once its matching toggle is turned on in Settings → General. When enough are on to overflow one row, the header becomes a horizontally-scrolling toolbar - drag left or right, it loops continuously in both directions.</p>
+<p class="text-[10px] text-gray-500 italic">Each icon above only appears in the header once its matching toggle is turned on in Settings → General, except Pinned Mode, Do Not Disturb, and Picture in Picture, which are always shown. When enough are on to overflow one row, the header becomes a horizontally-scrolling toolbar - drag left or right, it loops continuously in both directions.</p>
 </div>
 <div id="tab-help-settings" class="tab-content space-y-3">
 <p class="text-xs opacity-80 mb-3">Every toggle, slider, and switch in the Settings menu explained.</p>
@@ -1489,10 +1480,9 @@ Email
 <div><strong>Boss Mode 🌑:</strong> Shake to black out screen.</div>
 <div><strong>BM Gestures:</strong> Automatic when Touch Gesture and Boss Mode are both on - no separate toggle needed.</div>
 <div><strong>Wake Lock 💡:</strong> Prevents screen sleeping.</div>
-<div><strong>Do Not Disturb 🔕:</strong> Silences every interruption the app makes - toast popups, all vibration/haptics (including morse buzzes), and spoken audio. Off by default. Doesn't touch your phone's own system Do Not Disturb, which no web app can control. Has a header button (🔕) for quick access, right next to Full Screen.</div>
-<div><strong>Float Window 🪟:</strong> Opens a small always-on-top window showing your current sequence, so you can read it while using another app. View-only - you can't tap the sequence in the floating window. Closes when you switch it off or close the window. Has a header button (🪟), placed last in the row.</div>
-<div><strong>Pinned Mode 📌:</strong> Goes fullscreen and blocks the back gesture so you can't accidentally swipe out mid-sequence. Turn it off here to leave. This is the app's own lock - it can't trigger Android's system screen pinning, which has no web API. Has a header button (📌) right next to Full Screen.</div>
-<div><strong>Show Pinned/DND/Float Header Button:</strong> Each of these three new features has its own header button, shown by default, that turns the feature on and off directly - same as every other header icon. These three checkboxes only control whether that shortcut appears in the header; the feature itself and its own on/off setting above are unaffected either way.</div>
+<div><strong>Do Not Disturb 🔕:</strong> Silences every interruption the app makes - toast popups, all vibration/haptics (including morse buzzes), and spoken audio. Off by default. Doesn't touch your phone's own system Do Not Disturb, which no web app can control. Has a header button (🔕), always shown, right next to Full Screen.</div>
+<div><strong>Picture in Picture 🪟:</strong> Opens a small always-on-top window showing your current sequence, so you can read it while using another app. View-only - you can't tap the sequence in the floating window. Closes when you switch it off or close the window. Has a header button (🪟), always shown, placed last in the row.</div>
+<div><strong>Pinned Mode 📌:</strong> Goes fullscreen and blocks the back gesture so you can't accidentally swipe out mid-sequence. Turn it off here to leave. This is the app's own lock - it can't trigger Android's system screen pinning, which has no web API. Has a header button (📌), always shown, right next to Full Screen.</div>
 <div><strong>Upside Down:</strong> Flips the entire UI 180°.</div>
 <div><strong>Full Screen:</strong> Hides browser bars.</div>
 <div><strong>Eco Mode 🔋:</strong> Reduces animations/framerate.</div>

@@ -1831,5 +1831,19 @@ Auto-close after playback
 <div id="toast-notification" class="fixed top-20 left-1/2 -translate-x-1/2 bg-primary-app text-white px-6 py-3 rounded-xl shadow-lg z-[99] transition-all duration-300 opacity-0 transform -translate-y-10"><span id="toast-message"></span></div>
 <div id="tone-debug-indicator" class="hidden fixed top-32 left-1/2 -translate-x-1/2 bg-black bg-opacity-80 text-indigo-300 px-4 py-2 rounded-lg shadow-lg z-[99] font-mono text-xs pointer-events-none">🎵 listening...</div>
 <script type="module" src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered successfully with scope:', registration.scope);
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
+    });
+  }
+</script>
+  
 </body>
 </html>

@@ -15,7 +15,7 @@ const OPTIONAL_ASSETS = [
     './icon192.png',
     './icon512.png',
     './qr.jpg',
-    './redeem.jpg',
+    './redeem.png',
     './wasm/vision_bundle.js',
     './wasm/vision_wasm_internal.js',
     './wasm/vision_wasm_internal.wasm',

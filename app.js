@@ -7152,26 +7152,26 @@ if (headerAutoRotate) {
 		console.error("Listener Error:", e);
 	}
 }
-function toggleAppRotation(allowRotate) {
+//function toggleAppRotation(allowRotate) {
     // Safety check: ensure the browser actually supports the API
-    if (!screen.orientation) {
-        console.warn("Screen Orientation API is not supported on this device.");
-        return;
-    }
-    try {
-        if (allowRotate) {
+ //   if (!screen.orientation) {
+     //   console.warn("Screen Orientation API is not supported on this device.");
+     //   return;
+//    }
+//    try {
+  //      if (allowRotate) {
             // Frees the screen to rotate natively with the physical device
-            screen.orientation.unlock();
-        } else {
+ //           screen.orientation.unlock();
+ //       } else {
             // Forces the PWA to stay vertical, completely ignoring the device sensors
-            await screen.orientation.lock('portrait-primary');
-        }
-    } catch (error) {
+  //          await screen.orientation.lock('portrait-primary');
+//        }
+//    } catch (error) {
         // This catch is crucial! The API can throw errors if the device blocks it
         // or if it isn't interacting with a valid user gesture.
-        console.warn("Orientation lock failed:", error);
-    }
-}
+  //      console.warn("Orientation lock failed:", error);
+//    }
+//}
 window.upsidedownToggle = async function(enable) {
 	try {
 		if (('wakeLock' in navigator)) {

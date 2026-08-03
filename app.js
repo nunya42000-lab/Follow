@@ -4293,7 +4293,7 @@ const DEFAULT_APP = {
 };
 const SETTINGS_PRESETS = [
 	{ id: 'default', name: 'Default (New Player)', code: 'm.xmhNj`V-16N$xovQJJ^`qG9_Wn:' },
-	{ id: 'preset1', name: 'Preset 1', code: '52.1mS#XVd.Dq@{YbdPa555f)@IB#pkT.m[an{Lde=VpQ4L]+Q#UoY_5I@Vt2H]Y5LDu:fP_MGJHBV?!?[FNzTMD/fW*8FoC);1.twH(G:+H-ln{o=9a5cj7V4[q7tmMypBrqVG}_`YYn5b?sN93O77)`_^9Au{8er8dHh,VtJkdQ/,+w05mf#AS*AJM`}?,V3scBZP^dKiin:aSBJH`bPxt}dW/xzD(pm]VW4' }
+	{ id: 'preset1', name: 'Preset 1', code: '5h.VUoC0xD7PX/at/Lp`L#I*P`yZrCGdegzB5%ul;Ahy%/C@W3D{fnmBvR+[^PD5FZHA_CIP(bk^yuXi3PxEJ))X$0s/t(Qn/Q`lkqSx0=sOf[m_4_+q0lFBx!}rsXd/lWhraLU=w_K65!H!34_2NoP{`_=u2I:^/b?$_6iU92H{Hh.nd/?GQht{GS9lJjPi07n[O?Cde#kt]f%SNFVnFG*32yjgBCk-J`hIw}JK`(h,lcu4Vhl+abbE' }
 ];
 const DEFAULT_MAPPINGS = {
 	'k9_1': 'tap',

@@ -1620,13 +1620,28 @@ class SettingsManager {
 				this.callbacks.onSave();
 			};
 		}
-      		if (this.dom.autoRotateToggle) {
-			this.dom.autoRotateToggle.onchange = (e) => {
-				this.appSettings.showAutoRotateBtn = e.target.checked;
-				this.updateHeaderVisibility();
-				this.callbacks.onSave();
-			};
-		}
+      		const settingsAutoRotateToggle = document.getElementById('settingsAutoRotateToggle'); 
+const headerautorotatebtn = document.getElementById('headerautorotatebtn');
+
+if (settingsAutoRotateToggle && headerautorotatebtn) {
+    settingsAutoRotateToggle.onchange = (e) => {
+        const isFeatureEnabled = e.target.checked; // Change to match your toggle's state property if not a checkbox
+        
+        if (isFeatureEnabled) {
+            // Show/enable the header button
+            headerautorotatebtn.classList.remove('hidden'); // Or style.display = 'block'
+            showToast("Auto-rotate header button enabled");
+        } else {
+            // Hide/disable the header button and force lock back to default
+            headerautorotatebtn.classList.add('hidden'); // Or style.display = 'none'
+            document.body.classList.remove('auto-rotate');
+            headerautorotatebtn.classList.remove('ring-2', 'ring-emerald-500');
+            toggleAppRotation(false);
+            showToast("Auto-rotate header button disabled");
+        }
+    };
+}
+
 		bindToggleWithCallback(this.dom.ecoToggle, 'isEcoModeEnabled', () => {
 				document.body.classList.toggle('eco-mode', this.appSettings.isEcoModeEnabled);
 		});
@@ -4479,31 +4494,47 @@ const startApp = () => {
 		};
 	}
 	const headerupsidedownbtn = document.getElementById('headerupsidedownbtn');
-	if (headerupsidedownbtn) {
-		headerupsidedownbtn.onclick = () => {
-			document.body.classList.toggle('upside-down');
-			if (document.body.classList.contains('upside-down')) {
-				headerupsidedownbtn.classList.add('ring-2', 'ring-emerald-500');
-				showToast("Upside Down Mode: ON 🙃");
-			} else {
-				headerupsidedownbtn.classList.remove('ring-2', 'ring-emerald-500');
-				showToast("Upside Down Mode: OFF");
-			}
-		};
-	}
-  const headerautorotatebtn = document.getElementById('headerautorotatebtn');
-	if (headerautorotatebtn) {
-		headerautorotatebtn.onclick = () => {
-			document.body.classList.toggle('auto-rotate');
-			if (document.body.classList.contains('auto-rotate')) {
-				headerautorotatebtn.classList.add('ring-2', 'ring-emerald-500');
-				showToast("Auto Rotate Mode: ON 🙃");
-			} else {
-				headerautorotatebtn.classList.remove('ring-2', 'ring-emerald-500');
-				showToast("Auto Rotate Mode: OFF");
-			}
-		};
-    }
+	const settingsAutoRotateToggle = document.getElementById('settingsAutoRotateToggle'); 
+const headerautorotatebtn = document.getElementById('headerautorotatebtn');
+
+if (settingsAutoRotateToggle && headerautorotatebtn) {
+if (headerautorotatebtn) {
+    headerautorotatebtn.onclick = async () => {
+        const isAutoRotate = document.body.classList.toggle('auto-rotate');
+        
+        if (isAutoRotate) {
+            headerautorotatebtn.classList.add('ring-2', 'ring-emerald-500');
+            showToast("Auto Rotate Mode: ON 🙃");
+        } else {
+            headerautorotatebtn.classList.remove('ring-2', 'ring-emerald-500');
+            showToast("Auto Rotate Mode: OFF");
+        }
+        
+        await toggleAppRotation(isAutoRotate);
+    };
+}
+const settingsAutoRotateToggle = document.getElementById('settingsAutoRotateToggle'); 
+const headerautorotatebtn = document.getElementById('headerautorotatebtn');
+
+if (settingsAutoRotateToggle && headerautorotatebtn) {
+    settingsAutoRotateToggle.onchange = (e) => {
+        const isFeatureEnabled = e.target.checked; // Change to match your toggle's state property if not a checkbox
+        
+        if (isFeatureEnabled) {
+            // Show/enable the header button
+            headerautorotatebtn.classList.remove('hidden'); // Or style.display = 'block'
+            showToast("Auto-rotate header button enabled");
+        } else {
+            // Hide/disable the header button and force lock back to default
+            headerautorotatebtn.classList.add('hidden'); // Or style.display = 'none'
+            document.body.classList.remove('auto-rotate');
+            headerautorotatebtn.classList.remove('ring-2', 'ring-emerald-500');
+            toggleAppRotation(false);
+            showToast("Auto-rotate header button disabled");
+        }
+    };
+}
+
 	if (appSettings.isWakeLockEnabled && typeof window.wakelockToggle === 'function') {
 		window.wakelockToggle(true);
 	}
@@ -7155,25 +7186,22 @@ if (headerAutoRotate) {
 	}
 }
 async function toggleAppRotation(allowRotate) {
-    // Safety check: ensure the browser actually supports the API
     if (!screen.orientation) {
         console.warn("Screen Orientation API is not supported on this device.");
         return;
     }
     try {
         if (allowRotate) {
-            // Frees the screen to rotate natively with the physical device
+            // Unlocks rotation (or locks it, depending on your manifest setup)
             screen.orientation.unlock();
         } else {
-            // Forces the PWA to stay vertical, completely ignoring the device sensors
             await screen.orientation.lock('portrait-primary');
         }
     } catch (error) {
-        // This catch is crucial! The API can throw errors if the device blocks it
-        // or if it isn't interacting with a valid user gesture.
-        console.warn("Orientation lock failed:", error);
+        console.warn("Orientation change failed:", error);
     }
 }
+
 
 window.upsidedownToggle = async function(enable) {
 	try {

@@ -6714,6 +6714,14 @@ function initGlobalListeners() {
 				}
 			};
 		}
+      const headerAutoRotate = document.getElementById('headerautorotatebtn');
+if (headerAutoRotate) {
+    headerAutoRotate.onclick = () => {
+        appSettings.isAutoRotateEnabled = !appSettings.isAutoRotateEnabled;
+        toggleAppRotation(appSettings.isAutoRotateEnabled);
+        saveState();
+    };
+}
 		const headerStealth = document.getElementById('headerbiggerbtn');
 		if (headerStealth) {
 			headerStealth.onclick = () => {

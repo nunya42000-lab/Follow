@@ -1,3 +1,5 @@
+
+
 const TONE_TABLE = [
 	{ n: 1, f: 261.63, name: 'C' },
 	{ n: 2, f: 293.66, name: 'D' },
@@ -7152,7 +7154,7 @@ if (headerAutoRotate) {
 		console.error("Listener Error:", e);
 	}
 }
-function toggleAppRotation(allowRotate) {
+async function toggleAppRotation(allowRotate) {
     // Safety check: ensure the browser actually supports the API
     if (!screen.orientation) {
         console.warn("Screen Orientation API is not supported on this device.");
@@ -7164,7 +7166,7 @@ function toggleAppRotation(allowRotate) {
             screen.orientation.unlock();
         } else {
             // Forces the PWA to stay vertical, completely ignoring the device sensors
-            async screen.orientation.lock('portrait-primary');
+            await screen.orientation.lock('portrait-primary');
         }
     } catch (error) {
         // This catch is crucial! The API can throw errors if the device blocks it
@@ -7172,6 +7174,7 @@ function toggleAppRotation(allowRotate) {
         console.warn("Orientation lock failed:", error);
     }
 }
+
 window.upsidedownToggle = async function(enable) {
 	try {
 		if (('wakeLock' in navigator)) {

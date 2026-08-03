@@ -4494,27 +4494,27 @@ const startApp = () => {
 		};
 	}
 	const headerupsidedownbtn = document.getElementById('headerupsidedownbtn');
-	const settingsAutoRotateToggle = document.getElementById('settingsAutoRotateToggle'); 
-const headerautorotatebtn = document.getElementById('headerautorotatebtn');
+	const autoRotateToggle = document.getElementById('autoRotateToggle'); 
+const headerAutoRotateBtn = document.getElementById('headerAutoRotateBtn');
 
-if (settingsAutoRotateToggle && headerautorotatebtn) {
-if (headerautorotatebtn) {
-    headerautorotatebtn.onclick = async () => {
+if (autoRotateToggle && headerAutoRotateBtn) {
+if (headerAutoRotateBtn) {
+    headerAutoRotateBtn.onclick = async () => {
         const isAutoRotate = document.body.classList.toggle('auto-rotate');
         
         if (isAutoRotate) {
-            headerautorotatebtn.classList.add('ring-2', 'ring-emerald-500');
+            headerAutoRotateBtn.classList.add('ring-2', 'ring-emerald-500');
             showToast("Auto Rotate Mode: ON 🙃");
         } else {
-            headerautorotatebtn.classList.remove('ring-2', 'ring-emerald-500');
+            headerAutoRotateBtn.classList.remove('ring-2', 'ring-emerald-500');
             showToast("Auto Rotate Mode: OFF");
         }
         
         await toggleAppRotation(isAutoRotate);
     };
 }
-const settingsAutoRotateToggle = document.getElementById('settingsAutoRotateToggle'); 
-const headerautorotatebtn = document.getElementById('headerautorotatebtn');
+const autoRotateToggle = document.getElementById('autoRotateToggle'); 
+const headerAutoRotateBtn = document.getElementById('headerAutoRotateBtn');
 
 if (autoRotateToggle && headerAutoRotateBtn) {
     autoRotateToggle.onchange = (e) => {
@@ -4522,13 +4522,13 @@ if (autoRotateToggle && headerAutoRotateBtn) {
         
         if (isFeatureEnabled) {
             // Show/enable the header button
-            headerautorotatebtn.classList.remove('hidden'); // Or style.display = 'block'
+            headerAutoRotateBtn.classList.remove('hidden'); // Or style.display = 'block'
             showToast("Auto-rotate header button enabled");
         } else {
             // Hide/disable the header button and force lock back to default
             headerAutoRotateBtn.classList.add('hidden'); // Or style.display = 'none'
             document.body.classList.remove('auto-rotate');
-            headerAutorRotateBtn.classList.remove('ring-2', 'ring-emerald-500');
+            headerAutoRotateBtn.classList.remove('ring-2', 'ring-emerald-500');
             toggleAppRotation(false);
             showToast("Auto-rotate header button disabled");
         }

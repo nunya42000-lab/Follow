@@ -4492,8 +4492,8 @@ const startApp = () => {
   const headerautorotatebtn = document.getElementById('headerautorotatebtn');
 	if (headerautorotatebtn) {
 		headerautorotatebtn.onclick = () => {
-			document.body.classList.toggle('auto rotate');
-			if (document.body.classList.contains('auto rotate')) {
+			document.body.classList.toggle('auto-rotate');
+			if (document.body.classList.contains('auto-rotate')) {
 				headerautorotatebtn.classList.add('ring-2', 'ring-emerald-500');
 				showToast("Auto Rotate Mode: ON 🙃");
 			} else {

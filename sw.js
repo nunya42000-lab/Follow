@@ -1,6 +1,4 @@
-
-const CACHE_NAME = 'follow-me-v75-final';
-
+const CACHE_NAME = 'follow-me-v76-offline-strict';
 
 const CRITICAL_ASSETS = [
     './',
@@ -9,7 +7,6 @@ const CRITICAL_ASSETS = [
     './app.js',
     './manifest.json'
 ];
-
 
 const OPTIONAL_ASSETS = [
     './icon192.png',
@@ -31,7 +28,7 @@ self.addEventListener('install', event => {
         caches.open(CACHE_NAME).then(async cache => {
             console.log('[SW] Installing...');
             
-            // A. Cache Critical Files (Fail if missing)
+            // A. Cache Critical Files (Fail if missing)[span_1](start_span)[span_1](end_span)
             try {
                 await cache.addAll(CRITICAL_ASSETS);
                 console.log('[SW] Critical assets cached');
@@ -39,7 +36,7 @@ self.addEventListener('install', event => {
                 console.error('[SW] Critical install failed. Check file paths:', err);
             }
 
-            // B. Cache Optional Files (Ignore errors)
+            // B. Cache Optional Files (Ignore errors)[span_2](start_span)[span_2](end_span)
             await Promise.all(OPTIONAL_ASSETS.map(async url => {
                 try {
                     const res = await fetch(url);
@@ -71,10 +68,15 @@ self.addEventListener('fetch', event => {
     
     event.respondWith(
         caches.match(event.request).then(cached => {
-            // Return cached content if available
+            // Return cached content if available[span_3](start_span)[span_3](end_span)
             if (cached) return cached;
 
-            // Otherwise fetch from network and cache it for next time
+            // If it's a page navigation request, guarantee it opens instantly offline by falling back to index.html
+            if (event.request.mode === 'navigate') {
+                return caches.match('./index.html').then(indexCached => indexCached || caches.match('./'));
+            }
+
+            // Otherwise fetch from network and cache it for next time[span_4](start_span)[span_4](end_span)
             return fetch(event.request).then(networkResponse => {
                 if (!networkResponse || networkResponse.status !== 200 || networkResponse.type === 'error') {
                     return networkResponse;

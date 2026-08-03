@@ -1,1469 +1,1111 @@
-// ============================================================
-// Nexus_Vfs / Follow Me — merged application bundle
-// Formerly four ES modules (app.js, gestures.js, settings.js, vision.js),
-// consolidated into one file. Section banners below mark the original
-// file boundaries for navigation during audits.
-// ============================================================
-
-// --- Tone Cadence: single source of truth for the 9 notes (C4-D5, diatonic major scale, A440 12-TET) ---
-// Playback (ToneSequenceTester), mic-input detection (ToneEngine), and both UI note-name displays
-// all read from this one table so the numbers can never drift out of sync with each other.
 const TONE_TABLE = [
-    { n: 1, f: 261.63, name: 'C' },
-    { n: 2, f: 293.66, name: 'D' },
-    { n: 3, f: 329.63, name: 'E' },
-    { n: 4, f: 349.23, name: 'F' },
-    { n: 5, f: 392.00, name: 'G' },
-    { n: 6, f: 440.00, name: 'A' },
-    { n: 7, f: 493.88, name: 'B' },
-    { n: 8, f: 523.25, name: 'C' },
-    { n: 9, f: 587.33, name: 'D' }
+	{ n: 1, f: 261.63, name: 'C' },
+	{ n: 2, f: 293.66, name: 'D' },
+	{ n: 3, f: 329.63, name: 'E' },
+	{ n: 4, f: 349.23, name: 'F' },
+	{ n: 5, f: 392.00, name: 'G' },
+	{ n: 6, f: 440.00, name: 'A' },
+	{ n: 7, f: 493.88, name: 'B' },
+	{ n: 8, f: 523.25, name: 'C' },
+	{ n: 9, f: 587.33, name: 'D' }
 ];
-
-// ===== FORMERLY: gestures.js =====
-// gestures.js
-// Version: v100 - "I-Shape" Boomerangs & Switchbacks
-
-// --- Merged from gesture_groups.js (was a separate file, now consolidated here) ---
 const HAND_GESTURE_GROUPS = [
-    {
-        id: "hand_poses",
-        name: "Hand Static Poses",
-        enabled: true,
-        gestures: [
-            { id: "0", name: "✊ Fist" },
-            { id: "18", name: "🤘 Rock On" },
-            { id: "34", name: "🤙 Shaka" },
-            { id: "48", name: "🫵 Gun / L-Shape" },
-            { id: "50", name: "🤟 Spidey / ILY" },
-            { id: "600", name: "👍 Thumbs Up" },
-            { id: "601", name: "👎 Thumbs Down" }
-        ]
-    },
-    {
-        id: "hand_pinches",
-        name: "Hand Pinches",
-        enabled: true,
-        gestures: [
-            { id: "100", name: "🤏 Basic Pinch" },
-            { id: "104", name: "🤌 Chef Kiss (All)" },
-            { id: "105", name: "👌 OK Sign" }
-        ]
-    },
-    {
-        id: "hand_counts",
-        name: "Hand Finger Counts",
-        enabled: true,
-        gestures: [
-            { id: "16", name: "☝️ 1 Finger (Index)" },
-            { id: "24", name: "✌️ 2 Fingers (Peace)" },
-            { id: "28", name: "3️⃣ 3 Fingers" },
-            { id: "30", name: "4️⃣ 4 Fingers" },
-            { id: "62", name: "🖐️ 5 Fingers (Palm)" }
-        ]
-    },
-    {
-        id: "hand_vision_shapes",
-        name: "Hand Advanced Vision Shapes",
-        enabled: true,
-        gestures: [
-            { id: "200", name: "🪃 Boomerang Pattern" },
-            { id: "201", name: "⚡ Zigzag Motion" },
-            { id: "202", name: "⚓ Anchor Hold" },
-            { id: "203", name: "🔄 Circular Sweep" }
-        ]
-    },
-    {
-        id: "hand_combos",
-        name: "Hand Combos (specific finger combinations)",
-        enabled: true,
-        gestures: [
-            { id: "12", name: "🥢 Chopsticks" },
-            { id: "14", name: "🤟 Three (No Index)" },
-            { id: "20", name: "🤞 Index + Ring" },
-            { id: "22", name: "Index + Ring + Pinky" },
-            { id: "26", name: "✌️ Peace + Pinky" },
-            { id: "36", name: "Thumb + Ring" },
-            { id: "38", name: "Thumb + Ring + Pinky" },
-            { id: "40", name: "Thumb + Middle" },
-            { id: "42", name: "Thumb + Middle + Pinky" },
-            { id: "44", name: "Thumb + Middle + Ring" },
-            { id: "46", name: "Four (No Index)" },
-            { id: "52", name: "Thumb + Index + Ring" },
-            { id: "54", name: "Four (No Middle)" },
-            { id: "56", name: "🖖 Scout Sign" },
-            { id: "58", name: "Four (No Ring)" },
-            { id: "60", name: "Five (No Pinky)" },
-            { id: "101", name: "🤏 Pinch (Middle)" },
-            { id: "102", name: "🤏 Pinch (Ring)" },
-            { id: "103", name: "🤏 Pinch (Pinky)" }
-        ]
-    },
-    {
-        id: "hand_swipes",
-        name: "Hand Directional Swipes",
-        enabled: true,
-        gestures: [
-            { id: "300", name: "👆 Swipe Up" },
-            { id: "301", name: "👇 Swipe Down" },
-            { id: "302", name: "👈 Swipe Left" },
-            { id: "303", name: "👉 Swipe Right" }
-        ]
-    },
-    {
-        id: "hand_transitions",
-        name: "Motion Transitions",
-        enabled: true,
-        gestures: [
-            { id: "400", name: "🗑️ Throw (Fist → Open)" },
-            { id: "401", name: "✊ Grab (Open → Fist)" },
-            { id: "402", name: "👐 Release (Pinch → Open)" },
-            { id: "403", name: "🤏 Snatch (Open → Pinch)" },
-            { id: "404", name: "☝️ Point Out (Fist → 1 Finger)" }
-        ]
-    },]
-// NOTE: TOUCH_GESTURE_GROUPS was removed here - confirmed 100% unused anywhere in
-// the project (touch filtering uses GESTURE_CATEGORIES in settings.js instead).
-
-
-
-// --- End merged content ---
-
+	{
+		id: "hand_poses",
+		name: "Hand Static Poses",
+		enabled: true,
+		gestures: [
+			{ id: "0", name: "✊ Fist" },
+			{ id: "18", name: "🤘 Rock On" },
+			{ id: "34", name: "🤙 Shaka" },
+			{ id: "48", name: "🫵 Gun / L-Shape" },
+			{ id: "50", name: "🤟 Spidey / ILY" },
+			{ id: "600", name: "👍 Thumbs Up" },
+			{ id: "601", name: "👎 Thumbs Down" }
+		]
+	},
+	{
+		id: "hand_pinches",
+		name: "Hand Pinches",
+		enabled: true,
+		gestures: [
+			{ id: "100", name: "🤏 Basic Pinch" },
+			{ id: "104", name: "🤌 Chef Kiss (All)" },
+			{ id: "105", name: "👌 OK Sign" }
+		]
+	},
+	{
+		id: "hand_counts",
+		name: "Hand Finger Counts",
+		enabled: true,
+		gestures: [
+			{ id: "16", name: "☝️ 1 Finger (Index)" },
+			{ id: "24", name: "✌️ 2 Fingers (Peace)" },
+			{ id: "28", name: "3️⃣ 3 Fingers" },
+			{ id: "30", name: "4️⃣ 4 Fingers" },
+			{ id: "62", name: "🖐️ 5 Fingers (Palm)" }
+		]
+	},
+	{
+		id: "hand_vision_shapes",
+		name: "Hand Advanced Vision Shapes",
+		enabled: true,
+		gestures: [
+			{ id: "200", name: "🪃 Boomerang Pattern" },
+			{ id: "201", name: "⚡ Zigzag Motion" },
+			{ id: "202", name: "⚓ Anchor Hold" },
+			{ id: "203", name: "🔄 Circular Sweep" }
+		]
+	},
+	{
+		id: "hand_combos",
+		name: "Hand Combos (specific finger combinations)",
+		enabled: true,
+		gestures: [
+			{ id: "12", name: "🥢 Chopsticks" },
+			{ id: "14", name: "🤟 Three (No Index)" },
+			{ id: "20", name: "🤞 Index + Ring" },
+			{ id: "22", name: "Index + Ring + Pinky" },
+			{ id: "26", name: "✌️ Peace + Pinky" },
+			{ id: "36", name: "Thumb + Ring" },
+			{ id: "38", name: "Thumb + Ring + Pinky" },
+			{ id: "40", name: "Thumb + Middle" },
+			{ id: "42", name: "Thumb + Middle + Pinky" },
+			{ id: "44", name: "Thumb + Middle + Ring" },
+			{ id: "46", name: "Four (No Index)" },
+			{ id: "52", name: "Thumb + Index + Ring" },
+			{ id: "54", name: "Four (No Middle)" },
+			{ id: "56", name: "🖖 Scout Sign" },
+			{ id: "58", name: "Four (No Ring)" },
+			{ id: "60", name: "Five (No Pinky)" },
+			{ id: "101", name: "🤏 Pinch (Middle)" },
+			{ id: "102", name: "🤏 Pinch (Ring)" },
+			{ id: "103", name: "🤏 Pinch (Pinky)" }
+		]
+	},
+	{
+		id: "hand_swipes",
+		name: "Hand Directional Swipes",
+		enabled: true,
+		gestures: [
+			{ id: "300", name: "👆 Swipe Up" },
+			{ id: "301", name: "👇 Swipe Down" },
+			{ id: "302", name: "👈 Swipe Left" },
+			{ id: "303", name: "👉 Swipe Right" }
+		]
+	},
+	{
+		id: "hand_transitions",
+		name: "Motion Transitions",
+		enabled: true,
+		gestures: [
+			{ id: "400", name: "🗑️ Throw (Fist → Open)" },
+			{ id: "401", name: "✊ Grab (Open → Fist)" },
+			{ id: "402", name: "👐 Release (Pinch → Open)" },
+			{ id: "403", name: "🤏 Snatch (Open → Pinch)" },
+			{ id: "404", name: "☝️ Point Out (Fist → 1 Finger)" }
+		]
+	},]
 class TouchGestureEngine {
-    constructor(targetElement, config, callbacks) {
-        this.target = targetElement || document.body;
-        this.config = Object.assign({
-            tapDelay: 800,        
-            longPressTime: 300,   
-            swipeThreshold: 40,   
-            spatialThreshold: 10, 
-            tapPrecision: 30,
-            longSwipeThreshold: 150, 
-            multiSwipeThreshold: 10, 
-            anchorStillDistance: 15,
-            anchorMinHoldTime: 150,
-            chordSimultaneityWindow: 50,
-            pauseDwellRadius: 22,
-            pauseDwellTime: 400,
-            debug: false
-        }, config || {});
-
-        this.callbacks = Object.assign({
-            onTouchGesture: (data) => console.log('Gesture:', data), 
-            onContinuous: (data) => console.log('Continuous:', data), 
-            onDebug: (msg) => {}
-        }, callbacks || {});
-
-        this.activePointers = {};
-        this.history = [];
-        this.tapStack = { count: 0, fingers: 0, timer: null, posHistory: [], active: false };
-        this.allowedTouchGestures = new Set();
-        this.contState = {
-            rotStartAngle: 0, rotAccumulator: 0, rotLastUpdate: 0, pinchStartDist: 0,
-            squiggle: { isTracking: false, startX: 0, lastX: 0, direction: 0, flips: 0, hasTriggered: false },
-            squiggle2F: { isTracking: false, lastX: 0, direction: 0, flips: 0, hasTriggered: false }
-        };
-
-        this._bindHandlers();
-    }
-
-    // FIX: this.config was captured once at construction and never re-read, so every
-    // sensitivity slider (Tap Speed, Swipe Distance, etc.) silently required a page reload to
-    // take effect - changing one updated appSettings but the live engine never saw it. This
-    // reads the current value from appSettings each time, falling back to the constructor
-    // default if appSettings isn't available yet.
-    _cfg(key) {
-        const appSettingsKeyMap = {
-            tapDelay: 'touchGestureTapDelay',
-            swipeThreshold: 'touchGestureSwipeDist',
-            longPressTime: 'touchGestureLongPressTime',
-            tapPrecision: 'touchGestureTapPrecision',
-            spatialThreshold: 'touchGestureSpatialThreshold',
-            longSwipeThreshold: 'touchGestureLongSwipeThreshold',
-            multiSwipeThreshold: 'touchGestureMultiSwipeThreshold',
-            anchorStillDistance: 'touchAnchorStillDistance',
-            anchorMinHoldTime: 'touchAnchorMinHoldTime',
-            chordSimultaneityWindow: 'touchChordSimultaneityWindow',
-            pauseDwellRadius: 'touchPauseDwellRadius',
-            pauseDwellTime: 'touchPauseDwellTime',
-        };
-        const settingKey = appSettingsKeyMap[key];
-        if (settingKey && window.appSettings && window.appSettings[settingKey] !== undefined && window.appSettings[settingKey] !== null) {
-            return window.appSettings[settingKey];
-        }
-        return this.config[key];
-    }
-
-    updateAllowed(list) {
-        this.allowedTouchGestures = new Set(list);
-    }
-
-    _bindHandlers() {
-        const t = this.target;
-        t.addEventListener('pointerdown', e => this._handleDown(e), { passive: false });
-        t.addEventListener('pointermove', e => this._handleMove(e), { passive: false });
-        t.addEventListener('pointerup', e => this._handleUp(e), { passive: false });
-        t.addEventListener('pointercancel', e => this._handleUp(e), { passive: false });
-        t.addEventListener('contextmenu', e => e.preventDefault());
-    }
-
-    _handleDown(e) {
-        if (e.target.tagName === 'BUTTON' && !document.body.classList.contains('input-gestures-mode')) return;
-        if (e.target.closest && e.target.closest('#header-btn-row')) return;
-        
-        this.activePointers[e.pointerId] = {
-            id: e.pointerId,
-            pts: [{ x: e.clientX, y: e.clientY, t: Date.now() }],
-            startTime: Date.now()
-        };
-
-        const count = Object.keys(this.activePointers).length;
-        const pointers = Object.values(this.activePointers);
-
-        if (count === 1) {
-            this.contState.squiggle = {
-                isTracking: true, startX: e.clientX, lastX: e.clientX, direction: 0, flips: 0, hasTriggered: false
-            };
-        }
-        
-        if (count === 2) {
-            const p1 = pointers[0].pts[0];
-            const p2 = pointers[1].pts[0];
-            this.contState.rotStartAngle = this._getRotationAngle(p1, p2);
-            this.contState.rotAccumulator = 0;
-            this.contState.rotLastUpdate = Date.now();
-            const dx = p1.x - p2.x;
-            const dy = p1.y - p2.y;
-            this.contState.pinchStartDist = Math.hypot(dx, dy);
-            
-            this.contState.squiggle2F = {
-                isTracking: true, lastX: (p1.x + p2.x) / 2, direction: 0, flips: 0, hasTriggered: false
-            };
-        }
-    }
-
-    _handleMove(e) {
-        if (!this.activePointers[e.pointerId]) return;
-        
-        if (this.contState.squiggle.isTracking || this.contState.squiggle2F.isTracking) {
-             if (e.cancelable) e.preventDefault();
-        }
-
-        const ptr = this.activePointers[e.pointerId];
-        ptr.pts.push({ x: e.clientX, y: e.clientY, t: Date.now() });
-
-        const pointers = Object.values(this.activePointers);
-        const count = pointers.length;
-        const now = Date.now();
-
-        // 1. Squiggle 1F (Delete)
-        if (count === 1 && this.contState.squiggle.isTracking && !this.contState.squiggle.hasTriggered) {
-            const x = e.clientX; 
-            const dx = x - this.contState.squiggle.lastX;
-            if (Math.abs(dx) > 8) { 
-                const newDir = dx > 0 ? 1 : -1;
-                if (this.contState.squiggle.direction !== 0 && newDir !== this.contState.squiggle.direction) {
-                    this.contState.squiggle.flips++;
-                }
-                this.contState.squiggle.direction = newDir; 
-                this.contState.squiggle.lastX = x;
-                
-                if (this.contState.squiggle.flips >= 4) {
-                    this.contState.squiggle.hasTriggered = true;
-                    this.callbacks.onContinuous({ type: 'squiggle', fingers: 1 });
-                }
-            }
-        }
-
-        // 2. Squiggle 2F (Clear)
-        if (count === 2 && this.contState.squiggle2F.isTracking && !this.contState.squiggle2F.hasTriggered) {
-            const currentAvgX = (pointers[0].pts.slice(-1)[0].x + pointers[1].pts.slice(-1)[0].x) / 2;
-            const dx = currentAvgX - this.contState.squiggle2F.lastX;
-            if (Math.abs(dx) > 8) {
-                const newDir = dx > 0 ? 1 : -1;
-                if (this.contState.squiggle2F.direction !== 0 && newDir !== this.contState.squiggle2F.direction) {
-                    this.contState.squiggle2F.flips++;
-                }
-                this.contState.squiggle2F.direction = newDir; 
-                this.contState.squiggle2F.lastX = currentAvgX;
-                
-                if (this.contState.squiggle2F.flips >= 4) {
-                    this.contState.squiggle2F.hasTriggered = true;
-                    this.callbacks.onContinuous({ type: 'squiggle', fingers: 2 });
-                }
-            }
-        }
-
-        // 3. Twist
-        if ((count === 2 || count === 3) && (now - this.contState.rotLastUpdate > 50)) {
-            const p1 = pointers[0].pts.slice(-1)[0]; 
-            const p2 = pointers[1].pts.slice(-1)[0];
-            const currentAngle = this._getRotationAngle(p1, p2);
-            let delta = currentAngle - this.contState.rotStartAngle;
-            if (delta > 180) delta -= 360; if (delta < -180) delta += 360;
-            
-            this.contState.rotAccumulator += delta; 
-            this.contState.rotStartAngle = currentAngle;
-            
-            if (Math.abs(this.contState.rotAccumulator) > 15) {
-                this.callbacks.onContinuous({ type: 'twist', fingers: count, value: this.contState.rotAccumulator > 0 ? 1 : -1 });
-                this.contState.rotAccumulator = 0; 
-                this.contState.rotLastUpdate = now;
-            }
-        }
-
-        // 4. Pinch
-        if (count === 2 && this.contState.pinchStartDist > 0) {
-            const p1 = pointers[0].pts.slice(-1)[0]; 
-            const p2 = pointers[1].pts.slice(-1)[0];
-            const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
-            if (Math.abs(dist - this.contState.pinchStartDist) > 20) {
-                this.callbacks.onContinuous({ type: 'pinch', scale: dist / this.contState.pinchStartDist });
-            }
-        }
-    }
-
-    // Classifies a single finger's own path in isolation - used by anchor/chord detection,
-    // which needs to look at what EACH finger did independently rather than the collective
-    // average _analyze() uses for normal multi-finger swipes.
-    _classifySingleFinger(ptr) {
-        const pts = ptr.pts;
-        const first = pts[0];
-        const last = pts[pts.length - 1];
-        const dx = last.x - first.x;
-        const dy = last.y - first.y;
-        const dist = Math.hypot(dx, dy);
-        const duration = (ptr.endTime || Date.now()) - ptr.startTime;
-
-        // "Still" (anchor candidate) needs BOTH minimal movement AND to have been held for a
-        // while - a fast, precise tap can have equally tiny displacement, so distance alone
-        // can't tell the two apart.
-        if (dist < this._cfg('anchorStillDistance') && duration >= this._cfg('anchorMinHoldTime')) return { kind: 'still' };
-        if (dist < this._cfg('tapPrecision') && duration < this._cfg('longPressTime')) return { kind: 'tap' };
-        if (dist > this._cfg('swipeThreshold')) return { kind: 'swipe', dir: this._getDirection(dx, dy) };
-        return { kind: 'ambiguous' };
-    }
-
-    // FIX: "anchors... hold 1 down and then tap or swipe with another" / "chords... each finger
-    // isn't doing the same thing" - two genuinely new gesture types, not just re-exposing
-    // existing ones. Anchor: whichever finger touched down FIRST stayed still (a modifier, like
-    // holding Shift) while the second finger tapped or swiped. Chord: both fingers had real,
-    // independent motion that DIFFERED from each other (two fingers swiping the same direction
-    // together is already the existing multi-finger swipe - this is specifically for when they
-    // don't match). Runs before the normal analyzer and only intercepts when one of these two
-    // patterns actually matches; otherwise everything falls through unchanged.
-    _tryAnchorOrChord(inputs) {
-        if (inputs.length !== 2) return false;
-
-        const sorted = [...inputs].sort((a, b) => a.startTime - b.startTime);
-        const first = sorted[0], second = sorted[1];
-        const downTimeDelta = second.startTime - first.startTime;
-        const c1 = this._classifySingleFinger(first);
-        const c2 = this._classifySingleFinger(second);
-
-        // Anchor: first-down finger held still, second finger acted - inherently sequential
-        // (that's the whole point of a modifier), so no simultaneity requirement here.
-        if (c1.kind === 'still' && (c2.kind === 'tap' || c2.kind === 'swipe')) {
-            if (c2.kind === 'tap') this._emitTouchGesture('anchor', 2, { subMode: 'tap' });
-            else this._emitTouchGesture('anchor', 2, { subMode: 'swipe', dir: c2.dir });
-            return true;
-        }
-
-        // Chord: both fingers touched down within a tight simultaneity window (humans can't
-        // land multiple fingers on glass at the exact same millisecond) and each had real,
-        // independent motion that differs from the other.
-        const SIMULTANEITY_WINDOW_MS = this._cfg('chordSimultaneityWindow');
-        const oppositePairs = { up: 'down', down: 'up', left: 'right', right: 'left', nw: 'se', se: 'nw', ne: 'sw', sw: 'ne' };
-        if (downTimeDelta <= SIMULTANEITY_WINDOW_MS && (c1.kind === 'tap' || c1.kind === 'swipe') && (c2.kind === 'tap' || c2.kind === 'swipe')) {
-            const label1 = c1.kind === 'tap' ? 'tap' : c1.dir;
-            const label2 = c2.kind === 'tap' ? 'tap' : c2.dir;
-            // Directly opposite directions (fingers converging or diverging) are pinch_swipe/
-            // expand_swipe territory, not a chord - those are handled separately in _analyze().
-            const isOppositePair = oppositePairs[label1] === label2;
-            if (label1 !== label2 && !isOppositePair) {
-                // Sort alphabetically so "up+left" and "left+up" produce the same id
-                const [a, b] = [label1, label2].sort();
-                this._emitTouchGesture('chord', 2, { subMode: `${a}_${b}` });
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    _handleUp(e) {
-        if (!this.activePointers[e.pointerId]) return;
-        this.activePointers[e.pointerId].endTime = Date.now();
-        this.history.push(this.activePointers[e.pointerId]);
-        delete this.activePointers[e.pointerId];
-        
-        const remaining = Object.keys(this.activePointers).length;
-        if (remaining === 0) {
-            this.contState.pinchStartDist = 0;
-            this.contState.squiggle.isTracking = false;
-            this.contState.squiggle2F.isTracking = false;
-            
-            if (this.contState.squiggle.hasTriggered || this.contState.squiggle2F.hasTriggered) {
-                this.history = []; 
-                this.contState.squiggle.hasTriggered = false;
-                this.contState.squiggle2F.hasTriggered = false;
-                return;
-            }
-
-            clearTimeout(this.debounceTimer);
-            this.debounceTimer = setTimeout(() => {
-                const inputs = this.history;
-                if (this._tryAnchorOrChord(inputs)) {
-                    this.history = [];
-                    return;
-                }
-                this._analyze();
-            }, 50);
-        }
-    }
-
-    _analyze() {
-        const inputs = this.history; this.history = []; if (inputs.length === 0) return;
-        const fingers = new Set(inputs.map(s => s.id)).size;
-        let sc = {x:0,y:0}, ec = {x:0,y:0};
-        inputs.forEach(s => { sc.x += s.pts[0].x; sc.y += s.pts[0].y; ec.x += s.pts[s.pts.length-1].x; ec.y += s.pts[s.pts.length-1].y; });
-        sc.x /= inputs.length; sc.y /= inputs.length; ec.x /= inputs.length; ec.y /= inputs.length;
-
-        const primaryPath = inputs[0].pts;
-        let segments = this._segmentPath(primaryPath);
-        segments = this._cleanSegments(segments);
-        segments = this._mergeSegments(segments);
-
-        const netDist = Math.hypot(ec.x - sc.x, ec.y - sc.y);
-        const pathLen = this._getPathLen(primaryPath);
-        const isClosed = netDist < 50;
-
-        let turnSum = 0; if (segments.length > 1) { for (let i = 0; i < segments.length - 1; i++) { turnSum += this._getTurnDir(segments[i].vec, segments[i + 1].vec); } }
-        const winding = turnSum > 0 ? 'cw' : 'ccw';
-        let type = 'tap'; let meta = { fingers: fingers };
-
-        // --- 1. Multi-Finger Hybrid Swipes ---
-        if (fingers === 2 && pathLen > 40 && netDist > 40) {
-             let startSpan = 0, endSpan = 0;
-             inputs.forEach(s => { const f = s.pts[0], l = s.pts[s.pts.length-1]; startSpan += Math.hypot(f.x - sc.x, f.y - sc.y); endSpan += Math.hypot(l.x - ec.x, l.y - ec.y); });
-             startSpan /= 2; endSpan /= 2;
-             if (Math.abs(endSpan - startSpan) > 30) {
-                 const dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
-                 if (endSpan < startSpan * 0.7) { type = 'pinch_swipe'; meta.dir = dir; }
-                 else if (endSpan > startSpan * 1.3) { type = 'expand_swipe'; meta.dir = dir; }
-                 this._emitTouchGesture(type, fingers, meta); return;
-             }
-        }
-
-        // --- 2. Shapes & Swipes ---
-        if (type === 'tap' && pathLen > this._cfg('swipeThreshold')) {
-            
-            // --- 4 Segments (Square or Long Zigzag) ---
-            if (segments.length >= 4) {
-                const t1 = this._getTurnDir(segments[0].vec, segments[1].vec); 
-                const t2 = this._getTurnDir(segments[1].vec, segments[2].vec);
-                const alternating = (t1 > 0 && t2 < 0) || (t1 < 0 && t2 > 0);
-                
-                if (alternating) { type = 'long_zigzag'; } 
-                else if (isClosed) { type = 'square'; meta.winding = winding; } 
-                else { type = 'long_zigzag'; }
-                meta.dir = segments[0].dir; 
-            } 
-            // --- 3 Segments (Long Boomerang, Zigzag, Triangle, U-Shape) ---
-            else if (segments.length === 3) {
-                 if (isClosed) { type = 'triangle'; meta.dir = segments[0].dir; meta.winding = winding; } 
-                 else { 
-                     const t1 = this._getTurnDir(segments[0].vec, segments[1].vec); 
-                     const t2 = this._getTurnDir(segments[1].vec, segments[2].vec);
-                     // Check if turns alternate (Left-Right or Right-Left)
-                     const alternating = (t1 > 0 && t2 < 0) || (t1 < 0 && t2 > 0);
-                     
-                     if (alternating) {
-                         const a1 = this._getAngleDiff(segments[0].vec, segments[1].vec);
-                         const a2 = this._getAngleDiff(segments[1].vec, segments[2].vec);
-                         
-                         // Tight "I" Shape check (Double 180 flip)
-                         if (a1 >= 165 && a2 >= 165) {
-                             type = 'long_boomerang';
-                         } else {
-                             type = 'zigzag';
-                         }
-                     } 
-                     else {
-                         const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
-                         // Note: 'long_boomerang' used to be here for wide curves, 
-                         // but user redefined it as an I-shape. 
-                         // Wide curves are now just U-Shapes or U-Shape derivatives.
-                         type = 'u_shape';
-                         meta.winding = winding;
-                     }
-                     meta.dir = segments[0].dir; 
-                 }
-            } 
-            // --- 2 Segments (Boomerang, Switchback, Corner) ---
-            else if (segments.length === 2) {
-                meta.dir = segments[0].dir; 
-                meta.winding = winding;
-                const angle = Math.abs(this._getAngleDiff(segments[0].vec, segments[1].vec));
-                
-                if (angle >= 165) { type = 'boomerang'; }     // I-Shape (180 deg)
-                else if (angle > 125) { type = 'switchback'; } // > Shape
-                else { type = 'corner'; }                     // L Shape
-
-                // Pausing variant: if the finger visibly held still (~half a second) at the
-                // direction-change point, this is a "Pausing" gesture. Single-finger only, to
-                // match the Pausing Curves category (which has no multi-finger entries).
-                if (fingers === 1 && this._hasDwell(primaryPath)) {
-                    if (type === 'boomerang') { this._emitTouchGesture('Pausing_boomerang', 1, { dir: meta.dir }); return; }
-                    if (type === 'switchback') { this._emitTouchGesture('Pausing_Switchback', 1, { dir: meta.dir, winding: winding }); return; }
-                    if (type === 'corner') { this._emitTouchGesture('Pausing_corner', 1, { dir: meta.dir, winding: winding }); return; }
-                }
-            } 
-            // --- 1 Segment (Swipe) ---
-            else {
-                const dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
-                let threshold = this._cfg('longSwipeThreshold');
-                if (dir.length > 2) threshold += 60; 
-                type = netDist > threshold ? 'swipe_long' : 'swipe';
-                meta.dir = dir;
-
-                // Pausing swipe: a swipe with a deliberate mid-path hold (~half a second).
-                // Single-finger only, matching the category. Checked before Flick since a paused
-                // swipe is by definition not a quick flick.
-                if (fingers === 1 && this._hasDwell(primaryPath)) {
-                    this._emitTouchGesture('Pausing_swipe', 1, { dir: dir });
-                    return;
-                }
-
-                // FIX: "Flick" was listed as a selectable option (GESTURE_CATEGORIES, and your
-                // own imported preset) but the engine never actually produced this gesture id -
-                // any key mapped to it could never fire, no matter how the gesture was performed.
-                // A flick is a swipe completed quickly (snappy, short duration), as opposed to a
-                // slower, more deliberate swipe - using duration as the distinguishing factor
-                // since both can cover similar distance.
-                if (type === 'swipe' && fingers === 1) {
-                    const swipeDuration = inputs[0].endTime - inputs[0].startTime;
-                    if (swipeDuration < 200) {
-                        this._emitTouchGesture('Flick', fingers, { dir: dir });
-                        return;
-                    }
-                }
-            }
-        }
-
-        if (fingers > 1 && type === 'tap' && netDist > this._cfg('multiSwipeThreshold')) {
-            type = 'swipe';
-            if (segments.length >= 2) {
-                 const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
-                 if (Math.abs(angle) > 150) type = 'boomerang';
-            }
-            meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
-        }
-
-        if (type === 'tap') {
-            const dur = inputs[0].endTime - inputs[0].startTime;
-            if (dur > this._cfg('longPressTime')) type = 'long_tap';
-            if (fingers > 1) meta.align = this._getAlignment(inputs);
-        }
-
-        // --- 4. Tap Stack ---
-        if (this.tapStack.active) {
-            clearTimeout(this.tapStack.timer); this.tapStack.active = false;
-            if (type === 'tap' && fingers === this.tapStack.fingers) {
-                const seqDist = Math.hypot(sc.x - this.tapStack.lastPos.x, sc.y - this.tapStack.lastPos.y);
-                // FIX: this used to emit 'Double_tap_spatial_<dir>' (previously wrongly named
-                // 'motion_tap_spatial_<dir>') immediately the instant a 2nd tap landed far from
-                // the 1st - which meant a 3rd tap could never arrive to upgrade it into a
-                // triple_tap_spatial_line/corner/boomerang shape. Those could never fire at all
-                // as a result. Now this just accumulates like any other tap in the stack; the
-                // actual spatial-vs-plain decision (and the double vs triple distinction) is made
-                // once in _commitStack() after the tap-delay window closes, the same place the
-                // triple-tap spatial shapes were already being decided.
-                this.tapStack.count++;
-                this.tapStack.posHistory.push(ec);
-                this.tapStack.lastPos = ec;
-                this.tapStack.active = true;
-                this.tapStack.timer = setTimeout(() => this._commitStack(), this._cfg('tapDelay'));
-                return;
-            }
-            if (type !== 'tap' && fingers === 1 && this.tapStack.fingers === 1) {
-                this._emitTouchGesture('motion_tap', 1, { subMode: type, dir: meta.dir, winding: meta.winding });
-                this._clearStack();
-                return;
-            }
-            this._commitStack();
-        }
-
-        if (type === 'tap') { 
-            this.tapStack = { 
-                active: true, count: 1, fingers: fingers, 
-                posHistory: [ec], lastPos: ec,
-                align: meta.align, 
-                timer: setTimeout(() => this._commitStack(), this._cfg('tapDelay')) 
-            }; 
-            return; 
-        }
-        this._emitTouchGesture(type, fingers, meta);
-    }
-
-    _commitStack() { 
-        const { count, fingers, posHistory, align } = this.tapStack;
-        if (count > 0) { 
-            let maxDist = 0; 
-            for(let i=1; i<posHistory.length; i++) {
-                maxDist = Math.max(maxDist, Math.hypot(posHistory[i].x-posHistory[i-1].x, posHistory[i].y-posHistory[i-1].y));
-            }
-
-            if (maxDist > 50 && fingers === 1 && count >= 2) {
-                // Spatial Taps
-                if (count === 2) {
-                    const dir = this._getDirection(posHistory[1].x - posHistory[0].x, posHistory[1].y - posHistory[0].y);
-                    this._emitTouchGesture('Double_tap_spatial', 1, { dir: dir });
-                } else if (count === 3) {
-                    const v1 = { x: posHistory[1].x - posHistory[0].x, y: posHistory[1].y - posHistory[0].y };
-                    const v2 = { x: posHistory[2].x - posHistory[1].x, y: posHistory[2].y - posHistory[1].y };
-                    const angle = Math.abs(this._getAngleDiff(v1, v2));
-                    
-                    let subMode = 'spatial_line';
-                    let finalDir = this._getDirection(v1.x, v1.y); 
-
-                    if (angle > 150) {
-                        subMode = 'spatial_boomerang';
-                        finalDir = this._getDirection(v1.x, v1.y);
-                    }
-                    else if (angle > 45 && angle < 135) { 
-                        subMode = 'spatial_corner'; 
-                        
-                        const d1 = this._getDirection(v1.x, v1.y);
-                        const d2 = this._getDirection(v2.x, v2.y);
-                        const combo = d1 + '_' + d2;
-                        const dirMap = {
-                            'up_right': 'ne',   'right_up': 'en',
-                            'up_left': 'nw',    'left_up': 'wn',
-                            'down_right': 'se', 'right_down': 'es',
-                            'down_left': 'sw',  'left_down': 'ws'
-                        };
-                        if(dirMap[combo]) finalDir = dirMap[combo];
-                        else finalDir = this._getDirection(v1.x + v2.x, v1.y + v2.y); 
-                    }
-                    this._emitTouchGesture('triple_tap', fingers, { subMode: subMode, dir: finalDir });
-                }
-            } else { 
-                let type = 'tap'; 
-                if (count === 2) type = 'double_tap'; 
-                if (count === 3) type = 'triple_tap'; 
-                this._emitTouchGesture(type, fingers, { align: align }); 
-            }
-            this._clearStack(); 
-        } 
-    }
-
-    _clearStack() { this.tapStack = { active: false, count: 0, fingers: 0, posHistory: [], timer: null }; }
-
-    _emitTouchGesture(baseType, fingers, meta, overrideName = null) {
-        let id = baseType;
-        if (meta && meta.subMode) id += '_' + meta.subMode;
-        if (meta && meta.dir && meta.dir !== 'Any' && meta.dir !== 'none') id += '_' + meta.dir.toLowerCase(); 
-        
-        const windingShapes = ['corner', 'triangle', 'u_shape', 'square', 'switchback'];
-        const checkType = meta && meta.subMode ? meta.subMode : baseType;
-        // FIX: checkType.includes(s) was case-sensitive, so 'Pausing_Switchback' (capital S,
-        // matching GESTURE_CATEGORIES' exact listed spelling) never matched the lowercase
-        // 'switchback' entry in windingShapes below - the 16 Pausing_Switchback_<dir>_cw/ccw
-        // options were selectable in every mapping dropdown but could never actually fire, since
-        // the engine always emitted the id without its winding suffix. Comparing lowercased
-        // fixes it without touching the emitted id's own capitalization (which must stay
-        // exactly as GESTURE_CATEGORIES spells it for the mapping lookup to match).
-        if (meta && meta.winding && windingShapes.some(s => checkType.toLowerCase().includes(s))) id += '_' + meta.winding; 
-
-        if (fingers > 1) id += '_' + fingers + 'f';
-
-        if (meta && meta.align) {
-            const map = { 
-                'Vertical': 'vertical', 
-                'Horizontal': 'horizontal', 
-                'Diagonal SE': 'diagonal_se', 
-                'Diagonal SW': 'diagonal_sw' 
-            };
-            if (map[meta.align]) id += `_${map[meta.align]}`;
-        }
-
-        const multiFingerBases = ['tap_2f', 'double_tap_2f', 'triple_tap_2f', 'long_tap_2f', 'tap_3f', 'double_tap_3f', 'triple_tap_3f', 'long_tap_3f'];
-        if (multiFingerBases.includes(id)) id += '_any'; 
-        
-        let finalId = id;
-
-        // Helper to check allow list
-        const tryFallback = (candidate) => {
-            if (this.allowedTouchGestures && this.allowedTouchGestures.has(candidate)) { finalId = candidate; return true; }
-            return false;
-        };
-
-        // Try exact match first
-        if (this.allowedTouchGestures && this.allowedTouchGestures.size > 0 && !this.allowedTouchGestures.has(finalId)) {
-            
-            if (id.startsWith('swipe_long_')) {
-                if (tryFallback(id.replace('swipe_long_', 'swipe_'))) {}
-            } else if (id.startsWith('motion_tap_spatial_')) {
-                 if (tryFallback(id.replace('motion_tap_spatial_', 'swipe_'))) {}
-            }
-
-            const alignments = ['_vertical', '_horizontal', '_diagonal_se', '_diagonal_sw'];
-            for (let a of alignments) {
-                if (finalId.includes(a)) {
-                    let test = finalId.replace(a, '_any');
-                    if (tryFallback(test)) break;
-                }
-            }
-
-            if (!this.allowedTouchGestures.has(finalId)) {
-                const dirs = ['_up','_down','_left','_right','_nw','_ne','_sw','_se'];
-                for (let d of dirs) {
-                    if (finalId.includes(d)) {
-                        let test = finalId.replace(d, '_any');
-                        if (tryFallback(test)) break;
-                    }
-                }
-            }
-        }
-
-        if (this.allowedTouchGestures && this.allowedTouchGestures.size > 0 && !this.allowedTouchGestures.has(finalId)) return;
-        
-        const name = overrideName || finalId;
-        this.callbacks.onTouchGesture({ id: finalId, base: baseType, fingers: fingers, meta: meta, name: name });
-    }
-
-    // --- UTILS ---
-    _getRotationAngle(p1, p2) { return Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI; }
-    _cleanSegments(segments) { return segments.filter(s => Math.hypot(s.vec.x, s.vec.y) > 15); }
-    _mergeSegments(segments) {
-        if (segments.length < 2) return segments;
-        const merged = []; let current = segments[0];
-        for (let i = 1; i < segments.length; i++) {
-            const next = segments[i];
-            if (Math.abs(this._getAngleDiff(current.vec, next.vec)) < 45) {
-                current.vec.x += next.vec.x; current.vec.y += next.vec.y;
-                current.dir = this._getDirection(current.vec.x, current.vec.y);
-            } else { merged.push(current); current = next; }
-        }
-        merged.push(current); return merged;
-    }
-    _segmentPath(pts) {
-        if (pts.length < 5) return [{dir: 'none', vec:{x:0,y:0}}];
-        const segments = []; let start = 0; const threshold = 45; 
-        for (let i = 2; i < pts.length - 2; i++) {
-            const dx1 = pts[i].x - pts[start].x; const dy1 = pts[i].y - pts[start].y;
-            const nextIdx = Math.min(i + 5, pts.length - 1);
-            const dx2 = pts[nextIdx].x - pts[i].x; const dy2 = pts[nextIdx].y - pts[i].y;
-            const a1 = Math.atan2(dy1, dx1) * 180/Math.PI; const a2 = Math.atan2(dy2, dx2) * 180/Math.PI;
-            let diff = Math.abs(a1-a2); if (diff > 180) diff = 360 - diff;
-            if (diff > threshold && Math.hypot(dx1,dy1) > 10) {
-                segments.push({ dir: this._getDirection(dx1, dy1), vec: {x:dx1, y:dy1} }); start = i;
-            }
-        }
-        const lastDx = pts[pts.length-1].x - pts[start].x; const lastDy = pts[pts.length-1].y - pts[start].y;
-        if (Math.hypot(lastDx, lastDy) > 10) segments.push({ dir: this._getDirection(lastDx, lastDy), vec: {x:lastDx, y:lastDy} });
-        return segments;
-    }
-    _getTurnDir(v1, v2) { return (v1.x * v2.y - v1.y * v2.x); }
-    _getAngleDiff(v1, v2) { const a1 = Math.atan2(v1.y, v1.x)*180/Math.PI; const a2 = Math.atan2(v2.y, v2.x)*180/Math.PI; let d = Math.abs(a1-a2); if(d>180) d=360-d; return d; }
-    // Powers "Pausing" gestures: returns true if the finger held within a small radius for at
-    // least ~half a second somewhere along the path (a deliberate mid-gesture pause). Requires
-    // per-point timestamps (added at capture time). The radius keeps a naturally-slowing turn
-    // from counting - only an actual hold-still qualifies.
-    _hasDwell(pts) {
-        if (!pts || pts.length < 3) return false;
-        const DWELL_RADIUS = this._cfg('pauseDwellRadius');
-        const DWELL_MS = this._cfg('pauseDwellTime');
-        let i = 0;
-        while (i < pts.length - 1) {
-            let j = i + 1;
-            while (j < pts.length &&
-                   Math.hypot(pts[j].x - pts[i].x, pts[j].y - pts[i].y) <= DWELL_RADIUS) {
-                if ((pts[j].t - pts[i].t) >= DWELL_MS) return true;
-                j++;
-            }
-            i = (j > i + 1) ? j - 1 : i + 1; // resume from where the cluster broke
-        }
-        return false;
-    }
-    _getPathLen(pts) { let l=0; for(let i=1;i<pts.length;i++) l+=Math.hypot(pts[i].x-pts[i-1].x, pts[i].y-pts[i-1].y); return l; }
-    _getDirection(dx, dy) {
-        const ang = Math.atan2(dy, dx) * 180 / Math.PI;
-        if (ang > -22.5 && ang <= 22.5) return 'right'; 
-        if (ang > 22.5 && ang <= 67.5) return 'se';
-        if (ang > 67.5 && ang <= 112.5) return 'down'; 
-        if (ang > 112.5 && ang <= 157.5) return 'sw'; 
-        if (ang > 157.5 || ang <= -157.5) return 'left'; 
-        if (ang > -157.5 && ang <= -112.5) return 'nw';
-        if (ang > -112.5 && ang <= -67.5) return 'up'; 
-        return 'ne';
-    }
-    
-    _getAlignment(inputs) {
-        if (inputs.length < 2) return null;
-        const pts = inputs.map(s => s.pts[0]);
-        
-        if (inputs.length === 2) {
-            const p1 = pts[0];
-            const p2 = pts[1];
-            const dx = Math.abs(p1.x - p2.x);
-            const dy = Math.abs(p1.y - p2.y);
-            
-            if (dy > dx * 2.5) return 'Vertical';
-            if (dx > dy * 2.5) return 'Horizontal';
-            
-            const rawDx = p1.x - p2.x;
-            const rawDy = p1.y - p2.y;
-            
-            if ((rawDx * rawDy) > 0) return 'Diagonal SE';
-            else return 'Diagonal SW';
-        }
-        
-        const xs = pts.map(p => p.x); const ys = pts.map(p => p.y);
-        const w = Math.max(...xs) - Math.min(...xs); const h = Math.max(...ys) - Math.min(...ys);
-        if (h > w * 1.5) return 'Vertical'; 
-        if (w > h * 1.5) return 'Horizontal';
-        return 'Diagonal SE'; 
-    }
+	constructor(targetElement, config, callbacks) {
+		this.target = targetElement || document.body;
+		this.config = Object.assign({
+				tapDelay: 800,
+				longPressTime: 300,
+				swipeThreshold: 40,
+				spatialThreshold: 10,
+				tapPrecision: 30,
+				longSwipeThreshold: 150,
+				multiSwipeThreshold: 10,
+				anchorStillDistance: 15,
+				anchorMinHoldTime: 150,
+				chordSimultaneityWindow: 50,
+				pauseDwellRadius: 22,
+				pauseDwellTime: 400,
+				debug: false
+			}, config || {});
+		this.callbacks = Object.assign({
+				onTouchGesture: (data) => console.log('Gesture:', data),
+				onContinuous: (data) => console.log('Continuous:', data),
+				onDebug: (msg) => {}
+			}, callbacks || {});
+		this.activePointers = {};
+		this.history = [];
+		this.tapStack = { count: 0, fingers: 0, timer: null, posHistory: [], active: false };
+		this.allowedTouchGestures = new Set();
+		this.contState = {
+			rotStartAngle: 0, rotAccumulator: 0, rotLastUpdate: 0, pinchStartDist: 0,
+			squiggle: { isTracking: false, startX: 0, lastX: 0, direction: 0, flips: 0, hasTriggered: false },
+			squiggle2F: { isTracking: false, lastX: 0, direction: 0, flips: 0, hasTriggered: false }
+		};
+		this._bindHandlers();
+	}
+	_cfg(key) {
+		const appSettingsKeyMap = {
+			tapDelay: 'touchGestureTapDelay',
+			swipeThreshold: 'touchGestureSwipeDist',
+			longPressTime: 'touchGestureLongPressTime',
+			tapPrecision: 'touchGestureTapPrecision',
+			spatialThreshold: 'touchGestureSpatialThreshold',
+			longSwipeThreshold: 'touchGestureLongSwipeThreshold',
+			multiSwipeThreshold: 'touchGestureMultiSwipeThreshold',
+			anchorStillDistance: 'touchAnchorStillDistance',
+			anchorMinHoldTime: 'touchAnchorMinHoldTime',
+			chordSimultaneityWindow: 'touchChordSimultaneityWindow',
+			pauseDwellRadius: 'touchPauseDwellRadius',
+			pauseDwellTime: 'touchPauseDwellTime',
+		};
+		const settingKey = appSettingsKeyMap[key];
+		if (settingKey && window.appSettings && window.appSettings[settingKey] !== undefined && window.appSettings[settingKey] !== null) {
+			return window.appSettings[settingKey];
+		}
+		return this.config[key];
+	}
+	updateAllowed(list) {
+		this.allowedTouchGestures = new Set(list);
+	}
+	_bindHandlers() {
+		const t = this.target;
+		t.addEventListener('pointerdown', e => this._handleDown(e), { passive: false });
+		t.addEventListener('pointermove', e => this._handleMove(e), { passive: false });
+		t.addEventListener('pointerup', e => this._handleUp(e), { passive: false });
+		t.addEventListener('pointercancel', e => this._handleUp(e), { passive: false });
+		t.addEventListener('contextmenu', e => e.preventDefault());
+	}
+	_handleDown(e) {
+		if (e.target.tagName === 'BUTTON' && !document.body.classList.contains('input-gestures-mode')) return;
+		if (e.target.closest && e.target.closest('#header-btn-row')) return;
+		this.activePointers[e.pointerId] = {
+			id: e.pointerId,
+			pts: [{ x: e.clientX, y: e.clientY, t: Date.now() }],
+			startTime: Date.now()
+		};
+		const count = Object.keys(this.activePointers).length;
+		const pointers = Object.values(this.activePointers);
+		if (count === 1) {
+			this.contState.squiggle = {
+				isTracking: true, startX: e.clientX, lastX: e.clientX, direction: 0, flips: 0, hasTriggered: false
+			};
+		}
+		if (count === 2) {
+			const p1 = pointers[0].pts[0];
+			const p2 = pointers[1].pts[0];
+			this.contState.rotStartAngle = this._getRotationAngle(p1, p2);
+			this.contState.rotAccumulator = 0;
+			this.contState.rotLastUpdate = Date.now();
+			const dx = p1.x - p2.x;
+			const dy = p1.y - p2.y;
+			this.contState.pinchStartDist = Math.hypot(dx, dy);
+			this.contState.squiggle2F = {
+				isTracking: true, lastX: (p1.x + p2.x) / 2, direction: 0, flips: 0, hasTriggered: false
+			};
+		}
+	}
+	_handleMove(e) {
+		if (!this.activePointers[e.pointerId]) return;
+		if (this.contState.squiggle.isTracking || this.contState.squiggle2F.isTracking) {
+			if (e.cancelable) e.preventDefault();
+		}
+		const ptr = this.activePointers[e.pointerId];
+		ptr.pts.push({ x: e.clientX, y: e.clientY, t: Date.now() });
+		const pointers = Object.values(this.activePointers);
+		const count = pointers.length;
+		const now = Date.now();
+		if (count === 1 && this.contState.squiggle.isTracking && !this.contState.squiggle.hasTriggered) {
+			const x = e.clientX;
+			const dx = x - this.contState.squiggle.lastX;
+			if (Math.abs(dx) > 8) {
+				const newDir = dx > 0 ? 1 : -1;
+				if (this.contState.squiggle.direction !== 0 && newDir !== this.contState.squiggle.direction) {
+					this.contState.squiggle.flips++;
+				}
+				this.contState.squiggle.direction = newDir;
+				this.contState.squiggle.lastX = x;
+				if (this.contState.squiggle.flips >= 4) {
+					this.contState.squiggle.hasTriggered = true;
+					this.callbacks.onContinuous({ type: 'squiggle', fingers: 1 });
+				}
+			}
+		}
+		if (count === 2 && this.contState.squiggle2F.isTracking && !this.contState.squiggle2F.hasTriggered) {
+			const currentAvgX = (pointers[0].pts.slice(-1)[0].x + pointers[1].pts.slice(-1)[0].x) / 2;
+			const dx = currentAvgX - this.contState.squiggle2F.lastX;
+			if (Math.abs(dx) > 8) {
+				const newDir = dx > 0 ? 1 : -1;
+				if (this.contState.squiggle2F.direction !== 0 && newDir !== this.contState.squiggle2F.direction) {
+					this.contState.squiggle2F.flips++;
+				}
+				this.contState.squiggle2F.direction = newDir;
+				this.contState.squiggle2F.lastX = currentAvgX;
+				if (this.contState.squiggle2F.flips >= 4) {
+					this.contState.squiggle2F.hasTriggered = true;
+					this.callbacks.onContinuous({ type: 'squiggle', fingers: 2 });
+				}
+			}
+		}
+		if ((count === 2 || count === 3) && (now - this.contState.rotLastUpdate > 50)) {
+			const p1 = pointers[0].pts.slice(-1)[0];
+			const p2 = pointers[1].pts.slice(-1)[0];
+			const currentAngle = this._getRotationAngle(p1, p2);
+			let delta = currentAngle - this.contState.rotStartAngle;
+			if (delta > 180) delta -= 360; if (delta < -180) delta += 360;
+			this.contState.rotAccumulator += delta;
+			this.contState.rotStartAngle = currentAngle;
+			if (Math.abs(this.contState.rotAccumulator) > 15) {
+				this.callbacks.onContinuous({ type: 'twist', fingers: count, value: this.contState.rotAccumulator > 0 ? 1 : -1 });
+				this.contState.rotAccumulator = 0;
+				this.contState.rotLastUpdate = now;
+			}
+		}
+		if (count === 2 && this.contState.pinchStartDist > 0) {
+			const p1 = pointers[0].pts.slice(-1)[0];
+			const p2 = pointers[1].pts.slice(-1)[0];
+			const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+			if (Math.abs(dist - this.contState.pinchStartDist) > 20) {
+				this.callbacks.onContinuous({ type: 'pinch', scale: dist / this.contState.pinchStartDist });
+			}
+		}
+	}
+	_classifySingleFinger(ptr) {
+		const pts = ptr.pts;
+		const first = pts[0];
+		const last = pts[pts.length - 1];
+		const dx = last.x - first.x;
+		const dy = last.y - first.y;
+		const dist = Math.hypot(dx, dy);
+		const duration = (ptr.endTime || Date.now()) - ptr.startTime;
+		if (dist < this._cfg('anchorStillDistance') && duration >= this._cfg('anchorMinHoldTime')) return { kind: 'still' };
+		if (dist < this._cfg('tapPrecision') && duration < this._cfg('longPressTime')) return { kind: 'tap' };
+		if (dist > this._cfg('swipeThreshold')) return { kind: 'swipe', dir: this._getDirection(dx, dy) };
+		return { kind: 'ambiguous' };
+	}
+	_tryAnchorOrChord(inputs) {
+		if (inputs.length !== 2) return false;
+		const sorted = [...inputs].sort((a, b) => a.startTime - b.startTime);
+		const first = sorted[0], second = sorted[1];
+		const downTimeDelta = second.startTime - first.startTime;
+		const c1 = this._classifySingleFinger(first);
+		const c2 = this._classifySingleFinger(second);
+		if (c1.kind === 'still' && (c2.kind === 'tap' || c2.kind === 'swipe')) {
+			if (c2.kind === 'tap') this._emitTouchGesture('anchor', 2, { subMode: 'tap' });
+			else this._emitTouchGesture('anchor', 2, { subMode: 'swipe', dir: c2.dir });
+			return true;
+		}
+		const SIMULTANEITY_WINDOW_MS = this._cfg('chordSimultaneityWindow');
+		const oppositePairs = { up: 'down', down: 'up', left: 'right', right: 'left', nw: 'se', se: 'nw', ne: 'sw', sw: 'ne' };
+		if (downTimeDelta <= SIMULTANEITY_WINDOW_MS && (c1.kind === 'tap' || c1.kind === 'swipe') && (c2.kind === 'tap' || c2.kind === 'swipe')) {
+			const label1 = c1.kind === 'tap' ? 'tap' : c1.dir;
+			const label2 = c2.kind === 'tap' ? 'tap' : c2.dir;
+			const isOppositePair = oppositePairs[label1] === label2;
+			if (label1 !== label2 && !isOppositePair) {
+				const [a, b] = [label1, label2].sort();
+				this._emitTouchGesture('chord', 2, { subMode: `${a}_${b}` });
+				return true;
+			}
+		}
+		return false;
+	}
+	_handleUp(e) {
+		if (!this.activePointers[e.pointerId]) return;
+		this.activePointers[e.pointerId].endTime = Date.now();
+		this.history.push(this.activePointers[e.pointerId]);
+		delete this.activePointers[e.pointerId];
+		const remaining = Object.keys(this.activePointers).length;
+		if (remaining === 0) {
+			this.contState.pinchStartDist = 0;
+			this.contState.squiggle.isTracking = false;
+			this.contState.squiggle2F.isTracking = false;
+			if (this.contState.squiggle.hasTriggered || this.contState.squiggle2F.hasTriggered) {
+				this.history = [];
+				this.contState.squiggle.hasTriggered = false;
+				this.contState.squiggle2F.hasTriggered = false;
+				return;
+			}
+			clearTimeout(this.debounceTimer);
+			this.debounceTimer = setTimeout(() => {
+					const inputs = this.history;
+					if (this._tryAnchorOrChord(inputs)) {
+						this.history = [];
+						return;
+					}
+					this._analyze();
+				}, 50);
+		}
+	}
+	_analyze() {
+		const inputs = this.history; this.history = []; if (inputs.length === 0) return;
+		const fingers = new Set(inputs.map(s => s.id)).size;
+		let sc = {x:0,y:0}, ec = {x:0,y:0};
+		inputs.forEach(s => { sc.x += s.pts[0].x; sc.y += s.pts[0].y; ec.x += s.pts[s.pts.length-1].x; ec.y += s.pts[s.pts.length-1].y; });
+		sc.x /= inputs.length; sc.y /= inputs.length; ec.x /= inputs.length; ec.y /= inputs.length;
+		const primaryPath = inputs[0].pts;
+		let segments = this._segmentPath(primaryPath);
+		segments = this._cleanSegments(segments);
+		segments = this._mergeSegments(segments);
+		const netDist = Math.hypot(ec.x - sc.x, ec.y - sc.y);
+		const pathLen = this._getPathLen(primaryPath);
+		const isClosed = netDist < 50;
+		let turnSum = 0; if (segments.length > 1) { for (let i = 0; i < segments.length - 1; i++) { turnSum += this._getTurnDir(segments[i].vec, segments[i + 1].vec); } }
+		const winding = turnSum > 0 ? 'cw' : 'ccw';
+		let type = 'tap'; let meta = { fingers: fingers };
+		if (fingers === 2 && pathLen > 40 && netDist > 40) {
+			let startSpan = 0, endSpan = 0;
+			inputs.forEach(s => { const f = s.pts[0], l = s.pts[s.pts.length-1]; startSpan += Math.hypot(f.x - sc.x, f.y - sc.y); endSpan += Math.hypot(l.x - ec.x, l.y - ec.y); });
+			startSpan /= 2; endSpan /= 2;
+			if (Math.abs(endSpan - startSpan) > 30) {
+				const dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
+				if (endSpan < startSpan * 0.7) { type = 'pinch_swipe'; meta.dir = dir; }
+				else if (endSpan > startSpan * 1.3) { type = 'expand_swipe'; meta.dir = dir; }
+				this._emitTouchGesture(type, fingers, meta); return;
+			}
+		}
+		if (type === 'tap' && pathLen > this._cfg('swipeThreshold')) {
+			if (segments.length >= 4) {
+				const t1 = this._getTurnDir(segments[0].vec, segments[1].vec);
+				const t2 = this._getTurnDir(segments[1].vec, segments[2].vec);
+				const alternating = (t1 > 0 && t2 < 0) || (t1 < 0 && t2 > 0);
+				if (alternating) { type = 'long_zigzag'; }
+				else if (isClosed) { type = 'square'; meta.winding = winding; }
+				else { type = 'long_zigzag'; }
+				meta.dir = segments[0].dir;
+			}
+			else if (segments.length === 3) {
+				if (isClosed) { type = 'triangle'; meta.dir = segments[0].dir; meta.winding = winding; }
+				else {
+					const t1 = this._getTurnDir(segments[0].vec, segments[1].vec);
+					const t2 = this._getTurnDir(segments[1].vec, segments[2].vec);
+					const alternating = (t1 > 0 && t2 < 0) || (t1 < 0 && t2 > 0);
+					if (alternating) {
+						const a1 = this._getAngleDiff(segments[0].vec, segments[1].vec);
+						const a2 = this._getAngleDiff(segments[1].vec, segments[2].vec);
+						if (a1 >= 165 && a2 >= 165) {
+							type = 'long_boomerang';
+						} else {
+							type = 'zigzag';
+						}
+					}
+					else {
+						const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
+						type = 'u_shape';
+						meta.winding = winding;
+					}
+					meta.dir = segments[0].dir;
+				}
+			}
+			else if (segments.length === 2) {
+				meta.dir = segments[0].dir;
+				meta.winding = winding;
+				const angle = Math.abs(this._getAngleDiff(segments[0].vec, segments[1].vec));
+				if (angle >= 165) { type = 'boomerang'; }
+				else if (angle > 125) { type = 'switchback'; }
+				else { type = 'corner'; }
+				if (fingers === 1 && this._hasDwell(primaryPath)) {
+					if (type === 'boomerang') { this._emitTouchGesture('Pausing_boomerang', 1, { dir: meta.dir }); return; }
+					if (type === 'switchback') { this._emitTouchGesture('Pausing_Switchback', 1, { dir: meta.dir, winding: winding }); return; }
+					if (type === 'corner') { this._emitTouchGesture('Pausing_corner', 1, { dir: meta.dir, winding: winding }); return; }
+				}
+			}
+			else {
+				const dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
+				let threshold = this._cfg('longSwipeThreshold');
+				if (dir.length > 2) threshold += 60;
+				type = netDist > threshold ? 'swipe_long' : 'swipe';
+				meta.dir = dir;
+				if (fingers === 1 && this._hasDwell(primaryPath)) {
+					this._emitTouchGesture('Pausing_swipe', 1, { dir: dir });
+					return;
+				}
+				if (type === 'swipe' && fingers === 1) {
+					const swipeDuration = inputs[0].endTime - inputs[0].startTime;
+					if (swipeDuration < 200) {
+						this._emitTouchGesture('Flick', fingers, { dir: dir });
+						return;
+					}
+				}
+			}
+		}
+		if (fingers > 1 && type === 'tap' && netDist > this._cfg('multiSwipeThreshold')) {
+			type = 'swipe';
+			if (segments.length >= 2) {
+				const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
+				if (Math.abs(angle) > 150) type = 'boomerang';
+			}
+			meta.dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
+		}
+		if (type === 'tap') {
+			const dur = inputs[0].endTime - inputs[0].startTime;
+			if (dur > this._cfg('longPressTime')) type = 'long_tap';
+			if (fingers > 1) meta.align = this._getAlignment(inputs);
+		}
+		if (this.tapStack.active) {
+			clearTimeout(this.tapStack.timer); this.tapStack.active = false;
+			if (type === 'tap' && fingers === this.tapStack.fingers) {
+				const seqDist = Math.hypot(sc.x - this.tapStack.lastPos.x, sc.y - this.tapStack.lastPos.y);
+				this.tapStack.count++;
+				this.tapStack.posHistory.push(ec);
+				this.tapStack.lastPos = ec;
+				this.tapStack.active = true;
+				this.tapStack.timer = setTimeout(() => this._commitStack(), this._cfg('tapDelay'));
+				return;
+			}
+			if (type !== 'tap' && fingers === 1 && this.tapStack.fingers === 1) {
+				this._emitTouchGesture('motion_tap', 1, { subMode: type, dir: meta.dir, winding: meta.winding });
+				this._clearStack();
+				return;
+			}
+			this._commitStack();
+		}
+		if (type === 'tap') {
+			this.tapStack = {
+				active: true, count: 1, fingers: fingers,
+				posHistory: [ec], lastPos: ec,
+				align: meta.align,
+				timer: setTimeout(() => this._commitStack(), this._cfg('tapDelay'))
+			};
+			return;
+		}
+		this._emitTouchGesture(type, fingers, meta);
+	}
+	_commitStack() {
+		const { count, fingers, posHistory, align } = this.tapStack;
+		if (count > 0) {
+			let maxDist = 0;
+			for(let i=1; i<posHistory.length; i++) {
+				maxDist = Math.max(maxDist, Math.hypot(posHistory[i].x-posHistory[i-1].x, posHistory[i].y-posHistory[i-1].y));
+			}
+			if (maxDist > 50 && fingers === 1 && count >= 2) {
+				if (count === 2) {
+					const dir = this._getDirection(posHistory[1].x - posHistory[0].x, posHistory[1].y - posHistory[0].y);
+					this._emitTouchGesture('Double_tap_spatial', 1, { dir: dir });
+				} else if (count === 3) {
+					const v1 = { x: posHistory[1].x - posHistory[0].x, y: posHistory[1].y - posHistory[0].y };
+					const v2 = { x: posHistory[2].x - posHistory[1].x, y: posHistory[2].y - posHistory[1].y };
+					const angle = Math.abs(this._getAngleDiff(v1, v2));
+					let subMode = 'spatial_line';
+					let finalDir = this._getDirection(v1.x, v1.y);
+					if (angle > 150) {
+						subMode = 'spatial_boomerang';
+						finalDir = this._getDirection(v1.x, v1.y);
+					}
+					else if (angle > 45 && angle < 135) {
+						subMode = 'spatial_corner';
+						const d1 = this._getDirection(v1.x, v1.y);
+						const d2 = this._getDirection(v2.x, v2.y);
+						const combo = d1 + '_' + d2;
+						const dirMap = {
+							'up_right': 'ne',   'right_up': 'en',
+							'up_left': 'nw',    'left_up': 'wn',
+							'down_right': 'se', 'right_down': 'es',
+							'down_left': 'sw',  'left_down': 'ws'
+						};
+						if(dirMap[combo]) finalDir = dirMap[combo];
+						else finalDir = this._getDirection(v1.x + v2.x, v1.y + v2.y);
+					}
+					this._emitTouchGesture('triple_tap', fingers, { subMode: subMode, dir: finalDir });
+				}
+			} else {
+				let type = 'tap';
+				if (count === 2) type = 'double_tap';
+				if (count === 3) type = 'triple_tap';
+				this._emitTouchGesture(type, fingers, { align: align });
+			}
+			this._clearStack();
+		}
+	}
+	_clearStack() { this.tapStack = { active: false, count: 0, fingers: 0, posHistory: [], timer: null }; }
+	_emitTouchGesture(baseType, fingers, meta, overrideName = null) {
+		let id = baseType;
+		if (meta && meta.subMode) id += '_' + meta.subMode;
+		if (meta && meta.dir && meta.dir !== 'Any' && meta.dir !== 'none') id += '_' + meta.dir.toLowerCase();
+		const windingShapes = ['corner', 'triangle', 'u_shape', 'square', 'switchback'];
+		const checkType = meta && meta.subMode ? meta.subMode : baseType;
+		if (meta && meta.winding && windingShapes.some(s => checkType.toLowerCase().includes(s))) id += '_' + meta.winding;
+		if (fingers > 1) id += '_' + fingers + 'f';
+		if (meta && meta.align) {
+			const map = {
+				'Vertical': 'vertical',
+				'Horizontal': 'horizontal',
+				'Diagonal SE': 'diagonal_se',
+				'Diagonal SW': 'diagonal_sw'
+			};
+			if (map[meta.align]) id += `_${map[meta.align]}`;
+		}
+		const multiFingerBases = ['tap_2f', 'double_tap_2f', 'triple_tap_2f', 'long_tap_2f', 'tap_3f', 'double_tap_3f', 'triple_tap_3f', 'long_tap_3f'];
+		if (multiFingerBases.includes(id)) id += '_any';
+		let finalId = id;
+		const tryFallback = (candidate) => {
+			if (this.allowedTouchGestures && this.allowedTouchGestures.has(candidate)) { finalId = candidate; return true; }
+			return false;
+		};
+		if (this.allowedTouchGestures && this.allowedTouchGestures.size > 0 && !this.allowedTouchGestures.has(finalId)) {
+			if (id.startsWith('swipe_long_')) {
+				if (tryFallback(id.replace('swipe_long_', 'swipe_'))) {}
+			} else if (id.startsWith('motion_tap_spatial_')) {
+				if (tryFallback(id.replace('motion_tap_spatial_', 'swipe_'))) {}
+			}
+			const alignments = ['_vertical', '_horizontal', '_diagonal_se', '_diagonal_sw'];
+			for (let a of alignments) {
+				if (finalId.includes(a)) {
+					let test = finalId.replace(a, '_any');
+					if (tryFallback(test)) break;
+				}
+			}
+			if (!this.allowedTouchGestures.has(finalId)) {
+				const dirs = ['_up','_down','_left','_right','_nw','_ne','_sw','_se'];
+				for (let d of dirs) {
+					if (finalId.includes(d)) {
+						let test = finalId.replace(d, '_any');
+						if (tryFallback(test)) break;
+					}
+				}
+			}
+		}
+		if (this.allowedTouchGestures && this.allowedTouchGestures.size > 0 && !this.allowedTouchGestures.has(finalId)) return;
+		const name = overrideName || finalId;
+		this.callbacks.onTouchGesture({ id: finalId, base: baseType, fingers: fingers, meta: meta, name: name });
+	}
+	_getRotationAngle(p1, p2) { return Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI; }
+	_cleanSegments(segments) { return segments.filter(s => Math.hypot(s.vec.x, s.vec.y) > 15); }
+	_mergeSegments(segments) {
+		if (segments.length < 2) return segments;
+		const merged = []; let current = segments[0];
+		for (let i = 1; i < segments.length; i++) {
+			const next = segments[i];
+			if (Math.abs(this._getAngleDiff(current.vec, next.vec)) < 45) {
+				current.vec.x += next.vec.x; current.vec.y += next.vec.y;
+				current.dir = this._getDirection(current.vec.x, current.vec.y);
+			} else { merged.push(current); current = next; }
+		}
+		merged.push(current); return merged;
+	}
+	_segmentPath(pts) {
+		if (pts.length < 5) return [{dir: 'none', vec:{x:0,y:0}}];
+		const segments = []; let start = 0; const threshold = 45;
+		for (let i = 2; i < pts.length - 2; i++) {
+			const dx1 = pts[i].x - pts[start].x; const dy1 = pts[i].y - pts[start].y;
+			const nextIdx = Math.min(i + 5, pts.length - 1);
+			const dx2 = pts[nextIdx].x - pts[i].x; const dy2 = pts[nextIdx].y - pts[i].y;
+			const a1 = Math.atan2(dy1, dx1) * 180/Math.PI; const a2 = Math.atan2(dy2, dx2) * 180/Math.PI;
+			let diff = Math.abs(a1-a2); if (diff > 180) diff = 360 - diff;
+			if (diff > threshold && Math.hypot(dx1,dy1) > 10) {
+				segments.push({ dir: this._getDirection(dx1, dy1), vec: {x:dx1, y:dy1} }); start = i;
+			}
+		}
+		const lastDx = pts[pts.length-1].x - pts[start].x; const lastDy = pts[pts.length-1].y - pts[start].y;
+		if (Math.hypot(lastDx, lastDy) > 10) segments.push({ dir: this._getDirection(lastDx, lastDy), vec: {x:lastDx, y:lastDy} });
+		return segments;
+	}
+	_getTurnDir(v1, v2) { return (v1.x * v2.y - v1.y * v2.x); }
+	_getAngleDiff(v1, v2) { const a1 = Math.atan2(v1.y, v1.x)*180/Math.PI; const a2 = Math.atan2(v2.y, v2.x)*180/Math.PI; let d = Math.abs(a1-a2); if(d>180) d=360-d; return d; }
+	_hasDwell(pts) {
+		if (!pts || pts.length < 3) return false;
+		const DWELL_RADIUS = this._cfg('pauseDwellRadius');
+		const DWELL_MS = this._cfg('pauseDwellTime');
+		let i = 0;
+		while (i < pts.length - 1) {
+			let j = i + 1;
+			while (j < pts.length &&
+				Math.hypot(pts[j].x - pts[i].x, pts[j].y - pts[i].y) <= DWELL_RADIUS) {
+				if ((pts[j].t - pts[i].t) >= DWELL_MS) return true;
+				j++;
+			}
+			i = (j > i + 1) ? j - 1 : i + 1;
+		}
+		return false;
+	}
+	_getPathLen(pts) { let l=0; for(let i=1;i<pts.length;i++) l+=Math.hypot(pts[i].x-pts[i-1].x, pts[i].y-pts[i-1].y); return l; }
+	_getDirection(dx, dy) {
+		const ang = Math.atan2(dy, dx) * 180 / Math.PI;
+		if (ang > -22.5 && ang <= 22.5) return 'right';
+		if (ang > 22.5 && ang <= 67.5) return 'se';
+		if (ang > 67.5 && ang <= 112.5) return 'down';
+		if (ang > 112.5 && ang <= 157.5) return 'sw';
+		if (ang > 157.5 || ang <= -157.5) return 'left';
+		if (ang > -157.5 && ang <= -112.5) return 'nw';
+		if (ang > -112.5 && ang <= -67.5) return 'up';
+		return 'ne';
+	}
+	_getAlignment(inputs) {
+		if (inputs.length < 2) return null;
+		const pts = inputs.map(s => s.pts[0]);
+		if (inputs.length === 2) {
+			const p1 = pts[0];
+			const p2 = pts[1];
+			const dx = Math.abs(p1.x - p2.x);
+			const dy = Math.abs(p1.y - p2.y);
+			if (dy > dx * 2.5) return 'Vertical';
+			if (dx > dy * 2.5) return 'Horizontal';
+			const rawDx = p1.x - p2.x;
+			const rawDy = p1.y - p2.y;
+			if ((rawDx * rawDy) > 0) return 'Diagonal SE';
+			else return 'Diagonal SW';
+		}
+		const xs = pts.map(p => p.x); const ys = pts.map(p => p.y);
+		const w = Math.max(...xs) - Math.min(...xs); const h = Math.max(...ys) - Math.min(...ys);
+		if (h > w * 1.5) return 'Vertical';
+		if (w > h * 1.5) return 'Horizontal';
+		return 'Diagonal SE';
+	}
 }
-
-
-
-// ===== FORMERLY: vision.js =====
-// Import from YOUR local file (Offline Mode)
-// NOTE: FilesetResolver/GestureRecognizer used to be a static import here. A static import that
-// fails (this WASM bundle is a real local dependency that may not always be present) fails this
-// entire module - which cascades to fail app.js too, since app.js imports VisionEngine from here.
-// It's now dynamically imported inside start() below, right where it's used, so a missing WASM
-// bundle only disables hand tracking instead of the whole app.
-
-// --- 1. EXHAUSTIVE 64-STATE ID MAP ---
-// Motion/transition gestures - one pose changing into another within ~900ms. IDs start at 400
-// to stay clear of the 0-63 static pose range. Chosen pairs read naturally as an action rather
-// than just two shapes: Fist->Open reads as "throwing something away", Open->Fist as "grabbing".
 const TRANSITION_GESTURES = {
-    '0->62':   { id: 400, label: '🗑️ Throw (Fist → Open)' },
-    '62->0':   { id: 401, label: '✊ Grab (Open → Fist)' },
-    '100->62': { id: 402, label: '👐 Release (Pinch → Open)' },
-    '62->100': { id: 403, label: '🤏 Snatch (Open → Pinch)' },
-    '0->16':   { id: 404, label: '☝️ Point Out (Fist → 1 Finger)' },
+	'0->62':   { id: 400, label: '🗑️ Throw (Fist → Open)' },
+	'62->0':   { id: 401, label: '✊ Grab (Open → Fist)' },
+	'100->62': { id: 402, label: '👐 Release (Pinch → Open)' },
+	'62->100': { id: 403, label: '🤏 Snatch (Open → Pinch)' },
+	'0->16':   { id: 404, label: '☝️ Point Out (Fist → 1 Finger)' },
 };
-
 const GESTURE_DICTIONARY = {
-    0: 'FIST_KNUCKLES_FWD',           1: 'FIST_PALM_FWD',
-    2: 'PINKY_KNUCKLES_FWD',          3: 'PINKY_PALM_FWD',
-    4: 'RING_KNUCKLES_FWD',           5: 'RING_PALM_FWD',
-    6: 'RING_PINKY_KNUCKLES_FWD',     7: 'RING_PINKY_PALM_FWD',
-    8: 'MIDDLE_KNUCKLES_FWD',         9: 'MIDDLE_PALM_FWD',
-    10: 'MIDDLE_PINKY_KNUCKLES_FWD',  11: 'MIDDLE_PINKY_PALM_FWD',
-    12: 'CHOPSTICKS_KNUCKLES_FWD',    13: 'CHOPSTICKS_PALM_FWD',
-    14: 'THREE_FINGERS_NO_INDEX_K',   15: 'THREE_FINGERS_NO_INDEX_P',
-    16: 'INDEX_KNUCKLES_FWD',         17: 'INDEX_PALM_FWD',
-    18: 'ROCK_ON_KNUCKLES_FWD',       19: 'ROCK_ON_PALM_FWD',
-    20: 'INDEX_RING_KNUCKLES_FWD',    21: 'INDEX_RING_PALM_FWD',
-    22: 'INDEX_RING_PINKY_K',         23: 'INDEX_RING_PINKY_P',
-    24: 'PEACE_KNUCKLES_FWD',         25: 'PEACE_PALM_FWD',
-    26: 'PEACE_PINKY_KNUCKLES_FWD',   27: 'PEACE_PINKY_PALM_FWD',
-    28: 'THREE_FINGERS_KNUCKLES_FWD', 29: 'THREE_FINGERS_PALM_FWD',
-    30: 'FOUR_FINGERS_KNUCKLES_FWD',  31: 'FOUR_FINGERS_PALM_FWD',
-    32: 'THUMB_KNUCKLES_FWD',         33: 'THUMB_PALM_FWD',
-    34: 'SHAKA_KNUCKLES_FWD',         35: 'SHAKA_PALM_FWD',
-    36: 'THUMB_RING_KNUCKLES_FWD',    37: 'THUMB_RING_PALM_FWD',
-    38: 'THUMB_RING_PINKY_K',         39: 'THUMB_RING_PINKY_P',
-    40: 'THUMB_MIDDLE_KNUCKLES_FWD',  41: 'THUMB_MIDDLE_PALM_FWD',
-    42: 'THUMB_MIDDLE_PINKY_K',       43: 'THUMB_MIDDLE_PINKY_P',
-    44: 'THUMB_MIDDLE_RING_K',        45: 'THUMB_MIDDLE_RING_P',
-    46: 'FOUR_FINGERS_NO_INDEX_K',    47: 'FOUR_FINGERS_NO_INDEX_P',
-    48: 'GUN_KNUCKLES_FWD',           49: 'GUN_PALM_FWD',
-    50: 'SPIDERMAN_KNUCKLES_FWD',     51: 'SPIDERMAN_PALM_FWD',
-    52: 'THUMB_INDEX_RING_K',         53: 'THUMB_INDEX_RING_P',
-    54: 'FOUR_FINGERS_NO_MIDDLE_K',   55: 'FOUR_FINGERS_NO_MIDDLE_P',
-    56: 'SCOUT_KNUCKLES_FWD',         57: 'SCOUT_PALM_FWD',
-    58: 'FOUR_FINGERS_NO_RING_K',     59: 'FOUR_FINGERS_NO_RING_P',
-    60: 'FIVE_FINGERS_NO_PINKY_K',    61: 'FIVE_FINGERS_NO_PINKY_P',
-    62: 'FIVE_FINGERS_KNUCKLES_FWD',  63: 'FIVE_FINGERS_PALM_FWD',
-    
-    // --- PRECISION MICRO-GESTURE OVERLAYS ---
-    100: 'PINCH_INDEX',
-    101: 'PINCH_MIDDLE',
-    102: 'PINCH_RING',
-    103: 'PINCH_PINKY',
-    104: 'CHEF_KISS_ALL_PINCHED',
-    105: 'OK_SIGN',
-    600: 'THUMBS_UP',
-    601: 'THUMBS_DOWN'
+	0: 'FIST_KNUCKLES_FWD',           1: 'FIST_PALM_FWD',
+	2: 'PINKY_KNUCKLES_FWD',          3: 'PINKY_PALM_FWD',
+	4: 'RING_KNUCKLES_FWD',           5: 'RING_PALM_FWD',
+	6: 'RING_PINKY_KNUCKLES_FWD',     7: 'RING_PINKY_PALM_FWD',
+	8: 'MIDDLE_KNUCKLES_FWD',         9: 'MIDDLE_PALM_FWD',
+	10: 'MIDDLE_PINKY_KNUCKLES_FWD',  11: 'MIDDLE_PINKY_PALM_FWD',
+	12: 'CHOPSTICKS_KNUCKLES_FWD',    13: 'CHOPSTICKS_PALM_FWD',
+	14: 'THREE_FINGERS_NO_INDEX_K',   15: 'THREE_FINGERS_NO_INDEX_P',
+	16: 'INDEX_KNUCKLES_FWD',         17: 'INDEX_PALM_FWD',
+	18: 'ROCK_ON_KNUCKLES_FWD',       19: 'ROCK_ON_PALM_FWD',
+	20: 'INDEX_RING_KNUCKLES_FWD',    21: 'INDEX_RING_PALM_FWD',
+	22: 'INDEX_RING_PINKY_K',         23: 'INDEX_RING_PINKY_P',
+	24: 'PEACE_KNUCKLES_FWD',         25: 'PEACE_PALM_FWD',
+	26: 'PEACE_PINKY_KNUCKLES_FWD',   27: 'PEACE_PINKY_PALM_FWD',
+	28: 'THREE_FINGERS_KNUCKLES_FWD', 29: 'THREE_FINGERS_PALM_FWD',
+	30: 'FOUR_FINGERS_KNUCKLES_FWD',  31: 'FOUR_FINGERS_PALM_FWD',
+	32: 'THUMB_KNUCKLES_FWD',         33: 'THUMB_PALM_FWD',
+	34: 'SHAKA_KNUCKLES_FWD',         35: 'SHAKA_PALM_FWD',
+	36: 'THUMB_RING_KNUCKLES_FWD',    37: 'THUMB_RING_PALM_FWD',
+	38: 'THUMB_RING_PINKY_K',         39: 'THUMB_RING_PINKY_P',
+	40: 'THUMB_MIDDLE_KNUCKLES_FWD',  41: 'THUMB_MIDDLE_PALM_FWD',
+	42: 'THUMB_MIDDLE_PINKY_K',       43: 'THUMB_MIDDLE_PINKY_P',
+	44: 'THUMB_MIDDLE_RING_K',        45: 'THUMB_MIDDLE_RING_P',
+	46: 'FOUR_FINGERS_NO_INDEX_K',    47: 'FOUR_FINGERS_NO_INDEX_P',
+	48: 'GUN_KNUCKLES_FWD',           49: 'GUN_PALM_FWD',
+	50: 'SPIDERMAN_KNUCKLES_FWD',     51: 'SPIDERMAN_PALM_FWD',
+	52: 'THUMB_INDEX_RING_K',         53: 'THUMB_INDEX_RING_P',
+	54: 'FOUR_FINGERS_NO_MIDDLE_K',   55: 'FOUR_FINGERS_NO_MIDDLE_P',
+	56: 'SCOUT_KNUCKLES_FWD',         57: 'SCOUT_PALM_FWD',
+	58: 'FOUR_FINGERS_NO_RING_K',     59: 'FOUR_FINGERS_NO_RING_P',
+	60: 'FIVE_FINGERS_NO_PINKY_K',    61: 'FIVE_FINGERS_NO_PINKY_P',
+	62: 'FIVE_FINGERS_KNUCKLES_FWD',  63: 'FIVE_FINGERS_PALM_FWD',
+	100: 'PINCH_INDEX',
+	101: 'PINCH_MIDDLE',
+	102: 'PINCH_RING',
+	103: 'PINCH_PINKY',
+	104: 'CHEF_KISS_ALL_PINCHED',
+	105: 'OK_SIGN',
+	600: 'THUMBS_UP',
+	601: 'THUMBS_DOWN'
 };
-
-// --- 2. TEMPORAL DEBOUNCE BUFFER ---
 class HandGestureBuffer {
-    constructor(bufferSize = 4) {
-        this.buffer = [];
-        this.maxSize = bufferSize;
-        this.currentLockedHandGesture = null;
-        this.lockTime = null;
-        this.lockTimeout = 2000; // 2 second timeout to prevent indefinite locks
-    }
-
-    pushAndEvaluate(handGestureID) {
-        // Reads live so the Hold Frames slider takes effect immediately without restarting tracking
-        this.maxSize = (window.appSettings && window.appSettings.handHoldFrames) || 4;
-
-        if (handGestureID === null) {
-            this.buffer = [];
-            this.currentLockedHandGesture = null;
-            this.lockTime = null;
-            return null;
-        }
-
-        this.buffer.push(handGestureID);
-        if (this.buffer.length > this.maxSize) {
-            this.buffer.shift();
-        }
-
-        if (this.buffer.length === this.maxSize && this.buffer.every(val => val === this.buffer[0])) {
-            // Lock gesture only if we're not already locked to it, or if we've exceeded the timeout
-            const now = Date.now();
-            if (this.currentLockedHandGesture !== this.buffer[0]) {
-                this.currentLockedHandGesture = this.buffer[0];
-                this.lockTime = now;
-            } else if (now - this.lockTime > this.lockTimeout) {
-                // Gesture has been locked for too long; clear and re-lock to refresh
-                this.currentLockedHandGesture = null;
-                this.lockTime = null;
-            }
-            return this.currentLockedHandGesture;
-        }
-
-        return this.currentLockedHandGesture; 
-    }
+	constructor(bufferSize = 4) {
+		this.buffer = [];
+		this.maxSize = bufferSize;
+		this.currentLockedHandGesture = null;
+		this.lockTime = null;
+		this.lockTimeout = 2000;
+	}
+	pushAndEvaluate(handGestureID) {
+		this.maxSize = (window.appSettings && window.appSettings.handHoldFrames) || 4;
+		if (handGestureID === null) {
+			this.buffer = [];
+			this.currentLockedHandGesture = null;
+			this.lockTime = null;
+			return null;
+		}
+		this.buffer.push(handGestureID);
+		if (this.buffer.length > this.maxSize) {
+			this.buffer.shift();
+		}
+		if (this.buffer.length === this.maxSize && this.buffer.every(val => val === this.buffer[0])) {
+			const now = Date.now();
+			if (this.currentLockedHandGesture !== this.buffer[0]) {
+				this.currentLockedHandGesture = this.buffer[0];
+				this.lockTime = now;
+			} else if (now - this.lockTime > this.lockTimeout) {
+				this.currentLockedHandGesture = null;
+				this.lockTime = null;
+			}
+			return this.currentLockedHandGesture;
+		}
+		return this.currentLockedHandGesture;
+	}
 }
-
-// --- 2b. TRAJECTORY-BASED MOTION GESTURES ---
-// FIX: "Hand Advanced Vision Shapes" (Boomerang/Zigzag/Anchor Hold/Circular Sweep, ids 200-203)
-// and "Hand Directional Swipes" (ids 300-303) were listed in HAND_GESTURE_GROUPS and selectable
-// in every hand-mapping dropdown, but nothing ever produced those ids - GESTURE_DICTIONARY only
-// covers static poses (0-63, 100-105, 600-601) and TRANSITION_GESTURES only covers pose-to-pose
-// changes. Any key mapped to one of these 8 could never fire. This tracks wrist position over a
-// short rolling window and classifies the resulting shape - same underlying approach as the
-// touch engine in gestures.js (segment the path, compare angles between segments, check turn
-// direction/total rotation for curves), just evaluated continuously frame-by-frame since hand
-// tracking has no discrete "gesture end" the way a touch pointerup does.
 class HandMotionTracker {
-    constructor() {
-        this.pts = [];
-        this.windowMs = 900;        // matches TRANSITION_GESTURES' pose-to-pose window below
-        this.minSwipeDist = 0.12;   // normalized (0-1) landmark units - deliberate movement, not jitter
-        this.stillDist = 0.035;
-        this.stillTimeMs = 500;
-        this.circleBoundRadius = 0.22;
-        this.cooldownUntil = 0;
-    }
-
-    reset() { this.pts = []; }
-
-    // Called once per frame with the current wrist position (normalized 0-1). Returns
-    // {id, label} on a confident match, else null. Checked BEFORE the static pose below in
-    // process() - processHandData() maps essentially every finger configuration to *some* id,
-    // so if static-pose checking ran first these 8 would almost never get a chance to fire.
-    // KNOWN TRADE-OFF: if a key is mapped to both Anchor Hold and a static pose in the same
-    // profile, holding that pose rock-still past ~500ms can fire Anchor Hold instead of
-    // re-firing the pose - the app-level cooldown (handGestureCooldown in app.js) means this is
-    // rarely visible in practice, but it's a real ambiguity worth knowing about, not silently
-    // resolved.
-    push(x, y) {
-        // Read live (same pattern as HandGestureBuffer.maxSize below) so the Sensitivity slider
-        // takes effect immediately without restarting hand tracking.
-        this.minSwipeDist = ((window.appSettings && window.appSettings.handMotionMinDistance) || 12) / 100;
-        const now = Date.now();
-        this.pts.push({ x, y, t: now });
-        while (this.pts.length && now - this.pts[0].t > this.windowMs) this.pts.shift();
-        if (now < this.cooldownUntil || this.pts.length < 4) return null;
-        // Give shapes that need multiple segments (Boomerang, Zigzag, Circular Sweep) real time
-        // to develop before committing to anything. Without this, a plain Swipe fires the instant
-        // minSwipeDist is crossed - which is always partway through the outbound leg of a
-        // Boomerang or the first arc of a Circular Sweep, so those two could never actually win;
-        // the simplest shape always got there first. Anchor Hold is unaffected since it already
-        // requires >=500ms on its own, well past this floor.
-        if (now - this.pts[0].t < 280) return null;
-
-        const match = this._classify();
-        if (match) {
-            this.cooldownUntil = now + 600; // brief self-cooldown so one shape doesn't reclassify every frame
-            this.pts = [];
-        }
-        return match;
-    }
-
-    _dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
-    _pathLength(pts) { let l = 0; for (let i = 1; i < pts.length; i++) l += this._dist(pts[i], pts[i - 1]); return l; }
-
-    _classify() {
-        const pts = this.pts;
-        const first = pts[0], last = pts[pts.length - 1];
-        const cx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
-        const cy = pts.reduce((s, p) => s + p.y, 0) / pts.length;
-        const maxRadius = Math.max(...pts.map(p => Math.hypot(p.x - cx, p.y - cy)));
-        const span = last.t - first.t;
-
-        // Anchor Hold: whole window stayed within a small radius for long enough. Checked first
-        // since it's the most restrictive - everything else requires real displacement.
-        if (maxRadius < this.stillDist && span >= this.stillTimeMs) {
-            return { id: 202, label: '⚓ Anchor Hold' };
-        }
-
-        const netDx = last.x - first.x;
-        const netDy = last.y - first.y;
-        const netDist = Math.hypot(netDx, netDy);
-        const pathLen = this._pathLength(pts);
-        if (pathLen < this.minSwipeDist) return null; // not enough motion yet to classify anything else
-
-        // Zigzag: repeated direction reversals along whichever axis moved most - the windowed
-        // equivalent of the touch engine's "squiggle" continuous gesture (gestures.js), which
-        // counts the same kind of sign flips from a pointerdown instead of a rolling window.
-        const horizontal = Math.abs(netDx) >= Math.abs(netDy);
-        let flips = 0, lastSign = 0;
-        for (let i = 1; i < pts.length; i++) {
-            const d = horizontal ? (pts[i].x - pts[i - 1].x) : (pts[i].y - pts[i - 1].y);
-            if (Math.abs(d) < 0.015) continue; // sub-jitter delta, ignore - raised from an earlier 0.008 after testing showed natural tracking noise on a still hand could occasionally cross that and register as false direction reversals
-            const sign = d > 0 ? 1 : -1;
-            if (lastSign !== 0 && sign !== lastSign) flips++;
-            lastSign = sign;
-        }
-        if (flips >= 3) return { id: 201, label: '⚡ Zigzag Motion' };
-
-        // Circular Sweep: turn direction stays consistent (unlike Zigzag's alternating turns)
-        // while accumulating most of a full rotation, and the path stays boxed into a small
-        // radius - distinguishes an actual loop from a big sweeping straight motion, which also
-        // covers distance but doesn't turn through ~300+ degrees while staying bounded.
-        let totalTurn = 0, consistentSign = 0, brokeConsistency = false;
-        for (let i = 2; i < pts.length; i++) {
-            const v1x = pts[i - 1].x - pts[i - 2].x, v1y = pts[i - 1].y - pts[i - 2].y;
-            const v2x = pts[i].x - pts[i - 1].x, v2y = pts[i].y - pts[i - 1].y;
-            const seg1 = Math.hypot(v1x, v1y), seg2 = Math.hypot(v2x, v2y);
-            if (seg1 < 0.004 || seg2 < 0.004) continue; // near-zero segment, angle would be noise
-            const cross = v1x * v2y - v1y * v2x;
-            const dot = (v1x * v2x + v1y * v2y) / (seg1 * seg2);
-            const angle = Math.acos(Math.max(-1, Math.min(1, dot))) * 180 / Math.PI;
-            if (angle > 140) { brokeConsistency = true; continue; } // a near-reversal, not a turn - cross product is unreliable this close to collinear
-            if (angle < 5) continue; // near-straight segment - contributes ~0 rotation either way, but its cross product is just as unreliable near collinear as the >140 case, so it must not be allowed to set consistentSign off noise. Kept low (not the original 15) because a real circle sampled at typical camera frame rates produces many small per-segment angles that are still genuine, consistent rotation, not noise - the magnitude filter above and the same-sign consistency check below are what actually separate real rotation from jitter.
-            const sign = cross > 0 ? 1 : -1;
-            if (consistentSign !== 0 && sign !== consistentSign) brokeConsistency = true;
-            consistentSign = sign;
-            totalTurn += angle;
-        }
-        if (!brokeConsistency && totalTurn >= 300 && maxRadius < this.circleBoundRadius) {
-            return { id: 203, label: '🔄 Circular Sweep' };
-        }
-
-        // Boomerang: went out then returned close to the start - one clean reversal, distinct
-        // from Zigzag's multiple reversals above.
-        if (netDist < this.stillDist * 1.6 && pathLen >= this.minSwipeDist * 1.5) {
-            return { id: 200, label: '🪃 Boomerang Pattern' };
-        }
-
-        // Still meaningfully curving in one consistent direction but hasn't reached 300 degrees
-        // yet - almost certainly a Circular Sweep in progress rather than a finished swipe.
-        // Without this, a partial arc gets read as a straight-line swipe the moment its net
-        // displacement crosses the threshold, well before the rotation has a chance to complete.
-        // Returning null here (instead of falling through) lets the window keep growing next
-        // frame; if it never completes the circle it eventually ages out of the 900ms window on
-        // its own rather than getting stuck.
-        if (!brokeConsistency && totalTurn > 70) return null;
-
-        // Directional Swipe: the fallback once nothing more specific matched. Requires the path
-        // to be reasonably direct - not much longer than its own net displacement - which is what
-        // actually excludes anything that looped or doubled back (a clean swipe has pathLen close
-        // to netDist; a boomerang or circle covers much more ground than it nets). Only the 4
-        // cardinal directions are declared (300-303), so this snaps to whichever axis dominates
-        // rather than the touch engine's 8-way _getDirection. Left/right is resolved against raw
-        // (unmirrored) landmark x here; process() below corrects it using handednessFlip, the
-        // same setting that already corrects mirrored handedness labels - this is the same
-        // front-camera mirroring ambiguity, not a separate guess.
-        if (netDist >= this.minSwipeDist && pathLen < netDist * 1.6) {
-            if (horizontal) return netDx > 0 ? { id: 303, label: '👉 Swipe Right' } : { id: 302, label: '👈 Swipe Left' };
-            return netDy > 0 ? { id: 301, label: '👇 Swipe Down' } : { id: 300, label: '👆 Swipe Up' }; // image y increases downward
-        }
-        return null;
-    }
+	constructor() {
+		this.pts = [];
+		this.windowMs = 900;
+		this.minSwipeDist = 0.12;
+		this.stillDist = 0.035;
+		this.stillTimeMs = 500;
+		this.circleBoundRadius = 0.22;
+		this.cooldownUntil = 0;
+	}
+	reset() { this.pts = []; }
+	push(x, y) {
+		this.minSwipeDist = ((window.appSettings && window.appSettings.handMotionMinDistance) || 12) / 100;
+		const now = Date.now();
+		this.pts.push({ x, y, t: now });
+		while (this.pts.length && now - this.pts[0].t > this.windowMs) this.pts.shift();
+		if (now < this.cooldownUntil || this.pts.length < 4) return null;
+		if (now - this.pts[0].t < 280) return null;
+		const match = this._classify();
+		if (match) {
+			this.cooldownUntil = now + 600;
+			this.pts = [];
+		}
+		return match;
+	}
+	_dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+	_pathLength(pts) { let l = 0; for (let i = 1; i < pts.length; i++) l += this._dist(pts[i], pts[i - 1]); return l; }
+	_classify() {
+		const pts = this.pts;
+		const first = pts[0], last = pts[pts.length - 1];
+		const cx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
+		const cy = pts.reduce((s, p) => s + p.y, 0) / pts.length;
+		const maxRadius = Math.max(...pts.map(p => Math.hypot(p.x - cx, p.y - cy)));
+		const span = last.t - first.t;
+		if (maxRadius < this.stillDist && span >= this.stillTimeMs) {
+			return { id: 202, label: '⚓ Anchor Hold' };
+		}
+		const netDx = last.x - first.x;
+		const netDy = last.y - first.y;
+		const netDist = Math.hypot(netDx, netDy);
+		const pathLen = this._pathLength(pts);
+		if (pathLen < this.minSwipeDist) return null;
+		const horizontal = Math.abs(netDx) >= Math.abs(netDy);
+		let flips = 0, lastSign = 0;
+		for (let i = 1; i < pts.length; i++) {
+			const d = horizontal ? (pts[i].x - pts[i - 1].x) : (pts[i].y - pts[i - 1].y);
+			if (Math.abs(d) < 0.015) continue;
+			const sign = d > 0 ? 1 : -1;
+			if (lastSign !== 0 && sign !== lastSign) flips++;
+			lastSign = sign;
+		}
+		if (flips >= 3) return { id: 201, label: '⚡ Zigzag Motion' };
+		let totalTurn = 0, consistentSign = 0, brokeConsistency = false;
+		for (let i = 2; i < pts.length; i++) {
+			const v1x = pts[i - 1].x - pts[i - 2].x, v1y = pts[i - 1].y - pts[i - 2].y;
+			const v2x = pts[i].x - pts[i - 1].x, v2y = pts[i].y - pts[i - 1].y;
+			const seg1 = Math.hypot(v1x, v1y), seg2 = Math.hypot(v2x, v2y);
+			if (seg1 < 0.004 || seg2 < 0.004) continue;
+			const cross = v1x * v2y - v1y * v2x;
+			const dot = (v1x * v2x + v1y * v2y) / (seg1 * seg2);
+			const angle = Math.acos(Math.max(-1, Math.min(1, dot))) * 180 / Math.PI;
+			if (angle > 140) { brokeConsistency = true; continue; }
+			if (angle < 5) continue;
+			const sign = cross > 0 ? 1 : -1;
+			if (consistentSign !== 0 && sign !== consistentSign) brokeConsistency = true;
+			consistentSign = sign;
+			totalTurn += angle;
+		}
+		if (!brokeConsistency && totalTurn >= 300 && maxRadius < this.circleBoundRadius) {
+			return { id: 203, label: '🔄 Circular Sweep' };
+		}
+		if (netDist < this.stillDist * 1.6 && pathLen >= this.minSwipeDist * 1.5) {
+			return { id: 200, label: '🪃 Boomerang Pattern' };
+		}
+		if (!brokeConsistency && totalTurn > 70) return null;
+		if (netDist >= this.minSwipeDist && pathLen < netDist * 1.6) {
+			if (horizontal) return netDx > 0 ? { id: 303, label: '👉 Swipe Right' } : { id: 302, label: '👈 Swipe Left' };
+			return netDy > 0 ? { id: 301, label: '👇 Swipe Down' } : { id: 300, label: '👆 Swipe Up' };
+		}
+		return null;
+	}
 }
-
-// --- 3. CORE VOLUMETRIC MATH ---
 function processHandData(landmarks) {
-    const wrist = landmarks[0];
-    const n = landmarks.map(p => ({
-        x: p.x - wrist.x,
-        y: p.y - wrist.y,
-        z: p.z - wrist.z
-    }));
-
-    const dist3D = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z);
-    const nWrist = n[0];
-
-    const T = dist3D(nWrist, n[4]) > (dist3D(nWrist, n[2]) * 1.15) ? 1 : 0;
-    const I = dist3D(nWrist, n[8]) > (dist3D(nWrist, n[6]) * 1.25) ? 1 : 0;
-    const M = dist3D(nWrist, n[12]) > (dist3D(nWrist, n[10]) * 1.25) ? 1 : 0;
-    const R = dist3D(nWrist, n[16]) > (dist3D(nWrist, n[14]) * 1.25) ? 1 : 0;
-    const P = dist3D(nWrist, n[20]) > (dist3D(nWrist, n[18]) * 1.25) ? 1 : 0;
-
-    const baseMask = (T << 4) | (I << 3) | (M << 2) | (R << 1) | P;
-
-    const vec1x = n[17].x - n[5].x; 
-    const vec1y = n[17].y - n[5].y; 
-    const vec2x = n[9].x - nWrist.x; 
-    const vec2y = n[9].y - nWrist.y; 
-    const crossProduct = (vec1x * vec2y) - (vec1y * vec2x);
-    
-    const palmFacing = crossProduct > 0 ? 1 : 0; 
-    
-    let handGestureID = (baseMask << 1) | palmFacing;
-
-    const pinchThreshold = ((window.appSettings && window.appSettings.handPinchThreshold) || 5.5) / 100;
-    const dThumbIndex = dist3D(n[4], n[8]);
-    const dThumbMiddle = dist3D(n[4], n[12]);
-    const dThumbRing = dist3D(n[4], n[16]);
-    const dThumbPinky = dist3D(n[4], n[20]);
-
-    const cx = (n[4].x + n[8].x + n[12].x + n[16].x + n[20].x) / 5;
-    const cy = (n[4].y + n[8].y + n[12].y + n[16].y + n[20].y) / 5;
-    const cz = (n[4].z + n[8].z + n[12].z + n[16].z + n[20].z) / 5;
-    const centerTip = {x: cx, y: cy, z: cz};
-    
-    const isChefKiss = dist3D(n[4], centerTip) < 0.08 && 
-                       dist3D(n[8], centerTip) < 0.08 && 
-                       dist3D(n[12], centerTip) < 0.08;
-
-    if (isChefKiss) {
-        handGestureID = 104;
-    } else if (dThumbIndex < pinchThreshold) {
-        handGestureID = (M || R || P) ? 105 : 100;
-    } else if (dThumbMiddle < pinchThreshold) {
-        handGestureID = 101;
-    } else if (dThumbRing < pinchThreshold) {
-        handGestureID = 102;
-    } else if (dThumbPinky < pinchThreshold) {
-        handGestureID = 103;
-    } else if (T === 1 && I === 0 && M === 0 && R === 0 && P === 0) {
-        // Thumb is the only finger extended - "thumb up" (id 32/33) can't tell up from down on
-        // its own, since that's about which side of the hand faces the camera, not which way the
-        // thumb points. Checking the thumb tip's position relative to its own base joint (not
-        // just the wrist) gives a genuine, independent up/down reading.
-        handGestureID = (n[4].y < n[2].y) ? 600 : 601; // image y increases downward, so smaller y = higher up = thumbs up
-    }
-
-    return handGestureID;
+	const wrist = landmarks[0];
+	const n = landmarks.map(p => ({
+				x: p.x - wrist.x,
+				y: p.y - wrist.y,
+				z: p.z - wrist.z
+	}));
+	const dist3D = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z);
+	const nWrist = n[0];
+	const T = dist3D(nWrist, n[4]) > (dist3D(nWrist, n[2]) * 1.15) ? 1 : 0;
+	const I = dist3D(nWrist, n[8]) > (dist3D(nWrist, n[6]) * 1.25) ? 1 : 0;
+	const M = dist3D(nWrist, n[12]) > (dist3D(nWrist, n[10]) * 1.25) ? 1 : 0;
+	const R = dist3D(nWrist, n[16]) > (dist3D(nWrist, n[14]) * 1.25) ? 1 : 0;
+	const P = dist3D(nWrist, n[20]) > (dist3D(nWrist, n[18]) * 1.25) ? 1 : 0;
+	const baseMask = (T << 4) | (I << 3) | (M << 2) | (R << 1) | P;
+	const vec1x = n[17].x - n[5].x;
+	const vec1y = n[17].y - n[5].y;
+	const vec2x = n[9].x - nWrist.x;
+	const vec2y = n[9].y - nWrist.y;
+	const crossProduct = (vec1x * vec2y) - (vec1y * vec2x);
+	const palmFacing = crossProduct > 0 ? 1 : 0;
+	let handGestureID = (baseMask << 1) | palmFacing;
+	const pinchThreshold = ((window.appSettings && window.appSettings.handPinchThreshold) || 5.5) / 100;
+	const dThumbIndex = dist3D(n[4], n[8]);
+	const dThumbMiddle = dist3D(n[4], n[12]);
+	const dThumbRing = dist3D(n[4], n[16]);
+	const dThumbPinky = dist3D(n[4], n[20]);
+	const cx = (n[4].x + n[8].x + n[12].x + n[16].x + n[20].x) / 5;
+	const cy = (n[4].y + n[8].y + n[12].y + n[16].y + n[20].y) / 5;
+	const cz = (n[4].z + n[8].z + n[12].z + n[16].z + n[20].z) / 5;
+	const centerTip = {x: cx, y: cy, z: cz};
+	const isChefKiss = dist3D(n[4], centerTip) < 0.08 &&
+	dist3D(n[8], centerTip) < 0.08 &&
+	dist3D(n[12], centerTip) < 0.08;
+	if (isChefKiss) {
+		handGestureID = 104;
+	} else if (dThumbIndex < pinchThreshold) {
+		handGestureID = (M || R || P) ? 105 : 100;
+	} else if (dThumbMiddle < pinchThreshold) {
+		handGestureID = 101;
+	} else if (dThumbRing < pinchThreshold) {
+		handGestureID = 102;
+	} else if (dThumbPinky < pinchThreshold) {
+		handGestureID = 103;
+	} else if (T === 1 && I === 0 && M === 0 && R === 0 && P === 0) {
+		handGestureID = (n[4].y < n[2].y) ? 600 : 601;
+	}
+	return handGestureID;
 }
 window.processHandData = processHandData;
-
 class VisionEngine {
-    constructor(onTrigger, onStatus) {
-        this.onTrigger = onTrigger;
-        this.onStatus = onStatus;
-        this.recognizer = null;
-        this.video = null;
-        this.isActive = false;
-        this.loopId = null;
-        this.lastVideoTime = -1;
-        this.engineBuffer = new HandGestureBuffer(4); // Attach buffer directly to engine state
-        this.motionTracker = new HandMotionTracker(); // Boomerang/Zigzag/Anchor Hold/Circular Sweep/Swipes
-        this.isInitialized = false; // Flag for initialization state
-        this.initError = null; // Store init error for debugging
-    }
-
-    async start() {
-        if (!this.recognizer && !this.isInitialized) {
-            this.onStatus("Loading AI (Offline)... 🧠");
-            try {
-                const { FilesetResolver, GestureRecognizer } = await import("./wasm/vision_bundle.js");
-                const vision = await FilesetResolver.forVisionTasks("./wasm");
-                this.recognizer = await GestureRecognizer.createFromOptions(vision, {
-                    baseOptions: {
-                        modelAssetPath: "./wasm/gesture_recognizer.task",
-                        delegate: "GPU" 
-                    },
-                    runningMode: "VIDEO",
-                    numHands: 2
-                });
-                this.isInitialized = true;
-            } catch (e) {
-                console.error("Vision/WASM Init Error:", e.message || e);
-                this.initError = e;
-                this.isInitialized = false;
-                this.onStatus("Hand tracking unavailable ❌");
-                return;
-            }
-        } else if (this.initError) {
-            // Previous initialization failed, don't retry
-            this.onStatus("Hand tracking unavailable ❌");
-            return;
-        }
-
-        if (this.isActive) return;
-
-        this.video = document.createElement("video");
-        this.video.setAttribute("autoplay", "");
-        this.video.setAttribute("playsinline", "");
-        this.video.style.display = "none";
-        document.body.appendChild(this.video);
-
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: "user",
-                    width: { ideal: 640 },
-                    height: { ideal: 480 } 
-                } 
-            });
-            this.video.srcObject = stream;
-            this.video.onloadeddata = () => {
-                this.isActive = true;
-                this.engineBuffer.pushAndEvaluate(null); // Reset buffer on boot
-                this.predict();
-                this.onStatus("Hand Tracking ON 🖐️");
-            };
-        } catch (e) {
-            console.error("Camera Error:", e);
-            this.onStatus("Cam Blocked 🚫");
-        }
-    }
-
-    stop() {
-        this.isActive = false;
-        
-        if (this.video) {
-            if (this.video.srcObject) {
-                this.video.srcObject.getTracks().forEach(t => t.stop());
-            }
-            this.video.remove();
-            this.video = null;
-        }
-
-        if (this.debugCanvas) {
-            this.debugCanvas.remove();
-            this.debugCanvas = null;
-            this.debugCtx = null;
-        }
-
-        if (this.loopId) cancelAnimationFrame(this.loopId);
-        this.onStatus("Vision Off 🌑");
-    }
-    
-    predict() {
-        if (!this.isActive || !this.recognizer || !this.video) return;
-
-        const startTimeMs = Date.now();
-        
-        if (this.video.currentTime !== this.lastVideoTime) {
-            this.lastVideoTime = this.video.currentTime;
-            try {
-                const results = this.recognizer.recognizeForVideo(this.video, startTimeMs);
-                this.process(results);
-            } catch(e) { 
-                console.error("Vision Frame Error", e); 
-            }
-        }
-
-        this.loopId = requestAnimationFrame(() => this.predict());
-    }
-
-    process(results) {
-        const isDebug = window.appSettings && window.appSettings.isSkeletonDebugEnabled;
-
-        if (isDebug) {
-            this._drawDebugSkeleton(results);
-        } else if (this.debugCanvas && this.debugCtx) {
-            this.debugCtx.clearRect(0, 0, this.debugCanvas.width, this.debugCanvas.height);
-        }
-
-        // FIX: "hand signals should be special 2 handed gestures" - Stop (both palms), Play
-        // (both thumbs up), Delete (both thumbs down), Clear (both fists). Checked first, ahead
-        // of normal single-hand processing, and only fires when both hands simultaneously show
-        // the matching pose. Purely additive - doesn't touch or reinterpret any existing
-        // single-hand pose id, so every preset and mapping built around those keeps working.
-        if (results.landmarks && results.landmarks.length === 2) {
-            const rawID0 = processHandData(results.landmarks[0]);
-            const rawID1 = processHandData(results.landmarks[1]);
-            const TWO_HAND_SIGNALS = {
-                '62': { id: 'TWO_HAND_STOP', label: '✋✋ Both Palms - Stop' },
-                '600': { id: 'TWO_HAND_PLAY', label: '👍👍 Both Thumbs Up - Play' },
-                '601': { id: 'TWO_HAND_DELETE', label: '👎👎 Both Thumbs Down - Delete' },
-                '0': { id: 'TWO_HAND_CLEAR', label: '✊✊ Both Fists - Clear' },
-            };
-            if (rawID0 === rawID1 && TWO_HAND_SIGNALS[rawID0]) {
-                const signal = TWO_HAND_SIGNALS[rawID0];
-                this.onTrigger({ id: signal.id, label: signal.label });
-                this._prevStableID = null;
-                return;
-            }
-        }
-
-        if (results.landmarks && results.landmarks.length > 0) {
-            const rawID = processHandData(results.landmarks[0]);
-            const stableID = this.engineBuffer.pushAndEvaluate(rawID);
-
-            // Handedness: MediaPipe reports Left/Right per hand. NOTE: with a front camera the
-            // label can be mirror-flipped depending on the pipeline, so which physical hand maps
-            // to "Left" vs "Right" must be confirmed on a real device - that's why this is surfaced
-            // in the Hand test readout first. `handednessFlip` in appSettings lets that be corrected
-            // without a code change once verified. The numeric pose id is untouched, so this is
-            // purely additive and never affects existing mappings.
-            let handSide = null;
-            const hArr = results.handednesses || results.handedness;
-            if (hArr && hArr[0] && hArr[0][0] && hArr[0][0].categoryName) {
-                let name = hArr[0][0].categoryName; // 'Left' or 'Right'
-                if (window.appSettings && window.appSettings.handednessFlip) {
-                    name = name === 'Left' ? 'Right' : 'Left';
-                }
-                handSide = name === 'Left' ? 'L' : 'R';
-            }
-            this._lastHandSide = handSide;
-
-            const wrist = results.landmarks[0][0];
-            const motionMatch = this.motionTracker.push(wrist.x, wrist.y);
-            if (motionMatch) {
-                let { id, label } = motionMatch;
-                if (window.appSettings && window.appSettings.handednessFlip) {
-                    if (id === 302) { id = 303; label = '👉 Swipe Right'; }
-                    else if (id === 303) { id = 302; label = '👈 Swipe Left'; }
-                }
-                this.onTrigger({ id, label, hand: handSide });
-                this._prevStableID = null;
-                return;
-            }
-
-            if (stableID !== null && GESTURE_DICTIONARY[stableID]) {
-                // FIX: "frozen gestures... adding motion would make them better" - poses were
-                // purely static (hold one shape, done). This adds a small set of TRANSITION
-                // gestures - one pose changing into another within a short window reads as an
-                // actual motion (e.g. a fist opening into a throw), not just another static shape.
-                if (this._prevStableID !== null && this._prevStableID !== stableID) {
-                    const elapsed = Date.now() - (this._prevStableTime || 0);
-                    const transition = TRANSITION_GESTURES[`${this._prevStableID}->${stableID}`];
-                    if (transition && elapsed < 900) {
-                        this.onTrigger({ id: transition.id, label: transition.label });
-                        this._prevStableID = stableID;
-                        this._prevStableTime = Date.now();
-                        return;
-                    }
-                }
-                this._prevStableID = stableID;
-                this._prevStableTime = Date.now();
-
-                // Sends a structured object downstream so app.js can use `gesture.id` or `gesture.label`
-                this.onTrigger({
-                    id: stableID,
-                    label: GESTURE_DICTIONARY[stableID],
-                    hand: handSide
-                });
-                return;
-            }
-        } else {
-            // Hand lost from frame, dump the buffer
-            this.engineBuffer.pushAndEvaluate(null);
-            this._prevStableID = null;
-            this.motionTracker.reset();
-        }
-
-        this.onTrigger("none");
-    } 
-
-    _drawDebugSkeleton(results) {
-        if (!this.debugCanvas) {
-            this.debugCanvas = document.createElement('canvas');
-            this.debugCanvas.style.position = 'fixed';
-            this.debugCanvas.style.top = '0';
-            this.debugCanvas.style.left = '0';
-            this.debugCanvas.style.margin = '0';
-            this.debugCanvas.style.width = '100vw';
-            this.debugCanvas.style.height = '100vh';
-            this.debugCanvas.style.zIndex = '10';
-            this.debugCanvas.style.pointerEvents = 'none';
-            // FIX: appended to <html> instead of <body> - if a settings/help/etc modal is open,
-            // the scroll-lock sets body.style.position = 'fixed' to anchor the page, which makes
-            // body the containing block for its own position:fixed children and throws off their
-            // top/left (a well-known CSS quirk). <html> is never given position:fixed, so this
-            // stays correctly viewport-anchored no matter what else is open.
-            document.documentElement.appendChild(this.debugCanvas);
-            this.debugCtx = this.debugCanvas.getContext('2d');
-        }
-
-        // FIX: "2 skeleton hands during testing" - this fullscreen overlay had no idea the
-        // Advanced tab's practice preview was open, and the Settings modal doesn't cover
-        // edge-to-edge, so the fullscreen skeleton stayed visible in the margins behind the
-        // modal at the same moment the mini preview canvas below drew the same hand again.
-        // Reusing the same active-tab check already used elsewhere (the Tone history readout)
-        // to detect Advanced is the current view, so exactly one skeleton renders at a time
-        // instead of both.
-        const advancedTab = document.getElementById('tab-advanced');
-        const isAdvancedTabActive = !!(advancedTab && advancedTab.classList.contains('active'));
-        this.debugCanvas.style.display = isAdvancedTabActive ? 'none' : '';
-
-        const ctx = this.debugCtx;
-        const canvas = this.debugCanvas;
-
-        if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        if (!isAdvancedTabActive && results.landmarks) {
-            for (const landmarks of results.landmarks) {
-                this._drawHand(ctx, landmarks, canvas.width, canvas.height);
-            }
-        }
-
-        // Also draw onto the small Advanced practice preview canvas, if it's open
-        const miniCanvas = document.getElementById('practice-preview-canvas');
-        if (miniCanvas) {
-            const miniCtx = miniCanvas.getContext('2d');
-            const rect = miniCanvas.getBoundingClientRect();
-            if (miniCanvas.width !== rect.width || miniCanvas.height !== rect.height) {
-                miniCanvas.width = rect.width;
-                miniCanvas.height = rect.height;
-            }
-            miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
-            if (results.landmarks) {
-                for (const landmarks of results.landmarks) {
-                    this._drawHand(miniCtx, landmarks, miniCanvas.width, miniCanvas.height);
-                }
-            }
-        }
-    }
-
-    _drawHand(ctx, landmarks, w, h) {
-        const connectors = [
-            [0, 1], [1, 2], [2, 3], [3, 4],           
-            [0, 5], [5, 6], [6, 7], [7, 8],           
-            [5, 9], [9, 10], [10, 11], [11, 12],      
-            [9, 13], [13, 14], [14, 15], [15, 16],    
-            [13, 17], [0, 17], [17, 18], [18, 19], [19, 20] 
-        ];
-
-        ctx.lineWidth = 3;
-        ctx.lineCap = "round";
-        ctx.strokeStyle = "#00FF00"; 
-
-        for (const [start, end] of connectors) {
-            const p1 = landmarks[start];
-            const p2 = landmarks[end];
-            ctx.beginPath();
-            ctx.moveTo((1.0 - p1.x) * w, p1.y * h); 
-            ctx.lineTo((1.0 - p2.x) * w, p2.y * h);
-            ctx.stroke();
-        }
-
-        ctx.fillStyle = "#FF0000"; 
-        for (const point of landmarks) {
-            ctx.beginPath();
-            ctx.arc((1.0 - point.x) * w, point.y * h, 4, 0, 2 * Math.PI);
-            ctx.fill();
-        }
-    }     
+	constructor(onTrigger, onStatus) {
+		this.onTrigger = onTrigger;
+		this.onStatus = onStatus;
+		this.recognizer = null;
+		this.video = null;
+		this.isActive = false;
+		this.loopId = null;
+		this.lastVideoTime = -1;
+		this.engineBuffer = new HandGestureBuffer(4);
+		this.motionTracker = new HandMotionTracker();
+		this.isInitialized = false;
+		this.initError = null;
+	}
+	async start() {
+		if (!this.recognizer && !this.isInitialized) {
+			this.onStatus("Loading AI (Offline)... 🧠");
+			try {
+				const { FilesetResolver, GestureRecognizer } = await import("./wasm/vision_bundle.js");
+				const vision = await FilesetResolver.forVisionTasks("./wasm");
+				this.recognizer = await GestureRecognizer.createFromOptions(vision, {
+						baseOptions: {
+							modelAssetPath: "./wasm/gesture_recognizer.task",
+							delegate: "GPU"
+						},
+						runningMode: "VIDEO",
+						numHands: 2
+				});
+				this.isInitialized = true;
+			} catch (e) {
+				console.error("Vision/WASM Init Error:", e.message || e);
+				this.initError = e;
+				this.isInitialized = false;
+				this.onStatus("Hand tracking unavailable ❌");
+				return;
+			}
+		} else if (this.initError) {
+			this.onStatus("Hand tracking unavailable ❌");
+			return;
+		}
+		if (this.isActive) return;
+		this.video = document.createElement("video");
+		this.video.setAttribute("autoplay", "");
+		this.video.setAttribute("playsinline", "");
+		this.video.style.display = "none";
+		document.body.appendChild(this.video);
+		try {
+			const stream = await navigator.mediaDevices.getUserMedia({
+					video: {
+						facingMode: "user",
+						width: { ideal: 640 },
+						height: { ideal: 480 }
+					}
+			});
+			this.video.srcObject = stream;
+			this.video.onloadeddata = () => {
+				this.isActive = true;
+				this.engineBuffer.pushAndEvaluate(null);
+				this.predict();
+				this.onStatus("Hand Tracking ON 🖐️");
+			};
+		} catch (e) {
+			console.error("Camera Error:", e);
+			this.onStatus("Cam Blocked 🚫");
+		}
+	}
+	stop() {
+		this.isActive = false;
+		if (this.video) {
+			if (this.video.srcObject) {
+				this.video.srcObject.getTracks().forEach(t => t.stop());
+			}
+			this.video.remove();
+			this.video = null;
+		}
+		if (this.debugCanvas) {
+			this.debugCanvas.remove();
+			this.debugCanvas = null;
+			this.debugCtx = null;
+		}
+		if (this.loopId) cancelAnimationFrame(this.loopId);
+		this.onStatus("Vision Off 🌑");
+	}
+	predict() {
+		if (!this.isActive || !this.recognizer || !this.video) return;
+		const startTimeMs = Date.now();
+		if (this.video.currentTime !== this.lastVideoTime) {
+			this.lastVideoTime = this.video.currentTime;
+			try {
+				const results = this.recognizer.recognizeForVideo(this.video, startTimeMs);
+				this.process(results);
+			} catch(e) {
+				console.error("Vision Frame Error", e);
+			}
+		}
+		this.loopId = requestAnimationFrame(() => this.predict());
+	}
+	process(results) {
+		const isDebug = window.appSettings && window.appSettings.isSkeletonDebugEnabled;
+		if (isDebug) {
+			this._drawDebugSkeleton(results);
+		} else if (this.debugCanvas && this.debugCtx) {
+			this.debugCtx.clearRect(0, 0, this.debugCanvas.width, this.debugCanvas.height);
+		}
+		if (results.landmarks && results.landmarks.length === 2) {
+			const rawID0 = processHandData(results.landmarks[0]);
+			const rawID1 = processHandData(results.landmarks[1]);
+			const TWO_HAND_SIGNALS = {
+				'62': { id: 'TWO_HAND_STOP', label: '✋✋ Both Palms - Stop' },
+				'600': { id: 'TWO_HAND_PLAY', label: '👍👍 Both Thumbs Up - Play' },
+				'601': { id: 'TWO_HAND_DELETE', label: '👎👎 Both Thumbs Down - Delete' },
+				'0': { id: 'TWO_HAND_CLEAR', label: '✊✊ Both Fists - Clear' },
+			};
+			if (rawID0 === rawID1 && TWO_HAND_SIGNALS[rawID0]) {
+				const signal = TWO_HAND_SIGNALS[rawID0];
+				this.onTrigger({ id: signal.id, label: signal.label });
+				this._prevStableID = null;
+				return;
+			}
+		}
+		if (results.landmarks && results.landmarks.length > 0) {
+			const rawID = processHandData(results.landmarks[0]);
+			const stableID = this.engineBuffer.pushAndEvaluate(rawID);
+			let handSide = null;
+			const hArr = results.handednesses || results.handedness;
+			if (hArr && hArr[0] && hArr[0][0] && hArr[0][0].categoryName) {
+				let name = hArr[0][0].categoryName;
+				if (window.appSettings && window.appSettings.handednessFlip) {
+					name = name === 'Left' ? 'Right' : 'Left';
+				}
+				handSide = name === 'Left' ? 'L' : 'R';
+			}
+			this._lastHandSide = handSide;
+			const wrist = results.landmarks[0][0];
+			const motionMatch = this.motionTracker.push(wrist.x, wrist.y);
+			if (motionMatch) {
+				let { id, label } = motionMatch;
+				if (window.appSettings && window.appSettings.handednessFlip) {
+					if (id === 302) { id = 303; label = '👉 Swipe Right'; }
+					else if (id === 303) { id = 302; label = '👈 Swipe Left'; }
+				}
+				this.onTrigger({ id, label, hand: handSide });
+				this._prevStableID = null;
+				return;
+			}
+			if (stableID !== null && GESTURE_DICTIONARY[stableID]) {
+				if (this._prevStableID !== null && this._prevStableID !== stableID) {
+					const elapsed = Date.now() - (this._prevStableTime || 0);
+					const transition = TRANSITION_GESTURES[`${this._prevStableID}->${stableID}`];
+					if (transition && elapsed < 900) {
+						this.onTrigger({ id: transition.id, label: transition.label });
+						this._prevStableID = stableID;
+						this._prevStableTime = Date.now();
+						return;
+					}
+				}
+				this._prevStableID = stableID;
+				this._prevStableTime = Date.now();
+				this.onTrigger({
+						id: stableID,
+						label: GESTURE_DICTIONARY[stableID],
+						hand: handSide
+				});
+				return;
+			}
+		} else {
+			this.engineBuffer.pushAndEvaluate(null);
+			this._prevStableID = null;
+			this.motionTracker.reset();
+		}
+		this.onTrigger("none");
+	}
+	_drawDebugSkeleton(results) {
+		if (!this.debugCanvas) {
+			this.debugCanvas = document.createElement('canvas');
+			this.debugCanvas.style.position = 'fixed';
+			this.debugCanvas.style.top = '0';
+			this.debugCanvas.style.left = '0';
+			this.debugCanvas.style.margin = '0';
+			this.debugCanvas.style.width = '100vw';
+			this.debugCanvas.style.height = '100vh';
+			this.debugCanvas.style.zIndex = '10';
+			this.debugCanvas.style.pointerEvents = 'none';
+			document.documentElement.appendChild(this.debugCanvas);
+			this.debugCtx = this.debugCanvas.getContext('2d');
+		}
+		const advancedTab = document.getElementById('tab-advanced');
+		const isAdvancedTabActive = !!(advancedTab && advancedTab.classList.contains('active'));
+		this.debugCanvas.style.display = isAdvancedTabActive ? 'none' : '';
+		const ctx = this.debugCtx;
+		const canvas = this.debugCanvas;
+		if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+		}
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		if (!isAdvancedTabActive && results.landmarks) {
+			for (const landmarks of results.landmarks) {
+				this._drawHand(ctx, landmarks, canvas.width, canvas.height);
+			}
+		}
+		const miniCanvas = document.getElementById('practice-preview-canvas');
+		if (miniCanvas) {
+			const miniCtx = miniCanvas.getContext('2d');
+			const rect = miniCanvas.getBoundingClientRect();
+			if (miniCanvas.width !== rect.width || miniCanvas.height !== rect.height) {
+				miniCanvas.width = rect.width;
+				miniCanvas.height = rect.height;
+			}
+			miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
+			if (results.landmarks) {
+				for (const landmarks of results.landmarks) {
+					this._drawHand(miniCtx, landmarks, miniCanvas.width, miniCanvas.height);
+				}
+			}
+		}
+	}
+	_drawHand(ctx, landmarks, w, h) {
+		const connectors = [
+			[0, 1], [1, 2], [2, 3], [3, 4],
+			[0, 5], [5, 6], [6, 7], [7, 8],
+			[5, 9], [9, 10], [10, 11], [11, 12],
+			[9, 13], [13, 14], [14, 15], [15, 16],
+			[13, 17], [0, 17], [17, 18], [18, 19], [19, 20]
+		];
+		ctx.lineWidth = 3;
+		ctx.lineCap = "round";
+		ctx.strokeStyle = "#00FF00";
+		for (const [start, end] of connectors) {
+			const p1 = landmarks[start];
+			const p2 = landmarks[end];
+			ctx.beginPath();
+			ctx.moveTo((1.0 - p1.x) * w, p1.y * h);
+			ctx.lineTo((1.0 - p2.x) * w, p2.y * h);
+			ctx.stroke();
+		}
+		ctx.fillStyle = "#FF0000";
+		for (const point of landmarks) {
+			ctx.beginPath();
+			ctx.arc((1.0 - point.x) * w, point.y * h, 4, 0, 2 * Math.PI);
+			ctx.fill();
+		}
+	}
 }
-
-// ===== FORMERLY: settings.js =====
 const PREMADE_THEMES = {
 	'default': { name: "Default Dark", bgMain: "#000000", bgCard: "#121212", bubble: "#4f46e5", btn: "#1a1a1a", text: "#e5e5e5" },
 	'light': { name: "Light Mode", bgMain: "#f3f4f6", bgCard: "#ffffff", bubble: "#4f46e5", btn: "#e5e7eb", text: "#111827" },
@@ -1740,7 +1382,7 @@ class SettingsManager {
 				const lower = part.toLowerCase();
 				if (compass[lower]) return compass[lower];
 				return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
-			}).join(' ');
+		}).join(' ');
 	}
 	applyTouchGestureOptions() {
 		if (!this.appSettings.activeGestureFilters) {
@@ -1753,9 +1395,9 @@ class SettingsManager {
 				optionsHTML += `<optgroup label="${category}">`;
 				GESTURE_CATEGORIES[category].forEach(id => {
 						optionsHTML += `<option value="${id}">${this.formatTouchGestureLabel(id)}</option>`;
-					});
+				});
 				optionsHTML += `</optgroup>`;
-			});
+		});
 		document.querySelectorAll('select[id^="map-touch-"]').forEach(select => {
 				const currentValue = select.value;
 				select.innerHTML = optionsHTML;
@@ -1771,7 +1413,7 @@ class SettingsManager {
 				} else {
 					select.value = 'none';
 				}
-			});
+		});
 	}
 	bindGestureFilters() {
 		if (!this.dom.filterToggles) return;
@@ -1791,8 +1433,8 @@ class SettingsManager {
 						this.applyHandGestureFilters();
 						this.applyTouchGestureOptions();
 						this.callbacks.onSave();
-					});
-			});
+				});
+		});
 	}
 	applyHandGestureFilters() {
 		if (!this.appSettings.activeGestureFilters) {
@@ -1804,7 +1446,7 @@ class SettingsManager {
 		active.forEach(filterName => {
 				const group = HAND_GESTURE_GROUPS.find(g => g.id === groupIdByFilter[filterName]);
 				if (group) options.push(...group.gestures);
-			});
+		});
 		const optionsHTML = '<option value="none">🚫 Unassigned</option>' +
 		options.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
 		document.querySelectorAll('select[id^="map-hand-"]').forEach(select => {
@@ -1812,7 +1454,7 @@ class SettingsManager {
 				select.innerHTML = optionsHTML;
 				const stillValid = Array.from(select.options).some(o => o.value === currentValue);
 				select.value = stillValid ? currentValue : 'none';
-			});
+		});
 	}
 	constructor(appSettings, callbacks) {
 		this.appSettings = appSettings;
@@ -1934,7 +1576,7 @@ class SettingsManager {
 					this.callbacks.onSave();
 					this.updateHeaderVisibility();
 					this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
-				});
+			});
 		}
 		const bindToggleWithCallback = (toggleElement, settingKey, applyCallback) => {
 			if (toggleElement) {
@@ -1951,7 +1593,7 @@ class SettingsManager {
 				if (typeof window.wakelockToggle === 'function') {
 					window.wakelockToggle(this.appSettings.isWakeLockEnabled);
 				}
-			});
+		});
 		if (this.dom.settingsLockBtn) {
 			this.dom.settingsLockBtn.onclick = () => {
 				this.appSettings.isSettingsLockEnabled = !this.appSettings.isSettingsLockEnabled;
@@ -1976,7 +1618,7 @@ class SettingsManager {
 		}
 		bindToggleWithCallback(this.dom.ecoToggle, 'isEcoModeEnabled', () => {
 				document.body.classList.toggle('eco-mode', this.appSettings.isEcoModeEnabled);
-			});
+		});
 		if (this.dom.arSpeedSelect) {
 			this.dom.arSpeedSelect.value = this.appSettings.arPlaybackSpeed || 1.0;
 			this.dom.arSpeedSelect.onchange = (e) => {
@@ -2027,7 +1669,7 @@ class SettingsManager {
 						this.appSettings.touchGestureMappings[key].gesture = val;
 						const el = document.querySelector(`#map-touch-${key}`);
 						if (el) el.value = val;
-					});
+				});
 				this.bindPresetAccordion('hand', layout, filterPresetsByType(HAND_MAPPING_PRESETS, layout), LAYOUT_KEYS[layout],
 					(key) => (this.appSettings.mappings && this.appSettings.mappings[key]) ? String(this.appSettings.mappings[key].handGesture) : 'none',
 					(key, val) => {
@@ -2036,8 +1678,8 @@ class SettingsManager {
 						this.appSettings.mappings[key].handGesture = val === 'none' ? 'none' : parseInt(val, 10);
 						const el = document.querySelector(`#map-hand-${key}`);
 						if (el) el.value = val;
-					});
-			});
+				});
+		});
 		document.querySelectorAll('.mapping-subtab-btn').forEach(tab => {
 				tab.onclick = (e) => {
 					const keyId = e.target.dataset.key;
@@ -2046,7 +1688,7 @@ class SettingsManager {
 					parent.querySelectorAll('.mapping-subtab-btn').forEach(t => {
 							t.classList.remove('active', 'text-blue-400', 'text-emerald-400', 'border-b-2', 'border-blue-400', 'border-emerald-400');
 							t.classList.add('text-gray-500');
-						});
+					});
 					parent.querySelectorAll('.mapping-panel').forEach(p => p.classList.add('hidden'));
 					e.target.classList.remove('text-gray-500');
 					if (target === 'touch') {
@@ -2057,7 +1699,7 @@ class SettingsManager {
 						parent.querySelector(`#panel-hand-${keyId}`).classList.remove('hidden');
 					}
 				};
-			});
+		});
 		document.querySelectorAll('.mapping-select').forEach(select => {
 				const keyId = select.dataset.key;
 				const type = select.dataset.type;
@@ -2068,8 +1710,6 @@ class SettingsManager {
 				} else if (this.appSettings.mappings && this.appSettings.mappings[keyId] && this.appSettings.mappings[keyId].handGesture !== undefined) {
 					select.value = this.appSettings.mappings[keyId].handGesture;
 				}
-				// For hand rows, add a companion Left/Right/Any selector so the same pose can be
-				// mapped per-hand. Injected once (guarded by a data flag) right after the pose select.
 				if (type === 'hand' && !select.dataset.sideInjected) {
 					select.dataset.sideInjected = '1';
 					const sideSel = document.createElement('select');
@@ -2098,30 +1738,19 @@ class SettingsManager {
 					}
 					this.callbacks.onSave();
 				};
-			});
+		});
 	}
 	bindPresetAccordion(gtype, layout, builtInPresets, keys, getCurrentValueFn, applyValueFn) {
 		const select = document.getElementById(`${gtype}-preset-${layout}-select`);
 		if (!select) return;
 		const storeKey = gtype === 'touch' ? 'customTouchPresets' : 'customHandPresets';
 		if (!this.appSettings[storeKey]) this.appSettings[storeKey] = {};
-		// Tracks which preset was last explicitly applied/created/renamed for THIS dropdown,
-		// persisted in appSettings (unlike the DOM's own select.value, which resets to blank on
-		// every fresh page load regardless of what the underlying Key 1-9 mappings actually are -
-		// that's why this always showed "-- Select Preset --" instead of the active preset, the
-		// way the profile and theme dropdowns already correctly do).
 		if (!this.appSettings.activeMappingPreset) this.appSettings.activeMappingPreset = {};
 		const setActive = (val) => { this.appSettings.activeMappingPreset[select.id] = val; };
-		// If no preset was ever explicitly picked from THIS dropdown, the current Key 1-9
-		// mappings might still have gotten to their present values some other way - loaded from
-		// a saved profile, or just whatever a fresh default happens to start with - and could
-		// still exactly match a known preset's mapping even though nobody clicked it here. Check
-		// for that before falling back to the empty placeholder, matching how the profile/theme
-		// dropdowns always show something meaningful rather than "nothing selected."
 		const detectMatchingPreset = () => {
 			const allPresets = { ...builtInPresets };
 			Object.keys(this.appSettings[storeKey]).forEach(id => {
-				if (this.appSettings[storeKey][id].layout === layout) allPresets[id] = this.appSettings[storeKey][id];
+					if (this.appSettings[storeKey][id].layout === layout) allPresets[id] = this.appSettings[storeKey][id];
 			});
 			for (const id of Object.keys(allPresets)) {
 				const preset = allPresets[id];
@@ -2139,7 +1768,7 @@ class SettingsManager {
 					opt.value = id;
 					opt.textContent = builtInPresets[id].name;
 					builtInGroup.appendChild(opt);
-				});
+			});
 			select.appendChild(builtInGroup);
 			const customGroup = document.createElement('optgroup');
 			customGroup.label = 'My Setups';
@@ -2150,7 +1779,7 @@ class SettingsManager {
 					opt.value = id;
 					opt.textContent = preset.name;
 					customGroup.appendChild(opt);
-				});
+			});
 			select.appendChild(customGroup);
 			select.value = this.appSettings.activeMappingPreset[select.id] || detectMatchingPreset() || '';
 		};
@@ -2233,7 +1862,7 @@ class SettingsManager {
 				opt.value = speed;
 				opt.textContent = speed.toFixed(2) + 'x';
 				this.dom.arSpeedSelect.appendChild(opt);
-			});
+		});
 		const speedVal = this.appSettings.arPlaybackSpeed || 1.0;
 		this.dom.arSpeedSelect.value = String(speedVal);
 	}
@@ -2258,7 +1887,7 @@ class SettingsManager {
 				el.value = k;
 				el.textContent = PREMADE_VOICE_PRESETS[k].name;
 				grp1.appendChild(el);
-			});
+		});
 		this.dom.voicePresetSelect.appendChild(grp1);
 		const grp2 = document.createElement('optgroup');
 		grp2.label = "My Voices";
@@ -2268,7 +1897,7 @@ class SettingsManager {
 					el.value = k;
 					el.textContent = this.appSettings.runtimeSettings.voicePresets[k].name;
 					grp2.appendChild(el);
-				});
+			});
 		}
 		this.dom.voicePresetSelect.appendChild(grp2);
 		this.dom.voicePresetSelect.value = this.appSettings.runtimeSettings.activeVoicePresetId || 'standard';
@@ -2295,7 +1924,7 @@ class SettingsManager {
 				opt.textContent = (isHQ ? '⭐ ' : '') + voice.name + ' (' + voice.lang + ')';
 				this.dom.voiceNameSelect.appendChild(opt);
 				if (isHQ && !bestQualityVoice) bestQualityVoice = voice;
-			});
+		});
 		if (!this.appSettings.runtimeSettings.selectedVoice && bestQualityVoice) {
 			this.appSettings.runtimeSettings.selectedVoice = bestQualityVoice.name;
 			this.callbacks.onSave();
@@ -2313,82 +1942,74 @@ class SettingsManager {
 	buildColorGrid() { if (!this.dom.editorGrid) return; this.dom.editorGrid.innerHTML = ''; CRAYONS.forEach(color => { const btn = document.createElement('div'); btn.style.backgroundColor = color; btn.className = "w-full h-6 rounded cursor-pointer border border-gray-700 hover:scale-125 transition-transform shadow-sm"; btn.onclick = () => this.applyColorToTarget(color); this.dom.editorGrid.appendChild(btn); }); }
 	applyColorToTarget(hex) { if (!this.tempTheme) return; this.tempTheme[this.currentTargetKey] = hex; const [h, s, l] = this.hexToHsl(hex); this.dom.ftHue.value = h; this.dom.ftSat.value = s; this.dom.ftLit.value = l; this.dom.ftPreview.style.backgroundColor = hex; if (this.dom.ftContainer.classList.contains('hidden')) { this.dom.ftContainer.classList.remove('hidden'); this.dom.ftToggle.style.display = 'none'; } this.updatePreview(); }
 	updateColorFromSliders() { const h = parseInt(this.dom.ftHue.value); const s = parseInt(this.dom.ftSat.value); const l = parseInt(this.dom.ftLit.value); const hex = this.hslToHex(h, s, l); this.dom.ftPreview.style.backgroundColor = hex; if (this.tempTheme) { this.tempTheme[this.currentTargetKey] = hex; this.updatePreview(); } }
-	// Extracts a 5-color theme from a photo: downscale to a small canvas (color distribution
-	// doesn't need full resolution), quantize pixels into coarse buckets to find the most
-	// frequent colors, filter those for visual diversity so the result isn't 5 near-identical
-	// shades, then assign by actual properties rather than just frequency order - most frequent
-	// candidate for the background (the photo's dominant tone), highest saturation for the
-	// accent (an accent that's actually vibrant), and text is computed for guaranteed contrast
-	// against the chosen background rather than pulled from the photo, since readability
-	// shouldn't be left to chance the way a decorative color can be.
 	buildThemeFromImage(file) {
 		return new Promise((resolve, reject) => {
-			const img = new Image();
-			const url = URL.createObjectURL(file);
-			img.onload = () => {
-				URL.revokeObjectURL(url);
-				try {
-					const size = 80;
-					const canvas = document.createElement('canvas');
-					canvas.width = size;
-					canvas.height = size;
-					const ctx = canvas.getContext('2d');
-					ctx.drawImage(img, 0, 0, size, size);
-					const data = ctx.getImageData(0, 0, size, size).data;
-					const buckets = {};
-					for (let i = 0; i < data.length; i += 4) {
-						if (data[i + 3] < 128) continue; // skip mostly-transparent pixels
-						const r = Math.round(data[i] / 16) * 16;
-						const g = Math.round(data[i + 1] / 16) * 16;
-						const b = Math.round(data[i + 2] / 16) * 16;
-						const key = r + ',' + g + ',' + b;
-						buckets[key] = (buckets[key] || 0) + 1;
+				const img = new Image();
+				const url = URL.createObjectURL(file);
+				img.onload = () => {
+					URL.revokeObjectURL(url);
+					try {
+						const size = 80;
+						const canvas = document.createElement('canvas');
+						canvas.width = size;
+						canvas.height = size;
+						const ctx = canvas.getContext('2d');
+						ctx.drawImage(img, 0, 0, size, size);
+						const data = ctx.getImageData(0, 0, size, size).data;
+						const buckets = {};
+						for (let i = 0; i < data.length; i += 4) {
+							if (data[i + 3] < 128) continue;
+							const r = Math.round(data[i] / 16) * 16;
+							const g = Math.round(data[i + 1] / 16) * 16;
+							const b = Math.round(data[i + 2] / 16) * 16;
+							const key = r + ',' + g + ',' + b;
+							buckets[key] = (buckets[key] || 0) + 1;
+						}
+						const sorted = Object.entries(buckets).sort((a, b) => b[1] - a[1]);
+						if (sorted.length === 0) { resolve(null); return; }
+						const rgbToHex = (r, g, b) => '#' + [r, g, b].map(v => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0')).join('');
+						const luminance = (r, g, b) => 0.299 * r + 0.587 * g + 0.114 * b;
+						const dist = (a, b) => Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2);
+						const candidates = [];
+						for (const [key, count] of sorted) {
+							const [r, g, b] = key.split(',').map(Number);
+							if (candidates.some(c => dist(c.rgb, [r, g, b]) < 40)) continue;
+							const hex = rgbToHex(r, g, b);
+							const [, s, l] = this.hexToHsl(hex);
+							candidates.push({ rgb: [r, g, b], hex, count, luminance: luminance(r, g, b), sat: s, lit: l });
+							if (candidates.length >= 12) break;
+						}
+						if (candidates.length === 0) { resolve(null); return; }
+						const bgMain = candidates[0];
+						const bubble = [...candidates].sort((a, b) => b.sat - a.sat)[0];
+						let bgCard = candidates.find(c => c !== bgMain && c !== bubble && Math.abs(c.luminance - bgMain.luminance) < 60);
+						if (!bgCard) {
+							const [h, s, l] = this.hexToHsl(bgMain.hex);
+							const adjustedL = bgMain.luminance < 128 ? Math.min(95, l + 12) : Math.max(5, l - 12);
+							bgCard = { hex: this.hslToHex(h, s, adjustedL) };
+						}
+						let btn = candidates.find(c => c !== bgMain && c !== bubble && c !== bgCard);
+						if (!btn) {
+							const [h, s, l] = this.hexToHsl(bgCard.hex);
+							const adjustedL = bgMain.luminance < 128 ? Math.max(5, l - 10) : Math.min(95, l + 10);
+							btn = { hex: this.hslToHex(h, s, adjustedL) };
+						}
+						const text = bgMain.luminance < 128 ? '#f5f5f5' : '#111827';
+						resolve({ bgMain: bgMain.hex, bgCard: bgCard.hex, bubble: bubble.hex, btn: btn.hex, text });
+					} catch (err) {
+						reject(err);
 					}
-					const sorted = Object.entries(buckets).sort((a, b) => b[1] - a[1]);
-					if (sorted.length === 0) { resolve(null); return; }
-					const rgbToHex = (r, g, b) => '#' + [r, g, b].map(v => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0')).join('');
-					const luminance = (r, g, b) => 0.299 * r + 0.587 * g + 0.114 * b;
-					const dist = (a, b) => Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2);
-					const candidates = [];
-					for (const [key, count] of sorted) {
-						const [r, g, b] = key.split(',').map(Number);
-						if (candidates.some(c => dist(c.rgb, [r, g, b]) < 40)) continue;
-						const hex = rgbToHex(r, g, b);
-						const [, s, l] = this.hexToHsl(hex);
-						candidates.push({ rgb: [r, g, b], hex, count, luminance: luminance(r, g, b), sat: s, lit: l });
-						if (candidates.length >= 12) break;
-					}
-					if (candidates.length === 0) { resolve(null); return; }
-					const bgMain = candidates[0];
-					const bubble = [...candidates].sort((a, b) => b.sat - a.sat)[0];
-					let bgCard = candidates.find(c => c !== bgMain && c !== bubble && Math.abs(c.luminance - bgMain.luminance) < 60);
-					if (!bgCard) {
-						const [h, s, l] = this.hexToHsl(bgMain.hex);
-						const adjustedL = bgMain.luminance < 128 ? Math.min(95, l + 12) : Math.max(5, l - 12);
-						bgCard = { hex: this.hslToHex(h, s, adjustedL) };
-					}
-					let btn = candidates.find(c => c !== bgMain && c !== bubble && c !== bgCard);
-					if (!btn) {
-						const [h, s, l] = this.hexToHsl(bgCard.hex);
-						const adjustedL = bgMain.luminance < 128 ? Math.max(5, l - 10) : Math.min(95, l + 10);
-						btn = { hex: this.hslToHex(h, s, adjustedL) };
-					}
-					const text = bgMain.luminance < 128 ? '#f5f5f5' : '#111827';
-					resolve({ bgMain: bgMain.hex, bgCard: bgCard.hex, bubble: bubble.hex, btn: btn.hex, text });
-				} catch (err) {
-					reject(err);
-				}
-			};
-			img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not load image')); };
-			img.src = url;
+				};
+				img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not load image')); };
+				img.src = url;
 		});
 	}
 	selectThemeTarget(key) {
 		this.currentTargetKey = key;
 		this.dom.targetBtns.forEach(b => {
-			const isActive = b.dataset.target === key;
-			b.classList.toggle('bg-primary-app', isActive);
-			b.classList.toggle('text-white', isActive);
+				const isActive = b.dataset.target === key;
+				b.classList.toggle('bg-primary-app', isActive);
+				b.classList.toggle('text-white', isActive);
 		});
 		if (this.tempTheme) {
 			const [h, s, l] = this.hexToHsl(this.tempTheme[key]);
@@ -2401,31 +2022,24 @@ class SettingsManager {
 	openThemeEditor() { if (!this.dom.editorModal) return; const activeId = this.appSettings.activeTheme; const source = this.appSettings.customThemes[activeId] || PREMADE_THEMES[activeId] || PREMADE_THEMES['default']; this.tempTheme = { ...source }; this.dom.edName.value = this.tempTheme.name; this.selectThemeTarget('bubble'); this.updatePreview(); this.dom.editorModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.editorModal.querySelector('div').classList.remove('scale-90'); }
 	updatePreview() { const t = this.tempTheme; if (!this.dom.edPreview) return; this.dom.edPreview.style.backgroundColor = t.bgMain; this.dom.edPreview.style.color = t.text; this.dom.edPreviewCard.style.backgroundColor = t.bgCard; this.dom.edPreviewCard.style.color = t.text; this.dom.edPreviewCard.style.border = '1px solid rgba(255,255,255,0.1)'; this.dom.edPreviewBtn.style.backgroundColor = t.bubble; this.dom.edPreviewBtn.style.color = t.text; const kp = document.getElementById('preview-keypad-btn'); if (kp) { kp.style.backgroundColor = t.btn; kp.style.color = t.text; } const hb = document.getElementById('preview-header-btn'); if (hb) { hb.style.backgroundColor = t.bubble; hb.style.color = '#fff'; } }
 	testVoice() { if (window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("Testing 1 2 3."); if (this.appSettings.runtimeSettings.selectedVoice) { const v = window.speechSynthesis.getVoices().find(voice => voice.name === this.appSettings.runtimeSettings.selectedVoice); if (v) u.voice = v; } let p = parseFloat(this.dom.voicePitch.value); let r = parseFloat(this.dom.voiceRate.value); let v = parseFloat(this.dom.voiceVolume.value); u.pitch = p; u.rate = r; u.volume = v; window.speechSynthesis.speak(u); } }
-	openShare() { 
-		this.qrScale = 100; 
-		if (this.updateQR) this.updateQR(); 
-		// Remember whether Settings was open before hiding it, so closeShare() only restores it
-		// when Share was opened from inside Settings -- not when opened standalone from the
-		// header button, where Settings was never open to begin with.
+	openShare() {
+		this.qrScale = 100;
+		if (this.updateQR) this.updateQR();
 		this._settingsWasOpenBeforeShare = !!(this.dom.settingsModal && !this.dom.settingsModal.classList.contains('pointer-events-none'));
-		if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); 
-		if (this.dom.shareModal) { this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => this.dom.shareModal.querySelector('.share-sheet').classList.add('active'), 10); } 
-		if (window.lockBodyScroll) window.lockBodyScroll(); 
+		if (this.dom.settingsModal) this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none');
+		if (this.dom.shareModal) { this.dom.shareModal.classList.remove('opacity-0', 'pointer-events-none'); setTimeout(() => this.dom.shareModal.querySelector('.share-sheet').classList.add('active'), 10); }
+		if (window.lockBodyScroll) window.lockBodyScroll();
 	}
-	closeShare() { 
+	closeShare() {
 		if (this._settingsWasOpenBeforeShare && this.dom.settingsModal) {
 			this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none');
 		}
-		if (this.dom.shareModal) { 
-			this.dom.shareModal.querySelector('.share-sheet').classList.remove('active'); 
+		if (this.dom.shareModal) {
+			this.dom.shareModal.querySelector('.share-sheet').classList.remove('active');
 			setTimeout(() => {
-				this.dom.shareModal.classList.add('opacity-0', 'pointer-events-none');
-				// unlockBodyScroll's own check for "is any modal still visible" only works if it
-				// runs AFTER shareModal's hide classes are actually applied -- calling it before
-				// this setTimeout (as before) meant it always saw Share as still visible and
-				// permanently skipped unlocking, leaving the page stuck unable to scroll.
-				if (window.unlockBodyScroll) window.unlockBodyScroll();
-			}, 300); 
+					this.dom.shareModal.classList.add('opacity-0', 'pointer-events-none');
+					if (window.unlockBodyScroll) window.unlockBodyScroll();
+				}, 300);
 		} else if (window.unlockBodyScroll) {
 			window.unlockBodyScroll();
 		}
@@ -2466,349 +2080,320 @@ class SettingsManager {
 			}, { passive: true });
 	}
 	initListeners() {
-	try {
+		try {
 			const settingsModalEl = document.getElementById('settings-modal');
 			{
 				if (!window.__testAreaSetup) {
 					window.__testAreaSetup = true;
-						let activeTestTab = 'hand';
-						const tabButtons = {
-							hand: document.getElementById('test-tab-btn-hand'),
-							touch: document.getElementById('test-tab-btn-touch'),
-							voice: document.getElementById('test-tab-btn-voice'),
-							tone: document.getElementById('test-tab-btn-tone'),
-						};
-						const tabColors = { hand: 'emerald', touch: 'blue', voice: 'yellow', tone: 'purple' };
-						const panels = {
-							hand: document.getElementById('test-panel-hand'),
-							touch: document.getElementById('test-panel-touch'),
-							voice: document.getElementById('test-panel-voice'),
-							tone: document.getElementById('test-panel-tone'),
-						};
-						const stopAllTests = () => {
-							if (window.__testHandStop) window.__testHandStop();
-							if (window.__testVoiceStop) window.__testVoiceStop();
-							if (window.__testToneStop) window.__testToneStop();
-						};
-						const switchTestTab = (tab) => {
-							if (tab !== activeTestTab) stopAllTests();
-							activeTestTab = tab;
-							Object.keys(panels).forEach(key => {
-									panels[key]?.classList.toggle('hidden', key !== tab);
-									const btn = tabButtons[key];
-									if (!btn) return;
-									if (key === tab) {
-										btn.className = `test-tab-btn py-2 rounded-lg text-[10px] font-bold bg-${tabColors[key]}-600 text-white`;
-									} else {
-										btn.className = 'test-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300';
-									}
-								});
-						};
-						Object.keys(tabButtons).forEach(key => {
-								if (tabButtons[key]) tabButtons[key].onclick = () => switchTestTab(key);
-							});
-						window.__stopAllAdvancedTests = stopAllTests;
-						const handStartBtn = document.getElementById('test-hand-start-btn');
-						const handPlaceholder = document.getElementById('practice-preview-placeholder');
-						const previewVideo = document.getElementById('practice-preview-video');
-						let handTestRunning = false;
-						const stopHandTest = () => {
-							if (!handTestRunning) return;
-							handTestRunning = false;
-							window.__handTestModeActive = false;
-							if (window.modules?.vision) window.modules.vision.stop();
-							if (previewVideo) previewVideo.srcObject = null;
-							if (handPlaceholder) { handPlaceholder.classList.remove('hidden'); handPlaceholder.textContent = 'Tap "Start Camera Test" above'; }
-							if (handStartBtn) handStartBtn.textContent = '▶️ Start Camera Test';
-							const readout = document.getElementById('test-hand-readout');
-							if (readout) readout.textContent = 'Not testing';
-						};
-						window.__testHandStop = stopHandTest;
-						if (handStartBtn) {
-							handStartBtn.onclick = async () => {
-								if (handTestRunning) { stopHandTest(); return; }
-								if (!window.modules?.vision) { if (handPlaceholder) handPlaceholder.textContent = 'Vision engine unavailable'; return; }
-								handTestRunning = true;
-								window.__handTestModeActive = true;
-								handStartBtn.textContent = '⏹️ Stop Camera Test';
-								if (handPlaceholder) handPlaceholder.textContent = 'Starting camera...';
-								await window.modules.vision.start();
-								if (previewVideo && window.modules.vision.video?.srcObject) {
-									previewVideo.srcObject = window.modules.vision.video.srcObject;
-									previewVideo.play().catch(() => {});
-									if (handPlaceholder) handPlaceholder.classList.add('hidden');
+					let activeTestTab = 'hand';
+					const tabButtons = {
+						hand: document.getElementById('test-tab-btn-hand'),
+						touch: document.getElementById('test-tab-btn-touch'),
+						voice: document.getElementById('test-tab-btn-voice'),
+						tone: document.getElementById('test-tab-btn-tone'),
+					};
+					const tabColors = { hand: 'emerald', touch: 'blue', voice: 'yellow', tone: 'purple' };
+					const panels = {
+						hand: document.getElementById('test-panel-hand'),
+						touch: document.getElementById('test-panel-touch'),
+						voice: document.getElementById('test-panel-voice'),
+						tone: document.getElementById('test-panel-tone'),
+					};
+					const stopAllTests = () => {
+						if (window.__testHandStop) window.__testHandStop();
+						if (window.__testVoiceStop) window.__testVoiceStop();
+						if (window.__testToneStop) window.__testToneStop();
+					};
+					const switchTestTab = (tab) => {
+						if (tab !== activeTestTab) stopAllTests();
+						activeTestTab = tab;
+						Object.keys(panels).forEach(key => {
+								panels[key]?.classList.toggle('hidden', key !== tab);
+								const btn = tabButtons[key];
+								if (!btn) return;
+								if (key === tab) {
+									btn.className = `test-tab-btn py-2 rounded-lg text-[10px] font-bold bg-${tabColors[key]}-600 text-white`;
+								} else {
+									btn.className = 'test-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300';
 								}
-							};
-						}
-						const voiceStartBtn = document.getElementById('test-voice-start-btn');
-						let testRecognition = null;
-						const stopVoiceTest = () => {
-							if (testRecognition) { try { testRecognition.stop(); } catch (e) {} testRecognition = null; }
-							if (voiceStartBtn) voiceStartBtn.textContent = '▶️ Start Mic Test';
-							const readout = document.getElementById('test-voice-readout');
-							if (readout) readout.textContent = 'Not testing';
-						};
-						window.__testVoiceStop = stopVoiceTest;
-						// --- VOICE TEST: Exact matching validation ---
-if (voiceStartBtn) {
-    voiceStartBtn.onclick = () => {
-        if (testRecognition) { stopVoiceTest(); return; }
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const readout = document.getElementById('test-voice-readout');
-        if (!SR) { if (readout) readout.textContent = 'Speech recognition not supported'; return; }
-        testRecognition = new SR();
-        testRecognition.continuous = true;
-        testRecognition.interimResults = true;
-        
-        // FIX: "audio input should only be looking for exact words. this would eliminate
-        // chances for errors." - no homophone/fuzzy tolerance here (the previous version mapped
-        // sound-alikes like "won"->1, "too"->2, "for"->4, which is the opposite of what a
-        // reliability test needs). Each word on the checklist must be heard as that literal word.
-        const exactWords = ['one', 'two', 'play', 'stop'];
-
-        testRecognition.onresult = (e) => {
-            const last = e.results[e.results.length - 1];
-            const transcript = last[0].transcript.toLowerCase().trim();
-            
-            if (last.isFinal) {
-                const words = transcript.split(/\s+/).filter(w => w !== "");
-                const exactMatches = words.filter(w => exactWords.includes(w));
-
-                if (exactMatches.length > 0) {
-                    exactMatches.forEach(w => window.__testChecklists?.voice?.mark(w));
-                    if (readout) readout.innerHTML = `<span class="text-green-400 font-bold">✓ Exact match: ${exactMatches.join(', ')}</span><br><span class="text-gray-500 text-[10px]">heard "${transcript}"</span>`;
-                } else {
-                    if (readout) readout.innerHTML = `<span class="text-red-400 font-bold">✗ No exact match</span><br><span class="text-gray-500 text-[10px]">heard "${transcript}"</span>`;
-                }
-            } else {
-                if (readout) readout.textContent = `listening: "${transcript}"`;
-            }
-        };
-        testRecognition.onerror = (e) => { if (readout) readout.textContent = `Mic error: ${e.error}`; };
-        testRecognition.onend = () => { if (testRecognition) { try { testRecognition.start(); } catch (e) {} } };
-        testRecognition.start();
-        voiceStartBtn.textContent = '⏹️ Stop Mic Test';
-        if (readout) readout.textContent = 'Listening...';
-    };
-}
-
-						const toneStartBtn = document.getElementById('test-tone-start-btn');
-						let toneTestRunning = false;
-						const stopToneTest = () => {
-							if (!toneTestRunning) return;
-							toneTestRunning = false;
-							if (window.toneEngine) window.toneEngine.stop();
-							if (toneStartBtn) toneStartBtn.textContent = '▶️ Start Mic Test';
-							const readout = document.getElementById('test-tone-readout');
-							if (readout) readout.textContent = 'Not testing';
-						};
-						window.__testToneStop = stopToneTest;
-						if (toneStartBtn) {
-							toneStartBtn.onclick = async () => {
-								if (toneTestRunning) { stopToneTest(); return; }
-								if (!window.toneEngine) { const r = document.getElementById('test-tone-readout'); if (r) r.textContent = 'Tone engine unavailable'; return; }
-								toneTestRunning = true;
-								toneStartBtn.textContent = '⏹️ Stop Mic Test';
-								await window.toneEngine.start();
-							};
-						}
-						// --- TONE TEST: History clear ---
-const clearToneHistoryBtn = document.getElementById('clear-tone-history-btn');
-if (clearToneHistoryBtn) {
-    clearToneHistoryBtn.onclick = () => {
-        const historyEl = document.getElementById('tone-test-history');
-        if (historyEl) historyEl.textContent = "";
-    };
-}
-						
-						const playBtn = document.getElementById('tone-test-play-btn');
-						const stopBtn = document.getElementById('tone-test-stop-btn');
-						const seqInput = document.getElementById('tone-test-sequence');
-						const progressEl = document.getElementById('tone-test-progress');
-						const noteNames = ['', ...TONE_TABLE.map(t => t.name)];
-						if (playBtn) {
-							playBtn.onclick = () => {
-								if (!window.toneSequenceTester || window.toneSequenceTester.isPlaying) return;
-								const raw = (seqInput?.value || '').split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n >= 1 && n <= 9);
-								if (raw.length === 0) { if (progressEl) progressEl.textContent = 'Enter a sequence of numbers 1-9 first.'; return; }
-								window.toneSequenceTester.playSequence(raw, 200, 800, (i, total, num, freq) => {
-										if (!progressEl) return;
-										progressEl.textContent = (i === -1) ? 'Done ✅' : `Playing ${i + 1}/${total}: ${num} (${noteNames[num]}, ${Math.round(freq)}Hz)`;
-									});
-							};
-						}
-						if (stopBtn) {
-							stopBtn.onclick = () => {
-								if (window.toneSequenceTester) window.toneSequenceTester.stop();
-								if (progressEl) progressEl.textContent = 'Stopped';
-							};
-						}
-						// --- TONE CALIBRATION: status readout + Recalibrate / Remove ---
-						const calibrationStatusEl = document.getElementById('tone-calibration-status');
-						const updateCalibrationStatus = () => {
-							if (!calibrationStatusEl) return;
-							const cal = appSettings.toneCalibration;
-							if (cal && cal.isCalibrated) {
-								const n = Object.keys(cal.notes || {}).length;
-								calibrationStatusEl.textContent = `Calibrated (${n}/8 notes captured)`;
-							} else {
-								calibrationStatusEl.textContent = 'Not yet calibrated — runs automatically on first session';
+						});
+					};
+					Object.keys(tabButtons).forEach(key => {
+							if (tabButtons[key]) tabButtons[key].onclick = () => switchTestTab(key);
+					});
+					window.__stopAllAdvancedTests = stopAllTests;
+					const handStartBtn = document.getElementById('test-hand-start-btn');
+					const handPlaceholder = document.getElementById('practice-preview-placeholder');
+					const previewVideo = document.getElementById('practice-preview-video');
+					let handTestRunning = false;
+					const stopHandTest = () => {
+						if (!handTestRunning) return;
+						handTestRunning = false;
+						window.__handTestModeActive = false;
+						if (window.modules?.vision) window.modules.vision.stop();
+						if (previewVideo) previewVideo.srcObject = null;
+						if (handPlaceholder) { handPlaceholder.classList.remove('hidden'); handPlaceholder.textContent = 'Tap "Start Camera Test" above'; }
+						if (handStartBtn) handStartBtn.textContent = '▶️ Start Camera Test';
+						const readout = document.getElementById('test-hand-readout');
+						if (readout) readout.textContent = 'Not testing';
+					};
+					window.__testHandStop = stopHandTest;
+					if (handStartBtn) {
+						handStartBtn.onclick = async () => {
+							if (handTestRunning) { stopHandTest(); return; }
+							if (!window.modules?.vision) { if (handPlaceholder) handPlaceholder.textContent = 'Vision engine unavailable'; return; }
+							handTestRunning = true;
+							window.__handTestModeActive = true;
+							handStartBtn.textContent = '⏹️ Stop Camera Test';
+							if (handPlaceholder) handPlaceholder.textContent = 'Starting camera...';
+							await window.modules.vision.start();
+							if (previewVideo && window.modules.vision.video?.srcObject) {
+								previewVideo.srcObject = window.modules.vision.video.srcObject;
+								previewVideo.play().catch(() => {});
+								if (handPlaceholder) handPlaceholder.classList.add('hidden');
 							}
 						};
-						updateCalibrationStatus();
-						window.__updateToneCalibrationStatus = updateCalibrationStatus;
-						const recalBtn = document.getElementById('tone-recalibrate-btn');
-						if (recalBtn) {
-							recalBtn.onclick = async () => {
-								recalBtn.disabled = true;
-								disableInput(true);
-								await runToneCalibration();
-								disableInput(false);
-								recalBtn.disabled = false;
-								updateCalibrationStatus();
+					}
+					const voiceStartBtn = document.getElementById('test-voice-start-btn');
+					let testRecognition = null;
+					const stopVoiceTest = () => {
+						if (testRecognition) { try { testRecognition.stop(); } catch (e) {} testRecognition = null; }
+						if (voiceStartBtn) voiceStartBtn.textContent = '▶️ Start Mic Test';
+						const readout = document.getElementById('test-voice-readout');
+						if (readout) readout.textContent = 'Not testing';
+					};
+					window.__testVoiceStop = stopVoiceTest;
+					if (voiceStartBtn) {
+						voiceStartBtn.onclick = () => {
+							if (testRecognition) { stopVoiceTest(); return; }
+							const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+							const readout = document.getElementById('test-voice-readout');
+							if (!SR) { if (readout) readout.textContent = 'Speech recognition not supported'; return; }
+							testRecognition = new SR();
+							testRecognition.continuous = true;
+							testRecognition.interimResults = true;
+							const exactWords = ['one', 'two', 'play', 'stop'];
+							testRecognition.onresult = (e) => {
+								const last = e.results[e.results.length - 1];
+								const transcript = last[0].transcript.toLowerCase().trim();
+								if (last.isFinal) {
+									const words = transcript.split(/\s+/).filter(w => w !== "");
+									const exactMatches = words.filter(w => exactWords.includes(w));
+									if (exactMatches.length > 0) {
+										exactMatches.forEach(w => window.__testChecklists?.voice?.mark(w));
+										if (readout) readout.innerHTML = `<span class="text-green-400 font-bold">✓ Exact match: ${exactMatches.join(', ')}</span><br><span class="text-gray-500 text-[10px]">heard "${transcript}"</span>`;
+									} else {
+										if (readout) readout.innerHTML = `<span class="text-red-400 font-bold">✗ No exact match</span><br><span class="text-gray-500 text-[10px]">heard "${transcript}"</span>`;
+									}
+								} else {
+									if (readout) readout.textContent = `listening: "${transcript}"`;
+								}
 							};
+							testRecognition.onerror = (e) => { if (readout) readout.textContent = `Mic error: ${e.error}`; };
+							testRecognition.onend = () => { if (testRecognition) { try { testRecognition.start(); } catch (e) {} } };
+							testRecognition.start();
+							voiceStartBtn.textContent = '⏹️ Stop Mic Test';
+							if (readout) readout.textContent = 'Listening...';
+						};
+					}
+					const toneStartBtn = document.getElementById('test-tone-start-btn');
+					let toneTestRunning = false;
+					const stopToneTest = () => {
+						if (!toneTestRunning) return;
+						toneTestRunning = false;
+						if (window.toneEngine) window.toneEngine.stop();
+						if (toneStartBtn) toneStartBtn.textContent = '▶️ Start Mic Test';
+						const readout = document.getElementById('test-tone-readout');
+						if (readout) readout.textContent = 'Not testing';
+					};
+					window.__testToneStop = stopToneTest;
+					if (toneStartBtn) {
+						toneStartBtn.onclick = async () => {
+							if (toneTestRunning) { stopToneTest(); return; }
+							if (!window.toneEngine) { const r = document.getElementById('test-tone-readout'); if (r) r.textContent = 'Tone engine unavailable'; return; }
+							toneTestRunning = true;
+							toneStartBtn.textContent = '⏹️ Stop Mic Test';
+							await window.toneEngine.start();
+						};
+					}
+					const clearToneHistoryBtn = document.getElementById('clear-tone-history-btn');
+					if (clearToneHistoryBtn) {
+						clearToneHistoryBtn.onclick = () => {
+							const historyEl = document.getElementById('tone-test-history');
+							if (historyEl) historyEl.textContent = "";
+						};
+					}
+					const playBtn = document.getElementById('tone-test-play-btn');
+					const stopBtn = document.getElementById('tone-test-stop-btn');
+					const seqInput = document.getElementById('tone-test-sequence');
+					const progressEl = document.getElementById('tone-test-progress');
+					const noteNames = ['', ...TONE_TABLE.map(t => t.name)];
+					if (playBtn) {
+						playBtn.onclick = () => {
+							if (!window.toneSequenceTester || window.toneSequenceTester.isPlaying) return;
+							const raw = (seqInput?.value || '').split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n >= 1 && n <= 9);
+							if (raw.length === 0) { if (progressEl) progressEl.textContent = 'Enter a sequence of numbers 1-9 first.'; return; }
+							window.toneSequenceTester.playSequence(raw, 200, 800, (i, total, num, freq) => {
+									if (!progressEl) return;
+									progressEl.textContent = (i === -1) ? 'Done ✅' : `Playing ${i + 1}/${total}: ${num} (${noteNames[num]}, ${Math.round(freq)}Hz)`;
+							});
+						};
+					}
+					if (stopBtn) {
+						stopBtn.onclick = () => {
+							if (window.toneSequenceTester) window.toneSequenceTester.stop();
+							if (progressEl) progressEl.textContent = 'Stopped';
+						};
+					}
+					const calibrationStatusEl = document.getElementById('tone-calibration-status');
+					const updateCalibrationStatus = () => {
+						if (!calibrationStatusEl) return;
+						const cal = appSettings.toneCalibration;
+						if (cal && cal.isCalibrated) {
+							const n = Object.keys(cal.notes || {}).length;
+							calibrationStatusEl.textContent = `Calibrated (${n}/8 notes captured)`;
+						} else {
+							calibrationStatusEl.textContent = 'Not yet calibrated — runs automatically on first session';
 						}
-						const removeCalBtn = document.getElementById('tone-remove-calibration-btn');
-						if (removeCalBtn) {
-							removeCalBtn.onclick = () => {
-								appSettings.toneCalibration = { isCalibrated: false, notes: {} };
-								saveState();
-								updateCalibrationStatus();
-								showToast('Tone calibration removed — standard tones restored 🗑️');
+					};
+					updateCalibrationStatus();
+					window.__updateToneCalibrationStatus = updateCalibrationStatus;
+					const recalBtn = document.getElementById('tone-recalibrate-btn');
+					if (recalBtn) {
+						recalBtn.onclick = async () => {
+							recalBtn.disabled = true;
+							disableInput(true);
+							await runToneCalibration();
+							disableInput(false);
+							recalBtn.disabled = false;
+							updateCalibrationStatus();
+						};
+					}
+					const removeCalBtn = document.getElementById('tone-remove-calibration-btn');
+					if (removeCalBtn) {
+						removeCalBtn.onclick = () => {
+							appSettings.toneCalibration = { isCalibrated: false, notes: {} };
+							saveState();
+							updateCalibrationStatus();
+							showToast('Tone calibration removed — standard tones restored 🗑️');
+						};
+					}
+					const touchTestContainer = document.getElementById('test-area-lock-container');
+					if (touchTestContainer && !window.__testTouchGestureEngine) {
+						window.__testTouchGestureEngine = new TouchGestureEngine(touchTestContainer, {
+								tapDelay: window.appSettings.touchGestureTapDelay || 300,
+								swipeThreshold: window.appSettings.touchGestureSwipeDist || 30,
+								longPressTime: window.appSettings.touchGestureLongPressTime || 300,
+								tapPrecision: window.appSettings.touchGestureTapPrecision || 30,
+								spatialThreshold: window.appSettings.touchGestureSpatialThreshold || 10,
+								longSwipeThreshold: window.appSettings.touchGestureLongSwipeThreshold || 150,
+								multiSwipeThreshold: window.appSettings.touchGestureMultiSwipeThreshold || 10
+							}, {
+								onTouchGesture: (data) => {
+									const readout = document.getElementById('test-touch-readout');
+									if (readout) readout.textContent = data.name || JSON.stringify(data);
+									if (window.__testChecklists?.touch) window.__testChecklists.touch.mark(data.id || data.name);
+								},
+								onContinuous: (data) => {
+									const readout = document.getElementById('test-touch-readout');
+									if (readout) readout.textContent = `${data.type} (Continuous)`;
+								}
+						});
+						window.__testTouchGestureEngine.updateAllowed([]);
+						const rawEl = document.getElementById('test-touch-raw');
+						const activePointers = new Map();
+						const renderRaw = () => {
+							if (!rawEl) return;
+							if (activePointers.size === 0) { rawEl.textContent = 'No fingers down'; return; }
+							const lines = Array.from(activePointers.entries()).map(([id, p]) =>
+								`finger ${id}: (${Math.round(p.x)}, ${Math.round(p.y)})`);
+							rawEl.textContent = `${activePointers.size} finger(s) down\n${lines.join('\n')}`;
+						};
+						touchTestContainer.addEventListener('pointerdown', e => {
+								e.stopPropagation();
+								activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+								renderRaw();
+						});
+						touchTestContainer.addEventListener('pointermove', e => {
+								e.stopPropagation();
+								if (activePointers.has(e.pointerId)) {
+									activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+									renderRaw();
+								}
+						});
+						const releasePointer = (e) => { e.stopPropagation(); activePointers.delete(e.pointerId); renderRaw(); };
+						touchTestContainer.addEventListener('pointerup', releasePointer);
+						touchTestContainer.addEventListener('pointercancel', releasePointer);
+					}
+					if (!window.__testChecklists) {
+						window.__testChecklists = {};
+						const buildChecklist = (containerId, items, colorClass) => {
+							const container = document.getElementById(containerId);
+							if (!container) return null;
+							container.innerHTML = '';
+							const state = {};
+							items.forEach(item => {
+									state[item.id] = false;
+									const row = document.createElement('div');
+									row.className = 'flex items-center gap-2 text-[10px]';
+									row.innerHTML = `<span id="check-${containerId}-${item.id}">⬜</span><span>${item.label}</span>`;
+									container.appendChild(row);
+							});
+							const passBanner = document.createElement('div');
+							passBanner.id = `${containerId}-pass-banner`;
+							passBanner.className = 'hidden mt-2 p-2 rounded bg-green-900 bg-opacity-40 border border-green-500/50 text-green-300 text-[10px] font-bold text-center';
+							passBanner.textContent = '✅ All checks passed!';
+							container.appendChild(passBanner);
+							const checkAllPassed = () => {
+								const passed = Object.values(state).every(v => v === true);
+								passBanner.classList.toggle('hidden', !passed);
+								return passed;
 							};
-						}
-						// --- TOUCH TEST: Dedicated local engine to prevent dropping unmapped inputs ---
-const touchTestContainer = document.getElementById('test-area-lock-container');
-if (touchTestContainer && !window.__testTouchGestureEngine) {
-    window.__testTouchGestureEngine = new TouchGestureEngine(touchTestContainer, {
-        tapDelay: window.appSettings.touchGestureTapDelay || 300,
-        swipeThreshold: window.appSettings.touchGestureSwipeDist || 30,
-        longPressTime: window.appSettings.touchGestureLongPressTime || 300,
-        tapPrecision: window.appSettings.touchGestureTapPrecision || 30,
-        spatialThreshold: window.appSettings.touchGestureSpatialThreshold || 10,
-        longSwipeThreshold: window.appSettings.touchGestureLongSwipeThreshold || 150,
-        multiSwipeThreshold: window.appSettings.touchGestureMultiSwipeThreshold || 10
-    }, {
-        onTouchGesture: (data) => {
-            const readout = document.getElementById('test-touch-readout');
-            if (readout) readout.textContent = data.name || JSON.stringify(data);
-            if (window.__testChecklists?.touch) window.__testChecklists.touch.mark(data.id || data.name);
-        },
-        onContinuous: (data) => {
-            const readout = document.getElementById('test-touch-readout');
-            if (readout) readout.textContent = `${data.type} (Continuous)`;
-        }
-    });
-    
-    window.__testTouchGestureEngine.updateAllowed([]);
-    
-    // Raw input feedback - "the touch pad should show what it receives" - separate from the
-    // classified gesture readout, this shows exactly what's physically touching the screen.
-    const rawEl = document.getElementById('test-touch-raw');
-    const activePointers = new Map();
-    const renderRaw = () => {
-        if (!rawEl) return;
-        if (activePointers.size === 0) { rawEl.textContent = 'No fingers down'; return; }
-        const lines = Array.from(activePointers.entries()).map(([id, p]) =>
-            `finger ${id}: (${Math.round(p.x)}, ${Math.round(p.y)})`);
-        rawEl.textContent = `${activePointers.size} finger(s) down\n${lines.join('\n')}`;
-    };
-    touchTestContainer.addEventListener('pointerdown', e => {
-        e.stopPropagation();
-        activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-        renderRaw();
-    });
-    touchTestContainer.addEventListener('pointermove', e => {
-        e.stopPropagation();
-        if (activePointers.has(e.pointerId)) {
-            activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-            renderRaw();
-        }
-    });
-    const releasePointer = (e) => { e.stopPropagation(); activePointers.delete(e.pointerId); renderRaw(); };
-    touchTestContainer.addEventListener('pointerup', releasePointer);
-    touchTestContainer.addEventListener('pointercancel', releasePointer);
-}
-
-// ==========================================================
-// Generic checklist system - Hand, Touch, and Voice each get a list of required
-// inputs to verify, checked off as they're detected. Tone Cadence uses history
-// logging instead (pitch detection is inherently variable, pass/fail doesn't fit).
-// ==========================================================
-if (!window.__testChecklists) {
-    window.__testChecklists = {};
-    const buildChecklist = (containerId, items, colorClass) => {
-        const container = document.getElementById(containerId);
-        if (!container) return null;
-        container.innerHTML = '';
-        const state = {};
-        items.forEach(item => {
-            state[item.id] = false;
-            const row = document.createElement('div');
-            row.className = 'flex items-center gap-2 text-[10px]';
-            row.innerHTML = `<span id="check-${containerId}-${item.id}">⬜</span><span>${item.label}</span>`;
-            container.appendChild(row);
-        });
-        const passBanner = document.createElement('div');
-        passBanner.id = `${containerId}-pass-banner`;
-        passBanner.className = 'hidden mt-2 p-2 rounded bg-green-900 bg-opacity-40 border border-green-500/50 text-green-300 text-[10px] font-bold text-center';
-        passBanner.textContent = '✅ All checks passed!';
-        container.appendChild(passBanner);
-
-        const checkAllPassed = () => {
-            const passed = Object.values(state).every(v => v === true);
-            passBanner.classList.toggle('hidden', !passed);
-            return passed;
-        };
-
-        return {
-            state,
-            mark(id) {
-                if (state[id] === true || !(id in state)) return;
-                state[id] = true;
-                const el = document.getElementById(`check-${containerId}-${id}`);
-                if (el) el.textContent = '✅';
-                checkAllPassed();
-            },
-            reset() {
-                Object.keys(state).forEach(id => {
-                    state[id] = false;
-                    const el = document.getElementById(`check-${containerId}-${id}`);
-                    if (el) el.textContent = '⬜';
-                });
-                passBanner.classList.add('hidden');
-            },
-            allPassed: checkAllPassed
-        };
-    };
-
-    window.__testChecklists.hand = buildChecklist('test-hand-checklist', [
-        { id: '0', label: 'Fist ✊' },
-        { id: '62', label: 'Open Palm ✋' },
-        { id: '16', label: '1 Finger ☝️' },
-        { id: '600', label: 'Thumbs Up 👍' },
-    ]);
-    window.__testChecklists.touch = buildChecklist('test-touch-checklist', [
-        { id: 'tap', label: 'Single Tap' },
-        { id: 'double_tap', label: 'Double Tap' },
-        { id: 'swipe_up', label: 'Swipe Up' },
-        { id: 'swipe_down', label: 'Swipe Down' },
-        { id: 'swipe_left', label: 'Swipe Left' },
-        { id: 'swipe_right', label: 'Swipe Right' },
-    ]);
-    window.__testChecklists.voice = buildChecklist('test-voice-checklist', [
-        { id: 'one', label: '"one"' },
-        { id: 'two', label: '"two"' },
-        { id: 'play', label: '"play"' },
-        { id: 'stop', label: '"stop"' },
-    ]);
-
-    ['hand', 'touch', 'voice'].forEach(key => {
-        const btn = document.getElementById(`test-${key}-checklist-reset`);
-        if (btn) btn.onclick = () => window.__testChecklists[key]?.reset();
-    });
-}
-
+							return {
+								state,
+								mark(id) {
+									if (state[id] === true || !(id in state)) return;
+									state[id] = true;
+									const el = document.getElementById(`check-${containerId}-${id}`);
+									if (el) el.textContent = '✅';
+									checkAllPassed();
+								},
+								reset() {
+									Object.keys(state).forEach(id => {
+											state[id] = false;
+											const el = document.getElementById(`check-${containerId}-${id}`);
+											if (el) el.textContent = '⬜';
+									});
+									passBanner.classList.add('hidden');
+								},
+								allPassed: checkAllPassed
+							};
+						};
+						window.__testChecklists.hand = buildChecklist('test-hand-checklist', [
+								{ id: '0', label: 'Fist ✊' },
+								{ id: '62', label: 'Open Palm ✋' },
+								{ id: '16', label: '1 Finger ☝️' },
+								{ id: '600', label: 'Thumbs Up 👍' },
+						]);
+						window.__testChecklists.touch = buildChecklist('test-touch-checklist', [
+								{ id: 'tap', label: 'Single Tap' },
+								{ id: 'double_tap', label: 'Double Tap' },
+								{ id: 'swipe_up', label: 'Swipe Up' },
+								{ id: 'swipe_down', label: 'Swipe Down' },
+								{ id: 'swipe_left', label: 'Swipe Left' },
+								{ id: 'swipe_right', label: 'Swipe Right' },
+						]);
+						window.__testChecklists.voice = buildChecklist('test-voice-checklist', [
+								{ id: 'one', label: '"one"' },
+								{ id: 'two', label: '"two"' },
+								{ id: 'play', label: '"play"' },
+								{ id: 'stop', label: '"stop"' },
+						]);
+						['hand', 'touch', 'voice'].forEach(key => {
+								const btn = document.getElementById(`test-${key}-checklist-reset`);
+								if (btn) btn.onclick = () => window.__testChecklists[key]?.reset();
+						});
+					}
 				}
 			}
 		} catch (e) {
@@ -2848,55 +2433,47 @@ if (!window.__testChecklists) {
 			const pinPromptCancel = document.getElementById('pin-prompt-cancel');
 			const pinPromptConfirm = document.getElementById('pin-prompt-confirm');
 			const commentsListContainer = document.getElementById('comments-list-container');
-			
 			let pendingDeleteCommentId = null;
-			
 			const togglePinPromptModal = (show) => {
 				if (!pinPromptModal) return;
 				if (show) {
 					pinPromptModal.classList.remove('hidden');
 					setTimeout(() => {
-						pinPromptModal.classList.remove('opacity-0', 'pointer-events-none');
-						pinPromptModal.querySelector('div')?.classList.remove('scale-90');
-						if (pinPromptInput) pinPromptInput.focus();
-					}, 10);
+							pinPromptModal.classList.remove('opacity-0', 'pointer-events-none');
+							pinPromptModal.querySelector('div')?.classList.remove('scale-90');
+							if (pinPromptInput) pinPromptInput.focus();
+						}, 10);
 				} else {
 					pinPromptModal.querySelector('div')?.classList.add('scale-90');
 					pinPromptModal.classList.add('opacity-0');
 					setTimeout(() => {
-						pinPromptModal.classList.add('pointer-events-none');
-						pinPromptModal.classList.add('hidden');
-					}, 300);
+							pinPromptModal.classList.add('pointer-events-none');
+							pinPromptModal.classList.add('hidden');
+						}, 300);
 					if (pinPromptInput) pinPromptInput.value = '';
 					pendingDeleteCommentId = null;
 				}
 			};
-			
 			if (commentsListContainer) {
 				commentsListContainer.addEventListener('click', (e) => {
-					if (e.target.classList.contains('delete-comment-btn')) {
-						pendingDeleteCommentId = e.target.dataset.commentId;
-						togglePinPromptModal(true);
-					}
+						if (e.target.classList.contains('delete-comment-btn')) {
+							pendingDeleteCommentId = e.target.dataset.commentId;
+							togglePinPromptModal(true);
+						}
 				});
 			}
-			
 			if (pinPromptCancel) {
 				pinPromptCancel.onclick = () => togglePinPromptModal(false);
 			}
-			
 			if (pinPromptConfirm) {
 				pinPromptConfirm.onclick = async () => {
 					if (!pendingDeleteCommentId || !pinPromptInput) return;
-					
 					const enteredPin = pinPromptInput.value;
 					const savedPin = appSettings.commentsDeletionPin || '';
-					
 					if (enteredPin !== savedPin) {
 						alert('Incorrect PIN');
 						return;
 					}
-					
 					try {
 						await deleteDoc(doc(db, 'comments', pendingDeleteCommentId));
 						togglePinPromptModal(false);
@@ -2906,12 +2483,11 @@ if (!window.__testChecklists) {
 					}
 				};
 			}
-			
 			if (pinPromptInput) {
 				pinPromptInput.addEventListener('keypress', (e) => {
-					if (e.key === 'Enter') {
-						pinPromptConfirm?.click();
-					}
+						if (e.key === 'Enter') {
+							pinPromptConfirm?.click();
+						}
 				});
 			}
 		} catch (e) {
@@ -2943,7 +2519,7 @@ if (!window.__testChecklists) {
 					hexOutput.select();
 					navigator.clipboard?.writeText(hexOutput.value).then(() => {
 							if (typeof showToast === 'function') showToast('Copied to clipboard 📋');
-						}).catch(() => document.execCommand('copy'));
+					}).catch(() => document.execCommand('copy'));
 				};
 			}
 			if (importBtn && hexOutput) {
@@ -2987,7 +2563,7 @@ if (!window.__testChecklists) {
 					presetOutput.select();
 					navigator.clipboard?.writeText(presetOutput.value).then(() => {
 							if (typeof showToast === 'function') showToast('Copied to clipboard 📋');
-						}).catch(() => document.execCommand('copy'));
+					}).catch(() => document.execCommand('copy'));
 				};
 			}
 		} catch (e) {
@@ -3002,8 +2578,8 @@ if (!window.__testChecklists) {
 					const row = document.getElementById('header-btn-row');
 					if (row) {
 						DEFAULT_HEADER_BTN_ORDER.forEach(id => {
-							const el = document.getElementById(id);
-							if (el) row.appendChild(el);
+								const el = document.getElementById(id);
+								if (el) row.appendChild(el);
 						});
 					}
 					this.callbacks.onSave();
@@ -3025,11 +2601,11 @@ if (!window.__testChecklists) {
 					const grid = document.getElementById('general-toggle-grid');
 					if (grid) {
 						DEFAULT_GENERAL_TOGGLE_ORDER.forEach(id => {
-							const cb = document.getElementById(id);
-							if (cb && cb.parentElement) {
-								cb.parentElement.classList.remove('hidden');
-								grid.appendChild(cb.parentElement);
-							}
+								const cb = document.getElementById(id);
+								if (cb && cb.parentElement) {
+									cb.parentElement.classList.remove('hidden');
+									grid.appendChild(cb.parentElement);
+								}
 						});
 					}
 					this.callbacks.onSave();
@@ -3049,10 +2625,6 @@ if (!window.__testChecklists) {
 			};
 		};
 		bindToggle(this.dom.newToggle, 'isPositionSwapEnabled', true);
-		// Pinned Mode / DND / PiP toggles work exactly like every other header-button toggle
-		// (headerPlayToggle, headerDeleteToggle, etc. below): checking the box only reveals the
-		// header button. The header button itself is what actually turns the feature on/off when
-		// tapped - see the headerpinnedbtn/headerdndbtn/headerpipbtn click handlers.
 		bindToggle(this.dom.pinnedModeToggle, 'showPinnedBtn', true);
 		bindToggle(this.dom.dndToggle, 'showDndBtn', true);
 		bindToggle(this.dom.pipToggle, 'showPipBtn', true);
@@ -3109,7 +2681,7 @@ if (!window.__testChecklists) {
 		if (this.dom.targetBtns) {
 			this.dom.targetBtns.forEach(btn => {
 					btn.onclick = () => this.selectThemeTarget(btn.dataset.target);
-				});
+			});
 		}
 		const nativePicker = document.getElementById('native-color-picker');
 		if (nativePicker) {
@@ -3125,7 +2697,7 @@ if (!window.__testChecklists) {
 				imageBtn.disabled = true;
 				imageBtn.textContent = 'Analyzing...';
 				this.buildThemeFromImage(file).then(theme => {
-						if (!this.tempTheme) return; // editor closed mid-processing - nothing to apply to
+						if (!this.tempTheme) return;
 						if (!theme) { if (typeof showToast === 'function') showToast('Could not read that image'); return; }
 						this.tempTheme.bgMain = theme.bgMain;
 						this.tempTheme.bgCard = theme.bgCard;
@@ -3135,14 +2707,14 @@ if (!window.__testChecklists) {
 						this.selectThemeTarget(this.currentTargetKey || 'bubble');
 						this.updatePreview();
 						if (typeof showToast === 'function') showToast('Theme built from photo 🖼️');
-					}).catch(err => {
+				}).catch(err => {
 						console.error('Image theme extraction failed:', err);
 						if (typeof showToast === 'function') showToast('Could not read that image');
-					}).finally(() => {
+				}).finally(() => {
 						imageBtn.disabled = false;
 						imageBtn.textContent = 'Choose a Photo';
 						imageInput.value = '';
-					});
+				});
 			};
 		}
 		[this.dom.ftHue, this.dom.ftSat, this.dom.ftLit].forEach(sl => { if (sl) sl.oninput = () => this.updateColorFromSliders(); });
@@ -3195,7 +2767,7 @@ if (!window.__testChecklists) {
 					this.appSettings.isToneCadenceEnabled = e.target.checked;
 					this.callbacks.onSave();
 					this.updateHeaderVisibility();
-				});
+			});
 		}
 		if (this.dom.headertonebtn) {
 			this.dom.headertonebtn.addEventListener('click', () => {
@@ -3218,7 +2790,7 @@ if (!window.__testChecklists) {
 						document.getElementById('tone-debug-indicator')?.classList.remove('hidden');
 						if (typeof toneEngine !== 'undefined') toneEngine.start();
 					}
-				});
+			});
 		}
 		if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.onchange = (e) => {
 			this.appSettings.runtimeSettings.activeVoicePresetId = e.target.value;
@@ -3292,11 +2864,6 @@ if (!window.__testChecklists) {
 				} else {
 					this.appSettings.runtimeSettings[prop] = val;
 				}
-				// Was only reachable inside the isGlobal branch above, but this checkbox is
-				// wired with isGlobal=false (correctly, since isPracticeModeEnabled belongs in
-				// runtimeSettings) - meaning the UI refresh this line exists for never actually
-				// fired. The setting saved correctly; the START button/header just never
-				// appeared until something unrelated happened to trigger a re-render later.
 				if (prop === 'isPracticeModeEnabled') this.callbacks.onUpdate();
 				this.callbacks.onSave();
 				this.generatePrompt();
@@ -3330,7 +2897,7 @@ if (!window.__testChecklists) {
 		}
 		['input', 'machines', 'seqLength', 'playbackSpeed', 'delay', 'chunk'].forEach(id => {
 				if (this.dom[id]) this.dom[id].addEventListener('change', () => this.generatePrompt());
-			});
+		});
 		if (this.dom.autoplay) this.dom.autoplay.onchange = (e) => { this.appSettings.runtimeSettings.isAutoplayEnabled = e.target.checked; if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = e.target.checked; this.callbacks.onSave(); };
 		if (this.dom.audio) this.dom.audio.onchange = (e) => { this.appSettings.runtimeSettings.isAudioEnabled = e.target.checked; if (this.dom.quickAudio) this.dom.quickAudio.checked = e.target.checked; this.callbacks.onSave(); };
 		if (this.dom.quickAutoplay) this.dom.quickAutoplay.onchange = (e) => { this.appSettings.runtimeSettings.isAutoplayEnabled = e.target.checked; if (this.dom.autoplay) this.dom.autoplay.checked = e.target.checked; this.callbacks.onSave(); };
@@ -3354,9 +2921,6 @@ if (!window.__testChecklists) {
 		if (this.dom.headerScale) this.dom.headerScale.onchange = (e) => {
 			this.appSettings.headerIconScale = parseInt(e.target.value);
 			this.applyHeaderScale();
-			// Width/gap update live via the CSS custom property, which existing clones inherit
-			// automatically - but Timer/Counter's font-size is a frozen inline-style snapshot
-			// from whenever cloneNode(true) ran, so clones need rebuilding to pick up the new one.
 			this.rebuildInfiniteHeaderScroll();
 			this.callbacks.onSave();
 		};
@@ -3385,7 +2949,6 @@ if (!window.__testChecklists) {
 				this.callbacks.onSave();
 			};
 		}
-
 		if (this.dom.arAutoClosePlayback) {
 			this.dom.arAutoClosePlayback.checked = this.appSettings.isArAutoCloseEnabled ?? false;
 			this.dom.arAutoClosePlayback.onchange = (e) => {
@@ -3430,7 +2993,7 @@ if (!window.__testChecklists) {
 						const tabEl = document.getElementById(`tab-${target}`);
 						if (tabEl) tabEl.classList.add('active');
 					}
-				});
+			});
 		}
 		if (this.dom.settingsModal) this.setupTabSwipe(this.dom.settingsModal);
 		if (this.dom.helpModal) this.setupTabSwipe(this.dom.helpModal);
@@ -3463,7 +3026,7 @@ if (!window.__testChecklists) {
 					if (app === 'cash') window.open(`https://cash.app/$jwo83/${amt}`, '_blank');
 					if (app === 'paypal') window.open(`https://www.paypal.me/Oyster981/${amt}`, '_blank');
 				};
-			});
+		});
 		if (this.dom.restoreBtn) {
 			this.dom.restoreBtn.onclick = () => { if (confirm("Factory Reset?")) this.callbacks.onReset(); };
 		}
@@ -3473,12 +3036,12 @@ if (!window.__testChecklists) {
 					if ('serviceWorker' in navigator) {
 						navigator.serviceWorker.getRegistrations().then(regs => {
 								for (let r of regs) r.unregister();
-							});
+						});
 					}
 					if (window.caches) {
 						caches.keys().then(names => {
 								for (let name of names) caches.delete(name);
-							});
+						});
 					}
 					localStorage.clear();
 					sessionStorage.clear();
@@ -3525,10 +3088,6 @@ if (!window.__testChecklists) {
 	populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
 	openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
 	openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); this.updateWelcomeSample(); }
-	// Renders 1-5 using the exact same markup/sizing formula as the real sequence bubbles
-	// (see renderUI's number-box creation in app.js), so what the user sees here is a true
-	// preview of the real app - not an approximation - letting them size things correctly
-	// for their specific device before ever seeing the real sequence area.
 	applySettingsLockState() {
 		if (!this.dom.settingsLockBtn) return;
 		const locked = !!this.appSettings.isSettingsLockEnabled;
@@ -3549,13 +3108,13 @@ if (!window.__testChecklists) {
 		const fontMult = this.appSettings.uiFontSizeMultiplier || 1.0;
 		const fontSizePx = boxSize * 0.5 * fontMult;
 		[1, 2, 3, 4, 5].forEach(num => {
-			const span = document.createElement('span');
-			span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold";
-			span.style.width = boxSize + 'px';
-			span.style.height = boxSize + 'px';
-			span.style.fontSize = fontSizePx + 'px';
-			span.textContent = num;
-			holder.appendChild(span);
+				const span = document.createElement('span');
+				span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold";
+				span.style.width = boxSize + 'px';
+				span.style.height = boxSize + 'px';
+				span.style.fontSize = fontSizePx + 'px';
+				span.textContent = num;
+				holder.appendChild(span);
 		});
 	}
 	closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); if (window.unlockBodyScroll) window.unlockBodyScroll(); }
@@ -3596,7 +3155,7 @@ if (!window.__testChecklists) {
 			}
 			this.dom.filterToggles.forEach(toggle => {
 					toggle.checked = this.appSettings.activeGestureFilters.includes(toggle.dataset.group);
-				});
+			});
 			this.applyHandGestureFilters();
 		}
 		this.applyTouchGestureOptions();
@@ -3797,39 +3356,20 @@ if (!window.__testChecklists) {
 		const wasAlreadyOn = header.classList.contains('auto-hide-header-enabled');
 		header.classList.toggle('auto-hide-header-enabled', autoHideOn);
 		if (autoHideOn && !wasAlreadyOn) {
-			// Only reset to hidden on the actual off-to-on transition. This function runs on
-			// nearly every settings change while the feature stays on, so unconditionally
-			// re-hiding here (as an earlier version did) meant any unrelated change - toggling
-			// a header button, changing Header Size, anything - would snap a just-revealed
-			// header straight back to hidden before the 5s timer ever got to run out on its
-			// own, making a real reveal effectively impossible to see or use.
 			header.classList.add('auto-hide-inactive');
 		} else if (!autoHideOn) {
 			header.classList.remove('auto-hide-inactive');
 			if (window.__clearAutoHideHeaderTimer) window.__clearAutoHideHeaderTimer();
 		}
 	}
-	// Master order of every header button id. Reads the live DOM order rather than a hardcoded
-	// list, so a custom order (set via the Header accordion, or restored from a saved order on
-	// boot) is automatically reflected everywhere this is used - there's no separate list that
-	// could drift out of sync with what's actually in the DOM.
 	_headerBtnOrder() {
 		const row = document.getElementById('header-btn-row');
 		if (!row) return [];
 		return [...row.children].filter(el => el.id && !el.dataset.cloneId).map(el => el.id);
 	}
-	// Short labels for the Header reordering list - matches the wording used in Help's Buttons
-	// tab, condensed to fit a single line per row.
 	_headerBtnLabels() {
 		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerpinnedbtn: '📌 Pinned Mode', headerdndbtn: '🔕 Do Not Disturb', headerpipbtn: '🪟 Picture in Picture', headerupsidedownbtn: '🙃 Upside Down', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headerresetbtn: '♻️ Reset', headernukebtn: '☢️ Nuke', headernotepadbtn: '📝 Notepad' };
 	}
-	// Moves a button one position earlier/later in the LOGICAL order (from _headerBtnOrder,
-	// which already excludes clones), then reapplies that full order to the real DOM via
-	// appendChild in sequence. Deliberately not based on raw DOM siblings: a hidden button still
-	// occupies a real DOM position, and infinite-scroll clones sit adjacent to the visible real
-	// set - either one means an element's actual next/previous sibling is often not its neighbor
-	// in the intended order, which silently moved the wrong (or no) element in an earlier
-	// version of this.
 	_moveHeaderBtn(id, direction) {
 		const row = document.getElementById('header-btn-row');
 		if (!row) return;
@@ -3839,18 +3379,14 @@ if (!window.__testChecklists) {
 		if (i === -1 || j < 0 || j >= order.length) return;
 		[order[i], order[j]] = [order[j], order[i]];
 		order.forEach(btnId => {
-			const el = document.getElementById(btnId);
-			if (el) row.appendChild(el);
+				const el = document.getElementById(btnId);
+				if (el) row.appendChild(el);
 		});
 		this.appSettings.headerBtnOrder = order;
 		this.callbacks.onSave();
 		this.renderHeaderOrderList();
 		this.rebuildInfiniteHeaderScroll();
 	}
-	// Applies a saved custom order to the real DOM on boot, before anything else (like the
-	// infinite-scroll clone builder) reads button order. No-op if there's no saved order, or if
-	// it's stale (doesn't exactly match the current set of real button ids - e.g. after an
-	// update that added/removed a header button).
 	applySavedHeaderOrder() {
 		const row = document.getElementById('header-btn-row');
 		const saved = this.appSettings.headerBtnOrder;
@@ -3859,8 +3395,8 @@ if (!window.__testChecklists) {
 		const sameSet = saved.length === current.length && saved.every(id => current.includes(id));
 		if (!sameSet) return;
 		saved.forEach(id => {
-			const el = document.getElementById(id);
-			if (el) row.appendChild(el);
+				const el = document.getElementById(id);
+				if (el) row.appendChild(el);
 		});
 	}
 	renderHeaderOrderList() {
@@ -3870,50 +3406,43 @@ if (!window.__testChecklists) {
 		const order = this._headerBtnOrder();
 		container.innerHTML = '';
 		order.forEach((id, i) => {
-			const row = document.createElement('div');
-			row.className = 'flex items-center justify-between p-2 rounded bg-gray-950 border border-gray-700';
-			const label = document.createElement('span');
-			label.className = 'text-xs font-bold';
-			label.textContent = labels[id] || id;
-			const btns = document.createElement('div');
-			btns.className = 'flex gap-1';
-			const upBtn = document.createElement('button');
-			upBtn.type = 'button';
-			upBtn.className = 'w-7 h-7 rounded bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold disabled:opacity-30';
-			upBtn.textContent = '▲';
-			upBtn.disabled = i === 0;
-			upBtn.onclick = () => this._moveHeaderBtn(id, 'up');
-			const downBtn = document.createElement('button');
-			downBtn.type = 'button';
-			downBtn.className = 'w-7 h-7 rounded bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold disabled:opacity-30';
-			downBtn.textContent = '▼';
-			downBtn.disabled = i === order.length - 1;
-			downBtn.onclick = () => this._moveHeaderBtn(id, 'down');
-			btns.appendChild(upBtn);
-			btns.appendChild(downBtn);
-			row.appendChild(label);
-			row.appendChild(btns);
-			container.appendChild(row);
+				const row = document.createElement('div');
+				row.className = 'flex items-center justify-between p-2 rounded bg-gray-950 border border-gray-700';
+				const label = document.createElement('span');
+				label.className = 'text-xs font-bold';
+				label.textContent = labels[id] || id;
+				const btns = document.createElement('div');
+				btns.className = 'flex gap-1';
+				const upBtn = document.createElement('button');
+				upBtn.type = 'button';
+				upBtn.className = 'w-7 h-7 rounded bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold disabled:opacity-30';
+				upBtn.textContent = '▲';
+				upBtn.disabled = i === 0;
+				upBtn.onclick = () => this._moveHeaderBtn(id, 'up');
+				const downBtn = document.createElement('button');
+				downBtn.type = 'button';
+				downBtn.className = 'w-7 h-7 rounded bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold disabled:opacity-30';
+				downBtn.textContent = '▼';
+				downBtn.disabled = i === order.length - 1;
+				downBtn.onclick = () => this._moveHeaderBtn(id, 'down');
+				btns.appendChild(upBtn);
+				btns.appendChild(downBtn);
+				row.appendChild(label);
+				row.appendChild(btns);
+				container.appendChild(row);
 		});
 	}
-	// Same live-DOM-order approach as _headerBtnOrder, adapted for the General tab's toggle
-	// grid: each grid child is a wrapper div (label + checkbox), identified by its checkbox's
-	// id rather than having an id of its own, so this reads getElementById(id).parentElement
-	// for each known toggle id and returns them in their current DOM order.
 	_generalToggleOrder() {
 		const grid = document.getElementById('general-toggle-grid');
 		if (!grid) return [];
 		return [...grid.children].map(child => {
-			const cb = child.querySelector('input[type="checkbox"]');
-			return cb ? cb.id : null;
+				const cb = child.querySelector('input[type="checkbox"]');
+				return cb ? cb.id : null;
 		}).filter(Boolean);
 	}
 	_generalToggleLabels() {
 		return { randomThemeToggle: 'Random Theme 🎲', autoHideHeaderToggle: 'Auto Hide Header 👻', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerModeSwitchToggle: 'Mode Switch 🎮', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', headerThemeCycleToggle: 'Theme Cycle 🎨', headerAddMachineToggle: 'Add Machine ➕', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', headerCycleInputToggle: 'Cycle Input 🔀', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', introToggle: 'Show Intro', upsidedownToggle: 'Upside Down 🙃', fullscreenToggle: 'Full Screen 🔲', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', dndToggle: 'Do Not Disturb 🔕', pipToggle: 'Picture in Picture 🪟', pinnedModeToggle: 'Pinned Mode 📌', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', bossToggle: 'Boss Mode 🌑', newToggle: 'Position Swap 🔄', biggerToggle: 'Bigger Buttons', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥' };
 	}
-	// Moves a toggle's WRAPPER div one position earlier/later, same index-based-then-reapply
-	// approach as _moveHeaderBtn (not raw siblings) - safe here too since a hidden toggle still
-	// occupies a real DOM position, same failure mode that approach avoids for the header.
 	_moveGeneralToggle(id, direction) {
 		const grid = document.getElementById('general-toggle-grid');
 		if (!grid) return;
@@ -3923,15 +3452,13 @@ if (!window.__testChecklists) {
 		if (i === -1 || j < 0 || j >= order.length) return;
 		[order[i], order[j]] = [order[j], order[i]];
 		order.forEach(cbId => {
-			const cb = document.getElementById(cbId);
-			if (cb && cb.parentElement) grid.appendChild(cb.parentElement);
+				const cb = document.getElementById(cbId);
+				if (cb && cb.parentElement) grid.appendChild(cb.parentElement);
 		});
 		this.appSettings.generalToggleOrder = order;
 		this.callbacks.onSave();
 		this.renderGeneralOrderList();
 	}
-	// Hides/shows a toggle's wrapper div. The underlying setting itself is untouched either way
-	// - hiding only removes the control from view, it doesn't reset or disable what it controls.
 	_toggleGeneralToggleVisibility(id) {
 		const cb = document.getElementById(id);
 		if (!cb || !cb.parentElement) return;
@@ -3948,9 +3475,6 @@ if (!window.__testChecklists) {
 		this.callbacks.onSave();
 		this.renderGeneralOrderList();
 	}
-	// Applies a saved custom order and hidden set to the real DOM on boot. No-op if there's no
-	// saved order, or if it's stale (doesn't exactly match the current set of real toggle ids -
-	// e.g. after an update that added/removed a General toggle).
 	applySavedGeneralToggleOrder() {
 		const grid = document.getElementById('general-toggle-grid');
 		if (!grid) return;
@@ -3960,15 +3484,15 @@ if (!window.__testChecklists) {
 			const sameSet = saved.length === current.length && saved.every(id => current.includes(id));
 			if (sameSet) {
 				saved.forEach(id => {
-					const cb = document.getElementById(id);
-					if (cb && cb.parentElement) grid.appendChild(cb.parentElement);
+						const cb = document.getElementById(id);
+						if (cb && cb.parentElement) grid.appendChild(cb.parentElement);
 				});
 			}
 		}
 		if (Array.isArray(this.appSettings.hiddenGeneralToggles)) {
 			this.appSettings.hiddenGeneralToggles.forEach(id => {
-				const cb = document.getElementById(id);
-				if (cb && cb.parentElement) cb.parentElement.classList.add('hidden');
+					const cb = document.getElementById(id);
+					if (cb && cb.parentElement) cb.parentElement.classList.add('hidden');
 			});
 		}
 	}
@@ -3980,223 +3504,157 @@ if (!window.__testChecklists) {
 		const hidden = Array.isArray(this.appSettings.hiddenGeneralToggles) ? this.appSettings.hiddenGeneralToggles : [];
 		container.innerHTML = '';
 		order.forEach((id, i) => {
-			const row = document.createElement('div');
-			row.className = 'flex items-center justify-between p-2 rounded bg-gray-950 border border-gray-700';
-			const isHidden = hidden.includes(id);
-			const label = document.createElement('span');
-			label.className = 'text-xs font-bold' + (isHidden ? ' opacity-40' : '');
-			label.textContent = labels[id] || id;
-			const btns = document.createElement('div');
-			btns.className = 'flex gap-1';
-			const upBtn = document.createElement('button');
-			upBtn.type = 'button';
-			upBtn.className = 'w-7 h-7 rounded bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold disabled:opacity-30';
-			upBtn.textContent = '▲';
-			upBtn.disabled = i === 0;
-			upBtn.onclick = () => this._moveGeneralToggle(id, 'up');
-			const downBtn = document.createElement('button');
-			downBtn.type = 'button';
-			downBtn.className = 'w-7 h-7 rounded bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold disabled:opacity-30';
-			downBtn.textContent = '▼';
-			downBtn.disabled = i === order.length - 1;
-			downBtn.onclick = () => this._moveGeneralToggle(id, 'down');
-			const hideBtn = document.createElement('button');
-			hideBtn.type = 'button';
-			hideBtn.className = 'w-7 h-7 rounded text-xs font-bold ' + (isHidden ? 'bg-indigo-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-white');
-			hideBtn.textContent = isHidden ? '🚫' : '👁️';
-			hideBtn.title = isHidden ? 'Hidden - tap to show' : 'Tap to hide';
-			hideBtn.onclick = () => this._toggleGeneralToggleVisibility(id);
-			btns.appendChild(upBtn);
-			btns.appendChild(downBtn);
-			btns.appendChild(hideBtn);
-			row.appendChild(label);
-			row.appendChild(btns);
-			container.appendChild(row);
+				const row = document.createElement('div');
+				row.className = 'flex items-center justify-between p-2 rounded bg-gray-950 border border-gray-700';
+				const isHidden = hidden.includes(id);
+				const label = document.createElement('span');
+				label.className = 'text-xs font-bold' + (isHidden ? ' opacity-40' : '');
+				label.textContent = labels[id] || id;
+				const btns = document.createElement('div');
+				btns.className = 'flex gap-1';
+				const upBtn = document.createElement('button');
+				upBtn.type = 'button';
+				upBtn.className = 'w-7 h-7 rounded bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold disabled:opacity-30';
+				upBtn.textContent = '▲';
+				upBtn.disabled = i === 0;
+				upBtn.onclick = () => this._moveGeneralToggle(id, 'up');
+				const downBtn = document.createElement('button');
+				downBtn.type = 'button';
+				downBtn.className = 'w-7 h-7 rounded bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold disabled:opacity-30';
+				downBtn.textContent = '▼';
+				downBtn.disabled = i === order.length - 1;
+				downBtn.onclick = () => this._moveGeneralToggle(id, 'down');
+				const hideBtn = document.createElement('button');
+				hideBtn.type = 'button';
+				hideBtn.className = 'w-7 h-7 rounded text-xs font-bold ' + (isHidden ? 'bg-indigo-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-white');
+				hideBtn.textContent = isHidden ? '🚫' : '👁️';
+				hideBtn.title = isHidden ? 'Hidden - tap to show' : 'Tap to hide';
+				hideBtn.onclick = () => this._toggleGeneralToggleVisibility(id);
+				btns.appendChild(upBtn);
+				btns.appendChild(downBtn);
+				btns.appendChild(hideBtn);
+				row.appendChild(label);
+				row.appendChild(btns);
+				container.appendChild(row);
 		});
 	}
-	// Applies the Header Size setting via a CSS custom property, so it also covers the
-	// infinite-scroll clones below without needing to touch them individually.
 	applyHeaderScale() {
 		const row = document.getElementById('header-btn-row');
 		if (!row) return;
 		const scale = (this.appSettings.headerIconScale || 100) / 100;
 		row.style.setProperty('--header-icon-scale', scale);
-		// Timer and Counter get their own smaller inline font-size (set once at startup) so text
-		// like "00:00" fits the circle instead of a single emoji's size - a CSS rule can't win
-		// against that inline style, so it needs to be explicitly rescaled here too, using the
-		// same base sizes as that original setup (0.75rem / 1.2rem).
 		const headerTimer = document.getElementById('headertimerbtn');
 		const headerCounter = document.getElementById('headercounterbtn');
 		if (headerTimer) headerTimer.style.fontSize = (0.75 * scale) + 'rem';
 		if (headerCounter) headerCounter.style.fontSize = (1.2 * scale) + 'rem';
 		this.updateSequenceContainerOffset();
 	}
-	// Keeps the sequence display clear of the header, whose real rendered height now changes
-	// with the Header Size setting. A flat Tailwind padding class can't track a value that
-	// changes at runtime, so this measures the header's actual current height directly (via
-	// getBoundingClientRect, not a parallel formula that would need to stay in sync with the
-	// scale math above) and sets that plus a small fixed gap as the sequence container's own
-	// top offset. Runs every time applyHeaderScale runs, so it's correct on load and after any
-	// scale change, at every step - not just the two or three values that happened to be tested.
 	updateSequenceContainerOffset() {
 		const header = document.getElementById('aux-control-header');
 		const seq = document.getElementById('sequence-container');
 		const app = document.getElementById('app');
 		if (!header || !seq || !app) return;
-		// Matches the sequence cards' own internal number-wrap gap (gap-2, i.e. 0.5rem - the
-		// space between rows of numbers when a sequence wraps within one card) so that at
-		// Header Padding = 0 the visible space above the first row of cards reads the same as
-		// that internal row gap. Confirmed against a real rendered, wrapped sequence in the
-		// sandbox (measured 9.59375px against a 9.6px/0.5rem target) rather than assumed -
-		// initially targeted the wrong gap entirely (gap-4, the space between separate
-		// multi-machine card blocks) before a real screenshot clarified which gap this was
-		// actually about. Read dynamically (not hardcoded in px) so it stays correct as UI
-		// Scale changes root font-size.
 		const targetGapPx = parseFloat(getComputedStyle(document.documentElement).fontSize) / 2;
-		// #app (sequence-container's own parent) has its own separate padding-top (1rem
-		// normally, 0 in landscape, 4rem in fullscreen-mode - see styles.css), which stacks
-		// underneath whatever gets set here, since sequence-container nests inside #app.
-		// Subtracting it keeps the TOTAL visible gap correct through all of those variants,
-		// without needing to touch that rule itself.
 		const appPaddingTop = parseFloat(getComputedStyle(app).paddingTop) || 0;
-		// Deferred two frames out: a change to a size-affecting CSS custom property doesn't
-		// always resolve to updated getBoundingClientRect() geometry within the same
-		// synchronous script execution, even after forcing a reflow - there's a real (if brief)
-		// transition in play. Reading on the frame after next reliably catches the settled value.
 		requestAnimationFrame(() => {
-			requestAnimationFrame(() => {
-				if (document.body.classList.contains('layout-swapped')) {
-					// In swapped mode, #app's own paddingTop (set by applyPositionSwapOffsets)
-					// already accounts for BOTH the header's height and the now-top-anchored
-					// input footer's height, plus its own small built-in gap. Re-adding header
-					// height here on top of that would double-count it - that's exactly the
-					// "unnecessary padding above the cards" bug. Nothing extra needed here.
-					seq.style.paddingTop = '0px';
-				} else {
-					const userExtra = this.appSettings.headerPadding || 0;
-					const total = header.getBoundingClientRect().height + targetGapPx + userExtra - appPaddingTop;
-					seq.style.paddingTop = Math.max(0, total) + 'px';
-				}
-			});
+				requestAnimationFrame(() => {
+						if (document.body.classList.contains('layout-swapped')) {
+							seq.style.paddingTop = '0px';
+						} else {
+							const userExtra = this.appSettings.headerPadding || 0;
+							const total = header.getBoundingClientRect().height + targetGapPx + userExtra - appPaddingTop;
+							seq.style.paddingTop = Math.max(0, total) + 'px';
+						}
+				});
 		});
 	}
-	// Applies the Font Size setting via a CSS custom property on body, so it reaches both the
-	// keypad's number/control buttons and the Settings modal's text (labels, headings, option
-	// text) - independent of Header Size (icons only) and the general UI Scale.
 	applyFontScale() {
 		document.body.style.setProperty('--app-font-scale', (this.appSettings.appFontScale || 100) / 100);
 	}
-	// Extra breathing room between the fixed header and the sequence cards below it.
-	// updateSequenceContainerOffset() is the real, authoritative mechanism for this spacing (it
-	// measures the header's actual height and sets an inline style, which always wins over any
-	// stylesheet rule) - this setting is read directly inside that function rather than through
-	// a CSS custom property, since a property here would just get silently overridden.
 	applyHeaderPadding() {
 		this.updateSequenceContainerOffset();
 	}
-	// Extra bottom breathing room so the keypad clears the device's own nav bar. Read by the
-	// same visualViewport-based positioning in app.merged.js's initRealViewportHeight that
-	// already keeps #input-footer above the browser's own chrome - this is added on top of
-	// that automatic offset as a manual, per-device safety margin, not a replacement for it.
 	applyInputsPadding() {
 		document.body.style.setProperty('--inputs-padding-extra', (this.appSettings.inputsPadding || 0) + 'px');
 	}
-	// Builds the "infinite toolbar" feel: clones the visible button set once before and once
-	// after the real set, then keeps the scroll position invisibly wrapped within the real
-	// (middle) copy so it always looks like there's more to scroll in either direction.
 	rebuildInfiniteHeaderScroll() {
 		const row = document.getElementById('header-btn-row');
 		if (!row) return;
-		// Clear out any clones from a previous build (settings can change which buttons show,
-		// and this feature itself can now be toggled off).
 		row.querySelectorAll('[data-clone-id]').forEach(el => el.remove());
 		if (!this.appSettings.isHeaderInfiniteScrollEnabled) {
-			// Clearing these makes the scroll listener's own guard clause below no-op safely,
-			// without needing to detach it - it already bails when setWidth is falsy.
 			row._infiniteSetWidth = null;
 			row._infiniteRealStart = undefined;
 			row.scrollLeft = 0;
 			return;
 		}
 		const visibleIds = this._headerBtnOrder().filter(id => {
-			const el = document.getElementById(id);
-			return el && !el.classList.contains('hidden');
+				const el = document.getElementById(id);
+				return el && !el.classList.contains('hidden');
 		});
 		if (visibleIds.length === 0) return;
 		const buildCloneSet = () => {
 			const frag = document.createDocumentFragment();
 			visibleIds.forEach(id => {
-				const source = document.getElementById(id);
-				const clone = source.cloneNode(true);
-				clone.removeAttribute('id');
-				clone.dataset.cloneId = id;
-				frag.appendChild(clone);
+					const source = document.getElementById(id);
+					const clone = source.cloneNode(true);
+					clone.removeAttribute('id');
+					clone.dataset.cloneId = id;
+					frag.appendChild(clone);
 			});
 			return frag;
 		};
 		const firstReal = document.getElementById(visibleIds[0]);
 		row.insertBefore(buildCloneSet(), firstReal);
 		row.appendChild(buildCloneSet());
-		// Clones from cloneNode() never carry JS listeners (.onclick, addEventListener) - only
-		// the real buttons respond to anything. Delegating from the row and forwarding an
-		// equivalent event to the real button (by data-clone-id) makes every clone transparently
-		// proxy to its real counterpart's existing handlers, whatever those happen to be - click-
-		// only buttons, press-and-hold buttons like Timer/Counter, all covered the same way
-		// without needing per-button special-casing.
 		if (!row._cloneForwardingBound) {
 			row._cloneForwardingBound = true;
 			['click', 'mousedown', 'mouseup', 'mouseleave', 'touchstart', 'touchend'].forEach(type => {
-				row.addEventListener(type, (e) => {
-					const cloneEl = e.target.closest('[data-clone-id]');
-					if (!cloneEl) return;
-					const real = document.getElementById(cloneEl.dataset.cloneId);
-					if (!real) return;
-					const forwardType = type === 'touchstart' ? 'mousedown' : type === 'touchend' ? 'mouseup' : type;
-					real.dispatchEvent(new MouseEvent(forwardType, { bubbles: true, cancelable: true }));
-				}, { passive: true });
+					row.addEventListener(type, (e) => {
+							const cloneEl = e.target.closest('[data-clone-id]');
+							if (!cloneEl) return;
+							const real = document.getElementById(cloneEl.dataset.cloneId);
+							if (!real) return;
+							const forwardType = type === 'touchstart' ? 'mousedown' : type === 'touchend' ? 'mouseup' : type;
+							real.dispatchEvent(new MouseEvent(forwardType, { bubbles: true, cancelable: true }));
+						}, { passive: true });
 			});
 		}
-		// Measure the real (middle) set's width from the actual rendered buttons, then start
-		// the scroll position there so both directions have a clone set to scroll into.
 		requestAnimationFrame(() => {
-			const realFirst = document.getElementById(visibleIds[0]);
-			const realLast = document.getElementById(visibleIds[visibleIds.length - 1]);
-			if (!realFirst || !realLast) return;
-			const setWidth = (realLast.offsetLeft + realLast.offsetWidth) - realFirst.offsetLeft;
-			row.scrollLeft = realFirst.offsetLeft;
-			row._infiniteSetWidth = setWidth;
-			row._infiniteRealStart = realFirst.offsetLeft;
+				const realFirst = document.getElementById(visibleIds[0]);
+				const realLast = document.getElementById(visibleIds[visibleIds.length - 1]);
+				if (!realFirst || !realLast) return;
+				const setWidth = (realLast.offsetLeft + realLast.offsetWidth) - realFirst.offsetLeft;
+				row.scrollLeft = realFirst.offsetLeft;
+				row._infiniteSetWidth = setWidth;
+				row._infiniteRealStart = realFirst.offsetLeft;
 		});
-		// The scroll listener and click delegation only need to be attached once ever.
 		if (!row._infiniteScrollBound) {
 			row._infiniteScrollBound = true;
 			row.addEventListener('scroll', () => {
-				const setWidth = row._infiniteSetWidth;
-				const realStart = row._infiniteRealStart;
-				if (!setWidth || realStart === undefined) return;
-				if (row.scrollLeft <= realStart - setWidth + 2) {
-					row.scrollLeft += setWidth;
-				} else if (row.scrollLeft >= realStart + setWidth - 2) {
-					row.scrollLeft -= setWidth;
-				}
+					const setWidth = row._infiniteSetWidth;
+					const realStart = row._infiniteRealStart;
+					if (!setWidth || realStart === undefined) return;
+					if (row.scrollLeft <= realStart - setWidth + 2) {
+						row.scrollLeft += setWidth;
+					} else if (row.scrollLeft >= realStart + setWidth - 2) {
+						row.scrollLeft -= setWidth;
+					}
 			});
 			row.addEventListener('click', (e) => {
-				const cloneBtn = e.target.closest('[data-clone-id]');
-				if (!cloneBtn) return;
-				const real = document.getElementById(cloneBtn.dataset.cloneId);
-				if (real) real.click();
+					const cloneBtn = e.target.closest('[data-clone-id]');
+					if (!cloneBtn) return;
+					const real = document.getElementById(cloneBtn.dataset.cloneId);
+					if (real) real.click();
 			});
-			// Keeps clones showing the real button's current text (e.g. the live timer/counter)
-			// instead of a frozen snapshot from whenever they were built.
 			const syncObserver = new MutationObserver((mutations) => {
-				const seen = new Set();
-				mutations.forEach(m => {
-					const real = m.target.nodeType === 3 ? m.target.parentElement : m.target;
-					if (!real || !real.id || seen.has(real.id)) return;
-					seen.add(real.id);
-					const clones = row.querySelectorAll(`[data-clone-id="${real.id}"]`);
-					clones.forEach(c => { c.textContent = real.textContent; });
-				});
+					const seen = new Set();
+					mutations.forEach(m => {
+							const real = m.target.nodeType === 3 ? m.target.parentElement : m.target;
+							if (!real || !real.id || seen.has(real.id)) return;
+							seen.add(real.id);
+							const clones = row.querySelectorAll(`[data-clone-id="${real.id}"]`);
+							clones.forEach(c => { c.textContent = real.textContent; });
+					});
 			});
 			syncObserver.observe(row, { characterData: true, childList: true, subtree: true });
 		}
@@ -4264,13 +3722,13 @@ if (!window.__testChecklists) {
 						if (valEl) valEl.textContent = val + unit;
 						this.callbacks.onSave();
 					};
-				});
+			});
 			const lockToggle = document.getElementById('sliderLockToggle');
 			const applyLockState = (locked) => {
 				document.querySelectorAll('.sensitivity-slider input[type="range"]').forEach(s => {
 						s.disabled = locked;
 						s.parentElement.style.opacity = locked ? '0.5' : '1';
-					});
+				});
 			};
 			if (lockToggle) {
 				lockToggle.checked = !!this.appSettings.isSliderLockEnabled;
@@ -4292,15 +3750,11 @@ if (!window.__testChecklists) {
 			showToast('Unlock sliders first 🔒');
 			return;
 		}
-		// Deleting rather than reassigning: every read site already falls back to its own
-		// default when the property is missing (either `appSettings.X || def` or the explicit
-		// `!== undefined ? X : def` check in the moreSliders loop above), so this can't drift
-		// out of sync with a second, separately-maintained defaults list.
 		['touchGestureTapDelay', 'touchGestureSwipeDist', 'touchGestureLongPressTime', 'touchGestureTapPrecision',
-		 'touchGestureSpatialThreshold', 'touchGestureLongSwipeThreshold', 'touchGestureMultiSwipeThreshold',
-		 'handGestureCooldown', 'handHoldFrames', 'voiceConfidenceThreshold', 'toneVolumeThreshold',
-		 'touchAnchorStillDistance', 'touchAnchorMinHoldTime', 'touchChordSimultaneityWindow',
-		 'handMotionMinDistance', 'handPinchThreshold'
+			'touchGestureSpatialThreshold', 'touchGestureLongSwipeThreshold', 'touchGestureMultiSwipeThreshold',
+			'handGestureCooldown', 'handHoldFrames', 'voiceConfidenceThreshold', 'toneVolumeThreshold',
+			'touchAnchorStillDistance', 'touchAnchorMinHoldTime', 'touchChordSimultaneityWindow',
+			'handMotionMinDistance', 'handPinchThreshold'
 		].forEach(p => delete this.appSettings[p]);
 		this.populateMappingUI();
 		this.callbacks.onSave();
@@ -4330,7 +3784,7 @@ if (!window.__testChecklists) {
 					return lenDiff;
 				}
 				return a.localeCompare(b);
-			});
+		});
 		const labels = ["1", "2", "3", "4", "5", "6 C", "7 D", "8 E", "9 F", "10 G", "11 A", "12 B"];
 		let gridHtml = `<div class="grid grid-cols-4 gap-y-3 gap-x-2 items-center">`;
 		labels.forEach((label, index) => {
@@ -4344,7 +3798,7 @@ if (!window.__testChecklists) {
 				${optionsHtml}
 				</select>
 				`;
-			});
+		});
 		gridHtml += `</div>`;
 		container.innerHTML = `
 		<h3 class="text-sm font-bold uppercase text-gray-400 mb-3">Haptic Output Mapping</h3>
@@ -4382,7 +3836,7 @@ if (!window.__testChecklists) {
 						if(pattern.length) hapticPulse(pattern);
 					}
 				};
-			});
+		});
 	}
 	applyDefaultTouchGestureMappings() {
 		this.appSettings.touchGestureMappings = this.appSettings.touchGestureMappings || {};
@@ -4436,3510 +3890,3244 @@ if (!window.__testChecklists) {
 			Object.keys(preset.map).forEach(key => {
 					const val = preset.map[key];
 					ensure(key).handGesture = val === 'none' ? 'none' : parseInt(val, 10);
-				});
+			});
 		};
 		applyHandPreset('9_hand_counts');
 		applyHandPreset('12_hand_counts');
 		applyHandPreset('piano_hand_default');
 	}
 }
-
-// ===== FORMERLY: app.js =====
 const arRecordBtn = document.getElementById('ar-record-btn');
 const arPlaybackContainer = document.getElementById('ar-playback-container');
 const arPlaybackVideo = document.getElementById('ar-playback-video');
 const arBackgroundVideo = document.getElementById('ar-background-video');
 const firebaseConfig = {
-    apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4",
-    authDomain: "follow-me-app-de3e9.firebaseapp.com",
-    projectId: "follow-me-app-de3e9",
-    storageBucket: "follow-me-app-de3e9.firebasestorage.app",
-    messagingSenderId: "957006680126",
-    appId: "1:957006680126:web:6d679717d9277fd9ae816f"
+	apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4",
+	authDomain: "follow-me-app-de3e9.firebaseapp.com",
+	projectId: "follow-me-app-de3e9",
+	storageBucket: "follow-me-app-de3e9.firebasestorage.app",
+	messagingSenderId: "957006680126",
+	appId: "1:957006680126:web:6d679717d9277fd9ae816f"
 };
 let db = null;
 let screenWakeLock = null;
-// The header's original, as-shipped button order (matching static HTML order) - kept
-// separately from _headerBtnOrder() (which reads live DOM order once buttons may have been
-// dragged around) specifically so "Reset to Default Order" has a fixed target to restore to.
 const DEFAULT_HEADER_BTN_ORDER = ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn', 'headerpipbtn'];
-// The General tab's original, as-shipped toggle order (matching static HTML order) - same
-// purpose as DEFAULT_HEADER_BTN_ORDER above: a fixed target for "Reset to Default Order".
 const DEFAULT_GENERAL_TOGGLE_ORDER = ['randomThemeToggle', 'autoHideHeaderToggle', 'headerPlayToggle', 'headerDeleteToggle', 'headerSettingsToggle', 'headerHelpToggle', 'headerModeSwitchToggle', 'headerRedeemToggle', 'headerShareToggle', 'headerThemeCycleToggle', 'headerAddMachineToggle', 'headerUiSizeToggle', 'headerSeqSizeToggle', 'headerVolumeToggle', 'headerSpeedToggle', 'headerCycleInputToggle', 'headerResetToggle', 'headerNukeToggle', 'timerToggle', 'autotimerToggle', 'counterToggle', 'autocounterToggle', 'headerNotepadToggle', 'headerInfiniteScrollToggle', 'inputRegulatorToggle', 'hapticsToggle', 'introToggle', 'upsidedownToggle', 'fullscreenToggle', 'ecoToggle', 'wakelockToggle', 'dndToggle', 'pipToggle', 'pinnedModeToggle', 'voiceToggle', 'voicecommandsToggle', 'toneToggle', 'touchToggle', 'bossToggle', 'newToggle', 'biggerToggle', 'arcamToggle', 'arAutoCloseGeneralToggle', 'handToggle', 'skeletonDebugToggle', 'handsignalsToggle', 'handednessFlipToggle', 'speeddeleteToggle', 'apshortcutToggle', 'volgesToggle', 'speedToggle', 'deleteToggle', 'clearToggle'];
 const CONFIG = {
-    MAX_MACHINES: 4,
-    DEMO_DELAY_BASE_MS: 798,
-    SPEED_DELETE_DELAY: 250,
-    SPEED_DELETE_INTERVAL: 20,
-    STORAGE_KEY_SETTINGS: 'followMeAppSettings_v47',
-    STORAGE_KEY_STATE: 'followMeAppState_v48',
-    INPUTS: {
-        KEY9: 'key9',
-        KEY12: 'key12',
-        PIANO: 'piano'
-    },
-    MODES: {
-        SIMON: 'simon',
-        UNIQUE_ROUNDS: 'unique'
-    }
+	MAX_MACHINES: 4,
+	DEMO_DELAY_BASE_MS: 798,
+	SPEED_DELETE_DELAY: 250,
+	SPEED_DELETE_INTERVAL: 20,
+	STORAGE_KEY_SETTINGS: 'followMeAppSettings_v47',
+	STORAGE_KEY_STATE: 'followMeAppState_v48',
+	INPUTS: {
+		KEY9: 'key9',
+		KEY12: 'key12',
+		PIANO: 'piano'
+	},
+	MODES: {
+		SIMON: 'simon',
+		UNIQUE_ROUNDS: 'unique'
+	}
 };
 const DEFAULT_PROFILE_SETTINGS = {
-    currentInput: CONFIG.INPUTS.KEY9,
-    currentMode: CONFIG.MODES.SIMON,
-    sequenceLength: 20,
-    machineCount: 1,
-    simonChunkSize: 40,
-    simonInterSequenceDelay: 200,
-    isUniqueRoundsAutoClearEnabled: true,
-    isPracticeModeEnabled: false,
-    isAutoplayEnabled: true,
-    isFlashEnabled: true,
-    isAudioEnabled: true,
-    isHapticMorseEnabled: false,
-    playbackSpeed: 1.0,
-    pauseSetting: 200,
-    voicePitch: 1.0,
-    voiceRate: 1.0,
-    voiceVolume: 1.0,
-    selectedVoice: null,
-    voicePresets: {},
-    activeVoicePresetId: 'standard'
+	currentInput: CONFIG.INPUTS.KEY9,
+	currentMode: CONFIG.MODES.SIMON,
+	sequenceLength: 20,
+	machineCount: 1,
+	simonChunkSize: 40,
+	simonInterSequenceDelay: 200,
+	isUniqueRoundsAutoClearEnabled: true,
+	isPracticeModeEnabled: false,
+	isAutoplayEnabled: true,
+	isFlashEnabled: true,
+	isAudioEnabled: true,
+	isHapticMorseEnabled: false,
+	playbackSpeed: 1.0,
+	pauseSetting: 200,
+	voicePitch: 1.0,
+	voiceRate: 1.0,
+	voiceVolume: 1.0,
+	selectedVoice: null,
+	voicePresets: {},
+	activeVoicePresetId: 'standard'
 };
 const PREMADE_PROFILES = {
-    'profile_1': {
-        name: "Follow Me",
-        settings: {
-            ...DEFAULT_PROFILE_SETTINGS
-        },
-        theme: 'default'
-    },
-    'profile_2': {
-        name: "2 Machines",
-        settings: {
-            ...DEFAULT_PROFILE_SETTINGS,
-            machineCount: 2,
-            simonChunkSize: 40,
-            simonInterSequenceDelay: 200
-        },
-        theme: 'default'
-    },
-    'profile_3': {
-        name: "Bananas",
-        settings: {
-            ...DEFAULT_PROFILE_SETTINGS,
-            sequenceLength: 25
-        },
-        theme: 'default'
-    },
-    'profile_4': {
-        name: "Piano",
-        settings: {
-            ...DEFAULT_PROFILE_SETTINGS,
-            currentInput: CONFIG.INPUTS.PIANO
-        },
-        theme: 'default'
-    },
-    'profile_5': {
-        name: "15 Rounds",
-        settings: {
-            ...DEFAULT_PROFILE_SETTINGS,
-            currentMode: CONFIG.MODES.UNIQUE_ROUNDS,
-            sequenceLength: 15,
-            currentInput: CONFIG.INPUTS.KEY12
-        },
-        theme: 'default'
-    }
+	'profile_1': {
+		name: "Follow Me",
+		settings: {
+			...DEFAULT_PROFILE_SETTINGS
+		},
+		theme: 'default'
+	},
+	'profile_2': {
+		name: "2 Machines",
+		settings: {
+			...DEFAULT_PROFILE_SETTINGS,
+			machineCount: 2,
+			simonChunkSize: 40,
+			simonInterSequenceDelay: 200
+		},
+		theme: 'default'
+	},
+	'profile_3': {
+		name: "Bananas",
+		settings: {
+			...DEFAULT_PROFILE_SETTINGS,
+			sequenceLength: 25
+		},
+		theme: 'default'
+	},
+	'profile_4': {
+		name: "Piano",
+		settings: {
+			...DEFAULT_PROFILE_SETTINGS,
+			currentInput: CONFIG.INPUTS.PIANO
+		},
+		theme: 'default'
+	},
+	'profile_5': {
+		name: "15 Rounds",
+		settings: {
+			...DEFAULT_PROFILE_SETTINGS,
+			currentMode: CONFIG.MODES.UNIQUE_ROUNDS,
+			sequenceLength: 15,
+			currentInput: CONFIG.INPUTS.KEY12
+		},
+		theme: 'default'
+	}
 };
 const DEFAULT_APP = {
-    globalUiScale: 100,
-    uiScaleMultiplier: 2.2,
-    showWelcomeScreen: true,
-    touchResizeMode: 'global',
-    playbackSpeed: 1.0,
-    isAutoplayEnabled: false,
-    isUniqueRoundsAutoClearEnabled: true,
-    isAudioEnabled: true,
-    isHapticsEnabled: true,
-    isFlashEnabled: true,
-    pauseSetting: 200,
-    isSpeedDeletingEnabled: true,
-    isSpeedTouchGesturesEnabled: false,
-    isVolumeTouchGesturesEnabled: false,
-    isArModeEnabled: false,
-   isArAutoCloseEnabled: true,
-  isVoiceInputEnabled: false,
-    arPlaybackSpeed: 1.00,
-    voiceTriggerWord: 'set',
-    isDeleteTouchGestureEnabled: true,
-    isClearTouchGestureEnabled: true,
-    isAutoTimerEnabled: false,
-    isAutoCounterEnabled: true,
-    isWakeLockEnabled: true,
-    isDndEnabled: false,
-    isPinnedModeEnabled: false,
-    isEcoModeEnabled: true,
-    isLongPressAutoplayEnabled: true,
-    isStealth1KeyEnabled: true,
-    activeTheme: 'default',
-    customThemes: {},
-    isRandomThemeEnabled: false,
-    isBlackoutFeatureEnabled: false,
-    isHapticMorseEnabled: false,
-    showTimer: false,
-    showCounter: true,
-    isHandGesturesEnabled: false,
-    isHandSignalsEnabled: true,
-    handednessFlip: false,
-    showHeaderPlayBtn: false,
-    showHeaderDeleteBtn: false,
-    showHeaderSettingsBtn: true,
-    showHeaderRedeemBtn: true,
-    showHeaderShareBtn: true,
-    showHeaderThemeCycleBtn: false,
-    showHeaderAddMachineBtn: false,
-    showHeaderUiSizeBtns: false,
-    showHeaderSeqSizeBtns: false,
-    showHeaderVolumeBtns: false,
-    showHeaderSpeedBtns: false,
-    showHeaderCycleInputBtn: false,
-    showHeaderNotepadBtn: true,
-    showHeaderHelpBtn: false,
-    showHeaderModeSwitchBtn: false,
-    showHeaderResetBtn: false,
-    showHeaderNukeBtn: false,
-    notepadText: '',
-    isVoiceCommandsEnabled: true,
-    isToneCadenceEnabled: false,
-    isInputRegulatorEnabled: false,
-    isAutoHideHeaderEnabled: false,
-    isHeaderInfiniteScrollEnabled: false,
-    headerIconScale: 120,
-    appFontScale: 100,
-    headerPadding: 0,
-    inputsPadding: 0,
-    toneCalibration: {
-        isCalibrated: false,
-        notes: {}
-    },
-    isPositionSwapEnabled: false,
-    isSkeletonDebugEnabled: true,
-    activeFontFamily: "'Inter', sans-serif",
-    handGestureCooldown: 600,
-    handHoldFrames: 4,
-    voiceConfidenceThreshold: 50,
-    toneVolumeThreshold: -85,
-    isSliderLockEnabled: true,
-    isSettingsLockEnabled: false,
-    touchAnchorStillDistance: 15,
-    touchAnchorMinHoldTime: 150,
-    touchChordSimultaneityWindow: 50,
-    showFullscreenBtn: true,
-    showPinnedBtn: false,
-    showDndBtn: false,
-    showPipBtn: false,
-    showUpsideDownBtn: false,
-    uiFontSizeMultiplier: 2.5,
-    activeProfileId: 'profile_1',
-    profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)),
-    runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)),
-    isPracticeModeEnabled: false,
-    voicePitch: 1.0,
-    voiceRate: 1.0,
-    voiceVolume: 1.0,
-    selectedVoice: null,
-    voicePresets: {},
-    activeVoicePresetId: 'standard',
-    commentsDeletionPin: '',
-    isTouchGestureInputEnabled: true,
-    touchGestureMappings: {
-        'k9_1': { gesture: 'Double_tap_spatial_nw' },
-        'k9_2': { gesture: 'Double_tap_spatial_up' },
-        'k9_3': { gesture: 'Double_tap_spatial_ne' },
-        'k9_4': { gesture: 'Double_tap_spatial_left' },
-        'k9_5': { gesture: 'double_tap' },
-        'k9_6': { gesture: 'Double_tap_spatial_right' },
-        'k9_7': { gesture: 'Double_tap_spatial_sw' },
-        'k9_8': { gesture: 'Double_tap_spatial_down' },
-        'k9_9': { gesture: 'Double_tap_spatial_se' },
-        'k12_1': { gesture: 'tap' },
-        'k12_2': { gesture: 'double_tap' },
-        'k12_3': { gesture: 'triple_tap' },
-        'k12_4': { gesture: 'long_tap' },
-        'k12_5': { gesture: 'tap_2f_any' },
-        'k12_6': { gesture: 'double_tap_2f_any' },
-        'k12_7': { gesture: 'triple_tap_2f_any' },
-        'k12_8': { gesture: 'long_tap_2f_any' },
-        'k12_9': { gesture: 'tap_3f_any' },
-        'k12_10': { gesture: 'double_tap_3f_any' },
-        'k12_11': { gesture: 'triple_tap_3f_any' },
-        'k12_12': { gesture: 'long_tap_3f_any' },
-        'piano_C': { gesture: 'swipe_nw' },
-        'piano_D': { gesture: 'swipe_left' },
-        'piano_E': { gesture: 'swipe_sw' },
-        'piano_F': { gesture: 'swipe_down' },
-        'piano_G': { gesture: 'swipe_se' },
-        'piano_A': { gesture: 'swipe_right' },
-        'piano_B': { gesture: 'swipe_ne' },
-        'piano_1': { gesture: 'swipe_left_2f' },
-        'piano_2': { gesture: 'swipe_nw_2f' },
-        'piano_3': { gesture: 'swipe_up_2f' },
-        'piano_4': { gesture: 'swipe_ne_2f' },
-        'piano_5': { gesture: 'swipe_right_2f' }
-    },
-    mappings: {
-        'k9_1': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },
-        'k9_2': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },
-        'k9_3': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },
-        'k9_4': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },
-        'k9_5': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },
-        'k9_6': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },
-        'k9_7': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },
-        'k9_8': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },
-        'k9_9': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },
-        'k12_1': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },
-        'k12_2': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },
-        'k12_3': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },
-        'k12_4': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },
-        'k12_5': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },
-        'k12_6': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },
-        'k12_7': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },
-        'k12_8': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },
-        'k12_9': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },
-        'k12_10': { touch: 'none', handGesture: 12, morse: '', handSide: 'any' },
-        'k12_11': { touch: 'none', handGesture: 20, morse: '', handSide: 'any' },
-        'k12_12': { touch: 'none', handGesture: 36, morse: '', handSide: 'any' },
-        'piano_C': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },
-        'piano_D': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },
-        'piano_E': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },
-        'piano_F': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },
-        'piano_G': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },
-        'piano_A': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },
-        'piano_B': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },
-        'piano_1': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },
-        'piano_2': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },
-        'piano_3': { touch: 'none', handGesture: 12, morse: '', handSide: 'any' },
-        'piano_4': { touch: 'none', handGesture: 20, morse: '', handSide: 'any' },
-        'piano_5': { touch: 'none', handGesture: 36, morse: '', handSide: 'any' }
-    },
-    activeGestureFilters: [
-        'Poses',
-        'Pinches',
-        'Counts',
-        'Shapes',
-        'Motion',
-        'Transitions',
-        'Combos',
-        'Anchors',
-        'Chords',
-        'Taps',
-        'Spatial Taps',
-        'Multi-Finger Taps',
-        'Swipes',
-        'Long Swipes',
-        'Multi-Finger Swipes',
-        'Boomerangs',
-        'Switchbacks',
-        'Zigzags',
-        'Corners & Shapes',
-        'Motion Gestures',
-        'Flicks',
-        'Pausing Curves'
-    ],
-    customTouchPresets: {},
-    customHandPresets: {},
-    activeMappingPreset: {
-        'touch-preset-key9-select': '9_spatial',
-        'touch-preset-key12-select': '12_taps'
-    },
-    headerBtnOrder: [
-        'headertimerbtn',
-        'headercounterbtn',
-        'headernotepadbtn',
-        'headerplaybtn',
-        'headerdeletebtn',
-        'headersettingsbtn',
-        'headerhelpbtn',
-        'headersharebtn',
-        'headerredeembtn',
-        'headervoicebtn',
-        'headertonebtn',
-        'headertouchbtn',
-        'headerhandbtn',
-        'headerarcambtn',
-        'headerbiggerbtn',
-        'headerfullscreenbtn',
-        'headerpinnedbtn',
-        'headerdndbtn',
-        'headerpipbtn',
-        'headerswapbtn',
-        'headerupsidedownbtn',
-        'headerthemecyclebtn',
-        'headercycleinputbtn',
-        'headermodeswitchbtn',
-        'headeraddmachinebtn',
-        'headeruiupbtn',
-        'headeruidownbtn',
-        'headersequpbtn',
-        'headerseqdownbtn',
-        'headervolupbtn',
-        'headervoldownbtn',
-        'headerspeedupbtn',
-        'headerspeeddownbtn',
-        'headerresetbtn',
-        'headernukebtn'
-    ],
-    generalToggleOrder: [
-        'autoHideHeaderToggle',
-        'headerInfiniteScrollToggle',
-        'randomThemeToggle',
-        'headerThemeCycleToggle',
-        'headerModeSwitchToggle',
-        'headerCycleInputToggle',
-        'headerAddMachineToggle',
-        'introToggle',
-        'headerUiSizeToggle',
-        'headerSeqSizeToggle',
-        'headerVolumeToggle',
-        'headerSpeedToggle',
-        'headerSettingsToggle',
-        'headerHelpToggle',
-        'headerRedeemToggle',
-        'headerShareToggle',
-        'headerPlayToggle',
-        'headerDeleteToggle',
-        'timerToggle',
-        'autotimerToggle',
-        'counterToggle',
-        'autocounterToggle',
-        'headerNotepadToggle',
-        'bossToggle',
-        'inputRegulatorToggle',
-        'hapticsToggle',
-        'biggerToggle',
-        'pipToggle',
-        'upsidedownToggle',
-        'newToggle',
-        'fullscreenToggle',
-        'pinnedModeToggle',
-        'ecoToggle',
-        'wakelockToggle',
-        'headerResetToggle',
-        'headerNukeToggle',
-        'arcamToggle',
-        'arAutoCloseGeneralToggle',
-        'voiceToggle',
-        'voicecommandsToggle',
-        'toneToggle',
-        'touchToggle',
-        'handToggle',
-        'handsignalsToggle',
-        'skeletonDebugToggle',
-        'handednessFlipToggle',
-        'speeddeleteToggle',
-        'apshortcutToggle',
-        'volgesToggle',
-        'speedToggle',
-        'clearToggle',
-        'deleteToggle',
-        'dndToggle'
-    ]
+	globalUiScale: 100,
+	uiScaleMultiplier: 2.2,
+	showWelcomeScreen: true,
+	touchResizeMode: 'global',
+	playbackSpeed: 1.0,
+	isAutoplayEnabled: false,
+	isUniqueRoundsAutoClearEnabled: true,
+	isAudioEnabled: true,
+	isHapticsEnabled: true,
+	isFlashEnabled: true,
+	pauseSetting: 200,
+	isSpeedDeletingEnabled: true,
+	isSpeedTouchGesturesEnabled: false,
+	isVolumeTouchGesturesEnabled: false,
+	isArModeEnabled: false,
+	isArAutoCloseEnabled: true,
+	isVoiceInputEnabled: false,
+	arPlaybackSpeed: 1.00,
+	voiceTriggerWord: 'set',
+	isDeleteTouchGestureEnabled: true,
+	isClearTouchGestureEnabled: true,
+	isAutoTimerEnabled: false,
+	isAutoCounterEnabled: true,
+	isWakeLockEnabled: true,
+	isDndEnabled: false,
+	isPinnedModeEnabled: false,
+	isEcoModeEnabled: true,
+	isLongPressAutoplayEnabled: true,
+	isStealth1KeyEnabled: true,
+	activeTheme: 'default',
+	customThemes: {},
+	isRandomThemeEnabled: false,
+	isBlackoutFeatureEnabled: false,
+	isHapticMorseEnabled: false,
+	showTimer: false,
+	showCounter: true,
+	isHandGesturesEnabled: false,
+	isHandSignalsEnabled: true,
+	handednessFlip: false,
+	showHeaderPlayBtn: false,
+	showHeaderDeleteBtn: false,
+	showHeaderSettingsBtn: true,
+	showHeaderRedeemBtn: true,
+	showHeaderShareBtn: true,
+	showHeaderThemeCycleBtn: false,
+	showHeaderAddMachineBtn: false,
+	showHeaderUiSizeBtns: false,
+	showHeaderSeqSizeBtns: false,
+	showHeaderVolumeBtns: false,
+	showHeaderSpeedBtns: false,
+	showHeaderCycleInputBtn: false,
+	showHeaderNotepadBtn: true,
+	showHeaderHelpBtn: false,
+	showHeaderModeSwitchBtn: false,
+	showHeaderResetBtn: false,
+	showHeaderNukeBtn: false,
+	notepadText: '',
+	isVoiceCommandsEnabled: true,
+	isToneCadenceEnabled: false,
+	isInputRegulatorEnabled: false,
+	isAutoHideHeaderEnabled: false,
+	isHeaderInfiniteScrollEnabled: false,
+	headerIconScale: 120,
+	appFontScale: 100,
+	headerPadding: 0,
+	inputsPadding: 0,
+	toneCalibration: {
+		isCalibrated: false,
+		notes: {}
+	},
+	isPositionSwapEnabled: false,
+	isSkeletonDebugEnabled: true,
+	activeFontFamily: "'Inter', sans-serif",
+	handGestureCooldown: 600,
+	handHoldFrames: 4,
+	voiceConfidenceThreshold: 50,
+	toneVolumeThreshold: -85,
+	isSliderLockEnabled: true,
+	isSettingsLockEnabled: false,
+	touchAnchorStillDistance: 15,
+	touchAnchorMinHoldTime: 150,
+	touchChordSimultaneityWindow: 50,
+	showFullscreenBtn: true,
+	showPinnedBtn: false,
+	showDndBtn: false,
+	showPipBtn: false,
+	showUpsideDownBtn: false,
+	uiFontSizeMultiplier: 2.5,
+	activeProfileId: 'profile_1',
+	profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)),
+	runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)),
+	isPracticeModeEnabled: false,
+	voicePitch: 1.0,
+	voiceRate: 1.0,
+	voiceVolume: 1.0,
+	selectedVoice: null,
+	voicePresets: {},
+	activeVoicePresetId: 'standard',
+	commentsDeletionPin: '',
+	isTouchGestureInputEnabled: true,
+	touchGestureMappings: {
+		'k9_1': { gesture: 'Double_tap_spatial_nw' },
+		'k9_2': { gesture: 'Double_tap_spatial_up' },
+		'k9_3': { gesture: 'Double_tap_spatial_ne' },
+		'k9_4': { gesture: 'Double_tap_spatial_left' },
+		'k9_5': { gesture: 'double_tap' },
+		'k9_6': { gesture: 'Double_tap_spatial_right' },
+		'k9_7': { gesture: 'Double_tap_spatial_sw' },
+		'k9_8': { gesture: 'Double_tap_spatial_down' },
+		'k9_9': { gesture: 'Double_tap_spatial_se' },
+		'k12_1': { gesture: 'tap' },
+		'k12_2': { gesture: 'double_tap' },
+		'k12_3': { gesture: 'triple_tap' },
+		'k12_4': { gesture: 'long_tap' },
+		'k12_5': { gesture: 'tap_2f_any' },
+		'k12_6': { gesture: 'double_tap_2f_any' },
+		'k12_7': { gesture: 'triple_tap_2f_any' },
+		'k12_8': { gesture: 'long_tap_2f_any' },
+		'k12_9': { gesture: 'tap_3f_any' },
+		'k12_10': { gesture: 'double_tap_3f_any' },
+		'k12_11': { gesture: 'triple_tap_3f_any' },
+		'k12_12': { gesture: 'long_tap_3f_any' },
+		'piano_C': { gesture: 'swipe_nw' },
+		'piano_D': { gesture: 'swipe_left' },
+		'piano_E': { gesture: 'swipe_sw' },
+		'piano_F': { gesture: 'swipe_down' },
+		'piano_G': { gesture: 'swipe_se' },
+		'piano_A': { gesture: 'swipe_right' },
+		'piano_B': { gesture: 'swipe_ne' },
+		'piano_1': { gesture: 'swipe_left_2f' },
+		'piano_2': { gesture: 'swipe_nw_2f' },
+		'piano_3': { gesture: 'swipe_up_2f' },
+		'piano_4': { gesture: 'swipe_ne_2f' },
+		'piano_5': { gesture: 'swipe_right_2f' }
+	},
+	mappings: {
+		'k9_1': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },
+		'k9_2': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },
+		'k9_3': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },
+		'k9_4': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },
+		'k9_5': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },
+		'k9_6': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },
+		'k9_7': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },
+		'k9_8': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },
+		'k9_9': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },
+		'k12_1': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },
+		'k12_2': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },
+		'k12_3': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },
+		'k12_4': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },
+		'k12_5': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },
+		'k12_6': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },
+		'k12_7': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },
+		'k12_8': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },
+		'k12_9': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },
+		'k12_10': { touch: 'none', handGesture: 12, morse: '', handSide: 'any' },
+		'k12_11': { touch: 'none', handGesture: 20, morse: '', handSide: 'any' },
+		'k12_12': { touch: 'none', handGesture: 36, morse: '', handSide: 'any' },
+		'piano_C': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },
+		'piano_D': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },
+		'piano_E': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },
+		'piano_F': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },
+		'piano_G': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },
+		'piano_A': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },
+		'piano_B': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },
+		'piano_1': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },
+		'piano_2': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },
+		'piano_3': { touch: 'none', handGesture: 12, morse: '', handSide: 'any' },
+		'piano_4': { touch: 'none', handGesture: 20, morse: '', handSide: 'any' },
+		'piano_5': { touch: 'none', handGesture: 36, morse: '', handSide: 'any' }
+	},
+	activeGestureFilters: [
+		'Poses',
+		'Pinches',
+		'Counts',
+		'Shapes',
+		'Motion',
+		'Transitions',
+		'Combos',
+		'Anchors',
+		'Chords',
+		'Taps',
+		'Spatial Taps',
+		'Multi-Finger Taps',
+		'Swipes',
+		'Long Swipes',
+		'Multi-Finger Swipes',
+		'Boomerangs',
+		'Switchbacks',
+		'Zigzags',
+		'Corners & Shapes',
+		'Motion Gestures',
+		'Flicks',
+		'Pausing Curves'
+	],
+	customTouchPresets: {},
+	customHandPresets: {},
+	activeMappingPreset: {
+		'touch-preset-key9-select': '9_spatial',
+		'touch-preset-key12-select': '12_taps'
+	},
+	headerBtnOrder: [
+		'headertimerbtn',
+		'headercounterbtn',
+		'headernotepadbtn',
+		'headerplaybtn',
+		'headerdeletebtn',
+		'headersettingsbtn',
+		'headerhelpbtn',
+		'headersharebtn',
+		'headerredeembtn',
+		'headervoicebtn',
+		'headertonebtn',
+		'headertouchbtn',
+		'headerhandbtn',
+		'headerarcambtn',
+		'headerbiggerbtn',
+		'headerfullscreenbtn',
+		'headerpinnedbtn',
+		'headerdndbtn',
+		'headerpipbtn',
+		'headerswapbtn',
+		'headerupsidedownbtn',
+		'headerthemecyclebtn',
+		'headercycleinputbtn',
+		'headermodeswitchbtn',
+		'headeraddmachinebtn',
+		'headeruiupbtn',
+		'headeruidownbtn',
+		'headersequpbtn',
+		'headerseqdownbtn',
+		'headervolupbtn',
+		'headervoldownbtn',
+		'headerspeedupbtn',
+		'headerspeeddownbtn',
+		'headerresetbtn',
+		'headernukebtn'
+	],
+	generalToggleOrder: [
+		'autoHideHeaderToggle',
+		'headerInfiniteScrollToggle',
+		'randomThemeToggle',
+		'headerThemeCycleToggle',
+		'headerModeSwitchToggle',
+		'headerCycleInputToggle',
+		'headerAddMachineToggle',
+		'introToggle',
+		'headerUiSizeToggle',
+		'headerSeqSizeToggle',
+		'headerVolumeToggle',
+		'headerSpeedToggle',
+		'headerSettingsToggle',
+		'headerHelpToggle',
+		'headerRedeemToggle',
+		'headerShareToggle',
+		'headerPlayToggle',
+		'headerDeleteToggle',
+		'timerToggle',
+		'autotimerToggle',
+		'counterToggle',
+		'autocounterToggle',
+		'headerNotepadToggle',
+		'bossToggle',
+		'inputRegulatorToggle',
+		'hapticsToggle',
+		'biggerToggle',
+		'pipToggle',
+		'upsidedownToggle',
+		'newToggle',
+		'fullscreenToggle',
+		'pinnedModeToggle',
+		'ecoToggle',
+		'wakelockToggle',
+		'headerResetToggle',
+		'headerNukeToggle',
+		'arcamToggle',
+		'arAutoCloseGeneralToggle',
+		'voiceToggle',
+		'voicecommandsToggle',
+		'toneToggle',
+		'touchToggle',
+		'handToggle',
+		'handsignalsToggle',
+		'skeletonDebugToggle',
+		'handednessFlipToggle',
+		'speeddeleteToggle',
+		'apshortcutToggle',
+		'volgesToggle',
+		'speedToggle',
+		'clearToggle',
+		'deleteToggle',
+		'dndToggle'
+	]
 };
-// Curated backup-code presets, offered in Advanced Settings so a preset can be handed to a
-// player by having them paste the code into Import above (see the Backup/Restore block right
-// above that section). "Default" is an intentionally-empty diff - it exists so every entry in
-// the dropdown behaves the same way (pick one, copy one code, paste it in) rather than being a
-// special case, even though picking Default is equivalent to just using Reset Settings.
-// New presets get added here as plain {name, code} entries.
 const SETTINGS_PRESETS = [
-    { id: 'default', name: 'Default (New Player)', code: 'm.xmhNj`V-16N$xovQJJ^`qG9_Wn:' },
-    { id: 'preset1', name: 'Preset 1', code: '52.1mS#XVd.Dq@{YbdPa555f)@IB#pkT.m[an{Lde=VpQ4L]+Q#UoY_5I@Vt2H]Y5LDu:fP_MGJHBV?!?[FNzTMD/fW*8FoC);1.twH(G:+H-ln{o=9a5cj7V4[q7tmMypBrqVG}_`YYn5b?sN93O77)`_^9Au{8er8dHh,VtJkdQ/,+w05mf#AS*AJM`}?,V3scBZP^dKiin:aSBJH`bPxt}dW/xzD(pm]VW4' }
+	{ id: 'default', name: 'Default (New Player)', code: 'm.xmhNj`V-16N$xovQJJ^`qG9_Wn:' },
+	{ id: 'preset1', name: 'Preset 1', code: '52.1mS#XVd.Dq@{YbdPa555f)@IB#pkT.m[an{Lde=VpQ4L]+Q#UoY_5I@Vt2H]Y5LDu:fP_MGJHBV?!?[FNzTMD/fW*8FoC);1.twH(G:+H-ln{o=9a5cj7V4[q7tmMypBrqVG}_`YYn5b?sN93O77)`_^9Au{8er8dHh,VtJkdQ/,+w05mf#AS*AJM`}?,V3scBZP^dKiin:aSBJH`bPxt}dW/xzD(pm]VW4' }
 ];
 const DEFAULT_MAPPINGS = {
-    'k9_1': 'tap',
-    'k9_2': 'double_tap',
-    'k9_3': 'triple_tap',
-    'k9_4': 'tap_2f_any',
-    'k9_5': 'double_tap_2f_any',
-    'k9_6': 'triple_tap_2f_any',
-    'k9_7': 'tap_3f_any',
-    'k9_8': 'double_tap_3f_any',
-    'k9_9': 'triple_tap_3f_any',
-    'k12_1': 'tap',
-    'k12_2': 'double_tap',
-    'k12_3': 'triple_tap',
-    'k12_4': 'long_tap',
-    'k12_5': 'tap_2f_any',
-    'k12_6': 'double_tap_2f_any',
-    'k12_7': 'triple_tap_2f_any',
-    'k12_8': 'long_tap_2f_any',
-    'k12_9': 'tap_3f_any',
-    'k12_10': 'double_tap_3f_any',
-    'k12_11': 'triple_tap_3f_any',
-    'k12_12': 'long_tap_3f_any',
-    'piano_C': 'swipe_nw',
-    'piano_D': 'swipe_left',
-    'piano_E': 'swipe_sw',
-    'piano_F': 'swipe_down',
-    'piano_G': 'swipe_se',
-    'piano_A': 'swipe_right',
-    'piano_B': 'swipe_ne',
-    'piano_1': 'swipe_left_2f',
-    'piano_2': 'swipe_nw_2f',
-    'piano_3': 'swipe_up_2f',
-    'piano_4': 'swipe_ne_2f',
-    'piano_5': 'swipe_right_2f'
+	'k9_1': 'tap',
+	'k9_2': 'double_tap',
+	'k9_3': 'triple_tap',
+	'k9_4': 'tap_2f_any',
+	'k9_5': 'double_tap_2f_any',
+	'k9_6': 'triple_tap_2f_any',
+	'k9_7': 'tap_3f_any',
+	'k9_8': 'double_tap_3f_any',
+	'k9_9': 'triple_tap_3f_any',
+	'k12_1': 'tap',
+	'k12_2': 'double_tap',
+	'k12_3': 'triple_tap',
+	'k12_4': 'long_tap',
+	'k12_5': 'tap_2f_any',
+	'k12_6': 'double_tap_2f_any',
+	'k12_7': 'triple_tap_2f_any',
+	'k12_8': 'long_tap_2f_any',
+	'k12_9': 'tap_3f_any',
+	'k12_10': 'double_tap_3f_any',
+	'k12_11': 'triple_tap_3f_any',
+	'k12_12': 'long_tap_3f_any',
+	'piano_C': 'swipe_nw',
+	'piano_D': 'swipe_left',
+	'piano_E': 'swipe_sw',
+	'piano_F': 'swipe_down',
+	'piano_G': 'swipe_se',
+	'piano_A': 'swipe_right',
+	'piano_B': 'swipe_ne',
+	'piano_1': 'swipe_left_2f',
+	'piano_2': 'swipe_nw_2f',
+	'piano_3': 'swipe_up_2f',
+	'piano_4': 'swipe_ne_2f',
+	'piano_5': 'swipe_right_2f'
 };
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
 let modules = {
-    settings: null,
-    vision: null,
-    touchGestureEngine: null
+	settings: null,
+	vision: null,
+	touchGestureEngine: null
 };
 let timers = {
-    speedDelete: null,
-    initialDelay: null,
-    longPress: null,
-    settingsLongPress: null,
-    stealth: null,
-    stealthAction: null,
-    playback: null,
-    tap: null
+	speedDelete: null,
+	initialDelay: null,
+	longPress: null,
+	settingsLongPress: null,
+	stealth: null,
+	stealthAction: null,
+	playback: null,
+	tap: null
 };
 let touchGestureState = {
-    startDist: 0,
-    startScale: 1,
-    isPinching: false
+	startDist: 0,
+	startScale: 1,
+	isPinching: false
 };
 let blackoutState = {
-    isActive: false,
-    lastShake: 0
+	isActive: false,
+	lastShake: 0
 };
 let isDemoPlaying = false;
 let isPlaybackPaused = false;
 let playbackResumeCallback = null;
 let practiceSequence = [];
 let practiceInputIndex = 0;
-// Input Regulator: last accepted-input timestamp per machine slot (targetIndex), used to reject
-// a same-machine input that arrives within 2s of the previous one. Intentionally not persisted -
-// a reload naturally clearing any in-progress cooldown is harmless and expected.
 let lastMachineInputTime = {};
 let ignoreNextClick = false;
 let voiceModule = null;
 let isTouchGesturePadVisible = false;
 let simpleTimer = {
-    interval: null,
-    startTime: 0,
-    elapsed: 0,
-    isRunning: false
+	interval: null,
+	startTime: 0,
+	elapsed: 0,
+	isRunning: false
 };
 let simpleCounter = 0;
 let globalTimerActions = {
-    start: null,
-    stop: null,
-    reset: null
+	start: null,
+	stop: null,
+	reset: null
 };
 let globalCounterActions = {
-    increment: null,
-    reset: null
+	increment: null,
+	reset: null
 };
 const getProfileSettings = () => appSettings.runtimeSettings;
 const getState = () => appState['current_session'] || (appState['current_session'] = {
-    sequences: Array.from({
-        length: CONFIG.MAX_MACHINES
-    }, () => []),
-    nextSequenceIndex: 0,
-    currentRound: 1
+		sequences: Array.from({
+				length: CONFIG.MAX_MACHINES
+			}, () => []),
+		nextSequenceIndex: 0,
+		currentRound: 1
 });
 let _savedScrollY = 0;
 let _scrollLocked = false;
 const _MODAL_IDS = ['settings-modal', 'help-modal', 'share-modal', 'comment-modal', 'redeem-modal', 'donate-modal', 'theme-editor-modal', 'game-setup-modal'];
 const startApp = () => {
-    loadState();
-    window.appSettings = appSettings;
-    document.addEventListener('fullscreenchange', () => {
-        document.body.classList.toggle('fullscreen-mode', !!document.fullscreenElement);
-    });
-    restorePinnedModeOnBoot();
-    if (appSettings.isDndEnabled) {
-        const dndBtn = document.getElementById('headerdndbtn');
-        if (dndBtn) dndBtn.classList.add('ring-2', 'ring-emerald-500');
-    }
-    if (appSettings.isEcoModeEnabled) document.body.classList.add('eco-mode');
-    const headerfullscreenbtn = document.getElementById('headerfullscreenbtn');
-    if (headerfullscreenbtn) {
-        headerfullscreenbtn.onclick = () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.warn(`Fullscreen error: ${err.message}`);
-                });
-                headerfullscreenbtn.classList.add('ring-2', 'ring-emerald-500');
-            } else {
-                document.exitFullscreen();
-                headerfullscreenbtn.classList.remove('ring-2', 'ring-emerald-500');
-            }
-        };
-    }
-    const headerpinnedbtn = document.getElementById('headerpinnedbtn');
-    if (headerpinnedbtn) {
-        headerpinnedbtn.onclick = async () => {
-            const enabling = !appSettings.isPinnedModeEnabled;
-            appSettings.isPinnedModeEnabled = enabling;
-            if (typeof saveState === 'function') saveState();
-            headerpinnedbtn.classList.toggle('ring-2', enabling);
-            headerpinnedbtn.classList.toggle('ring-emerald-500', enabling);
-            if (enabling) await enterPinnedMode();
-            else await exitPinnedMode();
-        };
-    }
-    const headerdndbtn = document.getElementById('headerdndbtn');
-    if (headerdndbtn) {
-        headerdndbtn.onclick = () => {
-            const enabling = !appSettings.isDndEnabled;
-            appSettings.isDndEnabled = enabling;
-            if (typeof saveState === 'function') saveState();
-            headerdndbtn.classList.toggle('ring-2', enabling);
-            headerdndbtn.classList.toggle('ring-emerald-500', enabling);
-            if (typeof showToast === 'function') showToast(enabling ? 'Do Not Disturb on 🔕' : 'Do Not Disturb off');
-        };
-    }
-    const headerpipbtn = document.getElementById('headerpipbtn');
-    if (headerpipbtn) {
-        headerpipbtn.onclick = async () => {
-            if (document.pictureInPictureElement) {
-                await exitPipMode();
-                headerpipbtn.classList.remove('ring-2', 'ring-emerald-500');
-            } else {
-                const ok = await enterPipMode();
-                headerpipbtn.classList.toggle('ring-2', ok);
-                headerpipbtn.classList.toggle('ring-emerald-500', ok);
-            }
-        };
-    }
-    const headerupsidedownbtn = document.getElementById('headerupsidedownbtn');
-    if (headerupsidedownbtn) {
-        headerupsidedownbtn.onclick = () => {
-            document.body.classList.toggle('upside-down');
-            if (document.body.classList.contains('upside-down')) {
-                headerupsidedownbtn.classList.add('ring-2', 'ring-emerald-500');
-                showToast("Upside Down Mode: ON 🙃");
-            } else {
-                headerupsidedownbtn.classList.remove('ring-2', 'ring-emerald-500');
-                showToast("Upside Down Mode: OFF");
-            }
-        };
-    }
-    if (appSettings.isWakeLockEnabled && typeof window.wakelockToggle === 'function') {
-        window.wakelockToggle(true);
-    }
-    modules.settings = new SettingsManager(appSettings, {
-        onSave: () => saveState(),
-        onUpdate: () => updateAllChrome(),
-        onProfileSwitch: id => {
-            // Commit the current profile's live settings before switching away. Without this,
-            // runtimeSettings (which holds unsaved changes) was discarded on switch, losing any
-            // edits made since the last explicit Save - even though those same edits persist
-            // across page reloads, so the old behavior was inconsistent and surprising.
-            if (appSettings.activeProfileId && appSettings.profiles[appSettings.activeProfileId] && appSettings.runtimeSettings) {
-                appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings));
-            }
-            appSettings.activeProfileId = id;
-            appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings));
-            saveState();
-            renderUI();
-        },
-        onProfileAdd: name => {
-            const id = 'p_' + Date.now();
-            appSettings.profiles[id] = {
-                name: name,
-                settings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)),
-                theme: 'default'
-            };
-            saveState();
-        },
-        onProfileRename: name => {
-            appSettings.profiles[appSettings.activeProfileId].name = name;
-            saveState();
-        },
-        onProfileDelete: () => {
-            if (Object.keys(appSettings.profiles).length > 1) {
-                delete appSettings.profiles[appSettings.activeProfileId];
-                appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
-                appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings));
-                saveState();
-                renderUI();
-            } else {
-                alert("Cannot delete the last profile.");
-            }
-        },
-        onProfileSave: () => {
-            appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings));
-            saveState();
-        },
-        onReset: () => {
-            localStorage.clear();
-            window.location.reload();
-        }
-    });
-    // SmartCadenceTracker removed: it ran its own parallel sequence-tracking (knownSeq/
-    // turnIndex, a separate 1-9 hummed count-off) instead of using the same Practice Mode
-    // engine (practiceSequence/practiceInputIndex/addValue) that touch, hand, and voice
-    // input already correctly share. Tone Cadence now feeds addValue() directly, same as
-    // every other input method, and Practice Mode's existing round logic handles the rest.
-    class ToneSequenceTester {
-        constructor() {
-            this.audioCtx = null;
-            this.isPlaying = false;
-            this.stopRequested = false;
-            this.TONES = Object.fromEntries(TONE_TABLE.map(t => [t.n, t.f]));
-        }
-        _initAudio() {
-            if (!this.audioCtx) {
-                this.audioCtx = new(window.AudioContext || window.webkitAudioContext)();
-            }
-        }
-        async playTone(frequency, durationMs) {
-            this._initAudio();
-            if (this.audioCtx.state === 'suspended') await this.audioCtx.resume();
-            const oscillator = this.audioCtx.createOscillator();
-            const gainNode = this.audioCtx.createGain();
-            oscillator.type = 'sine';
-            oscillator.frequency.value = frequency;
-            const attack = 0.01,
-                release = 0.01;
-            const durationSec = durationMs / 1000;
-            const now = this.audioCtx.currentTime;
-            gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(1, now + attack);
-            gainNode.gain.setValueAtTime(1, now + durationSec - release);
-            gainNode.gain.linearRampToValueAtTime(0, now + durationSec);
-            oscillator.connect(gainNode);
-            gainNode.connect(this.audioCtx.destination);
-            oscillator.start(now);
-            oscillator.stop(now + durationSec);
-            return new Promise(resolve => setTimeout(resolve, durationMs));
-        }
-        async playSequence(sequence, toneDurationMs = 200, silenceDurationMs = 800, onProgress) {
-            this.isPlaying = true;
-            this.stopRequested = false;
-            for (let i = 0; i < sequence.length; i++) {
-                if (this.stopRequested) break;
-                const num = sequence[i];
-                const freq = this.TONES[num];
-                if (freq) {
-                    if (onProgress) onProgress(i, sequence.length, num, freq);
-                    await this.playTone(freq, toneDurationMs);
-                    if (this.stopRequested) break;
-                    if (i < sequence.length - 1) {
-                        await new Promise(resolve => setTimeout(resolve, silenceDurationMs));
-                    }
-                }
-            }
-            this.isPlaying = false;
-            if (onProgress) onProgress(-1, sequence.length, null, null);
-        }
-        stop() {
-            this.stopRequested = true;
-        }
-    }
-    const toneSequenceTester = new ToneSequenceTester();
-    window.toneSequenceTester = toneSequenceTester;
-    const toneEngine = new ToneEngine(val => {
-        addValue(val);
-        showToast(`🎵 Tone: ${val}`);
-   const advancedTab = document.getElementById('tab-advanced');
-    if (advancedTab && advancedTab.classList.contains('active')) {
-        const historyEl = document.getElementById('tone-test-history');
-        if (historyEl) {
-            historyEl.textContent += (historyEl.textContent ? ", " : "") + val;
-        }
-    }
-    }, debug => {
-        const el = document.getElementById('tone-debug-indicator');
-        const testEl = document.getElementById('test-tone-readout');
-        let text;
-        if (debug.error) {
-            text = `🎵 Mic error: ${debug.error}`;
-        } else if (debug.note) {
-            text = `🎵 ${(TONE_TABLE.find(t => t.n === debug.note) || {}).name || '?'} (${debug.freq}Hz) #${debug.note}`;
-        } else if (debug.freq) {
-            text = `🎵 ${debug.freq}Hz (no note match)`;
-        } else {
-            text = `🎵 listening...`;
-        }
-        if (el) el.textContent = text;
-        if (testEl) testEl.textContent = text;
-    });
-    window.toneEngine = toneEngine;
-    let handGestureHistory = [];
-    let handGestureCooldownUntil = 0;
-    if (typeof VisionEngine !== 'function') {
-        console.warn('VisionEngine unavailable (wasm/vision_bundle.js not found) - hand tracking disabled.');
-        modules.vision = {
-            isActive: false,
-            start() {
-                showToast('Hand tracking unavailable (missing wasm/vision_bundle.js) ❌');
-            },
-            stop() {}
-        };
-    } else {
-        modules.vision = new VisionEngine(handGestureData => {
-            const settings = getProfileSettings();
-            if (Date.now() < handGestureCooldownUntil) {
-                return;
-            }
-            if (!handGestureData || handGestureData === "none") {
-                return;
-            }
-            let handGestureId = typeof handGestureData === 'object' ? handGestureData.id : handGestureData;
-            if (typeof handGestureId === 'number' && handGestureId >= 0 && handGestureId <= 63 && handGestureId % 2 === 1) {
-                handGestureId = handGestureId - 1;
-            }
-            const handGestureLabel = typeof handGestureData === 'object' ? handGestureData.label : "Gesture";
-            const handSide = (typeof handGestureData === 'object' && handGestureData.hand) ? handGestureData.hand : null;
-            const handReadout = document.getElementById('test-hand-readout');
-            if (handReadout) {
-                const sideLabel = handSide === 'L' ? '✋ Left hand' : handSide === 'R' ? '🤚 Right hand' : '';
-                handReadout.textContent = `ID ${handGestureId} - ${handGestureLabel}${sideLabel ? ' | ' + sideLabel : ''}`;
-            }
-            if (window.__testChecklists?.hand) window.__testChecklists.hand.mark(String(handGestureId));
-            // FIX: "also adds to sequence in test mode" - the vision engine is one shared
-            // instance (unlike touch, which has its own fully separate test engine), so a
-            // detection during a camera test was also flowing straight into real input handling
-            // below. This flag, set only while the Hand test tab's camera is actually running,
-            // stops it there - test detections still update the readout/checklist above, they
-            // just never reach Hand Signals or the real per-key mapping.
-            if (window.__handTestModeActive) return;
-            if (appSettings.isHandGesturesEnabled && appSettings.isHandSignalsEnabled) {
-                if (handGestureId === 'TWO_HAND_CLEAR') {
-                    showToast("Hand Signal: Clear 🧹✊✊");
-                    if (typeof resetCurrentMachine === 'function') resetCurrentMachine();
-                    handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
-                    return;
-                }
-                if (handGestureId === 'TWO_HAND_DELETE') {
-                    showToast("Hand Signal: Delete 🔙👎👎");
-                    if (typeof handleBackspace === 'function') handleBackspace();
-                    handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
-                    return;
-                }
-                if (handGestureId === 'TWO_HAND_PLAY') {
-                    showToast("Hand Signal: Playing ▶️👍👍");
-                    playDemo();
-                    handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
-                    return;
-                }
-                if (handGestureId === 'TWO_HAND_STOP') {
-                    isDemoPlaying = false;
-                    showToast("Hand Signal: Stopped 🛑✋✋");
-                    handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
-                    return;
-                }
-            }
-            let mappedInput = null;
-            if (appSettings.mappings) {
-                // Detected hand for this gesture ('L'/'R'/null). A mapping with handSide 'L' or 'R'
-                // only fires for that hand; 'any' (or unset, i.e. every pre-existing mapping) fires
-                // for either. If handedness couldn't be read (detectedHand null), handed mappings
-                // are skipped rather than firing on the wrong hand.
-                const detectedHand = (typeof handGestureData === 'object' && handGestureData.hand) ? handGestureData.hand : null;
-                for (const [key, mapData] of Object.entries(appSettings.mappings)) {
-                    const prefix = settings.currentInput === 'key9' ? 'k9_' : settings.currentInput === 'key12' ? 'k12_' : 'piano_';
-                    if (!key.startsWith(prefix)) continue;
-                    if (parseInt(mapData.handGesture) !== handGestureId) continue;
-                    const wantSide = mapData.handSide || 'any';
-                    if (wantSide !== 'any') {
-                        if (detectedHand === null) continue;      // can't confirm hand -> don't fire a handed mapping
-                        if (wantSide !== detectedHand) continue;  // wrong hand
-                    }
-                    mappedInput = key.replace(prefix, '');
-                    break;
-                }
-            }
-            if (mappedInput !== null) {
-                addValue(mappedInput);
-                showToast(`Hand: ${mappedInput} (${handGestureLabel}) 🖐️`);
-                document.body.style.backgroundColor = '#222';
-                setTimeout(() => document.body.style.backgroundColor = '', 100);
-                handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
-            }
-        }, status => showToast(status));
-    }
-    voiceModule = new VoiceCommander({
-        onStatus: msg => showToast(msg),
-        onInput: val => {
-            addValue(val);
-            const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
-            if (btn) {
-                btn.classList.add('flash-active');
-                setTimeout(() => btn.classList.remove('flash-active'), 200);
-            }
-            const hMic = document.getElementById('headervoicebtn');
-            if (hMic) {
-                hMic.classList.remove('header-btn-active');
-                setTimeout(() => {
-                    if (voiceModule.isListening) hMic.classList.add('header-btn-active');
-                }, 300);
-            }
-        },
-        onCommand: cmd => {
-            if (!appSettings.isVoiceInputEnabled || !appSettings.isVoiceCommandsEnabled) {
-                console.log("Voice commands disabled (Voice Input or Voice Commands is off). Ignoring:", cmd);
-                return;
-            }
-            if (cmd === 'CMD_PLAY') {
-                playDemo();
-                showToast("Voice: Playing ▶️");
-            }
-            if (cmd === 'CMD_STOP') {
-                isDemoPlaying = false;
-                showToast("Voice: Stopped 🛑");
-            }
-            if (cmd === 'CMD_CLEAR') {
-                const s = getState();
-                s.sequences = Array.from({
-                    length: CONFIG.MAX_MACHINES
-                }, () => []);
-                renderUI();
-                showToast("Voice: Cleared All 💥");
-            }
-            if (cmd === 'CMD_DELETE') {
-                handleBackspace();
-                showToast("Voice: Backspace 🔙");
-            }
-            if (cmd === 'CMD_SETTINGS') {
-                modules.settings.openSettings();
-            }
-            if (cmd === 'CMD_VOLUME_UP') {
-                appSettings.runtimeSettings.voiceVolume = Math.min(1.0, (appSettings.runtimeSettings.voiceVolume || 1.0) + 0.1);
-                saveState();
-                showToast(`Voice: Volume ${(appSettings.runtimeSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
-            }
-            if (cmd === 'CMD_VOLUME_DOWN') {
-                appSettings.runtimeSettings.voiceVolume = Math.max(0.0, (appSettings.runtimeSettings.voiceVolume || 1.0) - 0.1);
-                saveState();
-                showToast(`Voice: Volume ${(appSettings.runtimeSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
-            }
-            if (cmd === 'CMD_SPEED_UP') {
-                appSettings.runtimeSettings.playbackSpeed = Math.min(2.0, (appSettings.runtimeSettings.playbackSpeed || 1.0) + 0.1);
-                saveState();
-                showToast(`Voice: Speed ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
-            }
-            if (cmd === 'CMD_SPEED_DOWN') {
-                appSettings.runtimeSettings.playbackSpeed = Math.max(0.5, (appSettings.runtimeSettings.playbackSpeed || 1.0) - 0.1);
-                saveState();
-                showToast(`Voice: Speed ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
-            }
-        }
-    });
-    window.voiceModule = voiceModule;
-    if (appSettings.isRandomThemeEnabled) {
-        const allThemeKeys = [...Object.keys(PREMADE_THEMES), ...Object.keys(appSettings.customThemes || ({}))];
-        if (allThemeKeys.length > 0) {
-            appSettings.activeTheme = allThemeKeys[Math.floor(Math.random() * allThemeKeys.length)];
-        }
-    }
-    updateAllChrome();
-    initFirebaseAndComments();
-    modules.settings.updateHeaderVisibility();
-    initGlobalListeners();
-    initTouchGestureEngine();
-    setupARLogic();
-    renderUI();
+	loadState();
+	window.appSettings = appSettings;
+	document.addEventListener('fullscreenchange', () => {
+			document.body.classList.toggle('fullscreen-mode', !!document.fullscreenElement);
+	});
+	restorePinnedModeOnBoot();
+	if (appSettings.isDndEnabled) {
+		const dndBtn = document.getElementById('headerdndbtn');
+		if (dndBtn) dndBtn.classList.add('ring-2', 'ring-emerald-500');
+	}
+	if (appSettings.isEcoModeEnabled) document.body.classList.add('eco-mode');
+	const headerfullscreenbtn = document.getElementById('headerfullscreenbtn');
+	if (headerfullscreenbtn) {
+		headerfullscreenbtn.onclick = () => {
+			if (!document.fullscreenElement) {
+				document.documentElement.requestFullscreen().catch(err => {
+						console.warn(`Fullscreen error: ${err.message}`);
+				});
+				headerfullscreenbtn.classList.add('ring-2', 'ring-emerald-500');
+			} else {
+				document.exitFullscreen();
+				headerfullscreenbtn.classList.remove('ring-2', 'ring-emerald-500');
+			}
+		};
+	}
+	const headerpinnedbtn = document.getElementById('headerpinnedbtn');
+	if (headerpinnedbtn) {
+		headerpinnedbtn.onclick = async () => {
+			const enabling = !appSettings.isPinnedModeEnabled;
+			appSettings.isPinnedModeEnabled = enabling;
+			if (typeof saveState === 'function') saveState();
+			headerpinnedbtn.classList.toggle('ring-2', enabling);
+			headerpinnedbtn.classList.toggle('ring-emerald-500', enabling);
+			if (enabling) await enterPinnedMode();
+			else await exitPinnedMode();
+		};
+	}
+	const headerdndbtn = document.getElementById('headerdndbtn');
+	if (headerdndbtn) {
+		headerdndbtn.onclick = () => {
+			const enabling = !appSettings.isDndEnabled;
+			appSettings.isDndEnabled = enabling;
+			if (typeof saveState === 'function') saveState();
+			headerdndbtn.classList.toggle('ring-2', enabling);
+			headerdndbtn.classList.toggle('ring-emerald-500', enabling);
+			if (typeof showToast === 'function') showToast(enabling ? 'Do Not Disturb on 🔕' : 'Do Not Disturb off');
+		};
+	}
+	const headerpipbtn = document.getElementById('headerpipbtn');
+	if (headerpipbtn) {
+		headerpipbtn.onclick = async () => {
+			if (document.pictureInPictureElement) {
+				await exitPipMode();
+				headerpipbtn.classList.remove('ring-2', 'ring-emerald-500');
+			} else {
+				const ok = await enterPipMode();
+				headerpipbtn.classList.toggle('ring-2', ok);
+				headerpipbtn.classList.toggle('ring-emerald-500', ok);
+			}
+		};
+	}
+	const headerupsidedownbtn = document.getElementById('headerupsidedownbtn');
+	if (headerupsidedownbtn) {
+		headerupsidedownbtn.onclick = () => {
+			document.body.classList.toggle('upside-down');
+			if (document.body.classList.contains('upside-down')) {
+				headerupsidedownbtn.classList.add('ring-2', 'ring-emerald-500');
+				showToast("Upside Down Mode: ON 🙃");
+			} else {
+				headerupsidedownbtn.classList.remove('ring-2', 'ring-emerald-500');
+				showToast("Upside Down Mode: OFF");
+			}
+		};
+	}
+	if (appSettings.isWakeLockEnabled && typeof window.wakelockToggle === 'function') {
+		window.wakelockToggle(true);
+	}
+	modules.settings = new SettingsManager(appSettings, {
+			onSave: () => saveState(),
+			onUpdate: () => updateAllChrome(),
+			onProfileSwitch: id => {
+				if (appSettings.activeProfileId && appSettings.profiles[appSettings.activeProfileId] && appSettings.runtimeSettings) {
+					appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings));
+				}
+				appSettings.activeProfileId = id;
+				appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings));
+				saveState();
+				renderUI();
+			},
+			onProfileAdd: name => {
+				const id = 'p_' + Date.now();
+				appSettings.profiles[id] = {
+					name: name,
+					settings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)),
+					theme: 'default'
+				};
+				saveState();
+			},
+			onProfileRename: name => {
+				appSettings.profiles[appSettings.activeProfileId].name = name;
+				saveState();
+			},
+			onProfileDelete: () => {
+				if (Object.keys(appSettings.profiles).length > 1) {
+					delete appSettings.profiles[appSettings.activeProfileId];
+					appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
+					appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings));
+					saveState();
+					renderUI();
+				} else {
+					alert("Cannot delete the last profile.");
+				}
+			},
+			onProfileSave: () => {
+				appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings));
+				saveState();
+			},
+			onReset: () => {
+				localStorage.clear();
+				window.location.reload();
+			}
+	});
+	class ToneSequenceTester {
+		constructor() {
+			this.audioCtx = null;
+			this.isPlaying = false;
+			this.stopRequested = false;
+			this.TONES = Object.fromEntries(TONE_TABLE.map(t => [t.n, t.f]));
+		}
+		_initAudio() {
+			if (!this.audioCtx) {
+				this.audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+			}
+		}
+		async playTone(frequency, durationMs) {
+			this._initAudio();
+			if (this.audioCtx.state === 'suspended') await this.audioCtx.resume();
+			const oscillator = this.audioCtx.createOscillator();
+			const gainNode = this.audioCtx.createGain();
+			oscillator.type = 'sine';
+			oscillator.frequency.value = frequency;
+			const attack = 0.01,
+			release = 0.01;
+			const durationSec = durationMs / 1000;
+			const now = this.audioCtx.currentTime;
+			gainNode.gain.setValueAtTime(0, now);
+			gainNode.gain.linearRampToValueAtTime(1, now + attack);
+			gainNode.gain.setValueAtTime(1, now + durationSec - release);
+			gainNode.gain.linearRampToValueAtTime(0, now + durationSec);
+			oscillator.connect(gainNode);
+			gainNode.connect(this.audioCtx.destination);
+			oscillator.start(now);
+			oscillator.stop(now + durationSec);
+			return new Promise(resolve => setTimeout(resolve, durationMs));
+		}
+		async playSequence(sequence, toneDurationMs = 200, silenceDurationMs = 800, onProgress) {
+			this.isPlaying = true;
+			this.stopRequested = false;
+			for (let i = 0; i < sequence.length; i++) {
+				if (this.stopRequested) break;
+				const num = sequence[i];
+				const freq = this.TONES[num];
+				if (freq) {
+					if (onProgress) onProgress(i, sequence.length, num, freq);
+					await this.playTone(freq, toneDurationMs);
+					if (this.stopRequested) break;
+					if (i < sequence.length - 1) {
+						await new Promise(resolve => setTimeout(resolve, silenceDurationMs));
+					}
+				}
+			}
+			this.isPlaying = false;
+			if (onProgress) onProgress(-1, sequence.length, null, null);
+		}
+		stop() {
+			this.stopRequested = true;
+		}
+	}
+	const toneSequenceTester = new ToneSequenceTester();
+	window.toneSequenceTester = toneSequenceTester;
+	const toneEngine = new ToneEngine(val => {
+			addValue(val);
+			showToast(`🎵 Tone: ${val}`);
+			const advancedTab = document.getElementById('tab-advanced');
+			if (advancedTab && advancedTab.classList.contains('active')) {
+				const historyEl = document.getElementById('tone-test-history');
+				if (historyEl) {
+					historyEl.textContent += (historyEl.textContent ? ", " : "") + val;
+				}
+			}
+		}, debug => {
+			const el = document.getElementById('tone-debug-indicator');
+			const testEl = document.getElementById('test-tone-readout');
+			let text;
+			if (debug.error) {
+				text = `🎵 Mic error: ${debug.error}`;
+			} else if (debug.note) {
+				text = `🎵 ${(TONE_TABLE.find(t => t.n === debug.note) || {}).name || '?'} (${debug.freq}Hz) #${debug.note}`;
+			} else if (debug.freq) {
+				text = `🎵 ${debug.freq}Hz (no note match)`;
+			} else {
+				text = `🎵 listening...`;
+			}
+			if (el) el.textContent = text;
+			if (testEl) testEl.textContent = text;
+	});
+	window.toneEngine = toneEngine;
+	let handGestureHistory = [];
+	let handGestureCooldownUntil = 0;
+	if (typeof VisionEngine !== 'function') {
+		console.warn('VisionEngine unavailable (wasm/vision_bundle.js not found) - hand tracking disabled.');
+		modules.vision = {
+			isActive: false,
+			start() {
+				showToast('Hand tracking unavailable (missing wasm/vision_bundle.js) ❌');
+			},
+			stop() {}
+		};
+	} else {
+		modules.vision = new VisionEngine(handGestureData => {
+				const settings = getProfileSettings();
+				if (Date.now() < handGestureCooldownUntil) {
+					return;
+				}
+				if (!handGestureData || handGestureData === "none") {
+					return;
+				}
+				let handGestureId = typeof handGestureData === 'object' ? handGestureData.id : handGestureData;
+				if (typeof handGestureId === 'number' && handGestureId >= 0 && handGestureId <= 63 && handGestureId % 2 === 1) {
+					handGestureId = handGestureId - 1;
+				}
+				const handGestureLabel = typeof handGestureData === 'object' ? handGestureData.label : "Gesture";
+				const handSide = (typeof handGestureData === 'object' && handGestureData.hand) ? handGestureData.hand : null;
+				const handReadout = document.getElementById('test-hand-readout');
+				if (handReadout) {
+					const sideLabel = handSide === 'L' ? '✋ Left hand' : handSide === 'R' ? '🤚 Right hand' : '';
+					handReadout.textContent = `ID ${handGestureId} - ${handGestureLabel}${sideLabel ? ' | ' + sideLabel : ''}`;
+				}
+				if (window.__testChecklists?.hand) window.__testChecklists.hand.mark(String(handGestureId));
+				if (window.__handTestModeActive) return;
+				if (appSettings.isHandGesturesEnabled && appSettings.isHandSignalsEnabled) {
+					if (handGestureId === 'TWO_HAND_CLEAR') {
+						showToast("Hand Signal: Clear 🧹✊✊");
+						if (typeof resetCurrentMachine === 'function') resetCurrentMachine();
+						handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
+						return;
+					}
+					if (handGestureId === 'TWO_HAND_DELETE') {
+						showToast("Hand Signal: Delete 🔙👎👎");
+						if (typeof handleBackspace === 'function') handleBackspace();
+						handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
+						return;
+					}
+					if (handGestureId === 'TWO_HAND_PLAY') {
+						showToast("Hand Signal: Playing ▶️👍👍");
+						playDemo();
+						handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
+						return;
+					}
+					if (handGestureId === 'TWO_HAND_STOP') {
+						isDemoPlaying = false;
+						showToast("Hand Signal: Stopped 🛑✋✋");
+						handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
+						return;
+					}
+				}
+				let mappedInput = null;
+				if (appSettings.mappings) {
+					const detectedHand = (typeof handGestureData === 'object' && handGestureData.hand) ? handGestureData.hand : null;
+					for (const [key, mapData] of Object.entries(appSettings.mappings)) {
+						const prefix = settings.currentInput === 'key9' ? 'k9_' : settings.currentInput === 'key12' ? 'k12_' : 'piano_';
+						if (!key.startsWith(prefix)) continue;
+						if (parseInt(mapData.handGesture) !== handGestureId) continue;
+						const wantSide = mapData.handSide || 'any';
+						if (wantSide !== 'any') {
+							if (detectedHand === null) continue;
+							if (wantSide !== detectedHand) continue;
+						}
+						mappedInput = key.replace(prefix, '');
+						break;
+					}
+				}
+				if (mappedInput !== null) {
+					addValue(mappedInput);
+					showToast(`Hand: ${mappedInput} (${handGestureLabel}) 🖐️`);
+					document.body.style.backgroundColor = '#222';
+					setTimeout(() => document.body.style.backgroundColor = '', 100);
+					handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
+				}
+			}, status => showToast(status));
+	}
+	voiceModule = new VoiceCommander({
+			onStatus: msg => showToast(msg),
+			onInput: val => {
+				addValue(val);
+				const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
+				if (btn) {
+					btn.classList.add('flash-active');
+					setTimeout(() => btn.classList.remove('flash-active'), 200);
+				}
+				const hMic = document.getElementById('headervoicebtn');
+				if (hMic) {
+					hMic.classList.remove('header-btn-active');
+					setTimeout(() => {
+							if (voiceModule.isListening) hMic.classList.add('header-btn-active');
+						}, 300);
+				}
+			},
+			onCommand: cmd => {
+				if (!appSettings.isVoiceInputEnabled || !appSettings.isVoiceCommandsEnabled) {
+					console.log("Voice commands disabled (Voice Input or Voice Commands is off). Ignoring:", cmd);
+					return;
+				}
+				if (cmd === 'CMD_PLAY') {
+					playDemo();
+					showToast("Voice: Playing ▶️");
+				}
+				if (cmd === 'CMD_STOP') {
+					isDemoPlaying = false;
+					showToast("Voice: Stopped 🛑");
+				}
+				if (cmd === 'CMD_CLEAR') {
+					const s = getState();
+					s.sequences = Array.from({
+							length: CONFIG.MAX_MACHINES
+						}, () => []);
+					renderUI();
+					showToast("Voice: Cleared All 💥");
+				}
+				if (cmd === 'CMD_DELETE') {
+					handleBackspace();
+					showToast("Voice: Backspace 🔙");
+				}
+				if (cmd === 'CMD_SETTINGS') {
+					modules.settings.openSettings();
+				}
+				if (cmd === 'CMD_VOLUME_UP') {
+					appSettings.runtimeSettings.voiceVolume = Math.min(1.0, (appSettings.runtimeSettings.voiceVolume || 1.0) + 0.1);
+					saveState();
+					showToast(`Voice: Volume ${(appSettings.runtimeSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
+				}
+				if (cmd === 'CMD_VOLUME_DOWN') {
+					appSettings.runtimeSettings.voiceVolume = Math.max(0.0, (appSettings.runtimeSettings.voiceVolume || 1.0) - 0.1);
+					saveState();
+					showToast(`Voice: Volume ${(appSettings.runtimeSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
+				}
+				if (cmd === 'CMD_SPEED_UP') {
+					appSettings.runtimeSettings.playbackSpeed = Math.min(2.0, (appSettings.runtimeSettings.playbackSpeed || 1.0) + 0.1);
+					saveState();
+					showToast(`Voice: Speed ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
+				}
+				if (cmd === 'CMD_SPEED_DOWN') {
+					appSettings.runtimeSettings.playbackSpeed = Math.max(0.5, (appSettings.runtimeSettings.playbackSpeed || 1.0) - 0.1);
+					saveState();
+					showToast(`Voice: Speed ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
+				}
+			}
+	});
+	window.voiceModule = voiceModule;
+	if (appSettings.isRandomThemeEnabled) {
+		const allThemeKeys = [...Object.keys(PREMADE_THEMES), ...Object.keys(appSettings.customThemes || ({}))];
+		if (allThemeKeys.length > 0) {
+			appSettings.activeTheme = allThemeKeys[Math.floor(Math.random() * allThemeKeys.length)];
+		}
+	}
+	updateAllChrome();
+	initFirebaseAndComments();
+	modules.settings.updateHeaderVisibility();
+	initGlobalListeners();
+	initTouchGestureEngine();
+	setupARLogic();
+	renderUI();
 };
 class ToneEngine {
-    constructor(onInputCallback, onDebug) {
-        this.onInput = onInputCallback;
-        this.onDebug = onDebug || null;
-        this.audioCtx = null;
-        this.analyser = null;
-        this.micSrc = null;
-        this.isActive = false;
-        this.loopId = null;
-        this.TONES = TONE_TABLE;
-        this.audioThresh = -70;
-        this.currentTone = null;
-        this.toneStartTime = 0;
-        this.lastToneEndTime = 0;
-    }
-    async start() {
-        if (this.isActive) return;
-        try {
-            this.audioCtx = new(window.AudioContext || window.webkitAudioContext)();
-            this.analyser = this.audioCtx.createAnalyser();
-            this.analyser.fftSize = 4096;
-            const stream = await navigator.mediaDevices.getUserMedia({
-                audio: {
-                    echoCancellation: false,
-                    noiseSuppression: false,
-                    autoGainControl: false
-                }
-            });
-            this.micSrc = this.audioCtx.createMediaStreamSource(stream);
-            this.micSrc.connect(this.analyser);
-            this.isActive = true;
-            this.lastToneEndTime = 0;
-            this.currentTone = null;
-            this.loop();
-            console.log("🎵 Tone Cadence Engine: LISTENING");
-        } catch (e) {
-            console.error("Tone Engine failed to get microphone access:", e);
-            if (this.onDebug) this.onDebug({
-                error: e.name || 'Unknown'
-            });
-        }
-    }
-    stop() {
-        this.isActive = false;
-        if (this.loopId) cancelAnimationFrame(this.loopId);
-        if (this.audioCtx && this.audioCtx.state === 'running') {
-            this.audioCtx.suspend();
-        }
-        if (this.micSrc) {
-            this.micSrc.mediaStream.getTracks().forEach(t => t.stop());
-            this.micSrc.disconnect();
-        }
-        this.currentTone = null;
-        console.log("🛑 Tone Cadence Engine: STOPPED");
-    }
-    _detectPitch(buffer, sampleRate) {
-        const SIZE = buffer.length;
-        let rms = 0;
-        for (let i = 0; i < SIZE; i++) rms += buffer[i] * buffer[i];
-        rms = Math.sqrt(rms / SIZE);
-        if (rms < 0.01) return -1;
-        const minLag = Math.floor(sampleRate / 950);
-        const maxLag = Math.ceil(sampleRate / 180);
-        const usableSize = SIZE - maxLag;
-        if (usableSize <= 0) return -1;
-        const corr = new Float32Array(maxLag + 1);
-        for (let lag = minLag; lag <= maxLag; lag++) {
-            let c = 0;
-            for (let i = 0; i < usableSize; i++) c += buffer[i] * buffer[i + lag];
-            corr[lag] = c;
-        }
-        let bestLag = -1,
-            bestCorr = -1;
-        for (let lag = minLag; lag <= maxLag; lag++) {
-            if (corr[lag] > bestCorr) {
-                bestCorr = corr[lag];
-                bestLag = lag;
-            }
-        }
-        if (bestLag <= 0) return -1;
-        const strongThreshold = bestCorr * 0.85;
-        for (let lag = minLag; lag < bestLag; lag++) {
-            if (corr[lag] >= strongThreshold) {
-                bestLag = lag;
-                bestCorr = corr[lag];
-                break;
-            }
-        }
-        let refinedLag = bestLag;
-        if (bestLag > minLag && bestLag < maxLag) {
-            const c0 = corr[bestLag - 1],
-                c1 = bestCorr,
-                c2 = corr[bestLag + 1];
-            const denom = c0 - 2 * c1 + c2;
-            if (denom !== 0) refinedLag = bestLag + 0.5 * (c0 - c2) / denom;
-        }
-        return refinedLag > 0 ? sampleRate / refinedLag : -1;
-    }
-    // Finds the closest tone to a detected frequency, not just the first one within tolerance.
-    // Fixes a real bug: the old code used TONES.find() with a flat +/-4% window per note, and
-    // since C4-D5 is a diatonic major scale (whole+half steps), the two half-step gaps (E4-F4,
-    // B4-C5) are narrower than the whole-step gaps -- their +/-4% windows overlapped, and .find()
-    // always resolved the overlap to whichever note came first in the array, regardless of which
-    // was actually closer. A flat-of-F4 hum could get silently misread as E4, and a flat-of-C5
-    // hum as B4. This keeps the same +/-4% acceptance width but guarantees the nearest note wins.
-    // Returns TONES with each note's frequency swapped for this user's calibrated reading, where
-    // one exists (appSettings.toneCalibration.notes). Notes never calibrated -- either because
-    // calibration hasn't run yet, or because they're outside the 8-tone calibration set (note 1) --
-    // fall back to the standard 12-TET frequency. Playback is unaffected by any of this; only
-    // matching a detected hum to a note uses the calibrated center.
-    _effectiveTones() {
-        const cal = (typeof appSettings !== 'undefined' && appSettings.toneCalibration && appSettings.toneCalibration.notes) || {};
-        return this.TONES.map(t => ({
-            n: t.n,
-            name: t.name,
-            f: (typeof cal[t.n] === 'number' ? cal[t.n] : t.f)
-        }));
-    }
-    _matchNearestTone(freq) {
-        let best = null,
-            bestDist = Infinity;
-        for (const t of this._effectiveTones()) {
-            const dist = Math.abs(t.f - freq);
-            if (dist < bestDist) {
-                bestDist = dist;
-                best = t;
-            }
-        }
-        return (best && bestDist < best.f * 0.04) ? best : null;
-    }
-    // Samples the mic for windowMs, collecting valid pitch readings, and returns their median --
-    // robust to a single noisy frame, unlike taking the first or last reading. targetIdealFreq is
-    // used only as a loose (+/-30%) sanity bound to reject octave errors and unrelated noise; the
-    // whole point of calibration is to capture wherever the user's true pitch actually lands, even
-    // if it's meaningfully off from the ideal, so this is deliberately much wider than the +/-4%
-    // acceptance window used during real gameplay matching.
-    _listenForPitch(targetIdealFreq, windowMs) {
-        const readings = [];
-        const start = performance.now();
-        return new Promise(resolve => {
-            const sample = () => {
-                const timeData = new Float32Array(this.analyser.fftSize);
-                this.analyser.getFloatTimeDomainData(timeData);
-                const freqData = new Float32Array(this.analyser.frequencyBinCount);
-                this.analyser.getFloatFrequencyData(freqData);
-                let maxVal = -Infinity;
-                for (let i = 0; i < freqData.length; i++)
-                    if (freqData[i] > maxVal) maxVal = freqData[i];
-                if (maxVal > (appSettings.toneVolumeThreshold || this.audioThresh)) {
-                    const freq = this._detectPitch(timeData, this.audioCtx.sampleRate);
-                    if (freq > 0 && Math.abs(freq - targetIdealFreq) < targetIdealFreq * 0.3) {
-                        readings.push(freq);
-                    }
-                }
-                if (performance.now() - start >= windowMs) {
-                    if (readings.length === 0) return resolve(null);
-                    readings.sort((a, b) => a - b);
-                    resolve(readings[Math.floor(readings.length / 2)]);
-                } else {
-                    requestAnimationFrame(sample);
-                }
-            };
-            requestAnimationFrame(sample);
-        });
-    }
-    loop() {
-        if (!this.isActive) return;
-        const timeData = new Float32Array(this.analyser.fftSize);
-        this.analyser.getFloatTimeDomainData(timeData);
-        const freqData = new Float32Array(this.analyser.frequencyBinCount);
-        this.analyser.getFloatFrequencyData(freqData);
-        let maxVal = -Infinity;
-        for (let i = 0; i < freqData.length; i++)
-            if (freqData[i] > maxVal) maxVal = freqData[i];
-        const now = Date.now();
-        if (maxVal > (appSettings.toneVolumeThreshold || this.audioThresh)) {
-            const freq = this._detectPitch(timeData, this.audioCtx.sampleRate);
-            const match = freq > 0 ? this._matchNearestTone(freq) : null;
-            if (this.onDebug) this.onDebug({
-                freq: freq > 0 ? Math.round(freq) : null,
-                note: match ? match.n : null,
-                db: Math.round(maxVal)
-            });
-            if (match) {
-                if (!this.currentTone) {
-                    this.currentTone = match.n;
-                    this.toneStartTime = now;
-                } else if (this.currentTone !== match.n) {
-                    this.currentTone = match.n;
-                    this.toneStartTime = now;
-                }
-            }
-        } else {
-            if (this.onDebug) this.onDebug({
-                freq: null,
-                note: null,
-                db: Math.round(maxVal)
-            });
-            if (this.currentTone) {
-                const toneDuration = now - this.toneStartTime;
-                const silenceDuration = this.toneStartTime - this.lastToneEndTime;
-                const isToneValid = toneDuration >= 100 && toneDuration <= 350;
-                const isSilenceValid = this.lastToneEndTime === 0 || silenceDuration >= 600 && silenceDuration <= 1100;
-                if (isToneValid && isSilenceValid) {
-                    this.onInput(this.currentTone);
-                }
-                this.lastToneEndTime = now;
-                this.currentTone = null;
-            }
-        }
-        this.loopId = requestAnimationFrame(() => this.loop());
-    }
+	constructor(onInputCallback, onDebug) {
+		this.onInput = onInputCallback;
+		this.onDebug = onDebug || null;
+		this.audioCtx = null;
+		this.analyser = null;
+		this.micSrc = null;
+		this.isActive = false;
+		this.loopId = null;
+		this.TONES = TONE_TABLE;
+		this.audioThresh = -70;
+		this.currentTone = null;
+		this.toneStartTime = 0;
+		this.lastToneEndTime = 0;
+	}
+	async start() {
+		if (this.isActive) return;
+		try {
+			this.audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+			this.analyser = this.audioCtx.createAnalyser();
+			this.analyser.fftSize = 4096;
+			const stream = await navigator.mediaDevices.getUserMedia({
+					audio: {
+						echoCancellation: false,
+						noiseSuppression: false,
+						autoGainControl: false
+					}
+			});
+			this.micSrc = this.audioCtx.createMediaStreamSource(stream);
+			this.micSrc.connect(this.analyser);
+			this.isActive = true;
+			this.lastToneEndTime = 0;
+			this.currentTone = null;
+			this.loop();
+			console.log("🎵 Tone Cadence Engine: LISTENING");
+		} catch (e) {
+			console.error("Tone Engine failed to get microphone access:", e);
+			if (this.onDebug) this.onDebug({
+					error: e.name || 'Unknown'
+			});
+		}
+	}
+	stop() {
+		this.isActive = false;
+		if (this.loopId) cancelAnimationFrame(this.loopId);
+		if (this.audioCtx && this.audioCtx.state === 'running') {
+			this.audioCtx.suspend();
+		}
+		if (this.micSrc) {
+			this.micSrc.mediaStream.getTracks().forEach(t => t.stop());
+			this.micSrc.disconnect();
+		}
+		this.currentTone = null;
+		console.log("🛑 Tone Cadence Engine: STOPPED");
+	}
+	_detectPitch(buffer, sampleRate) {
+		const SIZE = buffer.length;
+		let rms = 0;
+		for (let i = 0; i < SIZE; i++) rms += buffer[i] * buffer[i];
+		rms = Math.sqrt(rms / SIZE);
+		if (rms < 0.01) return -1;
+		const minLag = Math.floor(sampleRate / 950);
+		const maxLag = Math.ceil(sampleRate / 180);
+		const usableSize = SIZE - maxLag;
+		if (usableSize <= 0) return -1;
+		const corr = new Float32Array(maxLag + 1);
+		for (let lag = minLag; lag <= maxLag; lag++) {
+			let c = 0;
+			for (let i = 0; i < usableSize; i++) c += buffer[i] * buffer[i + lag];
+			corr[lag] = c;
+		}
+		let bestLag = -1,
+		bestCorr = -1;
+		for (let lag = minLag; lag <= maxLag; lag++) {
+			if (corr[lag] > bestCorr) {
+				bestCorr = corr[lag];
+				bestLag = lag;
+			}
+		}
+		if (bestLag <= 0) return -1;
+		const strongThreshold = bestCorr * 0.85;
+		for (let lag = minLag; lag < bestLag; lag++) {
+			if (corr[lag] >= strongThreshold) {
+				bestLag = lag;
+				bestCorr = corr[lag];
+				break;
+			}
+		}
+		let refinedLag = bestLag;
+		if (bestLag > minLag && bestLag < maxLag) {
+			const c0 = corr[bestLag - 1],
+			c1 = bestCorr,
+			c2 = corr[bestLag + 1];
+			const denom = c0 - 2 * c1 + c2;
+			if (denom !== 0) refinedLag = bestLag + 0.5 * (c0 - c2) / denom;
+		}
+		return refinedLag > 0 ? sampleRate / refinedLag : -1;
+	}
+	_effectiveTones() {
+		const cal = (typeof appSettings !== 'undefined' && appSettings.toneCalibration && appSettings.toneCalibration.notes) || {};
+		return this.TONES.map(t => ({
+					n: t.n,
+					name: t.name,
+					f: (typeof cal[t.n] === 'number' ? cal[t.n] : t.f)
+		}));
+	}
+	_matchNearestTone(freq) {
+		let best = null,
+		bestDist = Infinity;
+		for (const t of this._effectiveTones()) {
+			const dist = Math.abs(t.f - freq);
+			if (dist < bestDist) {
+				bestDist = dist;
+				best = t;
+			}
+		}
+		return (best && bestDist < best.f * 0.04) ? best : null;
+	}
+	_listenForPitch(targetIdealFreq, windowMs) {
+		const readings = [];
+		const start = performance.now();
+		return new Promise(resolve => {
+				const sample = () => {
+					const timeData = new Float32Array(this.analyser.fftSize);
+					this.analyser.getFloatTimeDomainData(timeData);
+					const freqData = new Float32Array(this.analyser.frequencyBinCount);
+					this.analyser.getFloatFrequencyData(freqData);
+					let maxVal = -Infinity;
+					for (let i = 0; i < freqData.length; i++)
+					if (freqData[i] > maxVal) maxVal = freqData[i];
+					if (maxVal > (appSettings.toneVolumeThreshold || this.audioThresh)) {
+						const freq = this._detectPitch(timeData, this.audioCtx.sampleRate);
+						if (freq > 0 && Math.abs(freq - targetIdealFreq) < targetIdealFreq * 0.3) {
+							readings.push(freq);
+						}
+					}
+					if (performance.now() - start >= windowMs) {
+						if (readings.length === 0) return resolve(null);
+						readings.sort((a, b) => a - b);
+						resolve(readings[Math.floor(readings.length / 2)]);
+					} else {
+						requestAnimationFrame(sample);
+					}
+				};
+				requestAnimationFrame(sample);
+		});
+	}
+	loop() {
+		if (!this.isActive) return;
+		const timeData = new Float32Array(this.analyser.fftSize);
+		this.analyser.getFloatTimeDomainData(timeData);
+		const freqData = new Float32Array(this.analyser.frequencyBinCount);
+		this.analyser.getFloatFrequencyData(freqData);
+		let maxVal = -Infinity;
+		for (let i = 0; i < freqData.length; i++)
+		if (freqData[i] > maxVal) maxVal = freqData[i];
+		const now = Date.now();
+		if (maxVal > (appSettings.toneVolumeThreshold || this.audioThresh)) {
+			const freq = this._detectPitch(timeData, this.audioCtx.sampleRate);
+			const match = freq > 0 ? this._matchNearestTone(freq) : null;
+			if (this.onDebug) this.onDebug({
+					freq: freq > 0 ? Math.round(freq) : null,
+					note: match ? match.n : null,
+					db: Math.round(maxVal)
+			});
+			if (match) {
+				if (!this.currentTone) {
+					this.currentTone = match.n;
+					this.toneStartTime = now;
+				} else if (this.currentTone !== match.n) {
+					this.currentTone = match.n;
+					this.toneStartTime = now;
+				}
+			}
+		} else {
+			if (this.onDebug) this.onDebug({
+					freq: null,
+					note: null,
+					db: Math.round(maxVal)
+			});
+			if (this.currentTone) {
+				const toneDuration = now - this.toneStartTime;
+				const silenceDuration = this.toneStartTime - this.lastToneEndTime;
+				const isToneValid = toneDuration >= 100 && toneDuration <= 350;
+				const isSilenceValid = this.lastToneEndTime === 0 || silenceDuration >= 600 && silenceDuration <= 1100;
+				if (isToneValid && isSilenceValid) {
+					this.onInput(this.currentTone);
+				}
+				this.lastToneEndTime = now;
+				this.currentTone = null;
+			}
+		}
+		this.loopId = requestAnimationFrame(() => this.loop());
+	}
 }
 class VoiceCommander {
-    constructor(callbacks) {
-        this.callbacks = callbacks;
-        this.recognition = null;
-        this.isListening = false;
-        this.restartTimer = null;
-        this.vocab = {
-            '1': '1',
-            'one': '1',
-            'won': '1',
-            '2': '2',
-            'two': '2',
-            'to': '2',
-            'too': '2',
-            '3': '3',
-            'three': '3',
-            'tree': '3',
-            '4': '4',
-            'four': '4',
-            'for': '4',
-            'fore': '4',
-            '5': '5',
-            'five': '5',
-            '6': '6',
-            'six': '6',
-            '7': '7',
-            'seven': '7',
-            '8': '8',
-            'eight': '8',
-            'ate': '8',
-            '9': '9',
-            'nine': '9',
-            '10': '10',
-            'ten': '10',
-            'tin': '10',
-            '11': '11',
-            'eleven': '11',
-            '12': '12',
-            'twelve': '12',
-            'a': 'A',
-            'hey': 'A',
-            'b': 'B',
-            'bee': 'B',
-            'be': 'B',
-            'c': 'C',
-            'see': 'C',
-            'sea': 'C',
-            'd': 'D',
-            'dee': 'D',
-            'e': 'E',
-            'f': 'F',
-            'g': 'G',
-            'jee': 'G'
-        };
-        this.commandVocab = {
-            'play': 'CMD_PLAY',
-            'start': 'CMD_PLAY',
-            'go': 'CMD_PLAY',
-            'stop': 'CMD_STOP',
-            'pause': 'CMD_STOP',
-            'clear': 'CMD_CLEAR',
-            'reset': 'CMD_CLEAR',
-            'delete': 'CMD_DELETE',
-            'backspace': 'CMD_DELETE',
-            'undo': 'CMD_DELETE',
-            'back': 'CMD_DELETE',
-            'settings': 'CMD_SETTINGS',
-            'options': 'CMD_SETTINGS',
-            'louder': 'CMD_VOLUME_UP',
-            'quieter': 'CMD_VOLUME_DOWN',
-            'faster': 'CMD_SPEED_UP',
-            'slower': 'CMD_SPEED_DOWN'
-        };
-        this.initEngine();
-    }
-    initEngine() {
-        if (('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window)) {
-            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
-            this.recognition = new SpeechRec();
-            if (SpeechGrammarList) {
-                const activeTrigger = appSettings.voiceTriggerWord || 'set';
-                const targets = Object.keys(this.vocab);
-                const commandWords = Object.keys(this.commandVocab);
-                const whitelist = [activeTrigger, ...targets, ...commandWords].join(' | ');
-                const grammar = `#JSGF V1.0; grammar appCommands; public <command> = ${whitelist} ;`;
-                const speechRecognitionList = new SpeechGrammarList();
-                speechRecognitionList.addFromString(grammar, 1);
-                this.recognition.grammars = speechRecognitionList;
-            }
-            this.recognition.continuous = true;
-            this.recognition.lang = 'en-US';
-            this.recognition.interimResults = true;
-            this.recognition.maxAlternatives = 1;
-            this.recognition.onresult = event => this.handleResult(event);
-            this.recognition.onend = () => this.handleEnd();
-        }
-    }
-    toggle(active) {
-        if (!this.recognition) return;
-        if (active) {
-            this.isListening = true;
-            try {
-                this.recognition.start();
-            } catch (e) {}
-            this.callbacks.onStatus(`Voice Active (Say '${appSettings.voiceTriggerWord.toUpperCase()}...') 🎙️`);
-        } else {
-            this.isListening = false;
-            try {
-                this.recognition.stop();
-            } catch (e) {}
-            clearTimeout(this.restartTimer);
-            this.callbacks.onStatus("Voice Off 🔇");
-        }
-    }
-    handleResult(event) {
-        const activeTrigger = (appSettings.voiceTriggerWord || 'set').toLowerCase();
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-            const transcript = event.results[i][0].transcript.toLowerCase();
-            const words = transcript.split(/\s+/).filter(w => w !== "");
-            const confidence = event.results[i][0].confidence;
-            const minConfidence = (appSettings.voiceConfidenceThreshold || 50) / 100;
-            if (event.results[i].isFinal && confidence > 0 && confidence < minConfidence) {
-                continue;
-            }
-            const triggerIdx = words.lastIndexOf(activeTrigger);
-            if (triggerIdx !== -1 && triggerIdx < words.length - 1) {
-                const nextWord = words[triggerIdx + 1];
-                const cmd = this.commandVocab[nextWord];
-                if (cmd) {
-                    this.callbacks.onCommand(cmd);
-                    this.recognition.abort();
-                    return;
-                }
-                const mappedValue = this.vocab[nextWord];
-                if (mappedValue) {
-                    this.callbacks.onInput(mappedValue);
-                    this.recognition.abort();
-                    return;
-                }
-            }
-        }
-    }
-    handleEnd() {
-        if (this.isListening) {
-            this.restartTimer = setTimeout(() => {
-                try {
-                    this.recognition.start();
-                } catch (e) {}
-            }, 100);
-        }
-    }
+	constructor(callbacks) {
+		this.callbacks = callbacks;
+		this.recognition = null;
+		this.isListening = false;
+		this.restartTimer = null;
+		this.vocab = {
+			'1': '1',
+			'one': '1',
+			'won': '1',
+			'2': '2',
+			'two': '2',
+			'to': '2',
+			'too': '2',
+			'3': '3',
+			'three': '3',
+			'tree': '3',
+			'4': '4',
+			'four': '4',
+			'for': '4',
+			'fore': '4',
+			'5': '5',
+			'five': '5',
+			'6': '6',
+			'six': '6',
+			'7': '7',
+			'seven': '7',
+			'8': '8',
+			'eight': '8',
+			'ate': '8',
+			'9': '9',
+			'nine': '9',
+			'10': '10',
+			'ten': '10',
+			'tin': '10',
+			'11': '11',
+			'eleven': '11',
+			'12': '12',
+			'twelve': '12',
+			'a': 'A',
+			'hey': 'A',
+			'b': 'B',
+			'bee': 'B',
+			'be': 'B',
+			'c': 'C',
+			'see': 'C',
+			'sea': 'C',
+			'd': 'D',
+			'dee': 'D',
+			'e': 'E',
+			'f': 'F',
+			'g': 'G',
+			'jee': 'G'
+		};
+		this.commandVocab = {
+			'play': 'CMD_PLAY',
+			'start': 'CMD_PLAY',
+			'go': 'CMD_PLAY',
+			'stop': 'CMD_STOP',
+			'pause': 'CMD_STOP',
+			'clear': 'CMD_CLEAR',
+			'reset': 'CMD_CLEAR',
+			'delete': 'CMD_DELETE',
+			'backspace': 'CMD_DELETE',
+			'undo': 'CMD_DELETE',
+			'back': 'CMD_DELETE',
+			'settings': 'CMD_SETTINGS',
+			'options': 'CMD_SETTINGS',
+			'louder': 'CMD_VOLUME_UP',
+			'quieter': 'CMD_VOLUME_DOWN',
+			'faster': 'CMD_SPEED_UP',
+			'slower': 'CMD_SPEED_DOWN'
+		};
+		this.initEngine();
+	}
+	initEngine() {
+		if (('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window)) {
+			const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+			const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
+			this.recognition = new SpeechRec();
+			if (SpeechGrammarList) {
+				const activeTrigger = appSettings.voiceTriggerWord || 'set';
+				const targets = Object.keys(this.vocab);
+				const commandWords = Object.keys(this.commandVocab);
+				const whitelist = [activeTrigger, ...targets, ...commandWords].join(' | ');
+				const grammar = `#JSGF V1.0; grammar appCommands; public <command> = ${whitelist} ;`;
+				const speechRecognitionList = new SpeechGrammarList();
+				speechRecognitionList.addFromString(grammar, 1);
+				this.recognition.grammars = speechRecognitionList;
+			}
+			this.recognition.continuous = true;
+			this.recognition.lang = 'en-US';
+			this.recognition.interimResults = true;
+			this.recognition.maxAlternatives = 1;
+			this.recognition.onresult = event => this.handleResult(event);
+			this.recognition.onend = () => this.handleEnd();
+		}
+	}
+	toggle(active) {
+		if (!this.recognition) return;
+		if (active) {
+			this.isListening = true;
+			try {
+				this.recognition.start();
+			} catch (e) {}
+			this.callbacks.onStatus(`Voice Active (Say '${appSettings.voiceTriggerWord.toUpperCase()}...') 🎙️`);
+		} else {
+			this.isListening = false;
+			try {
+				this.recognition.stop();
+			} catch (e) {}
+			clearTimeout(this.restartTimer);
+			this.callbacks.onStatus("Voice Off 🔇");
+		}
+	}
+	handleResult(event) {
+		const activeTrigger = (appSettings.voiceTriggerWord || 'set').toLowerCase();
+		for (let i = event.resultIndex; i < event.results.length; ++i) {
+			const transcript = event.results[i][0].transcript.toLowerCase();
+			const words = transcript.split(/\s+/).filter(w => w !== "");
+			const confidence = event.results[i][0].confidence;
+			const minConfidence = (appSettings.voiceConfidenceThreshold || 50) / 100;
+			if (event.results[i].isFinal && confidence > 0 && confidence < minConfidence) {
+				continue;
+			}
+			const triggerIdx = words.lastIndexOf(activeTrigger);
+			if (triggerIdx !== -1 && triggerIdx < words.length - 1) {
+				const nextWord = words[triggerIdx + 1];
+				const cmd = this.commandVocab[nextWord];
+				if (cmd) {
+					this.callbacks.onCommand(cmd);
+					this.recognition.abort();
+					return;
+				}
+				const mappedValue = this.vocab[nextWord];
+				if (mappedValue) {
+					this.callbacks.onInput(mappedValue);
+					this.recognition.abort();
+					return;
+				}
+			}
+		}
+	}
+	handleEnd() {
+		if (this.isListening) {
+			this.restartTimer = setTimeout(() => {
+					try {
+						this.recognition.start();
+					} catch (e) {}
+				}, 100);
+		}
+	}
 }
 async function reacquireWakeLock() {
-    if (document.visibilityState === 'visible' && appSettings.isWakeLockEnabled) {
-        try {
-            screenWakeLock = await navigator.wakeLock.request('screen');
-        } catch (e) {
-            console.warn('Wake Lock reacquire failed during visibility shift:', e);
-        }
-    }
+	if (document.visibilityState === 'visible' && appSettings.isWakeLockEnabled) {
+		try {
+			screenWakeLock = await navigator.wakeLock.request('screen');
+		} catch (e) {
+			console.warn('Wake Lock reacquire failed during visibility shift:', e);
+		}
+	}
 }
 async function initFirebaseAndComments() {
-    try {
-        const {
-            initializeApp
-        } = await import("https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js");
-        const {
-            getFirestore,
-            enableIndexedDbPersistence,
-            collection,
-            addDoc,
-            deleteDoc,
-            doc,
-            query,
-            orderBy,
-            limit,
-            onSnapshot,
-            serverTimestamp
-        } = await import("https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js");
-        const fbApp = initializeApp(firebaseConfig);
-        db = getFirestore(fbApp);
-        enableIndexedDbPersistence(db).catch(err => {
-            if (err.code === 'failed-precondition') {
-                console.log('Multiple tabs open, persistence can only be enabled in one.');
-            } else if (err.code === 'unimplemented') {
-                console.log('Browser does not support persistence');
-            }
-        });
-        const submitBtn = document.getElementById('submit-comment-btn');
-        const listContainer = document.getElementById('comments-list-container');
-        const nameInput = document.getElementById('comment-username');
-        const msgInput = document.getElementById('comment-message');
-        if (submitBtn) {
-            submitBtn.onclick = async () => {
-                const username = nameInput.value.trim();
-                const message = msgInput.value.trim();
-                if (!username || !message) {
-                    alert("Please enter name and message.");
-                    return;
-                }
-                submitBtn.disabled = true;
-                submitBtn.innerText = "Sending...";
-                try {
-                    await addDoc(collection(db, "comments"), {
-                        username,
-                        message,
-                        timestamp: serverTimestamp()
-                    });
-                    msgInput.value = "";
-                    submitBtn.innerText = "Sent!";
-                    setTimeout(() => {
-                        submitBtn.disabled = false;
-                        submitBtn.innerText = "Send";
-                    }, 2000);
-                } catch (e) {
-                    console.error("Error sending comment", e);
-                    submitBtn.innerText = "Error";
-                    submitBtn.disabled = false;
-                }
-            };
-        }
-        const q = query(collection(db, "comments"), orderBy("timestamp", "desc"), limit(50));
-        onSnapshot(q, snapshot => {
-            if (!listContainer) return;
-            if (snapshot.empty) {
-                listContainer.innerHTML = '<p class="text-center text-gray-500 text-xs">No comments yet.</p>';
-                return;
-            }
-            listContainer.innerHTML = "";
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const el = document.createElement('div');
-                el.className = "p-3 mb-2 rounded-lg bg-black bg-opacity-20 border border-gray-700";
-                el.dataset.commentId = doc.id;
-                const hasPinSet = appSettings.commentsDeletionPin && appSettings.commentsDeletionPin.trim().length > 0;
-                const deleteBtn = hasPinSet ? `<button class="delete-comment-btn text-xs bg-red-600 hover:bg-red-500 px-2 py-1 rounded text-white ml-2" data-comment-id="${doc.id}">🗑️</button>` : '';
-                el.innerHTML = `<div class="flex justify-between items-start"><div class="flex-1"><p class="font-bold text-primary-app text-xs">${escapeHtml(data.username)}</p><p class="text-gray-300 text-sm">${escapeHtml(data.message)}</p></div>${deleteBtn}</div>`;
-                listContainer.appendChild(el);
-            });
-        });
-    } catch (err) {
-        console.warn('Firebase/comments unavailable (offline or blocked) - rest of the app is unaffected:', err.message);
-    }
+	try {
+		const {
+			initializeApp
+		} = await import("https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js");
+		const {
+			getFirestore,
+			enableIndexedDbPersistence,
+			collection,
+			addDoc,
+			deleteDoc,
+			doc,
+			query,
+			orderBy,
+			limit,
+			onSnapshot,
+			serverTimestamp
+		} = await import("https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js");
+		const fbApp = initializeApp(firebaseConfig);
+		db = getFirestore(fbApp);
+		enableIndexedDbPersistence(db).catch(err => {
+				if (err.code === 'failed-precondition') {
+					console.log('Multiple tabs open, persistence can only be enabled in one.');
+				} else if (err.code === 'unimplemented') {
+					console.log('Browser does not support persistence');
+				}
+		});
+		const submitBtn = document.getElementById('submit-comment-btn');
+		const listContainer = document.getElementById('comments-list-container');
+		const nameInput = document.getElementById('comment-username');
+		const msgInput = document.getElementById('comment-message');
+		if (submitBtn) {
+			submitBtn.onclick = async () => {
+				const username = nameInput.value.trim();
+				const message = msgInput.value.trim();
+				if (!username || !message) {
+					alert("Please enter name and message.");
+					return;
+				}
+				submitBtn.disabled = true;
+				submitBtn.innerText = "Sending...";
+				try {
+					await addDoc(collection(db, "comments"), {
+							username,
+							message,
+							timestamp: serverTimestamp()
+					});
+					msgInput.value = "";
+					submitBtn.innerText = "Sent!";
+					setTimeout(() => {
+							submitBtn.disabled = false;
+							submitBtn.innerText = "Send";
+						}, 2000);
+				} catch (e) {
+					console.error("Error sending comment", e);
+					submitBtn.innerText = "Error";
+					submitBtn.disabled = false;
+				}
+			};
+		}
+		const q = query(collection(db, "comments"), orderBy("timestamp", "desc"), limit(50));
+		onSnapshot(q, snapshot => {
+				if (!listContainer) return;
+				if (snapshot.empty) {
+					listContainer.innerHTML = '<p class="text-center text-gray-500 text-xs">No comments yet.</p>';
+					return;
+				}
+				listContainer.innerHTML = "";
+				snapshot.forEach(doc => {
+						const data = doc.data();
+						const el = document.createElement('div');
+						el.className = "p-3 mb-2 rounded-lg bg-black bg-opacity-20 border border-gray-700";
+						el.dataset.commentId = doc.id;
+						const hasPinSet = appSettings.commentsDeletionPin && appSettings.commentsDeletionPin.trim().length > 0;
+						const deleteBtn = hasPinSet ? `<button class="delete-comment-btn text-xs bg-red-600 hover:bg-red-500 px-2 py-1 rounded text-white ml-2" data-comment-id="${doc.id}">🗑️</button>` : '';
+						el.innerHTML = `<div class="flex justify-between items-start"><div class="flex-1"><p class="font-bold text-primary-app text-xs">${escapeHtml(data.username)}</p><p class="text-gray-300 text-sm">${escapeHtml(data.message)}</p></div>${deleteBtn}</div>`;
+						listContainer.appendChild(el);
+				});
+		});
+	} catch (err) {
+		console.warn('Firebase/comments unavailable (offline or blocked) - rest of the app is unaffected:', err.message);
+	}
 }
-
 function escapeHtml(text) {
-    if (!text) return "";
-    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+	if (!text) return "";
+	return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
-
 function saveState() {
-    localStorage.setItem(CONFIG.STORAGE_KEY_SETTINGS, JSON.stringify(appSettings));
-    localStorage.setItem(CONFIG.STORAGE_KEY_STATE, JSON.stringify(appState));
+	localStorage.setItem(CONFIG.STORAGE_KEY_SETTINGS, JSON.stringify(appSettings));
+	localStorage.setItem(CONFIG.STORAGE_KEY_STATE, JSON.stringify(appState));
 }
-
-// Custom backup encoding: gzip compression (native CompressionStream) does the vast majority of
-// the size reduction - JSON with this much repeated key/value structure (50 toggles, 5 profiles
-// sharing the same ~19 keys, etc.) compresses very well. The base85-style text encoding on top
-// is a smaller, secondary win over plain base64 (~85 symbols per character instead of 64, so
-// ~6.4 bits/char instead of 6). Deliberately NOT base122: that scheme's efficiency comes from
-// using non-ASCII UTF-8/16 code points, and a backup code's whole job is to survive being
-// copy-pasted through arbitrary text fields - exactly the kind of transmission that has already
-// corrupted a plain base64 string once in this project (a document upload silently dropped a
-// closing brace and inserted stray spaces). A pure, curated-safe ASCII alphabet is the more
-// reliable trade here, even at a smaller size win than base122 would give.
 const BACKUP_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%()*+,-./:;=?@[]^_`{}';
-// BACKUP_ALPHABET is deliberately missing: space, " ' \ and any character with special meaning
-// in URLs/HTML/shells that copy-paste through a browser could realistically mangle.
 function bytesToBackupCode(bytes) {
-    const base = BACKUP_ALPHABET.length; // 85
-    let big = 0n;
-    for (let i = 0; i < bytes.length; i++) big = (big << 8n) | BigInt(bytes[i]);
-    let out = '';
-    if (big === 0n) out = BACKUP_ALPHABET[0];
-    while (big > 0n) {
-        out = BACKUP_ALPHABET[Number(big % BigInt(base))] + out;
-        big = big / BigInt(base);
-    }
-    // Byte length is encoded separately (see settingsToBackupCode) rather than inferred from
-    // leading-zero padding tricks - simpler and unambiguous for a one-shot encode/decode pair
-    // that doesn't need to support streaming or partial reads.
-    return out;
+	const base = BACKUP_ALPHABET.length;
+	let big = 0n;
+	for (let i = 0; i < bytes.length; i++) big = (big << 8n) | BigInt(bytes[i]);
+	let out = '';
+	if (big === 0n) out = BACKUP_ALPHABET[0];
+	while (big > 0n) {
+		out = BACKUP_ALPHABET[Number(big % BigInt(base))] + out;
+		big = big / BigInt(base);
+	}
+	return out;
 }
 function backupCodeToBytes(code, byteLength) {
-    const base = BACKUP_ALPHABET.length;
-    const map = {};
-    for (let i = 0; i < BACKUP_ALPHABET.length; i++) map[BACKUP_ALPHABET[i]] = i;
-    let big = 0n;
-    for (const ch of code) {
-        if (!(ch in map)) throw new Error('Not a valid backup code');
-        big = big * BigInt(base) + BigInt(map[ch]);
-    }
-    const bytes = new Uint8Array(byteLength);
-    for (let i = byteLength - 1; i >= 0; i--) {
-        bytes[i] = Number(big & 0xFFn);
-        big = big >> 8n;
-    }
-    return bytes;
+	const base = BACKUP_ALPHABET.length;
+	const map = {};
+	for (let i = 0; i < BACKUP_ALPHABET.length; i++) map[BACKUP_ALPHABET[i]] = i;
+	let big = 0n;
+	for (const ch of code) {
+		if (!(ch in map)) throw new Error('Not a valid backup code');
+		big = big * BigInt(base) + BigInt(map[ch]);
+	}
+	const bytes = new Uint8Array(byteLength);
+	for (let i = byteLength - 1; i >= 0; i--) {
+		bytes[i] = Number(big & 0xFFn);
+		big = big >> 8n;
+	}
+	return bytes;
 }
 async function gzipCompress(text) {
-    const bytes = new TextEncoder().encode(text);
-    const cs = new CompressionStream('gzip');
-    const writer = cs.writable.getWriter();
-    writer.write(bytes);
-    writer.close();
-    const chunks = [];
-    const reader = cs.readable.getReader();
-    while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-    }
-    const totalLen = chunks.reduce((n, c) => n + c.length, 0);
-    const out = new Uint8Array(totalLen);
-    let offset = 0;
-    for (const c of chunks) { out.set(c, offset); offset += c.length; }
-    return out;
+	const bytes = new TextEncoder().encode(text);
+	const cs = new CompressionStream('gzip');
+	const writer = cs.writable.getWriter();
+	writer.write(bytes);
+	writer.close();
+	const chunks = [];
+	const reader = cs.readable.getReader();
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		chunks.push(value);
+	}
+	const totalLen = chunks.reduce((n, c) => n + c.length, 0);
+	const out = new Uint8Array(totalLen);
+	let offset = 0;
+	for (const c of chunks) { out.set(c, offset); offset += c.length; }
+	return out;
 }
 async function gzipDecompress(bytes) {
-    const ds = new DecompressionStream('gzip');
-    const writer = ds.writable.getWriter();
-    writer.write(bytes);
-    writer.close();
-    const chunks = [];
-    const reader = ds.readable.getReader();
-    while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-    }
-    const totalLen = chunks.reduce((n, c) => n + c.length, 0);
-    const out = new Uint8Array(totalLen);
-    let offset = 0;
-    for (const c of chunks) { out.set(c, offset); offset += c.length; }
-    return new TextDecoder().decode(out);
+	const ds = new DecompressionStream('gzip');
+	const writer = ds.writable.getWriter();
+	writer.write(bytes);
+	writer.close();
+	const chunks = [];
+	const reader = ds.readable.getReader();
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		chunks.push(value);
+	}
+	const totalLen = chunks.reduce((n, c) => n + c.length, 0);
+	const out = new Uint8Array(totalLen);
+	let offset = 0;
+	for (const c of chunks) { out.set(c, offset); offset += c.length; }
+	return new TextDecoder().decode(out);
 }
-// Returns only the parts of `current` that differ from `defaults`, recursing into plain
-// objects (profiles, runtimeSettings, customThemes, etc.) so a single customized profile among
-// five doesn't force including all five. Arrays are compared as whole values (not diffed
-// element-by-element) since they're effectively all-or-nothing customizations here
-// (headerBtnOrder, activeGestureFilters, etc.) - diffing inside them would add real complexity
-// for very little size benefit given how this app actually uses arrays in settings.
 function diffAgainstDefaults(current, defaults) {
-    const isPlainObject = v => v !== null && typeof v === 'object' && !Array.isArray(v);
-    const diff = {};
-    for (const key of Object.keys(current)) {
-        // Not part of the current schema at all - almost always the old name of something
-        // that got renamed, or a fully-removed feature. Not a real difference to preserve.
-        if (!defaults || !(key in defaults)) continue;
-        const cv = current[key];
-        const dv = defaults[key];
-        if (isPlainObject(cv) && isPlainObject(dv)) {
-            const nested = diffAgainstDefaults(cv, dv);
-            if (Object.keys(nested).length > 0) diff[key] = nested;
-        } else if (Array.isArray(cv)) {
-            if (JSON.stringify(cv) !== JSON.stringify(dv)) diff[key] = cv;
-        } else if (cv !== dv) {
-            diff[key] = cv;
-        }
-    }
-    return diff;
+	const isPlainObject = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+	const diff = {};
+	for (const key of Object.keys(current)) {
+		if (!defaults || !(key in defaults)) continue;
+		const cv = current[key];
+		const dv = defaults[key];
+		if (isPlainObject(cv) && isPlainObject(dv)) {
+			const nested = diffAgainstDefaults(cv, dv);
+			if (Object.keys(nested).length > 0) diff[key] = nested;
+		} else if (Array.isArray(cv)) {
+			if (JSON.stringify(cv) !== JSON.stringify(dv)) diff[key] = cv;
+		} else if (cv !== dv) {
+			diff[key] = cv;
+		}
+	}
+	return diff;
 }
-// Reconstructs a full settings object from a diff (as produced above) layered onto defaults.
-// A full, non-diffed object works here too - merging it onto defaults just means every default
-// key gets overwritten by the (complete) "diff", which is exactly correct and is what keeps
-// this compatible with any backup code from before diffing existed.
 function mergeWithDefaults(diff, defaults) {
-    const isPlainObject = v => v !== null && typeof v === 'object' && !Array.isArray(v);
-    const out = JSON.parse(JSON.stringify(defaults));
-    for (const key of Object.keys(diff)) {
-        const dv = diff[key];
-        if (isPlainObject(dv) && isPlainObject(out[key])) {
-            out[key] = mergeWithDefaults(dv, out[key]);
-        } else {
-            out[key] = dv;
-        }
-    }
-    return out;
+	const isPlainObject = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+	const out = JSON.parse(JSON.stringify(defaults));
+	for (const key of Object.keys(diff)) {
+		const dv = diff[key];
+		if (isPlainObject(dv) && isPlainObject(out[key])) {
+			out[key] = mergeWithDefaults(dv, out[key]);
+		} else {
+			out[key] = dv;
+		}
+	}
+	return out;
 }
 async function settingsToBackupCode() {
-    const diff = diffAgainstDefaults(appSettings, DEFAULT_APP);
-    const json = JSON.stringify(diff);
-    const compressed = await gzipCompress(json);
-    // Byte length prefix (base36, dot-separated) so the decoder knows exactly how many bytes to
-    // reconstruct - the encoding above doesn't preserve leading zero bytes on its own.
-    return compressed.length.toString(36) + '.' + bytesToBackupCode(compressed);
+	const diff = diffAgainstDefaults(appSettings, DEFAULT_APP);
+	const json = JSON.stringify(diff);
+	const compressed = await gzipCompress(json);
+	return compressed.length.toString(36) + '.' + bytesToBackupCode(compressed);
 }
 async function backupCodeToSettingsObject(code) {
-    const clean = code.trim().replace(/\s+/g, '');
-    const dotIndex = clean.indexOf('.');
-    // Old-format fallback: backup codes exported before this update are plain base64 (no "."
-    // separator, standard/URL-safe base64 alphabet only) - detecting and still accepting them
-    // means a code someone already saved doesn't silently stop working after this change.
-    if (dotIndex === -1 || !/^[0-9a-z]+$/.test(clean.slice(0, dotIndex))) {
-        if (/^[A-Za-z0-9_-]+$/.test(clean)) {
-            let standard = clean.replace(/-/g, '+').replace(/_/g, '/');
-            while (standard.length % 4 !== 0) standard += '=';
-            const binary = atob(standard);
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-            return JSON.parse(new TextDecoder().decode(bytes));
-        }
-        throw new Error('Not a valid backup code');
-    }
-    const byteLength = parseInt(clean.slice(0, dotIndex), 36);
-    const body = clean.slice(dotIndex + 1);
-    if (!Number.isFinite(byteLength) || byteLength < 0) throw new Error('Not a valid backup code');
-    const bytes = backupCodeToBytes(body, byteLength);
-    const json = await gzipDecompress(bytes);
-    return JSON.parse(json);
+	const clean = code.trim().replace(/\s+/g, '');
+	const dotIndex = clean.indexOf('.');
+	if (dotIndex === -1 || !/^[0-9a-z]+$/.test(clean.slice(0, dotIndex))) {
+		if (/^[A-Za-z0-9_-]+$/.test(clean)) {
+			let standard = clean.replace(/-/g, '+').replace(/_/g, '/');
+			while (standard.length % 4 !== 0) standard += '=';
+			const binary = atob(standard);
+			const bytes = new Uint8Array(binary.length);
+			for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+			return JSON.parse(new TextDecoder().decode(bytes));
+		}
+		throw new Error('Not a valid backup code');
+	}
+	const byteLength = parseInt(clean.slice(0, dotIndex), 36);
+	const body = clean.slice(dotIndex + 1);
+	if (!Number.isFinite(byteLength) || byteLength < 0) throw new Error('Not a valid backup code');
+	const bytes = backupCodeToBytes(body, byteLength);
+	const json = await gzipDecompress(bytes);
+	return JSON.parse(json);
 }
 async function importSettingsFromBackupCode(code) {
-    const imported = await backupCodeToSettingsObject(code);
-    // mergeWithDefaults handles this generally now (recursing into profiles/customThemes/
-    // runtimeSettings/etc. the same way it handles everything else), so no special-casing is
-    // needed here the way the old direct-spread approach required.
-    const merged = mergeWithDefaults(imported, DEFAULT_APP);
-    Object.keys(appSettings).forEach(k => delete appSettings[k]);
-    Object.assign(appSettings, merged);
-    saveState();
-    updateAllChrome();
-    if (modules.settings) modules.settings.updateUIFromSettings();
-    return true;
+	const imported = await backupCodeToSettingsObject(code);
+	const merged = mergeWithDefaults(imported, DEFAULT_APP);
+	Object.keys(appSettings).forEach(k => delete appSettings[k]);
+	Object.assign(appSettings, merged);
+	saveState();
+	updateAllChrome();
+	if (modules.settings) modules.settings.updateUIFromSettings();
+	return true;
 }
-
 function loadState() {
-    try {
-        const s = localStorage.getItem(CONFIG.STORAGE_KEY_SETTINGS);
-        const st = localStorage.getItem(CONFIG.STORAGE_KEY_STATE);
-        if (s) {
-            const loaded = JSON.parse(s);
-            appSettings = {
-                ...DEFAULT_APP,
-                ...loaded,
-                profiles: {
-                    ...DEFAULT_APP.profiles,
-                    ...loaded.profiles || ({})
-                },
-                customThemes: {
-                    ...DEFAULT_APP.customThemes,
-                    ...loaded.customThemes || ({})
-                }
-            };
-            if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
-            if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
-            if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
-            if (typeof appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled === 'undefined') appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled = true;
-            if (typeof appSettings.showTimer === 'undefined') appSettings.showTimer = false;
-            if (typeof appSettings.showCounter === 'undefined') appSettings.showCounter = false;
-            if (!appSettings.runtimeSettings.voicePresets) appSettings.runtimeSettings.voicePresets = {};
-            if (!appSettings.runtimeSettings.activeVoicePresetId) appSettings.runtimeSettings.activeVoicePresetId = 'standard';
-            if (!appSettings.touchResizeMode) appSettings.touchResizeMode = 'global';
-            if (!appSettings.toneCalibration || typeof appSettings.toneCalibration !== 'object') appSettings.toneCalibration = { isCalibrated: false, notes: {} };
-            if (!appSettings.toneCalibration.notes) appSettings.toneCalibration.notes = {};
-            if (!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS));
-            if (appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
-            // Legacy pauseSetting values ('none'/'short'/'long') predate its conversion to a
-            // numeric millisecond value (matching simonInterSequenceDelay's format) - a leftover
-            // string here isn't a preference to respect, it's an invalid value under the current
-            // schema that would break the numeric dropdown/playback logic outright.
-            const migratePause = v => (typeof v === 'string' ? 0 : v);
-            appSettings.runtimeSettings.pauseSetting = migratePause(appSettings.runtimeSettings.pauseSetting);
-            Object.values(appSettings.profiles || {}).forEach(p => {
-                if (p && p.settings) p.settings.pauseSetting = migratePause(p.settings.pauseSetting);
-            });
-            // Removes keys that don't exist in the current DEFAULT_APP schema at all - almost
-            // always the old name of something that got renamed (gestureResizeMode ->
-            // touchResizeMode, gestureMappings -> touchGestureMappings, etc.) or a feature that
-            // was fully removed (gestureProfiles, gestureHoldFrames). These aren't preferences
-            // to preserve; a spread merge like the one above only fills in MISSING keys, so
-            // without this they'd otherwise persist in localStorage forever, across every future
-            // update, regardless of which JS build actually runs.
-            const pruneOrphaned = (obj, schema) => {
-                if (!obj || !schema) return;
-                Object.keys(obj).forEach(k => { if (!(k in schema)) delete obj[k]; });
-            };
-            pruneOrphaned(appSettings, DEFAULT_APP);
-            pruneOrphaned(appSettings.runtimeSettings, DEFAULT_APP.runtimeSettings);
-            Object.values(appSettings.profiles || {}).forEach(p => {
-                if (p && p.settings) pruneOrphaned(p.settings, DEFAULT_PROFILE_SETTINGS);
-            });
-        } else {
-            appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles['profile_1'].settings));
-        }
-        if (st) appState = JSON.parse(st);
-        if (!appState['current_session']) appState['current_session'] = {
-            sequences: Array.from({
-                length: CONFIG.MAX_MACHINES
-            }, () => []),
-            nextSequenceIndex: 0,
-            currentRound: 1
-        };
-        appState['current_session'].currentRound = parseInt(appState['current_session'].currentRound) || 1;
-    } catch (e) {
-        console.error("Load failed", e);
-        appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
-        appState = {};
-        saveState();
-    }
+	try {
+		const s = localStorage.getItem(CONFIG.STORAGE_KEY_SETTINGS);
+		const st = localStorage.getItem(CONFIG.STORAGE_KEY_STATE);
+		if (s) {
+			const loaded = JSON.parse(s);
+			appSettings = {
+				...DEFAULT_APP,
+				...loaded,
+				profiles: {
+					...DEFAULT_APP.profiles,
+					...loaded.profiles || ({})
+				},
+				customThemes: {
+					...DEFAULT_APP.customThemes,
+					...loaded.customThemes || ({})
+				}
+			};
+			if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
+			if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
+			if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
+			if (typeof appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled === 'undefined') appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled = true;
+			if (typeof appSettings.showTimer === 'undefined') appSettings.showTimer = false;
+			if (typeof appSettings.showCounter === 'undefined') appSettings.showCounter = false;
+			if (!appSettings.runtimeSettings.voicePresets) appSettings.runtimeSettings.voicePresets = {};
+			if (!appSettings.runtimeSettings.activeVoicePresetId) appSettings.runtimeSettings.activeVoicePresetId = 'standard';
+			if (!appSettings.touchResizeMode) appSettings.touchResizeMode = 'global';
+			if (!appSettings.toneCalibration || typeof appSettings.toneCalibration !== 'object') appSettings.toneCalibration = { isCalibrated: false, notes: {} };
+			if (!appSettings.toneCalibration.notes) appSettings.toneCalibration.notes = {};
+			if (!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS));
+			if (appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
+			const migratePause = v => (typeof v === 'string' ? 0 : v);
+			appSettings.runtimeSettings.pauseSetting = migratePause(appSettings.runtimeSettings.pauseSetting);
+			Object.values(appSettings.profiles || {}).forEach(p => {
+					if (p && p.settings) p.settings.pauseSetting = migratePause(p.settings.pauseSetting);
+			});
+			const pruneOrphaned = (obj, schema) => {
+				if (!obj || !schema) return;
+				Object.keys(obj).forEach(k => { if (!(k in schema)) delete obj[k]; });
+			};
+			pruneOrphaned(appSettings, DEFAULT_APP);
+			pruneOrphaned(appSettings.runtimeSettings, DEFAULT_APP.runtimeSettings);
+			Object.values(appSettings.profiles || {}).forEach(p => {
+					if (p && p.settings) pruneOrphaned(p.settings, DEFAULT_PROFILE_SETTINGS);
+			});
+		} else {
+			appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles['profile_1'].settings));
+		}
+		if (st) appState = JSON.parse(st);
+		if (!appState['current_session']) appState['current_session'] = {
+			sequences: Array.from({
+					length: CONFIG.MAX_MACHINES
+				}, () => []),
+			nextSequenceIndex: 0,
+			currentRound: 1
+		};
+		appState['current_session'].currentRound = parseInt(appState['current_session'].currentRound) || 1;
+	} catch (e) {
+		console.error("Load failed", e);
+		appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
+		appState = {};
+		saveState();
+	}
 }
-
-// Single choke point for every vibration in the app. Do Not Disturb suppresses all haptics
-// here, so a future raw navigator.vibrate() call added elsewhere is the only way to bypass DND -
-// route new haptics through this instead. Deliberately does NOT check isHapticsEnabled: the
-// call sites that used raw navigator.vibrate() were never haptics-setting gated (alarm/alert
-// style buzzes), and this preserves that behaviour while still honouring DND.
 function hapticPulse(pattern) {
-    if (appSettings.isDndEnabled) return;
-    if (!navigator.vibrate) return;
-    navigator.vibrate(pattern);
+	if (appSettings.isDndEnabled) return;
+	if (!navigator.vibrate) return;
+	navigator.vibrate(pattern);
 }
 function vibrate() {
-    if (appSettings.isDndEnabled) return;
-    if (appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10);
+	if (appSettings.isDndEnabled) return;
+	if (appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10);
 }
-
 function vibrateMorse(val) {
-    if (appSettings.isDndEnabled) return;
-    if (!navigator.vibrate || !appSettings.runtimeSettings.isHapticMorseEnabled) return;
-    let num = parseInt(val);
-    if (isNaN(num)) {
-        const map = {
-            'A': 6,
-            'B': 7,
-            'C': 8,
-            'D': 9,
-            'E': 10,
-            'F': 11,
-            'G': 12
-        };
-        num = map[val.toUpperCase()] || 1;
-    }
-    let patternStr = "";
-    if (appSettings.morseMappings && appSettings.morseMappings[num]) {
-        patternStr = appSettings.morseMappings[num];
-    } else {
-        if (num <= 3) patternStr = (".").repeat(num);
-        else if (num <= 6) patternStr = "-" + (".").repeat(num - 3);
-        else if (num <= 9) patternStr = "--" + (".").repeat(num - 6);
-        else patternStr = "---" + (".").repeat(num - 10);
-    }
-    const speed = appSettings.runtimeSettings.playbackSpeed || 1.0;
-    const factor = 1.0 / speed;
-    const DOT = 100 * factor,
-        DASH = 300 * factor,
-        GAP = 100 * factor;
-    let pattern = [];
-    for (let char of patternStr) {
-        if (char === '.') pattern.push(DOT);
-        if (char === '-') pattern.push(DASH);
-        pattern.push(GAP);
-    }
-    if (pattern.length > 0) navigator.vibrate(pattern);
+	if (appSettings.isDndEnabled) return;
+	if (!navigator.vibrate || !appSettings.runtimeSettings.isHapticMorseEnabled) return;
+	let num = parseInt(val);
+	if (isNaN(num)) {
+		const map = {
+			'A': 6,
+			'B': 7,
+			'C': 8,
+			'D': 9,
+			'E': 10,
+			'F': 11,
+			'G': 12
+		};
+		num = map[val.toUpperCase()] || 1;
+	}
+	let patternStr = "";
+	if (appSettings.morseMappings && appSettings.morseMappings[num]) {
+		patternStr = appSettings.morseMappings[num];
+	} else {
+		if (num <= 3) patternStr = (".").repeat(num);
+		else if (num <= 6) patternStr = "-" + (".").repeat(num - 3);
+		else if (num <= 9) patternStr = "--" + (".").repeat(num - 6);
+		else patternStr = "---" + (".").repeat(num - 10);
+	}
+	const speed = appSettings.runtimeSettings.playbackSpeed || 1.0;
+	const factor = 1.0 / speed;
+	const DOT = 100 * factor,
+	DASH = 300 * factor,
+	GAP = 100 * factor;
+	let pattern = [];
+	for (let char of patternStr) {
+		if (char === '.') pattern.push(DOT);
+		if (char === '-') pattern.push(DASH);
+		pattern.push(GAP);
+	}
+	if (pattern.length > 0) navigator.vibrate(pattern);
 }
-
 function speak(text) {
-    if (appSettings.isDndEnabled) return;
-    if (!appSettings.runtimeSettings.isAudioEnabled || !window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'en-US';
-    if (appSettings.runtimeSettings.selectedVoice) {
-        const voices = window.speechSynthesis.getVoices();
-        const v = voices.find(voice => voice.name === appSettings.runtimeSettings.selectedVoice);
-        if (v) u.voice = v;
-    }
-    let p = appSettings.runtimeSettings.voicePitch || 1.0;
-    let r = appSettings.runtimeSettings.voiceRate || 1.0;
-    u.volume = appSettings.runtimeSettings.voiceVolume || 1.0;
-    u.pitch = Math.min(2, Math.max(0.1, p));
-    u.rate = Math.min(10, Math.max(0.1, r));
-    window.speechSynthesis.speak(u);
+	if (appSettings.isDndEnabled) return;
+	if (!appSettings.runtimeSettings.isAudioEnabled || !window.speechSynthesis) return;
+	window.speechSynthesis.cancel();
+	const u = new SpeechSynthesisUtterance(text);
+	u.lang = 'en-US';
+	if (appSettings.runtimeSettings.selectedVoice) {
+		const voices = window.speechSynthesis.getVoices();
+		const v = voices.find(voice => voice.name === appSettings.runtimeSettings.selectedVoice);
+		if (v) u.voice = v;
+	}
+	let p = appSettings.runtimeSettings.voicePitch || 1.0;
+	let r = appSettings.runtimeSettings.voiceRate || 1.0;
+	u.volume = appSettings.runtimeSettings.voiceVolume || 1.0;
+	u.pitch = Math.min(2, Math.max(0.1, p));
+	u.rate = Math.min(10, Math.max(0.1, r));
+	window.speechSynthesis.speak(u);
 }
-
 function _anyModalVisible() {
-    return _MODAL_IDS.some(id => {
-        const el = document.getElementById(id);
-        return el && !el.classList.contains('opacity-0') && !el.classList.contains('pointer-events-none') && !el.classList.contains('hidden');
-    });
+	return _MODAL_IDS.some(id => {
+			const el = document.getElementById(id);
+			return el && !el.classList.contains('opacity-0') && !el.classList.contains('pointer-events-none') && !el.classList.contains('hidden');
+	});
 }
-
 function lockBodyScroll() {
-    if (!_scrollLocked) {
-        _savedScrollY = window.scrollY;
-        document.body.style.position = 'fixed';
-        document.body.style.top = `-${_savedScrollY}px`;
-        document.body.style.left = '0';
-        document.body.style.right = '0';
-        document.body.style.width = '100%';
-        _scrollLocked = true;
-    }
+	if (!_scrollLocked) {
+		_savedScrollY = window.scrollY;
+		document.body.style.position = 'fixed';
+		document.body.style.top = `-${_savedScrollY}px`;
+		document.body.style.left = '0';
+		document.body.style.right = '0';
+		document.body.style.width = '100%';
+		_scrollLocked = true;
+	}
 }
-
 function unlockBodyScroll() {
-    setTimeout(() => {
-        if (_scrollLocked && !_anyModalVisible()) {
-            document.body.style.position = '';
-            document.body.style.top = '';
-            document.body.style.left = '';
-            document.body.style.right = '';
-            document.body.style.width = '';
-            window.scrollTo(0, _savedScrollY);
-            _scrollLocked = false;
-        }
-    }, 50);
+	setTimeout(() => {
+			if (_scrollLocked && !_anyModalVisible()) {
+				document.body.style.position = '';
+				document.body.style.top = '';
+				document.body.style.left = '';
+				document.body.style.right = '';
+				document.body.style.width = '';
+				window.scrollTo(0, _savedScrollY);
+				_scrollLocked = false;
+			}
+		}, 50);
 }
-
 function showToast(msg) {
-    if (appSettings.isDndEnabled) return;
-    const t = document.getElementById('toast-notification');
-    const m = document.getElementById('toast-message');
-    if (!t || !m) return;
-    m.textContent = msg;
-    t.classList.remove('opacity-0', '-translate-y-10');
-    setTimeout(() => t.classList.add('opacity-0', '-translate-y-10'), 2000);
+	if (appSettings.isDndEnabled) return;
+	const t = document.getElementById('toast-notification');
+	const m = document.getElementById('toast-message');
+	if (!t || !m) return;
+	m.textContent = msg;
+	t.classList.remove('opacity-0', '-translate-y-10');
+	setTimeout(() => t.classList.add('opacity-0', '-translate-y-10'), 2000);
 }
-
 function applyTheme(themeKey) {
-    const body = document.body;
-    body.className = body.className.replace(/theme-\w+/g, '');
-    let t = appSettings.customThemes[themeKey];
-    if (!t && PREMADE_THEMES[themeKey]) t = PREMADE_THEMES[themeKey];
-    if (!t) t = PREMADE_THEMES['default'];
-    body.style.setProperty('--primary', t.bubble);
-    body.style.setProperty('--bg-main', t.bgMain);
-    body.style.setProperty('--bg-modal', t.bgCard);
-    body.style.setProperty('--card-bg', t.bgCard);
-    body.style.setProperty('--seq-bubble', t.bubble);
-    body.style.setProperty('--btn-bg', t.btn);
-    body.style.setProperty('--bg-input', t.bgMain);
-    body.style.setProperty('--text-main', t.text);
-    const hex = t.bgCard.replace('#', '');
-    const r = parseInt(hex.substring(0, 2), 16) || 0;
-    const g = parseInt(hex.substring(2, 4), 16) || 0;
-    const b = parseInt(hex.substring(4, 6), 16) || 0;
-    const isDark = 0.299 * r + 0.587 * g + 0.114 * b < 128;
-    body.style.setProperty('--border', isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)');
-    // The number-box (the actual sequence cards) sits directly on --seq-bubble, which can be
-    // dark or light independent of whether the overall theme is dark or light - --text-main is
-    // calibrated for the general theme background, not this specific one, so reusing it here
-    // produced dark-on-dark or light-on-light text depending on the theme. Computed the same way
-    // as isDark above, just from the bubble color instead of the card color.
-    const bHex = t.bubble.replace('#', '');
-    const br = parseInt(bHex.substring(0, 2), 16) || 0;
-    const bg = parseInt(bHex.substring(2, 4), 16) || 0;
-    const bb = parseInt(bHex.substring(4, 6), 16) || 0;
-    const bubbleIsDark = 0.299 * br + 0.587 * bg + 0.114 * bb < 128;
-    body.style.setProperty('--seq-bubble-text', bubbleIsDark ? '#ffffff' : '#111827');
-    // Several accent-color utility classes throughout the app (text-blue-400, text-emerald-400,
-    // etc.) use fixed light-toned values that read fine against a dark card background but lose
-    // most of their contrast against a light one. Rather than hand-picking a value per class per
-    // theme, this single class lets one CSS block override just the problematic ones - and
-    // covers custom themes automatically too, since it's driven by the same luminance check
-    // already being used for --border above, not a hardcoded list of theme names.
-    body.classList.toggle('theme-is-light', !isDark);
+	const body = document.body;
+	body.className = body.className.replace(/theme-\w+/g, '');
+	let t = appSettings.customThemes[themeKey];
+	if (!t && PREMADE_THEMES[themeKey]) t = PREMADE_THEMES[themeKey];
+	if (!t) t = PREMADE_THEMES['default'];
+	body.style.setProperty('--primary', t.bubble);
+	body.style.setProperty('--bg-main', t.bgMain);
+	body.style.setProperty('--bg-modal', t.bgCard);
+	body.style.setProperty('--card-bg', t.bgCard);
+	body.style.setProperty('--seq-bubble', t.bubble);
+	body.style.setProperty('--btn-bg', t.btn);
+	body.style.setProperty('--bg-input', t.bgMain);
+	body.style.setProperty('--text-main', t.text);
+	const hex = t.bgCard.replace('#', '');
+	const r = parseInt(hex.substring(0, 2), 16) || 0;
+	const g = parseInt(hex.substring(2, 4), 16) || 0;
+	const b = parseInt(hex.substring(4, 6), 16) || 0;
+	const isDark = 0.299 * r + 0.587 * g + 0.114 * b < 128;
+	body.style.setProperty('--border', isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)');
+	const bHex = t.bubble.replace('#', '');
+	const br = parseInt(bHex.substring(0, 2), 16) || 0;
+	const bg = parseInt(bHex.substring(2, 4), 16) || 0;
+	const bb = parseInt(bHex.substring(4, 6), 16) || 0;
+	const bubbleIsDark = 0.299 * br + 0.587 * bg + 0.114 * bb < 128;
+	body.style.setProperty('--seq-bubble-text', bubbleIsDark ? '#ffffff' : '#111827');
+	body.classList.toggle('theme-is-light', !isDark);
 }
-
 function updateAllChrome() {
-    applyTheme(appSettings.activeTheme);
-    document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
-    document.body.style.fontFamily = appSettings.activeFontFamily || "'Inter', sans-serif";
-    renderUI();
+	applyTheme(appSettings.activeTheme);
+	document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
+	document.body.style.fontFamily = appSettings.activeFontFamily || "'Inter', sans-serif";
+	renderUI();
 }
-
 function startPracticeRound() {
-    const settingsModal = document.getElementById('settings-modal');
-    if (settingsModal && !settingsModal.classList.contains('pointer-events-none')) return;
-    const state = getState();
-    const settings = getProfileSettings();
-    const max = settings.currentInput === 'key12' ? 12 : 9;
-    const getRand = () => {
-        if (settings.currentInput === 'piano') {
-            const keys = ['C', 'D', 'E', 'F', 'G', 'A', 'B', '1', '2', '3', '4', '5'];
-            return keys[Math.floor(Math.random() * keys.length)];
-        }
-        return Math.floor(Math.random() * max) + 1;
-    };
-    if (practiceSequence.length === 0) state.currentRound = 1;
-    if (settings.currentMode === CONFIG.MODES.SIMON) {
-        practiceSequence.push(getRand());
-        state.currentRound = practiceSequence.length;
-    } else {
-        practiceSequence = [];
-        const len = state.currentRound;
-        for (let i = 0; i < len; i++) practiceSequence.push(getRand());
-    }
-    practiceInputIndex = 0;
-    renderUI();
-    showToast(`Practice Round ${state.currentRound}`);
-    setTimeout(() => playPracticeSequence(), 1000);
+	const settingsModal = document.getElementById('settings-modal');
+	if (settingsModal && !settingsModal.classList.contains('pointer-events-none')) return;
+	const state = getState();
+	const settings = getProfileSettings();
+	const max = settings.currentInput === 'key12' ? 12 : 9;
+	const getRand = () => {
+		if (settings.currentInput === 'piano') {
+			const keys = ['C', 'D', 'E', 'F', 'G', 'A', 'B', '1', '2', '3', '4', '5'];
+			return keys[Math.floor(Math.random() * keys.length)];
+		}
+		return Math.floor(Math.random() * max) + 1;
+	};
+	if (practiceSequence.length === 0) state.currentRound = 1;
+	if (settings.currentMode === CONFIG.MODES.SIMON) {
+		practiceSequence.push(getRand());
+		state.currentRound = practiceSequence.length;
+	} else {
+		practiceSequence = [];
+		const len = state.currentRound;
+		for (let i = 0; i < len; i++) practiceSequence.push(getRand());
+	}
+	practiceInputIndex = 0;
+	renderUI();
+	showToast(`Practice Round ${state.currentRound}`);
+	setTimeout(() => playPracticeSequence(), 1000);
 }
-
 function playPracticeSequence() {
-    if (appSettings.isToneCadenceEnabled && window.toneSequenceTester) {
-        playPracticeSequenceViaTone();
-        return;
-    }
-    let i = 0;
-    const speed = appSettings.runtimeSettings.playbackSpeed || 1.0;
-    disableInput(true);
-
-    function next() {
-        if (i >= practiceSequence.length) {
-            disableInput(false);
-            return;
-        }
-        const val = practiceSequence[i];
-        const settings = getProfileSettings();
-        const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${val}"]`);
-        if (key && appSettings.runtimeSettings.isFlashEnabled) {
-            key.classList.add('flash-active');
-            setTimeout(() => key.classList.remove('flash-active'), 250 / speed);
-        }
-        speak(val);
-        i++;
-        setTimeout(next, 800 / speed);
-    }
-    next();
+	if (appSettings.isToneCadenceEnabled && window.toneSequenceTester) {
+		playPracticeSequenceViaTone();
+		return;
+	}
+	let i = 0;
+	const speed = appSettings.runtimeSettings.playbackSpeed || 1.0;
+	disableInput(true);
+	function next() {
+		if (i >= practiceSequence.length) {
+			disableInput(false);
+			return;
+		}
+		const val = practiceSequence[i];
+		const settings = getProfileSettings();
+		const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${val}"]`);
+		if (key && appSettings.runtimeSettings.isFlashEnabled) {
+			key.classList.add('flash-active');
+			setTimeout(() => key.classList.remove('flash-active'), 250 / speed);
+		}
+		speak(val);
+		i++;
+		setTimeout(next, 800 / speed);
+	}
+	next();
 }
-
-// Tone Cadence's own sequence presentation, replacing visual flash + speech with actual
-// tones. Structure is exact, not approximated: an 8-tone "2 through 9" cue marks the start
-// of a fresh session (round 1 only), then every round plays the growing sequence once, then
-// repeats it once more as the "your turn" cue, then starts listening. Output timing is a
-// rigid 200ms tone / 800ms silence; the hummed-back input is intentionally read with more
-// forgiving windows (ToneEngine's own 100-350ms tone / 600-1100ms silence) since a human
-// won't reproduce that timing exactly.
-//
-// Until a calibration profile exists, the 8-tone cue doubles as the calibration pass (see
-// runToneCalibration): once appSettings.toneCalibration.isCalibrated is true, it goes back to
-// being a plain orientation cue and this branch is skipped every session after that.
 async function playPracticeSequenceViaTone() {
-    disableInput(true);
-    const tester = window.toneSequenceTester;
-    if (practiceSequence.length === 1) {
-        if (!appSettings.toneCalibration.isCalibrated) {
-            await runToneCalibration();
-        } else {
-            await tester.playSequence([2, 3, 4, 5, 6, 7, 8, 9], 200, 800);
-            await new Promise(r => setTimeout(r, 400));
-        }
-    }
-    await tester.playSequence(practiceSequence, 200, 800);
-    await new Promise(r => setTimeout(r, 400));
-    await tester.playSequence(practiceSequence, 200, 800);
-    disableInput(false);
-    if (window.toneEngine && !window.toneEngine.isActive) window.toneEngine.start();
+	disableInput(true);
+	const tester = window.toneSequenceTester;
+	if (practiceSequence.length === 1) {
+		if (!appSettings.toneCalibration.isCalibrated) {
+			await runToneCalibration();
+		} else {
+			await tester.playSequence([2, 3, 4, 5, 6, 7, 8, 9], 200, 800);
+			await new Promise(r => setTimeout(r, 400));
+		}
+	}
+	await tester.playSequence(practiceSequence, 200, 800);
+	await new Promise(r => setTimeout(r, 400));
+	await tester.playSequence(practiceSequence, 200, 800);
+	disableInput(false);
+	if (window.toneEngine && !window.toneEngine.isActive) window.toneEngine.start();
 }
-
-// Runs once automatically (see playPracticeSequenceViaTone), or on demand from the Advanced
-// "Recalibrate" button. Plays each of the same 8 orientation tones one at a time, then listens
-// for the user's hum of that same note before moving to the next -- can't listen while the tone
-// itself is still playing, since the mic would just pick up the speaker. Whatever's captured
-// becomes that note's detection center going forward (see ToneEngine._effectiveTones); any note
-// that doesn't get a clean reading just keeps using the standard tone for itself, not a guess.
-//
-// Does NOT wrap disableInput -- playPracticeSequenceViaTone's existing bracket already covers
-// the automatic path, and the manual Recalibrate button wraps its own call, so this can be
-// invoked from either place without double-managing that state.
 async function runToneCalibration() {
-    const tester = window.toneSequenceTester;
-    const engine = window.toneEngine;
-    if (!tester || !engine) return;
-    if (!engine.isActive) await engine.start();
-    if (!engine.isActive) {
-        // Mic never came online (permission denied, or unavailable) -- don't mark this as a
-        // completed calibration, so it tries again next session instead of getting stuck on
-        // whatever the defaults are. Fall back to the plain orientation cue for now.
-        await tester.playSequence([2, 3, 4, 5, 6, 7, 8, 9], 200, 800);
-        await new Promise(r => setTimeout(r, 400));
-        return;
-    }
-    if (engine.loopId) cancelAnimationFrame(engine.loopId); // pause normal gameplay listening while calibration runs its own
-    showToast('🎵 Calibrating Tone Cadence — hum each note back as you hear it');
-    const sequence = [2, 3, 4, 5, 6, 7, 8, 9];
-    const results = {};
-    for (const n of sequence) {
-        const target = TONE_TABLE.find(t => t.n === n);
-        await tester.playTone(target.f, 200);
-        await new Promise(r => setTimeout(r, 250)); // let any acoustic tail settle before listening
-        showToast(`🎵 Your turn: hum "${target.name}"`);
-        const freq = await engine._listenForPitch(target.f, 1800);
-        if (freq) {
-            results[n] = freq;
-            showToast(`✅ Got "${target.name}": ${Math.round(freq)}Hz`);
-        } else {
-            showToast(`⚠️ Didn't catch "${target.name}" — using the standard tone for it`);
-        }
-        await new Promise(r => setTimeout(r, 300));
-    }
-    appSettings.toneCalibration.notes = { ...appSettings.toneCalibration.notes, ...results };
-    appSettings.toneCalibration.isCalibrated = true;
-    saveState();
-    showToast('🎵 Calibration complete ✅');
-    engine.loop(); // resume normal gameplay listening
-    if (window.__updateToneCalibrationStatus) window.__updateToneCalibrationStatus();
+	const tester = window.toneSequenceTester;
+	const engine = window.toneEngine;
+	if (!tester || !engine) return;
+	if (!engine.isActive) await engine.start();
+	if (!engine.isActive) {
+		await tester.playSequence([2, 3, 4, 5, 6, 7, 8, 9], 200, 800);
+		await new Promise(r => setTimeout(r, 400));
+		return;
+	}
+	if (engine.loopId) cancelAnimationFrame(engine.loopId);
+	showToast('🎵 Calibrating Tone Cadence — hum each note back as you hear it');
+	const sequence = [2, 3, 4, 5, 6, 7, 8, 9];
+	const results = {};
+	for (const n of sequence) {
+		const target = TONE_TABLE.find(t => t.n === n);
+		await tester.playTone(target.f, 200);
+		await new Promise(r => setTimeout(r, 250));
+		showToast(`🎵 Your turn: hum "${target.name}"`);
+		const freq = await engine._listenForPitch(target.f, 1800);
+		if (freq) {
+			results[n] = freq;
+			showToast(`✅ Got "${target.name}": ${Math.round(freq)}Hz`);
+		} else {
+			showToast(`⚠️ Didn't catch "${target.name}" — using the standard tone for it`);
+		}
+		await new Promise(r => setTimeout(r, 300));
+	}
+	appSettings.toneCalibration.notes = { ...appSettings.toneCalibration.notes, ...results };
+	appSettings.toneCalibration.isCalibrated = true;
+	saveState();
+	showToast('🎵 Calibration complete ✅');
+	engine.loop();
+	if (window.__updateToneCalibrationStatus) window.__updateToneCalibrationStatus();
 }
-
-
 function addValue(value) {
-    vibrate();
-    const state = getState();
-    const settings = getProfileSettings();
-    if (appSettings.runtimeSettings.isPracticeModeEnabled) {
-        if (practiceSequence.length === 0) return;
-        if (value == practiceSequence[practiceInputIndex]) {
-            practiceInputIndex++;
-            if (practiceInputIndex >= practiceSequence.length) {
-                speak("Correct");
-                state.currentRound++;
-                setTimeout(startPracticeRound, 1500);
-            }
-        } else {
-            speak("Wrong");
-            hapticPulse(500);
-            setTimeout(() => playPracticeSequence(), 1500);
-        }
-        return;
-    }
-    let targetIndex = 0;
-    if (settings.currentMode === CONFIG.MODES.SIMON) targetIndex = state.nextSequenceIndex % settings.machineCount;
-    // Input Regulator: silently ignore this input if the SAME machine slot already accepted one
-    // within the last 2 seconds. Scoped per machine (not globally) so a genuine fast burst of
-    // DIFFERENT machines' inputs in multi-machine mode isn't blocked - only the same machine
-    // firing twice in quick succession is, which is the actual signature of an accidental
-    // double-input (a misfired tap/gesture), not a deliberate rapid entry.
-    // SIMON mode only: UNIQUE_ROUNDS always targets machine slot 0 for every input regardless
-    // of machineCount, so this same check there would floor EVERY input in the sequence at 2
-    // seconds apart - unplayable for anything longer than a couple of items.
-    if (appSettings.isInputRegulatorEnabled && settings.currentMode === CONFIG.MODES.SIMON) {
-        const now = Date.now();
-        if (now - (lastMachineInputTime[targetIndex] || 0) < 2000) return;
-    }
-    const roundNum = parseInt(state.currentRound) || 1;
-    const isUnique = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS;
-    let limit;
-    if (isUnique) {
-        limit = appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled ? roundNum : settings.sequenceLength;
-    } else {
-        limit = settings.sequenceLength;
-    }
-    if (state.sequences[targetIndex] && state.sequences[targetIndex].length >= limit) {
-        if (isUnique && appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled) {
-            showToast("Round Full - Reset? 🛑");
-            vibrate();
-        }
-        return;
-    }
-    let isFirstInput = true;
-    state.sequences.forEach(s => {
-        if (s.length > 0) isFirstInput = false;
-    });
-    if (isFirstInput) {
-        if (appSettings.isAutoTimerEnabled && appSettings.showTimer && globalTimerActions.reset && globalTimerActions.start) {
-            globalTimerActions.reset();
-            globalTimerActions.start();
-        }
-        if (appSettings.isAutoCounterEnabled && appSettings.showCounter && globalCounterActions.increment) {
-            globalCounterActions.increment();
-        }
-    }
-    if (!state.sequences[targetIndex]) state.sequences[targetIndex] = [];
-    state.sequences[targetIndex].push(value);
-    state.nextSequenceIndex++;
-    if (appSettings.isInputRegulatorEnabled && settings.currentMode === CONFIG.MODES.SIMON) lastMachineInputTime[targetIndex] = Date.now();
-    renderUI();
-    saveState();
-    if (appSettings.runtimeSettings.isAutoplayEnabled) {
-        if (settings.currentMode === CONFIG.MODES.SIMON) {
-            const justFilled = (state.nextSequenceIndex - 1) % settings.machineCount;
-            if (justFilled === settings.machineCount - 1) setTimeout(playDemo, 250);
-        } else {
-            if (appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled) {
-                if (state.sequences[0].length >= roundNum) {
-                    disableInput(true);
-                    setTimeout(playDemo, 250);
-                }
-            } else {
-                setTimeout(playDemo, 250);
-            }
-        }
-    }
+	vibrate();
+	const state = getState();
+	const settings = getProfileSettings();
+	if (appSettings.runtimeSettings.isPracticeModeEnabled) {
+		if (practiceSequence.length === 0) return;
+		if (value == practiceSequence[practiceInputIndex]) {
+			practiceInputIndex++;
+			if (practiceInputIndex >= practiceSequence.length) {
+				speak("Correct");
+				state.currentRound++;
+				setTimeout(startPracticeRound, 1500);
+			}
+		} else {
+			speak("Wrong");
+			hapticPulse(500);
+			setTimeout(() => playPracticeSequence(), 1500);
+		}
+		return;
+	}
+	let targetIndex = 0;
+	if (settings.currentMode === CONFIG.MODES.SIMON) targetIndex = state.nextSequenceIndex % settings.machineCount;
+	if (appSettings.isInputRegulatorEnabled && settings.currentMode === CONFIG.MODES.SIMON) {
+		const now = Date.now();
+		if (now - (lastMachineInputTime[targetIndex] || 0) < 2000) return;
+	}
+	const roundNum = parseInt(state.currentRound) || 1;
+	const isUnique = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS;
+	let limit;
+	if (isUnique) {
+		limit = appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled ? roundNum : settings.sequenceLength;
+	} else {
+		limit = settings.sequenceLength;
+	}
+	if (state.sequences[targetIndex] && state.sequences[targetIndex].length >= limit) {
+		if (isUnique && appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled) {
+			showToast("Round Full - Reset? 🛑");
+			vibrate();
+		}
+		return;
+	}
+	let isFirstInput = true;
+	state.sequences.forEach(s => {
+			if (s.length > 0) isFirstInput = false;
+	});
+	if (isFirstInput) {
+		if (appSettings.isAutoTimerEnabled && appSettings.showTimer && globalTimerActions.reset && globalTimerActions.start) {
+			globalTimerActions.reset();
+			globalTimerActions.start();
+		}
+		if (appSettings.isAutoCounterEnabled && appSettings.showCounter && globalCounterActions.increment) {
+			globalCounterActions.increment();
+		}
+	}
+	if (!state.sequences[targetIndex]) state.sequences[targetIndex] = [];
+	state.sequences[targetIndex].push(value);
+	state.nextSequenceIndex++;
+	if (appSettings.isInputRegulatorEnabled && settings.currentMode === CONFIG.MODES.SIMON) lastMachineInputTime[targetIndex] = Date.now();
+	renderUI();
+	saveState();
+	if (appSettings.runtimeSettings.isAutoplayEnabled) {
+		if (settings.currentMode === CONFIG.MODES.SIMON) {
+			const justFilled = (state.nextSequenceIndex - 1) % settings.machineCount;
+			if (justFilled === settings.machineCount - 1) setTimeout(playDemo, 250);
+		} else {
+			if (appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled) {
+				if (state.sequences[0].length >= roundNum) {
+					disableInput(true);
+					setTimeout(playDemo, 250);
+				}
+			} else {
+				setTimeout(playDemo, 250);
+			}
+		}
+	}
 }
-
-// FIX: called via `typeof resetCurrentMachine === 'function'` from the Clear hand signal, but
-// never actually defined anywhere - the guard silently evaluated false and Clear did nothing.
-// Matches the exact reset pattern already used by the tone engine's own silence-reset callback.
 function resetCurrentMachine() {
-    const state = getState();
-    state.sequences = Array.from({ length: CONFIG.MAX_MACHINES }, () => []);
-    state.nextSequenceIndex = 0;
-    state.currentRound = 1;
-    // Input Regulator tracks per-machine cooldowns purely by timestamp - without this, a fresh
-    // sequence starting right after a Clear could inherit a stale cooldown from whatever was
-    // entered just before the clear, blocking its own legitimate first input.
-    lastMachineInputTime = {};
-    renderUI();
-    saveState();
+	const state = getState();
+	state.sequences = Array.from({ length: CONFIG.MAX_MACHINES }, () => []);
+	state.nextSequenceIndex = 0;
+	state.currentRound = 1;
+	lastMachineInputTime = {};
+	renderUI();
+	saveState();
 }
-
 function handleBackspace(e) {
-    if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-    vibrate();
-    const state = getState();
-    const settings = getProfileSettings();
-    if (state.nextSequenceIndex <= 0) return;
-    if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
-        if (state.sequences[0].length > 0) {
-            state.sequences[0].pop();
-            state.nextSequenceIndex--;
-        }
-    } else {
-        let target = (state.nextSequenceIndex - 1) % settings.machineCount;
-        if (target < 0) target = settings.machineCount - 1;
-        if (state.sequences[target] && state.sequences[target].length > 0) {
-            state.sequences[target].pop();
-            state.nextSequenceIndex--;
-        }
-    }
-    let isEmpty = true;
-    state.sequences.forEach(s => {
-        if (s.length > 0) isEmpty = false;
-    });
-    if (isEmpty && appSettings.isAutoTimerEnabled && appSettings.showTimer && globalTimerActions.stop) {
-        globalTimerActions.stop();
-    }
-    renderUI();
-    saveState();
+	if (e) {
+		e.preventDefault();
+		e.stopPropagation();
+	}
+	vibrate();
+	const state = getState();
+	const settings = getProfileSettings();
+	if (state.nextSequenceIndex <= 0) return;
+	if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
+		if (state.sequences[0].length > 0) {
+			state.sequences[0].pop();
+			state.nextSequenceIndex--;
+		}
+	} else {
+		let target = (state.nextSequenceIndex - 1) % settings.machineCount;
+		if (target < 0) target = settings.machineCount - 1;
+		if (state.sequences[target] && state.sequences[target].length > 0) {
+			state.sequences[target].pop();
+			state.nextSequenceIndex--;
+		}
+	}
+	let isEmpty = true;
+	state.sequences.forEach(s => {
+			if (s.length > 0) isEmpty = false;
+	});
+	if (isEmpty && appSettings.isAutoTimerEnabled && appSettings.showTimer && globalTimerActions.stop) {
+		globalTimerActions.stop();
+	}
+	renderUI();
+	saveState();
 }
-
 function applyPositionSwapOffsets(isActive) {
-    const footer = document.getElementById('input-footer');
-    const app = document.getElementById('app');
-    const header = document.getElementById('aux-control-header');
-    if (!footer || !app) return;
-    if (isActive) {
-        const headerVisible = header && !header.classList.contains('header-hidden');
-        const headerH = headerVisible ? header.offsetHeight : 0;
-        footer.style.top = headerH + 'px';
-        footer.style.bottom = 'auto';
-        app.style.paddingTop = footer.offsetHeight + headerH + 16 + 'px';
-        app.style.paddingBottom = '2rem';
-    } else {
-        footer.style.top = '';
-        footer.style.bottom = '';
-        app.style.paddingTop = '';
-        app.style.paddingBottom = '';
-    }
-    // Without this, #sequence-container keeps whatever padding-top it last had from before the
-    // toggle (stale, computed for the OTHER mode), stacking on top of the paddingTop set above
-    // instead of the two ever agreeing on which one is responsible for the gap.
-    if (window.modules && window.modules.settings) window.modules.settings.updateSequenceContainerOffset();
+	const footer = document.getElementById('input-footer');
+	const app = document.getElementById('app');
+	const header = document.getElementById('aux-control-header');
+	if (!footer || !app) return;
+	if (isActive) {
+		const headerVisible = header && !header.classList.contains('header-hidden');
+		const headerH = headerVisible ? header.offsetHeight : 0;
+		footer.style.top = headerH + 'px';
+		footer.style.bottom = 'auto';
+		app.style.paddingTop = footer.offsetHeight + headerH + 16 + 'px';
+		app.style.paddingBottom = '2rem';
+	} else {
+		footer.style.top = '';
+		footer.style.bottom = '';
+		app.style.paddingTop = '';
+		app.style.paddingBottom = '';
+	}
+	if (window.modules && window.modules.settings) window.modules.settings.updateSequenceContainerOffset();
 }
-
 function renderUI() {
-    const container = document.getElementById('sequence-container');
-    if (!container) return;
-    // Re-validates the header-to-cards gap right as cards become visible, rather than relying
-    // solely on the one-time boot calculation (applyHeaderScale) - the header's true rendered
-    // height can still be settling at that early point (icon fonts, layout timing), and this is
-    // exactly the moment any drift would actually be visible to the user.
-    if (window.modules && window.modules.settings) window.modules.settings.updateSequenceContainerOffset();
-    try {
-        const gpWrap = document.getElementById('gesture-pad-wrapper');
-        const pad = document.getElementById('gesture-pad');
-        if (gpWrap) {
-            const isGlobalTouchGestureOn = appSettings.isTouchGestureInputEnabled;
-            const isBossTouchGestureOn = appSettings.isBlackoutFeatureEnabled && appSettings.isTouchGestureInputEnabled && blackoutState.isActive;
-            if (isGlobalTouchGestureOn && isTouchGesturePadVisible || isBossTouchGestureOn) {
-                document.body.classList.add('input-gestures-mode');
-                gpWrap.classList.remove('hidden');
-                if (isBossTouchGestureOn) {
-                    gpWrap.style.zIndex = '10001';
-                    if (pad) {
-                        pad.style.opacity = '0.05';
-                        pad.style.borderColor = 'transparent';
-                    }
-                } else {
-                    gpWrap.style.zIndex = '';
-                    if (pad) {
-                        pad.style.opacity = '1';
-                        pad.style.borderColor = '';
-                    }
-                }
-            } else {
-                document.body.classList.remove('input-gestures-mode');
-                gpWrap.classList.add('hidden');
-                gpWrap.style.zIndex = '';
-            }
-        }
-    } catch (e) {
-        console.error('Gesture UI error', e);
-    }
-    container.innerHTML = '';
-    const settings = getProfileSettings();
-    const state = getState();
-    ['key9', 'key12', 'piano'].forEach(k => {
-        const el = document.getElementById(`pad-${k}`);
-        if (el) el.style.display = settings.currentInput === k ? 'block' : 'none';
-    });
-    if (document.body.classList.contains('layout-swapped')) {
-        setTimeout(() => applyPositionSwapOffsets(true), 0);
-    }
-    if (appSettings.runtimeSettings.isPracticeModeEnabled) {
-        const header = document.createElement('h2');
-        header.className = "text-2xl font-bold text-center w-full mt-4 mb-4";
-        header.style.color = "var(--text-main)";
-        header.innerHTML = `Practice Mode (${settings.currentMode === CONFIG.MODES.SIMON ? 'Simon' : 'Unique'})<br><span class=\"text-sm opacity-70\">Round ${state.currentRound}</span>`;
-        container.appendChild(header);
-        if (practiceSequence.length === 0) {
-            state.currentRound = 1;
-            const btn = document.createElement('button');
-            btn.textContent = "START";
-            btn.className = "w-48 h-48 rounded-full bg-green-600 hover:bg-green-500 text-white text-3xl font-bold practice-start-glow transition-all transform hover:scale-105 active:scale-95 animate-pulse mx-auto block";
-            btn.onclick = () => {
-                btn.style.display = 'none';
-                startPracticeRound();
-            };
-            container.appendChild(btn);
-        } else {
-            const controlsDiv = document.createElement('div');
-            controlsDiv.className = "flex flex-col items-center gap-3 w-full";
-            const replayBtn = document.createElement('button');
-            replayBtn.innerHTML = "↻ REPLAY ROUND";
-            replayBtn.className = "w-64 py-4 bg-yellow-600 hover:bg-yellow-500 text-white font-bold rounded-xl shadow-lg text-xl active:scale-95 transition-transform";
-            replayBtn.onclick = () => {
-                practiceInputIndex = 0;
-                showToast("Replaying... 👂");
-                playPracticeSequence();
-            };
-            const resetLvlBtn = document.createElement('button');
-            resetLvlBtn.innerHTML = "⚠️ Reset to Level 1";
-            resetLvlBtn.className = "text-xs text-red-400 hover:text-red-300 underline py-2";
-            resetLvlBtn.onclick = () => {
-                if (confirm("Restart practice from Level 1?")) {
-                    practiceSequence = [];
-                    state.currentRound = 1;
-                    renderUI();
-                }
-            };
-            controlsDiv.appendChild(replayBtn);
-            controlsDiv.appendChild(resetLvlBtn);
-            container.appendChild(controlsDiv);
-        }
-        return;
-    }
-    const activeSeqs = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);
-    if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
-        const roundNum = parseInt(state.currentRound) || 1;
-        const header = document.createElement('h2');
-        header.className = "text-xl font-bold text-center w-full mb-4 opacity-80";
-        header.style.color = "var(--text-main)";
-        header.innerHTML = `Unique Mode: <span class=\"text-primary-app\">Round ${roundNum}</span>`;
-        container.appendChild(header);
-    }
-    let gridCols = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? 1 : Math.min(settings.machineCount, 4);
-    container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
-    activeSeqs.forEach((seq, idx) => {
-        const card = document.createElement('div');
-        card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)] relative group";
-        if (settings.machineCount > 1) {
-            const headerRow = document.createElement('div');
-            headerRow.className = "flex justify-between items-center mb-2 pb-2 border-b border-custom border-opacity-20";
-            const title = document.createElement('span');
-            title.className = "text-[10px] font-bold uppercase text-muted-custom tracking-wider";
-            title.textContent = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? "SEQUENCE" : `MACHINE ${idx + 1}`;
-            const controls = document.createElement('div');
-            controls.className = "flex space-x-3 opacity-60 hover:opacity-100 transition-opacity";
-            const btnBack = document.createElement('button');
-            btnBack.innerHTML = "⌫";
-            btnBack.className = "hover:text-red-400 text-sm font-bold";
-            btnBack.onclick = e => {
-                e.stopPropagation();
-                if (state.sequences[idx] && state.sequences[idx].length > 0) {
-                    state.sequences[idx].pop();
-                    if (state.nextSequenceIndex > 0) state.nextSequenceIndex--;
-                    vibrate();
-                    renderUI();
-                    saveState();
-                }
-            };
-            if (settings.currentMode !== CONFIG.MODES.UNIQUE_ROUNDS) {
-                const btnTrash = document.createElement('button');
-                btnTrash.innerHTML = "🗑️";
-                btnTrash.className = "hover:text-red-600 text-sm";
-                btnTrash.title = "Remove Machine";
-                btnTrash.onclick = e => {
-                    e.stopPropagation();
-                    if (confirm(`Remove Machine ${idx + 1} entirely?`)) {
-                        const countToRemove = state.sequences[idx].length;
-                        state.sequences.splice(idx, 1);
-                        settings.machineCount--;
-                        const sel = document.getElementById('machines-select');
-                        if (sel) sel.value = settings.machineCount;
-                        state.nextSequenceIndex = Math.max(0, state.nextSequenceIndex - countToRemove);
-                        vibrate();
-                        showToast(`Removed Machine ${idx + 1}`);
-                        renderUI();
-                        saveState();
-                    }
-                };
-                controls.appendChild(btnTrash);
-            }
-            controls.insertBefore(btnBack, controls.firstChild);
-            headerRow.appendChild(title);
-            headerRow.appendChild(controls);
-            card.appendChild(headerRow);
-        }
-        const numGrid = document.createElement('div');
-        if (settings.machineCount > 1) {
-            numGrid.className = "grid grid-cols-4 gap-2 justify-items-center";
-        } else {
-            numGrid.className = "flex flex-wrap gap-2 justify-center";
-        }
-        (seq || []).forEach(num => {
-            const span = document.createElement('span');
-            span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold";
-            const scale = appSettings.uiScaleMultiplier || 1.0;
-            const boxSize = 40 * scale;
-            span.style.width = boxSize + 'px';
-            span.style.height = boxSize + 'px';
-            const fontMult = appSettings.uiFontSizeMultiplier || 1.0;
-            const fontSizePx = boxSize * 0.5 * fontMult;
-            span.style.fontSize = fontSizePx + 'px';
-            span.textContent = num;
-            numGrid.appendChild(span);
-        });
-        card.appendChild(numGrid);
-        container.appendChild(card);
-    });
-    const hMic = document.getElementById('headervoicebtn');
-    const hCam = document.getElementById('headerarcambtn');
-    const hGest = document.getElementById('headertouchbtn');
-    if (hMic) {
-        const isVoiceActive = voiceModule && voiceModule.isListening;
-        hMic.classList.toggle('header-btn-active', isVoiceActive);
-    }
-    if (hCam) hCam.classList.toggle('header-btn-active', document.body.classList.contains('ar-active'));
-    if (hGest) hGest.classList.toggle('header-btn-active', isTouchGesturePadVisible);
-    document.querySelectorAll('.reset-button').forEach(b => {
-        b.style.display = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? 'block' : 'none';
-    });
+	const container = document.getElementById('sequence-container');
+	if (!container) return;
+	if (window.modules && window.modules.settings) window.modules.settings.updateSequenceContainerOffset();
+	try {
+		const gpWrap = document.getElementById('gesture-pad-wrapper');
+		const pad = document.getElementById('gesture-pad');
+		if (gpWrap) {
+			const isGlobalTouchGestureOn = appSettings.isTouchGestureInputEnabled;
+			const isBossTouchGestureOn = appSettings.isBlackoutFeatureEnabled && appSettings.isTouchGestureInputEnabled && blackoutState.isActive;
+			if (isGlobalTouchGestureOn && isTouchGesturePadVisible || isBossTouchGestureOn) {
+				document.body.classList.add('input-gestures-mode');
+				gpWrap.classList.remove('hidden');
+				if (isBossTouchGestureOn) {
+					gpWrap.style.zIndex = '10001';
+					if (pad) {
+						pad.style.opacity = '0.05';
+						pad.style.borderColor = 'transparent';
+					}
+				} else {
+					gpWrap.style.zIndex = '';
+					if (pad) {
+						pad.style.opacity = '1';
+						pad.style.borderColor = '';
+					}
+				}
+			} else {
+				document.body.classList.remove('input-gestures-mode');
+				gpWrap.classList.add('hidden');
+				gpWrap.style.zIndex = '';
+			}
+		}
+	} catch (e) {
+		console.error('Gesture UI error', e);
+	}
+	container.innerHTML = '';
+	const settings = getProfileSettings();
+	const state = getState();
+	['key9', 'key12', 'piano'].forEach(k => {
+			const el = document.getElementById(`pad-${k}`);
+			if (el) el.style.display = settings.currentInput === k ? 'block' : 'none';
+	});
+	if (document.body.classList.contains('layout-swapped')) {
+		setTimeout(() => applyPositionSwapOffsets(true), 0);
+	}
+	if (appSettings.runtimeSettings.isPracticeModeEnabled) {
+		const header = document.createElement('h2');
+		header.className = "text-2xl font-bold text-center w-full mt-4 mb-4";
+		header.style.color = "var(--text-main)";
+		header.innerHTML = `Practice Mode (${settings.currentMode === CONFIG.MODES.SIMON ? 'Simon' : 'Unique'})<br><span class=\"text-sm opacity-70\">Round ${state.currentRound}</span>`;
+		container.appendChild(header);
+		if (practiceSequence.length === 0) {
+			state.currentRound = 1;
+			const btn = document.createElement('button');
+			btn.textContent = "START";
+			btn.className = "w-48 h-48 rounded-full bg-green-600 hover:bg-green-500 text-white text-3xl font-bold practice-start-glow transition-all transform hover:scale-105 active:scale-95 animate-pulse mx-auto block";
+			btn.onclick = () => {
+				btn.style.display = 'none';
+				startPracticeRound();
+			};
+			container.appendChild(btn);
+		} else {
+			const controlsDiv = document.createElement('div');
+			controlsDiv.className = "flex flex-col items-center gap-3 w-full";
+			const replayBtn = document.createElement('button');
+			replayBtn.innerHTML = "↻ REPLAY ROUND";
+			replayBtn.className = "w-64 py-4 bg-yellow-600 hover:bg-yellow-500 text-white font-bold rounded-xl shadow-lg text-xl active:scale-95 transition-transform";
+			replayBtn.onclick = () => {
+				practiceInputIndex = 0;
+				showToast("Replaying... 👂");
+				playPracticeSequence();
+			};
+			const resetLvlBtn = document.createElement('button');
+			resetLvlBtn.innerHTML = "⚠️ Reset to Level 1";
+			resetLvlBtn.className = "text-xs text-red-400 hover:text-red-300 underline py-2";
+			resetLvlBtn.onclick = () => {
+				if (confirm("Restart practice from Level 1?")) {
+					practiceSequence = [];
+					state.currentRound = 1;
+					renderUI();
+				}
+			};
+			controlsDiv.appendChild(replayBtn);
+			controlsDiv.appendChild(resetLvlBtn);
+			container.appendChild(controlsDiv);
+		}
+		return;
+	}
+	const activeSeqs = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);
+	if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
+		const roundNum = parseInt(state.currentRound) || 1;
+		const header = document.createElement('h2');
+		header.className = "text-xl font-bold text-center w-full mb-4 opacity-80";
+		header.style.color = "var(--text-main)";
+		header.innerHTML = `Unique Mode: <span class=\"text-primary-app\">Round ${roundNum}</span>`;
+		container.appendChild(header);
+	}
+	let gridCols = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? 1 : Math.min(settings.machineCount, 4);
+	container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
+	activeSeqs.forEach((seq, idx) => {
+			const card = document.createElement('div');
+			card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)] relative group";
+			if (settings.machineCount > 1) {
+				const headerRow = document.createElement('div');
+				headerRow.className = "flex justify-between items-center mb-2 pb-2 border-b border-custom border-opacity-20";
+				const title = document.createElement('span');
+				title.className = "text-[10px] font-bold uppercase text-muted-custom tracking-wider";
+				title.textContent = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? "SEQUENCE" : `MACHINE ${idx + 1}`;
+				const controls = document.createElement('div');
+				controls.className = "flex space-x-3 opacity-60 hover:opacity-100 transition-opacity";
+				const btnBack = document.createElement('button');
+				btnBack.innerHTML = "⌫";
+				btnBack.className = "hover:text-red-400 text-sm font-bold";
+				btnBack.onclick = e => {
+					e.stopPropagation();
+					if (state.sequences[idx] && state.sequences[idx].length > 0) {
+						state.sequences[idx].pop();
+						if (state.nextSequenceIndex > 0) state.nextSequenceIndex--;
+						vibrate();
+						renderUI();
+						saveState();
+					}
+				};
+				if (settings.currentMode !== CONFIG.MODES.UNIQUE_ROUNDS) {
+					const btnTrash = document.createElement('button');
+					btnTrash.innerHTML = "🗑️";
+					btnTrash.className = "hover:text-red-600 text-sm";
+					btnTrash.title = "Remove Machine";
+					btnTrash.onclick = e => {
+						e.stopPropagation();
+						if (confirm(`Remove Machine ${idx + 1} entirely?`)) {
+							const countToRemove = state.sequences[idx].length;
+							state.sequences.splice(idx, 1);
+							settings.machineCount--;
+							const sel = document.getElementById('machines-select');
+							if (sel) sel.value = settings.machineCount;
+							state.nextSequenceIndex = Math.max(0, state.nextSequenceIndex - countToRemove);
+							vibrate();
+							showToast(`Removed Machine ${idx + 1}`);
+							renderUI();
+							saveState();
+						}
+					};
+					controls.appendChild(btnTrash);
+				}
+				controls.insertBefore(btnBack, controls.firstChild);
+				headerRow.appendChild(title);
+				headerRow.appendChild(controls);
+				card.appendChild(headerRow);
+			}
+			const numGrid = document.createElement('div');
+			if (settings.machineCount > 1) {
+				numGrid.className = "grid grid-cols-4 gap-2 justify-items-center";
+			} else {
+				numGrid.className = "flex flex-wrap gap-2 justify-center";
+			}
+			(seq || []).forEach(num => {
+					const span = document.createElement('span');
+					span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold";
+					const scale = appSettings.uiScaleMultiplier || 1.0;
+					const boxSize = 40 * scale;
+					span.style.width = boxSize + 'px';
+					span.style.height = boxSize + 'px';
+					const fontMult = appSettings.uiFontSizeMultiplier || 1.0;
+					const fontSizePx = boxSize * 0.5 * fontMult;
+					span.style.fontSize = fontSizePx + 'px';
+					span.textContent = num;
+					numGrid.appendChild(span);
+			});
+			card.appendChild(numGrid);
+			container.appendChild(card);
+	});
+	const hMic = document.getElementById('headervoicebtn');
+	const hCam = document.getElementById('headerarcambtn');
+	const hGest = document.getElementById('headertouchbtn');
+	if (hMic) {
+		const isVoiceActive = voiceModule && voiceModule.isListening;
+		hMic.classList.toggle('header-btn-active', isVoiceActive);
+	}
+	if (hCam) hCam.classList.toggle('header-btn-active', document.body.classList.contains('ar-active'));
+	if (hGest) hGest.classList.toggle('header-btn-active', isTouchGesturePadVisible);
+	document.querySelectorAll('.reset-button').forEach(b => {
+			b.style.display = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? 'block' : 'none';
+	});
 }
-
 function disableInput(disabled) {
-    const footer = document.getElementById('input-footer');
-    if (!footer) return;
-    if (disabled) {
-        footer.classList.add('opacity-50', 'pointer-events-none');
-    } else {
-        footer.classList.remove('opacity-50', 'pointer-events-none');
-    }
+	const footer = document.getElementById('input-footer');
+	if (!footer) return;
+	if (disabled) {
+		footer.classList.add('opacity-50', 'pointer-events-none');
+	} else {
+		footer.classList.remove('opacity-50', 'pointer-events-none');
+	}
 }
-
 function playDemo() {
-    if (isDemoPlaying) return;
-    isDemoPlaying = true;
-    isPlaybackPaused = false;
-    playbackResumeCallback = null;
-    const settings = getProfileSettings();
-    const state = getState();
-    const speed = appSettings.runtimeSettings.playbackSpeed || 1.0;
-    const playBtn = document.querySelector('button[data-action="play-demo"]');
-    let seqsToPlay = [];
-    if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
-        seqsToPlay = [state.sequences[0]];
-    } else {
-        seqsToPlay = state.sequences.slice(0, settings.machineCount);
-    }
-    const chunkSize = settings.simonChunkSize || 3;
-    let chunks = [];
-    let maxLen = 0;
-    seqsToPlay.forEach(s => {
-        if (s.length > maxLen) maxLen = s.length;
-    });
-    let roundIdx = 0;
-    for (let i = 0; i < maxLen; i += chunkSize) {
-        for (let m = 0; m < seqsToPlay.length; m++) {
-            const seq = seqsToPlay[m];
-            if (i < seq.length) {
-                const slice = seq.slice(i, i + chunkSize);
-                chunks.push({
-                    machine: m,
-                    nums: slice,
-                    isNewRound: m === 0 && i === 0 && chunks.length === 0,
-                    roundIdx: roundIdx
-                });
-            }
-        }
-        roundIdx++;
-    }
-    let cIdx = 0;
-    let totalCount = 0;
-    const schedule = (fn, delay) => {
-        setTimeout(() => {
-            if (!isDemoPlaying) return;
-            if (isPlaybackPaused) {
-                playbackResumeCallback = fn;
-            } else {
-                fn();
-            }
-        }, delay);
-    };
-
-    function nextChunk() {
-        if (!isDemoPlaying) {
-            if (playBtn) playBtn.textContent = "▶";
-            return;
-        }
-        if (cIdx >= chunks.length) {
-            isDemoPlaying = false;
-            if (playBtn) playBtn.textContent = "▶";
-            if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled) {
-                setTimeout(() => {
-                    if (!isDemoPlaying) {
-                        state.currentRound++;
-                        state.sequences[0] = [];
-                        state.nextSequenceIndex = 0;
-                        // Same reasoning as resetCurrentMachine: without this, a round that
-                        // finishes and restarts quickly (short early rounds especially) could
-                        // have its own legitimate first input blocked by the regulator, which
-                        // would otherwise still be "cooling down" from the previous round's
-                        // final input landing on the same machine slot.
-                        lastMachineInputTime = {};
-                        renderUI();
-                        showToast(`Round ${state.currentRound}`);
-                        saveState();
-                        disableInput(false);
-                    }
-                }, 500);
-            }
-            return;
-        }
-        const chunk = chunks[cIdx];
-        const roundDelay = settings.simonInterSequenceDelay || 0;
-        const pauseDelay = settings.pauseSetting || 0;
-        let nIdx = 0;
-
-        function playNum() {
-            if (!isDemoPlaying) {
-                if (playBtn) playBtn.textContent = "▶";
-                return;
-            }
-            if (nIdx >= chunk.nums.length) {
-                cIdx++;
-                // Same round (chunkSize-sized block), different machine: this is the
-                // "lose track of which sequence you're on" moment pauseSetting exists for.
-                // Advancing to the next round of chunks (looping back to machine 0, or simply
-                // reaching the end): use the existing between-rounds delay instead.
-                const next = chunks[cIdx];
-                const isSameRoundNextMachine = next && next.roundIdx === chunk.roundIdx;
-                schedule(nextChunk, isSameRoundNextMachine ? pauseDelay : roundDelay);
-                return;
-            }
-            const val = chunk.nums[nIdx];
-            totalCount++;
-            if (playBtn) playBtn.textContent = totalCount;
-            const kVal = val;
-            const padId = `pad-${settings.currentInput}`;
-            const btn = document.querySelector(`#${padId} button[data-value="${kVal}"]`);
-            if (btn && appSettings.runtimeSettings.isFlashEnabled) {
-                btn.classList.add('flash-active');
-                setTimeout(() => btn.classList.remove('flash-active'), 250 / speed);
-            }
-            speak(val);
-            if (appSettings.runtimeSettings.isHapticMorseEnabled) vibrateMorse(val);
-            nIdx++;
-            schedule(playNum, CONFIG.DEMO_DELAY_BASE_MS / speed);
-        }
-        playNum();
-    }
-    nextChunk();
+	if (isDemoPlaying) return;
+	isDemoPlaying = true;
+	isPlaybackPaused = false;
+	playbackResumeCallback = null;
+	const settings = getProfileSettings();
+	const state = getState();
+	const speed = appSettings.runtimeSettings.playbackSpeed || 1.0;
+	const playBtn = document.querySelector('button[data-action="play-demo"]');
+	let seqsToPlay = [];
+	if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
+		seqsToPlay = [state.sequences[0]];
+	} else {
+		seqsToPlay = state.sequences.slice(0, settings.machineCount);
+	}
+	const chunkSize = settings.simonChunkSize || 3;
+	let chunks = [];
+	let maxLen = 0;
+	seqsToPlay.forEach(s => {
+			if (s.length > maxLen) maxLen = s.length;
+	});
+	let roundIdx = 0;
+	for (let i = 0; i < maxLen; i += chunkSize) {
+		for (let m = 0; m < seqsToPlay.length; m++) {
+			const seq = seqsToPlay[m];
+			if (i < seq.length) {
+				const slice = seq.slice(i, i + chunkSize);
+				chunks.push({
+						machine: m,
+						nums: slice,
+						isNewRound: m === 0 && i === 0 && chunks.length === 0,
+						roundIdx: roundIdx
+				});
+			}
+		}
+		roundIdx++;
+	}
+	let cIdx = 0;
+	let totalCount = 0;
+	const schedule = (fn, delay) => {
+		setTimeout(() => {
+				if (!isDemoPlaying) return;
+				if (isPlaybackPaused) {
+					playbackResumeCallback = fn;
+				} else {
+					fn();
+				}
+			}, delay);
+	};
+	function nextChunk() {
+		if (!isDemoPlaying) {
+			if (playBtn) playBtn.textContent = "▶";
+			return;
+		}
+		if (cIdx >= chunks.length) {
+			isDemoPlaying = false;
+			if (playBtn) playBtn.textContent = "▶";
+			if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS && appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled) {
+				setTimeout(() => {
+						if (!isDemoPlaying) {
+							state.currentRound++;
+							state.sequences[0] = [];
+							state.nextSequenceIndex = 0;
+							lastMachineInputTime = {};
+							renderUI();
+							showToast(`Round ${state.currentRound}`);
+							saveState();
+							disableInput(false);
+						}
+					}, 500);
+			}
+			return;
+		}
+		const chunk = chunks[cIdx];
+		const roundDelay = settings.simonInterSequenceDelay || 0;
+		const pauseDelay = settings.pauseSetting || 0;
+		let nIdx = 0;
+		function playNum() {
+			if (!isDemoPlaying) {
+				if (playBtn) playBtn.textContent = "▶";
+				return;
+			}
+			if (nIdx >= chunk.nums.length) {
+				cIdx++;
+				const next = chunks[cIdx];
+				const isSameRoundNextMachine = next && next.roundIdx === chunk.roundIdx;
+				schedule(nextChunk, isSameRoundNextMachine ? pauseDelay : roundDelay);
+				return;
+			}
+			const val = chunk.nums[nIdx];
+			totalCount++;
+			if (playBtn) playBtn.textContent = totalCount;
+			const kVal = val;
+			const padId = `pad-${settings.currentInput}`;
+			const btn = document.querySelector(`#${padId} button[data-value="${kVal}"]`);
+			if (btn && appSettings.runtimeSettings.isFlashEnabled) {
+				btn.classList.add('flash-active');
+				setTimeout(() => btn.classList.remove('flash-active'), 250 / speed);
+			}
+			speak(val);
+			if (appSettings.runtimeSettings.isHapticMorseEnabled) vibrateMorse(val);
+			nIdx++;
+			schedule(playNum, CONFIG.DEMO_DELAY_BASE_MS / speed);
+		}
+		playNum();
+	}
+	nextChunk();
 }
-
 function setupARLogic() {
-    const headerCam = document.getElementById('headerarcambtn');
-    const inputFooter = document.getElementById('input-footer');
-    const arRecordBtn = document.getElementById('ar-record-btn');
-    const arBackgroundVideo = document.getElementById('ar-background-video');
-    const arPlaybackContainer = document.getElementById('ar-playback-container');
-    const arPlaybackVideo = document.getElementById('ar-playback-video');
-    let mediaRecorder, recordedChunks = [];
-    async function syncARState(isTargetActive) {
-        document.body.classList.toggle('ar-active', isTargetActive);
-        if (headerCam) headerCam.classList.toggle('header-btn-active', isTargetActive);
-        if (inputFooter) {
-            if (isTargetActive) inputFooter.classList.add('hidden');
-            else inputFooter.classList.remove('hidden');
-        }
-        if (arRecordBtn) {
-            if (isTargetActive) {
-                arRecordBtn.classList.remove('hidden');
-                arRecordBtn.classList.add('flex');
-            } else {
-                arRecordBtn.classList.add('hidden');
-                arRecordBtn.classList.remove('flex');
-            }
-        }
-        if (isTargetActive) {
-            document.body.style.backgroundColor = "transparent";
-            document.getElementById('ar-container')?.classList.remove('hidden');
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                console.error("AR Camera: navigator.mediaDevices.getUserMedia is unavailable - this page needs to be served over HTTPS (or http://localhost) for camera access to work.");
-                showToast("Camera needs HTTPS 🔒 (or localhost)");
-                return;
-            }
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: "environment"
-                    }
-                });
-                if (arBackgroundVideo) {
-                    arBackgroundVideo.srcObject = stream;
-                    arBackgroundVideo.play().catch(e => console.warn(e));
-                }
-            } catch (err) {
-                console.error("AR Camera runtime initialization error:", err.name, err.message);
-                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                    showToast("Camera Access Denied ❌ (check browser site settings)");
-                } else if (err.name === 'NotFoundError') {
-                    showToast("No Camera Found 📷❌");
-                } else if (err.name === 'NotReadableError') {
-                    showToast("Camera In Use By Another App ❌");
-                } else {
-                    showToast(`Camera Error: ${err.name || 'Unknown'} ❌`);
-                }
-            }
-        } else {
-            document.body.style.backgroundColor = "";
-            document.getElementById('ar-container')?.classList.add('hidden');
-            if (arBackgroundVideo && arBackgroundVideo.srcObject) {
-                arBackgroundVideo.srcObject.getTracks().forEach(track => track.stop());
-                arBackgroundVideo.srcObject = null;
-            }
-        }
-    }
-    if (headerCam) {
-        headerCam.onclick = () => {
-            const currentToggleState = !document.body.classList.contains('ar-active');
-            syncARState(currentToggleState);
-            showToast(currentToggleState ? "AR Mode: Ready to Record 📸" : "AR Mode OFF");
-        };
-    }
-    if (arRecordBtn) {
-        arRecordBtn.addEventListener('pointerdown', e => {
-            e.preventDefault();
-            recordedChunks = [];
-            const stream = arBackgroundVideo?.srcObject;
-            if (!stream) return showToast("Camera stream not ready 🛑");
-            try {
-                mediaRecorder = new MediaRecorder(stream, {
-                    mimeType: 'video/webm'
-                });
-            } catch (err) {
-                mediaRecorder = new MediaRecorder(stream);
-            }
-            mediaRecorder.ondataavailable = ev => {
-                if (ev.data.size > 0) recordedChunks.push(ev.data);
-            };
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(recordedChunks, {
-                    type: 'video/webm'
-                });
-                if (arPlaybackVideo && arPlaybackContainer) {
-                    arPlaybackVideo.src = URL.createObjectURL(blob);
-                    arPlaybackContainer.classList.remove('hidden');
-                    arPlaybackContainer.style.display = 'flex';
-                    arPlaybackVideo.playbackRate = appSettings.arPlaybackSpeed || 1.0;
-                    arPlaybackVideo.play().catch(err => console.warn(err));
-                }
-            };
-            mediaRecorder.start();
-            arRecordBtn.classList.add('bg-red-800', 'scale-90');
-            showToast("Recording Video... 🔴");
-        });
-        arRecordBtn.addEventListener('pointerup', e => {
-            e.preventDefault();
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-            }
-            arRecordBtn.classList.remove('bg-red-800', 'scale-90');
-        });
-    }
-        const arPlaybackClose = document.getElementById('ar-close-playback-btn');
-    const closeArPlayback = () => {
-        if (arPlaybackVideo) {
-            arPlaybackVideo.pause();
-            arPlaybackVideo.src = "";
-        }
-        if (arPlaybackContainer) {
-            arPlaybackContainer.classList.add('hidden');
-            arPlaybackContainer.style.display = 'none';
-        }
-    };
-
-    if (arPlaybackClose) {
-        arPlaybackClose.addEventListener('click', closeArPlayback);
-    }
-
-    if (arPlaybackVideo) {
-        arPlaybackVideo.addEventListener('ended', () => {
-            if (appSettings.isArAutoCloseEnabled) closeArPlayback();
-        });
-
-        let wasPlayingBeforeTouch = false;
-        arPlaybackVideo.addEventListener('pointerdown', () => {
-            wasPlayingBeforeTouch = !arPlaybackVideo.paused;
-            if (wasPlayingBeforeTouch) arPlaybackVideo.pause();
-        });
-        
-        const resumeIfNeeded = () => {
-            if (wasPlayingBeforeTouch) {
-                arPlaybackVideo.play().catch(() => {});
-                wasPlayingBeforeTouch = false;
-            }
-        };
-        
-        arPlaybackVideo.addEventListener('pointerup', resumeIfNeeded);
-        arPlaybackVideo.addEventListener('pointercancel', resumeIfNeeded);
-        arPlaybackVideo.addEventListener('pointerleave', resumeIfNeeded);
-    }
-} 
-
+	const headerCam = document.getElementById('headerarcambtn');
+	const inputFooter = document.getElementById('input-footer');
+	const arRecordBtn = document.getElementById('ar-record-btn');
+	const arBackgroundVideo = document.getElementById('ar-background-video');
+	const arPlaybackContainer = document.getElementById('ar-playback-container');
+	const arPlaybackVideo = document.getElementById('ar-playback-video');
+	let mediaRecorder, recordedChunks = [];
+	async function syncARState(isTargetActive) {
+		document.body.classList.toggle('ar-active', isTargetActive);
+		if (headerCam) headerCam.classList.toggle('header-btn-active', isTargetActive);
+		if (inputFooter) {
+			if (isTargetActive) inputFooter.classList.add('hidden');
+			else inputFooter.classList.remove('hidden');
+		}
+		if (arRecordBtn) {
+			if (isTargetActive) {
+				arRecordBtn.classList.remove('hidden');
+				arRecordBtn.classList.add('flex');
+			} else {
+				arRecordBtn.classList.add('hidden');
+				arRecordBtn.classList.remove('flex');
+			}
+		}
+		if (isTargetActive) {
+			document.body.style.backgroundColor = "transparent";
+			document.getElementById('ar-container')?.classList.remove('hidden');
+			if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+				console.error("AR Camera: navigator.mediaDevices.getUserMedia is unavailable - this page needs to be served over HTTPS (or http://localhost) for camera access to work.");
+				showToast("Camera needs HTTPS 🔒 (or localhost)");
+				return;
+			}
+			try {
+				const stream = await navigator.mediaDevices.getUserMedia({
+						video: {
+							facingMode: "environment"
+						}
+				});
+				if (arBackgroundVideo) {
+					arBackgroundVideo.srcObject = stream;
+					arBackgroundVideo.play().catch(e => console.warn(e));
+				}
+			} catch (err) {
+				console.error("AR Camera runtime initialization error:", err.name, err.message);
+				if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+					showToast("Camera Access Denied ❌ (check browser site settings)");
+				} else if (err.name === 'NotFoundError') {
+					showToast("No Camera Found 📷❌");
+				} else if (err.name === 'NotReadableError') {
+					showToast("Camera In Use By Another App ❌");
+				} else {
+					showToast(`Camera Error: ${err.name || 'Unknown'} ❌`);
+				}
+			}
+		} else {
+			document.body.style.backgroundColor = "";
+			document.getElementById('ar-container')?.classList.add('hidden');
+			if (arBackgroundVideo && arBackgroundVideo.srcObject) {
+				arBackgroundVideo.srcObject.getTracks().forEach(track => track.stop());
+				arBackgroundVideo.srcObject = null;
+			}
+		}
+	}
+	if (headerCam) {
+		headerCam.onclick = () => {
+			const currentToggleState = !document.body.classList.contains('ar-active');
+			syncARState(currentToggleState);
+			showToast(currentToggleState ? "AR Mode: Ready to Record 📸" : "AR Mode OFF");
+		};
+	}
+	if (arRecordBtn) {
+		arRecordBtn.addEventListener('pointerdown', e => {
+				e.preventDefault();
+				recordedChunks = [];
+				const stream = arBackgroundVideo?.srcObject;
+				if (!stream) return showToast("Camera stream not ready 🛑");
+				try {
+					mediaRecorder = new MediaRecorder(stream, {
+							mimeType: 'video/webm'
+					});
+				} catch (err) {
+					mediaRecorder = new MediaRecorder(stream);
+				}
+				mediaRecorder.ondataavailable = ev => {
+					if (ev.data.size > 0) recordedChunks.push(ev.data);
+				};
+				mediaRecorder.onstop = () => {
+					const blob = new Blob(recordedChunks, {
+							type: 'video/webm'
+					});
+					if (arPlaybackVideo && arPlaybackContainer) {
+						arPlaybackVideo.src = URL.createObjectURL(blob);
+						arPlaybackContainer.classList.remove('hidden');
+						arPlaybackContainer.style.display = 'flex';
+						arPlaybackVideo.playbackRate = appSettings.arPlaybackSpeed || 1.0;
+						arPlaybackVideo.play().catch(err => console.warn(err));
+					}
+				};
+				mediaRecorder.start();
+				arRecordBtn.classList.add('bg-red-800', 'scale-90');
+				showToast("Recording Video... 🔴");
+		});
+		arRecordBtn.addEventListener('pointerup', e => {
+				e.preventDefault();
+				if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+					mediaRecorder.stop();
+				}
+				arRecordBtn.classList.remove('bg-red-800', 'scale-90');
+		});
+	}
+	const arPlaybackClose = document.getElementById('ar-close-playback-btn');
+	const closeArPlayback = () => {
+		if (arPlaybackVideo) {
+			arPlaybackVideo.pause();
+			arPlaybackVideo.src = "";
+		}
+		if (arPlaybackContainer) {
+			arPlaybackContainer.classList.add('hidden');
+			arPlaybackContainer.style.display = 'none';
+		}
+	};
+	if (arPlaybackClose) {
+		arPlaybackClose.addEventListener('click', closeArPlayback);
+	}
+	if (arPlaybackVideo) {
+		arPlaybackVideo.addEventListener('ended', () => {
+				if (appSettings.isArAutoCloseEnabled) closeArPlayback();
+		});
+		let wasPlayingBeforeTouch = false;
+		arPlaybackVideo.addEventListener('pointerdown', () => {
+				wasPlayingBeforeTouch = !arPlaybackVideo.paused;
+				if (wasPlayingBeforeTouch) arPlaybackVideo.pause();
+		});
+		const resumeIfNeeded = () => {
+			if (wasPlayingBeforeTouch) {
+				arPlaybackVideo.play().catch(() => {});
+				wasPlayingBeforeTouch = false;
+			}
+		};
+		arPlaybackVideo.addEventListener('pointerup', resumeIfNeeded);
+		arPlaybackVideo.addEventListener('pointercancel', resumeIfNeeded);
+		arPlaybackVideo.addEventListener('pointerleave', resumeIfNeeded);
+	}
+}
 function mapTouchGestureToValue(kind, currentInput) {
-    const saved = appSettings.touchGestureMappings || ({});
-    const windingShapeBases = ['corner', 'triangle', 'u_shape', 'square', 'switchback', 'motion_tap_corner'];
-    const directions = ['up', 'down', 'left', 'right', 'nw', 'ne', 'sw', 'se'];
-    const matches = (target, incoming) => {
-        if (!target) return false;
-        if (target === incoming) return true;
-
-        // Winding-shape wildcards: these gestures always emit both a direction AND a winding
-        // (e.g. "corner_up_cw"), so a plain trailing "_any" strip can never match them - this
-        // handles base_any (any dir, any winding), base_cw/base_ccw (any dir, that winding),
-        // and base_any_cw/base_any_ccw (same as base_cw/base_ccw, alternate spelling).
-        for (const base of windingShapeBases) {
-            if (!target.startsWith(base + '_')) continue;
-            const rest = target.slice(base.length + 1); // e.g. 'any', 'any_cw', 'cw', 'ccw'
-            let wantWinding = null;
-            if (rest === 'any') wantWinding = null;
-            else if (rest === 'any_cw' || rest === 'cw') wantWinding = 'cw';
-            else if (rest === 'any_ccw' || rest === 'ccw') wantWinding = 'ccw';
-            else continue;
-            for (const dir of directions) {
-                const windingsToCheck = wantWinding ? [wantWinding] : ['cw', 'ccw'];
-                for (const w of windingsToCheck) {
-                    if (incoming === base + '_' + dir + '_' + w) return true;
-                }
-            }
-        }
-
-        if (target.endsWith('_any')) {
-            const base = target.replace('_any', '');
-            // Precise match: incoming must be exactly base, or base + exactly one direction/
-            // alignment token - not merely start with base (which risks matching an unrelated
-            // gesture family, e.g. "swipe_any" incorrectly matching "swipe_long_up" or
-            // "swipe_up_2f" just because both start with "swipe").
-            if (incoming === base) return true;
-            const suffixTokens = ['up', 'down', 'left', 'right', 'nw', 'ne', 'sw', 'se', 'vertical', 'horizontal', 'diagonal_se', 'diagonal_sw'];
-            if (suffixTokens.some(s => incoming === base + '_' + s)) return true;
-        }
-        return false;
-    };
-    const checkMatch = key => {
-        const m = saved[key] || ({});
-        const touchG = m.gesture || DEFAULT_MAPPINGS[key];
-        return matches(touchG, kind);
-    };
-    if (currentInput === CONFIG.INPUTS.PIANO) {
-        const keys = ['C', 'D', 'E', 'F', 'G', 'A', 'B', '1', '2', '3', '4', '5'];
-        for (let k of keys) {
-            if (checkMatch('piano_' + k)) return k;
-        }
-    } else if (currentInput === CONFIG.INPUTS.KEY12) {
-        for (let i = 1; i <= 12; i++) {
-            if (checkMatch('k12_' + i)) return i;
-        }
-    } else if (currentInput === CONFIG.INPUTS.KEY9) {
-        for (let i = 1; i <= 9; i++) {
-            if (checkMatch('k9_' + i)) return i;
-        }
-    }
-    return null;
+	const saved = appSettings.touchGestureMappings || ({});
+	const windingShapeBases = ['corner', 'triangle', 'u_shape', 'square', 'switchback', 'motion_tap_corner'];
+	const directions = ['up', 'down', 'left', 'right', 'nw', 'ne', 'sw', 'se'];
+	const matches = (target, incoming) => {
+		if (!target) return false;
+		if (target === incoming) return true;
+		for (const base of windingShapeBases) {
+			if (!target.startsWith(base + '_')) continue;
+			const rest = target.slice(base.length + 1);
+			let wantWinding = null;
+			if (rest === 'any') wantWinding = null;
+			else if (rest === 'any_cw' || rest === 'cw') wantWinding = 'cw';
+			else if (rest === 'any_ccw' || rest === 'ccw') wantWinding = 'ccw';
+			else continue;
+			for (const dir of directions) {
+				const windingsToCheck = wantWinding ? [wantWinding] : ['cw', 'ccw'];
+				for (const w of windingsToCheck) {
+					if (incoming === base + '_' + dir + '_' + w) return true;
+				}
+			}
+		}
+		if (target.endsWith('_any')) {
+			const base = target.replace('_any', '');
+			if (incoming === base) return true;
+			const suffixTokens = ['up', 'down', 'left', 'right', 'nw', 'ne', 'sw', 'se', 'vertical', 'horizontal', 'diagonal_se', 'diagonal_sw'];
+			if (suffixTokens.some(s => incoming === base + '_' + s)) return true;
+		}
+		return false;
+	};
+	const checkMatch = key => {
+		const m = saved[key] || ({});
+		const touchG = m.gesture || DEFAULT_MAPPINGS[key];
+		return matches(touchG, kind);
+	};
+	if (currentInput === CONFIG.INPUTS.PIANO) {
+		const keys = ['C', 'D', 'E', 'F', 'G', 'A', 'B', '1', '2', '3', '4', '5'];
+		for (let k of keys) {
+			if (checkMatch('piano_' + k)) return k;
+		}
+	} else if (currentInput === CONFIG.INPUTS.KEY12) {
+		for (let i = 1; i <= 12; i++) {
+			if (checkMatch('k12_' + i)) return i;
+		}
+	} else if (currentInput === CONFIG.INPUTS.KEY9) {
+		for (let i = 1; i <= 9; i++) {
+			if (checkMatch('k9_' + i)) return i;
+		}
+	}
+	return null;
 }
-
 function updateEngineConstraints() {
-    if (!modules.touchGestureEngine) return;
-    const settings = getProfileSettings();
-    const saved = appSettings.touchGestureMappings || ({});
-    const getG = key => saved[key] && saved[key].gesture ? saved[key].gesture : DEFAULT_MAPPINGS[key];
-    const activeList = [];
-    if (settings.currentInput === CONFIG.INPUTS.PIANO) {
-        ['C', 'D', 'E', 'F', 'G', 'A', 'B', '1', '2', '3', '4', '5'].forEach(k => activeList.push(getG('piano_' + k)));
-    } else if (settings.currentInput === CONFIG.INPUTS.KEY12) {
-        for (let i = 1; i <= 12; i++) activeList.push(getG('k12_' + i));
-    } else if (settings.currentInput === CONFIG.INPUTS.KEY9) {
-        for (let i = 1; i <= 9; i++) activeList.push(getG('k9_' + i));
-    }
-    if (appSettings.isDeleteTouchGestureEnabled) activeList.push('delete');
-    if (appSettings.isClearTouchGestureEnabled) activeList.push('clear');
-    modules.touchGestureEngine.updateAllowed(activeList);
+	if (!modules.touchGestureEngine) return;
+	const settings = getProfileSettings();
+	const saved = appSettings.touchGestureMappings || ({});
+	const getG = key => saved[key] && saved[key].gesture ? saved[key].gesture : DEFAULT_MAPPINGS[key];
+	const activeList = [];
+	if (settings.currentInput === CONFIG.INPUTS.PIANO) {
+		['C', 'D', 'E', 'F', 'G', 'A', 'B', '1', '2', '3', '4', '5'].forEach(k => activeList.push(getG('piano_' + k)));
+	} else if (settings.currentInput === CONFIG.INPUTS.KEY12) {
+		for (let i = 1; i <= 12; i++) activeList.push(getG('k12_' + i));
+	} else if (settings.currentInput === CONFIG.INPUTS.KEY9) {
+		for (let i = 1; i <= 9; i++) activeList.push(getG('k9_' + i));
+	}
+	if (appSettings.isDeleteTouchGestureEnabled) activeList.push('delete');
+	if (appSettings.isClearTouchGestureEnabled) activeList.push('clear');
+	modules.touchGestureEngine.updateAllowed(activeList);
 }
-
 function initTouchGestureEngine() {
-    const engine = new TouchGestureEngine(document.body, {
-        tapDelay: appSettings.touchGestureTapDelay || 300,
-        swipeThreshold: appSettings.touchGestureSwipeDist || 30,
-        longPressTime: appSettings.touchGestureLongPressTime || 300,
-        tapPrecision: appSettings.touchGestureTapPrecision || 30,
-        spatialThreshold: appSettings.touchGestureSpatialThreshold || 10,
-        longSwipeThreshold: appSettings.touchGestureLongSwipeThreshold || 150,
-        multiSwipeThreshold: appSettings.touchGestureMultiSwipeThreshold || 10,
-        debug: false
-    }, {
-        onTouchGesture: data => {
-            const isPadOpen = typeof isTouchGesturePadVisible !== 'undefined' && isTouchGesturePadVisible;
-            const isClassPresent = document.body.classList.contains('input-gestures-mode');
-            const isBossActive = appSettings.isBlackoutFeatureEnabled && appSettings.isTouchGestureInputEnabled && blackoutState.isActive;
-            if (isPadOpen || isClassPresent || isBossActive) {
-                const settings = getProfileSettings();
-                const mapResult = mapTouchGestureToValue(data.name, settings.currentInput);
-                const indicator = document.getElementById('gesture-indicator');
-                if (mapResult !== null) {
-                    addValue(mapResult);
-                    if (indicator) {
-                        indicator.textContent = data.name.replace(/_/g, ' ').toUpperCase();
-                        indicator.style.opacity = '1';
-                        indicator.style.color = 'var(--seq-bubble)';
-                        setTimeout(() => {
-                            indicator.style.opacity = '0.3';
-                            indicator.style.color = '';
-                        }, 250);
-                    }
-                } else {
-                    if (indicator) {
-                        indicator.textContent = data.name.replace(/_/g, ' ');
-                        indicator.style.opacity = '0.5';
-                        setTimeout(() => indicator.style.opacity = '0.3', 500);
-                    }
-                }
-            }
-        },
-        onContinuous: data => {
-            console.log("Continuous Gesture:", data.type, "Fingers:", data.fingers);
-            if (data.type === 'squiggle' && data.fingers === 1) {
-                if (appSettings.isDeleteTouchGestureEnabled) {
-                    handleBackspace();
-                    showToast("Deleted ⌫");
-                    vibrate();
-                }
-                return;
-            }
-            if (data.type === 'squiggle' && data.fingers === 2) {
-                if (appSettings.isClearTouchGestureEnabled) {
-                    const s = getState();
-                    s.sequences = Array.from({
-                        length: CONFIG.MAX_MACHINES
-                    }, () => []);
-                    s.nextSequenceIndex = 0;
-                    renderUI();
-                    saveState();
-                    showToast("CLEARED 💥");
-                    vibrate();
-                }
-                return;
-            }
-            if (data.type === 'twist' && data.fingers === 3 && appSettings.isVolumeTouchGesturesEnabled) {
-                let newVol = appSettings.runtimeSettings.voiceVolume || 1.0;
-                newVol += data.value * 0.05;
-                appSettings.runtimeSettings.voiceVolume = Math.min(1.0, Math.max(0.0, newVol));
-                saveState();
-                showToast(`Volume: ${(appSettings.runtimeSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
-            }
-            if (data.type === 'twist' && data.fingers === 2 && appSettings.isSpeedTouchGesturesEnabled) {
-                let newSpeed = appSettings.runtimeSettings.playbackSpeed || 1.0;
-                newSpeed += data.value * 0.05;
-                appSettings.runtimeSettings.playbackSpeed = Math.min(2.0, Math.max(0.5, newSpeed));
-                saveState();
-                showToast(`Speed: ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
-            }
-            if (data.type === 'pinch') {
-                const mode = appSettings.touchResizeMode || 'global';
-                if (mode === 'none') return;
-                if (!touchGestureState.isPinching) {
-                    touchGestureState.isPinching = true;
-                    touchGestureState.startGlobal = appSettings.globalUiScale;
-                    touchGestureState.startSeq = appSettings.uiScaleMultiplier;
-                }
-                clearTimeout(touchGestureState.resetTimer);
-                touchGestureState.resetTimer = setTimeout(() => {
-                    touchGestureState.isPinching = false;
-                }, 250);
-                if (mode === 'sequence') {
-                    let raw = touchGestureState.startSeq * data.scale;
-                    let newScale = Math.round(raw * 10) / 10;
-                    if (newScale !== appSettings.uiScaleMultiplier) {
-                        appSettings.uiScaleMultiplier = Math.min(3.0, Math.max(0.5, newScale));
-                        renderUI();
-                        showToast(`Cards: ${(appSettings.uiScaleMultiplier * 100).toFixed(0)}% 🔍`);
-                    }
-                } else {
-                    let raw = touchGestureState.startGlobal * data.scale;
-                    let newScale = Math.round(raw / 10) * 10;
-                    if (newScale !== appSettings.globalUiScale) {
-                        appSettings.globalUiScale = Math.min(200, Math.max(50, newScale));
-                        updateAllChrome();
-                        showToast(`UI: ${appSettings.globalUiScale}% 🔍`);
-                    }
-                }
-            }
-        }
-    });
-    modules.touchGestureEngine = engine;
-    updateEngineConstraints();
-    const originalRender = renderUI;
-    renderUI = function() {
-        originalRender();
-        updateEngineConstraints();
-    };
+	const engine = new TouchGestureEngine(document.body, {
+			tapDelay: appSettings.touchGestureTapDelay || 300,
+			swipeThreshold: appSettings.touchGestureSwipeDist || 30,
+			longPressTime: appSettings.touchGestureLongPressTime || 300,
+			tapPrecision: appSettings.touchGestureTapPrecision || 30,
+			spatialThreshold: appSettings.touchGestureSpatialThreshold || 10,
+			longSwipeThreshold: appSettings.touchGestureLongSwipeThreshold || 150,
+			multiSwipeThreshold: appSettings.touchGestureMultiSwipeThreshold || 10,
+			debug: false
+		}, {
+			onTouchGesture: data => {
+				const isPadOpen = typeof isTouchGesturePadVisible !== 'undefined' && isTouchGesturePadVisible;
+				const isClassPresent = document.body.classList.contains('input-gestures-mode');
+				const isBossActive = appSettings.isBlackoutFeatureEnabled && appSettings.isTouchGestureInputEnabled && blackoutState.isActive;
+				if (isPadOpen || isClassPresent || isBossActive) {
+					const settings = getProfileSettings();
+					const mapResult = mapTouchGestureToValue(data.name, settings.currentInput);
+					const indicator = document.getElementById('gesture-indicator');
+					if (mapResult !== null) {
+						addValue(mapResult);
+						if (indicator) {
+							indicator.textContent = data.name.replace(/_/g, ' ').toUpperCase();
+							indicator.style.opacity = '1';
+							indicator.style.color = 'var(--seq-bubble)';
+							setTimeout(() => {
+									indicator.style.opacity = '0.3';
+									indicator.style.color = '';
+								}, 250);
+						}
+					} else {
+						if (indicator) {
+							indicator.textContent = data.name.replace(/_/g, ' ');
+							indicator.style.opacity = '0.5';
+							setTimeout(() => indicator.style.opacity = '0.3', 500);
+						}
+					}
+				}
+			},
+			onContinuous: data => {
+				console.log("Continuous Gesture:", data.type, "Fingers:", data.fingers);
+				if (data.type === 'squiggle' && data.fingers === 1) {
+					if (appSettings.isDeleteTouchGestureEnabled) {
+						handleBackspace();
+						showToast("Deleted ⌫");
+						vibrate();
+					}
+					return;
+				}
+				if (data.type === 'squiggle' && data.fingers === 2) {
+					if (appSettings.isClearTouchGestureEnabled) {
+						const s = getState();
+						s.sequences = Array.from({
+								length: CONFIG.MAX_MACHINES
+							}, () => []);
+						s.nextSequenceIndex = 0;
+						renderUI();
+						saveState();
+						showToast("CLEARED 💥");
+						vibrate();
+					}
+					return;
+				}
+				if (data.type === 'twist' && data.fingers === 3 && appSettings.isVolumeTouchGesturesEnabled) {
+					let newVol = appSettings.runtimeSettings.voiceVolume || 1.0;
+					newVol += data.value * 0.05;
+					appSettings.runtimeSettings.voiceVolume = Math.min(1.0, Math.max(0.0, newVol));
+					saveState();
+					showToast(`Volume: ${(appSettings.runtimeSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
+				}
+				if (data.type === 'twist' && data.fingers === 2 && appSettings.isSpeedTouchGesturesEnabled) {
+					let newSpeed = appSettings.runtimeSettings.playbackSpeed || 1.0;
+					newSpeed += data.value * 0.05;
+					appSettings.runtimeSettings.playbackSpeed = Math.min(2.0, Math.max(0.5, newSpeed));
+					saveState();
+					showToast(`Speed: ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
+				}
+				if (data.type === 'pinch') {
+					const mode = appSettings.touchResizeMode || 'global';
+					if (mode === 'none') return;
+					if (!touchGestureState.isPinching) {
+						touchGestureState.isPinching = true;
+						touchGestureState.startGlobal = appSettings.globalUiScale;
+						touchGestureState.startSeq = appSettings.uiScaleMultiplier;
+					}
+					clearTimeout(touchGestureState.resetTimer);
+					touchGestureState.resetTimer = setTimeout(() => {
+							touchGestureState.isPinching = false;
+						}, 250);
+					if (mode === 'sequence') {
+						let raw = touchGestureState.startSeq * data.scale;
+						let newScale = Math.round(raw * 10) / 10;
+						if (newScale !== appSettings.uiScaleMultiplier) {
+							appSettings.uiScaleMultiplier = Math.min(3.0, Math.max(0.5, newScale));
+							renderUI();
+							showToast(`Cards: ${(appSettings.uiScaleMultiplier * 100).toFixed(0)}% 🔍`);
+						}
+					} else {
+						let raw = touchGestureState.startGlobal * data.scale;
+						let newScale = Math.round(raw / 10) * 10;
+						if (newScale !== appSettings.globalUiScale) {
+							appSettings.globalUiScale = Math.min(200, Math.max(50, newScale));
+							updateAllChrome();
+							showToast(`UI: ${appSettings.globalUiScale}% 🔍`);
+						}
+					}
+				}
+			}
+	});
+	modules.touchGestureEngine = engine;
+	updateEngineConstraints();
+	const originalRender = renderUI;
+	renderUI = function() {
+		originalRender();
+		updateEngineConstraints();
+	};
 }
-
 function initGlobalListeners() {
-    try {
-        // Auto Hide Header: reveals the button row on any touch/click in the header area (the
-        // header itself gets pointer-events re-enabled via CSS while this mode is on, so this
-        // fires even when the buttons are currently invisible/transformed away), then re-hides
-        // after 5s of no further touches there. window.__clearAutoHideHeaderTimer lets
-        // updateHeaderVisibility cancel a pending re-hide immediately if the setting gets turned
-        // off mid-countdown.
-        (() => {
-            const header = document.getElementById('aux-control-header');
-            const btnRow = document.getElementById('header-btn-row');
-            if (!header) return;
-            let hideTimer = null;
-            let unhideGraceTimer = null;
-            window.__clearAutoHideHeaderTimer = () => { clearTimeout(hideTimer); hideTimer = null; };
-            header.addEventListener('pointerdown', () => {
-                if (!appSettings.isAutoHideHeaderEnabled) return;
-                const wasInactive = header.classList.contains('auto-hide-inactive');
-                header.classList.remove('auto-hide-inactive');
-                clearTimeout(hideTimer);
-                hideTimer = setTimeout(() => { header.classList.add('auto-hide-inactive'); }, 5000);
-                // The buttons take .4s to visually slide/fade into place (see the
-                // auto-hide-header-enabled #header-btn-row transition in styles.css), but
-                // pointer-events on the row goes from none to auto the instant
-                // auto-hide-inactive is removed above - without this guard, a fast second tap
-                // in roughly the same spot during that slide-in could land on a button before
-                // the user can actually see it's there. 400ms matches the full transform
-                // transition, so buttons stay inert for the entire slide-in, not just part of
-                // it. Only applies on the real reveal (the row was genuinely hidden); a touch
-                // while it's already visible needs no delay.
-                if (wasInactive && btnRow) {
-                    clearTimeout(unhideGraceTimer);
-                    btnRow.classList.add('header-just-unhidden');
-                    unhideGraceTimer = setTimeout(() => {
-                        btnRow.classList.remove('header-just-unhidden');
-                    }, 400);
-                }
-            });
-        })();
-        document.querySelectorAll('.btn-pad-number').forEach(b => {
-            const press = e => {
-                if (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-                if (ignoreNextClick) return;
-                addValue(b.dataset.value);
-                b.classList.add('flash-active');
-                setTimeout(() => b.classList.remove('flash-active'), 150);
-            };
-            b.addEventListener('mousedown', press);
-            b.addEventListener('touchstart', press, {
-                passive: false
-            });
-            b.addEventListener('touchend', () => clearTimeout(timers.stealth));
-        });
-        document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
-            let wasPlaying = false;
-            let lpTriggered = false;
-            const handleDown = e => {
-                if (e && e.cancelable) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-                wasPlaying = isDemoPlaying;
-                lpTriggered = false;
-                if (wasPlaying) {
-                    isDemoPlaying = false;
-                    b.textContent = "▶";
-                    showToast("Playback Stopped 🛑");
-                    return;
-                }
-                if (appSettings.isLongPressAutoplayEnabled) {
-                    timers.longPress = setTimeout(() => {
-                        lpTriggered = true;
-                        appSettings.runtimeSettings.isAutoplayEnabled = !appSettings.runtimeSettings.isAutoplayEnabled;
-                        modules.settings.updateUIFromSettings();
-                        showToast(`Autoplay: ${appSettings.runtimeSettings.isAutoplayEnabled ? "ON" : "OFF"}`);
-                        ignoreNextClick = true;
-                        setTimeout(() => ignoreNextClick = false, 500);
-                    }, 800);
-                }
-            };
-            const handleUp = e => {
-                if (e && e.cancelable) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-                clearTimeout(timers.longPress);
-                if (!wasPlaying && !lpTriggered) {
-                    playDemo();
-                }
-            };
-            b.addEventListener('mousedown', handleDown);
-            b.addEventListener('touchstart', handleDown, {
-                passive: false
-            });
-            b.addEventListener('mouseup', handleUp);
-            b.addEventListener('touchend', handleUp);
-            b.addEventListener('mouseleave', () => clearTimeout(timers.longPress));
-        });
-        document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => {
-            b.addEventListener('click', () => {
-                if (confirm("Reset Round Counter to 1?")) {
-                    const s = getState();
-                    s.currentRound = 1;
-                    s.sequences[0] = [];
-                    s.nextSequenceIndex = 0;
-                    lastMachineInputTime = {};
-                    renderUI();
-                    saveState();
-                    showToast("Reset to Round 1");
-                }
-            });
-        });
-        document.querySelectorAll('button[data-action="open-settings"]').forEach(b => {
-            b.addEventListener('click', () => {
-                if (isDemoPlaying) {
-                    isDemoPlaying = false;
-                    const pb = document.querySelector('button[data-action="play-demo"]');
-                    if (pb) pb.textContent = "▶";
-                    showToast("Playback Stopped 🛑");
-                    return;
-                }
-                modules.settings.openSettings();
-            });
-        });
-        const startDelete = e => {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            handleBackspace(null);
-            if (!appSettings.isSpeedDeletingEnabled) return;
-            timers.initialDelay = setTimeout(() => {
-                timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL);
-            }, CONFIG.SPEED_DELETE_DELAY);
-        };
-        const stopDelete = () => {
-            clearTimeout(timers.initialDelay);
-            clearInterval(timers.speedDelete);
-        };
-        // FIX: the header Delete button only had a single-tap handler, unlike the keypad's
-        // own backspace keys which already support press-and-hold speed delete. startDelete/
-        // stopDelete are hoisted above (were previously redefined per-button inside the loop
-        // below) so the header button can share the exact same behavior instead of duplicating it.
-        document.querySelectorAll('button[data-action="backspace"]').forEach(b => {
-            b.addEventListener('mousedown', startDelete);
-            b.addEventListener('touchstart', startDelete, {
-                passive: false
-            });
-            b.addEventListener('mouseup', stopDelete);
-            b.addEventListener('mouseleave', stopDelete);
-            b.addEventListener('touchend', stopDelete);
-            b.addEventListener('touchcancel', stopDelete);
-        });
-        const headerDeleteBtnEl = document.getElementById('headerdeletebtn');
-        if (headerDeleteBtnEl) {
-            headerDeleteBtnEl.addEventListener('mousedown', startDelete);
-            headerDeleteBtnEl.addEventListener('touchstart', startDelete, {
-                passive: false
-            });
-            headerDeleteBtnEl.addEventListener('mouseup', stopDelete);
-            headerDeleteBtnEl.addEventListener('mouseleave', stopDelete);
-            headerDeleteBtnEl.addEventListener('touchend', stopDelete);
-            headerDeleteBtnEl.addEventListener('touchcancel', stopDelete);
-        }
-        if (appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
-        const handlePause = e => {
-            if (isDemoPlaying) {
-                isPlaybackPaused = true;
-                showToast("Paused ⏸️");
-            }
-        };
-        const handleResume = e => {
-            if (isPlaybackPaused) {
-                isPlaybackPaused = false;
-                showToast("Resumed ▶️");
-                if (playbackResumeCallback) {
-                    const fn = playbackResumeCallback;
-                    playbackResumeCallback = null;
-                    fn();
-                }
-            }
-        };
-        document.body.addEventListener('mousedown', handlePause);
-        document.body.addEventListener('touchstart', handlePause, {
-            passive: true
-        });
-        document.body.addEventListener('mouseup', handleResume);
-        document.body.addEventListener('touchend', handleResume);
-        document.getElementById('close-settings').addEventListener('click', () => {
-            if (appSettings.runtimeSettings.isPracticeModeEnabled) {
-                setTimeout(startPracticeRound, 500);
-            }
-        });
-        let lastX = 0,
-            lastY = 0,
-            lastZ = 0;
-        window.addEventListener('devicemotion', e => {
-            if (!appSettings.isBlackoutFeatureEnabled) return;
-            const acc = e.accelerationIncludingGravity;
-            if (!acc) return;
-            const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
-            if (delta > 25) {
-                const now = Date.now();
-                if (now - blackoutState.lastShake > 1000) {
-                    blackoutState.isActive = !blackoutState.isActive;
-                    document.body.classList.toggle('blackout-active', blackoutState.isActive);
-                    showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back");
-                    vibrate();
-                    renderUI();
-                    blackoutState.lastShake = now;
-                }
-            }
-            lastX = acc.x;
-            lastY = acc.y;
-            lastZ = acc.z;
-        });
-        const bl = document.getElementById('blackout-layer');
-        if (bl) {
-            bl.addEventListener('touchstart', e => {
-                if (appSettings.isTouchGestureInputEnabled) return;
-                if (e.touches.length === 1) {
-                    e.preventDefault();
-                    const t = e.touches[0];
-                    const w = window.innerWidth;
-                    const h = window.innerHeight;
-                    let col = Math.floor(t.clientX / (w / 3));
-                    if (col > 2) col = 2;
-                    const settings = getProfileSettings();
-                    let val = null;
-                    if (settings.currentInput === 'key9') {
-                        let row = Math.floor(t.clientY / (h / 3));
-                        if (row > 2) row = 2;
-                        val = row * 3 + col + 1;
-                    } else {
-                        let row = Math.floor(t.clientY / (h / 4));
-                        if (row > 3) row = 3;
-                        const index = row * 3 + col;
-                        if (settings.currentInput === 'piano') {
-                            const map = ['1', '2', '3', '4', '5', 'C', 'D', 'E', 'F', 'G', 'A', 'B'];
-                            val = map[index];
-                        } else {
-                            val = index + 1;
-                        }
-                    }
-                    if (val !== null) {
-                        addValue(val.toString());
-                        hapticPulse(20);
-                    }
-                }
-            }, {
-                passive: false
-            });
-        }
-        const headerTimer = document.getElementById('headertimerbtn');
-        const headerCounter = document.getElementById('headercounterbtn');
-        const headerMic = document.getElementById('headervoicebtn');
-        const headerCam = document.getElementById('headerarcambtn');
-        const headerTouchGesture = document.getElementById('headertouchbtn');
-        const headerHand = document.getElementById('headerhandbtn');
-        if (headerHand) {
-            headerHand.onclick = () => {
-                if (!modules.vision) return;
-                const isActive = !modules.vision.isActive;
-                if (isActive) {
-                    modules.vision.start();
-                    headerHand.classList.add('header-btn-active');
-                } else {
-                    modules.vision.stop();
-                    headerHand.classList.remove('header-btn-active');
-                }
-            };
-        }
-        const headerStealth = document.getElementById('headerbiggerbtn');
-        if (headerStealth) {
-            headerStealth.onclick = () => {
-                document.body.classList.toggle('hide-controls');
-                const isActive = document.body.classList.contains('hide-controls');
-                headerStealth.classList.toggle('header-btn-active', isActive);
-                showToast(isActive ? "Bigger Buttons Active" : "Controls Visible");
-                setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
-            };
-        }
-        const headerSwap = document.getElementById('headerswapbtn');
-        if (headerSwap) {
-            headerSwap.onclick = () => {
-                const isActive = !document.body.classList.contains('layout-swapped');
-                document.body.classList.toggle('layout-swapped', isActive);
-                headerSwap.classList.toggle('header-btn-active', isActive);
-                applyPositionSwapOffsets(isActive);
-                showToast(isActive ? "Inputs Moved to Top 🔄" : "Inputs Back to Bottom 🔄");
-            };
-        }
-        const headerPlay = document.getElementById('headerplaybtn');
-        if (headerPlay) headerPlay.onclick = () => playDemo();
-
-        // headerdeletebtn's press-and-hold speed-delete wiring now lives with the keypad's
-        // backspace handlers above (startDelete/stopDelete) - removed the old single-tap-only
-        // onclick here so the button isn't double-wired.
-
-        const headerSettingsBtn = document.getElementById('headersettingsbtn');
-        if (headerSettingsBtn) headerSettingsBtn.onclick = () => { if (modules.settings) modules.settings.openSettings(); };
-
-        const headerRedeem = document.getElementById('headerredeembtn');
-        if (headerRedeem) headerRedeem.onclick = () => { if (modules.settings) modules.settings.toggleRedeem(true); };
-
-        const headerShare = document.getElementById('headersharebtn');
-        if (headerShare) headerShare.onclick = () => { if (modules.settings) modules.settings.openShare(); };
-
-        const headerThemeCycle = document.getElementById('headerthemecyclebtn');
-        if (headerThemeCycle) headerThemeCycle.onclick = () => {
-            const allThemeKeys = [...Object.keys(PREMADE_THEMES), ...Object.keys(appSettings.customThemes || {})];
-            if (allThemeKeys.length === 0) return;
-            const curIdx = allThemeKeys.indexOf(appSettings.activeTheme);
-            const nextTheme = allThemeKeys[(curIdx + 1) % allThemeKeys.length];
-            appSettings.activeTheme = nextTheme;
-            applyTheme(nextTheme);
-            saveState();
-            if (modules.settings && modules.settings.dom.themeSelect) modules.settings.dom.themeSelect.value = nextTheme;
-            showToast(`Theme: ${nextTheme} 🎨`);
-        };
-
-        const headerAddMachine = document.getElementById('headeraddmachinebtn');
-        if (headerAddMachine) headerAddMachine.onclick = () => {
-            const settings = getProfileSettings();
-            if (settings.machineCount >= CONFIG.MAX_MACHINES) { showToast(`Max ${CONFIG.MAX_MACHINES} machines 🛑`); return; }
-            settings.machineCount++;
-            const sel = document.getElementById('machines-select');
-            if (sel) sel.value = settings.machineCount;
-            renderUI();
-            saveState();
-            showToast(`Machines: ${settings.machineCount} ➕`);
-        };
-
-        const headerUiUp = document.getElementById('headeruiupbtn');
-        if (headerUiUp) headerUiUp.onclick = () => {
-            appSettings.globalUiScale = Math.min(200, (appSettings.globalUiScale || 100) + 10);
-            document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
-            const sel = document.getElementById('ui-scale-select');
-            if (sel) sel.value = appSettings.globalUiScale;
-            saveState();
-            showToast(`UI: ${appSettings.globalUiScale}% 🔍`);
-        };
-        const headerUiDown = document.getElementById('headeruidownbtn');
-        if (headerUiDown) headerUiDown.onclick = () => {
-            appSettings.globalUiScale = Math.max(50, (appSettings.globalUiScale || 100) - 10);
-            document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
-            const sel = document.getElementById('ui-scale-select');
-            if (sel) sel.value = appSettings.globalUiScale;
-            saveState();
-            showToast(`UI: ${appSettings.globalUiScale}% 🔍`);
-        };
-
-        const headerSeqUp = document.getElementById('headersequpbtn');
-        if (headerSeqUp) headerSeqUp.onclick = () => {
-            appSettings.uiScaleMultiplier = Math.min(3.0, (appSettings.uiScaleMultiplier || 1.0) + 0.1);
-            const sel = document.getElementById('seq-size-select');
-            if (sel) sel.value = Math.round(appSettings.uiScaleMultiplier * 100);
-            renderUI();
-            saveState();
-            showToast(`Cards: ${Math.round(appSettings.uiScaleMultiplier * 100)}% 🔢`);
-        };
-        const headerSeqDown = document.getElementById('headerseqdownbtn');
-        if (headerSeqDown) headerSeqDown.onclick = () => {
-            appSettings.uiScaleMultiplier = Math.max(0.5, (appSettings.uiScaleMultiplier || 1.0) - 0.1);
-            const sel = document.getElementById('seq-size-select');
-            if (sel) sel.value = Math.round(appSettings.uiScaleMultiplier * 100);
-            renderUI();
-            saveState();
-            showToast(`Cards: ${Math.round(appSettings.uiScaleMultiplier * 100)}% 🔢`);
-        };
-
-        // Same clamp ranges (0.0-1.0 volume, 0.5-2.0 speed) and toast format as the existing
-        // 2/3-finger twist-gesture adjusters, so the header buttons stay a quick equivalent
-        // rather than a second, inconsistent control.
-        const headerVolUp = document.getElementById('headervolupbtn');
-        if (headerVolUp) headerVolUp.onclick = () => {
-            appSettings.runtimeSettings.voiceVolume = Math.min(1.0, (appSettings.runtimeSettings.voiceVolume || 1.0) + 0.05);
-            const sel = document.getElementById('voice-volume');
-            if (sel) sel.value = appSettings.runtimeSettings.voiceVolume;
-            saveState();
-            showToast(`Volume: ${(appSettings.runtimeSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
-        };
-        const headerVolDown = document.getElementById('headervoldownbtn');
-        if (headerVolDown) headerVolDown.onclick = () => {
-            appSettings.runtimeSettings.voiceVolume = Math.max(0.0, (appSettings.runtimeSettings.voiceVolume || 1.0) - 0.05);
-            const sel = document.getElementById('voice-volume');
-            if (sel) sel.value = appSettings.runtimeSettings.voiceVolume;
-            saveState();
-            showToast(`Volume: ${(appSettings.runtimeSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
-        };
-        const headerSpeedUp = document.getElementById('headerspeedupbtn');
-        if (headerSpeedUp) headerSpeedUp.onclick = () => {
-            appSettings.runtimeSettings.playbackSpeed = Math.min(2.0, (appSettings.runtimeSettings.playbackSpeed || 1.0) + 0.1);
-            const sel = document.getElementById('playback-speed-select');
-            if (sel) sel.value = appSettings.runtimeSettings.playbackSpeed.toFixed(2);
-            saveState();
-            showToast(`Speed: ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
-        };
-        const headerSpeedDown = document.getElementById('headerspeeddownbtn');
-        if (headerSpeedDown) headerSpeedDown.onclick = () => {
-            appSettings.runtimeSettings.playbackSpeed = Math.max(0.5, (appSettings.runtimeSettings.playbackSpeed || 1.0) - 0.1);
-            const sel = document.getElementById('playback-speed-select');
-            if (sel) sel.value = appSettings.runtimeSettings.playbackSpeed.toFixed(2);
-            saveState();
-            showToast(`Speed: ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
-        };
-
-        // FIX: the header Play button never had the long-press-autoplay handlers that the
-        // data-action="play-demo" buttons elsewhere already have (isLongPressAutoplayEnabled/
-        // apshortcutToggle existed and were fully wired, just never attached to this button).
-        const headerPlayBtnEl = document.getElementById('headerplaybtn');
-        if (headerPlayBtnEl) {
-            let hpWasPlaying = false;
-            let hpLongPressTriggered = false;
-            const headerPlayDown = e => {
-                if (e && e.cancelable) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-                hpWasPlaying = isDemoPlaying;
-                hpLongPressTriggered = false;
-                if (hpWasPlaying) {
-                    isDemoPlaying = false;
-                    headerPlayBtnEl.textContent = "▶️";
-                    showToast("Playback Stopped 🛑");
-                    return;
-                }
-                if (appSettings.isLongPressAutoplayEnabled) {
-                    timers.longPress = setTimeout(() => {
-                        hpLongPressTriggered = true;
-                        appSettings.runtimeSettings.isAutoplayEnabled = !appSettings.runtimeSettings.isAutoplayEnabled;
-                        modules.settings.updateUIFromSettings();
-                        showToast(`Autoplay: ${appSettings.runtimeSettings.isAutoplayEnabled ? "ON" : "OFF"}`);
-                        ignoreNextClick = true;
-                        setTimeout(() => ignoreNextClick = false, 500);
-                    }, 800);
-                }
-            };
-            const headerPlayUp = e => {
-                if (e && e.cancelable) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-                clearTimeout(timers.longPress);
-                if (!hpWasPlaying && !hpLongPressTriggered) {
-                    playDemo();
-                }
-            };
-            headerPlayBtnEl.addEventListener('mousedown', headerPlayDown);
-            headerPlayBtnEl.addEventListener('touchstart', headerPlayDown, { passive: false });
-            headerPlayBtnEl.addEventListener('mouseup', headerPlayUp);
-            headerPlayBtnEl.addEventListener('touchend', headerPlayUp);
-            headerPlayBtnEl.addEventListener('mouseleave', () => clearTimeout(timers.longPress));
-            headerPlayBtnEl.addEventListener('touchcancel', () => clearTimeout(timers.longPress));
-        }
-
-        const headerCycleInput = document.getElementById('headercycleinputbtn');
-        if (headerCycleInput) headerCycleInput.onclick = () => {
-            const settings = getProfileSettings();
-            const order = ['key9', 'key12', 'piano'];
-            const curIdx = order.indexOf(settings.currentInput);
-            settings.currentInput = order[(curIdx + 1) % order.length];
-            const sel = document.getElementById('input-select');
-            if (sel) sel.value = settings.currentInput;
-            renderUI();
-            saveState();
-            showToast(`Input: ${settings.currentInput} 🔀`);
-        };
-
-        const headerNotepad = document.getElementById('headernotepadbtn');
-        const notepadModal = document.getElementById('notepad-modal');
-        const notepadTextarea = document.getElementById('notepad-textarea');
-        const closeNotepadBtn = document.getElementById('close-notepad-btn');
-        if (headerNotepad && notepadModal && notepadTextarea) {
-            let notepadLongPressTimer = null;
-            let notepadWasLongPress = false;
-            const copyNotepadToClipboard = () => {
-                // Selection-aware: if the user has text highlighted in the textarea, copy just
-                // that; otherwise fall back to the whole note. The header long-press triggers
-                // this with the modal closed (no meaningful selection ever exists then), so it
-                // naturally always takes the "whole note" path without needing special-casing.
-                const hasSelection = notepadTextarea.selectionStart !== notepadTextarea.selectionEnd;
-                const text = hasSelection ? notepadTextarea.value.substring(notepadTextarea.selectionStart, notepadTextarea.selectionEnd) : (appSettings.notepadText || '');
-                if (!text) { showToast('Notepad is empty 📝'); return; }
-                navigator.clipboard?.writeText(text).then(() => {
-                    showToast(hasSelection ? 'Selection copied 📋' : 'Note copied to clipboard 📋');
-                }).catch(() => showToast('Copy failed - try again'));
-                hapticPulse(50);
-            };
-            headerNotepad.addEventListener('pointerdown', () => {
-                notepadWasLongPress = false;
-                notepadLongPressTimer = setTimeout(() => {
-                    notepadWasLongPress = true;
-                    copyNotepadToClipboard();
-                }, 600);
-            });
-            const cancelNotepadLongPress = () => { if (notepadLongPressTimer) { clearTimeout(notepadLongPressTimer); notepadLongPressTimer = null; } };
-            headerNotepad.addEventListener('pointerup', cancelNotepadLongPress);
-            headerNotepad.addEventListener('pointerleave', cancelNotepadLongPress);
-            headerNotepad.addEventListener('pointercancel', cancelNotepadLongPress);
-            headerNotepad.onclick = () => {
-                if (notepadWasLongPress) { notepadWasLongPress = false; return; }
-                notepadTextarea.value = appSettings.notepadText || '';
-                notepadModal.classList.remove('opacity-0', 'pointer-events-none');
-                if (window.lockBodyScroll) window.lockBodyScroll();
-                // Small delay lets the modal actually become visible/interactive first -
-                // focusing immediately on the same tick can fail to raise the keyboard on mobile.
-                setTimeout(() => notepadTextarea.focus(), 50);
-            };
-            notepadTextarea.oninput = () => {
-                appSettings.notepadText = notepadTextarea.value;
-                saveState();
-            };
-            const selectAllBtn = document.getElementById('notepad-selectall-btn');
-            if (selectAllBtn) selectAllBtn.onclick = () => {
-                notepadTextarea.focus();
-                notepadTextarea.select();
-            };
-            const cutBtn = document.getElementById('notepad-cut-btn');
-            if (cutBtn) cutBtn.onclick = async () => {
-                const start = notepadTextarea.selectionStart;
-                const end = notepadTextarea.selectionEnd;
-                if (start === end) { showToast('Select some text first ✂️'); return; }
-                const selected = notepadTextarea.value.substring(start, end);
-                try {
-                    await navigator.clipboard.writeText(selected);
-                    notepadTextarea.value = notepadTextarea.value.slice(0, start) + notepadTextarea.value.slice(end);
-                    notepadTextarea.setSelectionRange(start, start);
-                    appSettings.notepadText = notepadTextarea.value;
-                    saveState();
-                    showToast('Cut ✂️');
-                } catch (e) {
-                    showToast('Cut failed - try again');
-                }
-            };
-            const copyBtn = document.getElementById('notepad-copy-btn');
-            if (copyBtn) copyBtn.onclick = () => copyNotepadToClipboard();
-            const pasteBtn = document.getElementById('notepad-paste-btn');
-            if (pasteBtn) pasteBtn.onclick = async () => {
-                try {
-                    const clipText = await navigator.clipboard.readText();
-                    if (!clipText) { showToast('Clipboard is empty 📋'); return; }
-                    const start = notepadTextarea.selectionStart;
-                    const end = notepadTextarea.selectionEnd;
-                    notepadTextarea.value = notepadTextarea.value.slice(0, start) + clipText + notepadTextarea.value.slice(end);
-                    const newPos = start + clipText.length;
-                    notepadTextarea.setSelectionRange(newPos, newPos);
-                    appSettings.notepadText = notepadTextarea.value;
-                    saveState();
-                    showToast('Pasted 📥');
-                } catch (e) {
-                    showToast('Paste blocked - your browser needs clipboard permission for this');
-                }
-            };
-            const eraseBtn = document.getElementById('notepad-erase-btn');
-            if (eraseBtn) eraseBtn.onclick = () => {
-                if (!appSettings.notepadText) return;
-                if (!confirm('Erase the entire note? This can\'t be undone.')) return;
-                notepadTextarea.value = '';
-                appSettings.notepadText = '';
-                saveState();
-                showToast('Note erased 🗑️');
-            };
-        }
-        if (closeNotepadBtn && notepadModal && notepadTextarea) {
-            closeNotepadBtn.onclick = () => {
-                notepadTextarea.blur();
-                notepadModal.classList.add('opacity-0', 'pointer-events-none');
-                if (window.unlockBodyScroll) window.unlockBodyScroll();
-            };
-        }
-        const headerHelp = document.getElementById('headerhelpbtn');
-        if (headerHelp) headerHelp.onclick = () => { document.getElementById('open-help-button')?.click(); };
-
-        const headerModeSwitch = document.getElementById('headermodeswitchbtn');
-        if (headerModeSwitch) headerModeSwitch.onclick = () => {
-            const settings = getProfileSettings();
-            settings.currentMode = settings.currentMode === CONFIG.MODES.SIMON ? CONFIG.MODES.UNIQUE_ROUNDS : CONFIG.MODES.SIMON;
-            const sel = document.getElementById('mode-select');
-            if (sel) sel.value = settings.currentMode;
-            renderUI();
-            saveState();
-            showToast(`Mode: ${settings.currentMode === CONFIG.MODES.SIMON ? 'Simon Says' : 'Unique'} 🎮`);
-        };
-
-        const headerReset = document.getElementById('headerresetbtn');
-        if (headerReset) headerReset.onclick = () => { document.querySelector('button[data-action="restore-defaults"]')?.click(); };
-
-        const headerNuke = document.getElementById('headernukebtn');
-        if (headerNuke) headerNuke.onclick = () => { document.querySelector('button[data-action="nuke-app"]')?.click(); };
-        if (headerTimer) {
-            headerTimer.textContent = "00:00";
-            headerTimer.style.fontSize = "0.75rem";
-            const formatTime = ms => {
-                const totalSec = Math.floor(ms / 1000);
-                const m = Math.floor(totalSec / 60);
-                const s = totalSec % 60;
-                return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-            };
-            const updateTimer = () => {
-                const now = Date.now();
-                const diff = now - simpleTimer.startTime + simpleTimer.elapsed;
-                headerTimer.textContent = formatTime(diff);
-            };
-            globalTimerActions.start = () => {
-                if (!simpleTimer.isRunning) {
-                    simpleTimer.startTime = Date.now();
-                    simpleTimer.interval = setInterval(updateTimer, 100);
-                    simpleTimer.isRunning = true;
-                }
-            };
-            globalTimerActions.stop = () => {
-                if (simpleTimer.isRunning) {
-                    clearInterval(simpleTimer.interval);
-                    simpleTimer.elapsed += Date.now() - simpleTimer.startTime;
-                    simpleTimer.isRunning = false;
-                }
-            };
-            globalTimerActions.reset = () => {
-                clearInterval(simpleTimer.interval);
-                simpleTimer.isRunning = false;
-                simpleTimer.elapsed = 0;
-                headerTimer.textContent = "00:00";
-            };
-            const toggleTimer = () => {
-                if (simpleTimer.isRunning) globalTimerActions.stop();
-                else globalTimerActions.start();
-                vibrate();
-            };
-            const resetTimer = () => {
-                globalTimerActions.reset();
-                showToast("Timer Reset");
-                vibrate();
-            };
-            let tTimer;
-            let tIsLong = false;
-            const startT = e => {
-                if (e.type === 'mousedown' && e.button !== 0) return;
-                tIsLong = false;
-                tTimer = setTimeout(() => {
-                    tIsLong = true;
-                    resetTimer();
-                }, 600);
-            };
-            const endT = e => {
-                if (e) e.preventDefault();
-                clearTimeout(tTimer);
-                if (!tIsLong) toggleTimer();
-            };
-            headerTimer.addEventListener('mousedown', startT);
-            headerTimer.addEventListener('touchstart', startT, {
-                passive: true
-            });
-            headerTimer.addEventListener('mouseup', endT);
-            headerTimer.addEventListener('touchend', endT);
-            headerTimer.addEventListener('mouseleave', () => clearTimeout(tTimer));
-        }
-        if (headerCounter) {
-            headerCounter.textContent = simpleCounter.toString();
-            headerCounter.style.fontSize = "1.2rem";
-            const updateCounter = () => {
-                headerCounter.textContent = simpleCounter;
-            };
-            globalCounterActions.increment = () => {
-                simpleCounter++;
-                updateCounter();
-            };
-            globalCounterActions.reset = () => {
-                simpleCounter = 0;
-                updateCounter();
-            };
-            const increment = () => {
-                globalCounterActions.increment();
-                vibrate();
-            };
-            const resetCounter = () => {
-                globalCounterActions.reset();
-                showToast("Counter Reset");
-                vibrate();
-            };
-            let cTimer;
-            let cIsLong = false;
-            const startC = e => {
-                if (e.type === 'mousedown' && e.button !== 0) return;
-                cIsLong = false;
-                cTimer = setTimeout(() => {
-                    cIsLong = true;
-                    resetCounter();
-                }, 600);
-            };
-            const endC = e => {
-                if (e) e.preventDefault();
-                clearTimeout(cTimer);
-                if (!cIsLong) increment();
-            };
-            headerCounter.addEventListener('mousedown', startC);
-            headerCounter.addEventListener('touchstart', startC, {
-                passive: true
-            });
-            headerCounter.addEventListener('mouseup', endC);
-            headerCounter.addEventListener('touchend', endC);
-            headerCounter.addEventListener('mouseleave', () => clearTimeout(cTimer));
-        }
-        if (headerMic) {
-            headerMic.onclick = () => {
-                if (!voiceModule) return;
-                const isActive = !voiceModule.isListening;
-                voiceModule.toggle(isActive);
-                headerMic.classList.toggle('header-btn-active', isActive);
-            };
-        }
-        if (headerTouchGesture) {
-            headerTouchGesture.onclick = () => {
-                isTouchGesturePadVisible = !isTouchGesturePadVisible;
-                headerTouchGesture.classList.toggle('header-btn-active', isTouchGesturePadVisible);
-                const gpWrap = document.getElementById('gesture-pad-wrapper');
-                if (gpWrap) {
-                    if (isTouchGesturePadVisible) {
-                        gpWrap.classList.remove('hidden');
-                        showToast("Pad Visible 🗒️");
-                    } else {
-                        gpWrap.classList.add('hidden');
-                        showToast("Pad Hidden");
-                    }
-                }
-                renderUI();
-            };
-        }
-    } catch (e) {
-        console.error("Listener Error:", e);
-    }
+	try {
+		(() => {
+				const header = document.getElementById('aux-control-header');
+				const btnRow = document.getElementById('header-btn-row');
+				if (!header) return;
+				let hideTimer = null;
+				let unhideGraceTimer = null;
+				window.__clearAutoHideHeaderTimer = () => { clearTimeout(hideTimer); hideTimer = null; };
+				header.addEventListener('pointerdown', () => {
+						if (!appSettings.isAutoHideHeaderEnabled) return;
+						const wasInactive = header.classList.contains('auto-hide-inactive');
+						header.classList.remove('auto-hide-inactive');
+						clearTimeout(hideTimer);
+						hideTimer = setTimeout(() => { header.classList.add('auto-hide-inactive'); }, 5000);
+						if (wasInactive && btnRow) {
+							clearTimeout(unhideGraceTimer);
+							btnRow.classList.add('header-just-unhidden');
+							unhideGraceTimer = setTimeout(() => {
+									btnRow.classList.remove('header-just-unhidden');
+								}, 400);
+						}
+				});
+		})();
+		document.querySelectorAll('.btn-pad-number').forEach(b => {
+				const press = e => {
+					if (e) {
+						e.preventDefault();
+						e.stopPropagation();
+					}
+					if (ignoreNextClick) return;
+					addValue(b.dataset.value);
+					b.classList.add('flash-active');
+					setTimeout(() => b.classList.remove('flash-active'), 150);
+				};
+				b.addEventListener('mousedown', press);
+				b.addEventListener('touchstart', press, {
+						passive: false
+				});
+				b.addEventListener('touchend', () => clearTimeout(timers.stealth));
+		});
+		document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
+				let wasPlaying = false;
+				let lpTriggered = false;
+				const handleDown = e => {
+					if (e && e.cancelable) {
+						e.preventDefault();
+						e.stopPropagation();
+					}
+					wasPlaying = isDemoPlaying;
+					lpTriggered = false;
+					if (wasPlaying) {
+						isDemoPlaying = false;
+						b.textContent = "▶";
+						showToast("Playback Stopped 🛑");
+						return;
+					}
+					if (appSettings.isLongPressAutoplayEnabled) {
+						timers.longPress = setTimeout(() => {
+								lpTriggered = true;
+								appSettings.runtimeSettings.isAutoplayEnabled = !appSettings.runtimeSettings.isAutoplayEnabled;
+								modules.settings.updateUIFromSettings();
+								showToast(`Autoplay: ${appSettings.runtimeSettings.isAutoplayEnabled ? "ON" : "OFF"}`);
+								ignoreNextClick = true;
+								setTimeout(() => ignoreNextClick = false, 500);
+							}, 800);
+					}
+				};
+				const handleUp = e => {
+					if (e && e.cancelable) {
+						e.preventDefault();
+						e.stopPropagation();
+					}
+					clearTimeout(timers.longPress);
+					if (!wasPlaying && !lpTriggered) {
+						playDemo();
+					}
+				};
+				b.addEventListener('mousedown', handleDown);
+				b.addEventListener('touchstart', handleDown, {
+						passive: false
+				});
+				b.addEventListener('mouseup', handleUp);
+				b.addEventListener('touchend', handleUp);
+				b.addEventListener('mouseleave', () => clearTimeout(timers.longPress));
+		});
+		document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => {
+				b.addEventListener('click', () => {
+						if (confirm("Reset Round Counter to 1?")) {
+							const s = getState();
+							s.currentRound = 1;
+							s.sequences[0] = [];
+							s.nextSequenceIndex = 0;
+							lastMachineInputTime = {};
+							renderUI();
+							saveState();
+							showToast("Reset to Round 1");
+						}
+				});
+		});
+		document.querySelectorAll('button[data-action="open-settings"]').forEach(b => {
+				b.addEventListener('click', () => {
+						if (isDemoPlaying) {
+							isDemoPlaying = false;
+							const pb = document.querySelector('button[data-action="play-demo"]');
+							if (pb) pb.textContent = "▶";
+							showToast("Playback Stopped 🛑");
+							return;
+						}
+						modules.settings.openSettings();
+				});
+		});
+		const startDelete = e => {
+			if (e) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
+			handleBackspace(null);
+			if (!appSettings.isSpeedDeletingEnabled) return;
+			timers.initialDelay = setTimeout(() => {
+					timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL);
+				}, CONFIG.SPEED_DELETE_DELAY);
+		};
+		const stopDelete = () => {
+			clearTimeout(timers.initialDelay);
+			clearInterval(timers.speedDelete);
+		};
+		document.querySelectorAll('button[data-action="backspace"]').forEach(b => {
+				b.addEventListener('mousedown', startDelete);
+				b.addEventListener('touchstart', startDelete, {
+						passive: false
+				});
+				b.addEventListener('mouseup', stopDelete);
+				b.addEventListener('mouseleave', stopDelete);
+				b.addEventListener('touchend', stopDelete);
+				b.addEventListener('touchcancel', stopDelete);
+		});
+		const headerDeleteBtnEl = document.getElementById('headerdeletebtn');
+		if (headerDeleteBtnEl) {
+			headerDeleteBtnEl.addEventListener('mousedown', startDelete);
+			headerDeleteBtnEl.addEventListener('touchstart', startDelete, {
+					passive: false
+			});
+			headerDeleteBtnEl.addEventListener('mouseup', stopDelete);
+			headerDeleteBtnEl.addEventListener('mouseleave', stopDelete);
+			headerDeleteBtnEl.addEventListener('touchend', stopDelete);
+			headerDeleteBtnEl.addEventListener('touchcancel', stopDelete);
+		}
+		if (appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
+		const handlePause = e => {
+			if (isDemoPlaying) {
+				isPlaybackPaused = true;
+				showToast("Paused ⏸️");
+			}
+		};
+		const handleResume = e => {
+			if (isPlaybackPaused) {
+				isPlaybackPaused = false;
+				showToast("Resumed ▶️");
+				if (playbackResumeCallback) {
+					const fn = playbackResumeCallback;
+					playbackResumeCallback = null;
+					fn();
+				}
+			}
+		};
+		document.body.addEventListener('mousedown', handlePause);
+		document.body.addEventListener('touchstart', handlePause, {
+				passive: true
+		});
+		document.body.addEventListener('mouseup', handleResume);
+		document.body.addEventListener('touchend', handleResume);
+		document.getElementById('close-settings').addEventListener('click', () => {
+				if (appSettings.runtimeSettings.isPracticeModeEnabled) {
+					setTimeout(startPracticeRound, 500);
+				}
+		});
+		let lastX = 0,
+		lastY = 0,
+		lastZ = 0;
+		window.addEventListener('devicemotion', e => {
+				if (!appSettings.isBlackoutFeatureEnabled) return;
+				const acc = e.accelerationIncludingGravity;
+				if (!acc) return;
+				const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
+				if (delta > 25) {
+					const now = Date.now();
+					if (now - blackoutState.lastShake > 1000) {
+						blackoutState.isActive = !blackoutState.isActive;
+						document.body.classList.toggle('blackout-active', blackoutState.isActive);
+						showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back");
+						vibrate();
+						renderUI();
+						blackoutState.lastShake = now;
+					}
+				}
+				lastX = acc.x;
+				lastY = acc.y;
+				lastZ = acc.z;
+		});
+		const bl = document.getElementById('blackout-layer');
+		if (bl) {
+			bl.addEventListener('touchstart', e => {
+					if (appSettings.isTouchGestureInputEnabled) return;
+					if (e.touches.length === 1) {
+						e.preventDefault();
+						const t = e.touches[0];
+						const w = window.innerWidth;
+						const h = window.innerHeight;
+						let col = Math.floor(t.clientX / (w / 3));
+						if (col > 2) col = 2;
+						const settings = getProfileSettings();
+						let val = null;
+						if (settings.currentInput === 'key9') {
+							let row = Math.floor(t.clientY / (h / 3));
+							if (row > 2) row = 2;
+							val = row * 3 + col + 1;
+						} else {
+							let row = Math.floor(t.clientY / (h / 4));
+							if (row > 3) row = 3;
+							const index = row * 3 + col;
+							if (settings.currentInput === 'piano') {
+								const map = ['1', '2', '3', '4', '5', 'C', 'D', 'E', 'F', 'G', 'A', 'B'];
+								val = map[index];
+							} else {
+								val = index + 1;
+							}
+						}
+						if (val !== null) {
+							addValue(val.toString());
+							hapticPulse(20);
+						}
+					}
+				}, {
+					passive: false
+			});
+		}
+		const headerTimer = document.getElementById('headertimerbtn');
+		const headerCounter = document.getElementById('headercounterbtn');
+		const headerMic = document.getElementById('headervoicebtn');
+		const headerCam = document.getElementById('headerarcambtn');
+		const headerTouchGesture = document.getElementById('headertouchbtn');
+		const headerHand = document.getElementById('headerhandbtn');
+		if (headerHand) {
+			headerHand.onclick = () => {
+				if (!modules.vision) return;
+				const isActive = !modules.vision.isActive;
+				if (isActive) {
+					modules.vision.start();
+					headerHand.classList.add('header-btn-active');
+				} else {
+					modules.vision.stop();
+					headerHand.classList.remove('header-btn-active');
+				}
+			};
+		}
+		const headerStealth = document.getElementById('headerbiggerbtn');
+		if (headerStealth) {
+			headerStealth.onclick = () => {
+				document.body.classList.toggle('hide-controls');
+				const isActive = document.body.classList.contains('hide-controls');
+				headerStealth.classList.toggle('header-btn-active', isActive);
+				showToast(isActive ? "Bigger Buttons Active" : "Controls Visible");
+				setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+			};
+		}
+		const headerSwap = document.getElementById('headerswapbtn');
+		if (headerSwap) {
+			headerSwap.onclick = () => {
+				const isActive = !document.body.classList.contains('layout-swapped');
+				document.body.classList.toggle('layout-swapped', isActive);
+				headerSwap.classList.toggle('header-btn-active', isActive);
+				applyPositionSwapOffsets(isActive);
+				showToast(isActive ? "Inputs Moved to Top 🔄" : "Inputs Back to Bottom 🔄");
+			};
+		}
+		const headerPlay = document.getElementById('headerplaybtn');
+		if (headerPlay) headerPlay.onclick = () => playDemo();
+		const headerSettingsBtn = document.getElementById('headersettingsbtn');
+		if (headerSettingsBtn) headerSettingsBtn.onclick = () => { if (modules.settings) modules.settings.openSettings(); };
+		const headerRedeem = document.getElementById('headerredeembtn');
+		if (headerRedeem) headerRedeem.onclick = () => { if (modules.settings) modules.settings.toggleRedeem(true); };
+		const headerShare = document.getElementById('headersharebtn');
+		if (headerShare) headerShare.onclick = () => { if (modules.settings) modules.settings.openShare(); };
+		const headerThemeCycle = document.getElementById('headerthemecyclebtn');
+		if (headerThemeCycle) headerThemeCycle.onclick = () => {
+			const allThemeKeys = [...Object.keys(PREMADE_THEMES), ...Object.keys(appSettings.customThemes || {})];
+			if (allThemeKeys.length === 0) return;
+			const curIdx = allThemeKeys.indexOf(appSettings.activeTheme);
+			const nextTheme = allThemeKeys[(curIdx + 1) % allThemeKeys.length];
+			appSettings.activeTheme = nextTheme;
+			applyTheme(nextTheme);
+			saveState();
+			if (modules.settings && modules.settings.dom.themeSelect) modules.settings.dom.themeSelect.value = nextTheme;
+			showToast(`Theme: ${nextTheme} 🎨`);
+		};
+		const headerAddMachine = document.getElementById('headeraddmachinebtn');
+		if (headerAddMachine) headerAddMachine.onclick = () => {
+			const settings = getProfileSettings();
+			if (settings.machineCount >= CONFIG.MAX_MACHINES) { showToast(`Max ${CONFIG.MAX_MACHINES} machines 🛑`); return; }
+			settings.machineCount++;
+			const sel = document.getElementById('machines-select');
+			if (sel) sel.value = settings.machineCount;
+			renderUI();
+			saveState();
+			showToast(`Machines: ${settings.machineCount} ➕`);
+		};
+		const headerUiUp = document.getElementById('headeruiupbtn');
+		if (headerUiUp) headerUiUp.onclick = () => {
+			appSettings.globalUiScale = Math.min(200, (appSettings.globalUiScale || 100) + 10);
+			document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
+			const sel = document.getElementById('ui-scale-select');
+			if (sel) sel.value = appSettings.globalUiScale;
+			saveState();
+			showToast(`UI: ${appSettings.globalUiScale}% 🔍`);
+		};
+		const headerUiDown = document.getElementById('headeruidownbtn');
+		if (headerUiDown) headerUiDown.onclick = () => {
+			appSettings.globalUiScale = Math.max(50, (appSettings.globalUiScale || 100) - 10);
+			document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
+			const sel = document.getElementById('ui-scale-select');
+			if (sel) sel.value = appSettings.globalUiScale;
+			saveState();
+			showToast(`UI: ${appSettings.globalUiScale}% 🔍`);
+		};
+		const headerSeqUp = document.getElementById('headersequpbtn');
+		if (headerSeqUp) headerSeqUp.onclick = () => {
+			appSettings.uiScaleMultiplier = Math.min(3.0, (appSettings.uiScaleMultiplier || 1.0) + 0.1);
+			const sel = document.getElementById('seq-size-select');
+			if (sel) sel.value = Math.round(appSettings.uiScaleMultiplier * 100);
+			renderUI();
+			saveState();
+			showToast(`Cards: ${Math.round(appSettings.uiScaleMultiplier * 100)}% 🔢`);
+		};
+		const headerSeqDown = document.getElementById('headerseqdownbtn');
+		if (headerSeqDown) headerSeqDown.onclick = () => {
+			appSettings.uiScaleMultiplier = Math.max(0.5, (appSettings.uiScaleMultiplier || 1.0) - 0.1);
+			const sel = document.getElementById('seq-size-select');
+			if (sel) sel.value = Math.round(appSettings.uiScaleMultiplier * 100);
+			renderUI();
+			saveState();
+			showToast(`Cards: ${Math.round(appSettings.uiScaleMultiplier * 100)}% 🔢`);
+		};
+		const headerVolUp = document.getElementById('headervolupbtn');
+		if (headerVolUp) headerVolUp.onclick = () => {
+			appSettings.runtimeSettings.voiceVolume = Math.min(1.0, (appSettings.runtimeSettings.voiceVolume || 1.0) + 0.05);
+			const sel = document.getElementById('voice-volume');
+			if (sel) sel.value = appSettings.runtimeSettings.voiceVolume;
+			saveState();
+			showToast(`Volume: ${(appSettings.runtimeSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
+		};
+		const headerVolDown = document.getElementById('headervoldownbtn');
+		if (headerVolDown) headerVolDown.onclick = () => {
+			appSettings.runtimeSettings.voiceVolume = Math.max(0.0, (appSettings.runtimeSettings.voiceVolume || 1.0) - 0.05);
+			const sel = document.getElementById('voice-volume');
+			if (sel) sel.value = appSettings.runtimeSettings.voiceVolume;
+			saveState();
+			showToast(`Volume: ${(appSettings.runtimeSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
+		};
+		const headerSpeedUp = document.getElementById('headerspeedupbtn');
+		if (headerSpeedUp) headerSpeedUp.onclick = () => {
+			appSettings.runtimeSettings.playbackSpeed = Math.min(2.0, (appSettings.runtimeSettings.playbackSpeed || 1.0) + 0.1);
+			const sel = document.getElementById('playback-speed-select');
+			if (sel) sel.value = appSettings.runtimeSettings.playbackSpeed.toFixed(2);
+			saveState();
+			showToast(`Speed: ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
+		};
+		const headerSpeedDown = document.getElementById('headerspeeddownbtn');
+		if (headerSpeedDown) headerSpeedDown.onclick = () => {
+			appSettings.runtimeSettings.playbackSpeed = Math.max(0.5, (appSettings.runtimeSettings.playbackSpeed || 1.0) - 0.1);
+			const sel = document.getElementById('playback-speed-select');
+			if (sel) sel.value = appSettings.runtimeSettings.playbackSpeed.toFixed(2);
+			saveState();
+			showToast(`Speed: ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
+		};
+		const headerPlayBtnEl = document.getElementById('headerplaybtn');
+		if (headerPlayBtnEl) {
+			let hpWasPlaying = false;
+			let hpLongPressTriggered = false;
+			const headerPlayDown = e => {
+				if (e && e.cancelable) {
+					e.preventDefault();
+					e.stopPropagation();
+				}
+				hpWasPlaying = isDemoPlaying;
+				hpLongPressTriggered = false;
+				if (hpWasPlaying) {
+					isDemoPlaying = false;
+					headerPlayBtnEl.textContent = "▶️";
+					showToast("Playback Stopped 🛑");
+					return;
+				}
+				if (appSettings.isLongPressAutoplayEnabled) {
+					timers.longPress = setTimeout(() => {
+							hpLongPressTriggered = true;
+							appSettings.runtimeSettings.isAutoplayEnabled = !appSettings.runtimeSettings.isAutoplayEnabled;
+							modules.settings.updateUIFromSettings();
+							showToast(`Autoplay: ${appSettings.runtimeSettings.isAutoplayEnabled ? "ON" : "OFF"}`);
+							ignoreNextClick = true;
+							setTimeout(() => ignoreNextClick = false, 500);
+						}, 800);
+				}
+			};
+			const headerPlayUp = e => {
+				if (e && e.cancelable) {
+					e.preventDefault();
+					e.stopPropagation();
+				}
+				clearTimeout(timers.longPress);
+				if (!hpWasPlaying && !hpLongPressTriggered) {
+					playDemo();
+				}
+			};
+			headerPlayBtnEl.addEventListener('mousedown', headerPlayDown);
+			headerPlayBtnEl.addEventListener('touchstart', headerPlayDown, { passive: false });
+			headerPlayBtnEl.addEventListener('mouseup', headerPlayUp);
+			headerPlayBtnEl.addEventListener('touchend', headerPlayUp);
+			headerPlayBtnEl.addEventListener('mouseleave', () => clearTimeout(timers.longPress));
+			headerPlayBtnEl.addEventListener('touchcancel', () => clearTimeout(timers.longPress));
+		}
+		const headerCycleInput = document.getElementById('headercycleinputbtn');
+		if (headerCycleInput) headerCycleInput.onclick = () => {
+			const settings = getProfileSettings();
+			const order = ['key9', 'key12', 'piano'];
+			const curIdx = order.indexOf(settings.currentInput);
+			settings.currentInput = order[(curIdx + 1) % order.length];
+			const sel = document.getElementById('input-select');
+			if (sel) sel.value = settings.currentInput;
+			renderUI();
+			saveState();
+			showToast(`Input: ${settings.currentInput} 🔀`);
+		};
+		const headerNotepad = document.getElementById('headernotepadbtn');
+		const notepadModal = document.getElementById('notepad-modal');
+		const notepadTextarea = document.getElementById('notepad-textarea');
+		const closeNotepadBtn = document.getElementById('close-notepad-btn');
+		if (headerNotepad && notepadModal && notepadTextarea) {
+			let notepadLongPressTimer = null;
+			let notepadWasLongPress = false;
+			const copyNotepadToClipboard = () => {
+				const hasSelection = notepadTextarea.selectionStart !== notepadTextarea.selectionEnd;
+				const text = hasSelection ? notepadTextarea.value.substring(notepadTextarea.selectionStart, notepadTextarea.selectionEnd) : (appSettings.notepadText || '');
+				if (!text) { showToast('Notepad is empty 📝'); return; }
+				navigator.clipboard?.writeText(text).then(() => {
+						showToast(hasSelection ? 'Selection copied 📋' : 'Note copied to clipboard 📋');
+				}).catch(() => showToast('Copy failed - try again'));
+				hapticPulse(50);
+			};
+			headerNotepad.addEventListener('pointerdown', () => {
+					notepadWasLongPress = false;
+					notepadLongPressTimer = setTimeout(() => {
+							notepadWasLongPress = true;
+							copyNotepadToClipboard();
+						}, 600);
+			});
+			const cancelNotepadLongPress = () => { if (notepadLongPressTimer) { clearTimeout(notepadLongPressTimer); notepadLongPressTimer = null; } };
+			headerNotepad.addEventListener('pointerup', cancelNotepadLongPress);
+			headerNotepad.addEventListener('pointerleave', cancelNotepadLongPress);
+			headerNotepad.addEventListener('pointercancel', cancelNotepadLongPress);
+			headerNotepad.onclick = () => {
+				if (notepadWasLongPress) { notepadWasLongPress = false; return; }
+				notepadTextarea.value = appSettings.notepadText || '';
+				notepadModal.classList.remove('opacity-0', 'pointer-events-none');
+				if (window.lockBodyScroll) window.lockBodyScroll();
+				setTimeout(() => notepadTextarea.focus(), 50);
+			};
+			notepadTextarea.oninput = () => {
+				appSettings.notepadText = notepadTextarea.value;
+				saveState();
+			};
+			const selectAllBtn = document.getElementById('notepad-selectall-btn');
+			if (selectAllBtn) selectAllBtn.onclick = () => {
+				notepadTextarea.focus();
+				notepadTextarea.select();
+			};
+			const cutBtn = document.getElementById('notepad-cut-btn');
+			if (cutBtn) cutBtn.onclick = async () => {
+				const start = notepadTextarea.selectionStart;
+				const end = notepadTextarea.selectionEnd;
+				if (start === end) { showToast('Select some text first ✂️'); return; }
+				const selected = notepadTextarea.value.substring(start, end);
+				try {
+					await navigator.clipboard.writeText(selected);
+					notepadTextarea.value = notepadTextarea.value.slice(0, start) + notepadTextarea.value.slice(end);
+					notepadTextarea.setSelectionRange(start, start);
+					appSettings.notepadText = notepadTextarea.value;
+					saveState();
+					showToast('Cut ✂️');
+				} catch (e) {
+					showToast('Cut failed - try again');
+				}
+			};
+			const copyBtn = document.getElementById('notepad-copy-btn');
+			if (copyBtn) copyBtn.onclick = () => copyNotepadToClipboard();
+			const pasteBtn = document.getElementById('notepad-paste-btn');
+			if (pasteBtn) pasteBtn.onclick = async () => {
+				try {
+					const clipText = await navigator.clipboard.readText();
+					if (!clipText) { showToast('Clipboard is empty 📋'); return; }
+					const start = notepadTextarea.selectionStart;
+					const end = notepadTextarea.selectionEnd;
+					notepadTextarea.value = notepadTextarea.value.slice(0, start) + clipText + notepadTextarea.value.slice(end);
+					const newPos = start + clipText.length;
+					notepadTextarea.setSelectionRange(newPos, newPos);
+					appSettings.notepadText = notepadTextarea.value;
+					saveState();
+					showToast('Pasted 📥');
+				} catch (e) {
+					showToast('Paste blocked - your browser needs clipboard permission for this');
+				}
+			};
+			const eraseBtn = document.getElementById('notepad-erase-btn');
+			if (eraseBtn) eraseBtn.onclick = () => {
+				if (!appSettings.notepadText) return;
+				if (!confirm('Erase the entire note? This can\'t be undone.')) return;
+				notepadTextarea.value = '';
+				appSettings.notepadText = '';
+				saveState();
+				showToast('Note erased 🗑️');
+			};
+		}
+		if (closeNotepadBtn && notepadModal && notepadTextarea) {
+			closeNotepadBtn.onclick = () => {
+				notepadTextarea.blur();
+				notepadModal.classList.add('opacity-0', 'pointer-events-none');
+				if (window.unlockBodyScroll) window.unlockBodyScroll();
+			};
+		}
+		const headerHelp = document.getElementById('headerhelpbtn');
+		if (headerHelp) headerHelp.onclick = () => { document.getElementById('open-help-button')?.click(); };
+		const headerModeSwitch = document.getElementById('headermodeswitchbtn');
+		if (headerModeSwitch) headerModeSwitch.onclick = () => {
+			const settings = getProfileSettings();
+			settings.currentMode = settings.currentMode === CONFIG.MODES.SIMON ? CONFIG.MODES.UNIQUE_ROUNDS : CONFIG.MODES.SIMON;
+			const sel = document.getElementById('mode-select');
+			if (sel) sel.value = settings.currentMode;
+			renderUI();
+			saveState();
+			showToast(`Mode: ${settings.currentMode === CONFIG.MODES.SIMON ? 'Simon Says' : 'Unique'} 🎮`);
+		};
+		const headerReset = document.getElementById('headerresetbtn');
+		if (headerReset) headerReset.onclick = () => { document.querySelector('button[data-action="restore-defaults"]')?.click(); };
+		const headerNuke = document.getElementById('headernukebtn');
+		if (headerNuke) headerNuke.onclick = () => { document.querySelector('button[data-action="nuke-app"]')?.click(); };
+		if (headerTimer) {
+			headerTimer.textContent = "00:00";
+			headerTimer.style.fontSize = "0.75rem";
+			const formatTime = ms => {
+				const totalSec = Math.floor(ms / 1000);
+				const m = Math.floor(totalSec / 60);
+				const s = totalSec % 60;
+				return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+			};
+			const updateTimer = () => {
+				const now = Date.now();
+				const diff = now - simpleTimer.startTime + simpleTimer.elapsed;
+				headerTimer.textContent = formatTime(diff);
+			};
+			globalTimerActions.start = () => {
+				if (!simpleTimer.isRunning) {
+					simpleTimer.startTime = Date.now();
+					simpleTimer.interval = setInterval(updateTimer, 100);
+					simpleTimer.isRunning = true;
+				}
+			};
+			globalTimerActions.stop = () => {
+				if (simpleTimer.isRunning) {
+					clearInterval(simpleTimer.interval);
+					simpleTimer.elapsed += Date.now() - simpleTimer.startTime;
+					simpleTimer.isRunning = false;
+				}
+			};
+			globalTimerActions.reset = () => {
+				clearInterval(simpleTimer.interval);
+				simpleTimer.isRunning = false;
+				simpleTimer.elapsed = 0;
+				headerTimer.textContent = "00:00";
+			};
+			const toggleTimer = () => {
+				if (simpleTimer.isRunning) globalTimerActions.stop();
+				else globalTimerActions.start();
+				vibrate();
+			};
+			const resetTimer = () => {
+				globalTimerActions.reset();
+				showToast("Timer Reset");
+				vibrate();
+			};
+			let tTimer;
+			let tIsLong = false;
+			const startT = e => {
+				if (e.type === 'mousedown' && e.button !== 0) return;
+				tIsLong = false;
+				tTimer = setTimeout(() => {
+						tIsLong = true;
+						resetTimer();
+					}, 600);
+			};
+			const endT = e => {
+				if (e) e.preventDefault();
+				clearTimeout(tTimer);
+				if (!tIsLong) toggleTimer();
+			};
+			headerTimer.addEventListener('mousedown', startT);
+			headerTimer.addEventListener('touchstart', startT, {
+					passive: true
+			});
+			headerTimer.addEventListener('mouseup', endT);
+			headerTimer.addEventListener('touchend', endT);
+			headerTimer.addEventListener('mouseleave', () => clearTimeout(tTimer));
+		}
+		if (headerCounter) {
+			headerCounter.textContent = simpleCounter.toString();
+			headerCounter.style.fontSize = "1.2rem";
+			const updateCounter = () => {
+				headerCounter.textContent = simpleCounter;
+			};
+			globalCounterActions.increment = () => {
+				simpleCounter++;
+				updateCounter();
+			};
+			globalCounterActions.reset = () => {
+				simpleCounter = 0;
+				updateCounter();
+			};
+			const increment = () => {
+				globalCounterActions.increment();
+				vibrate();
+			};
+			const resetCounter = () => {
+				globalCounterActions.reset();
+				showToast("Counter Reset");
+				vibrate();
+			};
+			let cTimer;
+			let cIsLong = false;
+			const startC = e => {
+				if (e.type === 'mousedown' && e.button !== 0) return;
+				cIsLong = false;
+				cTimer = setTimeout(() => {
+						cIsLong = true;
+						resetCounter();
+					}, 600);
+			};
+			const endC = e => {
+				if (e) e.preventDefault();
+				clearTimeout(cTimer);
+				if (!cIsLong) increment();
+			};
+			headerCounter.addEventListener('mousedown', startC);
+			headerCounter.addEventListener('touchstart', startC, {
+					passive: true
+			});
+			headerCounter.addEventListener('mouseup', endC);
+			headerCounter.addEventListener('touchend', endC);
+			headerCounter.addEventListener('mouseleave', () => clearTimeout(cTimer));
+		}
+		if (headerMic) {
+			headerMic.onclick = () => {
+				if (!voiceModule) return;
+				const isActive = !voiceModule.isListening;
+				voiceModule.toggle(isActive);
+				headerMic.classList.toggle('header-btn-active', isActive);
+			};
+		}
+		if (headerTouchGesture) {
+			headerTouchGesture.onclick = () => {
+				isTouchGesturePadVisible = !isTouchGesturePadVisible;
+				headerTouchGesture.classList.toggle('header-btn-active', isTouchGesturePadVisible);
+				const gpWrap = document.getElementById('gesture-pad-wrapper');
+				if (gpWrap) {
+					if (isTouchGesturePadVisible) {
+						gpWrap.classList.remove('hidden');
+						showToast("Pad Visible 🗒️");
+					} else {
+						gpWrap.classList.add('hidden');
+						showToast("Pad Hidden");
+					}
+				}
+				renderUI();
+			};
+		}
+	} catch (e) {
+		console.error("Listener Error:", e);
+	}
 }
 window.upsidedownToggle = async function(enable) {
-    try {
-        if (('wakeLock' in navigator)) {
-            if (enable) {
-                screenWakeLock = await navigator.wakeLock.request('screen');
-                document.addEventListener('visibilitychange', reacquireWakeLock);
-                console.log('Wake Lock: ACTIVE 💡');
-            } else {
-                if (screenWakeLock) {
-                    await screenWakeLock.release();
-                    screenWakeLock = null;
-                }
-                document.removeEventListener('visibilitychange', reacquireWakeLock);
-                console.log('Wake Lock: RELEASED 🔋');
-            }
-        }
-    } catch (err) {
-        console.warn('Wake Lock failed:', err);
-    }
+	try {
+		if (('wakeLock' in navigator)) {
+			if (enable) {
+				screenWakeLock = await navigator.wakeLock.request('screen');
+				document.addEventListener('visibilitychange', reacquireWakeLock);
+				console.log('Wake Lock: ACTIVE 💡');
+			} else {
+				if (screenWakeLock) {
+					await screenWakeLock.release();
+					screenWakeLock = null;
+				}
+				document.removeEventListener('visibilitychange', reacquireWakeLock);
+				console.log('Wake Lock: RELEASED 🔋');
+			}
+		}
+	} catch (err) {
+		console.warn('Wake Lock failed:', err);
+	}
 };
 window.modules = modules;
 window.settingsToBackupCode = settingsToBackupCode;
@@ -7949,284 +7137,212 @@ window.mergeWithDefaults = mergeWithDefaults;
 window.DEFAULT_APP = DEFAULT_APP;
 window.lockBodyScroll = lockBodyScroll;
 window.unlockBodyScroll = unlockBodyScroll;
-// Real, live viewport height tracking: 100dvh (in styles.css) handles most of this already, but
-// window.visualViewport is more reliable still for the specific "browser nav chrome partially
-// covers the bottom of the screen" case this was written for - it reports the actual visible
-// area, live, including through keyboard-open/nav-bar-transition states dvh doesn't always
-// catch cleanly. Setting a --real-vh custom property lets any part of the layout opt into this
-// more precise value instead of only relying on the CSS unit.
 (function initRealViewportHeight() {
-    const footer = document.getElementById('input-footer');
-    const apply = () => {
-        const vv = window.visualViewport;
-        const h = (vv && vv.height) || window.innerHeight;
-        document.documentElement.style.setProperty('--real-vh', h + 'px');
-        if (vv && footer && !document.body.classList.contains('layout-swapped')) {
-            // The gap between the full layout viewport and the currently-visible visual
-            // viewport is exactly how much browser chrome (nav bar, keyboard, etc.) is
-            // currently covering the bottom of the screen - offsetting the footer by that
-            // amount keeps it genuinely visible instead of relying on bottom:0 alone. Skipped
-            // while Position Swap is active, since that feature positions the footer via top
-            // instead and this would otherwise silently fight it.
-            const offset = window.innerHeight - vv.height - vv.offsetTop;
-            footer.style.bottom = Math.max(0, offset) + 'px';
-        }
-    };
-    apply();
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', apply);
-        window.visualViewport.addEventListener('scroll', apply);
-    }
-    window.addEventListener('resize', apply);
-    window.addEventListener('orientationchange', () => setTimeout(apply, 150));
+		const footer = document.getElementById('input-footer');
+		const apply = () => {
+			const vv = window.visualViewport;
+			const h = (vv && vv.height) || window.innerHeight;
+			document.documentElement.style.setProperty('--real-vh', h + 'px');
+			if (vv && footer && !document.body.classList.contains('layout-swapped')) {
+				const offset = window.innerHeight - vv.height - vv.offsetTop;
+				footer.style.bottom = Math.max(0, offset) + 'px';
+			}
+		};
+		apply();
+		if (window.visualViewport) {
+			window.visualViewport.addEventListener('resize', apply);
+			window.visualViewport.addEventListener('scroll', apply);
+		}
+		window.addEventListener('resize', apply);
+		window.addEventListener('orientationchange', () => setTimeout(apply, 150));
 })();
-// ===== Picture in Picture (always-on-top window) =====
-// The Document Picture-in-Picture API would be the natural fit here, but it is desktop-only
-// (Chrome/Edge 130+, Firefox 151 - Chrome for Android does not support it), and this app targets
-// mobile. Video-element Picture-in-Picture IS supported on Android Chrome, so this renders the
-// live sequence into a canvas, pipes that canvas through captureStream() into a hidden <video>,
-// and puts THAT into PiP. Result: a real always-on-top window on Android.
-//
-// Deliberately view-only: touches on a PiP window go to the window's own controls, not to page
-// content, so there is no way to make the PiP copy interactive. It mirrors the sequence for
-// reference while you're in another app.
-//
-// It reads the rendered .number-box elements rather than any internal sequence array, so it
-// stays correct across every game mode (Simon, Unique Rounds, practice) without knowing about
-// any of them - whatever is on screen is what shows in the PiP window.
 let pipCanvas = null, pipVideo = null, pipStream = null, pipTimer = null;
-
 function pipSupported() {
-    return !!(document.pictureInPictureEnabled && HTMLCanvasElement.prototype.captureStream);
+	return !!(document.pictureInPictureEnabled && HTMLCanvasElement.prototype.captureStream);
 }
-
 function readVisibleSequence() {
-    const container = document.getElementById('sequence-container');
-    if (!container) return [];
-    return Array.from(container.querySelectorAll('.number-box'))
-        .map(el => (el.textContent || '').trim())
-        .filter(t => t.length);
+	const container = document.getElementById('sequence-container');
+	if (!container) return [];
+	return Array.from(container.querySelectorAll('.number-box'))
+	.map(el => (el.textContent || '').trim())
+	.filter(t => t.length);
 }
-
 function drawPipFrame() {
-    if (!pipCanvas) return;
-    const ctx = pipCanvas.getContext('2d');
-    const cs = getComputedStyle(document.body);
-    const bg = cs.getPropertyValue('--bg-main').trim() || '#111827';
-    const bubble = cs.getPropertyValue('--seq-bubble').trim() || '#6366f1';
-    const textCol = cs.getPropertyValue('--text-main').trim() || '#ffffff';
-    const W = pipCanvas.width, H = pipCanvas.height;
-
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, W, H);
-
-    const vals = readVisibleSequence();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    if (!vals.length) {
-        ctx.fillStyle = textCol;
-        ctx.font = '600 26px system-ui, sans-serif';
-        ctx.fillText('No sequence yet', W / 2, H / 2);
-        return;
-    }
-
-    const n = vals.length;
-    let cols = Math.max(1, Math.min(n, Math.ceil(Math.sqrt(n * W / H))));
-    let rows = Math.ceil(n / cols);
-    const gap = 10;
-    const size = Math.max(24, Math.min(
-        (W - gap * (cols + 1)) / cols,
-        (H - gap * (rows + 1)) / rows
-    ));
-    const gridW = cols * size + gap * (cols - 1);
-    const gridH = rows * size + gap * (rows - 1);
-    const startX = (W - gridW) / 2;
-    const startY = (H - gridH) / 2;
-    const radius = Math.min(12, size * 0.22);
-
-    ctx.font = `700 ${Math.round(size * 0.5)}px system-ui, sans-serif`;
-    for (let i = 0; i < n; i++) {
-        const c = i % cols, r = Math.floor(i / cols);
-        const x = startX + c * (size + gap);
-        const y = startY + r * (size + gap);
-        ctx.fillStyle = bubble;
-        ctx.beginPath();
-        if (ctx.roundRect) ctx.roundRect(x, y, size, size, radius);
-        else ctx.rect(x, y, size, size);
-        ctx.fill();
-        ctx.fillStyle = pickReadableInk(bubble);
-        ctx.fillText(vals[i], x + size / 2, y + size / 2);
-    }
+	if (!pipCanvas) return;
+	const ctx = pipCanvas.getContext('2d');
+	const cs = getComputedStyle(document.body);
+	const bg = cs.getPropertyValue('--bg-main').trim() || '#111827';
+	const bubble = cs.getPropertyValue('--seq-bubble').trim() || '#6366f1';
+	const textCol = cs.getPropertyValue('--text-main').trim() || '#ffffff';
+	const W = pipCanvas.width, H = pipCanvas.height;
+	ctx.fillStyle = bg;
+	ctx.fillRect(0, 0, W, H);
+	const vals = readVisibleSequence();
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	if (!vals.length) {
+		ctx.fillStyle = textCol;
+		ctx.font = '600 26px system-ui, sans-serif';
+		ctx.fillText('No sequence yet', W / 2, H / 2);
+		return;
+	}
+	const n = vals.length;
+	let cols = Math.max(1, Math.min(n, Math.ceil(Math.sqrt(n * W / H))));
+	let rows = Math.ceil(n / cols);
+	const gap = 10;
+	const size = Math.max(24, Math.min(
+			(W - gap * (cols + 1)) / cols,
+			(H - gap * (rows + 1)) / rows
+	));
+	const gridW = cols * size + gap * (cols - 1);
+	const gridH = rows * size + gap * (rows - 1);
+	const startX = (W - gridW) / 2;
+	const startY = (H - gridH) / 2;
+	const radius = Math.min(12, size * 0.22);
+	ctx.font = `700 ${Math.round(size * 0.5)}px system-ui, sans-serif`;
+	for (let i = 0; i < n; i++) {
+		const c = i % cols, r = Math.floor(i / cols);
+		const x = startX + c * (size + gap);
+		const y = startY + r * (size + gap);
+		ctx.fillStyle = bubble;
+		ctx.beginPath();
+		if (ctx.roundRect) ctx.roundRect(x, y, size, size, radius);
+		else ctx.rect(x, y, size, size);
+		ctx.fill();
+		ctx.fillStyle = pickReadableInk(bubble);
+		ctx.fillText(vals[i], x + size / 2, y + size / 2);
+	}
 }
-
-// The bubble colour is user-themable, so white text isn't always readable on it. Same luminance
-// reasoning the theme system already uses for card text.
 function pickReadableInk(bgColor) {
-    const probe = document.createElement('div');
-    probe.style.color = bgColor;
-    document.body.appendChild(probe);
-    const rgb = getComputedStyle(probe).color.match(/\d+/g);
-    probe.remove();
-    if (!rgb) return '#ffffff';
-    const [r, g, b] = rgb.map(Number);
-    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    return lum > 0.6 ? '#111111' : '#ffffff';
+	const probe = document.createElement('div');
+	probe.style.color = bgColor;
+	document.body.appendChild(probe);
+	const rgb = getComputedStyle(probe).color.match(/\d+/g);
+	probe.remove();
+	if (!rgb) return '#ffffff';
+	const [r, g, b] = rgb.map(Number);
+	const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+	return lum > 0.6 ? '#111111' : '#ffffff';
 }
-
 async function enterPipMode() {
-    if (!pipSupported()) {
-        showToast('Picture-in-Picture not supported on this browser 🪟');
-        return false;
-    }
-    try {
-        if (!pipCanvas) {
-            pipCanvas = document.createElement('canvas');
-            pipCanvas.width = 480;
-            pipCanvas.height = 270;
-        }
-        if (!pipVideo) {
-            pipVideo = document.createElement('video');
-            pipVideo.muted = true;
-            pipVideo.playsInline = true;
-            pipVideo.setAttribute('playsinline', '');
-            // Kept in the DOM but off-screen: a display:none video cannot enter PiP, and some
-            // browsers refuse to keep a fully detached element playing.
-            pipVideo.style.cssText = 'position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none;';
-            document.body.appendChild(pipVideo);
-            pipVideo.addEventListener('leavepictureinpicture', () => {
-                stopPipLoop();
-                const t = document.getElementById('pipToggle');
-                if (t) t.checked = false;
-                const b = document.getElementById('headerpipbtn');
-                if (b) b.classList.remove('ring-2', 'ring-emerald-500');
-            });
-        }
-        drawPipFrame();
-        if (!pipStream) {
-            pipStream = pipCanvas.captureStream(5);
-            pipVideo.srcObject = pipStream;
-        }
-        await pipVideo.play();
-        await pipVideo.requestPictureInPicture();
-        if (pipTimer) clearInterval(pipTimer);
-        pipTimer = setInterval(drawPipFrame, 200);
-        return true;
-    } catch (err) {
-        console.warn('[PiP] could not open Picture-in-Picture:', err);
-        showToast('Could not open Picture-in-Picture 🪟');
-        stopPipLoop();
-        return false;
-    }
+	if (!pipSupported()) {
+		showToast('Picture-in-Picture not supported on this browser 🪟');
+		return false;
+	}
+	try {
+		if (!pipCanvas) {
+			pipCanvas = document.createElement('canvas');
+			pipCanvas.width = 480;
+			pipCanvas.height = 270;
+		}
+		if (!pipVideo) {
+			pipVideo = document.createElement('video');
+			pipVideo.muted = true;
+			pipVideo.playsInline = true;
+			pipVideo.setAttribute('playsinline', '');
+			pipVideo.style.cssText = 'position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none;';
+			document.body.appendChild(pipVideo);
+			pipVideo.addEventListener('leavepictureinpicture', () => {
+					stopPipLoop();
+					const t = document.getElementById('pipToggle');
+					if (t) t.checked = false;
+					const b = document.getElementById('headerpipbtn');
+					if (b) b.classList.remove('ring-2', 'ring-emerald-500');
+			});
+		}
+		drawPipFrame();
+		if (!pipStream) {
+			pipStream = pipCanvas.captureStream(5);
+			pipVideo.srcObject = pipStream;
+		}
+		await pipVideo.play();
+		await pipVideo.requestPictureInPicture();
+		if (pipTimer) clearInterval(pipTimer);
+		pipTimer = setInterval(drawPipFrame, 200);
+		return true;
+	} catch (err) {
+		console.warn('[PiP] could not open Picture-in-Picture:', err);
+		showToast('Could not open Picture-in-Picture 🪟');
+		stopPipLoop();
+		return false;
+	}
 }
-
 function stopPipLoop() {
-    if (pipTimer) { clearInterval(pipTimer); pipTimer = null; }
+	if (pipTimer) { clearInterval(pipTimer); pipTimer = null; }
 }
-
 async function exitPipMode() {
-    stopPipLoop();
-    try {
-        if (document.pictureInPictureElement) await document.exitPictureInPicture();
-    } catch (err) {
-        console.warn('[PiP] exit failed:', err);
-    }
+	stopPipLoop();
+	try {
+		if (document.pictureInPictureElement) await document.exitPictureInPicture();
+	} catch (err) {
+		console.warn('[PiP] exit failed:', err);
+	}
 }
-
-// ===== Pinned Mode =====
-// Android's own screen pinning cannot be triggered from web code (it is a user-initiated system
-// setting, with no API in any browser), so this is the in-app equivalent: fullscreen to drop the
-// browser chrome and system bars, plus a history trap so the Android back gesture re-enters the
-// app instead of leaving it.
-//
-// Deliberately always escapable - trapping someone in a web page with no way out is hostile and
-// browsers rightly fight it. The back gesture is absorbed but explains itself via a toast, the
-// settings toggle stays reachable, and fullscreen is exited the moment pinning is turned off.
 let pinnedPopHandler = null;
 let pinnedFullscreenRearm = null;
-
 async function requestAppFullscreen() {
-    const el = document.documentElement;
-    try {
-        if (document.fullscreenElement) return true;
-        if (el.requestFullscreen) { await el.requestFullscreen({ navigationUI: 'hide' }); return true; }
-        if (el.webkitRequestFullscreen) { el.webkitRequestFullscreen(); return true; }
-    } catch (err) {
-        // Fullscreen is a nice-to-have here - the back trap is what actually does the pinning,
-        // so a refusal (iOS, permission policy, already-exiting) must not abort pinned mode.
-        console.warn('[Pinned] fullscreen refused:', err && err.message);
-    }
-    return false;
+	const el = document.documentElement;
+	try {
+		if (document.fullscreenElement) return true;
+		if (el.requestFullscreen) { await el.requestFullscreen({ navigationUI: 'hide' }); return true; }
+		if (el.webkitRequestFullscreen) { el.webkitRequestFullscreen(); return true; }
+	} catch (err) {
+		console.warn('[Pinned] fullscreen refused:', err && err.message);
+	}
+	return false;
 }
-
 function armPinnedBackTrap() {
-    if (pinnedPopHandler) return;
-    history.pushState({ pinned: true }, '');
-    pinnedPopHandler = () => {
-        if (!appSettings.isPinnedModeEnabled) return;
-        // Re-push so the back gesture lands back on our own entry instead of unwinding out of
-        // the app. Toast explains why, so this never feels like the app has frozen.
-        history.pushState({ pinned: true }, '');
-        showToast('Pinned 📌 - turn off Pinned Mode in Settings to leave');
-    };
-    window.addEventListener('popstate', pinnedPopHandler);
+	if (pinnedPopHandler) return;
+	history.pushState({ pinned: true }, '');
+	pinnedPopHandler = () => {
+		if (!appSettings.isPinnedModeEnabled) return;
+		history.pushState({ pinned: true }, '');
+		showToast('Pinned 📌 - turn off Pinned Mode in Settings to leave');
+	};
+	window.addEventListener('popstate', pinnedPopHandler);
 }
-
 function disarmPinnedBackTrap() {
-    if (!pinnedPopHandler) return;
-    window.removeEventListener('popstate', pinnedPopHandler);
-    pinnedPopHandler = null;
+	if (!pinnedPopHandler) return;
+	window.removeEventListener('popstate', pinnedPopHandler);
+	pinnedPopHandler = null;
 }
-
 async function enterPinnedMode() {
-    document.body.classList.add('pinned-mode');
-    armPinnedBackTrap();
-    await requestAppFullscreen();
-    showToast('Pinned 📌 - back gesture is blocked');
+	document.body.classList.add('pinned-mode');
+	armPinnedBackTrap();
+	await requestAppFullscreen();
+	showToast('Pinned 📌 - back gesture is blocked');
 }
-
 async function exitPinnedMode() {
-    document.body.classList.remove('pinned-mode');
-    disarmPinnedBackTrap();
-    if (pinnedFullscreenRearm) {
-        window.removeEventListener('pointerdown', pinnedFullscreenRearm);
-        pinnedFullscreenRearm = null;
-    }
-    try {
-        if (document.fullscreenElement && document.exitFullscreen) await document.exitFullscreen();
-    } catch (err) {
-        console.warn('[Pinned] exit fullscreen failed:', err && err.message);
-    }
+	document.body.classList.remove('pinned-mode');
+	disarmPinnedBackTrap();
+	if (pinnedFullscreenRearm) {
+		window.removeEventListener('pointerdown', pinnedFullscreenRearm);
+		pinnedFullscreenRearm = null;
+	}
+	try {
+		if (document.fullscreenElement && document.exitFullscreen) await document.exitFullscreen();
+	} catch (err) {
+		console.warn('[Pinned] exit fullscreen failed:', err && err.message);
+	}
 }
-
-// Pinned Mode survives a reload, but fullscreen cannot be re-entered without a user gesture, so
-// the back trap re-arms immediately and fullscreen waits for the very next tap.
 function restorePinnedModeOnBoot() {
-    if (!appSettings.isPinnedModeEnabled) return;
-    document.body.classList.add('pinned-mode');
-    const headerBtn = document.getElementById('headerpinnedbtn');
-    if (headerBtn) headerBtn.classList.add('ring-2', 'ring-emerald-500');
-    armPinnedBackTrap();
-    pinnedFullscreenRearm = () => {
-        window.removeEventListener('pointerdown', pinnedFullscreenRearm);
-        pinnedFullscreenRearm = null;
-        if (appSettings.isPinnedModeEnabled) requestAppFullscreen();
-    };
-    window.addEventListener('pointerdown', pinnedFullscreenRearm, { once: false });
+	if (!appSettings.isPinnedModeEnabled) return;
+	document.body.classList.add('pinned-mode');
+	const headerBtn = document.getElementById('headerpinnedbtn');
+	if (headerBtn) headerBtn.classList.add('ring-2', 'ring-emerald-500');
+	armPinnedBackTrap();
+	pinnedFullscreenRearm = () => {
+		window.removeEventListener('pointerdown', pinnedFullscreenRearm);
+		pinnedFullscreenRearm = null;
+		if (appSettings.isPinnedModeEnabled) requestAppFullscreen();
+	};
+	window.addEventListener('pointerdown', pinnedFullscreenRearm, { once: false });
 }
-
 document.addEventListener('DOMContentLoaded', startApp);
-
-// Registers the service worker so the CRITICAL_ASSETS/OPTIONAL_ASSETS precaching and offline
-// support defined in sw.js actually take effect - previously nothing called .register() at all,
-// so sw.js was never installed by the browser despite being fully present and referenced by the
-// Nuke App button's cleanup logic. Deferred to the window 'load' event (not DOMContentLoaded) so
-// registration doesn't compete with initial page resources for bandwidth/priority - this is the
-// standard recommended pattern for PWA service worker registration.
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => {
-            console.warn('[SW] Registration failed:', err);
-        });
-    });
+	window.addEventListener('load', () => {
+			navigator.serviceWorker.register('./sw.js').catch(err => {
+					console.warn('[SW] Registration failed:', err);
+			});
+	});
 }

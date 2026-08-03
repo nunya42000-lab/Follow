@@ -3267,8 +3267,8 @@ if (settingsAutoRotateToggle && headerautorotatebtn) {
 		if (this.dom.upsidedownToggle) {
 			this.dom.upsidedownToggle.checked = !!this.appSettings.showUpsideDownBtn;
 		}
-      		if (this.dom.autorotateToggle) {
-			this.dom.autorotateToggle.checked = !!this.appSettings.showAutoRotateBtn;
+      		if (this.dom.autoRotateToggle) {
+			this.dom.autoRotateToggle.checked = !!this.appSettings.showAutoRotateBtn;
             }
 		if (this.dom.headerPlayToggle) this.dom.headerPlayToggle.checked = !!this.appSettings.showHeaderPlayBtn;
 		if (this.dom.headerDeleteToggle) this.dom.headerDeleteToggle.checked = !!this.appSettings.showHeaderDeleteBtn;
@@ -3335,11 +3335,11 @@ if (settingsAutoRotateToggle && headerautorotatebtn) {
 				this.dom.headerupsidedownbtn.classList.add('hidden');
 			}
 		}
-      if (this.dom.headerautorotatebtn) {
-			if (this.appSettings.showautorotateBtn) {
-				this.dom.headerautorotatebtn.classList.remove('hidden');
+      if (this.dom.headerAutoRotateBtn) {
+			if (this.appSettings.showAutoRotateBtn) {
+				this.dom.headerAutoRotateBtn.classList.remove('hidden');
 			} else {
-				this.dom.headerautorotatebtn.classList.add('hidden');
+				this.dom.headerAutoRotateBtn.classList.add('hidden');
 			}
       }
 		if (this.dom.headerpinnedbtn) this.dom.headerpinnedbtn.classList.toggle('hidden', !this.appSettings.showPinnedBtn);
@@ -4516,8 +4516,8 @@ if (headerautorotatebtn) {
 const settingsAutoRotateToggle = document.getElementById('settingsAutoRotateToggle'); 
 const headerautorotatebtn = document.getElementById('headerautorotatebtn');
 
-if (settingsAutoRotateToggle && headerautorotatebtn) {
-    settingsAutoRotateToggle.onchange = (e) => {
+if (autoRotateToggle && headerAutoRotateBtn) {
+    autoRotateToggle.onchange = (e) => {
         const isFeatureEnabled = e.target.checked; // Change to match your toggle's state property if not a checkbox
         
         if (isFeatureEnabled) {
@@ -4526,9 +4526,9 @@ if (settingsAutoRotateToggle && headerautorotatebtn) {
             showToast("Auto-rotate header button enabled");
         } else {
             // Hide/disable the header button and force lock back to default
-            headerautorotatebtn.classList.add('hidden'); // Or style.display = 'none'
+            headerAutoRotateBtn.classList.add('hidden'); // Or style.display = 'none'
             document.body.classList.remove('auto-rotate');
-            headerautorotatebtn.classList.remove('ring-2', 'ring-emerald-500');
+            headerAutorRotateBtn.classList.remove('ring-2', 'ring-emerald-500');
             toggleAppRotation(false);
             showToast("Auto-rotate header button disabled");
         }
@@ -6747,7 +6747,7 @@ function initGlobalListeners() {
 				}
 			};
 		}
-      const headerAutoRotate = document.getElementById('headerautorotatebtn');
+      const headerAutoRotateBtn = document.getElementById('headerAutoRotatebtn');
 if (headerAutoRotate) {
     headerAutoRotate.onclick = () => {
         appSettings.isAutoRotateEnabled = !appSettings.isAutoRotateEnabled;

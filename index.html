@@ -42,6 +42,7 @@ alert("Promise Error: " + event.reason);
 <button id="headerpinnedbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">📌</button>
 <button id="headerdndbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔕</button>
 <button id="headerupsidedownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🙃</button>
+<button id="headerautorotatebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">↩️</button>
 <button id="headerswapbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔄</button>
 <button id="headerplaybtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Play">▶️</button>
 <button id="headerdeletebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Delete">⌫</button>
@@ -201,11 +202,14 @@ alert("Promise Error: " + event.reason);
 	<!-- Grouped Control Buttons: Top Right -->
 	<div class="absolute top-4 right-4 z-50 flex flex-col items-center gap-4">
 		<button id="close-redeem-btn" class="bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600">✕</button>
-		<button id="redeem-zoom-in" class="bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">+</button>
-		<button id="redeem-zoom-out" class="bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">-</button>
+		<button id="redeem-zoom-in" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">+</button>
+		<button id="redeem-zoom-out" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">-</button>
 	</div>
+
+	<!-- Image Container -->
 	<div class="relative w-full max-w-[280px] h-[95vh] flex flex-col items-center justify-center p-4">
 		<div class="bg-white p-2 rounded-lg w-full h-full flex items-center justify-center overflow-hidden">
+			<!-- Added scale(0.9) to reduce initial picture size -->
 			<img id="redeem-img" src="redeem.png" alt="Redeem Barcode" class="w-full h-full object-contain transition-transform duration-200" style="transform: scale(0.7);">
 		</div>
 	</div>
@@ -493,6 +497,9 @@ alert("Promise Error: " + event.reason);
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Upside Down 🙃</span>
 <input type="checkbox" id="upsidedownToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Auto Rotate 🔄</span>
+<input type="checkbox" id="autoRotateToggle" class="h-5 w-5 accent-indigo-500"></div> 
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Full Screen 🔲</span>
 <input type="checkbox" id="fullscreenToggle" class="h-5 w-5 accent-indigo-500"></div>

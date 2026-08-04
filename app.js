@@ -1628,61 +1628,84 @@ if (this.dom.autoRotateToggle && this.dom.headerAutoRotateBtn) {
         : !!(this.appSettings.runtimeSettings && this.appSettings.runtimeSettings.showAutoRotateBtn);
     this.dom.autoRotateToggle.checked = !!saved;
 
-    // Settings toggle: controls visibility of header button and persistence
+// Unified Auto-Rotate wiring: settings toggle controls visibility, header button controls rotation
+// Make wiring robust: accept either this.dom.headerAutoRotateBtn or the DOM id 'headerautorotatebtn'
+const headerAutoBtnEl = this.dom.headerAutoRotateBtn || document.getElementById('headerautorotatebtn');
+
+if (this.dom.autoRotateToggle && headerAutoBtnEl) {
+    // ensure this.dom has the element for later callers
+    this.dom.headerAutoRotateBtn = headerAutoBtnEl;
+
+    // read persisted visibility flag (fallback to runtimeSettings)
+    const savedVisible = (typeof this.appSettings.showAutoRotateBtn !== 'undefined')
+        ? !!this.appSettings.showAutoRotateBtn
+        : !!(this.appSettings.runtimeSettings && this.appSettings.runtimeSettings.showAutoRotateBtn);
+
+    // read persisted active rotation flag
+    const savedActive = !!(this.appSettings.runtimeSettings && this.appSettings.runtimeSettings.isAutoRotateEnabled);
+
+    // initialize settings toggle and header visibility
+    this.dom.autoRotateToggle.checked = savedVisible;
+    if (savedVisible) headerAutoBtnEl.classList.remove('hidden'); else headerAutoBtnEl.classList.add('hidden');
+
+    // initialize header button active visual state from runtime flag / body class
+    const active = savedActive || document.body.classList.contains('auto-rotate');
+    document.body.classList.toggle('auto-rotate', active);
+    headerAutoBtnEl.classList.toggle('ring-2', active);
+    headerAutoBtnEl.classList.toggle('ring-emerald-500', active);
+
+    // Settings toggle controls visibility and persistence. When disabled, also turn rotation off.
     this.dom.autoRotateToggle.onchange = (e) => {
         const enabled = !!e.target.checked;
         this.appSettings.showAutoRotateBtn = enabled;
         if (!this.appSettings.runtimeSettings) this.appSettings.runtimeSettings = {};
         this.appSettings.runtimeSettings.showAutoRotateBtn = enabled;
-        this.updateHeaderVisibility(); // ensure header buttons reflect new state
+        // show/hide button immediately
+        if (enabled) headerAutoBtnEl.classList.remove('hidden'); else headerAutoBtnEl.classList.add('hidden');
         this.callbacks.onSave && this.callbacks.onSave();
 
         if (!enabled) {
-            // turn rotation off when disabling the feature
+            // ensure rotation is off when the button is hidden
+            this.appSettings.runtimeSettings.isAutoRotateEnabled = false;
             document.body.classList.remove('auto-rotate');
-            this.dom.headerAutoRotateBtn.classList.remove('ring-2', 'ring-emerald-500');
+            headerAutoBtnEl.classList.remove('ring-2', 'ring-emerald-500');
             if (typeof toggleAppRotation === 'function') toggleAppRotation(false);
+            this.callbacks.onSave && this.callbacks.onSave();
         } else {
-            showToast && showToast("Auto-rotate header button enabled");
+            if (typeof showToast === 'function') showToast("Auto-rotate header button enabled");
         }
     };
 
-    // Header button: toggles actual rotation and sets visual state
-    this.dom.headerAutoRotateBtn.onclick = async () => {
+    // Header button toggles actual rotation and persists runtime state
+    headerAutoBtnEl.onclick = async () => {
         try {
             const willEnable = !document.body.classList.contains('auto-rotate');
+            // toggle visual & body class
             document.body.classList.toggle('auto-rotate', willEnable);
-            if (typeof toggleAppRotation === 'function') await toggleAppRotation(willEnable);
-            this.dom.headerAutoRotateBtn.classList.toggle('ring-2', willEnable);
-            this.dom.headerAutoRotateBtn.classList.toggle('ring-emerald-500', willEnable);
+            headerAutoBtnEl.classList.toggle('ring-2', willEnable);
+            headerAutoBtnEl.classList.toggle('ring-emerald-500', willEnable);
 
-            // if enabling via header button, ensure it remains visible/persisted
+            // persist runtime state
+            if (!this.appSettings.runtimeSettings) this.appSettings.runtimeSettings = {};
+            this.appSettings.runtimeSettings.isAutoRotateEnabled = willEnable;
+
+            // ensure visibility/persistence for the button (user explicitly enabled it)
             if (willEnable) {
                 this.appSettings.showAutoRotateBtn = true;
-                if (!this.appSettings.runtimeSettings) this.appSettings.runtimeSettings = {};
                 this.appSettings.runtimeSettings.showAutoRotateBtn = true;
-                this.callbacks.onSave && this.callbacks.onSave();
             }
-            showToast && showToast(willEnable ? 'Auto Rotate Mode: ON 🙃' : 'Auto Rotate Mode: OFF');
+            this.callbacks.onSave && this.callbacks.onSave();
+
+            if (typeof toggleAppRotation === 'function') await toggleAppRotation(willEnable);
+            if (typeof showToast === 'function') showToast(willEnable ? 'Auto Rotate Mode: ON 🙃' : 'Auto Rotate Mode: OFF');
         } catch (err) {
             console.warn('header autorotate click failed', err);
         }
     };
 
-    // ensure header visibility initially matches saved setting
-    this.updateHeaderVisibility();
+    // final: ensure header visibility reflects saved setting
+    if (this.appSettings.showAutoRotateBtn) headerAutoBtnEl.classList.remove('hidden'); else headerAutoBtnEl.classList.add('hidden');
 }
-		bindToggleWithCallback(this.dom.ecoToggle, 'isEcoModeEnabled', () => {
-				document.body.classList.toggle('eco-mode', this.appSettings.isEcoModeEnabled);
-		});
-		if (this.dom.arSpeedSelect) {
-			this.dom.arSpeedSelect.value = this.appSettings.arPlaybackSpeed || 1.0;
-			this.dom.arSpeedSelect.onchange = (e) => {
-				this.appSettings.arPlaybackSpeed = parseFloat(e.target.value);
-				this.callbacks.onSave();
-			};
-		}
-	}
 	bindMappingEvents() {
 		const btnMapTouch = document.getElementById('btn-map-touch');
 		const btnMapHand = document.getElementById('btn-map-hand');
@@ -3365,13 +3388,13 @@ if (this.dom.autoRotateToggle && this.dom.headerAutoRotateBtn) {
 				this.dom.headerupsidedownbtn.classList.add('hidden');
 			}
 		}
-      		if (this.dom.headerAutoRotateBtn) {
-			if (this.appSettings.showAutoRotateBtn) {
-				this.dom.headerAutoRotateBtn.classList.remove('hidden');
-			} else {
-				this.dom.headerAutoRotateBtn.classList.add('hidden');
-			}
-		}
+// inside updateHeaderVisibility()
+try {
+    const headerAutoBtnEl = this.dom.headerAutoRotateBtn || document.getElementById('headerautorotatebtn');
+    if (headerAutoBtnEl) {
+        if (this.appSettings.showAutoRotateBtn) headerAutoBtnEl.classList.remove('hidden'); else headerAutoBtnEl.classList.add('hidden');
+    }
+} catch (e) { /* ignore */ }
 
 		if (this.dom.headerpinnedbtn) this.dom.headerpinnedbtn.classList.toggle('hidden', !this.appSettings.showPinnedBtn);
 		if (this.dom.headerdndbtn) this.dom.headerdndbtn.classList.toggle('hidden', !this.appSettings.showDndBtn);
@@ -3435,7 +3458,7 @@ if (this.dom.autoRotateToggle && this.dom.headerAutoRotateBtn) {
 		return [...row.children].filter(el => el.id && !el.dataset.cloneId).map(el => el.id);
 	}
 	_headerBtnLabels() {
-		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerpinnedbtn: '📌 Pinned Mode', headerdndbtn: '🔕 Do Not Disturb', headerpipbtn: '🪟 Picture in Picture', headerupsidedownbtn: '🙃 Upside Down', headerautorotatebtn: '↩️ Auto Rotate', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headerresetbtn: '♻️ Reset', headernukebtn: '☢️ Nuke', headernotepadbtn: '📝 Notepad' };
+		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerpinnedbtn: '📌 Pinned Mode', headerdndbtn: '🔕 Do Not Disturb', headerpipbtn: '🪟 Picture in Picture', headerupsidedownbtn: '🙃 Upside Down', headerAutoRotateBtn: '↩️ Auto Rotate', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headerresetbtn: '♻️ Reset', headernukebtn: '☢️ Nuke', headernotepadbtn: '📝 Notepad' };
 	}
 	_moveHeaderBtn(id, direction) {
 		const row = document.getElementById('header-btn-row');
@@ -3978,7 +4001,7 @@ const firebaseConfig = {
 };
 let db = null;
 let screenWakeLock = null;
-const DEFAULT_HEADER_BTN_ORDER = ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn', 'headerautorotatebtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn', 'headerpipbtn'];
+const DEFAULT_HEADER_BTN_ORDER = ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn', 'headerAutoRotateBtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn', 'headerpipbtn'];
 const DEFAULT_GENERAL_TOGGLE_ORDER = [
 	'randomThemeToggle', 'autoHideHeaderToggle', 'headerPlayToggle', 'headerDeleteToggle', 
 	'headerSettingsToggle', 'headerHelpToggle', 'headerModeSwitchToggle', 'headerRedeemToggle', 
@@ -6754,7 +6777,7 @@ function initGlobalListeners() {
 				}
 			};
 		}
-  		const headerAutoRotateBtn = document.getElementById('headerautorotatebtn'); // Fixed ID case
+  		const headerAutoRotateBtn = document.getElementById('headerAutoRotateBtn'); // Fixed ID case
 		if (headerAutoRotateBtn) { // Fixed variable reference
 			headerAutoRotateBtn.onclick = () => { // Fixed variable reference
 				appSettings.isAutoRotateEnabled = !appSettings.isAutoRotateEnabled;

@@ -1471,7 +1471,7 @@ class SettingsManager {
 			headertonebtn: document.getElementById('headertonebtn'),
 			headerfullscreenbtn: document.getElementById('headerfullscreenbtn'), headerpinnedbtn: document.getElementById('headerpinnedbtn'), headerdndbtn: document.getElementById('headerdndbtn'), headerpipbtn: document.getElementById('headerpipbtn'),
 			headerupsidedownbtn: document.getElementById('headerupsidedownbtn'),
-			headerautorotatebtn: document.getElementById('headerautorotatebtn'),
+			
 			voicePresetSelect: document.getElementById('voice-preset-select'),
 			voicePresetAdd: document.getElementById('voice-preset-add'),
 			voicePresetSave: document.getElementById('voice-preset-save'),
@@ -1508,7 +1508,8 @@ class SettingsManager {
 			handednessFlipToggle: document.getElementById('handednessFlipToggle'),
 			voicecommandsToggle: document.getElementById('voicecommandsToggle'),
 			wakelockToggle: document.getElementById('wakelockToggle'), dndToggle: document.getElementById('dndToggle'), pipToggle: document.getElementById('pipToggle'), pinnedModeToggle: document.getElementById('pinnedModeToggle'), settingsLockBtn: document.getElementById('settings-lock-toggle'),
-			newToggle: document.getElementById('newToggle'),
+		headerAutoRotateBtn: document.getElementById('headerautorotatebtn'), // Fixed property name to camelCase
+
 			headerswapbtn: document.getElementById('headerswapbtn'),
 			headerplaybtn: document.getElementById('headerplaybtn'), headerdeletebtn: document.getElementById('headerdeletebtn'), headersettingsbtn: document.getElementById('headersettingsbtn'), headerredeembtn: document.getElementById('headerredeembtn'), headersharebtn: document.getElementById('headersharebtn'), headerthemecyclebtn: document.getElementById('headerthemecyclebtn'), headeraddmachinebtn: document.getElementById('headeraddmachinebtn'), headeruiupbtn: document.getElementById('headeruiupbtn'), headeruidownbtn: document.getElementById('headeruidownbtn'), headersequpbtn: document.getElementById('headersequpbtn'), headerseqdownbtn: document.getElementById('headerseqdownbtn'), headervolupbtn: document.getElementById('headervolupbtn'), headervoldownbtn: document.getElementById('headervoldownbtn'), headerspeedupbtn: document.getElementById('headerspeedupbtn'), headerspeeddownbtn: document.getElementById('headerspeeddownbtn'), headercycleinputbtn: document.getElementById('headercycleinputbtn'),
 			headernotepadbtn: document.getElementById('headernotepadbtn'), headerhelpbtn: document.getElementById('headerhelpbtn'), headermodeswitchbtn: document.getElementById('headermodeswitchbtn'), headerresetbtn: document.getElementById('headerresetbtn'), headernukebtn: document.getElementById('headernukebtn'),
@@ -3335,13 +3336,14 @@ if (settingsAutoRotateToggle && headerautorotatebtn) {
 				this.dom.headerupsidedownbtn.classList.add('hidden');
 			}
 		}
-      if (this.dom.headerAutoRotateBtn) {
+      		if (this.dom.headerAutoRotateBtn) {
 			if (this.appSettings.showAutoRotateBtn) {
 				this.dom.headerAutoRotateBtn.classList.remove('hidden');
 			} else {
 				this.dom.headerAutoRotateBtn.classList.add('hidden');
 			}
-      }
+		}
+
 		if (this.dom.headerpinnedbtn) this.dom.headerpinnedbtn.classList.toggle('hidden', !this.appSettings.showPinnedBtn);
 		if (this.dom.headerdndbtn) this.dom.headerdndbtn.classList.toggle('hidden', !this.appSettings.showDndBtn);
 		if (this.dom.headerpipbtn) this.dom.headerpipbtn.classList.toggle('hidden', !this.appSettings.showPipBtn);
@@ -3948,7 +3950,21 @@ const firebaseConfig = {
 let db = null;
 let screenWakeLock = null;
 const DEFAULT_HEADER_BTN_ORDER = ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn', 'headerautorotatebtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn', 'headerpipbtn'];
-const DEFAULT_GENERAL_TOGGLE_ORDER = ['randomThemeToggle', 'autoHideHeaderToggle', 'headerPlayToggle', 'headerDeleteToggle', 'headerSettingsToggle', 'headerHelpToggle', 'headerModeSwitchToggle', 'headerRedeemToggle', 'headerShareToggle', 'headerThemeCycleToggle', 'headerAddMachineToggle', 'headerUiSizeToggle', 'headerSeqSizeToggle', 'headerVolumeToggle', 'headerSpeedToggle', 'headerCycleInputToggle', 'headerResetToggle', 'headerNukeToggle', 'timerToggle', 'autotimerToggle', 'counterToggle', 'autocounterToggle', 'headerNotepadToggle', 'headerInfiniteScrollToggle', 'inputRegulatorToggle', 'hapticsToggle', 'introToggle', 'upsidedownToggle', 'autorotateToggle', 'fullscreenToggle', 'ecoToggle', 'wakelockToggle', 'dndToggle', 'pipToggle', 'pinnedModeToggle', 'voiceToggle', 'voicecommandsToggle', 'toneToggle', 'touchToggle', 'bossToggle', 'biggerToggle', 'arcamToggle', 'arAutoCloseGeneralToggle', 'handToggle', 'skeletonDebugToggle', 'handsignalsToggle', 'handednessFlipToggle', 'speeddeleteToggle', 'apshortcutToggle', 'volgesToggle', 'speedToggle', 'deleteToggle', 'clearToggle'];
+const DEFAULT_GENERAL_TOGGLE_ORDER = [
+	'randomThemeToggle', 'autoHideHeaderToggle', 'headerPlayToggle', 'headerDeleteToggle', 
+	'headerSettingsToggle', 'headerHelpToggle', 'headerModeSwitchToggle', 'headerRedeemToggle', 
+	'headerShareToggle', 'headerThemeCycleToggle', 'headerAddMachineToggle', 'headerUiSizeToggle', 
+	'headerSeqSizeToggle', 'headerVolumeToggle', 'headerSpeedToggle', 'headerCycleInputToggle', 
+	'headerResetToggle', 'headerNukeToggle', 'timerToggle', 'autotimerToggle', 'counterToggle', 
+	'autocounterToggle', 'headerNotepadToggle', 'headerInfiniteScrollToggle', 'inputRegulatorToggle', 
+	'hapticsToggle', 'introToggle', 'upsidedownToggle', 'autoRotateToggle', /* <-- Fixed capitalization */
+	'fullscreenToggle', 'ecoToggle', 'wakelockToggle', 'dndToggle', 'pipToggle', 'pinnedModeToggle', 
+	'voiceToggle', 'voicecommandsToggle', 'toneToggle', 'touchToggle', 'bossToggle', 'biggerToggle', 
+	'arcamToggle', 'arAutoCloseGeneralToggle', 'handToggle', 'skeletonDebugToggle', 'handsignalsToggle', 
+	'handednessFlipToggle', 'speeddeleteToggle', 'apshortcutToggle', 'volgesToggle', 'speedToggle', 
+	'deleteToggle', 'clearToggle'
+];
+
 const CONFIG = {
 	MAX_MACHINES: 4,
 	DEMO_DELAY_BASE_MS: 798,
@@ -4493,47 +4509,44 @@ const startApp = () => {
 			}
 		};
 	}
-	const headerupsidedownbtn = document.getElementById('headerupsidedownbtn');
+		const headerupsidedownbtn = document.getElementById('headerupsidedownbtn');
+	
 	const autoRotateToggle = document.getElementById('autoRotateToggle'); 
-const headerAutoRotateBtn = document.getElementById('headerAutoRotateBtn');
+	const headerAutoRotateBtn = document.getElementById('headerautorotatebtn'); // Standardized ID
 
-if (autoRotateToggle && headerAutoRotateBtn) {
-if (headerAutoRotateBtn) {
-    headerAutoRotateBtn.onclick = async () => {
-        const isAutoRotate = document.body.classList.toggle('auto-rotate');
-        
-        if (isAutoRotate) {
-            headerAutoRotateBtn.classList.add('ring-2', 'ring-emerald-500');
-            showToast("Auto Rotate Mode: ON 🙃");
-        } else {
-            headerAutoRotateBtn.classList.remove('ring-2', 'ring-emerald-500');
-            showToast("Auto Rotate Mode: OFF");
-        }
-        
-        await toggleAppRotation(isAutoRotate);
-    };
-}
-const autoRotateToggle = document.getElementById('autoRotateToggle'); 
-const headerAutoRotateBtn = document.getElementById('headerAutoRotateBtn');
+	if (autoRotateToggle && headerAutoRotateBtn) {
+		// Handle Header Button Click
+		headerAutoRotateBtn.onclick = async () => {
+			const isAutoRotate = document.body.classList.toggle('auto-rotate');
+			
+			if (isAutoRotate) {
+				headerAutoRotateBtn.classList.add('ring-2', 'ring-emerald-500');
+				showToast("Auto Rotate Mode: ON 🙃");
+			} else {
+				headerAutoRotateBtn.classList.remove('ring-2', 'ring-emerald-500');
+				showToast("Auto Rotate Mode: OFF");
+			}
+			
+			await toggleAppRotation(isAutoRotate);
+		};
 
-if (autoRotateToggle && headerAutoRotateBtn) {
-    autoRotateToggle.onchange = (e) => {
-        const isFeatureEnabled = e.target.checked; // Change to match your toggle's state property if not a checkbox
-        
-        if (isFeatureEnabled) {
-            // Show/enable the header button
-            headerAutoRotateBtn.classList.remove('hidden'); // Or style.display = 'block'
-            showToast("Auto-rotate header button enabled");
-        } else {
-            // Hide/disable the header button and force lock back to default
-            headerAutoRotateBtn.classList.add('hidden'); // Or style.display = 'none'
-            document.body.classList.remove('auto-rotate');
-            headerAutoRotateBtn.classList.remove('ring-2', 'ring-emerald-500');
-            toggleAppRotation(false);
-            showToast("Auto-rotate header button disabled");
-        }
-    };
-}
+		// Handle Settings Toggle
+		autoRotateToggle.onchange = (e) => {
+			const isFeatureEnabled = e.target.checked; 
+			
+			if (isFeatureEnabled) {
+				headerAutoRotateBtn.classList.remove('hidden'); 
+				showToast("Auto-rotate header button enabled");
+			} else {
+				headerAutoRotateBtn.classList.add('hidden'); 
+				document.body.classList.remove('auto-rotate');
+				headerAutoRotateBtn.classList.remove('ring-2', 'ring-emerald-500');
+				toggleAppRotation(false);
+				showToast("Auto-rotate header button disabled");
+			}
+		};
+	}
+
 
 	if (appSettings.isWakeLockEnabled && typeof window.wakelockToggle === 'function') {
 		window.wakelockToggle(true);
@@ -6747,14 +6760,15 @@ function initGlobalListeners() {
 				}
 			};
 		}
-      const headerAutoRotateBtn = document.getElementById('headerAutoRotatebtn');
-if (headerAutoRotate) {
-    headerAutoRotate.onclick = () => {
-        appSettings.isAutoRotateEnabled = !appSettings.isAutoRotateEnabled;
-        toggleAppRotation(appSettings.isAutoRotateEnabled);
-        saveState();
-    };
-}
+  		const headerAutoRotateBtn = document.getElementById('headerautorotatebtn'); // Fixed ID case
+		if (headerAutoRotateBtn) { // Fixed variable reference
+			headerAutoRotateBtn.onclick = () => { // Fixed variable reference
+				appSettings.isAutoRotateEnabled = !appSettings.isAutoRotateEnabled;
+				toggleAppRotation(appSettings.isAutoRotateEnabled);
+				saveState();
+			};
+		}
+
 		const headerStealth = document.getElementById('headerbiggerbtn');
 		if (headerStealth) {
 			headerStealth.onclick = () => {

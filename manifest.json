@@ -29,6 +29,15 @@
       "purpose": "any maskable"
     }
   ],
+  "shortcuts": [
+  {
+    "name": "Emergency App Reset",
+    "short_name": "Reset App",
+    "description": "Wipes all cached data and service workers if the app breaks",
+    "url": "/?nuke=true",
+    "icons": [{ "src": "/icons/warning-icon.png", "sizes": "192x192" }]
+  }
+  ],
   "screenshots": [
     {
       "src": "screenshot-wide.png",

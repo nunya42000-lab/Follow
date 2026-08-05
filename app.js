@@ -448,7 +448,35 @@ const CRAYONS = [
   "#808080", "#666666", "#333333", "#222222", "#111111", "#0A0A0A"
 ];
 const DEFAULT_HEADER_BTN_ORDER = ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn', 'headerautorotatebtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn', 'headerpipbtn'];
-const DEFAULT_GENERAL_TOGGLE_ORDER = ['randomThemeToggle', 'autoHideHeaderToggle', 'headerPlayToggle', 'headerDeleteToggle', 'headerSettingsToggle', 'headerHelpToggle', 'headerModeSwitchToggle', 'headerRedeemToggle', 'headerShareToggle', 'headerThemeCycleToggle', 'headerAddMachineToggle', 'headerUiSizeToggle', 'headerSeqSizeToggle', 'headerVolumeToggle', 'headerSpeedToggle', 'headerCycleInputToggle', 'headerResetToggle', 'headerNukeToggle', 'timerToggle', 'autotimerToggle', 'counterToggle', 'autocounterToggle', 'headerNotepadToggle', 'headerInfiniteScrollToggle', 'inputRegulatorToggle', 'hapticsToggle', 'introToggle', 'upsidedownToggle', 'autoRotateToggle', 'fullscreenToggle', 'ecoToggle', 'wakelockToggle', 'dndToggle', 'pipToggle', 'pinnedModeToggle', 'voiceToggle', 'voicecommandsToggle', 'toneToggle', 'touchToggle', 'bossToggle', 'newToggle', 'biggerToggle', 'arcamToggle', 'arAutoCloseGeneralToggle', 'handToggle', 'skeletonDebugToggle', 'handsignalsToggle', 'handednessFlipToggle', 'speeddeleteToggle', 'apshortcutToggle', 'volgesToggle', 'speedToggle', 'deleteToggle', 'clearToggle', 'autoBrightToggle', 'autoDarkToggle'];
+const DEFAULT_GENERAL_TOGGLE_ORDER = [
+   'autoBrightToggle', 'autoDarkToggle'
+'randomThemeToggle', 'headerThemeCycleToggle',
+'headerCycleInputToggle', 'headerModeSwitchToggle',
+'headerAddMachineToggle', 'bossToggle',
+'headerUiSizeToggle', 'headerSeqSizeToggle',
+'headerVolumeToggle', 'headerSpeedToggle',
+'autoHideHeaderToggle', 'headerInfiniteScrollToggle',
+'headerPlayToggle', 'headerDeleteToggle', 
+'headerSettingsToggle', 'headerHelpToggle', 
+'headerRedeemToggle', 'headerShareToggle',
+'headerResetToggle', 'headerNukeToggle',
+'timerToggle', 'autotimerToggle',
+'counterToggle', 'autocounterToggle',
+'headerNotepadToggle', 'inputRegulatorToggle',
+'hapticsToggle', 'introToggle',
+'upsidedownToggle', 'autoRotateToggle',
+'fullscreenToggle', 'biggerToggle',
+'ecoToggle', 'wakelockToggle',
+'positionSwapToggle', 'pipToggle',
+'dndToggle', 'pinnedModeToggle',
+'arcamToggle', 'arAutoCloseGeneralToggle',
+'voiceToggle', 'voicecommandsToggle',
+'toneToggle', 'touchToggle',
+'handToggle', 'skeletonDebugToggle',
+'handsignalsToggle', 'handednessFlipToggle',
+'speeddeleteToggle', 'apshortcutToggle',
+'volgesToggle', 'speedToggle',
+'deleteToggle', 'clearToggle'];
 const CONFIG = {
 	MAX_MACHINES: 4,
 	DEMO_DELAY_BASE_MS: 798,

@@ -1,5 +1,38 @@
 <html lang="en">
 <head>
+  <script>
+    // Check if the URL contains the nuke parameter
+    if (window.location.search.includes('nuke=true')) {
+      (async function executeNukeProtocol() {
+        console.warn("Initiating Emergency Nuke Protocol...");
+
+        // 1. Wipe standard storage
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // 2. Unregister all Service Workers
+        // The unregister() method returns a promise that resolves to true if successful
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (const registration of registrations) {
+            await registration.unregister(); 
+          }
+        }
+
+        // 3. Delete all PWA Caches
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          for (const name of cacheNames) {
+            await caches.delete(name);
+          }
+        }
+
+        // 4. Strip the parameter and reload fresh
+        alert('App data and caches wiped. Reloading a clean state.');
+        window.location.href = window.location.pathname; 
+      })();
+    }
+  </script>	
 <script>
 window.onerror = function(msg, url, line) {
 alert("Error: " + msg + "\nLine: " + line);

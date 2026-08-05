@@ -7,7 +7,7 @@
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "orientation": "any",
+  "orientation": "portrait",
   "categories": ["games", "entertainment", "utilities"],
   "icons": [
     {

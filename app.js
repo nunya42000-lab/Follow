@@ -993,7 +993,7 @@ let _savedScrollY = 0;
 let _scrollLocked = false;
 let ambientLightSensor = null;
 let proximitySensor = null;
-let isPortraitLocked = false;
+let isPortraitLocked = true;
 let pipCanvas = null, pipVideo = null, pipStream = null, pipTimer = null;
 let pinnedPopHandler = null;
 let pinnedFullscreenRearm = null;

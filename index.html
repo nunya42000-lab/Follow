@@ -42,7 +42,7 @@ alert("Promise Error: " + event.reason);
 <button id="headerpinnedbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">📌</button>
 <button id="headerdndbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔕</button>
 <button id="headerupsidedownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🙃</button>
-<button id="headerautorotatebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Auto-Rotate">🔃</button>
+<button id="headerautorotatebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Auto-Rotate">🧭</button>
 <button id="headerswapbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔄</button>
 <button id="headerplaybtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Play">▶️</button>
 <button id="headerdeletebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Delete">⌫</button>
@@ -105,6 +105,7 @@ alert("Promise Error: " + event.reason);
 <label class="font-semibold">Lock Settings 🔒</label>
 <input type="checkbox" id="welcome-settings-lock-toggle" class="h-6 w-6 rounded accent-indigo-500">
 </div>
+<button id="grant-permissions-btn" class="w-full h-full flex items-center justify-center settings-input p-3 rounded-lg border border-custom font-semibold hover:opacity-90 transition text-sm">Grant Permissions 🔐</button>
 </div>
 <div class="grid grid-cols-2 gap-4 mb-2">
 <button id="quick-open-help" class="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-bold transition">Help 📚</button>
@@ -498,7 +499,7 @@ alert("Promise Error: " + event.reason);
 <span class="font-bold text-sm text-muted-custom">Upside Down 🙃</span>
 <input type="checkbox" id="upsidedownToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm text-muted-custom">Auto Rotate 🔃</span>
+<span class="font-bold text-sm text-muted-custom">Auto Rotate 🧭</span>
 <input type="checkbox" id="autoRotateToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Full Screen 🔲</span>
@@ -1457,6 +1458,8 @@ Email
 </div>
 <p class="text-[10px] text-gray-500 italic">Each icon above only appears in the header once its matching toggle is turned on in Settings → General. When enough are on to overflow one row, the header becomes a horizontally-scrolling toolbar - drag left or right, it loops continuously in both directions.</p>
 <p class="text-[11px] mt-2"><strong>App won't load or acting broken, and you can't even reach Nuke? 🔄</strong> Long-press the Follow Me icon on your home screen and tap "Refresh App." This forces the freshest version of the app's code down, without touching your saved settings - use it instead of clearing your browser's site data, which would wipe everything.</p>
+<p class="text-[11px] mt-2"><strong>Two more home-screen shortcuts (long-press the icon):</strong> "Restore Defaults" resets every setting back to factory defaults (asks to confirm first, doesn't touch saved sequences or comments). "View Help" opens the app straight to this manual. Note: newly added or changed shortcuts can take Android/Chrome a little while to appear after an update - they don't show up the instant the app changes.</p>
+<p class="text-[11px] mt-2"><strong>Grant Permissions 🔐 (on the welcome screen):</strong> Briefly activates the microphone, then the front camera, then the back camera, one at a time, so your browser prompts for all of them right away instead of the first time each feature actually needs one. Also checks the ambient light and proximity sensors where the browser supports them. Nothing is recorded or saved - it's just the fastest way to confirm what your phone and browser will allow.</p>
 </div>
 <div id="tab-help-settings" class="tab-content space-y-3">
 <p class="text-xs opacity-80 mb-3">Every toggle, slider, and switch in the Settings menu explained.</p>
@@ -1512,7 +1515,7 @@ Email
 <div><strong>Picture in Picture 🪟:</strong> Opens a small always-on-top window showing your current sequence, so you can read it while using another app. View-only - you can't tap the sequence in the floating window. The Settings toggle only shows or hides its header button (🪟), placed last in the row - tap that header button to actually open or close Picture in Picture.</div>
 <div><strong>Pinned Mode 📌:</strong> Goes fullscreen and blocks the back gesture so you can't accidentally swipe out mid-sequence. The Settings toggle only shows or hides its header button (📌), right next to Full Screen - tap that header button to actually turn Pinned Mode on and off, or to leave once it's on. This is the app's own lock - it can't trigger Android's system screen pinning, which has no web API.</div>
 <div><strong>Upside Down:</strong> Flips the entire UI 180°.</div>
-<div><strong>Auto Rotate 🔃:</strong> The app locks to portrait on every launch to stop accidental rotation mid-game. The Settings toggle only shows or hides its header button (🔃), right next to Upside Down - tap that header button to allow free rotation, tap again to lock back to portrait. Works best once the app is added to your home screen; in a regular browser tab, orientation locking may not be available.</div>
+<div><strong>Auto Rotate 🧭:</strong> The app locks to portrait on every launch to stop accidental rotation mid-game. The Settings toggle only shows or hides its header button (🧭), right next to Upside Down - tap that header button to allow free rotation, tap again to lock back to portrait. Works best once the app is added to your home screen; in a regular browser tab, orientation locking may not be available.</div>
 <div><strong>Full Screen:</strong> Hides browser bars.</div>
 <div><strong>Eco Mode 🔋:</strong> Reduces animations/framerate.</div>
 <div><strong>Position Swap 🔄:</strong> Adds a header button that moves the input pad from the bottom of the screen to the top.</div>

@@ -1,3 +1,7 @@
+
+// ============================================================
+// CONSTANTS & CONFIGURATION
+// ============================================================
 const TONE_TABLE = [
 	{ n: 1, f: 261.63, name: 'C' },
 	{ n: 2, f: 293.66, name: 'D' },
@@ -106,6 +110,840 @@ const HAND_GESTURE_GROUPS = [
 			{ id: "404", name: "☝️ Point Out (Fist → 1 Finger)" }
 		]
 	},]
+const TRANSITION_GESTURES = {
+	'0->62':   { id: 400, label: '🗑️ Throw (Fist → Open)' },
+	'62->0':   { id: 401, label: '✊ Grab (Open → Fist)' },
+	'100->62': { id: 402, label: '👐 Release (Pinch → Open)' },
+	'62->100': { id: 403, label: '🤏 Snatch (Open → Pinch)' },
+	'0->16':   { id: 404, label: '☝️ Point Out (Fist → 1 Finger)' },
+};
+const GESTURE_DICTIONARY = {
+	0: 'FIST_KNUCKLES_FWD',           1: 'FIST_PALM_FWD',
+	2: 'PINKY_KNUCKLES_FWD',          3: 'PINKY_PALM_FWD',
+	4: 'RING_KNUCKLES_FWD',           5: 'RING_PALM_FWD',
+	6: 'RING_PINKY_KNUCKLES_FWD',     7: 'RING_PINKY_PALM_FWD',
+	8: 'MIDDLE_KNUCKLES_FWD',         9: 'MIDDLE_PALM_FWD',
+	10: 'MIDDLE_PINKY_KNUCKLES_FWD',  11: 'MIDDLE_PINKY_PALM_FWD',
+	12: 'CHOPSTICKS_KNUCKLES_FWD',    13: 'CHOPSTICKS_PALM_FWD',
+	14: 'THREE_FINGERS_NO_INDEX_K',   15: 'THREE_FINGERS_NO_INDEX_P',
+	16: 'INDEX_KNUCKLES_FWD',         17: 'INDEX_PALM_FWD',
+	18: 'ROCK_ON_KNUCKLES_FWD',       19: 'ROCK_ON_PALM_FWD',
+	20: 'INDEX_RING_KNUCKLES_FWD',    21: 'INDEX_RING_PALM_FWD',
+	22: 'INDEX_RING_PINKY_K',         23: 'INDEX_RING_PINKY_P',
+	24: 'PEACE_KNUCKLES_FWD',         25: 'PEACE_PALM_FWD',
+	26: 'PEACE_PINKY_KNUCKLES_FWD',   27: 'PEACE_PINKY_PALM_FWD',
+	28: 'THREE_FINGERS_KNUCKLES_FWD', 29: 'THREE_FINGERS_PALM_FWD',
+	30: 'FOUR_FINGERS_KNUCKLES_FWD',  31: 'FOUR_FINGERS_PALM_FWD',
+	32: 'THUMB_KNUCKLES_FWD',         33: 'THUMB_PALM_FWD',
+	34: 'SHAKA_KNUCKLES_FWD',         35: 'SHAKA_PALM_FWD',
+	36: 'THUMB_RING_KNUCKLES_FWD',    37: 'THUMB_RING_PALM_FWD',
+	38: 'THUMB_RING_PINKY_K',         39: 'THUMB_RING_PINKY_P',
+	40: 'THUMB_MIDDLE_KNUCKLES_FWD',  41: 'THUMB_MIDDLE_PALM_FWD',
+	42: 'THUMB_MIDDLE_PINKY_K',       43: 'THUMB_MIDDLE_PINKY_P',
+	44: 'THUMB_MIDDLE_RING_K',        45: 'THUMB_MIDDLE_RING_P',
+	46: 'FOUR_FINGERS_NO_INDEX_K',    47: 'FOUR_FINGERS_NO_INDEX_P',
+	48: 'GUN_KNUCKLES_FWD',           49: 'GUN_PALM_FWD',
+	50: 'SPIDERMAN_KNUCKLES_FWD',     51: 'SPIDERMAN_PALM_FWD',
+	52: 'THUMB_INDEX_RING_K',         53: 'THUMB_INDEX_RING_P',
+	54: 'FOUR_FINGERS_NO_MIDDLE_K',   55: 'FOUR_FINGERS_NO_MIDDLE_P',
+	56: 'SCOUT_KNUCKLES_FWD',         57: 'SCOUT_PALM_FWD',
+	58: 'FOUR_FINGERS_NO_RING_K',     59: 'FOUR_FINGERS_NO_RING_P',
+	60: 'FIVE_FINGERS_NO_PINKY_K',    61: 'FIVE_FINGERS_NO_PINKY_P',
+	62: 'FIVE_FINGERS_KNUCKLES_FWD',  63: 'FIVE_FINGERS_PALM_FWD',
+	100: 'PINCH_INDEX',
+	101: 'PINCH_MIDDLE',
+	102: 'PINCH_RING',
+	103: 'PINCH_PINKY',
+	104: 'CHEF_KISS_ALL_PINCHED',
+	105: 'OK_SIGN',
+	600: 'THUMBS_UP',
+	601: 'THUMBS_DOWN'
+};
+const PREMADE_THEMES = {
+	'default': { name: "Dark", bgMain: "#000000", bgCard: "#121212", bubble: "#4f46e5", btn: "#1a1a1a", text: "#e5e5e5" },
+	'night': { name: "Night Mode 🌚", bgMain: "#000000", bgCard: "#000000", bubble: "#000000", btn: "#000000", text: "#ffffff" },
+	'sunlight': { name: "Sunlight ☀️", bgMain: "#e8e8e2", bgCard: "#ffffff", bubble: "#d97706", btn: "#d6d3c7", text: "#000000" },
+	'matrix': { name: "The Matrix", bgMain: "#000000", bgCard: "#0f2b0f", bubble: "#003300", btn: "#001100", text: "#00ff41" },
+	'dracula': { name: "Vampire", bgMain: "#282a36", bgCard: "#44475a", bubble: "#ff5555", btn: "#6272a4", text: "#f8f8f2" },
+	'neon': { name: "Neon City", bgMain: "#0b0014", bgCard: "#180029", bubble: "#d900ff", btn: "#24003d", text: "#00eaff" },
+	'retro': { name: "Retro PC", bgMain: "#fdf6e3", bgCard: "#eee8d5", bubble: "#cb4b16", btn: "#93a1a1", text: "#586e75" },
+	'steampunk': { name: "Steampunk", bgMain: "#100c08", bgCard: "#2b1d16", bubble: "#b87333", btn: "#422a18", text: "#d5c5a3" },
+	'ocean': { name: "Ocean Blue", bgMain: "#0f172a", bgCard: "#1e293b", bubble: "#0ea5e9", btn: "#334155", text: "#e2e8f0" },
+	'cyber': { name: "Cyberpunk", bgMain: "#050505", bgCard: "#1a1625", bubble: "#d946ef", btn: "#2d1b4e", text: "#f0abfc" },
+	'volcano': { name: "Volcano", bgMain: "#1a0505", bgCard: "#450a0a", bubble: "#b91c1c", btn: "#7f1d1d", text: "#fecaca" },
+	'forest': { name: "Deep Forest", bgMain: "#021408", bgCard: "#064e3b", bubble: "#166534", btn: "#14532d", text: "#dcfce7" },
+	'sunset': { name: "Sunset", bgMain: "#1a021c", bgCard: "#701a75", bubble: "#fb923c", btn: "#86198f", text: "#fff7ed" },
+	'halloween': { name: "Halloween 🎃", bgMain: "#1a0500", bgCard: "#2e0a02", bubble: "#ff6600", btn: "#4a1005", text: "#ffbf00" },
+	'liberty': { name: "Liberty 🗽", bgMain: "#0d1b1e", bgCard: "#1c3f44", bubble: "#2e8b57", btn: "#143136", text: "#d4af37" },
+	'shamrock': { name: "Shamrock ☘️", bgMain: "#021a02", bgCard: "#053305", bubble: "#00c92c", btn: "#0a450a", text: "#e0ffe0" },
+	'midnight': { name: "Midnight 🌑", bgMain: "#000000", bgCard: "#111111", bubble: "#3b82f6", btn: "#1f1f1f", text: "#ffffff" },
+	'candy': { name: "Candy 🍬", bgMain: "#260516", bgCard: "#4a0a2f", bubble: "#ff69b4", btn: "#701046", text: "#ffe4e1" },
+	'bumblebee': { name: "Bumblebee 🐝", bgMain: "#1a1600", bgCard: "#332b00", bubble: "#fbbf24", btn: "#4d4100", text: "#ffffff" },
+	'blueprint': { name: "Blueprint 📐", bgMain: "#0f2e52", bgCard: "#1b4d8a", bubble: "#ffffff", btn: "#2563eb", text: "#ffffff" },
+	'rose': { name: "Rose Gold 🌹", bgMain: "#1f1212", bgCard: "#3d2323", bubble: "#e1adac", btn: "#5c3333", text: "#ffe4e1" },
+	'hacker': { name: "Terminal 💻", bgMain: "#0c0c0c", bgCard: "#1a1a1a", bubble: "#00ff00", btn: "#0f380f", text: "#00ff00" },
+	'royal': { name: "Royal 👑", bgMain: "#120024", bgCard: "#2e0059", bubble: "#9333ea", btn: "#4c1d95", text: "#ffd700" }
+};
+const PREMADE_VOICE_PRESETS = {
+	'standard': { name: "Standard", pitch: 1.0, rate: 1.0, volume: 1.0 },
+	'speed': { name: "Speed Reader", pitch: 1.0, rate: 1.8, volume: 1.0 },
+	'slow': { name: "Slow Motion", pitch: 0.9, rate: 0.6, volume: 1.0 },
+	'deep': { name: "Deep Voice", pitch: 0.6, rate: 0.9, volume: 1.0 },
+	'high': { name: "Chipmunk", pitch: 1.8, rate: 1.1, volume: 1.0 },
+	'robot': { name: "Robot", pitch: 0.5, rate: 0.8, volume: 1.0 },
+	'announcer': { name: "Announcer", pitch: 0.8, rate: 1.1, volume: 1.0 },
+	'whisper': { name: "Quiet", pitch: 1.2, rate: 0.8, volume: 0.4 }
+};
+const HAND_MAPPING_PRESETS = {
+	'9_hand_counts': {
+		name: "Finger Counts",
+		type: 'key9',
+		map: {
+			'k9_1': '16', 'k9_2': '24', 'k9_3': '28', 'k9_4': '30', 'k9_5': '62',
+			'k9_6': '34', 'k9_7': '48', 'k9_8': '50', 'k9_9': '100'
+		}
+	},
+	'9_hand_shapes': {
+		name: "Shapes & Combos",
+		type: 'key9',
+		map: {
+			'k9_1': '12', 'k9_2': '18', 'k9_3': '20', 'k9_4': '32', 'k9_5': '36',
+			'k9_6': '56', 'k9_7': '105', 'k9_8': '104', 'k9_9': '600'
+		}
+	},
+	'12_hand_counts': {
+		name: "Finger Counts Extended",
+		type: 'key12',
+		map: {
+			'k12_1': '16', 'k12_2': '24', 'k12_3': '28', 'k12_4': '30', 'k12_5': '62',
+			'k12_6': '34', 'k12_7': '48', 'k12_8': '50', 'k12_9': '100',
+			'k12_10': '12', 'k12_11': '20', 'k12_12': '36'
+		}
+	},
+	'12_hand_shapes': {
+		name: "Shapes & Combos",
+		type: 'key12',
+		map: {
+			'k12_1': '0', 'k12_2': '18', 'k12_3': '32', 'k12_4': '40', 'k12_5': '56',
+			'k12_6': '60', 'k12_7': '101', 'k12_8': '102', 'k12_9': '103',
+			'k12_10': '104', 'k12_11': '105', 'k12_12': '601'
+		}
+	},
+	'piano_hand_default': {
+		name: "Finger Counts",
+		type: 'piano',
+		map: {
+			'piano_C': '16', 'piano_D': '24', 'piano_E': '28', 'piano_F': '30', 'piano_G': '62',
+			'piano_A': '34', 'piano_B': '48',
+			'piano_1': '50', 'piano_2': '100', 'piano_3': '12', 'piano_4': '20', 'piano_5': '36'
+		}
+	},
+	'piano_hand_shapes': {
+		name: "Shapes & Combos",
+		type: 'piano',
+		map: {
+			'piano_C': '0', 'piano_D': '18', 'piano_E': '32', 'piano_F': '40', 'piano_G': '56',
+			'piano_A': '60', 'piano_B': '101',
+			'piano_1': '102', 'piano_2': '103', 'piano_3': '104', 'piano_4': '105', 'piano_5': '601'
+		}
+	}
+};
+const GESTURE_CATEGORIES = {
+	'Anchors': [
+		'anchor_tap_2f', 'anchor_swipe_up_2f', 'anchor_swipe_down_2f', 'anchor_swipe_left_2f', 'anchor_swipe_right_2f',
+		'anchor_swipe_nw_2f', 'anchor_swipe_ne_2f', 'anchor_swipe_sw_2f', 'anchor_swipe_se_2f'
+	],
+	'Chords': [
+		'chord_down_left_2f', 'chord_down_ne_2f', 'chord_down_nw_2f', 'chord_down_right_2f', 'chord_down_se_2f', 'chord_down_sw_2f', 'chord_down_tap_2f',
+		'chord_left_ne_2f', 'chord_left_nw_2f', 'chord_left_se_2f', 'chord_left_sw_2f', 'chord_left_tap_2f', 'chord_left_up_2f',
+		'chord_ne_nw_2f', 'chord_ne_right_2f', 'chord_ne_se_2f', 'chord_ne_tap_2f', 'chord_ne_up_2f',
+		'chord_nw_right_2f', 'chord_nw_sw_2f', 'chord_nw_tap_2f', 'chord_nw_up_2f',
+		'chord_right_se_2f', 'chord_right_sw_2f', 'chord_right_tap_2f', 'chord_right_up_2f',
+		'chord_se_sw_2f', 'chord_se_tap_2f', 'chord_se_up_2f',
+		'chord_sw_tap_2f', 'chord_sw_up_2f',
+		'chord_tap_up_2f'
+	],
+	'Taps': [
+		'tap', 'double_tap', 'triple_tap', 'long_tap'
+	],
+	'Spatial Taps': [
+		'Double_tap_spatial_any', 'Double_tap_spatial_up', 'Double_tap_spatial_down',
+		'Double_tap_spatial_left', 'Double_tap_spatial_right', 'Double_tap_spatial_nw',
+		'Double_tap_spatial_ne', 'Double_tap_spatial_sw', 'Double_tap_spatial_se',
+		'triple_tap_spatial_line_any', 'triple_tap_spatial_line_up', 'triple_tap_spatial_line_down',
+		'triple_tap_spatial_line_left', 'triple_tap_spatial_line_right', 'triple_tap_spatial_corner_ne',
+		'triple_tap_spatial_corner_nw', 'triple_tap_spatial_corner_se', 'triple_tap_spatial_corner_sw',
+		'triple_tap_spatial_corner_en', 'triple_tap_spatial_corner_wn', 'triple_tap_spatial_corner_es',
+		'triple_tap_spatial_corner_ws', 'triple_tap_spatial_boomerang_any', 'triple_tap_spatial_boomerang_up',
+		'triple_tap_spatial_boomerang_down', 'triple_tap_spatial_boomerang_left', 'triple_tap_spatial_boomerang_right'
+	],
+	'Multi-Finger Taps': [
+		'tap_2f_any', 'tap_2f_vertical', 'tap_2f_horizontal', 'tap_2f_diagonal_se', 'tap_2f_diagonal_sw',
+		'double_tap_2f_any', 'double_tap_2f_vertical', 'double_tap_2f_horizontal', 'double_tap_2f_diagonal_se', 'double_tap_2f_diagonal_sw',
+		'triple_tap_2f_any', 'triple_tap_2f_vertical', 'triple_tap_2f_horizontal', 'triple_tap_2f_diagonal_se', 'triple_tap_2f_diagonal_sw',
+		'long_tap_2f_any', 'long_tap_2f_vertical', 'long_tap_2f_horizontal', 'long_tap_2f_diagonal_se', 'long_tap_2f_diagonal_sw',
+		'tap_3f_any', 'tap_3f_vertical', 'tap_3f_horizontal', 'tap_3f_diagonal_se', 'tap_3f_diagonal_sw',
+		'double_tap_3f_any', 'double_tap_3f_vertical', 'double_tap_3f_horizontal', 'double_tap_3f_diagonal_se', 'double_tap_3f_diagonal_sw',
+		'triple_tap_3f_any', 'triple_tap_3f_vertical', 'triple_tap_3f_horizontal', 'triple_tap_3f_diagonal_se', 'triple_tap_3f_diagonal_sw',
+		'long_tap_3f_any', 'long_tap_3f_vertical', 'long_tap_3f_horizontal', 'long_tap_3f_diagonal_se', 'long_tap_3f_diagonal_sw'
+	],
+	'Swipes': [
+		'swipe_any', 'swipe_up', 'swipe_down', 'swipe_left', 'swipe_right', 'swipe_nw', 'swipe_ne', 'swipe_sw', 'swipe_se'
+	],
+	'Long Swipes': [
+		'swipe_long_any', 'swipe_long_up', 'swipe_long_down', 'swipe_long_left', 'swipe_long_right', 'swipe_long_nw', 'swipe_long_ne', 'swipe_long_sw', 'swipe_long_se'
+	],
+	'Multi-Finger Swipes': [
+		'swipe_any_2f', 'swipe_up_2f', 'swipe_down_2f', 'swipe_left_2f', 'swipe_right_2f', 'swipe_nw_2f', 'swipe_ne_2f', 'swipe_sw_2f', 'swipe_se_2f',
+		'swipe_any_3f', 'swipe_up_3f', 'swipe_down_3f', 'swipe_left_3f', 'swipe_right_3f', 'swipe_nw_3f', 'swipe_ne_3f', 'swipe_sw_3f', 'swipe_se_3f',
+		'pinch_swipe_any_2f', 'pinch_swipe_up_2f', 'pinch_swipe_down_2f', 'pinch_swipe_left_2f', 'pinch_swipe_right_2f',
+		'expand_swipe_any_2f', 'expand_swipe_up_2f', 'expand_swipe_down_2f', 'expand_swipe_left_2f', 'expand_swipe_right_2f'
+	],
+	'Boomerangs': [
+		'boomerang_any', 'boomerang_up', 'boomerang_down', 'boomerang_left', 'boomerang_right', 'boomerang_nw', 'boomerang_ne', 'boomerang_sw', 'boomerang_se',
+		'boomerang_any_2f', 'boomerang_up_2f', 'boomerang_down_2f', 'boomerang_left_2f', 'boomerang_right_2f',
+		'boomerang_any_3f', 'boomerang_up_3f', 'boomerang_down_3f', 'boomerang_left_3f', 'boomerang_right_3f',
+		'long_boomerang_any', 'long_boomerang_up', 'long_boomerang_down', 'long_boomerang_left', 'long_boomerang_right',
+		'long_boomerang_any_2f', 'long_boomerang_up_2f', 'long_boomerang_down_2f', 'long_boomerang_left_2f', 'long_boomerang_right_2f'
+	],
+	'Switchbacks': [
+		'switchback_any', 'switchback_any_cw', 'switchback_any_ccw',
+		'switchback_up_cw', 'switchback_down_cw', 'switchback_left_cw', 'switchback_right_cw', 'switchback_nw_cw', 'switchback_ne_cw', 'switchback_sw_cw', 'switchback_se_cw',
+		'switchback_up_ccw', 'switchback_down_ccw', 'switchback_left_ccw', 'switchback_right_ccw', 'switchback_nw_ccw', 'switchback_ne_ccw', 'switchback_sw_ccw', 'switchback_se_ccw'
+	],
+	'Zigzags': [
+		'zigzag_any', 'zigzag_up', 'zigzag_down', 'zigzag_left', 'zigzag_right', 'zigzag_nw', 'zigzag_ne', 'zigzag_sw', 'zigzag_se',
+		'long_zigzag_any', 'long_zigzag_up', 'long_zigzag_down', 'long_zigzag_left', 'long_zigzag_right', 'long_zigzag_nw', 'long_zigzag_ne', 'long_zigzag_sw', 'long_zigzag_se'
+	],
+	'Corners & Shapes': [
+		'corner_any', 'corner_cw', 'corner_ccw', 'corner_up_cw', 'corner_right_cw', 'corner_down_cw', 'corner_left_cw', 'corner_up_ccw', 'corner_left_ccw', 'corner_down_ccw', 'corner_right_ccw',
+		'triangle_any', 'triangle_cw', 'triangle_ccw', 'triangle_up_cw', 'triangle_right_cw', 'triangle_down_cw', 'triangle_left_cw', 'triangle_up_ccw', 'triangle_left_ccw', 'triangle_down_ccw', 'triangle_right_ccw',
+		'u_shape_any', 'u_shape_cw', 'u_shape_ccw', 'u_shape_up_cw', 'u_shape_right_cw', 'u_shape_down_cw', 'u_shape_left_cw', 'u_shape_up_ccw', 'u_shape_left_ccw', 'u_shape_down_ccw', 'u_shape_right_ccw',
+		'square_any', 'square_cw', 'square_ccw', 'square_up_cw', 'square_right_cw', 'square_down_cw', 'square_left_cw', 'square_up_ccw', 'square_left_ccw', 'square_down_ccw', 'square_right_ccw'
+	],
+	'Motion Gestures': [
+		'motion_tap_swipe_any', 'motion_tap_swipe_up', 'motion_tap_swipe_down', 'motion_tap_swipe_left', 'motion_tap_swipe_right', 'motion_tap_swipe_nw', 'motion_tap_swipe_ne', 'motion_tap_swipe_sw', 'motion_tap_swipe_se',
+		'motion_tap_swipe_long_any', 'motion_tap_swipe_long_up', 'motion_tap_swipe_long_down', 'motion_tap_swipe_long_left', 'motion_tap_swipe_long_right', 'motion_tap_swipe_long_nw', 'motion_tap_swipe_long_ne', 'motion_tap_swipe_long_sw', 'motion_tap_swipe_long_se',
+		'motion_tap_boomerang_any', 'motion_tap_boomerang_up', 'motion_tap_boomerang_down', 'motion_tap_boomerang_left', 'motion_tap_boomerang_right', 'motion_tap_boomerang_nw', 'motion_tap_boomerang_ne', 'motion_tap_boomerang_sw', 'motion_tap_boomerang_se',
+		'motion_tap_corner_any', 'motion_tap_corner_cw', 'motion_tap_corner_ccw', 'motion_tap_corner_up_cw', 'motion_tap_corner_right_cw', 'motion_tap_corner_left_cw', 'motion_tap_corner_down_cw', 'motion_tap_corner_up_ccw', 'motion_tap_corner_right_ccw', 'motion_tap_corner_left_ccw', 'motion_tap_corner_down_ccw'
+	],
+	'Flicks': [
+		'Flick_any', 'Flick_up', 'Flick_down', 'Flick_left', 'Flick_right', 'Flick_nw', 'Flick_ne', 'Flick_sw', 'Flick_se'
+	],
+	'Pausing Curves': [
+		'Pausing_swipe_any', 'Pausing_swipe_up', 'Pausing_swipe_down', 'Pausing_swipe_left', 'Pausing_swipe_right', 'Pausing_swipe_nw', 'Pausing_swipe_ne', 'Pausing_swipe_sw', 'Pausing_swipe_se',
+		'Pausing_boomerang_any', 'Pausing_boomerang_up', 'Pausing_boomerang_down', 'Pausing_boomerang_left', 'Pausing_boomerang_right', 'Pausing_boomerang_nw', 'Pausing_boomerang_ne', 'Pausing_boomerang_sw', 'Pausing_boomerang_se',
+		'Pausing_Switchback_any', 'Pausing_Switchback_cw', 'Pausing_Switchback_ccw', 'Pausing_Switchback_up_cw', 'Pausing_Switchback_down_cw', 'Pausing_Switchback_left_cw', 'Pausing_Switchback_right_cw', 'Pausing_Switchback_nw_cw', 'Pausing_Switchback_ne_cw', 'Pausing_Switchback_sw_cw', 'Pausing_Switchback_se_cw', 'Pausing_Switchback_up_ccw', 'Pausing_Switchback_down_ccw', 'Pausing_Switchback_left_ccw', 'Pausing_Switchback_right_ccw', 'Pausing_Switchback_nw_ccw', 'Pausing_Switchback_ne_ccw', 'Pausing_Switchback_sw_ccw', 'Pausing_Switchback_se_ccw',
+		'Pausing_corner_any', 'Pausing_corner_cw', 'Pausing_corner_ccw', 'Pausing_corner_up_cw', 'Pausing_corner_right_cw', 'Pausing_corner_down_cw', 'Pausing_corner_left_cw', 'Pausing_corner_up_ccw', 'Pausing_corner_left_ccw', 'Pausing_corner_down_ccw', 'Pausing_corner_right_ccw'
+	]
+};
+const GESTURE_PRESETS = {
+	'9_taps': {
+		name: "Basic Taps",
+		type: 'key9',
+		map: {
+			'k9_1': 'tap', 'k9_2': 'double_tap', 'k9_3': 'triple_tap',
+			'k9_4': 'tap_2f_any', 'k9_5': 'double_tap_2f_any', 'k9_6': 'triple_tap_2f_any',
+			'k9_7': 'tap_3f_any', 'k9_8': 'double_tap_3f_any', 'k9_9': 'triple_tap_3f_any'
+		}
+	},
+	'9_spatial': {
+		name: "Spatial Taps (3x3 Grid)",
+		type: 'key9',
+		map: {
+			'k9_1': 'Double_tap_spatial_nw', 'k9_2': 'Double_tap_spatial_up', 'k9_3': 'Double_tap_spatial_ne',
+			'k9_4': 'Double_tap_spatial_left', 'k9_5': 'double_tap', 'k9_6': 'Double_tap_spatial_right',
+			'k9_7': 'Double_tap_spatial_sw', 'k9_8': 'Double_tap_spatial_down', 'k9_9': 'Double_tap_spatial_se'
+		}
+	},
+	'9_swipes': {
+		name: "Swipes",
+		type: 'key9',
+		map: {
+			'k9_1': 'swipe_nw', 'k9_2': 'swipe_up', 'k9_3': 'swipe_ne',
+			'k9_4': 'swipe_left', 'k9_5': 'double_tap', 'k9_6': 'swipe_right',
+			'k9_7': 'swipe_sw', 'k9_8': 'swipe_down', 'k9_9': 'swipe_se'
+		}
+	},
+	'12_taps': {
+		name: "Basic Taps",
+		type: 'key12',
+		map: {
+			'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
+			'k12_5': 'tap_2f_any', 'k12_6': 'double_tap_2f_any', 'k12_7': 'triple_tap_2f_any', 'k12_8': 'long_tap_2f_any',
+			'k12_9': 'tap_3f_any', 'k12_10': 'double_tap_3f_any', 'k12_11': 'triple_tap_3f_any', 'k12_12': 'long_tap_3f_any'
+		}
+	},
+	'12_swipes': {
+		name: "Directional Swipes",
+		type: 'key12',
+		map: {
+			'k12_1': 'swipe_up', 'k12_2': 'swipe_down', 'k12_3': 'swipe_left', 'k12_4': 'swipe_right',
+			'k12_5': 'swipe_up_2f', 'k12_6': 'swipe_down_2f', 'k12_7': 'swipe_left_2f', 'k12_8': 'swipe_right_2f',
+			'k12_9': 'swipe_up_3f', 'k12_10': 'swipe_down_3f', 'k12_11': 'swipe_left_3f', 'k12_12': 'swipe_right_3f'
+		}
+	},
+	'12_flicks': {
+		name: "Flicks",
+		type: 'key12',
+		map: {
+			'k12_1': 'Flick_up', 'k12_2': 'Flick_down', 'k12_3': 'Flick_left', 'k12_4': 'Flick_right',
+			'k12_5': 'Flick_nw', 'k12_6': 'Flick_ne', 'k12_7': 'Flick_sw', 'k12_8': 'Flick_se',
+			'k12_9': 'tap_2f_any', 'k12_10': 'double_tap_2f_any', 'k12_11': 'tap_3f_any', 'k12_12': 'double_tap_3f_any'
+		}
+	},
+	'piano_taps': {
+		name: "Basic Swipes",
+		type: 'piano',
+		map: {
+			'piano_C': 'swipe_nw', 'piano_D': 'swipe_left', 'piano_E': 'swipe_sw', 'piano_F': 'swipe_down',
+			'piano_G': 'swipe_se', 'piano_A': 'swipe_right', 'piano_B': 'swipe_ne',
+			'piano_1': 'swipe_left_2f', 'piano_2': 'swipe_nw_2f', 'piano_3': 'swipe_up_2f',
+			'piano_4': 'swipe_ne_2f', 'piano_5': 'swipe_right_2f'
+		}
+	},
+	'piano_spatial': {
+		name: "Spatial Corners",
+		type: 'piano',
+		map: {
+			'piano_C': 'triple_tap_spatial_corner_nw', 'piano_D': 'triple_tap_spatial_line_left',
+			'piano_E': 'triple_tap_spatial_corner_sw', 'piano_F': 'triple_tap_spatial_line_down',
+			'piano_G': 'triple_tap_spatial_corner_se', 'piano_A': 'triple_tap_spatial_line_right',
+			'piano_B': 'triple_tap_spatial_corner_ne',
+			'piano_1': 'Double_tap_spatial_left', 'piano_2': 'Double_tap_spatial_nw',
+			'piano_3': 'Double_tap_spatial_up', 'piano_4': 'Double_tap_spatial_ne', 'piano_5': 'Double_tap_spatial_right'
+		}
+	},
+	'piano_multi': {
+		name: "Multi-Finger",
+		type: 'piano',
+		map: {
+			'piano_C': 'tap_2f_any', 'piano_D': 'double_tap_2f_any', 'piano_E': 'triple_tap_2f_any', 'piano_F': 'long_tap_2f_any',
+			'piano_G': 'tap_3f_any', 'piano_A': 'double_tap_3f_any', 'piano_B': 'triple_tap_3f_any',
+			'piano_1': 'swipe_up_2f', 'piano_2': 'swipe_down_2f', 'piano_3': 'swipe_left_2f',
+			'piano_4': 'swipe_right_2f', 'piano_5': 'long_tap_3f_any'
+		}
+	}
+};
+const CRAYONS = ["#000000", "#1F75FE", "#1CA9C9", "#0D98BA", "#FFFFFF", "#C5D0E6", "#B0B7C6", "#AF4035", "#F5F5F5", "#FEFEFA", "#FFFAFA", "#F0F8FF", "#F8F8FF", "#F5F5DC", "#FFFACD", "#FAFAD2", "#FFFFE0", "#FFFFF0", "#FFFF00", "#FFEFD5", "#FFE4B5", "#FFDAB9", "#EEE8AA", "#F0E68C", "#BDB76B", "#E6E6FA", "#D8BFD8", "#DDA0DD", "#EE82EE", "#DA70D6", "#FF00FF", "#BA55D3", "#9370DB", "#8A2BE2", "#9400D3", "#9932CC", "#8B008B", "#800000", "#4B0082", "#483D8B", "#6A5ACD", "#7B68EE", "#ADFF2F", "#7FFF00", "#7CFC00", "#00FF00", "#32CD32", "#98FB98", "#90EE90", "#00FA9A", "#00FF7F", "#3CB371", "#2E8B57", "#228B22", "#008000", "#006400", "#9ACD32", "#6B8E23", "#808000", "#556B2F", "#66CDAA", "#8FBC8F", "#20B2AA", "#008B8B", "#008080", "#00FFFF", "#00CED1", "#40E0D0", "#48D1CC", "#AFEEEE", "#7FFFD4", "#B0E0E6", "#5F9EA0", "#4682B4", "#6495ED", "#00BFFF", "#1E90FF", "#ADD8E6", "#87CEEB", "#87CEFA", "#191970", "#000080", "#0000FF", "#0000CD", "#4169E1", "#8A2BE2", "#4B0082", "#FFE4C4", "#FFEBCD", "#F5DEB3", "#DEB887", "#D2B48C", "#BC8F8F", "#F4A460", "#DAA520", "#B8860B", "#CD853F", "#D2691E", "#8B4513", "#A0522D", "#A52A2A", "#800000", "#FFA07A", "#FA8072", "#E9967A", "#F08080", "#CD5C5C", "#DC143C", "#B22222", "#FF0000", "#FF4500", "#FF6347", "#FF7F50", "#FF8C00", "#FFA500", "#FFD700", "#FFFF00", "#808000", "#556B2F", "#6B8E23", "#999999", "#808080", "#666666", "#333333", "#222222", "#111111", "#0A0A0A", "#000000"];
+const DEFAULT_HEADER_BTN_ORDER = ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn', 'headerautorotatebtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn', 'headerpipbtn'];
+const DEFAULT_GENERAL_TOGGLE_ORDER = ['randomThemeToggle', 'autoHideHeaderToggle', 'headerPlayToggle', 'headerDeleteToggle', 'headerSettingsToggle', 'headerHelpToggle', 'headerModeSwitchToggle', 'headerRedeemToggle', 'headerShareToggle', 'headerThemeCycleToggle', 'headerAddMachineToggle', 'headerUiSizeToggle', 'headerSeqSizeToggle', 'headerVolumeToggle', 'headerSpeedToggle', 'headerCycleInputToggle', 'headerResetToggle', 'headerNukeToggle', 'timerToggle', 'autotimerToggle', 'counterToggle', 'autocounterToggle', 'headerNotepadToggle', 'headerInfiniteScrollToggle', 'inputRegulatorToggle', 'hapticsToggle', 'introToggle', 'upsidedownToggle', 'autoRotateToggle', 'fullscreenToggle', 'ecoToggle', 'wakelockToggle', 'dndToggle', 'pipToggle', 'pinnedModeToggle', 'voiceToggle', 'voicecommandsToggle', 'toneToggle', 'touchToggle', 'bossToggle', 'newToggle', 'biggerToggle', 'arcamToggle', 'arAutoCloseGeneralToggle', 'handToggle', 'skeletonDebugToggle', 'handsignalsToggle', 'handednessFlipToggle', 'speeddeleteToggle', 'apshortcutToggle', 'volgesToggle', 'speedToggle', 'deleteToggle', 'clearToggle', 'autoBrightToggle', 'autoDarkToggle'];
+const CONFIG = {
+	MAX_MACHINES: 4,
+	DEMO_DELAY_BASE_MS: 798,
+	SPEED_DELETE_DELAY: 250,
+	SPEED_DELETE_INTERVAL: 20,
+	STORAGE_KEY_SETTINGS: 'followMeAppSettings_v47',
+	STORAGE_KEY_STATE: 'followMeAppState_v48',
+	INPUTS: {
+		KEY9: 'key9',
+		KEY12: 'key12',
+		PIANO: 'piano'
+	},
+	MODES: {
+		SIMON: 'simon',
+		UNIQUE_ROUNDS: 'unique'
+	}
+};
+const DEFAULT_PROFILE_SETTINGS = {
+	currentInput: CONFIG.INPUTS.KEY9,
+	currentMode: CONFIG.MODES.SIMON,
+	sequenceLength: 20,
+	machineCount: 1,
+	simonChunkSize: 40,
+	simonInterSequenceDelay: 200,
+	isUniqueRoundsAutoClearEnabled: true,
+	isPracticeModeEnabled: false,
+	isAutoplayEnabled: true,
+	isFlashEnabled: true,
+	isAudioEnabled: true,
+	isHapticMorseEnabled: false,
+	playbackSpeed: 1.0,
+	pauseSetting: 200,
+	voicePitch: 1.0,
+	voiceRate: 1.0,
+	voiceVolume: 1.0,
+	selectedVoice: null,
+	voicePresets: {},
+	activeVoicePresetId: 'standard'
+};
+const PREMADE_PROFILES = {
+	'profile_1': {
+		name: "Follow Me",
+		settings: {
+			...DEFAULT_PROFILE_SETTINGS
+		},
+		theme: 'default'
+	},
+	'profile_2': {
+		name: "2 Machines",
+		settings: {
+			...DEFAULT_PROFILE_SETTINGS,
+			machineCount: 2,
+			simonChunkSize: 40,
+			simonInterSequenceDelay: 200
+		},
+		theme: 'default'
+	},
+	'profile_3': {
+		name: "Bananas",
+		settings: {
+			...DEFAULT_PROFILE_SETTINGS,
+			sequenceLength: 25
+		},
+		theme: 'default'
+	},
+	'profile_4': {
+		name: "Piano",
+		settings: {
+			...DEFAULT_PROFILE_SETTINGS,
+			currentInput: CONFIG.INPUTS.PIANO
+		},
+		theme: 'default'
+	},
+	'profile_5': {
+		name: "15 Rounds",
+		settings: {
+			...DEFAULT_PROFILE_SETTINGS,
+			currentMode: CONFIG.MODES.UNIQUE_ROUNDS,
+			sequenceLength: 15,
+			currentInput: CONFIG.INPUTS.KEY12
+		},
+		theme: 'default'
+	}
+};
+const DEFAULT_APP = {
+	globalUiScale: 100,
+	uiScaleMultiplier: 2.2,
+	showWelcomeScreen: true,
+	touchResizeMode: 'global',
+	playbackSpeed: 1.0,
+	isAutoplayEnabled: false,
+	isUniqueRoundsAutoClearEnabled: true,
+	isAudioEnabled: true,
+	isHapticsEnabled: true,
+	isFlashEnabled: true,
+	pauseSetting: 200,
+	isSpeedDeletingEnabled: true,
+	isSpeedTouchGesturesEnabled: false,
+	isVolumeTouchGesturesEnabled: false,
+	isArModeEnabled: false,
+	isArAutoCloseEnabled: true,
+	isVoiceInputEnabled: false,
+	arPlaybackSpeed: 1.00,
+	voiceTriggerWord: 'set',
+	isDeleteTouchGestureEnabled: true,
+	isClearTouchGestureEnabled: true,
+	isAutoTimerEnabled: false,
+	isAutoCounterEnabled: true,
+	isWakeLockEnabled: true,
+	isDndEnabled: false,
+	isPinnedModeEnabled: false,
+	isEcoModeEnabled: true,
+	isLongPressAutoplayEnabled: true,
+	isStealth1KeyEnabled: true,
+	activeTheme: 'default',
+	customThemes: {},
+	isRandomThemeEnabled: false,
+	isBlackoutFeatureEnabled: false,
+	isHapticMorseEnabled: false,
+	showTimer: false,
+	showCounter: true,
+	isHandGesturesEnabled: false,
+	isHandSignalsEnabled: true,
+	handednessFlip: false,
+	showHeaderPlayBtn: false,
+	showHeaderDeleteBtn: false,
+	showHeaderSettingsBtn: true,
+	showHeaderRedeemBtn: true,
+	showHeaderShareBtn: true,
+	showHeaderThemeCycleBtn: false,
+	showHeaderAddMachineBtn: false,
+	showHeaderUiSizeBtns: false,
+	showHeaderSeqSizeBtns: false,
+	showHeaderVolumeBtns: false,
+	showHeaderSpeedBtns: false,
+	showHeaderCycleInputBtn: false,
+	showHeaderNotepadBtn: true,
+	showHeaderHelpBtn: false,
+	showHeaderModeSwitchBtn: false,
+	showHeaderResetBtn: false,
+	showHeaderNukeBtn: false,
+	notepadText: '',
+	isVoiceCommandsEnabled: true,
+	isToneCadenceEnabled: false,
+	isInputRegulatorEnabled: false,
+	isAutoHideHeaderEnabled: false,
+	isHeaderInfiniteScrollEnabled: false,
+	isAutoBrightEnabled: false,
+	isAutoDarkEnabled: false,
+	headerIconScale: 120,
+	appFontScale: 100,
+	headerPadding: 0,
+	inputsPadding: 0,
+	toneCalibration: {
+		isCalibrated: false,
+		notes: {}
+	},
+	isPositionSwapEnabled: false,
+	isSkeletonDebugEnabled: true,
+	activeFontFamily: "'Inter', sans-serif",
+	handGestureCooldown: 600,
+	handHoldFrames: 4,
+	voiceConfidenceThreshold: 50,
+	toneVolumeThreshold: -85,
+	isSliderLockEnabled: true,
+	isSettingsLockEnabled: false,
+	touchAnchorStillDistance: 15,
+	touchAnchorMinHoldTime: 150,
+	touchChordSimultaneityWindow: 50,
+	showFullscreenBtn: true,
+	showPinnedBtn: false,
+	showDndBtn: false,
+	showPipBtn: false,
+	showUpsideDownBtn: false,
+	showAutoRotateBtn: false,
+	uiFontSizeMultiplier: 2.5,
+	activeProfileId: 'profile_1',
+	profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)),
+	runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)),
+	isPracticeModeEnabled: false,
+	voicePitch: 1.0,
+	voiceRate: 1.0,
+	voiceVolume: 1.0,
+	selectedVoice: null,
+	voicePresets: {},
+	activeVoicePresetId: 'standard',
+	isTouchGestureInputEnabled: true,
+	touchGestureMappings: {
+		'k9_1': { gesture: 'Double_tap_spatial_nw' },
+		'k9_2': { gesture: 'Double_tap_spatial_up' },
+		'k9_3': { gesture: 'Double_tap_spatial_ne' },
+		'k9_4': { gesture: 'Double_tap_spatial_left' },
+		'k9_5': { gesture: 'double_tap' },
+		'k9_6': { gesture: 'Double_tap_spatial_right' },
+		'k9_7': { gesture: 'Double_tap_spatial_sw' },
+		'k9_8': { gesture: 'Double_tap_spatial_down' },
+		'k9_9': { gesture: 'Double_tap_spatial_se' },
+		'k12_1': { gesture: 'tap' },
+		'k12_2': { gesture: 'double_tap' },
+		'k12_3': { gesture: 'triple_tap' },
+		'k12_4': { gesture: 'long_tap' },
+		'k12_5': { gesture: 'tap_2f_any' },
+		'k12_6': { gesture: 'double_tap_2f_any' },
+		'k12_7': { gesture: 'triple_tap_2f_any' },
+		'k12_8': { gesture: 'long_tap_2f_any' },
+		'k12_9': { gesture: 'tap_3f_any' },
+		'k12_10': { gesture: 'double_tap_3f_any' },
+		'k12_11': { gesture: 'triple_tap_3f_any' },
+		'k12_12': { gesture: 'long_tap_3f_any' },
+		'piano_C': { gesture: 'swipe_nw' },
+		'piano_D': { gesture: 'swipe_left' },
+		'piano_E': { gesture: 'swipe_sw' },
+		'piano_F': { gesture: 'swipe_down' },
+		'piano_G': { gesture: 'swipe_se' },
+		'piano_A': { gesture: 'swipe_right' },
+		'piano_B': { gesture: 'swipe_ne' },
+		'piano_1': { gesture: 'swipe_left_2f' },
+		'piano_2': { gesture: 'swipe_nw_2f' },
+		'piano_3': { gesture: 'swipe_up_2f' },
+		'piano_4': { gesture: 'swipe_ne_2f' },
+		'piano_5': { gesture: 'swipe_right_2f' }
+	},
+	mappings: {
+		'k9_1': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },
+		'k9_2': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },
+		'k9_3': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },
+		'k9_4': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },
+		'k9_5': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },
+		'k9_6': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },
+		'k9_7': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },
+		'k9_8': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },
+		'k9_9': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },
+		'k12_1': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },
+		'k12_2': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },
+		'k12_3': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },
+		'k12_4': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },
+		'k12_5': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },
+		'k12_6': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },
+		'k12_7': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },
+		'k12_8': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },
+		'k12_9': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },
+		'k12_10': { touch: 'none', handGesture: 12, morse: '', handSide: 'any' },
+		'k12_11': { touch: 'none', handGesture: 20, morse: '', handSide: 'any' },
+		'k12_12': { touch: 'none', handGesture: 36, morse: '', handSide: 'any' },
+		'piano_C': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },
+		'piano_D': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },
+		'piano_E': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },
+		'piano_F': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },
+		'piano_G': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },
+		'piano_A': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },
+		'piano_B': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },
+		'piano_1': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },
+		'piano_2': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },
+		'piano_3': { touch: 'none', handGesture: 12, morse: '', handSide: 'any' },
+		'piano_4': { touch: 'none', handGesture: 20, morse: '', handSide: 'any' },
+		'piano_5': { touch: 'none', handGesture: 36, morse: '', handSide: 'any' }
+	},
+	activeGestureFilters: [
+		'Poses',
+		'Pinches',
+		'Counts',
+		'Shapes',
+		'Motion',
+		'Transitions',
+		'Combos',
+		'Anchors',
+		'Chords',
+		'Taps',
+		'Spatial Taps',
+		'Multi-Finger Taps',
+		'Swipes',
+		'Long Swipes',
+		'Multi-Finger Swipes',
+		'Boomerangs',
+		'Switchbacks',
+		'Zigzags',
+		'Corners & Shapes',
+		'Motion Gestures',
+		'Flicks',
+		'Pausing Curves'
+	],
+	customTouchPresets: {},
+	customHandPresets: {},
+	activeMappingPreset: {
+		'touch-preset-key9-select': '9_spatial',
+		'touch-preset-key12-select': '12_taps'
+	},
+	headerBtnOrder: [
+		'headertimerbtn',
+		'headercounterbtn',
+		'headernotepadbtn',
+		'headerplaybtn',
+		'headerdeletebtn',
+		'headersettingsbtn',
+		'headerhelpbtn',
+		'headersharebtn',
+		'headerredeembtn',
+		'headervoicebtn',
+		'headertonebtn',
+		'headertouchbtn',
+		'headerhandbtn',
+		'headerarcambtn',
+		'headerbiggerbtn',
+		'headerfullscreenbtn',
+		'headerpinnedbtn',
+		'headerdndbtn',
+		'headerpipbtn',
+		'headerswapbtn',
+		'headerupsidedownbtn',
+		'headerautorotatebtn',
+		'headerthemecyclebtn',
+		'headercycleinputbtn',
+		'headermodeswitchbtn',
+		'headeraddmachinebtn',
+		'headeruiupbtn',
+		'headeruidownbtn',
+		'headersequpbtn',
+		'headerseqdownbtn',
+		'headervolupbtn',
+		'headervoldownbtn',
+		'headerspeedupbtn',
+		'headerspeeddownbtn',
+		'headerresetbtn',
+		'headernukebtn'
+	],
+	generalToggleOrder: [
+		'autoHideHeaderToggle',
+		'headerInfiniteScrollToggle',
+		'randomThemeToggle',
+		'headerThemeCycleToggle',
+		'headerModeSwitchToggle',
+		'headerCycleInputToggle',
+		'headerAddMachineToggle',
+		'introToggle',
+		'headerUiSizeToggle',
+		'headerSeqSizeToggle',
+		'headerVolumeToggle',
+		'headerSpeedToggle',
+		'headerSettingsToggle',
+		'headerHelpToggle',
+		'headerRedeemToggle',
+		'headerShareToggle',
+		'headerPlayToggle',
+		'headerDeleteToggle',
+		'timerToggle',
+		'autotimerToggle',
+		'counterToggle',
+		'autocounterToggle',
+		'headerNotepadToggle',
+		'bossToggle',
+		'inputRegulatorToggle',
+		'hapticsToggle',
+		'biggerToggle',
+		'pipToggle',
+		'upsidedownToggle',
+		'autoRotateToggle',
+		'newToggle',
+		'fullscreenToggle',
+		'pinnedModeToggle',
+		'ecoToggle',
+		'wakelockToggle',
+		'headerResetToggle',
+		'headerNukeToggle',
+		'arcamToggle',
+		'arAutoCloseGeneralToggle',
+		'voiceToggle',
+		'voicecommandsToggle',
+		'toneToggle',
+		'touchToggle',
+		'handToggle',
+		'handsignalsToggle',
+		'skeletonDebugToggle',
+		'handednessFlipToggle',
+		'speeddeleteToggle',
+		'apshortcutToggle',
+		'volgesToggle',
+		'speedToggle',
+		'clearToggle',
+		'deleteToggle',
+		'dndToggle',
+		'autoBrightToggle',
+		'autoDarkToggle'
+	]
+};
+const SETTINGS_PRESETS = [
+	{ id: 'default', name: 'Default (New Player)', code: 'm.xmhNj`V-16N$xovQJJ^`qG9_Wn:' },
+	{ id: 'preset1', name: 'Preset 1', code: '5h.VUoC0xD7PX/at/Lp`L#I*P`yZrCGdegzB5%ul;Ahy%/C@W3D{fnmBvR+[^PD5FZHA_CIP(bk^yuXi3PxEJ))X$0s/t(Qn/Q`lkqSx0=sOf[m_4_+q0lFBx!}rsXd/lWhraLU=w_K65!H!34_2NoP{`_=u2I:^/b?$_6iU92H{Hh.nd/?GQht{GS9lJjPi07n[O?Cde#kt]f%SNFVnFG*32yjgBCk-J`hIw}JK`(h,lcu4Vhl+abbE' }
+];
+const DEFAULT_MAPPINGS = {
+	'k9_1': 'tap',
+	'k9_2': 'double_tap',
+	'k9_3': 'triple_tap',
+	'k9_4': 'tap_2f_any',
+	'k9_5': 'double_tap_2f_any',
+	'k9_6': 'triple_tap_2f_any',
+	'k9_7': 'tap_3f_any',
+	'k9_8': 'double_tap_3f_any',
+	'k9_9': 'triple_tap_3f_any',
+	'k12_1': 'tap',
+	'k12_2': 'double_tap',
+	'k12_3': 'triple_tap',
+	'k12_4': 'long_tap',
+	'k12_5': 'tap_2f_any',
+	'k12_6': 'double_tap_2f_any',
+	'k12_7': 'triple_tap_2f_any',
+	'k12_8': 'long_tap_2f_any',
+	'k12_9': 'tap_3f_any',
+	'k12_10': 'double_tap_3f_any',
+	'k12_11': 'triple_tap_3f_any',
+	'k12_12': 'long_tap_3f_any',
+	'piano_C': 'swipe_nw',
+	'piano_D': 'swipe_left',
+	'piano_E': 'swipe_sw',
+	'piano_F': 'swipe_down',
+	'piano_G': 'swipe_se',
+	'piano_A': 'swipe_right',
+	'piano_B': 'swipe_ne',
+	'piano_1': 'swipe_left_2f',
+	'piano_2': 'swipe_nw_2f',
+	'piano_3': 'swipe_up_2f',
+	'piano_4': 'swipe_ne_2f',
+	'piano_5': 'swipe_right_2f'
+};
+const BACKUP_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%()*+,-./:;=?@[]^_`{}';
+const AMBIENT_LIGHT_NIGHT_LUX = 5;
+const AMBIENT_LIGHT_SUNLIGHT_LUX = 4000;
+const _MODAL_IDS = ['settings-modal', 'help-modal', 'share-modal', 'comment-modal', 'redeem-modal', 'donate-modal', 'theme-editor-modal', 'game-setup-modal'];
+const firebaseConfig = {
+	apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4",
+	authDomain: "follow-me-app-de3e9.firebaseapp.com",
+	projectId: "follow-me-app-de3e9",
+	storageBucket: "follow-me-app-de3e9.firebasestorage.app",
+	messagingSenderId: "957006680126",
+	appId: "1:957006680126:web:6d679717d9277fd9ae816f"
+};
+const arRecordBtn = document.getElementById('ar-record-btn');
+const arPlaybackContainer = document.getElementById('ar-playback-container');
+const arPlaybackVideo = document.getElementById('ar-playback-video');
+const arBackgroundVideo = document.getElementById('ar-background-video');
+
+// ============================================================
+// RUNTIME STATE
+// ============================================================
+let db = null;
+let screenWakeLock = null;
+let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
+let appState = {};
+let modules = {
+	settings: null,
+	vision: null,
+	touchGestureEngine: null
+};
+let timers = {
+	speedDelete: null,
+	initialDelay: null,
+	longPress: null,
+	settingsLongPress: null,
+	stealth: null,
+	stealthAction: null,
+	playback: null,
+	tap: null
+};
+let touchGestureState = {
+	startDist: 0,
+	startScale: 1,
+	isPinching: false
+};
+let blackoutState = {
+	isActive: false,
+	lastShake: 0
+};
+let isDemoPlaying = false;
+let isPlaybackPaused = false;
+let playbackResumeCallback = null;
+let practiceSequence = [];
+let practiceInputIndex = 0;
+let lastMachineInputTime = {};
+let ignoreNextClick = false;
+let voiceModule = null;
+let isTouchGesturePadVisible = false;
+let simpleTimer = {
+	interval: null,
+	startTime: 0,
+	elapsed: 0,
+	isRunning: false
+};
+let simpleCounter = 0;
+let globalTimerActions = {
+	start: null,
+	stop: null,
+	reset: null
+};
+let globalCounterActions = {
+	increment: null,
+	reset: null
+};
+const getProfileSettings = () => appSettings.runtimeSettings;
+const getState = () => appState['current_session'] || (appState['current_session'] = {
+		sequences: Array.from({
+				length: CONFIG.MAX_MACHINES
+			}, () => []),
+		nextSequenceIndex: 0,
+		currentRound: 1
+});
+let _savedScrollY = 0;
+let _scrollLocked = false;
+let ambientLightSensor = null;
+let proximitySensor = null;
+let isPortraitLocked = false;
+let pipCanvas = null, pipVideo = null, pipStream = null, pipTimer = null;
+let pinnedPopHandler = null;
+let pinnedFullscreenRearm = null;
+
+// ============================================================
+// CLASSES
+// ============================================================
 class TouchGestureEngine {
 	constructor(targetElement, config, callbacks) {
 		this.target = targetElement || document.body;
@@ -647,55 +1485,6 @@ class TouchGestureEngine {
 		return 'Diagonal SE';
 	}
 }
-const TRANSITION_GESTURES = {
-	'0->62':   { id: 400, label: '🗑️ Throw (Fist → Open)' },
-	'62->0':   { id: 401, label: '✊ Grab (Open → Fist)' },
-	'100->62': { id: 402, label: '👐 Release (Pinch → Open)' },
-	'62->100': { id: 403, label: '🤏 Snatch (Open → Pinch)' },
-	'0->16':   { id: 404, label: '☝️ Point Out (Fist → 1 Finger)' },
-};
-const GESTURE_DICTIONARY = {
-	0: 'FIST_KNUCKLES_FWD',           1: 'FIST_PALM_FWD',
-	2: 'PINKY_KNUCKLES_FWD',          3: 'PINKY_PALM_FWD',
-	4: 'RING_KNUCKLES_FWD',           5: 'RING_PALM_FWD',
-	6: 'RING_PINKY_KNUCKLES_FWD',     7: 'RING_PINKY_PALM_FWD',
-	8: 'MIDDLE_KNUCKLES_FWD',         9: 'MIDDLE_PALM_FWD',
-	10: 'MIDDLE_PINKY_KNUCKLES_FWD',  11: 'MIDDLE_PINKY_PALM_FWD',
-	12: 'CHOPSTICKS_KNUCKLES_FWD',    13: 'CHOPSTICKS_PALM_FWD',
-	14: 'THREE_FINGERS_NO_INDEX_K',   15: 'THREE_FINGERS_NO_INDEX_P',
-	16: 'INDEX_KNUCKLES_FWD',         17: 'INDEX_PALM_FWD',
-	18: 'ROCK_ON_KNUCKLES_FWD',       19: 'ROCK_ON_PALM_FWD',
-	20: 'INDEX_RING_KNUCKLES_FWD',    21: 'INDEX_RING_PALM_FWD',
-	22: 'INDEX_RING_PINKY_K',         23: 'INDEX_RING_PINKY_P',
-	24: 'PEACE_KNUCKLES_FWD',         25: 'PEACE_PALM_FWD',
-	26: 'PEACE_PINKY_KNUCKLES_FWD',   27: 'PEACE_PINKY_PALM_FWD',
-	28: 'THREE_FINGERS_KNUCKLES_FWD', 29: 'THREE_FINGERS_PALM_FWD',
-	30: 'FOUR_FINGERS_KNUCKLES_FWD',  31: 'FOUR_FINGERS_PALM_FWD',
-	32: 'THUMB_KNUCKLES_FWD',         33: 'THUMB_PALM_FWD',
-	34: 'SHAKA_KNUCKLES_FWD',         35: 'SHAKA_PALM_FWD',
-	36: 'THUMB_RING_KNUCKLES_FWD',    37: 'THUMB_RING_PALM_FWD',
-	38: 'THUMB_RING_PINKY_K',         39: 'THUMB_RING_PINKY_P',
-	40: 'THUMB_MIDDLE_KNUCKLES_FWD',  41: 'THUMB_MIDDLE_PALM_FWD',
-	42: 'THUMB_MIDDLE_PINKY_K',       43: 'THUMB_MIDDLE_PINKY_P',
-	44: 'THUMB_MIDDLE_RING_K',        45: 'THUMB_MIDDLE_RING_P',
-	46: 'FOUR_FINGERS_NO_INDEX_K',    47: 'FOUR_FINGERS_NO_INDEX_P',
-	48: 'GUN_KNUCKLES_FWD',           49: 'GUN_PALM_FWD',
-	50: 'SPIDERMAN_KNUCKLES_FWD',     51: 'SPIDERMAN_PALM_FWD',
-	52: 'THUMB_INDEX_RING_K',         53: 'THUMB_INDEX_RING_P',
-	54: 'FOUR_FINGERS_NO_MIDDLE_K',   55: 'FOUR_FINGERS_NO_MIDDLE_P',
-	56: 'SCOUT_KNUCKLES_FWD',         57: 'SCOUT_PALM_FWD',
-	58: 'FOUR_FINGERS_NO_RING_K',     59: 'FOUR_FINGERS_NO_RING_P',
-	60: 'FIVE_FINGERS_NO_PINKY_K',    61: 'FIVE_FINGERS_NO_PINKY_P',
-	62: 'FIVE_FINGERS_KNUCKLES_FWD',  63: 'FIVE_FINGERS_PALM_FWD',
-	100: 'PINCH_INDEX',
-	101: 'PINCH_MIDDLE',
-	102: 'PINCH_RING',
-	103: 'PINCH_PINKY',
-	104: 'CHEF_KISS_ALL_PINCHED',
-	105: 'OK_SIGN',
-	600: 'THUMBS_UP',
-	601: 'THUMBS_DOWN'
-};
 class HandGestureBuffer {
 	constructor(bufferSize = 4) {
 		this.buffer = [];
@@ -812,56 +1601,6 @@ class HandMotionTracker {
 		return null;
 	}
 }
-function processHandData(landmarks) {
-	const wrist = landmarks[0];
-	const n = landmarks.map(p => ({
-				x: p.x - wrist.x,
-				y: p.y - wrist.y,
-				z: p.z - wrist.z
-	}));
-	const dist3D = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z);
-	const nWrist = n[0];
-	const T = dist3D(nWrist, n[4]) > (dist3D(nWrist, n[2]) * 1.15) ? 1 : 0;
-	const I = dist3D(nWrist, n[8]) > (dist3D(nWrist, n[6]) * 1.25) ? 1 : 0;
-	const M = dist3D(nWrist, n[12]) > (dist3D(nWrist, n[10]) * 1.25) ? 1 : 0;
-	const R = dist3D(nWrist, n[16]) > (dist3D(nWrist, n[14]) * 1.25) ? 1 : 0;
-	const P = dist3D(nWrist, n[20]) > (dist3D(nWrist, n[18]) * 1.25) ? 1 : 0;
-	const baseMask = (T << 4) | (I << 3) | (M << 2) | (R << 1) | P;
-	const vec1x = n[17].x - n[5].x;
-	const vec1y = n[17].y - n[5].y;
-	const vec2x = n[9].x - nWrist.x;
-	const vec2y = n[9].y - nWrist.y;
-	const crossProduct = (vec1x * vec2y) - (vec1y * vec2x);
-	const palmFacing = crossProduct > 0 ? 1 : 0;
-	let handGestureID = (baseMask << 1) | palmFacing;
-	const pinchThreshold = ((window.appSettings && window.appSettings.handPinchThreshold) || 5.5) / 100;
-	const dThumbIndex = dist3D(n[4], n[8]);
-	const dThumbMiddle = dist3D(n[4], n[12]);
-	const dThumbRing = dist3D(n[4], n[16]);
-	const dThumbPinky = dist3D(n[4], n[20]);
-	const cx = (n[4].x + n[8].x + n[12].x + n[16].x + n[20].x) / 5;
-	const cy = (n[4].y + n[8].y + n[12].y + n[16].y + n[20].y) / 5;
-	const cz = (n[4].z + n[8].z + n[12].z + n[16].z + n[20].z) / 5;
-	const centerTip = {x: cx, y: cy, z: cz};
-	const isChefKiss = dist3D(n[4], centerTip) < 0.08 &&
-	dist3D(n[8], centerTip) < 0.08 &&
-	dist3D(n[12], centerTip) < 0.08;
-	if (isChefKiss) {
-		handGestureID = 104;
-	} else if (dThumbIndex < pinchThreshold) {
-		handGestureID = (M || R || P) ? 105 : 100;
-	} else if (dThumbMiddle < pinchThreshold) {
-		handGestureID = 101;
-	} else if (dThumbRing < pinchThreshold) {
-		handGestureID = 102;
-	} else if (dThumbPinky < pinchThreshold) {
-		handGestureID = 103;
-	} else if (T === 1 && I === 0 && M === 0 && R === 0 && P === 0) {
-		handGestureID = (n[4].y < n[2].y) ? 600 : 601;
-	}
-	return handGestureID;
-}
-window.processHandData = processHandData;
 class VisionEngine {
 	constructor(onTrigger, onStatus) {
 		this.onTrigger = onTrigger;
@@ -1106,273 +1845,6 @@ class VisionEngine {
 		}
 	}
 }
-const PREMADE_THEMES = {
-	'default': { name: "Default Dark", bgMain: "#000000", bgCard: "#121212", bubble: "#4f46e5", btn: "#1a1a1a", text: "#e5e5e5" },
-	'light': { name: "Light Mode", bgMain: "#f3f4f6", bgCard: "#ffffff", bubble: "#4f46e5", btn: "#e5e7eb", text: "#111827" },
-	'sunlight': { name: "Sunlight ☀️", bgMain: "#e8e8e2", bgCard: "#ffffff", bubble: "#d97706", btn: "#d6d3c7", text: "#000000" },
-	'matrix': { name: "The Matrix", bgMain: "#000000", bgCard: "#0f2b0f", bubble: "#003300", btn: "#001100", text: "#00ff41" },
-	'dracula': { name: "Vampire", bgMain: "#282a36", bgCard: "#44475a", bubble: "#ff5555", btn: "#6272a4", text: "#f8f8f2" },
-	'neon': { name: "Neon City", bgMain: "#0b0014", bgCard: "#180029", bubble: "#d900ff", btn: "#24003d", text: "#00eaff" },
-	'retro': { name: "Retro PC", bgMain: "#fdf6e3", bgCard: "#eee8d5", bubble: "#cb4b16", btn: "#93a1a1", text: "#586e75" },
-	'steampunk': { name: "Steampunk", bgMain: "#100c08", bgCard: "#2b1d16", bubble: "#b87333", btn: "#422a18", text: "#d5c5a3" },
-	'ocean': { name: "Ocean Blue", bgMain: "#0f172a", bgCard: "#1e293b", bubble: "#0ea5e9", btn: "#334155", text: "#e2e8f0" },
-	'cyber': { name: "Cyberpunk", bgMain: "#050505", bgCard: "#1a1625", bubble: "#d946ef", btn: "#2d1b4e", text: "#f0abfc" },
-	'volcano': { name: "Volcano", bgMain: "#1a0505", bgCard: "#450a0a", bubble: "#b91c1c", btn: "#7f1d1d", text: "#fecaca" },
-	'forest': { name: "Deep Forest", bgMain: "#021408", bgCard: "#064e3b", bubble: "#166534", btn: "#14532d", text: "#dcfce7" },
-	'sunset': { name: "Sunset", bgMain: "#1a021c", bgCard: "#701a75", bubble: "#fb923c", btn: "#86198f", text: "#fff7ed" },
-	'halloween': { name: "Halloween 🎃", bgMain: "#1a0500", bgCard: "#2e0a02", bubble: "#ff6600", btn: "#4a1005", text: "#ffbf00" },
-	'liberty': { name: "Liberty 🗽", bgMain: "#0d1b1e", bgCard: "#1c3f44", bubble: "#2e8b57", btn: "#143136", text: "#d4af37" },
-	'shamrock': { name: "Shamrock ☘️", bgMain: "#021a02", bgCard: "#053305", bubble: "#00c92c", btn: "#0a450a", text: "#e0ffe0" },
-	'midnight': { name: "Midnight 🌑", bgMain: "#000000", bgCard: "#111111", bubble: "#3b82f6", btn: "#1f1f1f", text: "#ffffff" },
-	'candy': { name: "Candy 🍬", bgMain: "#260516", bgCard: "#4a0a2f", bubble: "#ff69b4", btn: "#701046", text: "#ffe4e1" },
-	'bumblebee': { name: "Bumblebee 🐝", bgMain: "#1a1600", bgCard: "#332b00", bubble: "#fbbf24", btn: "#4d4100", text: "#ffffff" },
-	'blueprint': { name: "Blueprint 📐", bgMain: "#0f2e52", bgCard: "#1b4d8a", bubble: "#ffffff", btn: "#2563eb", text: "#ffffff" },
-	'rose': { name: "Rose Gold 🌹", bgMain: "#1f1212", bgCard: "#3d2323", bubble: "#e1adac", btn: "#5c3333", text: "#ffe4e1" },
-	'hacker': { name: "Terminal 💻", bgMain: "#0c0c0c", bgCard: "#1a1a1a", bubble: "#00ff00", btn: "#0f380f", text: "#00ff00" },
-	'royal': { name: "Royal 👑", bgMain: "#120024", bgCard: "#2e0059", bubble: "#9333ea", btn: "#4c1d95", text: "#ffd700" }
-};
-const PREMADE_VOICE_PRESETS = {
-	'standard': { name: "Standard", pitch: 1.0, rate: 1.0, volume: 1.0 },
-	'speed': { name: "Speed Reader", pitch: 1.0, rate: 1.8, volume: 1.0 },
-	'slow': { name: "Slow Motion", pitch: 0.9, rate: 0.6, volume: 1.0 },
-	'deep': { name: "Deep Voice", pitch: 0.6, rate: 0.9, volume: 1.0 },
-	'high': { name: "Chipmunk", pitch: 1.8, rate: 1.1, volume: 1.0 },
-	'robot': { name: "Robot", pitch: 0.5, rate: 0.8, volume: 1.0 },
-	'announcer': { name: "Announcer", pitch: 0.8, rate: 1.1, volume: 1.0 },
-	'whisper': { name: "Quiet", pitch: 1.2, rate: 0.8, volume: 0.4 }
-};
-const HAND_MAPPING_PRESETS = {
-	'9_hand_counts': {
-		name: "Finger Counts",
-		type: 'key9',
-		map: {
-			'k9_1': '16', 'k9_2': '24', 'k9_3': '28', 'k9_4': '30', 'k9_5': '62',
-			'k9_6': '34', 'k9_7': '48', 'k9_8': '50', 'k9_9': '100'
-		}
-	},
-	'9_hand_shapes': {
-		name: "Shapes & Combos",
-		type: 'key9',
-		map: {
-			'k9_1': '12', 'k9_2': '18', 'k9_3': '20', 'k9_4': '32', 'k9_5': '36',
-			'k9_6': '56', 'k9_7': '105', 'k9_8': '104', 'k9_9': '600'
-		}
-	},
-	'12_hand_counts': {
-		name: "Finger Counts Extended",
-		type: 'key12',
-		map: {
-			'k12_1': '16', 'k12_2': '24', 'k12_3': '28', 'k12_4': '30', 'k12_5': '62',
-			'k12_6': '34', 'k12_7': '48', 'k12_8': '50', 'k12_9': '100',
-			'k12_10': '12', 'k12_11': '20', 'k12_12': '36'
-		}
-	},
-	'12_hand_shapes': {
-		name: "Shapes & Combos",
-		type: 'key12',
-		map: {
-			'k12_1': '0', 'k12_2': '18', 'k12_3': '32', 'k12_4': '40', 'k12_5': '56',
-			'k12_6': '60', 'k12_7': '101', 'k12_8': '102', 'k12_9': '103',
-			'k12_10': '104', 'k12_11': '105', 'k12_12': '601'
-		}
-	},
-	'piano_hand_default': {
-		name: "Finger Counts",
-		type: 'piano',
-		map: {
-			'piano_C': '16', 'piano_D': '24', 'piano_E': '28', 'piano_F': '30', 'piano_G': '62',
-			'piano_A': '34', 'piano_B': '48',
-			'piano_1': '50', 'piano_2': '100', 'piano_3': '12', 'piano_4': '20', 'piano_5': '36'
-		}
-	},
-	'piano_hand_shapes': {
-		name: "Shapes & Combos",
-		type: 'piano',
-		map: {
-			'piano_C': '0', 'piano_D': '18', 'piano_E': '32', 'piano_F': '40', 'piano_G': '56',
-			'piano_A': '60', 'piano_B': '101',
-			'piano_1': '102', 'piano_2': '103', 'piano_3': '104', 'piano_4': '105', 'piano_5': '601'
-		}
-	}
-};
-const GESTURE_CATEGORIES = {
-	'Anchors': [
-		'anchor_tap_2f', 'anchor_swipe_up_2f', 'anchor_swipe_down_2f', 'anchor_swipe_left_2f', 'anchor_swipe_right_2f',
-		'anchor_swipe_nw_2f', 'anchor_swipe_ne_2f', 'anchor_swipe_sw_2f', 'anchor_swipe_se_2f'
-	],
-	'Chords': [
-		'chord_down_left_2f', 'chord_down_ne_2f', 'chord_down_nw_2f', 'chord_down_right_2f', 'chord_down_se_2f', 'chord_down_sw_2f', 'chord_down_tap_2f',
-		'chord_left_ne_2f', 'chord_left_nw_2f', 'chord_left_se_2f', 'chord_left_sw_2f', 'chord_left_tap_2f', 'chord_left_up_2f',
-		'chord_ne_nw_2f', 'chord_ne_right_2f', 'chord_ne_se_2f', 'chord_ne_tap_2f', 'chord_ne_up_2f',
-		'chord_nw_right_2f', 'chord_nw_sw_2f', 'chord_nw_tap_2f', 'chord_nw_up_2f',
-		'chord_right_se_2f', 'chord_right_sw_2f', 'chord_right_tap_2f', 'chord_right_up_2f',
-		'chord_se_sw_2f', 'chord_se_tap_2f', 'chord_se_up_2f',
-		'chord_sw_tap_2f', 'chord_sw_up_2f',
-		'chord_tap_up_2f'
-	],
-	'Taps': [
-		'tap', 'double_tap', 'triple_tap', 'long_tap'
-	],
-	'Spatial Taps': [
-		'Double_tap_spatial_any', 'Double_tap_spatial_up', 'Double_tap_spatial_down',
-		'Double_tap_spatial_left', 'Double_tap_spatial_right', 'Double_tap_spatial_nw',
-		'Double_tap_spatial_ne', 'Double_tap_spatial_sw', 'Double_tap_spatial_se',
-		'triple_tap_spatial_line_any', 'triple_tap_spatial_line_up', 'triple_tap_spatial_line_down',
-		'triple_tap_spatial_line_left', 'triple_tap_spatial_line_right', 'triple_tap_spatial_corner_ne',
-		'triple_tap_spatial_corner_nw', 'triple_tap_spatial_corner_se', 'triple_tap_spatial_corner_sw',
-		'triple_tap_spatial_corner_en', 'triple_tap_spatial_corner_wn', 'triple_tap_spatial_corner_es',
-		'triple_tap_spatial_corner_ws', 'triple_tap_spatial_boomerang_any', 'triple_tap_spatial_boomerang_up',
-		'triple_tap_spatial_boomerang_down', 'triple_tap_spatial_boomerang_left', 'triple_tap_spatial_boomerang_right'
-	],
-	'Multi-Finger Taps': [
-		'tap_2f_any', 'tap_2f_vertical', 'tap_2f_horizontal', 'tap_2f_diagonal_se', 'tap_2f_diagonal_sw',
-		'double_tap_2f_any', 'double_tap_2f_vertical', 'double_tap_2f_horizontal', 'double_tap_2f_diagonal_se', 'double_tap_2f_diagonal_sw',
-		'triple_tap_2f_any', 'triple_tap_2f_vertical', 'triple_tap_2f_horizontal', 'triple_tap_2f_diagonal_se', 'triple_tap_2f_diagonal_sw',
-		'long_tap_2f_any', 'long_tap_2f_vertical', 'long_tap_2f_horizontal', 'long_tap_2f_diagonal_se', 'long_tap_2f_diagonal_sw',
-		'tap_3f_any', 'tap_3f_vertical', 'tap_3f_horizontal', 'tap_3f_diagonal_se', 'tap_3f_diagonal_sw',
-		'double_tap_3f_any', 'double_tap_3f_vertical', 'double_tap_3f_horizontal', 'double_tap_3f_diagonal_se', 'double_tap_3f_diagonal_sw',
-		'triple_tap_3f_any', 'triple_tap_3f_vertical', 'triple_tap_3f_horizontal', 'triple_tap_3f_diagonal_se', 'triple_tap_3f_diagonal_sw',
-		'long_tap_3f_any', 'long_tap_3f_vertical', 'long_tap_3f_horizontal', 'long_tap_3f_diagonal_se', 'long_tap_3f_diagonal_sw'
-	],
-	'Swipes': [
-		'swipe_any', 'swipe_up', 'swipe_down', 'swipe_left', 'swipe_right', 'swipe_nw', 'swipe_ne', 'swipe_sw', 'swipe_se'
-	],
-	'Long Swipes': [
-		'swipe_long_any', 'swipe_long_up', 'swipe_long_down', 'swipe_long_left', 'swipe_long_right', 'swipe_long_nw', 'swipe_long_ne', 'swipe_long_sw', 'swipe_long_se'
-	],
-	'Multi-Finger Swipes': [
-		'swipe_any_2f', 'swipe_up_2f', 'swipe_down_2f', 'swipe_left_2f', 'swipe_right_2f', 'swipe_nw_2f', 'swipe_ne_2f', 'swipe_sw_2f', 'swipe_se_2f',
-		'swipe_any_3f', 'swipe_up_3f', 'swipe_down_3f', 'swipe_left_3f', 'swipe_right_3f', 'swipe_nw_3f', 'swipe_ne_3f', 'swipe_sw_3f', 'swipe_se_3f',
-		'pinch_swipe_any_2f', 'pinch_swipe_up_2f', 'pinch_swipe_down_2f', 'pinch_swipe_left_2f', 'pinch_swipe_right_2f',
-		'expand_swipe_any_2f', 'expand_swipe_up_2f', 'expand_swipe_down_2f', 'expand_swipe_left_2f', 'expand_swipe_right_2f'
-	],
-	'Boomerangs': [
-		'boomerang_any', 'boomerang_up', 'boomerang_down', 'boomerang_left', 'boomerang_right', 'boomerang_nw', 'boomerang_ne', 'boomerang_sw', 'boomerang_se',
-		'boomerang_any_2f', 'boomerang_up_2f', 'boomerang_down_2f', 'boomerang_left_2f', 'boomerang_right_2f',
-		'boomerang_any_3f', 'boomerang_up_3f', 'boomerang_down_3f', 'boomerang_left_3f', 'boomerang_right_3f',
-		'long_boomerang_any', 'long_boomerang_up', 'long_boomerang_down', 'long_boomerang_left', 'long_boomerang_right',
-		'long_boomerang_any_2f', 'long_boomerang_up_2f', 'long_boomerang_down_2f', 'long_boomerang_left_2f', 'long_boomerang_right_2f'
-	],
-	'Switchbacks': [
-		'switchback_any', 'switchback_any_cw', 'switchback_any_ccw',
-		'switchback_up_cw', 'switchback_down_cw', 'switchback_left_cw', 'switchback_right_cw', 'switchback_nw_cw', 'switchback_ne_cw', 'switchback_sw_cw', 'switchback_se_cw',
-		'switchback_up_ccw', 'switchback_down_ccw', 'switchback_left_ccw', 'switchback_right_ccw', 'switchback_nw_ccw', 'switchback_ne_ccw', 'switchback_sw_ccw', 'switchback_se_ccw'
-	],
-	'Zigzags': [
-		'zigzag_any', 'zigzag_up', 'zigzag_down', 'zigzag_left', 'zigzag_right', 'zigzag_nw', 'zigzag_ne', 'zigzag_sw', 'zigzag_se',
-		'long_zigzag_any', 'long_zigzag_up', 'long_zigzag_down', 'long_zigzag_left', 'long_zigzag_right', 'long_zigzag_nw', 'long_zigzag_ne', 'long_zigzag_sw', 'long_zigzag_se'
-	],
-	'Corners & Shapes': [
-		'corner_any', 'corner_cw', 'corner_ccw', 'corner_up_cw', 'corner_right_cw', 'corner_down_cw', 'corner_left_cw', 'corner_up_ccw', 'corner_left_ccw', 'corner_down_ccw', 'corner_right_ccw',
-		'triangle_any', 'triangle_cw', 'triangle_ccw', 'triangle_up_cw', 'triangle_right_cw', 'triangle_down_cw', 'triangle_left_cw', 'triangle_up_ccw', 'triangle_left_ccw', 'triangle_down_ccw', 'triangle_right_ccw',
-		'u_shape_any', 'u_shape_cw', 'u_shape_ccw', 'u_shape_up_cw', 'u_shape_right_cw', 'u_shape_down_cw', 'u_shape_left_cw', 'u_shape_up_ccw', 'u_shape_left_ccw', 'u_shape_down_ccw', 'u_shape_right_ccw',
-		'square_any', 'square_cw', 'square_ccw', 'square_up_cw', 'square_right_cw', 'square_down_cw', 'square_left_cw', 'square_up_ccw', 'square_left_ccw', 'square_down_ccw', 'square_right_ccw'
-	],
-	'Motion Gestures': [
-		'motion_tap_swipe_any', 'motion_tap_swipe_up', 'motion_tap_swipe_down', 'motion_tap_swipe_left', 'motion_tap_swipe_right', 'motion_tap_swipe_nw', 'motion_tap_swipe_ne', 'motion_tap_swipe_sw', 'motion_tap_swipe_se',
-		'motion_tap_swipe_long_any', 'motion_tap_swipe_long_up', 'motion_tap_swipe_long_down', 'motion_tap_swipe_long_left', 'motion_tap_swipe_long_right', 'motion_tap_swipe_long_nw', 'motion_tap_swipe_long_ne', 'motion_tap_swipe_long_sw', 'motion_tap_swipe_long_se',
-		'motion_tap_boomerang_any', 'motion_tap_boomerang_up', 'motion_tap_boomerang_down', 'motion_tap_boomerang_left', 'motion_tap_boomerang_right', 'motion_tap_boomerang_nw', 'motion_tap_boomerang_ne', 'motion_tap_boomerang_sw', 'motion_tap_boomerang_se',
-		'motion_tap_corner_any', 'motion_tap_corner_cw', 'motion_tap_corner_ccw', 'motion_tap_corner_up_cw', 'motion_tap_corner_right_cw', 'motion_tap_corner_left_cw', 'motion_tap_corner_down_cw', 'motion_tap_corner_up_ccw', 'motion_tap_corner_right_ccw', 'motion_tap_corner_left_ccw', 'motion_tap_corner_down_ccw'
-	],
-	'Flicks': [
-		'Flick_any', 'Flick_up', 'Flick_down', 'Flick_left', 'Flick_right', 'Flick_nw', 'Flick_ne', 'Flick_sw', 'Flick_se'
-	],
-	'Pausing Curves': [
-		'Pausing_swipe_any', 'Pausing_swipe_up', 'Pausing_swipe_down', 'Pausing_swipe_left', 'Pausing_swipe_right', 'Pausing_swipe_nw', 'Pausing_swipe_ne', 'Pausing_swipe_sw', 'Pausing_swipe_se',
-		'Pausing_boomerang_any', 'Pausing_boomerang_up', 'Pausing_boomerang_down', 'Pausing_boomerang_left', 'Pausing_boomerang_right', 'Pausing_boomerang_nw', 'Pausing_boomerang_ne', 'Pausing_boomerang_sw', 'Pausing_boomerang_se',
-		'Pausing_Switchback_any', 'Pausing_Switchback_cw', 'Pausing_Switchback_ccw', 'Pausing_Switchback_up_cw', 'Pausing_Switchback_down_cw', 'Pausing_Switchback_left_cw', 'Pausing_Switchback_right_cw', 'Pausing_Switchback_nw_cw', 'Pausing_Switchback_ne_cw', 'Pausing_Switchback_sw_cw', 'Pausing_Switchback_se_cw', 'Pausing_Switchback_up_ccw', 'Pausing_Switchback_down_ccw', 'Pausing_Switchback_left_ccw', 'Pausing_Switchback_right_ccw', 'Pausing_Switchback_nw_ccw', 'Pausing_Switchback_ne_ccw', 'Pausing_Switchback_sw_ccw', 'Pausing_Switchback_se_ccw',
-		'Pausing_corner_any', 'Pausing_corner_cw', 'Pausing_corner_ccw', 'Pausing_corner_up_cw', 'Pausing_corner_right_cw', 'Pausing_corner_down_cw', 'Pausing_corner_left_cw', 'Pausing_corner_up_ccw', 'Pausing_corner_left_ccw', 'Pausing_corner_down_ccw', 'Pausing_corner_right_ccw'
-	]
-};
-const GESTURE_PRESETS = {
-	'9_taps': {
-		name: "Basic Taps",
-		type: 'key9',
-		map: {
-			'k9_1': 'tap', 'k9_2': 'double_tap', 'k9_3': 'triple_tap',
-			'k9_4': 'tap_2f_any', 'k9_5': 'double_tap_2f_any', 'k9_6': 'triple_tap_2f_any',
-			'k9_7': 'tap_3f_any', 'k9_8': 'double_tap_3f_any', 'k9_9': 'triple_tap_3f_any'
-		}
-	},
-	'9_spatial': {
-		name: "Spatial Taps (3x3 Grid)",
-		type: 'key9',
-		map: {
-			'k9_1': 'Double_tap_spatial_nw', 'k9_2': 'Double_tap_spatial_up', 'k9_3': 'Double_tap_spatial_ne',
-			'k9_4': 'Double_tap_spatial_left', 'k9_5': 'double_tap', 'k9_6': 'Double_tap_spatial_right',
-			'k9_7': 'Double_tap_spatial_sw', 'k9_8': 'Double_tap_spatial_down', 'k9_9': 'Double_tap_spatial_se'
-		}
-	},
-	'9_swipes': {
-		name: "Swipes",
-		type: 'key9',
-		map: {
-			'k9_1': 'swipe_nw', 'k9_2': 'swipe_up', 'k9_3': 'swipe_ne',
-			'k9_4': 'swipe_left', 'k9_5': 'double_tap', 'k9_6': 'swipe_right',
-			'k9_7': 'swipe_sw', 'k9_8': 'swipe_down', 'k9_9': 'swipe_se'
-		}
-	},
-	'12_taps': {
-		name: "Basic Taps",
-		type: 'key12',
-		map: {
-			'k12_1': 'tap', 'k12_2': 'double_tap', 'k12_3': 'triple_tap', 'k12_4': 'long_tap',
-			'k12_5': 'tap_2f_any', 'k12_6': 'double_tap_2f_any', 'k12_7': 'triple_tap_2f_any', 'k12_8': 'long_tap_2f_any',
-			'k12_9': 'tap_3f_any', 'k12_10': 'double_tap_3f_any', 'k12_11': 'triple_tap_3f_any', 'k12_12': 'long_tap_3f_any'
-		}
-	},
-	'12_swipes': {
-		name: "Directional Swipes",
-		type: 'key12',
-		map: {
-			'k12_1': 'swipe_up', 'k12_2': 'swipe_down', 'k12_3': 'swipe_left', 'k12_4': 'swipe_right',
-			'k12_5': 'swipe_up_2f', 'k12_6': 'swipe_down_2f', 'k12_7': 'swipe_left_2f', 'k12_8': 'swipe_right_2f',
-			'k12_9': 'swipe_up_3f', 'k12_10': 'swipe_down_3f', 'k12_11': 'swipe_left_3f', 'k12_12': 'swipe_right_3f'
-		}
-	},
-	'12_flicks': {
-		name: "Flicks",
-		type: 'key12',
-		map: {
-			'k12_1': 'Flick_up', 'k12_2': 'Flick_down', 'k12_3': 'Flick_left', 'k12_4': 'Flick_right',
-			'k12_5': 'Flick_nw', 'k12_6': 'Flick_ne', 'k12_7': 'Flick_sw', 'k12_8': 'Flick_se',
-			'k12_9': 'tap_2f_any', 'k12_10': 'double_tap_2f_any', 'k12_11': 'tap_3f_any', 'k12_12': 'double_tap_3f_any'
-		}
-	},
-	'piano_taps': {
-		name: "Basic Swipes",
-		type: 'piano',
-		map: {
-			'piano_C': 'swipe_nw', 'piano_D': 'swipe_left', 'piano_E': 'swipe_sw', 'piano_F': 'swipe_down',
-			'piano_G': 'swipe_se', 'piano_A': 'swipe_right', 'piano_B': 'swipe_ne',
-			'piano_1': 'swipe_left_2f', 'piano_2': 'swipe_nw_2f', 'piano_3': 'swipe_up_2f',
-			'piano_4': 'swipe_ne_2f', 'piano_5': 'swipe_right_2f'
-		}
-	},
-	'piano_spatial': {
-		name: "Spatial Corners",
-		type: 'piano',
-		map: {
-			'piano_C': 'triple_tap_spatial_corner_nw', 'piano_D': 'triple_tap_spatial_line_left',
-			'piano_E': 'triple_tap_spatial_corner_sw', 'piano_F': 'triple_tap_spatial_line_down',
-			'piano_G': 'triple_tap_spatial_corner_se', 'piano_A': 'triple_tap_spatial_line_right',
-			'piano_B': 'triple_tap_spatial_corner_ne',
-			'piano_1': 'Double_tap_spatial_left', 'piano_2': 'Double_tap_spatial_nw',
-			'piano_3': 'Double_tap_spatial_up', 'piano_4': 'Double_tap_spatial_ne', 'piano_5': 'Double_tap_spatial_right'
-		}
-	},
-	'piano_multi': {
-		name: "Multi-Finger",
-		type: 'piano',
-		map: {
-			'piano_C': 'tap_2f_any', 'piano_D': 'double_tap_2f_any', 'piano_E': 'triple_tap_2f_any', 'piano_F': 'long_tap_2f_any',
-			'piano_G': 'tap_3f_any', 'piano_A': 'double_tap_3f_any', 'piano_B': 'triple_tap_3f_any',
-			'piano_1': 'swipe_up_2f', 'piano_2': 'swipe_down_2f', 'piano_3': 'swipe_left_2f',
-			'piano_4': 'swipe_right_2f', 'piano_5': 'long_tap_3f_any'
-		}
-	}
-};
-const CRAYONS = ["#000000", "#1F75FE", "#1CA9C9", "#0D98BA", "#FFFFFF", "#C5D0E6", "#B0B7C6", "#AF4035", "#F5F5F5", "#FEFEFA", "#FFFAFA", "#F0F8FF", "#F8F8FF", "#F5F5DC", "#FFFACD", "#FAFAD2", "#FFFFE0", "#FFFFF0", "#FFFF00", "#FFEFD5", "#FFE4B5", "#FFDAB9", "#EEE8AA", "#F0E68C", "#BDB76B", "#E6E6FA", "#D8BFD8", "#DDA0DD", "#EE82EE", "#DA70D6", "#FF00FF", "#BA55D3", "#9370DB", "#8A2BE2", "#9400D3", "#9932CC", "#8B008B", "#800000", "#4B0082", "#483D8B", "#6A5ACD", "#7B68EE", "#ADFF2F", "#7FFF00", "#7CFC00", "#00FF00", "#32CD32", "#98FB98", "#90EE90", "#00FA9A", "#00FF7F", "#3CB371", "#2E8B57", "#228B22", "#008000", "#006400", "#9ACD32", "#6B8E23", "#808000", "#556B2F", "#66CDAA", "#8FBC8F", "#20B2AA", "#008B8B", "#008080", "#00FFFF", "#00CED1", "#40E0D0", "#48D1CC", "#AFEEEE", "#7FFFD4", "#B0E0E6", "#5F9EA0", "#4682B4", "#6495ED", "#00BFFF", "#1E90FF", "#ADD8E6", "#87CEEB", "#87CEFA", "#191970", "#000080", "#0000FF", "#0000CD", "#4169E1", "#8A2BE2", "#4B0082", "#FFE4C4", "#FFEBCD", "#F5DEB3", "#DEB887", "#D2B48C", "#BC8F8F", "#F4A460", "#DAA520", "#B8860B", "#CD853F", "#D2691E", "#8B4513", "#A0522D", "#A52A2A", "#800000", "#FFA07A", "#FA8072", "#E9967A", "#F08080", "#CD5C5C", "#DC143C", "#B22222", "#FF0000", "#FF4500", "#FF6347", "#FF7F50", "#FF8C00", "#FFA500", "#FFD700", "#FFFF00", "#808000", "#556B2F", "#6B8E23", "#999999", "#808080", "#666666", "#333333", "#222222", "#111111", "#0A0A0A", "#000000"];
 class SettingsManager {
 	formatTouchGestureLabel(id) {
 		const compass = { up: 'Up', down: 'Down', left: 'Left', right: 'Right', nw: 'NW', ne: 'NE', sw: 'SW', se: 'SE', cw: 'CW', ccw: 'CCW', any: 'Any' };
@@ -1469,6 +1941,7 @@ class SettingsManager {
 			headertonebtn: document.getElementById('headertonebtn'),
 			headerfullscreenbtn: document.getElementById('headerfullscreenbtn'), headerpinnedbtn: document.getElementById('headerpinnedbtn'), headerdndbtn: document.getElementById('headerdndbtn'), headerpipbtn: document.getElementById('headerpipbtn'),
 			headerupsidedownbtn: document.getElementById('headerupsidedownbtn'),
+			headerautorotatebtn: document.getElementById('headerautorotatebtn'),
 			voicePresetSelect: document.getElementById('voice-preset-select'),
 			voicePresetAdd: document.getElementById('voice-preset-add'),
 			voicePresetSave: document.getElementById('voice-preset-save'),
@@ -1545,10 +2018,12 @@ class SettingsManager {
 			headerPaddingSelect: document.getElementById('header-padding-select'),
 			inputsPaddingSelect: document.getElementById('inputs-padding-select'),
 			upsidedownToggle: document.getElementById('upsidedownToggle'),
+			autoRotateToggle: document.getElementById('autoRotateToggle'),
 			fullscreenToggle: document.getElementById('fullscreenToggle'),
 			ecoToggle: document.getElementById('ecoToggle'),
 			arSpeedSelect: document.getElementById('ar-speed-select'),
-			commentsDeletionPinInput: document.getElementById('comments-deletion-pin')
+			autoBrightToggle: document.getElementById('autoBrightToggle'),
+			autoDarkToggle: document.getElementById('autoDarkToggle')
 		};
 		this.tempTheme = null;
 		this.initListeners();
@@ -1612,6 +2087,13 @@ class SettingsManager {
 		if (this.dom.upsidedownToggle) {
 			this.dom.upsidedownToggle.onchange = (e) => {
 				this.appSettings.showUpsideDownBtn = e.target.checked;
+				this.updateHeaderVisibility();
+				this.callbacks.onSave();
+			};
+		}
+		if (this.dom.autoRotateToggle) {
+			this.dom.autoRotateToggle.onchange = (e) => {
+				this.appSettings.showAutoRotateBtn = e.target.checked;
 				this.updateHeaderVisibility();
 				this.callbacks.onSave();
 			};
@@ -2428,72 +2910,6 @@ class SettingsManager {
 			console.error('Comment modal wiring failed:', e);
 		}
 		try {
-			const pinPromptModal = document.getElementById('pin-prompt-modal');
-			const pinPromptInput = document.getElementById('pin-prompt-input');
-			const pinPromptCancel = document.getElementById('pin-prompt-cancel');
-			const pinPromptConfirm = document.getElementById('pin-prompt-confirm');
-			const commentsListContainer = document.getElementById('comments-list-container');
-			let pendingDeleteCommentId = null;
-			const togglePinPromptModal = (show) => {
-				if (!pinPromptModal) return;
-				if (show) {
-					pinPromptModal.classList.remove('hidden');
-					setTimeout(() => {
-							pinPromptModal.classList.remove('opacity-0', 'pointer-events-none');
-							pinPromptModal.querySelector('div')?.classList.remove('scale-90');
-							if (pinPromptInput) pinPromptInput.focus();
-						}, 10);
-				} else {
-					pinPromptModal.querySelector('div')?.classList.add('scale-90');
-					pinPromptModal.classList.add('opacity-0');
-					setTimeout(() => {
-							pinPromptModal.classList.add('pointer-events-none');
-							pinPromptModal.classList.add('hidden');
-						}, 300);
-					if (pinPromptInput) pinPromptInput.value = '';
-					pendingDeleteCommentId = null;
-				}
-			};
-			if (commentsListContainer) {
-				commentsListContainer.addEventListener('click', (e) => {
-						if (e.target.classList.contains('delete-comment-btn')) {
-							pendingDeleteCommentId = e.target.dataset.commentId;
-							togglePinPromptModal(true);
-						}
-				});
-			}
-			if (pinPromptCancel) {
-				pinPromptCancel.onclick = () => togglePinPromptModal(false);
-			}
-			if (pinPromptConfirm) {
-				pinPromptConfirm.onclick = async () => {
-					if (!pendingDeleteCommentId || !pinPromptInput) return;
-					const enteredPin = pinPromptInput.value;
-					const savedPin = appSettings.commentsDeletionPin || '';
-					if (enteredPin !== savedPin) {
-						alert('Incorrect PIN');
-						return;
-					}
-					try {
-						await deleteDoc(doc(db, 'comments', pendingDeleteCommentId));
-						togglePinPromptModal(false);
-					} catch (err) {
-						console.error('Error deleting comment:', err);
-						alert('Failed to delete comment');
-					}
-				};
-			}
-			if (pinPromptInput) {
-				pinPromptInput.addEventListener('keypress', (e) => {
-						if (e.key === 'Enter') {
-							pinPromptConfirm?.click();
-						}
-				});
-			}
-		} catch (e) {
-			console.error('Comment delete modal wiring failed:', e);
-		}
-		try {
 			const exportBtn = document.getElementById('hex-export-btn');
 			const importBtn = document.getElementById('hex-import-btn');
 			const copyBtn = document.getElementById('hex-copy-btn');
@@ -2630,6 +3046,25 @@ class SettingsManager {
 		bindToggle(this.dom.pipToggle, 'showPipBtn', true);
 		bindToggle(this.dom.randomThemeToggle, 'isRandomThemeEnabled');
 		bindToggle(this.dom.autoHideHeaderToggle, 'isAutoHideHeaderEnabled', true);
+		if (this.dom.autoHideHeaderToggle) {
+			this.dom.autoHideHeaderToggle.addEventListener('change', () => {
+				if (typeof window.updateProximitySensorState === 'function') window.updateProximitySensorState();
+			});
+		}
+		if (this.dom.autoBrightToggle) {
+			this.dom.autoBrightToggle.onchange = (e) => {
+				this.appSettings.isAutoBrightEnabled = e.target.checked;
+				this.callbacks.onSave();
+				if (typeof window.updateAmbientSensorState === 'function') window.updateAmbientSensorState();
+			};
+		}
+		if (this.dom.autoDarkToggle) {
+			this.dom.autoDarkToggle.onchange = (e) => {
+				this.appSettings.isAutoDarkEnabled = e.target.checked;
+				this.callbacks.onSave();
+				if (typeof window.updateAmbientSensorState === 'function') window.updateAmbientSensorState();
+			};
+		}
 		bindToggle(this.dom.headerPlayToggle, 'showHeaderPlayBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerDeleteToggle, 'showHeaderDeleteBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerSettingsToggle, 'showHeaderSettingsBtn', () => this.updateHeaderVisibility());
@@ -2669,15 +3104,6 @@ class SettingsManager {
 		bindToggle(this.dom.speedTouchGesturesToggle, 'isSpeedTouchGesturesEnabled');
 		bindToggle(this.dom.deleteTouchGestureToggle, 'isDeleteTouchGestureEnabled');
 		bindToggle(this.dom.clearTouchGestureToggle, 'isClearTouchGestureEnabled');
-		if (this.dom.wakelockToggle) {
-			this.dom.wakelockToggle.onchange = (e) => {
-				this.appSettings.isWakeLockEnabled = e.target.checked;
-				this.callbacks.onSave();
-				if (typeof window.wakelockToggle === 'function') {
-					window.wakelockToggle(e.target.checked);
-				}
-			};
-		}
 		if (this.dom.targetBtns) {
 			this.dom.targetBtns.forEach(btn => {
 					btn.onclick = () => this.selectThemeTarget(btn.dataset.target);
@@ -3229,6 +3655,8 @@ class SettingsManager {
 		if (this.dom.wakelockToggle) this.dom.wakelockToggle.checked = (typeof this.appSettings.isWakeLockEnabled === 'undefined') ? true : this.appSettings.isWakeLockEnabled;
 		if (this.dom.randomThemeToggle) this.dom.randomThemeToggle.checked = !!this.appSettings.isRandomThemeEnabled;
 		if (this.dom.autoHideHeaderToggle) this.dom.autoHideHeaderToggle.checked = !!this.appSettings.isAutoHideHeaderEnabled;
+		if (this.dom.autoBrightToggle) this.dom.autoBrightToggle.checked = !!this.appSettings.isAutoBrightEnabled;
+		if (this.dom.autoDarkToggle) this.dom.autoDarkToggle.checked = !!this.appSettings.isAutoDarkEnabled;
 		if (this.dom.dndToggle) this.dom.dndToggle.checked = !!this.appSettings.showDndBtn;
 		if (this.dom.pipToggle) this.dom.pipToggle.checked = !!this.appSettings.showPipBtn;
 		if (this.dom.pinnedModeToggle) this.dom.pinnedModeToggle.checked = !!this.appSettings.showPinnedBtn;
@@ -3240,6 +3668,9 @@ class SettingsManager {
 		}
 		if (this.dom.upsidedownToggle) {
 			this.dom.upsidedownToggle.checked = !!this.appSettings.showUpsideDownBtn;
+		}
+		if (this.dom.autoRotateToggle) {
+			this.dom.autoRotateToggle.checked = !!this.appSettings.showAutoRotateBtn;
 		}
 		if (this.dom.headerPlayToggle) this.dom.headerPlayToggle.checked = !!this.appSettings.showHeaderPlayBtn;
 		if (this.dom.headerDeleteToggle) this.dom.headerDeleteToggle.checked = !!this.appSettings.showHeaderDeleteBtn;
@@ -3266,13 +3697,6 @@ class SettingsManager {
 			this.dom.arSpeedSelect.value = String(speedVal);
 		}
 		this.updateHeaderVisibility();
-		if (this.dom.commentsDeletionPinInput) {
-			this.dom.commentsDeletionPinInput.value = this.appSettings.commentsDeletionPin || '';
-			this.dom.commentsDeletionPinInput.onchange = (e) => {
-				this.appSettings.commentsDeletionPin = e.target.value;
-				this.callbacks.onSave();
-			};
-		}
 	}
 	updateHeaderVisibility() {
 		this.applySavedHeaderOrder();
@@ -3306,6 +3730,7 @@ class SettingsManager {
 				this.dom.headerupsidedownbtn.classList.add('hidden');
 			}
 		}
+		if (this.dom.headerautorotatebtn) this.dom.headerautorotatebtn.classList.toggle('hidden', !this.appSettings.showAutoRotateBtn);
 		if (this.dom.headerpinnedbtn) this.dom.headerpinnedbtn.classList.toggle('hidden', !this.appSettings.showPinnedBtn);
 		if (this.dom.headerdndbtn) this.dom.headerdndbtn.classList.toggle('hidden', !this.appSettings.showDndBtn);
 		if (this.dom.headerpipbtn) this.dom.headerpipbtn.classList.toggle('hidden', !this.appSettings.showPipBtn);
@@ -3368,7 +3793,7 @@ class SettingsManager {
 		return [...row.children].filter(el => el.id && !el.dataset.cloneId).map(el => el.id);
 	}
 	_headerBtnLabels() {
-		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerpinnedbtn: '📌 Pinned Mode', headerdndbtn: '🔕 Do Not Disturb', headerpipbtn: '🪟 Picture in Picture', headerupsidedownbtn: '🙃 Upside Down', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headerresetbtn: '♻️ Reset', headernukebtn: '☢️ Nuke', headernotepadbtn: '📝 Notepad' };
+		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerpinnedbtn: '📌 Pinned Mode', headerdndbtn: '🔕 Do Not Disturb', headerpipbtn: '🪟 Picture in Picture', headerupsidedownbtn: '🙃 Upside Down', headerautorotatebtn: '🔃 Auto-Rotate', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headerresetbtn: '♻️ Reset', headernukebtn: '☢️ Nuke', headernotepadbtn: '📝 Notepad' };
 	}
 	_moveHeaderBtn(id, direction) {
 		const row = document.getElementById('header-btn-row');
@@ -3441,7 +3866,7 @@ class SettingsManager {
 		}).filter(Boolean);
 	}
 	_generalToggleLabels() {
-		return { randomThemeToggle: 'Random Theme 🎲', autoHideHeaderToggle: 'Auto Hide Header 👻', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerModeSwitchToggle: 'Mode Switch 🎮', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', headerThemeCycleToggle: 'Theme Cycle 🎨', headerAddMachineToggle: 'Add Machine ➕', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', headerCycleInputToggle: 'Cycle Input 🔀', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', introToggle: 'Show Intro', upsidedownToggle: 'Upside Down 🙃', fullscreenToggle: 'Full Screen 🔲', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', dndToggle: 'Do Not Disturb 🔕', pipToggle: 'Picture in Picture 🪟', pinnedModeToggle: 'Pinned Mode 📌', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', bossToggle: 'Boss Mode 🌑', newToggle: 'Position Swap 🔄', biggerToggle: 'Bigger Buttons', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥' };
+		return { randomThemeToggle: 'Random Theme 🎲', autoHideHeaderToggle: 'Auto Hide Header 👻', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerModeSwitchToggle: 'Mode Switch 🎮', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', headerThemeCycleToggle: 'Theme Cycle 🎨', headerAddMachineToggle: 'Add Machine ➕', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', headerCycleInputToggle: 'Cycle Input 🔀', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', introToggle: 'Show Intro', upsidedownToggle: 'Upside Down 🙃', autoRotateToggle: 'Auto Rotate 🔃', fullscreenToggle: 'Full Screen 🔲', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', dndToggle: 'Do Not Disturb 🔕', pipToggle: 'Picture in Picture 🪟', pinnedModeToggle: 'Pinned Mode 📌', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', bossToggle: 'Boss Mode 🌑', newToggle: 'Position Swap 🔄', biggerToggle: 'Bigger Buttons', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥', autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙' };
 	}
 	_moveGeneralToggle(id, direction) {
 		const grid = document.getElementById('general-toggle-grid');
@@ -3897,875 +4322,6 @@ class SettingsManager {
 		applyHandPreset('piano_hand_default');
 	}
 }
-const arRecordBtn = document.getElementById('ar-record-btn');
-const arPlaybackContainer = document.getElementById('ar-playback-container');
-const arPlaybackVideo = document.getElementById('ar-playback-video');
-const arBackgroundVideo = document.getElementById('ar-background-video');
-const firebaseConfig = {
-	apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4",
-	authDomain: "follow-me-app-de3e9.firebaseapp.com",
-	projectId: "follow-me-app-de3e9",
-	storageBucket: "follow-me-app-de3e9.firebasestorage.app",
-	messagingSenderId: "957006680126",
-	appId: "1:957006680126:web:6d679717d9277fd9ae816f"
-};
-let db = null;
-let screenWakeLock = null;
-const DEFAULT_HEADER_BTN_ORDER = ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn', 'headerpipbtn'];
-const DEFAULT_GENERAL_TOGGLE_ORDER = ['randomThemeToggle', 'autoHideHeaderToggle', 'headerPlayToggle', 'headerDeleteToggle', 'headerSettingsToggle', 'headerHelpToggle', 'headerModeSwitchToggle', 'headerRedeemToggle', 'headerShareToggle', 'headerThemeCycleToggle', 'headerAddMachineToggle', 'headerUiSizeToggle', 'headerSeqSizeToggle', 'headerVolumeToggle', 'headerSpeedToggle', 'headerCycleInputToggle', 'headerResetToggle', 'headerNukeToggle', 'timerToggle', 'autotimerToggle', 'counterToggle', 'autocounterToggle', 'headerNotepadToggle', 'headerInfiniteScrollToggle', 'inputRegulatorToggle', 'hapticsToggle', 'introToggle', 'upsidedownToggle', 'fullscreenToggle', 'ecoToggle', 'wakelockToggle', 'dndToggle', 'pipToggle', 'pinnedModeToggle', 'voiceToggle', 'voicecommandsToggle', 'toneToggle', 'touchToggle', 'bossToggle', 'newToggle', 'biggerToggle', 'arcamToggle', 'arAutoCloseGeneralToggle', 'handToggle', 'skeletonDebugToggle', 'handsignalsToggle', 'handednessFlipToggle', 'speeddeleteToggle', 'apshortcutToggle', 'volgesToggle', 'speedToggle', 'deleteToggle', 'clearToggle'];
-const CONFIG = {
-	MAX_MACHINES: 4,
-	DEMO_DELAY_BASE_MS: 798,
-	SPEED_DELETE_DELAY: 250,
-	SPEED_DELETE_INTERVAL: 20,
-	STORAGE_KEY_SETTINGS: 'followMeAppSettings_v47',
-	STORAGE_KEY_STATE: 'followMeAppState_v48',
-	INPUTS: {
-		KEY9: 'key9',
-		KEY12: 'key12',
-		PIANO: 'piano'
-	},
-	MODES: {
-		SIMON: 'simon',
-		UNIQUE_ROUNDS: 'unique'
-	}
-};
-const DEFAULT_PROFILE_SETTINGS = {
-	currentInput: CONFIG.INPUTS.KEY9,
-	currentMode: CONFIG.MODES.SIMON,
-	sequenceLength: 20,
-	machineCount: 1,
-	simonChunkSize: 40,
-	simonInterSequenceDelay: 200,
-	isUniqueRoundsAutoClearEnabled: true,
-	isPracticeModeEnabled: false,
-	isAutoplayEnabled: true,
-	isFlashEnabled: true,
-	isAudioEnabled: true,
-	isHapticMorseEnabled: false,
-	playbackSpeed: 1.0,
-	pauseSetting: 200,
-	voicePitch: 1.0,
-	voiceRate: 1.0,
-	voiceVolume: 1.0,
-	selectedVoice: null,
-	voicePresets: {},
-	activeVoicePresetId: 'standard'
-};
-const PREMADE_PROFILES = {
-	'profile_1': {
-		name: "Follow Me",
-		settings: {
-			...DEFAULT_PROFILE_SETTINGS
-		},
-		theme: 'default'
-	},
-	'profile_2': {
-		name: "2 Machines",
-		settings: {
-			...DEFAULT_PROFILE_SETTINGS,
-			machineCount: 2,
-			simonChunkSize: 40,
-			simonInterSequenceDelay: 200
-		},
-		theme: 'default'
-	},
-	'profile_3': {
-		name: "Bananas",
-		settings: {
-			...DEFAULT_PROFILE_SETTINGS,
-			sequenceLength: 25
-		},
-		theme: 'default'
-	},
-	'profile_4': {
-		name: "Piano",
-		settings: {
-			...DEFAULT_PROFILE_SETTINGS,
-			currentInput: CONFIG.INPUTS.PIANO
-		},
-		theme: 'default'
-	},
-	'profile_5': {
-		name: "15 Rounds",
-		settings: {
-			...DEFAULT_PROFILE_SETTINGS,
-			currentMode: CONFIG.MODES.UNIQUE_ROUNDS,
-			sequenceLength: 15,
-			currentInput: CONFIG.INPUTS.KEY12
-		},
-		theme: 'default'
-	}
-};
-const DEFAULT_APP = {
-	globalUiScale: 100,
-	uiScaleMultiplier: 2.2,
-	showWelcomeScreen: true,
-	touchResizeMode: 'global',
-	playbackSpeed: 1.0,
-	isAutoplayEnabled: false,
-	isUniqueRoundsAutoClearEnabled: true,
-	isAudioEnabled: true,
-	isHapticsEnabled: true,
-	isFlashEnabled: true,
-	pauseSetting: 200,
-	isSpeedDeletingEnabled: true,
-	isSpeedTouchGesturesEnabled: false,
-	isVolumeTouchGesturesEnabled: false,
-	isArModeEnabled: false,
-	isArAutoCloseEnabled: true,
-	isVoiceInputEnabled: false,
-	arPlaybackSpeed: 1.00,
-	voiceTriggerWord: 'set',
-	isDeleteTouchGestureEnabled: true,
-	isClearTouchGestureEnabled: true,
-	isAutoTimerEnabled: false,
-	isAutoCounterEnabled: true,
-	isWakeLockEnabled: true,
-	isDndEnabled: false,
-	isPinnedModeEnabled: false,
-	isEcoModeEnabled: true,
-	isLongPressAutoplayEnabled: true,
-	isStealth1KeyEnabled: true,
-	activeTheme: 'default',
-	customThemes: {},
-	isRandomThemeEnabled: false,
-	isBlackoutFeatureEnabled: false,
-	isHapticMorseEnabled: false,
-	showTimer: false,
-	showCounter: true,
-	isHandGesturesEnabled: false,
-	isHandSignalsEnabled: true,
-	handednessFlip: false,
-	showHeaderPlayBtn: false,
-	showHeaderDeleteBtn: false,
-	showHeaderSettingsBtn: true,
-	showHeaderRedeemBtn: true,
-	showHeaderShareBtn: true,
-	showHeaderThemeCycleBtn: false,
-	showHeaderAddMachineBtn: false,
-	showHeaderUiSizeBtns: false,
-	showHeaderSeqSizeBtns: false,
-	showHeaderVolumeBtns: false,
-	showHeaderSpeedBtns: false,
-	showHeaderCycleInputBtn: false,
-	showHeaderNotepadBtn: true,
-	showHeaderHelpBtn: false,
-	showHeaderModeSwitchBtn: false,
-	showHeaderResetBtn: false,
-	showHeaderNukeBtn: false,
-	notepadText: '',
-	isVoiceCommandsEnabled: true,
-	isToneCadenceEnabled: false,
-	isInputRegulatorEnabled: false,
-	isAutoHideHeaderEnabled: false,
-	isHeaderInfiniteScrollEnabled: false,
-	headerIconScale: 120,
-	appFontScale: 100,
-	headerPadding: 0,
-	inputsPadding: 0,
-	toneCalibration: {
-		isCalibrated: false,
-		notes: {}
-	},
-	isPositionSwapEnabled: false,
-	isSkeletonDebugEnabled: true,
-	activeFontFamily: "'Inter', sans-serif",
-	handGestureCooldown: 600,
-	handHoldFrames: 4,
-	voiceConfidenceThreshold: 50,
-	toneVolumeThreshold: -85,
-	isSliderLockEnabled: true,
-	isSettingsLockEnabled: false,
-	touchAnchorStillDistance: 15,
-	touchAnchorMinHoldTime: 150,
-	touchChordSimultaneityWindow: 50,
-	showFullscreenBtn: true,
-	showPinnedBtn: false,
-	showDndBtn: false,
-	showPipBtn: false,
-	showUpsideDownBtn: false,
-	uiFontSizeMultiplier: 2.5,
-	activeProfileId: 'profile_1',
-	profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)),
-	runtimeSettings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)),
-	isPracticeModeEnabled: false,
-	voicePitch: 1.0,
-	voiceRate: 1.0,
-	voiceVolume: 1.0,
-	selectedVoice: null,
-	voicePresets: {},
-	activeVoicePresetId: 'standard',
-	commentsDeletionPin: '',
-	isTouchGestureInputEnabled: true,
-	touchGestureMappings: {
-		'k9_1': { gesture: 'Double_tap_spatial_nw' },
-		'k9_2': { gesture: 'Double_tap_spatial_up' },
-		'k9_3': { gesture: 'Double_tap_spatial_ne' },
-		'k9_4': { gesture: 'Double_tap_spatial_left' },
-		'k9_5': { gesture: 'double_tap' },
-		'k9_6': { gesture: 'Double_tap_spatial_right' },
-		'k9_7': { gesture: 'Double_tap_spatial_sw' },
-		'k9_8': { gesture: 'Double_tap_spatial_down' },
-		'k9_9': { gesture: 'Double_tap_spatial_se' },
-		'k12_1': { gesture: 'tap' },
-		'k12_2': { gesture: 'double_tap' },
-		'k12_3': { gesture: 'triple_tap' },
-		'k12_4': { gesture: 'long_tap' },
-		'k12_5': { gesture: 'tap_2f_any' },
-		'k12_6': { gesture: 'double_tap_2f_any' },
-		'k12_7': { gesture: 'triple_tap_2f_any' },
-		'k12_8': { gesture: 'long_tap_2f_any' },
-		'k12_9': { gesture: 'tap_3f_any' },
-		'k12_10': { gesture: 'double_tap_3f_any' },
-		'k12_11': { gesture: 'triple_tap_3f_any' },
-		'k12_12': { gesture: 'long_tap_3f_any' },
-		'piano_C': { gesture: 'swipe_nw' },
-		'piano_D': { gesture: 'swipe_left' },
-		'piano_E': { gesture: 'swipe_sw' },
-		'piano_F': { gesture: 'swipe_down' },
-		'piano_G': { gesture: 'swipe_se' },
-		'piano_A': { gesture: 'swipe_right' },
-		'piano_B': { gesture: 'swipe_ne' },
-		'piano_1': { gesture: 'swipe_left_2f' },
-		'piano_2': { gesture: 'swipe_nw_2f' },
-		'piano_3': { gesture: 'swipe_up_2f' },
-		'piano_4': { gesture: 'swipe_ne_2f' },
-		'piano_5': { gesture: 'swipe_right_2f' }
-	},
-	mappings: {
-		'k9_1': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },
-		'k9_2': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },
-		'k9_3': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },
-		'k9_4': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },
-		'k9_5': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },
-		'k9_6': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },
-		'k9_7': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },
-		'k9_8': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },
-		'k9_9': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },
-		'k12_1': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },
-		'k12_2': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },
-		'k12_3': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },
-		'k12_4': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },
-		'k12_5': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },
-		'k12_6': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },
-		'k12_7': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },
-		'k12_8': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },
-		'k12_9': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },
-		'k12_10': { touch: 'none', handGesture: 12, morse: '', handSide: 'any' },
-		'k12_11': { touch: 'none', handGesture: 20, morse: '', handSide: 'any' },
-		'k12_12': { touch: 'none', handGesture: 36, morse: '', handSide: 'any' },
-		'piano_C': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },
-		'piano_D': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },
-		'piano_E': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },
-		'piano_F': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },
-		'piano_G': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },
-		'piano_A': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },
-		'piano_B': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },
-		'piano_1': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },
-		'piano_2': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },
-		'piano_3': { touch: 'none', handGesture: 12, morse: '', handSide: 'any' },
-		'piano_4': { touch: 'none', handGesture: 20, morse: '', handSide: 'any' },
-		'piano_5': { touch: 'none', handGesture: 36, morse: '', handSide: 'any' }
-	},
-	activeGestureFilters: [
-		'Poses',
-		'Pinches',
-		'Counts',
-		'Shapes',
-		'Motion',
-		'Transitions',
-		'Combos',
-		'Anchors',
-		'Chords',
-		'Taps',
-		'Spatial Taps',
-		'Multi-Finger Taps',
-		'Swipes',
-		'Long Swipes',
-		'Multi-Finger Swipes',
-		'Boomerangs',
-		'Switchbacks',
-		'Zigzags',
-		'Corners & Shapes',
-		'Motion Gestures',
-		'Flicks',
-		'Pausing Curves'
-	],
-	customTouchPresets: {},
-	customHandPresets: {},
-	activeMappingPreset: {
-		'touch-preset-key9-select': '9_spatial',
-		'touch-preset-key12-select': '12_taps'
-	},
-	headerBtnOrder: [
-		'headertimerbtn',
-		'headercounterbtn',
-		'headernotepadbtn',
-		'headerplaybtn',
-		'headerdeletebtn',
-		'headersettingsbtn',
-		'headerhelpbtn',
-		'headersharebtn',
-		'headerredeembtn',
-		'headervoicebtn',
-		'headertonebtn',
-		'headertouchbtn',
-		'headerhandbtn',
-		'headerarcambtn',
-		'headerbiggerbtn',
-		'headerfullscreenbtn',
-		'headerpinnedbtn',
-		'headerdndbtn',
-		'headerpipbtn',
-		'headerswapbtn',
-		'headerupsidedownbtn',
-		'headerthemecyclebtn',
-		'headercycleinputbtn',
-		'headermodeswitchbtn',
-		'headeraddmachinebtn',
-		'headeruiupbtn',
-		'headeruidownbtn',
-		'headersequpbtn',
-		'headerseqdownbtn',
-		'headervolupbtn',
-		'headervoldownbtn',
-		'headerspeedupbtn',
-		'headerspeeddownbtn',
-		'headerresetbtn',
-		'headernukebtn'
-	],
-	generalToggleOrder: [
-		'autoHideHeaderToggle',
-		'headerInfiniteScrollToggle',
-		'randomThemeToggle',
-		'headerThemeCycleToggle',
-		'headerModeSwitchToggle',
-		'headerCycleInputToggle',
-		'headerAddMachineToggle',
-		'introToggle',
-		'headerUiSizeToggle',
-		'headerSeqSizeToggle',
-		'headerVolumeToggle',
-		'headerSpeedToggle',
-		'headerSettingsToggle',
-		'headerHelpToggle',
-		'headerRedeemToggle',
-		'headerShareToggle',
-		'headerPlayToggle',
-		'headerDeleteToggle',
-		'timerToggle',
-		'autotimerToggle',
-		'counterToggle',
-		'autocounterToggle',
-		'headerNotepadToggle',
-		'bossToggle',
-		'inputRegulatorToggle',
-		'hapticsToggle',
-		'biggerToggle',
-		'pipToggle',
-		'upsidedownToggle',
-		'newToggle',
-		'fullscreenToggle',
-		'pinnedModeToggle',
-		'ecoToggle',
-		'wakelockToggle',
-		'headerResetToggle',
-		'headerNukeToggle',
-		'arcamToggle',
-		'arAutoCloseGeneralToggle',
-		'voiceToggle',
-		'voicecommandsToggle',
-		'toneToggle',
-		'touchToggle',
-		'handToggle',
-		'handsignalsToggle',
-		'skeletonDebugToggle',
-		'handednessFlipToggle',
-		'speeddeleteToggle',
-		'apshortcutToggle',
-		'volgesToggle',
-		'speedToggle',
-		'clearToggle',
-		'deleteToggle',
-		'dndToggle'
-	]
-};
-const SETTINGS_PRESETS = [
-	{ id: 'default', name: 'Default (New Player)', code: 'm.xmhNj`V-16N$xovQJJ^`qG9_Wn:' },
-	{ id: 'preset1', name: 'Preset 1', code: '5h.VUoC0xD7PX/at/Lp`L#I*P`yZrCGdegzB5%ul;Ahy%/C@W3D{fnmBvR+[^PD5FZHA_CIP(bk^yuXi3PxEJ))X$0s/t(Qn/Q`lkqSx0=sOf[m_4_+q0lFBx!}rsXd/lWhraLU=w_K65!H!34_2NoP{`_=u2I:^/b?$_6iU92H{Hh.nd/?GQht{GS9lJjPi07n[O?Cde#kt]f%SNFVnFG*32yjgBCk-J`hIw}JK`(h,lcu4Vhl+abbE' }
-];
-const DEFAULT_MAPPINGS = {
-	'k9_1': 'tap',
-	'k9_2': 'double_tap',
-	'k9_3': 'triple_tap',
-	'k9_4': 'tap_2f_any',
-	'k9_5': 'double_tap_2f_any',
-	'k9_6': 'triple_tap_2f_any',
-	'k9_7': 'tap_3f_any',
-	'k9_8': 'double_tap_3f_any',
-	'k9_9': 'triple_tap_3f_any',
-	'k12_1': 'tap',
-	'k12_2': 'double_tap',
-	'k12_3': 'triple_tap',
-	'k12_4': 'long_tap',
-	'k12_5': 'tap_2f_any',
-	'k12_6': 'double_tap_2f_any',
-	'k12_7': 'triple_tap_2f_any',
-	'k12_8': 'long_tap_2f_any',
-	'k12_9': 'tap_3f_any',
-	'k12_10': 'double_tap_3f_any',
-	'k12_11': 'triple_tap_3f_any',
-	'k12_12': 'long_tap_3f_any',
-	'piano_C': 'swipe_nw',
-	'piano_D': 'swipe_left',
-	'piano_E': 'swipe_sw',
-	'piano_F': 'swipe_down',
-	'piano_G': 'swipe_se',
-	'piano_A': 'swipe_right',
-	'piano_B': 'swipe_ne',
-	'piano_1': 'swipe_left_2f',
-	'piano_2': 'swipe_nw_2f',
-	'piano_3': 'swipe_up_2f',
-	'piano_4': 'swipe_ne_2f',
-	'piano_5': 'swipe_right_2f'
-};
-let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
-let appState = {};
-let modules = {
-	settings: null,
-	vision: null,
-	touchGestureEngine: null
-};
-let timers = {
-	speedDelete: null,
-	initialDelay: null,
-	longPress: null,
-	settingsLongPress: null,
-	stealth: null,
-	stealthAction: null,
-	playback: null,
-	tap: null
-};
-let touchGestureState = {
-	startDist: 0,
-	startScale: 1,
-	isPinching: false
-};
-let blackoutState = {
-	isActive: false,
-	lastShake: 0
-};
-let isDemoPlaying = false;
-let isPlaybackPaused = false;
-let playbackResumeCallback = null;
-let practiceSequence = [];
-let practiceInputIndex = 0;
-let lastMachineInputTime = {};
-let ignoreNextClick = false;
-let voiceModule = null;
-let isTouchGesturePadVisible = false;
-let simpleTimer = {
-	interval: null,
-	startTime: 0,
-	elapsed: 0,
-	isRunning: false
-};
-let simpleCounter = 0;
-let globalTimerActions = {
-	start: null,
-	stop: null,
-	reset: null
-};
-let globalCounterActions = {
-	increment: null,
-	reset: null
-};
-const getProfileSettings = () => appSettings.runtimeSettings;
-const getState = () => appState['current_session'] || (appState['current_session'] = {
-		sequences: Array.from({
-				length: CONFIG.MAX_MACHINES
-			}, () => []),
-		nextSequenceIndex: 0,
-		currentRound: 1
-});
-let _savedScrollY = 0;
-let _scrollLocked = false;
-const _MODAL_IDS = ['settings-modal', 'help-modal', 'share-modal', 'comment-modal', 'redeem-modal', 'donate-modal', 'theme-editor-modal', 'game-setup-modal'];
-const startApp = () => {
-	loadState();
-	window.appSettings = appSettings;
-	document.addEventListener('fullscreenchange', () => {
-			document.body.classList.toggle('fullscreen-mode', !!document.fullscreenElement);
-	});
-	restorePinnedModeOnBoot();
-	if (appSettings.isDndEnabled) {
-		const dndBtn = document.getElementById('headerdndbtn');
-		if (dndBtn) dndBtn.classList.add('ring-2', 'ring-emerald-500');
-	}
-	if (appSettings.isEcoModeEnabled) document.body.classList.add('eco-mode');
-	const headerfullscreenbtn = document.getElementById('headerfullscreenbtn');
-	if (headerfullscreenbtn) {
-		headerfullscreenbtn.onclick = () => {
-			if (!document.fullscreenElement) {
-				document.documentElement.requestFullscreen().catch(err => {
-						console.warn(`Fullscreen error: ${err.message}`);
-				});
-				headerfullscreenbtn.classList.add('ring-2', 'ring-emerald-500');
-			} else {
-				document.exitFullscreen();
-				headerfullscreenbtn.classList.remove('ring-2', 'ring-emerald-500');
-			}
-		};
-	}
-	const headerpinnedbtn = document.getElementById('headerpinnedbtn');
-	if (headerpinnedbtn) {
-		headerpinnedbtn.onclick = async () => {
-			const enabling = !appSettings.isPinnedModeEnabled;
-			appSettings.isPinnedModeEnabled = enabling;
-			if (typeof saveState === 'function') saveState();
-			headerpinnedbtn.classList.toggle('ring-2', enabling);
-			headerpinnedbtn.classList.toggle('ring-emerald-500', enabling);
-			if (enabling) await enterPinnedMode();
-			else await exitPinnedMode();
-		};
-	}
-	const headerdndbtn = document.getElementById('headerdndbtn');
-	if (headerdndbtn) {
-		headerdndbtn.onclick = () => {
-			const enabling = !appSettings.isDndEnabled;
-			appSettings.isDndEnabled = enabling;
-			if (typeof saveState === 'function') saveState();
-			headerdndbtn.classList.toggle('ring-2', enabling);
-			headerdndbtn.classList.toggle('ring-emerald-500', enabling);
-			if (typeof showToast === 'function') showToast(enabling ? 'Do Not Disturb on 🔕' : 'Do Not Disturb off');
-		};
-	}
-	const headerpipbtn = document.getElementById('headerpipbtn');
-	if (headerpipbtn) {
-		headerpipbtn.onclick = async () => {
-			if (document.pictureInPictureElement) {
-				await exitPipMode();
-				headerpipbtn.classList.remove('ring-2', 'ring-emerald-500');
-			} else {
-				const ok = await enterPipMode();
-				headerpipbtn.classList.toggle('ring-2', ok);
-				headerpipbtn.classList.toggle('ring-emerald-500', ok);
-			}
-		};
-	}
-	const headerupsidedownbtn = document.getElementById('headerupsidedownbtn');
-	if (headerupsidedownbtn) {
-		headerupsidedownbtn.onclick = () => {
-			document.body.classList.toggle('upside-down');
-			if (document.body.classList.contains('upside-down')) {
-				headerupsidedownbtn.classList.add('ring-2', 'ring-emerald-500');
-				showToast("Upside Down Mode: ON 🙃");
-			} else {
-				headerupsidedownbtn.classList.remove('ring-2', 'ring-emerald-500');
-				showToast("Upside Down Mode: OFF");
-			}
-		};
-	}
-	if (appSettings.isWakeLockEnabled && typeof window.wakelockToggle === 'function') {
-		window.wakelockToggle(true);
-	}
-	modules.settings = new SettingsManager(appSettings, {
-			onSave: () => saveState(),
-			onUpdate: () => updateAllChrome(),
-			onProfileSwitch: id => {
-				if (appSettings.activeProfileId && appSettings.profiles[appSettings.activeProfileId] && appSettings.runtimeSettings) {
-					appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings));
-				}
-				appSettings.activeProfileId = id;
-				appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings));
-				saveState();
-				renderUI();
-			},
-			onProfileAdd: name => {
-				const id = 'p_' + Date.now();
-				appSettings.profiles[id] = {
-					name: name,
-					settings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)),
-					theme: 'default'
-				};
-				saveState();
-			},
-			onProfileRename: name => {
-				appSettings.profiles[appSettings.activeProfileId].name = name;
-				saveState();
-			},
-			onProfileDelete: () => {
-				if (Object.keys(appSettings.profiles).length > 1) {
-					delete appSettings.profiles[appSettings.activeProfileId];
-					appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
-					appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings));
-					saveState();
-					renderUI();
-				} else {
-					alert("Cannot delete the last profile.");
-				}
-			},
-			onProfileSave: () => {
-				appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings));
-				saveState();
-			},
-			onReset: () => {
-				localStorage.clear();
-				window.location.reload();
-			}
-	});
-	class ToneSequenceTester {
-		constructor() {
-			this.audioCtx = null;
-			this.isPlaying = false;
-			this.stopRequested = false;
-			this.TONES = Object.fromEntries(TONE_TABLE.map(t => [t.n, t.f]));
-		}
-		_initAudio() {
-			if (!this.audioCtx) {
-				this.audioCtx = new(window.AudioContext || window.webkitAudioContext)();
-			}
-		}
-		async playTone(frequency, durationMs) {
-			this._initAudio();
-			if (this.audioCtx.state === 'suspended') await this.audioCtx.resume();
-			const oscillator = this.audioCtx.createOscillator();
-			const gainNode = this.audioCtx.createGain();
-			oscillator.type = 'sine';
-			oscillator.frequency.value = frequency;
-			const attack = 0.01,
-			release = 0.01;
-			const durationSec = durationMs / 1000;
-			const now = this.audioCtx.currentTime;
-			gainNode.gain.setValueAtTime(0, now);
-			gainNode.gain.linearRampToValueAtTime(1, now + attack);
-			gainNode.gain.setValueAtTime(1, now + durationSec - release);
-			gainNode.gain.linearRampToValueAtTime(0, now + durationSec);
-			oscillator.connect(gainNode);
-			gainNode.connect(this.audioCtx.destination);
-			oscillator.start(now);
-			oscillator.stop(now + durationSec);
-			return new Promise(resolve => setTimeout(resolve, durationMs));
-		}
-		async playSequence(sequence, toneDurationMs = 200, silenceDurationMs = 800, onProgress) {
-			this.isPlaying = true;
-			this.stopRequested = false;
-			for (let i = 0; i < sequence.length; i++) {
-				if (this.stopRequested) break;
-				const num = sequence[i];
-				const freq = this.TONES[num];
-				if (freq) {
-					if (onProgress) onProgress(i, sequence.length, num, freq);
-					await this.playTone(freq, toneDurationMs);
-					if (this.stopRequested) break;
-					if (i < sequence.length - 1) {
-						await new Promise(resolve => setTimeout(resolve, silenceDurationMs));
-					}
-				}
-			}
-			this.isPlaying = false;
-			if (onProgress) onProgress(-1, sequence.length, null, null);
-		}
-		stop() {
-			this.stopRequested = true;
-		}
-	}
-	const toneSequenceTester = new ToneSequenceTester();
-	window.toneSequenceTester = toneSequenceTester;
-	const toneEngine = new ToneEngine(val => {
-			addValue(val);
-			showToast(`🎵 Tone: ${val}`);
-			const advancedTab = document.getElementById('tab-advanced');
-			if (advancedTab && advancedTab.classList.contains('active')) {
-				const historyEl = document.getElementById('tone-test-history');
-				if (historyEl) {
-					historyEl.textContent += (historyEl.textContent ? ", " : "") + val;
-				}
-			}
-		}, debug => {
-			const el = document.getElementById('tone-debug-indicator');
-			const testEl = document.getElementById('test-tone-readout');
-			let text;
-			if (debug.error) {
-				text = `🎵 Mic error: ${debug.error}`;
-			} else if (debug.note) {
-				text = `🎵 ${(TONE_TABLE.find(t => t.n === debug.note) || {}).name || '?'} (${debug.freq}Hz) #${debug.note}`;
-			} else if (debug.freq) {
-				text = `🎵 ${debug.freq}Hz (no note match)`;
-			} else {
-				text = `🎵 listening...`;
-			}
-			if (el) el.textContent = text;
-			if (testEl) testEl.textContent = text;
-	});
-	window.toneEngine = toneEngine;
-	let handGestureHistory = [];
-	let handGestureCooldownUntil = 0;
-	if (typeof VisionEngine !== 'function') {
-		console.warn('VisionEngine unavailable (wasm/vision_bundle.js not found) - hand tracking disabled.');
-		modules.vision = {
-			isActive: false,
-			start() {
-				showToast('Hand tracking unavailable (missing wasm/vision_bundle.js) ❌');
-			},
-			stop() {}
-		};
-	} else {
-		modules.vision = new VisionEngine(handGestureData => {
-				const settings = getProfileSettings();
-				if (Date.now() < handGestureCooldownUntil) {
-					return;
-				}
-				if (!handGestureData || handGestureData === "none") {
-					return;
-				}
-				let handGestureId = typeof handGestureData === 'object' ? handGestureData.id : handGestureData;
-				if (typeof handGestureId === 'number' && handGestureId >= 0 && handGestureId <= 63 && handGestureId % 2 === 1) {
-					handGestureId = handGestureId - 1;
-				}
-				const handGestureLabel = typeof handGestureData === 'object' ? handGestureData.label : "Gesture";
-				const handSide = (typeof handGestureData === 'object' && handGestureData.hand) ? handGestureData.hand : null;
-				const handReadout = document.getElementById('test-hand-readout');
-				if (handReadout) {
-					const sideLabel = handSide === 'L' ? '✋ Left hand' : handSide === 'R' ? '🤚 Right hand' : '';
-					handReadout.textContent = `ID ${handGestureId} - ${handGestureLabel}${sideLabel ? ' | ' + sideLabel : ''}`;
-				}
-				if (window.__testChecklists?.hand) window.__testChecklists.hand.mark(String(handGestureId));
-				if (window.__handTestModeActive) return;
-				if (appSettings.isHandGesturesEnabled && appSettings.isHandSignalsEnabled) {
-					if (handGestureId === 'TWO_HAND_CLEAR') {
-						showToast("Hand Signal: Clear 🧹✊✊");
-						if (typeof resetCurrentMachine === 'function') resetCurrentMachine();
-						handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
-						return;
-					}
-					if (handGestureId === 'TWO_HAND_DELETE') {
-						showToast("Hand Signal: Delete 🔙👎👎");
-						if (typeof handleBackspace === 'function') handleBackspace();
-						handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
-						return;
-					}
-					if (handGestureId === 'TWO_HAND_PLAY') {
-						showToast("Hand Signal: Playing ▶️👍👍");
-						playDemo();
-						handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
-						return;
-					}
-					if (handGestureId === 'TWO_HAND_STOP') {
-						isDemoPlaying = false;
-						showToast("Hand Signal: Stopped 🛑✋✋");
-						handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
-						return;
-					}
-				}
-				let mappedInput = null;
-				if (appSettings.mappings) {
-					const detectedHand = (typeof handGestureData === 'object' && handGestureData.hand) ? handGestureData.hand : null;
-					for (const [key, mapData] of Object.entries(appSettings.mappings)) {
-						const prefix = settings.currentInput === 'key9' ? 'k9_' : settings.currentInput === 'key12' ? 'k12_' : 'piano_';
-						if (!key.startsWith(prefix)) continue;
-						if (parseInt(mapData.handGesture) !== handGestureId) continue;
-						const wantSide = mapData.handSide || 'any';
-						if (wantSide !== 'any') {
-							if (detectedHand === null) continue;
-							if (wantSide !== detectedHand) continue;
-						}
-						mappedInput = key.replace(prefix, '');
-						break;
-					}
-				}
-				if (mappedInput !== null) {
-					addValue(mappedInput);
-					showToast(`Hand: ${mappedInput} (${handGestureLabel}) 🖐️`);
-					document.body.style.backgroundColor = '#222';
-					setTimeout(() => document.body.style.backgroundColor = '', 100);
-					handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
-				}
-			}, status => showToast(status));
-	}
-	voiceModule = new VoiceCommander({
-			onStatus: msg => showToast(msg),
-			onInput: val => {
-				addValue(val);
-				const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
-				if (btn) {
-					btn.classList.add('flash-active');
-					setTimeout(() => btn.classList.remove('flash-active'), 200);
-				}
-				const hMic = document.getElementById('headervoicebtn');
-				if (hMic) {
-					hMic.classList.remove('header-btn-active');
-					setTimeout(() => {
-							if (voiceModule.isListening) hMic.classList.add('header-btn-active');
-						}, 300);
-				}
-			},
-			onCommand: cmd => {
-				if (!appSettings.isVoiceInputEnabled || !appSettings.isVoiceCommandsEnabled) {
-					console.log("Voice commands disabled (Voice Input or Voice Commands is off). Ignoring:", cmd);
-					return;
-				}
-				if (cmd === 'CMD_PLAY') {
-					playDemo();
-					showToast("Voice: Playing ▶️");
-				}
-				if (cmd === 'CMD_STOP') {
-					isDemoPlaying = false;
-					showToast("Voice: Stopped 🛑");
-				}
-				if (cmd === 'CMD_CLEAR') {
-					const s = getState();
-					s.sequences = Array.from({
-							length: CONFIG.MAX_MACHINES
-						}, () => []);
-					renderUI();
-					showToast("Voice: Cleared All 💥");
-				}
-				if (cmd === 'CMD_DELETE') {
-					handleBackspace();
-					showToast("Voice: Backspace 🔙");
-				}
-				if (cmd === 'CMD_SETTINGS') {
-					modules.settings.openSettings();
-				}
-				if (cmd === 'CMD_VOLUME_UP') {
-					appSettings.runtimeSettings.voiceVolume = Math.min(1.0, (appSettings.runtimeSettings.voiceVolume || 1.0) + 0.1);
-					saveState();
-					showToast(`Voice: Volume ${(appSettings.runtimeSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
-				}
-				if (cmd === 'CMD_VOLUME_DOWN') {
-					appSettings.runtimeSettings.voiceVolume = Math.max(0.0, (appSettings.runtimeSettings.voiceVolume || 1.0) - 0.1);
-					saveState();
-					showToast(`Voice: Volume ${(appSettings.runtimeSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
-				}
-				if (cmd === 'CMD_SPEED_UP') {
-					appSettings.runtimeSettings.playbackSpeed = Math.min(2.0, (appSettings.runtimeSettings.playbackSpeed || 1.0) + 0.1);
-					saveState();
-					showToast(`Voice: Speed ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
-				}
-				if (cmd === 'CMD_SPEED_DOWN') {
-					appSettings.runtimeSettings.playbackSpeed = Math.max(0.5, (appSettings.runtimeSettings.playbackSpeed || 1.0) - 0.1);
-					saveState();
-					showToast(`Voice: Speed ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
-				}
-			}
-	});
-	window.voiceModule = voiceModule;
-	if (appSettings.isRandomThemeEnabled) {
-		const allThemeKeys = [...Object.keys(PREMADE_THEMES), ...Object.keys(appSettings.customThemes || ({}))];
-		if (allThemeKeys.length > 0) {
-			appSettings.activeTheme = allThemeKeys[Math.floor(Math.random() * allThemeKeys.length)];
-		}
-	}
-	updateAllChrome();
-	initFirebaseAndComments();
-	modules.settings.updateHeaderVisibility();
-	initGlobalListeners();
-	initTouchGestureEngine();
-	setupARLogic();
-	renderUI();
-};
 class ToneEngine {
 	constructor(onInputCallback, onDebug) {
 		this.onInput = onInputCallback;
@@ -5114,6 +4670,60 @@ class VoiceCommander {
 		}
 	}
 }
+
+// ============================================================
+// FUNCTIONS
+// ============================================================
+function processHandData(landmarks) {
+	const wrist = landmarks[0];
+	const n = landmarks.map(p => ({
+				x: p.x - wrist.x,
+				y: p.y - wrist.y,
+				z: p.z - wrist.z
+	}));
+	const dist3D = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z);
+	const nWrist = n[0];
+	const T = dist3D(nWrist, n[4]) > (dist3D(nWrist, n[2]) * 1.15) ? 1 : 0;
+	const I = dist3D(nWrist, n[8]) > (dist3D(nWrist, n[6]) * 1.25) ? 1 : 0;
+	const M = dist3D(nWrist, n[12]) > (dist3D(nWrist, n[10]) * 1.25) ? 1 : 0;
+	const R = dist3D(nWrist, n[16]) > (dist3D(nWrist, n[14]) * 1.25) ? 1 : 0;
+	const P = dist3D(nWrist, n[20]) > (dist3D(nWrist, n[18]) * 1.25) ? 1 : 0;
+	const baseMask = (T << 4) | (I << 3) | (M << 2) | (R << 1) | P;
+	const vec1x = n[17].x - n[5].x;
+	const vec1y = n[17].y - n[5].y;
+	const vec2x = n[9].x - nWrist.x;
+	const vec2y = n[9].y - nWrist.y;
+	const crossProduct = (vec1x * vec2y) - (vec1y * vec2x);
+	const palmFacing = crossProduct > 0 ? 1 : 0;
+	let handGestureID = (baseMask << 1) | palmFacing;
+	const pinchThreshold = ((window.appSettings && window.appSettings.handPinchThreshold) || 5.5) / 100;
+	const dThumbIndex = dist3D(n[4], n[8]);
+	const dThumbMiddle = dist3D(n[4], n[12]);
+	const dThumbRing = dist3D(n[4], n[16]);
+	const dThumbPinky = dist3D(n[4], n[20]);
+	const cx = (n[4].x + n[8].x + n[12].x + n[16].x + n[20].x) / 5;
+	const cy = (n[4].y + n[8].y + n[12].y + n[16].y + n[20].y) / 5;
+	const cz = (n[4].z + n[8].z + n[12].z + n[16].z + n[20].z) / 5;
+	const centerTip = {x: cx, y: cy, z: cz};
+	const isChefKiss = dist3D(n[4], centerTip) < 0.08 &&
+	dist3D(n[8], centerTip) < 0.08 &&
+	dist3D(n[12], centerTip) < 0.08;
+	if (isChefKiss) {
+		handGestureID = 104;
+	} else if (dThumbIndex < pinchThreshold) {
+		handGestureID = (M || R || P) ? 105 : 100;
+	} else if (dThumbMiddle < pinchThreshold) {
+		handGestureID = 101;
+	} else if (dThumbRing < pinchThreshold) {
+		handGestureID = 102;
+	} else if (dThumbPinky < pinchThreshold) {
+		handGestureID = 103;
+	} else if (T === 1 && I === 0 && M === 0 && R === 0 && P === 0) {
+		handGestureID = (n[4].y < n[2].y) ? 600 : 601;
+	}
+	return handGestureID;
+}
+window.processHandData = processHandData;
 async function reacquireWakeLock() {
 	if (document.visibilityState === 'visible' && appSettings.isWakeLockEnabled) {
 		try {
@@ -5133,8 +4743,6 @@ async function initFirebaseAndComments() {
 			enableIndexedDbPersistence,
 			collection,
 			addDoc,
-			deleteDoc,
-			doc,
 			query,
 			orderBy,
 			limit,
@@ -5196,9 +4804,7 @@ async function initFirebaseAndComments() {
 						const el = document.createElement('div');
 						el.className = "p-3 mb-2 rounded-lg bg-black bg-opacity-20 border border-gray-700";
 						el.dataset.commentId = doc.id;
-						const hasPinSet = appSettings.commentsDeletionPin && appSettings.commentsDeletionPin.trim().length > 0;
-						const deleteBtn = hasPinSet ? `<button class="delete-comment-btn text-xs bg-red-600 hover:bg-red-500 px-2 py-1 rounded text-white ml-2" data-comment-id="${doc.id}">🗑️</button>` : '';
-						el.innerHTML = `<div class="flex justify-between items-start"><div class="flex-1"><p class="font-bold text-primary-app text-xs">${escapeHtml(data.username)}</p><p class="text-gray-300 text-sm">${escapeHtml(data.message)}</p></div>${deleteBtn}</div>`;
+						el.innerHTML = `<div class="flex justify-between items-start"><div class="flex-1"><p class="font-bold text-primary-app text-xs">${escapeHtml(data.username)}</p><p class="text-gray-300 text-sm">${escapeHtml(data.message)}</p></div></div>`;
 						listContainer.appendChild(el);
 				});
 		});
@@ -5214,7 +4820,6 @@ function saveState() {
 	localStorage.setItem(CONFIG.STORAGE_KEY_SETTINGS, JSON.stringify(appSettings));
 	localStorage.setItem(CONFIG.STORAGE_KEY_STATE, JSON.stringify(appState));
 }
-const BACKUP_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%()*+,-./:;=?@[]^_`{}';
 function bytesToBackupCode(bytes) {
 	const base = BACKUP_ALPHABET.length;
 	let big = 0n;
@@ -5544,6 +5149,67 @@ function applyTheme(themeKey) {
 	body.style.setProperty('--seq-bubble-text', bubbleIsDark ? '#ffffff' : '#111827');
 	body.classList.toggle('theme-is-light', !isDark);
 }
+function applyAmbientThemeOverride(lux) {
+	if (typeof lux !== 'number' || isNaN(lux)) return;
+	if (lux <= AMBIENT_LIGHT_NIGHT_LUX && appSettings.isAutoDarkEnabled) {
+		applyTheme('night');
+	} else if (lux >= AMBIENT_LIGHT_SUNLIGHT_LUX && appSettings.isAutoBrightEnabled) {
+		applyTheme('sunlight');
+	} else {
+		applyTheme(appSettings.activeTheme);
+	}
+}
+window.updateAmbientSensorState = function() {
+	const needed = !!(appSettings.isAutoBrightEnabled || appSettings.isAutoDarkEnabled);
+	if (needed && !ambientLightSensor) {
+		if (!('AmbientLightSensor' in window)) {
+			console.warn('Ambient Light Sensor not supported on this browser/device (requires the experimental Generic Sensor flag on most Android Chrome installs).');
+			return;
+		}
+		try {
+			ambientLightSensor = new AmbientLightSensor({ frequency: 1 });
+			ambientLightSensor.addEventListener('reading', () => applyAmbientThemeOverride(ambientLightSensor.illuminance));
+			ambientLightSensor.addEventListener('error', (e) => console.warn('Ambient Light Sensor error:', e.error?.name, e.error?.message));
+			ambientLightSensor.start();
+		} catch (e) {
+			console.warn('Ambient Light Sensor failed to start:', e);
+			ambientLightSensor = null;
+		}
+	} else if (!needed && ambientLightSensor) {
+		try {
+			ambientLightSensor.stop();
+		} catch (e) {}
+		ambientLightSensor = null;
+		applyTheme(appSettings.activeTheme);
+	}
+};
+window.updateProximitySensorState = function() {
+	const needed = !!appSettings.isAutoHideHeaderEnabled;
+	if (needed && !proximitySensor) {
+		if (!('ProximitySensor' in window)) {
+			console.warn('Proximity Sensor not supported on this browser/device (requires the experimental Generic Sensor flag on most Android Chrome installs).');
+			return;
+		}
+		try {
+			proximitySensor = new ProximitySensor({ frequency: 2 });
+			proximitySensor.addEventListener('reading', () => {
+				if (proximitySensor.near && typeof window.__unhideHeaderFromSensor === 'function') {
+					window.__unhideHeaderFromSensor();
+				}
+			});
+			proximitySensor.addEventListener('error', (e) => console.warn('Proximity Sensor error:', e.error?.name, e.error?.message));
+			proximitySensor.start();
+		} catch (e) {
+			console.warn('Proximity Sensor failed to start:', e);
+			proximitySensor = null;
+		}
+	} else if (!needed && proximitySensor) {
+		try {
+			proximitySensor.stop();
+		} catch (e) {}
+		proximitySensor = null;
+	}
+};
 function updateAllChrome() {
 	applyTheme(appSettings.activeTheme);
 	document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
@@ -6432,20 +6098,22 @@ function initGlobalListeners() {
 				let hideTimer = null;
 				let unhideGraceTimer = null;
 				window.__clearAutoHideHeaderTimer = () => { clearTimeout(hideTimer); hideTimer = null; };
-				header.addEventListener('pointerdown', () => {
-						if (!appSettings.isAutoHideHeaderEnabled) return;
-						const wasInactive = header.classList.contains('auto-hide-inactive');
-						header.classList.remove('auto-hide-inactive');
-						clearTimeout(hideTimer);
-						hideTimer = setTimeout(() => { header.classList.add('auto-hide-inactive'); }, 5000);
-						if (wasInactive && btnRow) {
-							clearTimeout(unhideGraceTimer);
-							btnRow.classList.add('header-just-unhidden');
-							unhideGraceTimer = setTimeout(() => {
-									btnRow.classList.remove('header-just-unhidden');
-								}, 400);
-						}
-				});
+				const unhideHeaderNow = () => {
+					if (!appSettings.isAutoHideHeaderEnabled) return;
+					const wasInactive = header.classList.contains('auto-hide-inactive');
+					header.classList.remove('auto-hide-inactive');
+					clearTimeout(hideTimer);
+					hideTimer = setTimeout(() => { header.classList.add('auto-hide-inactive'); }, 5000);
+					if (wasInactive && btnRow) {
+						clearTimeout(unhideGraceTimer);
+						btnRow.classList.add('header-just-unhidden');
+						unhideGraceTimer = setTimeout(() => {
+								btnRow.classList.remove('header-just-unhidden');
+							}, 400);
+					}
+				};
+				header.addEventListener('pointerdown', unhideHeaderNow);
+				window.__unhideHeaderFromSensor = unhideHeaderNow;
 		})();
 		document.querySelectorAll('.btn-pad-number').forEach(b => {
 				const press = e => {
@@ -7109,7 +6777,7 @@ function initGlobalListeners() {
 		console.error("Listener Error:", e);
 	}
 }
-window.upsidedownToggle = async function(enable) {
+window.wakelockToggle = async function(enable) {
 	try {
 		if (('wakeLock' in navigator)) {
 			if (enable) {
@@ -7129,34 +6797,55 @@ window.upsidedownToggle = async function(enable) {
 		console.warn('Wake Lock failed:', err);
 	}
 };
-window.modules = modules;
-window.settingsToBackupCode = settingsToBackupCode;
-window.importSettingsFromBackupCode = importSettingsFromBackupCode;
-window.diffAgainstDefaults = diffAgainstDefaults;
-window.mergeWithDefaults = mergeWithDefaults;
-window.DEFAULT_APP = DEFAULT_APP;
-window.lockBodyScroll = lockBodyScroll;
-window.unlockBodyScroll = unlockBodyScroll;
-(function initRealViewportHeight() {
-		const footer = document.getElementById('input-footer');
-		const apply = () => {
-			const vv = window.visualViewport;
-			const h = (vv && vv.height) || window.innerHeight;
-			document.documentElement.style.setProperty('--real-vh', h + 'px');
-			if (vv && footer && !document.body.classList.contains('layout-swapped')) {
-				const offset = window.innerHeight - vv.height - vv.offsetTop;
-				footer.style.bottom = Math.max(0, offset) + 'px';
-			}
-		};
-		apply();
-		if (window.visualViewport) {
-			window.visualViewport.addEventListener('resize', apply);
-			window.visualViewport.addEventListener('scroll', apply);
+function orientationLockSupported() {
+	return !!(window.screen?.orientation && typeof window.screen.orientation.lock === 'function');
+}
+function updateAutoRotateBtnState() {
+	const btn = document.getElementById('headerautorotatebtn');
+	if (!btn) return;
+	btn.classList.toggle('ring-2', !isPortraitLocked);
+	btn.classList.toggle('ring-emerald-500', !isPortraitLocked);
+}
+async function lockPortraitOrientation(silent) {
+	if (!orientationLockSupported()) return;
+	try {
+		await window.screen.orientation.lock('portrait-primary');
+		isPortraitLocked = true;
+	} catch (e) {
+		try {
+			await window.screen.orientation.lock('portrait');
+			isPortraitLocked = true;
+		} catch (e2) {
+			console.warn('Could not lock orientation (this works best once the app is added to your home screen):', e2);
+			isPortraitLocked = false;
 		}
-		window.addEventListener('resize', apply);
-		window.addEventListener('orientationchange', () => setTimeout(apply, 150));
-})();
-let pipCanvas = null, pipVideo = null, pipStream = null, pipTimer = null;
+	}
+	updateAutoRotateBtnState();
+	if (!silent && isPortraitLocked && typeof showToast === 'function') showToast('Locked to Portrait 🔒');
+}
+function unlockOrientation() {
+	if (orientationLockSupported()) {
+		try {
+			window.screen.orientation.unlock();
+		} catch (e) {
+			console.warn('Could not unlock orientation:', e);
+		}
+	}
+	isPortraitLocked = false;
+	updateAutoRotateBtnState();
+	if (typeof showToast === 'function') showToast('Auto-Rotate: ON 🔃');
+}
+window.toggleOrientationLock = function() {
+	if (!orientationLockSupported()) {
+		if (typeof showToast === 'function') showToast('Screen orientation lock not supported on this device 🔃');
+		return;
+	}
+	if (isPortraitLocked) {
+		unlockOrientation();
+	} else {
+		lockPortraitOrientation();
+	}
+};
 function pipSupported() {
 	return !!(document.pictureInPictureEnabled && HTMLCanvasElement.prototype.captureStream);
 }
@@ -7278,8 +6967,6 @@ async function exitPipMode() {
 		console.warn('[PiP] exit failed:', err);
 	}
 }
-let pinnedPopHandler = null;
-let pinnedFullscreenRearm = null;
 async function requestAppFullscreen() {
 	const el = document.documentElement;
 	try {
@@ -7338,6 +7025,424 @@ function restorePinnedModeOnBoot() {
 	};
 	window.addEventListener('pointerdown', pinnedFullscreenRearm, { once: false });
 }
+window.modules = modules;
+window.settingsToBackupCode = settingsToBackupCode;
+window.importSettingsFromBackupCode = importSettingsFromBackupCode;
+window.diffAgainstDefaults = diffAgainstDefaults;
+window.mergeWithDefaults = mergeWithDefaults;
+window.DEFAULT_APP = DEFAULT_APP;
+window.lockBodyScroll = lockBodyScroll;
+window.unlockBodyScroll = unlockBodyScroll;
+
+// ============================================================
+// BOOTSTRAP / INITIALIZATION
+// ============================================================
+const startApp = () => {
+	loadState();
+	window.appSettings = appSettings;
+	if (new URLSearchParams(window.location.search).has('forceRefresh')) {
+		history.replaceState(null, '', window.location.pathname);
+		if (typeof showToast === 'function') showToast('Refreshed to the latest version ✅');
+	}
+	document.addEventListener('fullscreenchange', () => {
+			document.body.classList.toggle('fullscreen-mode', !!document.fullscreenElement);
+	});
+	restorePinnedModeOnBoot();
+	if (appSettings.isDndEnabled) {
+		const dndBtn = document.getElementById('headerdndbtn');
+		if (dndBtn) dndBtn.classList.add('ring-2', 'ring-emerald-500');
+	}
+	if (appSettings.isEcoModeEnabled) document.body.classList.add('eco-mode');
+	const headerfullscreenbtn = document.getElementById('headerfullscreenbtn');
+	if (headerfullscreenbtn) {
+		headerfullscreenbtn.onclick = () => {
+			if (!document.fullscreenElement) {
+				document.documentElement.requestFullscreen().catch(err => {
+						console.warn(`Fullscreen error: ${err.message}`);
+				});
+				headerfullscreenbtn.classList.add('ring-2', 'ring-emerald-500');
+			} else {
+				document.exitFullscreen();
+				headerfullscreenbtn.classList.remove('ring-2', 'ring-emerald-500');
+			}
+		};
+	}
+	const headerpinnedbtn = document.getElementById('headerpinnedbtn');
+	if (headerpinnedbtn) {
+		headerpinnedbtn.onclick = async () => {
+			const enabling = !appSettings.isPinnedModeEnabled;
+			appSettings.isPinnedModeEnabled = enabling;
+			if (typeof saveState === 'function') saveState();
+			headerpinnedbtn.classList.toggle('ring-2', enabling);
+			headerpinnedbtn.classList.toggle('ring-emerald-500', enabling);
+			if (enabling) await enterPinnedMode();
+			else await exitPinnedMode();
+		};
+	}
+	const headerdndbtn = document.getElementById('headerdndbtn');
+	if (headerdndbtn) {
+		headerdndbtn.onclick = () => {
+			const enabling = !appSettings.isDndEnabled;
+			appSettings.isDndEnabled = enabling;
+			if (typeof saveState === 'function') saveState();
+			headerdndbtn.classList.toggle('ring-2', enabling);
+			headerdndbtn.classList.toggle('ring-emerald-500', enabling);
+			if (typeof showToast === 'function') showToast(enabling ? 'Do Not Disturb on 🔕' : 'Do Not Disturb off');
+		};
+	}
+	const headerpipbtn = document.getElementById('headerpipbtn');
+	if (headerpipbtn) {
+		headerpipbtn.onclick = async () => {
+			if (document.pictureInPictureElement) {
+				await exitPipMode();
+				headerpipbtn.classList.remove('ring-2', 'ring-emerald-500');
+			} else {
+				const ok = await enterPipMode();
+				headerpipbtn.classList.toggle('ring-2', ok);
+				headerpipbtn.classList.toggle('ring-emerald-500', ok);
+			}
+		};
+	}
+	const headerupsidedownbtn = document.getElementById('headerupsidedownbtn');
+	if (headerupsidedownbtn) {
+		headerupsidedownbtn.onclick = () => {
+			document.body.classList.toggle('upside-down');
+			if (document.body.classList.contains('upside-down')) {
+				headerupsidedownbtn.classList.add('ring-2', 'ring-emerald-500');
+				showToast("Upside Down Mode: ON 🙃");
+			} else {
+				headerupsidedownbtn.classList.remove('ring-2', 'ring-emerald-500');
+				showToast("Upside Down Mode: OFF");
+			}
+		};
+	}
+	const headerautorotatebtn = document.getElementById('headerautorotatebtn');
+	if (headerautorotatebtn) {
+		headerautorotatebtn.onclick = () => {
+			if (typeof window.toggleOrientationLock === 'function') window.toggleOrientationLock();
+		};
+	}
+	if (appSettings.isWakeLockEnabled && typeof window.wakelockToggle === 'function') {
+		window.wakelockToggle(true);
+	}
+	if (typeof lockPortraitOrientation === 'function') lockPortraitOrientation(true);
+	modules.settings = new SettingsManager(appSettings, {
+			onSave: () => saveState(),
+			onUpdate: () => updateAllChrome(),
+			onProfileSwitch: id => {
+				if (appSettings.activeProfileId && appSettings.profiles[appSettings.activeProfileId] && appSettings.runtimeSettings) {
+					appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings));
+				}
+				appSettings.activeProfileId = id;
+				appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[id].settings));
+				saveState();
+				renderUI();
+			},
+			onProfileAdd: name => {
+				const id = 'p_' + Date.now();
+				appSettings.profiles[id] = {
+					name: name,
+					settings: JSON.parse(JSON.stringify(DEFAULT_PROFILE_SETTINGS)),
+					theme: 'default'
+				};
+				saveState();
+			},
+			onProfileRename: name => {
+				appSettings.profiles[appSettings.activeProfileId].name = name;
+				saveState();
+			},
+			onProfileDelete: () => {
+				if (Object.keys(appSettings.profiles).length > 1) {
+					delete appSettings.profiles[appSettings.activeProfileId];
+					appSettings.activeProfileId = Object.keys(appSettings.profiles)[0];
+					appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId].settings));
+					saveState();
+					renderUI();
+				} else {
+					alert("Cannot delete the last profile.");
+				}
+			},
+			onProfileSave: () => {
+				appSettings.profiles[appSettings.activeProfileId].settings = JSON.parse(JSON.stringify(appSettings.runtimeSettings));
+				saveState();
+			},
+			onReset: () => {
+				localStorage.clear();
+				window.location.reload();
+			}
+	});
+	class ToneSequenceTester {
+		constructor() {
+			this.audioCtx = null;
+			this.isPlaying = false;
+			this.stopRequested = false;
+			this.TONES = Object.fromEntries(TONE_TABLE.map(t => [t.n, t.f]));
+		}
+		_initAudio() {
+			if (!this.audioCtx) {
+				this.audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+			}
+		}
+		async playTone(frequency, durationMs) {
+			this._initAudio();
+			if (this.audioCtx.state === 'suspended') await this.audioCtx.resume();
+			const oscillator = this.audioCtx.createOscillator();
+			const gainNode = this.audioCtx.createGain();
+			oscillator.type = 'sine';
+			oscillator.frequency.value = frequency;
+			const attack = 0.01,
+			release = 0.01;
+			const durationSec = durationMs / 1000;
+			const now = this.audioCtx.currentTime;
+			gainNode.gain.setValueAtTime(0, now);
+			gainNode.gain.linearRampToValueAtTime(1, now + attack);
+			gainNode.gain.setValueAtTime(1, now + durationSec - release);
+			gainNode.gain.linearRampToValueAtTime(0, now + durationSec);
+			oscillator.connect(gainNode);
+			gainNode.connect(this.audioCtx.destination);
+			oscillator.start(now);
+			oscillator.stop(now + durationSec);
+			return new Promise(resolve => setTimeout(resolve, durationMs));
+		}
+		async playSequence(sequence, toneDurationMs = 200, silenceDurationMs = 800, onProgress) {
+			this.isPlaying = true;
+			this.stopRequested = false;
+			for (let i = 0; i < sequence.length; i++) {
+				if (this.stopRequested) break;
+				const num = sequence[i];
+				const freq = this.TONES[num];
+				if (freq) {
+					if (onProgress) onProgress(i, sequence.length, num, freq);
+					await this.playTone(freq, toneDurationMs);
+					if (this.stopRequested) break;
+					if (i < sequence.length - 1) {
+						await new Promise(resolve => setTimeout(resolve, silenceDurationMs));
+					}
+				}
+			}
+			this.isPlaying = false;
+			if (onProgress) onProgress(-1, sequence.length, null, null);
+		}
+		stop() {
+			this.stopRequested = true;
+		}
+	}
+	const toneSequenceTester = new ToneSequenceTester();
+	window.toneSequenceTester = toneSequenceTester;
+	const toneEngine = new ToneEngine(val => {
+			addValue(val);
+			showToast(`🎵 Tone: ${val}`);
+			const advancedTab = document.getElementById('tab-advanced');
+			if (advancedTab && advancedTab.classList.contains('active')) {
+				const historyEl = document.getElementById('tone-test-history');
+				if (historyEl) {
+					historyEl.textContent += (historyEl.textContent ? ", " : "") + val;
+				}
+			}
+		}, debug => {
+			const el = document.getElementById('tone-debug-indicator');
+			const testEl = document.getElementById('test-tone-readout');
+			let text;
+			if (debug.error) {
+				text = `🎵 Mic error: ${debug.error}`;
+			} else if (debug.note) {
+				text = `🎵 ${(TONE_TABLE.find(t => t.n === debug.note) || {}).name || '?'} (${debug.freq}Hz) #${debug.note}`;
+			} else if (debug.freq) {
+				text = `🎵 ${debug.freq}Hz (no note match)`;
+			} else {
+				text = `🎵 listening...`;
+			}
+			if (el) el.textContent = text;
+			if (testEl) testEl.textContent = text;
+	});
+	window.toneEngine = toneEngine;
+	let handGestureHistory = [];
+	let handGestureCooldownUntil = 0;
+	if (typeof VisionEngine !== 'function') {
+		console.warn('VisionEngine unavailable (wasm/vision_bundle.js not found) - hand tracking disabled.');
+		modules.vision = {
+			isActive: false,
+			start() {
+				showToast('Hand tracking unavailable (missing wasm/vision_bundle.js) ❌');
+			},
+			stop() {}
+		};
+	} else {
+		modules.vision = new VisionEngine(handGestureData => {
+				const settings = getProfileSettings();
+				if (Date.now() < handGestureCooldownUntil) {
+					return;
+				}
+				if (!handGestureData || handGestureData === "none") {
+					return;
+				}
+				let handGestureId = typeof handGestureData === 'object' ? handGestureData.id : handGestureData;
+				if (typeof handGestureId === 'number' && handGestureId >= 0 && handGestureId <= 63 && handGestureId % 2 === 1) {
+					handGestureId = handGestureId - 1;
+				}
+				const handGestureLabel = typeof handGestureData === 'object' ? handGestureData.label : "Gesture";
+				const handSide = (typeof handGestureData === 'object' && handGestureData.hand) ? handGestureData.hand : null;
+				const handReadout = document.getElementById('test-hand-readout');
+				if (handReadout) {
+					const sideLabel = handSide === 'L' ? '✋ Left hand' : handSide === 'R' ? '🤚 Right hand' : '';
+					handReadout.textContent = `ID ${handGestureId} - ${handGestureLabel}${sideLabel ? ' | ' + sideLabel : ''}`;
+				}
+				if (window.__testChecklists?.hand) window.__testChecklists.hand.mark(String(handGestureId));
+				if (window.__handTestModeActive) return;
+				if (appSettings.isHandGesturesEnabled && appSettings.isHandSignalsEnabled) {
+					if (handGestureId === 'TWO_HAND_CLEAR') {
+						showToast("Hand Signal: Clear 🧹✊✊");
+						if (typeof resetCurrentMachine === 'function') resetCurrentMachine();
+						handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
+						return;
+					}
+					if (handGestureId === 'TWO_HAND_DELETE') {
+						showToast("Hand Signal: Delete 🔙👎👎");
+						if (typeof handleBackspace === 'function') handleBackspace();
+						handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
+						return;
+					}
+					if (handGestureId === 'TWO_HAND_PLAY') {
+						showToast("Hand Signal: Playing ▶️👍👍");
+						playDemo();
+						handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
+						return;
+					}
+					if (handGestureId === 'TWO_HAND_STOP') {
+						isDemoPlaying = false;
+						showToast("Hand Signal: Stopped 🛑✋✋");
+						handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
+						return;
+					}
+				}
+				let mappedInput = null;
+				if (appSettings.mappings) {
+					const detectedHand = (typeof handGestureData === 'object' && handGestureData.hand) ? handGestureData.hand : null;
+					for (const [key, mapData] of Object.entries(appSettings.mappings)) {
+						const prefix = settings.currentInput === 'key9' ? 'k9_' : settings.currentInput === 'key12' ? 'k12_' : 'piano_';
+						if (!key.startsWith(prefix)) continue;
+						if (parseInt(mapData.handGesture) !== handGestureId) continue;
+						const wantSide = mapData.handSide || 'any';
+						if (wantSide !== 'any') {
+							if (detectedHand === null) continue;
+							if (wantSide !== detectedHand) continue;
+						}
+						mappedInput = key.replace(prefix, '');
+						break;
+					}
+				}
+				if (mappedInput !== null) {
+					addValue(mappedInput);
+					showToast(`Hand: ${mappedInput} (${handGestureLabel}) 🖐️`);
+					document.body.style.backgroundColor = '#222';
+					setTimeout(() => document.body.style.backgroundColor = '', 100);
+					handGestureCooldownUntil = Date.now() + (appSettings.handGestureCooldown || 2000);
+				}
+			}, status => showToast(status));
+	}
+	voiceModule = new VoiceCommander({
+			onStatus: msg => showToast(msg),
+			onInput: val => {
+				addValue(val);
+				const btn = document.querySelector(`#pad-${getProfileSettings().currentInput} button[data-value="${val}"]`);
+				if (btn) {
+					btn.classList.add('flash-active');
+					setTimeout(() => btn.classList.remove('flash-active'), 200);
+				}
+				const hMic = document.getElementById('headervoicebtn');
+				if (hMic) {
+					hMic.classList.remove('header-btn-active');
+					setTimeout(() => {
+							if (voiceModule.isListening) hMic.classList.add('header-btn-active');
+						}, 300);
+				}
+			},
+			onCommand: cmd => {
+				if (!appSettings.isVoiceInputEnabled || !appSettings.isVoiceCommandsEnabled) {
+					console.log("Voice commands disabled (Voice Input or Voice Commands is off). Ignoring:", cmd);
+					return;
+				}
+				if (cmd === 'CMD_PLAY') {
+					playDemo();
+					showToast("Voice: Playing ▶️");
+				}
+				if (cmd === 'CMD_STOP') {
+					isDemoPlaying = false;
+					showToast("Voice: Stopped 🛑");
+				}
+				if (cmd === 'CMD_CLEAR') {
+					const s = getState();
+					s.sequences = Array.from({
+							length: CONFIG.MAX_MACHINES
+						}, () => []);
+					renderUI();
+					showToast("Voice: Cleared All 💥");
+				}
+				if (cmd === 'CMD_DELETE') {
+					handleBackspace();
+					showToast("Voice: Backspace 🔙");
+				}
+				if (cmd === 'CMD_SETTINGS') {
+					modules.settings.openSettings();
+				}
+				if (cmd === 'CMD_VOLUME_UP') {
+					appSettings.runtimeSettings.voiceVolume = Math.min(1.0, (appSettings.runtimeSettings.voiceVolume || 1.0) + 0.1);
+					saveState();
+					showToast(`Voice: Volume ${(appSettings.runtimeSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
+				}
+				if (cmd === 'CMD_VOLUME_DOWN') {
+					appSettings.runtimeSettings.voiceVolume = Math.max(0.0, (appSettings.runtimeSettings.voiceVolume || 1.0) - 0.1);
+					saveState();
+					showToast(`Voice: Volume ${(appSettings.runtimeSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
+				}
+				if (cmd === 'CMD_SPEED_UP') {
+					appSettings.runtimeSettings.playbackSpeed = Math.min(2.0, (appSettings.runtimeSettings.playbackSpeed || 1.0) + 0.1);
+					saveState();
+					showToast(`Voice: Speed ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
+				}
+				if (cmd === 'CMD_SPEED_DOWN') {
+					appSettings.runtimeSettings.playbackSpeed = Math.max(0.5, (appSettings.runtimeSettings.playbackSpeed || 1.0) - 0.1);
+					saveState();
+					showToast(`Voice: Speed ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
+				}
+			}
+	});
+	window.voiceModule = voiceModule;
+	if (appSettings.isRandomThemeEnabled) {
+		const allThemeKeys = [...Object.keys(PREMADE_THEMES), ...Object.keys(appSettings.customThemes || ({}))];
+		if (allThemeKeys.length > 0) {
+			appSettings.activeTheme = allThemeKeys[Math.floor(Math.random() * allThemeKeys.length)];
+		}
+	}
+	updateAllChrome();
+	initFirebaseAndComments();
+	modules.settings.updateHeaderVisibility();
+	initGlobalListeners();
+	if (typeof window.updateAmbientSensorState === 'function') window.updateAmbientSensorState();
+	if (typeof window.updateProximitySensorState === 'function') window.updateProximitySensorState();
+	initTouchGestureEngine();
+	setupARLogic();
+	renderUI();
+};
+(function initRealViewportHeight() {
+		const footer = document.getElementById('input-footer');
+		const apply = () => {
+			const vv = window.visualViewport;
+			const h = (vv && vv.height) || window.innerHeight;
+			document.documentElement.style.setProperty('--real-vh', h + 'px');
+			if (vv && footer && !document.body.classList.contains('layout-swapped')) {
+				const offset = window.innerHeight - vv.height - vv.offsetTop;
+				footer.style.bottom = Math.max(0, offset) + 'px';
+			}
+		};
+		apply();
+		if (window.visualViewport) {
+			window.visualViewport.addEventListener('resize', apply);
+			window.visualViewport.addEventListener('scroll', apply);
+		}
+		window.addEventListener('resize', apply);
+		window.addEventListener('orientationchange', () => setTimeout(apply, 150));
+})();
 document.addEventListener('DOMContentLoaded', startApp);
 if ('serviceWorker' in navigator) {
 	window.addEventListener('load', () => {
@@ -7346,3 +7451,4 @@ if ('serviceWorker' in navigator) {
 			});
 	});
 }
+

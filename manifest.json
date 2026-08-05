@@ -30,13 +30,19 @@
     }
   ],
   "shortcuts": [
-  {
-    "name": "Emergency App Reset",
-    "short_name": "Reset App",
-    "description": "Wipes all cached data and service workers if the app breaks",
-    "url": "/?nuke=true",
-    "icons": [{ "src": "/icons/warning-icon.png", "sizes": "192x192" }]
-  }
+    {
+      "name": "Refresh App",
+      "short_name": "Refresh",
+      "description": "Force-reload the latest version if something looks broken - keeps your saved settings",
+      "url": "./index.html?forceRefresh=1",
+      "icons": [
+        {
+          "src": "icon192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
   ],
   "screenshots": [
     {

@@ -1,26 +1,4 @@
-const CACHE_NAME = 'follow-me-v84';
-
-self.addEventListener('fetch', (event) => {
-  // 1. Catch the nuke request at the network level
-  if (event.request.url.includes('nuke=true')) {
-    event.respondWith(
-      (async () => {
-        // Wipe all caches
-        const cacheNames = await caches.keys();
-        await Promise.all(cacheNames.map(name => caches.delete(name)));
-        
-        // Unregister this Service Worker
-        await self.registration.unregister();
-        
-        // Return a raw HTML response that forces the client to reload clean
-        return new Response(
-          '<html><body><h2>App Nuked.</h2><script>localStorage.clear(); sessionStorage.clear(); setTimeout(() => { window.location.href = "/"; }, 1000);</script></body></html>',
-          { headers: { 'Content-Type': 'text/html' } }
-        );
-      })()
-    );
-    return; 
-  }
+const CACHE_NAME = 'follow-me-v86';
 
 const CRITICAL_ASSETS = [
     './',
@@ -87,7 +65,33 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
     if (event.request.method !== 'GET') return;
-    
+
+    if (event.request.mode === 'navigate') {
+        const url = new URL(event.request.url);
+        if (url.searchParams.has('forceRefresh')) {
+            event.respondWith(
+                (async () => {
+                    try {
+                        const cacheNames = await caches.keys();
+                        await Promise.all(cacheNames.map(name => caches.delete(name)));
+                        console.log('[SW] Force-refresh: all caches cleared');
+                    } catch (e) {
+                        console.warn('[SW] Force-refresh cache clear failed:', e);
+                    }
+                    try {
+                        self.registration.update();
+                    } catch (e) {}
+                    try {
+                        return await fetch(event.request, { cache: 'no-store' });
+                    } catch (e) {
+                        return fetch(event.request);
+                    }
+                })()
+            );
+            return;
+        }
+    }
+
     event.respondWith(
         caches.match(event.request).then(cached => {
             // Return cached content if available[span_3](start_span)[span_3](end_span)

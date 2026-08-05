@@ -1,44 +1,6 @@
 <html lang="en">
 <head>
 <script>
-  if (window.location.search.includes('nuke=true')) {
-    (async function executeNukeProtocol() {
-      console.warn("Initiating Emergency Nuke Protocol...");
-
-      localStorage.clear();
-      sessionStorage.clear();
-
-      // Wipe IndexedDB (Critical for file systems / heavy config storage)
-      if ('indexedDB' in window) {
-        try {
-          const dbs = await window.indexedDB.databases();
-          dbs.forEach(db => { 
-            window.indexedDB.deleteDatabase(db.name); 
-          });
-        } catch (e) {
-          console.warn("IndexedDB wipe failed or unsupported:", e);
-        }
-      }
-
-      if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        for (const registration of registrations) {
-          await registration.unregister(); 
-        }
-      }
-
-      if ('caches' in window) {
-        const cacheNames = await caches.keys();
-        for (const name of cacheNames) {
-          await caches.delete(name);
-        }
-      }
-
-      window.location.href = window.location.pathname; 
-    })();
-  }
-</script>
-<script>
 window.onerror = function(msg, url, line) {
 alert("Error: " + msg + "\nLine: " + line);
 };
@@ -80,6 +42,7 @@ alert("Promise Error: " + event.reason);
 <button id="headerpinnedbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">📌</button>
 <button id="headerdndbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔕</button>
 <button id="headerupsidedownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🙃</button>
+<button id="headerautorotatebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Auto-Rotate">🔃</button>
 <button id="headerswapbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔄</button>
 <button id="headerplaybtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Play">▶️</button>
 <button id="headerdeletebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Delete">⌫</button>
@@ -239,11 +202,14 @@ alert("Promise Error: " + event.reason);
 	<!-- Grouped Control Buttons: Top Right -->
 	<div class="absolute top-4 right-4 z-50 flex flex-col items-center gap-4">
 		<button id="close-redeem-btn" class="bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600">✕</button>
-		<button id="redeem-zoom-in" class="bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">+</button>
-		<button id="redeem-zoom-out" class="bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">-</button>
+		<button id="redeem-zoom-in" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">+</button>
+		<button id="redeem-zoom-out" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">-</button>
 	</div>
+
+	<!-- Image Container -->
 	<div class="relative w-full max-w-[280px] h-[95vh] flex flex-col items-center justify-center p-4">
 		<div class="bg-white p-2 rounded-lg w-full h-full flex items-center justify-center overflow-hidden">
+			<!-- Added scale(0.9) to reduce initial picture size -->
 			<img id="redeem-img" src="redeem.png" alt="Redeem Barcode" class="w-full h-full object-contain transition-transform duration-200" style="transform: scale(0.7);">
 		</div>
 	</div>
@@ -532,6 +498,9 @@ alert("Promise Error: " + event.reason);
 <span class="font-bold text-sm text-muted-custom">Upside Down 🙃</span>
 <input type="checkbox" id="upsidedownToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm text-muted-custom">Auto Rotate 🔃</span>
+<input type="checkbox" id="autoRotateToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm text-muted-custom">Full Screen 🔲</span>
 <input type="checkbox" id="fullscreenToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
@@ -606,6 +575,12 @@ alert("Promise Error: " + event.reason);
 <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Clear Gesture 💥</span>
 <input type="checkbox" id="clearToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Auto Bright ☀️</span>
+<input type="checkbox" id="autoBrightToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Auto Dark 🌙</span>
+<input type="checkbox" id="autoDarkToggle" class="h-5 w-5 accent-indigo-500"></div>
 </div>
 <div class="grid grid-cols-2 gap-3 pt-2">
 <div>
@@ -1291,14 +1266,6 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div id="morse-container-target"></div>
 </div>
 </details>
-<!--
-<div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
-<h4 class="font-bold text-sm mb-2 text-primary-app">Comments Deletion PIN 🔐</h4>
-<p class="text-[10px] text-gray-400 mb-2">Set a PIN to enable deletion of any comment from the feedback modal. Leave blank to disable deletions.</p>
-<input type="password" id="comments-deletion-pin" class="settings-input w-full p-2 rounded text-sm mb-2" placeholder="Set PIN (numbers only, e.g., 1234)">
-<p class="text-[10px] text-gray-400">PIN is stored locally only. Use numbers or letters.</p>
-</div>
--->
 <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
 <h4 class="font-bold text-sm mb-2 text-primary-app">Backup / Restore 💾</h4>
 <p class="text-[10px] text-gray-400 mb-2">Export your full settings (including custom presets) as a backup code before resetting, or paste one back in to restore it.</p>
@@ -1489,6 +1456,7 @@ Email
 </ul>
 </div>
 <p class="text-[10px] text-gray-500 italic">Each icon above only appears in the header once its matching toggle is turned on in Settings → General. When enough are on to overflow one row, the header becomes a horizontally-scrolling toolbar - drag left or right, it loops continuously in both directions.</p>
+<p class="text-[11px] mt-2"><strong>App won't load or acting broken, and you can't even reach Nuke? 🔄</strong> Long-press the Follow Me icon on your home screen and tap "Refresh App." This forces the freshest version of the app's code down, without touching your saved settings - use it instead of clearing your browser's site data, which would wipe everything.</p>
 </div>
 <div id="tab-help-settings" class="tab-content space-y-3">
 <p class="text-xs opacity-80 mb-3">Every toggle, slider, and switch in the Settings menu explained.</p>
@@ -1544,6 +1512,7 @@ Email
 <div><strong>Picture in Picture 🪟:</strong> Opens a small always-on-top window showing your current sequence, so you can read it while using another app. View-only - you can't tap the sequence in the floating window. The Settings toggle only shows or hides its header button (🪟), placed last in the row - tap that header button to actually open or close Picture in Picture.</div>
 <div><strong>Pinned Mode 📌:</strong> Goes fullscreen and blocks the back gesture so you can't accidentally swipe out mid-sequence. The Settings toggle only shows or hides its header button (📌), right next to Full Screen - tap that header button to actually turn Pinned Mode on and off, or to leave once it's on. This is the app's own lock - it can't trigger Android's system screen pinning, which has no web API.</div>
 <div><strong>Upside Down:</strong> Flips the entire UI 180°.</div>
+<div><strong>Auto Rotate 🔃:</strong> The app locks to portrait on every launch to stop accidental rotation mid-game. The Settings toggle only shows or hides its header button (🔃), right next to Upside Down - tap that header button to allow free rotation, tap again to lock back to portrait. Works best once the app is added to your home screen; in a regular browser tab, orientation locking may not be available.</div>
 <div><strong>Full Screen:</strong> Hides browser bars.</div>
 <div><strong>Eco Mode 🔋:</strong> Reduces animations/framerate.</div>
 <div><strong>Position Swap 🔄:</strong> Adds a header button that moves the input pad from the bottom of the screen to the top.</div>
@@ -1562,7 +1531,9 @@ Email
 <div><strong>Speed Gesture:</strong> 2-finger twist adjusts speed.</div>
 <div><strong>Delete Gesture:</strong> 1-finger squiggle erases.</div>
 <div><strong>Clear Gesture:</strong> 2-finger squiggle nukes the round.</div>
-<div><strong>Auto Hide Header 👻:</strong> Hides header buttons until you touch the header area - they drop in, then float away again after 5 seconds of no touches there.</div>
+<div><strong>Auto Hide Header 👻:</strong> Hides header buttons until you touch the header area, or wave your hand near the top of the phone (proximity sensor, where supported) - they drop in, then float away again after 5 seconds of no activity there.</div>
+<div><strong>Auto Bright ☀️:</strong> Reads your device's ambient light sensor and switches the display to the Sunlight theme in bright light - your actual theme choice underneath is untouched and comes back once light levels drop. Needs a browser with Ambient Light Sensor support, which most stock Android browsers don't ship by default.</div>
+<div><strong>Auto Dark 🌙:</strong> Same idea as Auto Bright, but switches to Night Mode in the dark. Same sensor support caveat applies.</div>
 <div><strong>Infinite Header Scroll:</strong> Keeps the header's icon row looping continuously when dragged, instead of stopping at the first/last icon.</div>
 <div><strong>Input Regulator 🚦:</strong> Simon Says only - enforces a short cooldown per machine so the same slot can't be spammed faster than intended.</div>
 </div>
@@ -1613,7 +1584,6 @@ Email
 <p><strong>Sensitivity 🎛️:</strong> Every timing/distance threshold the Touch, Hand, Voice, and Tone Cadence engines use, grouped by input method - each slider explains itself underneath. "Restore Defaults" resets all of them at once (locks out while sliders are locked).</p>
 <p><strong>Populate Hand/Touch Gesture Menus:</strong> Two separate filter groups. Hand controls which pose/motion categories (Static Poses, Pinches, Finger Counts, Combos, Advanced Vision Shapes, Directional Swipes, Motion Transitions) show up in the Hand tab's dropdowns; Touch controls which touch categories (Taps, Swipes, Boomerangs, Chords, etc.) show up in the Touch tab's dropdowns.</p>
 <p><strong>Haptic Output Mapping:</strong> Customize the dot/dash vibration pattern for each of the 12 possible values, used when the Playback section's Morse toggle is on.</p>
-<p><strong>Comments Deletion PIN 🔐:</strong> Set a PIN to enable deletion of any comment from the feedback modal (💬 button in Settings header). When a PIN is set, a 🗑️ delete button appears next to each comment. Tap it to enter your PIN and delete that comment. Leave blank to disable deletions.</p>
 <p><strong>Backup / Restore 💾:</strong> Export your entire configuration (including custom presets and profiles) as a short text code, and paste one back in to restore it.</p>
 <p><strong>Settings Presets 🎯:</strong> A dropdown of ready-made configurations, right below Backup / Restore. Pick one and tap Copy, then paste the code into the Backup / Restore box above and tap Import to actually apply it - the preset box itself only ever shows you the code, it doesn't apply anything on its own.</p>
 </div>
@@ -1809,16 +1779,6 @@ Email
 <div class="flex space-x-2">
 <button id="close-comment-modal" class="flex-1 bg-gray-700 py-2 rounded text-white font-bold text-xs">Close</button>
 <button id="submit-comment-btn" class="flex-1 bg-blue-600 py-2 rounded text-white font-bold text-xs">Send</button>
-</div>
-</div>
-</div>
-<div id="pin-prompt-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none hidden">
-<div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom">
-<h3 class="font-bold text-lg mb-4">🔐 Enter PIN to Delete</h3>
-<input type="password" id="pin-prompt-input" class="settings-input w-full p-2 rounded mb-4 text-sm" placeholder="PIN" autocomplete="off">
-<div class="flex space-x-2">
-<button id="pin-prompt-cancel" class="flex-1 bg-gray-700 py-2 rounded text-white font-bold text-xs">Cancel</button>
-<button id="pin-prompt-confirm" class="flex-1 bg-red-600 py-2 rounded text-white font-bold text-xs">Delete</button>
 </div>
 </div>
 </div>

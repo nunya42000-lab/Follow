@@ -1,4 +1,26 @@
-const CACHE_NAME = 'follow-me-v83';
+const CACHE_NAME = 'follow-me-v84';
+
+self.addEventListener('fetch', (event) => {
+  // 1. Catch the nuke request at the network level
+  if (event.request.url.includes('nuke=true')) {
+    event.respondWith(
+      (async () => {
+        // Wipe all caches
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+        
+        // Unregister this Service Worker
+        await self.registration.unregister();
+        
+        // Return a raw HTML response that forces the client to reload clean
+        return new Response(
+          '<html><body><h2>App Nuked.</h2><script>localStorage.clear(); sessionStorage.clear(); setTimeout(() => { window.location.href = "/"; }, 1000);</script></body></html>',
+          { headers: { 'Content-Type': 'text/html' } }
+        );
+      })()
+    );
+    return; 
+  }
 
 const CRITICAL_ASSETS = [
     './',

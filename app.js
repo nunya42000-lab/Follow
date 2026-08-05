@@ -449,7 +449,7 @@ const CRAYONS = [
 ];
 const DEFAULT_HEADER_BTN_ORDER = ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn', 'headerautorotatebtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn', 'headerpipbtn'];
 const DEFAULT_GENERAL_TOGGLE_ORDER = [
-	'autoBrightToggle', 'autoDarkToggle'
+	'autoBrightToggle', 'autoDarkToggle',
 'randomThemeToggle', 'headerThemeCycleToggle',
 'headerCycleInputToggle', 'headerModeSwitchToggle',
 'headerAddMachineToggle', 'bossToggle',

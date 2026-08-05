@@ -958,7 +958,7 @@ let _savedScrollY = 0;
 let _scrollLocked = false;
 let ambientLightSensor = null;
 let proximitySensor = null;
-let isPortraitLocked = true;
+let isPortraitLocked = false;
 let pipCanvas = null, pipVideo = null, pipStream = null, pipTimer = null;
 let pinnedPopHandler = null;
 let pinnedFullscreenRearm = null;
@@ -6892,11 +6892,16 @@ function updateAutoRotateBtnState() {
 async function lockPortraitOrientation() {
 	if (!orientationLockSupported()) return false;
 	try {
-		await window.screen.orientation.lock('portrait');
+		await window.screen.orientation.lock('portrait-primary');
 		isPortraitLocked = true;
 	} catch (e) {
-		console.warn(`Could not lock orientation - ${e.name}: ${e.message}`);
-		isPortraitLocked = false;
+		try {
+			await window.screen.orientation.lock('portrait');
+			isPortraitLocked = true;
+		} catch (e2) {
+			console.warn(`Could not lock orientation - ${e2.name}: ${e2.message}`);
+			isPortraitLocked = false;
+		}
 	}
 	updateAutoRotateBtnState();
 	return isPortraitLocked;
@@ -6913,6 +6918,29 @@ function unlockOrientation() {
 	updateAutoRotateBtnState();
 	if (typeof showToast === 'function') showToast('Auto-Rotate: ON 🧭');
 }
+async function lockPortraitFromUserGesture() {
+	if (await lockPortraitOrientation()) {
+		if (typeof showToast === 'function') showToast('Locked to Portrait 🔒');
+		return;
+	}
+	// Plain lock failed. This has a real tap behind it, so - unlike the silent
+	// startup attempt - requestFullscreen() is actually allowed to succeed here.
+	// Some Android/Chrome versions only honor orientation lock in fullscreen even
+	// for installed, home-screen-launched PWAs - it's a known platform inconsistency.
+	if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+		try {
+			await document.documentElement.requestFullscreen();
+			await lockPortraitOrientation();
+		} catch (e) {
+			console.warn('Fullscreen fallback for orientation lock failed:', e.name, e.message);
+		}
+	}
+	if (isPortraitLocked) {
+		if (typeof showToast === 'function') showToast('Locked to Portrait (fullscreen) 🔒');
+	} else if (typeof showToast === 'function') {
+		showToast("Couldn't lock rotation - some Android/Chrome versions won't allow it here 🧭");
+	}
+}
 window.toggleOrientationLock = function() {
 	if (!orientationLockSupported()) {
 		if (typeof showToast === 'function') showToast('Screen orientation lock not supported on this device 🧭');
@@ -6921,9 +6949,7 @@ window.toggleOrientationLock = function() {
 	if (isPortraitLocked) {
 		unlockOrientation();
 	} else {
-		lockPortraitOrientation().then(ok => {
-			if (ok && typeof showToast === 'function') showToast('Locked to Portrait 🔒');
-		});
+		lockPortraitFromUserGesture();
 	}
 };
 function pipSupported() {
@@ -7211,6 +7237,7 @@ const startApp = async () => {
 	if (appSettings.isWakeLockEnabled && typeof window.wakelockToggle === 'function') {
 		window.wakelockToggle(true);
 	}
+	if (typeof lockPortraitOrientation === 'function') await lockPortraitOrientation();
 	modules.settings = new SettingsManager(appSettings, {
 			onSave: () => saveState(),
 			onUpdate: () => updateAllChrome(),

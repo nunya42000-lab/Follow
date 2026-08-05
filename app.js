@@ -804,9 +804,7 @@ const DEFAULT_APP = {
 		'headernukebtn'
 	],
 	generalToggleOrder: [
-'randomThemeToggle', 'headerThemeCycleToggle',
-'headerCycleInputToggle', 'headerModeSwitchToggle',
-'autoBrightToggle', 'autoDarkToggle'
+'autoBrightToggle', 'autoDarkToggle',
 'randomThemeToggle', 'headerThemeCycleToggle',
 'headerCycleInputToggle', 'headerModeSwitchToggle',
 'headerAddMachineToggle', 'bossToggle',

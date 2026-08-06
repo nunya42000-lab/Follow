@@ -1,7 +1,3 @@
-
-// ============================================================
-// CONSTANTS & CONFIGURATION
-// ============================================================
 const TONE_TABLE = [
 	{ n: 1, f: 261.63, name: 'C' },
 	{ n: 2, f: 293.66, name: 'D' },
@@ -447,9 +443,22 @@ const CRAYONS = [
   "#FF6347", "#FF7F50", "#FF8C00", "#FFA500", "#FFD700", "#999999", 
   "#808080", "#666666", "#333333", "#222222", "#111111", "#0A0A0A"
 ];
-const DEFAULT_HEADER_BTN_ORDER = ['headertimerbtn', 'headercounterbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn', 'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn', 'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn', 'headerautorotatebtn', 'headerswapbtn', 'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn', 'headernukebtn', 'headernotepadbtn', 'headerpipbtn'];
+const DEFAULT_HEADER_BTN_ORDER = [
+    'headertimerbtn', 'headercounterbtn','headervoicebtn',
+    'headertonebtn', 'headertouchbtn', 'headerhandbtn',
+    'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn',
+    'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn',
+    'headerautorotatebtn', 'headerswapbtn', 'headerplaybtn',
+    'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn',
+    'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn',
+    'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn',
+    'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn',
+    'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn',
+    'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn',
+    'headernukebtn', 'headernotepadbtn', 'headerpipbtn'
+];
 const DEFAULT_GENERAL_TOGGLE_ORDER = [
-	'autoBrightToggle', 'autoDarkToggle',
+'autoBrightToggle', 'autoDarkToggle',
 'randomThemeToggle', 'headerThemeCycleToggle',
 'headerCycleInputToggle', 'headerModeSwitchToggle',
 'headerAddMachineToggle', 'bossToggle',
@@ -504,9 +513,9 @@ const DEFAULT_PROFILE_SETTINGS = {
 	simonInterSequenceDelay: 200,
 	isUniqueRoundsAutoClearEnabled: true,
 	isPracticeModeEnabled: false,
-	isAutoplayEnabled: true,
-	isFlashEnabled: true,
-	isAudioEnabled: true,
+	isAutoplayEnabled: false,
+	isFlashEnabled: false,
+	isAudioEnabled: false,
 	isHapticMorseEnabled: false,
 	playbackSpeed: 1.0,
 	pauseSetting: 200,
@@ -570,43 +579,43 @@ const DEFAULT_APP = {
 	playbackSpeed: 1.0,
 	isAutoplayEnabled: false,
 	isUniqueRoundsAutoClearEnabled: true,
-	isAudioEnabled: true,
-	isHapticsEnabled: true,
-	isFlashEnabled: true,
+	isAudioEnabled: false,
+	isHapticsEnabled: false,
+	isFlashEnabled: false,
 	pauseSetting: 200,
 	isSpeedDeletingEnabled: true,
 	isSpeedTouchGesturesEnabled: false,
 	isVolumeTouchGesturesEnabled: false,
 	isArModeEnabled: false,
-	isArAutoCloseEnabled: true,
+	isArAutoCloseEnabled: false,
 	isVoiceInputEnabled: false,
 	arPlaybackSpeed: 1.00,
 	voiceTriggerWord: 'set',
 	isDeleteTouchGestureEnabled: true,
 	isClearTouchGestureEnabled: true,
 	isAutoTimerEnabled: false,
-	isAutoCounterEnabled: true,
+	isAutoCounterEnabled: false,
 	isWakeLockEnabled: true,
 	isDndEnabled: false,
 	isPinnedModeEnabled: false,
-	isEcoModeEnabled: true,
+	isEcoModeEnabled: false,
 	isLongPressAutoplayEnabled: true,
-	showBiggerBtn: true,
+	showBiggerBtn: false,
 	activeTheme: 'default',
 	customThemes: {},
 	isRandomThemeEnabled: false,
 	isBossModeEnabled: false,
 	isHapticMorseEnabled: false,
 	showTimer: false,
-	showCounter: true,
+	showCounter: false,
 	isHandGesturesEnabled: false,
-	isHandSignalsEnabled: true,
+	isHandSignalsEnabled: false,
 	handednessFlip: false,
 	showHeaderPlayBtn: false,
 	showHeaderDeleteBtn: false,
-	showHeaderSettingsBtn: true,
-	showHeaderRedeemBtn: true,
-	showHeaderShareBtn: true,
+	showHeaderSettingsBtn: false,
+	showHeaderRedeemBtn: false,
+	showHeaderShareBtn: false,
 	showHeaderThemeCycleBtn: false,
 	showHeaderAddMachineBtn: false,
 	showHeaderUiSizeBtns: false,
@@ -614,13 +623,13 @@ const DEFAULT_APP = {
 	showHeaderVolumeBtns: false,
 	showHeaderSpeedBtns: false,
 	showHeaderCycleInputBtn: false,
-	showHeaderNotepadBtn: true,
+	showHeaderNotepadBtn: false,
 	showHeaderHelpBtn: false,
 	showHeaderModeSwitchBtn: false,
 	showHeaderResetBtn: false,
 	showHeaderNukeBtn: false,
 	notepadText: '',
-	isVoiceCommandsEnabled: true,
+	isVoiceCommandsEnabled: false,
 	isToneCadenceEnabled: false,
 	isInputRegulatorEnabled: false,
 	isAutoHideHeaderEnabled: false,
@@ -636,7 +645,7 @@ const DEFAULT_APP = {
 		notes: {}
 	},
 	isPositionSwapEnabled: false,
-	isSkeletonDebugEnabled: true,
+	isSkeletonDebugEnabled: false,
 	activeFontFamily: "'Inter', sans-serif",
 	handGestureCooldown: 600,
 	handHoldFrames: 4,
@@ -647,7 +656,7 @@ const DEFAULT_APP = {
 	touchAnchorStillDistance: 15,
 	touchAnchorMinHoldTime: 150,
 	touchChordSimultaneityWindow: 50,
-	showFullscreenBtn: true,
+	showFullscreenBtn: false,
 	showPinnedBtn: false,
 	showDndBtn: false,
 	showPipBtn: false,
@@ -664,7 +673,7 @@ const DEFAULT_APP = {
 	selectedVoice: null,
 	voicePresets: {},
 	activeVoicePresetId: 'standard',
-	isTouchGestureInputEnabled: true,
+	isTouchGestureInputEnabled: false,
 	touchGestureMappings: {
 		'k9_1': { gesture: 'Double_tap_spatial_nw' },
 		'k9_2': { gesture: 'Double_tap_spatial_up' },
@@ -766,42 +775,18 @@ const DEFAULT_APP = {
 		'touch-preset-key12-select': '12_taps'
 	},
 	headerBtnOrder: [
-		'headertimerbtn',
-		'headercounterbtn',
-		'headervoicebtn',
-		'headertonebtn',
-		'headertouchbtn',
-		'headerhandbtn',
-		'headerarcambtn',
-		'headerbiggerbtn',
-		'headerfullscreenbtn',
-		'headerpinnedbtn',
-		'headerdndbtn',
-		'headerupsidedownbtn',
-		'headerautorotatebtn',
-		'headerswapbtn',
-		'headerplaybtn',
-		'headerdeletebtn',
-		'headersettingsbtn',
-		'headerhelpbtn',
-		'headermodeswitchbtn',
-		'headerredeembtn',
-		'headersharebtn',
-		'headerthemecyclebtn',
-		'headeraddmachinebtn',
-		'headeruiupbtn',
-		'headeruidownbtn',
-		'headersequpbtn',
-		'headerseqdownbtn',
-		'headervolupbtn',
-		'headervoldownbtn',
-		'headerspeedupbtn',
-		'headerspeeddownbtn',
-		'headercycleinputbtn',
-		'headerresetbtn',
-		'headernukebtn',
-		'headernotepadbtn',
-		'headerpipbtn'
+    'headertimerbtn', 'headercounterbtn','headervoicebtn',
+    'headertonebtn', 'headertouchbtn', 'headerhandbtn',
+    'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn',
+    'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn',
+    'headerautorotatebtn', 'headerswapbtn', 'headerplaybtn',
+    'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn',
+    'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn',
+    'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn',
+    'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn',
+    'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn',
+    'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn',
+    'headernukebtn', 'headernotepadbtn', 'headerpipbtn'
 	],
 	generalToggleOrder: [
 'autoBrightToggle', 'autoDarkToggle',
@@ -888,12 +873,7 @@ const firebaseConfig = {
 const arRecordBtn = document.getElementById('ar-record-btn');
 const arPlaybackContainer = document.getElementById('ar-playback-container');
 const arPlaybackVideo = document.getElementById('ar-playback-video');
-const arBackgroundVideo = document.getElementById('ar-background-video');
-
-// ============================================================
-// RUNTIME STATE
-// ============================================================
-let db = null;
+const arBackgroundVideo = document.getElementById('ar-background-video');let db = null;
 let screenWakeLock = null;
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP));
 let appState = {};
@@ -960,10 +940,6 @@ let isPortraitLocked = false;
 let pipCanvas = null, pipVideo = null, pipStream = null, pipTimer = null;
 let pinnedPopHandler = null;
 let pinnedFullscreenRearm = null;
-
-// ============================================================
-// CLASSES
-// ============================================================
 class TouchGestureEngine {
 	constructor(targetElement, config, callbacks) {
 		this.target = targetElement || document.body;
@@ -4709,10 +4685,6 @@ class VoiceCommander {
 		}
 	}
 }
-
-// ============================================================
-// FUNCTIONS
-// ============================================================
 function processHandData(landmarks) {
 	const wrist = landmarks[0];
 	const n = landmarks.map(p => ({
@@ -6898,26 +6870,14 @@ window.wakelockToggle = async function(enable) {
 	}
 };
 function getPhysicalOrientationAngle() {
-	// window.innerWidth/innerHeight always correctly reflects the current viewport shape -
-	// it's the browser's own layout engine, it cannot be stale. screen.orientation.angle has
-	// been observed NOT reliably updating on physical rotation for some installed PWAs/WebAPKs,
-	// so it can't be the primary signal - trusting it blindly when it's stuck would silently
-	// disable rotation compensation entirely, every time, which is worse than picking a
-	// direction imperfectly.
 	const isLandscape = window.innerWidth > window.innerHeight;
 	const apiAngle = (window.screen?.orientation && typeof window.screen.orientation.angle === 'number')
 		? window.screen.orientation.angle
 		: null;
 	if (isLandscape) {
-		// Trust the API's specific angle only when it agrees we're actually in landscape -
-		// this picks the correct rotation direction on devices where the API is trustworthy.
 		if (apiAngle === 90 || apiAngle === 270) return apiAngle;
-		// API disagrees or is unavailable - the viewport shape is certain we're landscape,
-		// just not which direction. Defaulting to 90 is a known limitation (see help text).
 		return 90;
 	}
-	// Viewport says portrait. Only trust the API for the rare upside-down-portrait case -
-	// a disagreeing/stuck API claiming landscape here would contradict the viewport itself.
 	if (apiAngle === 180) return 180;
 	return 0;
 }
@@ -7165,10 +7125,6 @@ window.DEFAULT_APP = DEFAULT_APP;
 window.DEFAULT_HEADER_BTN_ORDER = DEFAULT_HEADER_BTN_ORDER;
 window.lockBodyScroll = lockBodyScroll;
 window.unlockBodyScroll = unlockBodyScroll;
-
-// ============================================================
-// BOOTSTRAP / INITIALIZATION
-// ============================================================
 const startApp = async () => {
 	loadState();
 	window.appSettings = appSettings;
@@ -7287,9 +7243,6 @@ const startApp = async () => {
 	const triggerRotationRecompute = () => {
 		if (typeof computeAndApplyRotation !== 'function') return;
 		computeAndApplyRotation();
-		// Viewport dimensions and screen.orientation.angle can lag slightly behind the event
-		// that announces them on some devices - a short retry catches that without users
-		// noticing, since the first pass already applied a reasonable value immediately.
 		setTimeout(computeAndApplyRotation, 150);
 		setTimeout(computeAndApplyRotation, 400);
 	};

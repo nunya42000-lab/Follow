@@ -595,7 +595,7 @@ const DEFAULT_APP = {
 	isClearTouchGestureEnabled: true,
 	isAutoTimerEnabled: false,
 	isAutoCounterEnabled: false,
-	isWakeLockEnabled: true,
+	isWakeLockEnabled: false,
 	isDndEnabled: false,
 	isPinnedModeEnabled: false,
 	isEcoModeEnabled: false,

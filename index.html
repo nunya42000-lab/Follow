@@ -8,6 +8,25 @@ window.onunhandledrejection = function(event) {
 alert("Promise Error: " + event.reason);
 };
 </script>
+	<!-- A simple button to toggle the rotation state -->
+<button id="rotation-toggle">Enable Auto-Rotate</button>
+
+<script>
+  const rotationButton = document.getElementById('headerautorotatebtn');
+  
+  rotationButton.addEventListener('click', async () => {
+    if (isAutoRotating) {
+      await lockToPortrait();
+      isAutoRotating = false;
+      rotationButton.innerText = "Enable Auto-Rotate";
+    } else {
+      enableAutoRotate();
+      isAutoRotating = true;
+      rotationButton.innerText = "Lock to Portrait";
+    }
+  });
+</script>
+	
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Follow Me</title>

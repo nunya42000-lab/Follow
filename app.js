@@ -6880,44 +6880,78 @@ window.wakelockToggle = async function(enable) {
 		console.warn('Wake Lock failed:', err);
 	}
 };
-// Function to enable auto-rotation (removes the manifest lock)
-function enableAutoRotate() {
-  if (screen.orientation && screen.orientation.unlock) {
-    screen.orientation.unlock();
-    console.log("Orientation unlocked: Auto-rotation is now active.");
-  } else {
-    console.warn("The Screen Orientation API is not supported on this device/browser.");
-  }
+function orientationLockSupported() {
+	return !!(window.screen?.orientation && typeof window.screen.orientation.lock === 'function');
 }
-
-// Function to lock it back to portrait manually
-async function lockToPortrait() {
-  if (screen.orientation && screen.orientation.lock) {
-    try {
-      // The lock method returns a Promise
-      await screen.orientation.lock('portrait');
-      console.log("Orientation locked to portrait.");
-    } catch (error) {
-      console.error("Orientation lock failed:", error);
-    }
-  } else {
-    console.warn("The Screen Orientation API is not supported on this device/browser.");
-  }
+function updateAutoRotateBtnState() {
+	const btn = document.getElementById('headerautorotatebtn');
+	if (!btn) return;
+	btn.classList.toggle('ring-2', !isPortraitLocked);
+	btn.classList.toggle('ring-emerald-500', !isPortraitLocked);
 }
-
-// Optional: A simple toggle function if you are using a single button
-let isAutoRotating = false;
-
-async function toggleRotation() {
-  if (isAutoRotating) {
-    await lockToPortrait();
-    isAutoRotating = false;
-  } else {
-    enableAutoRotate();
-    isAutoRotating = true;
-  }
+async function lockPortraitOrientation() {
+	if (!orientationLockSupported()) return false;
+	try {
+		await window.screen.orientation.lock('portrait-primary');
+		isPortraitLocked = true;
+	} catch (e) {
+		try {
+			await window.screen.orientation.lock('portrait');
+			isPortraitLocked = true;
+		} catch (e2) {
+			console.warn(`Could not lock orientation - ${e2.name}: ${e2.message}`);
+			isPortraitLocked = false;
+		}
+	}
+	updateAutoRotateBtnState();
+	return isPortraitLocked;
 }
-
+function unlockOrientation() {
+	if (orientationLockSupported()) {
+		try {
+			window.screen.orientation.unlock();
+		} catch (e) {
+			console.warn('Could not unlock orientation:', e);
+		}
+	}
+	isPortraitLocked = false;
+	updateAutoRotateBtnState();
+	if (typeof showToast === 'function') showToast('Auto-Rotate: ON 🧭');
+}
+async function lockPortraitFromUserGesture() {
+	if (await lockPortraitOrientation()) {
+		if (typeof showToast === 'function') showToast('Locked to Portrait 🔒');
+		return;
+	}
+	// Plain lock failed. This has a real tap behind it, so - unlike the silent
+	// startup attempt - requestFullscreen() is actually allowed to succeed here.
+	// Some Android/Chrome versions only honor orientation lock in fullscreen even
+	// for installed, home-screen-launched PWAs - it's a known platform inconsistency.
+	if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+		try {
+			await document.documentElement.requestFullscreen();
+			await lockPortraitOrientation();
+		} catch (e) {
+			console.warn('Fullscreen fallback for orientation lock failed:', e.name, e.message);
+		}
+	}
+	if (isPortraitLocked) {
+		if (typeof showToast === 'function') showToast('Locked to Portrait (fullscreen) 🔒');
+	} else if (typeof showToast === 'function') {
+		showToast("Couldn't lock rotation - some Android/Chrome versions won't allow it here 🧭");
+	}
+}
+window.toggleOrientationLock = function() {
+	if (!orientationLockSupported()) {
+		if (typeof showToast === 'function') showToast('Screen orientation lock not supported on this device 🧭');
+		return;
+	}
+	if (isPortraitLocked) {
+		unlockOrientation();
+	} else {
+		lockPortraitFromUserGesture();
+	}
+};
 function pipSupported() {
 	return !!(document.pictureInPictureEnabled && HTMLCanvasElement.prototype.captureStream);
 }

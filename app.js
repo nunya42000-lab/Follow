@@ -3782,7 +3782,7 @@ class SettingsManager {
 		if (this.dom.headertonebtn) {
 			this.dom.headertonebtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
 		}
-		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderVolumeBtns || this.appSettings.showHeaderSpeedBtns || this.appSettings.showHeaderCycleInputBtn || this.appSettings.showHeaderNotepadBtn || this.appSettings.showHeaderHelpBtn || this.appSettings.showHeaderModeSwitchBtn || this.appSettings.showHeaderResetBtn || this.appSettings.showHeaderNukeBtn;
+		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderVolumeBtns || this.appSettings.showHeaderSpeedBtns || this.appSettings.showHeaderCycleInputBtn || this.appSettings.showHeaderNotepadBtn || this.appSettings.showHeaderHelpBtn || this.appSettings.showHeaderModeSwitchBtn || this.appSettings.showHeaderResetBtn || this.appSettings.showHeaderNukeBtn || this.appSettings.showFullscreenBtn || this.appSettings.showUpsideDownBtn || this.appSettings.showAutoRotateBtn || this.appSettings.showPinnedBtn || this.appSettings.showDndBtn || this.appSettings.showPipBtn;
 		if (!showTimer && !showCounter && !showMic && !showCam && !showTouchGesture && !showBigger && !showHand && !showSwap && !this.appSettings.isToneCadenceEnabled && !anyNewBtnShown) {
 			header.classList.add('header-hidden');
 		} else {
@@ -6870,23 +6870,35 @@ window.wakelockToggle = async function(enable) {
 	}
 };
 function getPhysicalOrientationAngle() {
+	// Returns { angle, confident }. angle is always a best-effort value; confident means
+	// screen.orientation.angle itself confirmed it (90/270 while the viewport is genuinely
+	// landscape-shaped). When not confident, there is no reliable way to pick between the two
+	// possible landscape directions - they differ by 180deg, so a static guess is right for
+	// one and upside-down for the other, roughly half the time either way.
 	const isLandscape = window.innerWidth > window.innerHeight;
 	const apiAngle = (window.screen?.orientation && typeof window.screen.orientation.angle === 'number')
 		? window.screen.orientation.angle
 		: null;
 	if (isLandscape) {
-		if (apiAngle === 90 || apiAngle === 270) return apiAngle;
-		return 90;
+		if (apiAngle === 90 || apiAngle === 270) return { angle: apiAngle, confident: true };
+		return { angle: 90, confident: false };
 	}
-	if (apiAngle === 180) return 180;
-	return 0;
+	if (apiAngle === 180) return { angle: 180, confident: true };
+	return { angle: 0, confident: true };
 }
 function computeAndApplyRotation() {
 	const upsideDown = document.body.dataset.upsideDown === '1';
 	let total;
 	if (isPortraitLocked) {
 		const physical = getPhysicalOrientationAngle();
-		total = ((360 - physical) % 360 + (upsideDown ? 180 : 0)) % 360;
+		if (physical.confident) {
+			total = ((360 - physical.angle) % 360 + (upsideDown ? 180 : 0)) % 360;
+		} else {
+			// Can't confidently compensate for landscape direction - rather than a coin-flip
+			// guess that risks rendering upside-down, fall back to natural layout (still
+			// applies the Upside Down flip on its own, since that has no direction ambiguity).
+			total = upsideDown ? 180 : 0;
+		}
 	} else {
 		total = upsideDown ? 180 : 0;
 	}

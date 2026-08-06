@@ -6898,15 +6898,28 @@ window.wakelockToggle = async function(enable) {
 	}
 };
 function getPhysicalOrientationAngle() {
-	// screen.orientation.angle is a reliable, unpermissioned *read* even on devices/
-	// browsers where .lock() silently fails or is overridden by the native Activity -
-	// it's just a sensor reading, not a permission-gated action.
-	if (window.screen?.orientation && typeof window.screen.orientation.angle === 'number') {
-		return window.screen.orientation.angle;
+	// window.innerWidth/innerHeight always correctly reflects the current viewport shape -
+	// it's the browser's own layout engine, it cannot be stale. screen.orientation.angle has
+	// been observed NOT reliably updating on physical rotation for some installed PWAs/WebAPKs,
+	// so it can't be the primary signal - trusting it blindly when it's stuck would silently
+	// disable rotation compensation entirely, every time, which is worse than picking a
+	// direction imperfectly.
+	const isLandscape = window.innerWidth > window.innerHeight;
+	const apiAngle = (window.screen?.orientation && typeof window.screen.orientation.angle === 'number')
+		? window.screen.orientation.angle
+		: null;
+	if (isLandscape) {
+		// Trust the API's specific angle only when it agrees we're actually in landscape -
+		// this picks the correct rotation direction on devices where the API is trustworthy.
+		if (apiAngle === 90 || apiAngle === 270) return apiAngle;
+		// API disagrees or is unavailable - the viewport shape is certain we're landscape,
+		// just not which direction. Defaulting to 90 is a known limitation (see help text).
+		return 90;
 	}
-	// Fallback for browsers with no Screen Orientation API at all: we can only tell
-	// landscape from portrait, not which of the two landscape directions - assume 90.
-	return window.innerWidth > window.innerHeight ? 90 : 0;
+	// Viewport says portrait. Only trust the API for the rare upside-down-portrait case -
+	// a disagreeing/stuck API claiming landscape here would contradict the viewport itself.
+	if (apiAngle === 180) return 180;
+	return 0;
 }
 function computeAndApplyRotation() {
 	const upsideDown = document.body.dataset.upsideDown === '1';
@@ -7192,6 +7205,7 @@ const startApp = async () => {
 	}
 	document.addEventListener('fullscreenchange', () => {
 			document.body.classList.toggle('fullscreen-mode', !!document.fullscreenElement);
+			if (typeof triggerRotationRecompute === 'function') triggerRotationRecompute();
 	});
 	restorePinnedModeOnBoot();
 	if (appSettings.isDndEnabled) {
@@ -7270,9 +7284,20 @@ const startApp = async () => {
 			if (typeof window.toggleOrientationLock === 'function') window.toggleOrientationLock();
 		};
 	}
-	window.addEventListener('resize', () => { if (typeof computeAndApplyRotation === 'function') computeAndApplyRotation(); });
+	const triggerRotationRecompute = () => {
+		if (typeof computeAndApplyRotation !== 'function') return;
+		computeAndApplyRotation();
+		// Viewport dimensions and screen.orientation.angle can lag slightly behind the event
+		// that announces them on some devices - a short retry catches that without users
+		// noticing, since the first pass already applied a reasonable value immediately.
+		setTimeout(computeAndApplyRotation, 150);
+		setTimeout(computeAndApplyRotation, 400);
+	};
+	window.addEventListener('resize', triggerRotationRecompute);
+	window.addEventListener('orientationchange', triggerRotationRecompute);
+	document.addEventListener('visibilitychange', () => { if (!document.hidden) triggerRotationRecompute(); });
 	if (window.screen?.orientation) {
-		window.screen.orientation.addEventListener('change', () => { if (typeof computeAndApplyRotation === 'function') computeAndApplyRotation(); });
+		window.screen.orientation.addEventListener('change', triggerRotationRecompute);
 	}
 	if (appSettings.isWakeLockEnabled && typeof window.wakelockToggle === 'function') {
 		window.wakelockToggle(true);

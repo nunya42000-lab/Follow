@@ -23,7 +23,7 @@ alert("Promise Error: " + event.reason);
 <meta property="og:type" content="website">
 </head>
 <body class="min-h-screen flex flex-col font-sans transition-colors duration-200">
-<div id="blackout-layer"></div>
+<div id="boss-layer"></div>
 <div id="ar-container" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 z-[-1] pointer-events-none hidden">
 <video id="ar-background-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
 </div>
@@ -47,6 +47,8 @@ alert("Promise Error: " + event.reason);
 <button id="headerplaybtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Play">▶️</button>
 <button id="headerdeletebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Delete">⌫</button>
 <button id="headersettingsbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Settings">⚙️</button>
+<button id="headerhelpbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Help">📚</button>
+<button id="headermodeswitchbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Switch Game Mode">🎮</button>
 <button id="headerredeembtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Redeem">🆔</button>
 <button id="headersharebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Share">📤</button>
 <button id="headerthemecyclebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Cycle Theme">🎨</button>
@@ -63,8 +65,6 @@ alert("Promise Error: " + event.reason);
 <button id="headerresetbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Factory Reset">♻️</button>
 <button id="headernukebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Nuke App">☢️</button>
 <button id="headernotepadbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Notepad">📝</button>
-<button id="headerhelpbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Help">📚</button>
-<button id="headermodeswitchbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Switch Game Mode">🎮</button>
 <button id="headerpipbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Picture in Picture">🪟</button>
 </div>
 </div>
@@ -414,39 +414,30 @@ alert("Promise Error: " + event.reason);
 </div>
 </div>
 <div class="grid grid-cols-2 gap-3" id="general-toggle-grid">
+<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Auto Bright ☀️</span>
+<input type="checkbox" id="autoBrightToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Auto Dark 🌙</span>
+<input type="checkbox" id="autoDarkToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Random Theme 🎲</span>
 <input type="checkbox" id="randomThemeToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Auto Hide Header 👻</span>
-<input type="checkbox" id="autoHideHeaderToggle" class="h-6 w-6 accent-indigo-500"></div>
+<span class="font-bold text-sm">Theme Cycle 🎨</span>
+<input type="checkbox" id="headerThemeCycleToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Play ▶️</span>
-<input type="checkbox" id="headerPlayToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Delete ⌫</span>
-<input type="checkbox" id="headerDeleteToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Settings ⚙️</span>
-<input type="checkbox" id="headerSettingsToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Help 📚</span>
-<input type="checkbox" id="headerHelpToggle" class="h-6 w-6 accent-indigo-500"></div>
+<span class="font-bold text-sm">Cycle Input 🔀</span>
+<input type="checkbox" id="headerCycleInputToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Mode Switch 🎮</span>
 <input type="checkbox" id="headerModeSwitchToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Redeem 🆔</span>
-<input type="checkbox" id="headerRedeemToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Share 📤</span>
-<input type="checkbox" id="headerShareToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Theme Cycle 🎨</span>
-<input type="checkbox" id="headerThemeCycleToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Add Machine ➕</span>
 <input type="checkbox" id="headerAddMachineToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Boss Mode 🌑</span>
+<input type="checkbox" id="bossToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">UI Size 🔍±</span>
 <input type="checkbox" id="headerUiSizeToggle" class="h-6 w-6 accent-indigo-500"></div>
@@ -460,8 +451,29 @@ alert("Promise Error: " + event.reason);
 <span class="font-bold text-sm">Speed 🐇±</span>
 <input type="checkbox" id="headerSpeedToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Cycle Input 🔀</span>
-<input type="checkbox" id="headerCycleInputToggle" class="h-6 w-6 accent-indigo-500"></div>
+<span class="font-bold text-sm">Auto Hide Header 👻</span>
+<input type="checkbox" id="autoHideHeaderToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Infinite Header Scroll ♾️</span>
+<input type="checkbox" id="headerInfiniteScrollToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Play ▶️</span>
+<input type="checkbox" id="headerPlayToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Delete ⌫</span>
+<input type="checkbox" id="headerDeleteToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Settings ⚙️</span>
+<input type="checkbox" id="headerSettingsToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Help 📚</span>
+<input type="checkbox" id="headerHelpToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Redeem 🆔</span>
+<input type="checkbox" id="headerRedeemToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Share 📤</span>
+<input type="checkbox" id="headerShareToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Reset ♻️</span>
 <input type="checkbox" id="headerResetToggle" class="h-6 w-6 accent-indigo-500"></div>
@@ -484,9 +496,6 @@ alert("Promise Error: " + event.reason);
 <span class="font-bold text-sm">Notepad 📝</span>
 <input type="checkbox" id="headerNotepadToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Infinite Header Scroll ♾️</span>
-<input type="checkbox" id="headerInfiniteScrollToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Input Regulator 🚦 <span class="font-normal opacity-70">(Simon Says only)</span></span>
 <input type="checkbox" id="inputRegulatorToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
@@ -504,6 +513,9 @@ alert("Promise Error: " + event.reason);
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Full Screen 🔲</span>
 <input type="checkbox" id="fullscreenToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Bigger Buttons </span>
+<input type="checkbox" id="biggerToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Eco Mode 🔋</span>
 <input type="checkbox" id="ecoToggle" class="h-5 w-5 accent-indigo-500"></div>
@@ -511,14 +523,23 @@ alert("Promise Error: " + event.reason);
 <span class="font-bold text-sm">Wake Lock 💡</span>
 <input type="checkbox" id="wakelockToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Do Not Disturb 🔕</span>
-<input type="checkbox" id="dndToggle" class="h-5 w-5 accent-indigo-500"></div>
+<span class="font-bold text-sm">Position Swap 🔄</span>
+<input type="checkbox" id="positionSwapToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Picture in Picture 🪟</span>
 <input type="checkbox" id="pipToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Do Not Disturb 🔕</span>
+<input type="checkbox" id="dndToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Pinned Mode 📌</span>
 <input type="checkbox" id="pinnedModeToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">AR Mode 📸</span>
+<input type="checkbox" id="arcamToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">AR Auto Close 🚪</span>
+<input type="checkbox" id="arAutoCloseGeneralToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Voice Input 🎤</span>
 <input type="checkbox" id="voiceToggle" class="h-5 w-5 accent-indigo-500"></div>
@@ -531,21 +552,6 @@ alert("Promise Error: " + event.reason);
 <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Touch Gesture</span>
 <input type="checkbox" id="touchToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Boss Mode 🌑</span>
-<input type="checkbox" id="bossToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Position Swap 🔄</span>
-<input type="checkbox" id="positionSwapToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Bigger Buttons </span>
-<input type="checkbox" id="biggerToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">AR Mode 📸</span>
-<input type="checkbox" id="arcamToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">AR Auto Close 🚪</span>
-<input type="checkbox" id="arAutoCloseGeneralToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Hand Gestures🖐️</span>
 <input type="checkbox" id="handToggle" class="h-5 w-5 accent-indigo-500"></div>
@@ -576,12 +582,6 @@ alert("Promise Error: " + event.reason);
 <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Clear Gesture 💥</span>
 <input type="checkbox" id="clearToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Auto Bright ☀️</span>
-<input type="checkbox" id="autoBrightToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Auto Dark 🌙</span>
-<input type="checkbox" id="autoDarkToggle" class="h-5 w-5 accent-indigo-500"></div>
 </div>
 <div class="grid grid-cols-2 gap-3 pt-2">
 <div>
@@ -1270,10 +1270,13 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
 <h4 class="font-bold text-sm mb-2 text-primary-app">Backup / Restore 💾</h4>
 <p class="text-[10px] text-gray-400 mb-2">Export your full settings (including custom presets) as a backup code before resetting, or paste one back in to restore it.</p>
-<button id="hex-export-btn" type="button" class="w-full py-2 mb-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">Export Backup Code</button>
+<div class="grid grid-cols-2 gap-2 mb-2">
+<button id="hex-export-btn" type="button" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">Export Backup Code</button>
+<button id="hex-copy-btn" type="button" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">Copy</button>
+</div>
 <textarea id="hex-output" class="w-full h-20 bg-gray-950 border border-gray-600 rounded p-2 text-[10px] font-mono text-green-400 resize-none mb-2" placeholder="Paste a backup code here to import, or export above..."></textarea>
 <div class="grid grid-cols-2 gap-2">
-<button id="hex-copy-btn" type="button" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">Copy</button>
+<button id="hex-paste-btn" type="button" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">Paste</button>
 <button id="hex-import-btn" type="button" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">Import</button>
 </div>
 </div>
@@ -1457,9 +1460,9 @@ Email
 </ul>
 </div>
 <p class="text-[10px] text-gray-500 italic">Each icon above only appears in the header once its matching toggle is turned on in Settings → General. When enough are on to overflow one row, the header becomes a horizontally-scrolling toolbar - drag left or right, it loops continuously in both directions.</p>
-<p class="text-[11px] mt-2"><strong>App won't load or acting broken, and you can't even reach Nuke? 🔄</strong> Long-press the Follow Me icon on your home screen and tap "Refresh App." This forces the freshest version of the app's code down, without touching your saved settings - use it instead of clearing your browser's site data, which would wipe everything.</p>
+<p class="text-[11px] mt-2"><strong>App won't even load? ☢️</strong> Long-press the Follow Me icon on your home screen and tap "Nuke App." This is the exact same full reset as the in-app Nuke button above - it wipes your settings and saved data, clears every cached file, and forces a fresh download - just reachable from your home screen even when the app is too broken to open and tap the button yourself. If you just want the latest code without losing anything, use "Refresh App" instead - it force-reloads without touching your saved settings.</p>
 <p class="text-[11px] mt-2"><strong>Two more home-screen shortcuts (long-press the icon):</strong> "Restore Defaults" resets every setting back to factory defaults (asks to confirm first, doesn't touch saved sequences or comments). "View Help" opens the app straight to this manual. Note: newly added or changed shortcuts can take Android/Chrome a little while to appear after an update - they don't show up the instant the app changes.</p>
-<p class="text-[11px] mt-2"><strong>Grant Permissions 🔐 (on the welcome screen):</strong> Briefly activates the microphone, then the front camera, then the back camera, one at a time, so your browser prompts for all of them right away instead of the first time each feature actually needs one. Also checks the ambient light and proximity sensors where the browser supports them. Nothing is recorded or saved - it's just the fastest way to confirm what your phone and browser will allow.</p>
+<p class="text-[11px] mt-2"><strong>Grant Permissions 🔐 (on the welcome screen):</strong> Briefly checks clipboard access, then the microphone, then the front camera, then the back camera, one at a time, so your browser prompts for all of them right away instead of the first time each feature actually needs one. Also checks the ambient light and proximity sensors where the browser supports them. Nothing is recorded or saved - it's just the fastest way to confirm what your phone and browser will allow.</p>
 </div>
 <div id="tab-help-settings" class="tab-content space-y-3">
 <p class="text-xs opacity-80 mb-3">Every toggle, slider, and switch in the Settings menu explained.</p>
@@ -1514,8 +1517,8 @@ Email
 <div><strong>Do Not Disturb 🔕:</strong> Silences every interruption the app makes - toast popups, all vibration/haptics (including morse buzzes), and spoken audio. The Settings toggle only shows or hides its header button (🔕), right next to Full Screen - tap that header button to actually turn Do Not Disturb on and off. Off by default. Doesn't touch your phone's own system Do Not Disturb, which no web app can control.</div>
 <div><strong>Picture in Picture 🪟:</strong> Opens a small always-on-top window showing your current sequence, so you can read it while using another app. View-only - you can't tap the sequence in the floating window. The Settings toggle only shows or hides its header button (🪟), placed last in the row - tap that header button to actually open or close Picture in Picture.</div>
 <div><strong>Pinned Mode 📌:</strong> Goes fullscreen and blocks the back gesture so you can't accidentally swipe out mid-sequence. The Settings toggle only shows or hides its header button (📌), right next to Full Screen - tap that header button to actually turn Pinned Mode on and off, or to leave once it's on. This is the app's own lock - it can't trigger Android's system screen pinning, which has no web API.</div>
-<div><strong>Upside Down:</strong> Flips the entire UI 180°.</div>
-<div><strong>Auto Rotate 🧭:</strong> The app locks to portrait on every launch to stop accidental rotation mid-game. The Settings toggle only shows or hides its header button (🧭), right next to Upside Down - tap that header button to allow free rotation, tap again to lock back to portrait. If a plain lock doesn't take, tapping the button will also try switching to fullscreen first, since some Android/Chrome versions only honor the lock that way - this is a known platform inconsistency, not something guaranteed to work the same on every device even when the app is installed to your home screen.</div>
+<div><strong>Upside Down:</strong> Flips the visible UI 180° for a partner facing you - stays flipped correctly even if Auto-Rotate is also locking the screen to portrait.</div>
+<div><strong>Auto Rotate 🧭:</strong> The app locks to portrait on every launch to stop accidental rotation mid-game. The Settings toggle only shows or hides its header button (🧭), right next to Upside Down - tap that header button to allow free rotation, tap again to lock back to portrait. This is done by detecting the device's actual physical orientation and visually counter-rotating the interface to compensate, rather than relying on the phone's built-in rotation lock, which is unreliable on installed home-screen apps and often can't be overridden by the app at all once set.</div>
 <div><strong>Full Screen:</strong> Hides browser bars.</div>
 <div><strong>Eco Mode 🔋:</strong> Reduces animations/framerate.</div>
 <div><strong>Position Swap 🔄:</strong> Adds a header button that moves the input pad from the bottom of the screen to the top.</div>

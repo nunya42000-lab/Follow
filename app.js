@@ -591,11 +591,11 @@ const DEFAULT_APP = {
 	isPinnedModeEnabled: false,
 	isEcoModeEnabled: true,
 	isLongPressAutoplayEnabled: true,
-	isStealth1KeyEnabled: true,
+	showBiggerBtn: true,
 	activeTheme: 'default',
 	customThemes: {},
 	isRandomThemeEnabled: false,
-	isBlackoutFeatureEnabled: false,
+	isBossModeEnabled: false,
 	isHapticMorseEnabled: false,
 	showTimer: false,
 	showCounter: true,
@@ -768,13 +768,6 @@ const DEFAULT_APP = {
 	headerBtnOrder: [
 		'headertimerbtn',
 		'headercounterbtn',
-		'headernotepadbtn',
-		'headerplaybtn',
-		'headerdeletebtn',
-		'headersettingsbtn',
-		'headerhelpbtn',
-		'headersharebtn',
-		'headerredeembtn',
 		'headervoicebtn',
 		'headertonebtn',
 		'headertouchbtn',
@@ -784,13 +777,17 @@ const DEFAULT_APP = {
 		'headerfullscreenbtn',
 		'headerpinnedbtn',
 		'headerdndbtn',
-		'headerpipbtn',
-		'headerswapbtn',
 		'headerupsidedownbtn',
 		'headerautorotatebtn',
-		'headerthemecyclebtn',
-		'headercycleinputbtn',
+		'headerswapbtn',
+		'headerplaybtn',
+		'headerdeletebtn',
+		'headersettingsbtn',
+		'headerhelpbtn',
 		'headermodeswitchbtn',
+		'headerredeembtn',
+		'headersharebtn',
+		'headerthemecyclebtn',
 		'headeraddmachinebtn',
 		'headeruiupbtn',
 		'headeruidownbtn',
@@ -800,8 +797,11 @@ const DEFAULT_APP = {
 		'headervoldownbtn',
 		'headerspeedupbtn',
 		'headerspeeddownbtn',
+		'headercycleinputbtn',
 		'headerresetbtn',
-		'headernukebtn'
+		'headernukebtn',
+		'headernotepadbtn',
+		'headerpipbtn'
 	],
 	generalToggleOrder: [
 'autoBrightToggle', 'autoDarkToggle',
@@ -907,8 +907,6 @@ let timers = {
 	initialDelay: null,
 	longPress: null,
 	settingsLongPress: null,
-	stealth: null,
-	stealthAction: null,
 	playback: null,
 	tap: null
 };
@@ -917,7 +915,7 @@ let touchGestureState = {
 	startScale: 1,
 	isPinching: false
 };
-let blackoutState = {
+let bossState = {
 	isActive: false,
 	lastShake: 0
 };
@@ -958,7 +956,7 @@ let _savedScrollY = 0;
 let _scrollLocked = false;
 let ambientLightSensor = null;
 let proximitySensor = null;
-let isPortraitLocked = true;
+let isPortraitLocked = false;
 let pipCanvas = null, pipVideo = null, pipStream = null, pipTimer = null;
 let pinnedPopHandler = null;
 let pinnedFullscreenRearm = null;
@@ -2936,6 +2934,7 @@ class SettingsManager {
 			const exportBtn = document.getElementById('hex-export-btn');
 			const importBtn = document.getElementById('hex-import-btn');
 			const copyBtn = document.getElementById('hex-copy-btn');
+			const pasteBtn = document.getElementById('hex-paste-btn');
 			const hexOutput = document.getElementById('hex-output');
 			if (exportBtn && hexOutput) {
 				exportBtn.onclick = async () => {
@@ -2959,6 +2958,19 @@ class SettingsManager {
 					navigator.clipboard?.writeText(hexOutput.value).then(() => {
 							if (typeof showToast === 'function') showToast('Copied to clipboard 📋');
 					}).catch(() => document.execCommand('copy'));
+				};
+			}
+			if (pasteBtn && hexOutput) {
+				pasteBtn.onclick = async () => {
+					try {
+						const text = await navigator.clipboard.readText();
+						if (!text.trim()) { alert('Clipboard is empty.'); return; }
+						hexOutput.value = text.trim();
+						if (typeof showToast === 'function') showToast('Pasted from clipboard 📋');
+					} catch (e) {
+						alert("Couldn't read the clipboard - your browser may need permission, or paste manually into the box instead.");
+						console.warn('Clipboard read failed:', e);
+					}
 				};
 			}
 			if (importBtn && hexOutput) {
@@ -3120,7 +3132,7 @@ class SettingsManager {
 			};
 		}
 		bindToggle(this.dom.voicecommandsToggle, 'isVoiceCommandsEnabled');
-		bindToggle(this.dom.bossToggle, 'isBlackoutFeatureEnabled');
+		bindToggle(this.dom.bossToggle, 'isBossModeEnabled');
 		bindToggle(this.dom.handsignalsToggle, 'isHandSignalsEnabled');
 		bindToggle(this.dom.handednessFlipToggle, 'handednessFlip');
 		bindToggle(this.dom.volumeTouchGesturesToggle, 'isVolumeTouchGesturesEnabled');
@@ -3316,7 +3328,7 @@ class SettingsManager {
 				if (prop === 'isPracticeModeEnabled') this.callbacks.onUpdate();
 				this.callbacks.onSave();
 				this.generatePrompt();
-				if (['showTimer', 'showCounter', 'isVoiceInputEnabled', 'isArModeEnabled', 'isStealth1KeyEnabled', 'isHandGesturesEnabled', 'isTouchGestureInputEnabled'].includes(prop)) {
+				if (['showTimer', 'showCounter', 'isVoiceInputEnabled', 'isArModeEnabled', 'showBiggerBtn', 'isHandGesturesEnabled', 'isTouchGestureInputEnabled'].includes(prop)) {
 					this.updateHeaderVisibility();
 				}
 			};
@@ -3362,7 +3374,7 @@ class SettingsManager {
 		if (this.dom.delay) this.dom.delay.onchange = (e) => { this.appSettings.runtimeSettings.simonInterSequenceDelay = parseFloat(e.target.value) * 1000; this.callbacks.onSave(); this.generatePrompt(); };
 		bind(this.dom.haptics, 'isHapticsEnabled', true);
 		bind(this.dom.speedDelete, 'isSpeedDeletingEnabled', true);
-		bind(this.dom.biggerToggle, 'isStealth1KeyEnabled', true);
+		bind(this.dom.biggerToggle, 'showBiggerBtn', true);
 		bind(this.dom.autoTimerToggle, 'isAutoTimerEnabled', true);
 		bind(this.dom.autoCounterToggle, 'isAutoCounterEnabled', true);
 		bind(this.dom.practiceMode, 'isPracticeModeEnabled', false);
@@ -3634,7 +3646,7 @@ class SettingsManager {
 		if (this.dom.voiceVolume) this.dom.voiceVolume.value = this.appSettings.runtimeSettings.voiceVolume || 1.0;
 		if (this.dom.voicePresetSelect) this.dom.voicePresetSelect.value = this.appSettings.runtimeSettings.activeVoicePresetId || 'standard';
 		if (this.dom.practiceMode) this.dom.practiceMode.checked = this.appSettings.runtimeSettings.isPracticeModeEnabled;
-		if (this.dom.biggerToggle) this.dom.biggerToggle.checked = this.appSettings.isStealth1KeyEnabled;
+		if (this.dom.biggerToggle) this.dom.biggerToggle.checked = this.appSettings.showBiggerBtn;
 		if (this.dom.arcamToggle) this.dom.arcamToggle.checked = !!this.appSettings.isArModeEnabled;
 		if (this.dom.voiceToggle) this.dom.voiceToggle.checked = !!this.appSettings.isVoiceInputEnabled;
 		if (this.dom.longPressToggle) this.dom.longPressToggle.checked = (typeof this.appSettings.isLongPressAutoplayEnabled === 'undefined') ? true : this.appSettings.isLongPressAutoplayEnabled;
@@ -3668,7 +3680,7 @@ class SettingsManager {
 		if (this.dom.inputsPaddingSelect) this.dom.inputsPaddingSelect.value = this.appSettings.inputsPadding || 0;
 		this.applyHeaderPadding();
 		this.applyInputsPadding();
-		if (this.dom.bossToggle) this.dom.bossToggle.checked = this.appSettings.isBlackoutFeatureEnabled;
+		if (this.dom.bossToggle) this.dom.bossToggle.checked = this.appSettings.isBossModeEnabled;
 		if (this.dom.arAutoCloseGeneralToggle) this.dom.arAutoCloseGeneralToggle.checked = this.appSettings.isArAutoCloseEnabled ?? false;
 		if (this.dom.arAutoClosePlayback) this.dom.arAutoClosePlayback.checked = this.appSettings.isArAutoCloseEnabled ?? false;
 		if (this.dom.touchGestureToggle) this.dom.touchGestureToggle.checked = !!this.appSettings.isTouchGestureInputEnabled;
@@ -3730,7 +3742,7 @@ class SettingsManager {
 		const micBtn = document.getElementById('headervoicebtn');
 		const camBtn = document.getElementById('headerarcambtn');
 		const touchGestureBtn = document.getElementById('headertouchbtn');
-		const stealthBtn = document.getElementById('headerbiggerbtn');
+		const biggerBtn = document.getElementById('headerbiggerbtn');
 		const handBtn = document.getElementById('headerhandbtn');
 		if (!header) return;
 		const showTimer = !!this.appSettings.showTimer;
@@ -3738,7 +3750,7 @@ class SettingsManager {
 		const showMic = !!this.appSettings.isVoiceInputEnabled;
 		const showCam = !!this.appSettings.isArModeEnabled;
 		const showTouchGesture = !!this.appSettings.isTouchGestureInputEnabled;
-		const showStealth = !!this.appSettings.isStealth1KeyEnabled;
+		const showBigger = !!this.appSettings.showBiggerBtn;
 		const showHand = !!this.appSettings.isHandGesturesEnabled;
 		if (this.dom.headerfullscreenbtn) {
 			if (this.appSettings.showFullscreenBtn) {
@@ -3767,7 +3779,7 @@ class SettingsManager {
 		if(micBtn) micBtn.classList.toggle('hidden', !showMic);
 		if(camBtn) camBtn.classList.toggle('hidden', !showCam);
 		if(touchGestureBtn) touchGestureBtn.classList.toggle('hidden', !showTouchGesture);
-		if(stealthBtn) stealthBtn.classList.toggle('hidden', !showStealth);
+		if(biggerBtn) biggerBtn.classList.toggle('hidden', !showBigger);
 		if(handBtn) handBtn.classList.toggle('hidden', !showHand);
 		if(this.dom.headerswapbtn) this.dom.headerswapbtn.classList.toggle('hidden', !showSwap);
 		if (this.dom.headerplaybtn) this.dom.headerplaybtn.classList.toggle('hidden', !this.appSettings.showHeaderPlayBtn);
@@ -3795,7 +3807,7 @@ class SettingsManager {
 			this.dom.headertonebtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
 		}
 		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderVolumeBtns || this.appSettings.showHeaderSpeedBtns || this.appSettings.showHeaderCycleInputBtn || this.appSettings.showHeaderNotepadBtn || this.appSettings.showHeaderHelpBtn || this.appSettings.showHeaderModeSwitchBtn || this.appSettings.showHeaderResetBtn || this.appSettings.showHeaderNukeBtn;
-		if (!showTimer && !showCounter && !showMic && !showCam && !showTouchGesture && !showStealth && !showHand && !showSwap && !this.appSettings.isToneCadenceEnabled && !anyNewBtnShown) {
+		if (!showTimer && !showCounter && !showMic && !showCam && !showTouchGesture && !showBigger && !showHand && !showSwap && !this.appSettings.isToneCadenceEnabled && !anyNewBtnShown) {
 			header.classList.add('header-hidden');
 		} else {
 			header.classList.remove('header-hidden');
@@ -5184,6 +5196,7 @@ function applyTheme(themeKey) {
 	const bubbleIsDark = 0.299 * br + 0.587 * bg + 0.114 * bb < 128;
 	body.style.setProperty('--seq-bubble-text', bubbleIsDark ? '#ffffff' : '#111827');
 	body.classList.toggle('theme-is-light', !isDark);
+	body.classList.toggle('theme-night', themeKey === 'night');
 }
 function applyAmbientThemeOverride(lux) {
 	if (typeof lux !== 'number' || isNaN(lux)) return;
@@ -5250,6 +5263,11 @@ window.updateProximitySensorState = function(silent) {
 };
 window.grantAllPermissions = async function() {
 	if (typeof showToast === 'function') showToast('Checking permissions... 🔐');
+	try {
+		await navigator.clipboard.readText();
+	} catch (e) {
+		console.warn('Grant Permissions - clipboard:', e.name, e.message);
+	}
 	try {
 		const micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
 		await new Promise(r => setTimeout(r, 1000));
@@ -5550,7 +5568,7 @@ function renderUI() {
 		const pad = document.getElementById('gesture-pad');
 		if (gpWrap) {
 			const isGlobalTouchGestureOn = appSettings.isTouchGestureInputEnabled;
-			const isBossTouchGestureOn = appSettings.isBlackoutFeatureEnabled && appSettings.isTouchGestureInputEnabled && blackoutState.isActive;
+			const isBossTouchGestureOn = appSettings.isBossModeEnabled && appSettings.isTouchGestureInputEnabled && bossState.isActive;
 			if (isGlobalTouchGestureOn && isTouchGesturePadVisible || isBossTouchGestureOn) {
 				document.body.classList.add('input-gestures-mode');
 				gpWrap.classList.remove('hidden');
@@ -6069,7 +6087,7 @@ function initTouchGestureEngine() {
 			onTouchGesture: data => {
 				const isPadOpen = typeof isTouchGesturePadVisible !== 'undefined' && isTouchGesturePadVisible;
 				const isClassPresent = document.body.classList.contains('input-gestures-mode');
-				const isBossActive = appSettings.isBlackoutFeatureEnabled && appSettings.isTouchGestureInputEnabled && blackoutState.isActive;
+				const isBossActive = appSettings.isBossModeEnabled && appSettings.isTouchGestureInputEnabled && bossState.isActive;
 				if (isPadOpen || isClassPresent || isBossActive) {
 					const settings = getProfileSettings();
 					const mapResult = mapTouchGestureToValue(data.name, settings.currentInput);
@@ -6213,7 +6231,6 @@ function initGlobalListeners() {
 				b.addEventListener('touchstart', press, {
 						passive: false
 				});
-				b.addEventListener('touchend', () => clearTimeout(timers.stealth));
 		});
 		document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
 				let wasPlaying = false;
@@ -6355,26 +6372,26 @@ function initGlobalListeners() {
 		lastY = 0,
 		lastZ = 0;
 		window.addEventListener('devicemotion', e => {
-				if (!appSettings.isBlackoutFeatureEnabled) return;
+				if (!appSettings.isBossModeEnabled) return;
 				const acc = e.accelerationIncludingGravity;
 				if (!acc) return;
 				const delta = Math.abs(acc.x - lastX) + Math.abs(acc.y - lastY) + Math.abs(acc.z - lastZ);
 				if (delta > 25) {
 					const now = Date.now();
-					if (now - blackoutState.lastShake > 1000) {
-						blackoutState.isActive = !blackoutState.isActive;
-						document.body.classList.toggle('blackout-active', blackoutState.isActive);
-						showToast(blackoutState.isActive ? "Boss Mode 🌑" : "Welcome Back");
+					if (now - bossState.lastShake > 1000) {
+						bossState.isActive = !bossState.isActive;
+						document.body.classList.toggle('boss-active', bossState.isActive);
+						showToast(bossState.isActive ? "Boss Mode 🌑" : "Welcome Back");
 						vibrate();
 						renderUI();
-						blackoutState.lastShake = now;
+						bossState.lastShake = now;
 					}
 				}
 				lastX = acc.x;
 				lastY = acc.y;
 				lastZ = acc.z;
 		});
-		const bl = document.getElementById('blackout-layer');
+		const bl = document.getElementById('boss-layer');
 		if (bl) {
 			bl.addEventListener('touchstart', e => {
 					if (appSettings.isTouchGestureInputEnabled) return;
@@ -6430,12 +6447,12 @@ function initGlobalListeners() {
 				}
 			};
 		}
-		const headerStealth = document.getElementById('headerbiggerbtn');
-		if (headerStealth) {
-			headerStealth.onclick = () => {
+		const headerBigger = document.getElementById('headerbiggerbtn');
+		if (headerBigger) {
+			headerBigger.onclick = () => {
 				document.body.classList.toggle('hide-controls');
 				const isActive = document.body.classList.contains('hide-controls');
-				headerStealth.classList.toggle('header-btn-active', isActive);
+				headerBigger.classList.toggle('header-btn-active', isActive);
 				showToast(isActive ? "Bigger Buttons Active" : "Controls Visible");
 				setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
 			};
@@ -6880,6 +6897,28 @@ window.wakelockToggle = async function(enable) {
 		console.warn('Wake Lock failed:', err);
 	}
 };
+function getPhysicalOrientationAngle() {
+	// screen.orientation.angle is a reliable, unpermissioned *read* even on devices/
+	// browsers where .lock() silently fails or is overridden by the native Activity -
+	// it's just a sensor reading, not a permission-gated action.
+	if (window.screen?.orientation && typeof window.screen.orientation.angle === 'number') {
+		return window.screen.orientation.angle;
+	}
+	// Fallback for browsers with no Screen Orientation API at all: we can only tell
+	// landscape from portrait, not which of the two landscape directions - assume 90.
+	return window.innerWidth > window.innerHeight ? 90 : 0;
+}
+function computeAndApplyRotation() {
+	const upsideDown = document.body.dataset.upsideDown === '1';
+	let total;
+	if (isPortraitLocked) {
+		const physical = getPhysicalOrientationAngle();
+		total = ((360 - physical) % 360 + (upsideDown ? 180 : 0)) % 360;
+	} else {
+		total = upsideDown ? 180 : 0;
+	}
+	document.body.dataset.rotate = String(total);
+}
 function orientationLockSupported() {
 	return !!(window.screen?.orientation && typeof window.screen.orientation.lock === 'function');
 }
@@ -6889,41 +6928,40 @@ function updateAutoRotateBtnState() {
 	btn.classList.toggle('ring-2', !isPortraitLocked);
 	btn.classList.toggle('ring-emerald-500', !isPortraitLocked);
 }
-async function lockPortraitOrientation() {
-	if (!orientationLockSupported()) return false;
+async function attemptNativeLockBestEffort() {
+	// Best-effort only: on devices where this actually works it reinforces the visual
+	// compensation (angle stays 0, so computeAndApplyRotation is a no-op). On devices
+	// where it doesn't - which is most installed Android WebAPKs, per platform research -
+	// the CSS compensation above is what's actually doing the work, so failure here is fine.
+	if (!orientationLockSupported()) return;
 	try {
-		await window.screen.orientation.lock('portrait');
-		isPortraitLocked = true;
+		await window.screen.orientation.lock('portrait-primary');
 	} catch (e) {
-		console.warn(`Could not lock orientation - ${e.name}: ${e.message}`);
-		isPortraitLocked = false;
+		try { await window.screen.orientation.lock('portrait'); } catch (e2) { /* expected on many devices */ }
 	}
+}
+function lockPortraitOrientation() {
+	isPortraitLocked = true;
+	attemptNativeLockBestEffort();
 	updateAutoRotateBtnState();
-	return isPortraitLocked;
+	computeAndApplyRotation();
+	return true;
 }
 function unlockOrientation() {
 	if (orientationLockSupported()) {
-		try {
-			window.screen.orientation.unlock();
-		} catch (e) {
-			console.warn('Could not unlock orientation:', e);
-		}
+		try { window.screen.orientation.unlock(); } catch (e) { /* non-fatal, CSS compensation is already off */ }
 	}
 	isPortraitLocked = false;
 	updateAutoRotateBtnState();
+	computeAndApplyRotation();
 	if (typeof showToast === 'function') showToast('Auto-Rotate: ON 🧭');
 }
 window.toggleOrientationLock = function() {
-	if (!orientationLockSupported()) {
-		if (typeof showToast === 'function') showToast('Screen orientation lock not supported on this device 🧭');
-		return;
-	}
 	if (isPortraitLocked) {
 		unlockOrientation();
 	} else {
-		lockPortraitOrientation().then(ok => {
-			if (ok && typeof showToast === 'function') showToast('Locked to Portrait 🔒');
-		});
+		lockPortraitOrientation();
+		if (typeof showToast === 'function') showToast('Locked to Portrait 🔒');
 	}
 };
 function pipSupported() {
@@ -7111,6 +7149,7 @@ window.importSettingsFromBackupCode = importSettingsFromBackupCode;
 window.diffAgainstDefaults = diffAgainstDefaults;
 window.mergeWithDefaults = mergeWithDefaults;
 window.DEFAULT_APP = DEFAULT_APP;
+window.DEFAULT_HEADER_BTN_ORDER = DEFAULT_HEADER_BTN_ORDER;
 window.lockBodyScroll = lockBodyScroll;
 window.unlockBodyScroll = unlockBodyScroll;
 
@@ -7120,6 +7159,27 @@ window.unlockBodyScroll = unlockBodyScroll;
 const startApp = async () => {
 	loadState();
 	window.appSettings = appSettings;
+	if (new URLSearchParams(window.location.search).has('nuke')) {
+		history.replaceState(null, '', window.location.pathname);
+		if (confirm('☢️ NUKE APP? This will wipe all saved data (settings, sequences, comments), clear browser caches, unregister Service Workers, and force a fresh update from the server. This is the same as the in-app Nuke button, just reachable even if the app won\'t load. Continue?')) {
+			try {
+				const regs = await navigator.serviceWorker.getRegistrations();
+				await Promise.all(regs.map(r => r.unregister()));
+			} catch (e) {
+				console.warn('Nuke - service worker unregister failed:', e);
+			}
+			try {
+				const names = await caches.keys();
+				await Promise.all(names.map(n => caches.delete(n)));
+			} catch (e) {
+				console.warn('Nuke - cache clear failed:', e);
+			}
+			localStorage.clear();
+			sessionStorage.clear();
+			location.reload();
+			return;
+		}
+	}
 	if (new URLSearchParams(window.location.search).has('forceRefresh')) {
 		history.replaceState(null, '', window.location.pathname);
 		if (typeof showToast === 'function') showToast('Refreshed to the latest version ✅');
@@ -7192,8 +7252,10 @@ const startApp = async () => {
 	const headerupsidedownbtn = document.getElementById('headerupsidedownbtn');
 	if (headerupsidedownbtn) {
 		headerupsidedownbtn.onclick = () => {
-			document.body.classList.toggle('upside-down');
-			if (document.body.classList.contains('upside-down')) {
+			const nowOn = document.body.dataset.upsideDown !== '1';
+			document.body.dataset.upsideDown = nowOn ? '1' : '0';
+			computeAndApplyRotation();
+			if (nowOn) {
 				headerupsidedownbtn.classList.add('ring-2', 'ring-emerald-500');
 				showToast("Upside Down Mode: ON 🙃");
 			} else {
@@ -7208,9 +7270,14 @@ const startApp = async () => {
 			if (typeof window.toggleOrientationLock === 'function') window.toggleOrientationLock();
 		};
 	}
+	window.addEventListener('resize', () => { if (typeof computeAndApplyRotation === 'function') computeAndApplyRotation(); });
+	if (window.screen?.orientation) {
+		window.screen.orientation.addEventListener('change', () => { if (typeof computeAndApplyRotation === 'function') computeAndApplyRotation(); });
+	}
 	if (appSettings.isWakeLockEnabled && typeof window.wakelockToggle === 'function') {
 		window.wakelockToggle(true);
 	}
+	if (typeof lockPortraitOrientation === 'function') lockPortraitOrientation();
 	modules.settings = new SettingsManager(appSettings, {
 			onSave: () => saveState(),
 			onUpdate: () => updateAllChrome(),

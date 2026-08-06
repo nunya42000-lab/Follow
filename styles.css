@@ -66,6 +66,7 @@ input, textarea { -webkit-user-select: text !important; user-select: text !impor
 .tab-btn { padding: 10px; flex: 1; text-align: center; font-weight: 700; font-size: .9rem; border-bottom: 2px solid transparent; opacity: .6; cursor: pointer; transition: all .2s; }
 .tab-btn:hover { opacity: .8; }
 .tab-btn.active { border-bottom-color: var(--seq-bubble); opacity: 1; color: var(--seq-bubble); }
+body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff; }
 .settings-tab-bar { display: flex !important; }
 .settings-locked .settings-tab-bar,
 .settings-locked .overflow-y-auto.flex-grow { pointer-events: none !important; opacity: 0.45; filter: grayscale(0.3); }
@@ -100,8 +101,8 @@ body.layout-swapped #input-footer { border-top: none; border-bottom: 4px solid v
 .black-3 { left: calc((100% / 7)*4 - (10% / 2)); width: 10%; }
 .black-4 { left: calc((100% / 7)*5 - (10% / 2)); width: 10%; }
 .black-5 { left: calc((100% / 7)*6 - (10% / 2)); width: 10%; }
-#blackout-layer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; cursor: none; touch-action: none; display: none; }
-body.blackout-active #blackout-layer { display: block; }
+#boss-layer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; cursor: none; touch-action: none; display: none; }
+body.boss-active #boss-layer { display: block; }
 .share-sheet { background-color: #1e1e1e !important; border-radius: 1.5rem 1.5rem 0 0 !important; bottom: 0; position: absolute; width: 100%; border-top: 1px solid #333; padding-bottom: 2rem; z-index: 100; transform: translateY(100%); transition: transform .3s ease-out; }
 .share-sheet.active { transform: translateY(0); }
 body.hide-controls .control-row { display: none !important; }
@@ -184,7 +185,7 @@ body.fullscreen-mode #aux-control-header { background: linear-gradient(to bottom
 #developer-options-modal { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .ar-background-video { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: -1; pointer-events: none; opacity: 1; }
 body.ar-active { background: transparent !important; overflow: hidden; }
-body.ar-active #blackout-layer,
+body.ar-active #boss-layer,
 body.ar-active #sequence-container { display: none !important; }
 body.ar-active #app { background: transparent !important; }
 body.ar-active .card, body.ar-active .btn-input, body.ar-active .number-box,
@@ -195,7 +196,50 @@ body.ar-active #ar-ui-layer { display: flex; }
 #ar-speed-slider { width: 100%; accent-color: var(--seq-bubble); margin-top: 10px; }
 #ar-rec-btn { width: 85px; height: 85px; border-radius: 50%; border: 4px solid white; background: #ff3b30; color: white; font-weight: 900; font-size: 0.75rem; box-shadow: 0 0 20px rgba(255,59,48,0.4); }
 #ar-pause-btn { width: 85px; height: 85px; border-radius: 50%; border: 4px solid #ffcc00; background: #1a1a1a; color: #ffcc00; font-weight: 900; font-size: 0.8rem; }
-body.upside-down { transform: rotate(180deg); }
+/* Rotation lock + Upside Down: unified visual compensation system.
+   document.body gets data-rotate="0|90|180|270" set by JS (see computeAndApplyRotation
+   in app.js), which is the *content* rotation needed to counteract physical device
+   rotation (when locked) plus a 180 flip (when Upside Down is on). 0/180 never change
+   the aspect ratio so they're a plain rotate; 90/270 swap dimensions and use a
+   geometrically-derived translate so the rotated box exactly fills the physical viewport
+   whichever way it's landscape. */
+body[data-rotate="0"] { transform: none; }
+body[data-rotate="180"] { transform: rotate(180deg); }
+body[data-rotate="90"] {
+	position: fixed; top: 0; left: 0;
+	width: 100vh; height: 100vw;
+	transform: rotate(90deg) translateY(-100%);
+	transform-origin: top left;
+	overflow-y: auto;
+}
+body[data-rotate="270"] {
+	position: fixed; top: 0; left: 0;
+	width: 100vh; height: 100vw;
+	transform: rotate(-90deg) translateX(-100%);
+	transform-origin: top left;
+	overflow-y: auto;
+}
+/* body[data-rotate] makes body the CSS containing block for its own position:fixed
+   descendants (any transformed element does this per spec), which does NOT reliably
+   resize/reposition them the same way body itself is sized - so full-screen overlays
+   (modals, header, toast) each get the identical compensation applied directly,
+   computed independently against the true physical viewport via vh/vw rather than
+   inherited through body's transformed box. */
+body[data-rotate="180"] .fixed.inset-0 { transform: rotate(180deg); }
+body[data-rotate="90"] .fixed.inset-0 {
+	position: fixed !important; top: 0 !important; left: 0 !important; right: auto !important; bottom: auto !important;
+	width: 100vh !important; height: 100vw !important;
+	box-sizing: border-box !important;
+	transform: rotate(90deg) translateY(-100%);
+	transform-origin: top left;
+}
+body[data-rotate="270"] .fixed.inset-0 {
+	position: fixed !important; top: 0 !important; left: 0 !important; right: auto !important; bottom: auto !important;
+	width: 100vh !important; height: 100vw !important;
+	box-sizing: border-box !important;
+	transform: rotate(-90deg) translateX(-100%);
+	transform-origin: top left;
+}
 body.eco-mode { filter: brightness(0.65); }
 body.eco-mode * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 /* Pinned Mode: the class was already being added/removed on body but had no rule, so it was a

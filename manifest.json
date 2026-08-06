@@ -7,7 +7,7 @@
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "orientation": "portrait",
+  "orientation": "any",
   "categories": ["games", "entertainment", "utilities"],
   "icons": [
     {
@@ -30,6 +30,19 @@
     }
   ],
   "shortcuts": [
+    {
+      "name": "Nuke App",
+      "short_name": "Nuke",
+      "description": "Full reset: wipes settings and saved data, clears all caches, and forces a fresh update - reachable even if the app itself won't load",
+      "url": "./index.html?nuke=1",
+      "icons": [
+        {
+          "src": "icon192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
     {
       "name": "Refresh App",
       "short_name": "Refresh",

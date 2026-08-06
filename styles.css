@@ -148,33 +148,31 @@ body.ar-active #ar-ui-layer { display: flex; }
 body[data-rotate="0"] { transform: none; }
 body[data-rotate="180"] { transform: rotate(180deg); }
 body[data-rotate="90"] {
-	position: fixed; top: 0; left: 0;
-	width: 100vh; height: 100vw;
-	transform: rotate(90deg) translateY(-100%);
+	position: fixed !important; top: 0 !important; left: 0 !important; right: auto !important; bottom: auto !important;
+	width: 100vh !important; height: 100vw !important;
+	transform: rotate(90deg) translateY(-100vw);
 	transform-origin: top left;
 	overflow-y: auto;
 }
 body[data-rotate="270"] {
-	position: fixed; top: 0; left: 0;
-	width: 100vh; height: 100vw;
-	transform: rotate(-90deg) translateX(-100%);
+	position: fixed !important; top: 0 !important; left: 0 !important; right: auto !important; bottom: auto !important;
+	width: 100vh !important; height: 100vw !important;
+	transform: rotate(-90deg) translateX(-100vh);
 	transform-origin: top left;
 	overflow-y: auto;
 }
-body[data-rotate="180"] .fixed.inset-0 { transform: rotate(180deg); }
+body[data-rotate="180"] .fixed.inset-0 { transform: none !important; }
 body[data-rotate="90"] .fixed.inset-0 {
 	position: fixed !important; top: 0 !important; left: 0 !important; right: auto !important; bottom: auto !important;
 	width: 100vh !important; height: 100vw !important;
 	box-sizing: border-box !important;
-	transform: rotate(90deg) translateY(-100%);
-	transform-origin: top left;
+	transform: none !important;
 }
 body[data-rotate="270"] .fixed.inset-0 {
 	position: fixed !important; top: 0 !important; left: 0 !important; right: auto !important; bottom: auto !important;
 	width: 100vh !important; height: 100vw !important;
 	box-sizing: border-box !important;
-	transform: rotate(-90deg) translateX(-100%);
-	transform-origin: top left;
+	transform: none !important;
 }
 body.eco-mode { filter: brightness(0.65); }
 body.eco-mode * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }

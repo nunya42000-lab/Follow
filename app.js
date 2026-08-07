@@ -448,7 +448,7 @@ const DEFAULT_HEADER_BTN_ORDER = [
     'headertonebtn', 'headertouchbtn', 'headerhandbtn',
     'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn',
     'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn',
-    'headerautorotatebtn', 'headerswapbtn', 'headerplaybtn',
+    'headerportraitlockbtn', 'headerswapbtn', 'headerplaybtn',
     'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn',
     'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn',
     'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn',
@@ -473,7 +473,7 @@ const DEFAULT_GENERAL_TOGGLE_ORDER = [
 'counterToggle', 'autocounterToggle',
 'headerNotepadToggle', 'inputRegulatorToggle',
 'hapticsToggle', 'introToggle',
-'upsidedownToggle', 'autoRotateToggle',
+'upsidedownToggle', 'portraitLockToggle',
 'fullscreenToggle', 'biggerToggle',
 'ecoToggle', 'wakelockToggle',
 'positionSwapToggle', 'pipToggle',
@@ -661,7 +661,7 @@ const DEFAULT_APP = {
 	showDndBtn: false,
 	showPipBtn: false,
 	showUpsideDownBtn: false,
-	showAutoRotateBtn: false,
+	showPortraitLockBtn: false,
 	uiFontSizeMultiplier: 2.5,
 	activeProfileId: 'profile_1',
 	profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)),
@@ -779,7 +779,7 @@ const DEFAULT_APP = {
     'headertonebtn', 'headertouchbtn', 'headerhandbtn',
     'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn',
     'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn',
-    'headerautorotatebtn', 'headerswapbtn', 'headerplaybtn',
+    'headerportraitlockbtn', 'headerswapbtn', 'headerplaybtn',
     'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn',
     'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn',
     'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn',
@@ -804,7 +804,7 @@ const DEFAULT_APP = {
 'counterToggle', 'autocounterToggle',
 'headerNotepadToggle', 'inputRegulatorToggle',
 'hapticsToggle', 'introToggle',
-'upsidedownToggle', 'autoRotateToggle',
+'upsidedownToggle', 'portraitLockToggle',
 'fullscreenToggle', 'biggerToggle',
 'ecoToggle', 'wakelockToggle',
 'positionSwapToggle', 'pipToggle',
@@ -1937,7 +1937,7 @@ class SettingsManager {
 			headertonebtn: document.getElementById('headertonebtn'),
 			headerfullscreenbtn: document.getElementById('headerfullscreenbtn'), headerpinnedbtn: document.getElementById('headerpinnedbtn'), headerdndbtn: document.getElementById('headerdndbtn'), headerpipbtn: document.getElementById('headerpipbtn'),
 			headerupsidedownbtn: document.getElementById('headerupsidedownbtn'),
-			headerautorotatebtn: document.getElementById('headerautorotatebtn'),
+			headerportraitlockbtn: document.getElementById('headerportraitlockbtn'),
 			voicePresetSelect: document.getElementById('voice-preset-select'),
 			voicePresetAdd: document.getElementById('voice-preset-add'),
 			voicePresetSave: document.getElementById('voice-preset-save'),
@@ -2014,7 +2014,7 @@ class SettingsManager {
 			headerPaddingSelect: document.getElementById('header-padding-select'),
 			inputsPaddingSelect: document.getElementById('inputs-padding-select'),
 			upsidedownToggle: document.getElementById('upsidedownToggle'),
-			autoRotateToggle: document.getElementById('autoRotateToggle'),
+			portraitLockToggle: document.getElementById('portraitLockToggle'),
 			fullscreenToggle: document.getElementById('fullscreenToggle'),
 			ecoToggle: document.getElementById('ecoToggle'),
 			arSpeedSelect: document.getElementById('ar-speed-select'),
@@ -2087,9 +2087,9 @@ class SettingsManager {
 				this.callbacks.onSave();
 			};
 		}
-		if (this.dom.autoRotateToggle) {
-			this.dom.autoRotateToggle.onchange = (e) => {
-				this.appSettings.showAutoRotateBtn = e.target.checked;
+		if (this.dom.portraitLockToggle) {
+			this.dom.portraitLockToggle.onchange = (e) => {
+				this.appSettings.showPortraitLockBtn = e.target.checked;
 				this.updateHeaderVisibility();
 				this.callbacks.onSave();
 			};
@@ -2523,7 +2523,7 @@ class SettingsManager {
 			window.unlockBodyScroll();
 		}
 	}
-	toggleRedeem(show) { if (show) { this.rScale = 70; if (this.dom.redeemImg) this.dom.redeemImg.style.transform = `scale(${this.rScale / 100})`; if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.add('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'auto'; } if (document.body.classList.contains('eco-mode')) { document.body.classList.remove('eco-mode'); this._ecoModeSuspendedForRedeem = true; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.remove('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'none'; } if (this._ecoModeSuspendedForRedeem && this.appSettings.isEcoModeEnabled) { document.body.classList.add('eco-mode'); } this._ecoModeSuspendedForRedeem = false; if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
+	toggleRedeem(show) { if (show) { this.rScale = 70; if (this.dom.redeemImg) this.dom.redeemImg.style.transform = getRedeemImageTransform(this.rScale); if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.add('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'auto'; } if (document.body.classList.contains('eco-mode')) { document.body.classList.remove('eco-mode'); this._ecoModeSuspendedForRedeem = true; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.remove('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'none'; } if (this._ecoModeSuspendedForRedeem && this.appSettings.isEcoModeEnabled) { document.body.classList.add('eco-mode'); } this._ecoModeSuspendedForRedeem = false; if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
 	toggleDonate(show) { if (show) { if (this.dom.donateModal) { this.dom.donateModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'auto'; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.donateModal) { this.dom.donateModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'none'; } if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
 	setupTabSwipe(modal) {
 		const content = modal.querySelector('.settings-modal-bg');
@@ -3208,11 +3208,9 @@ class SettingsManager {
 		}
 		if (this.dom.headertonebtn) {
 			this.dom.headertonebtn.addEventListener('click', () => {
-					const isActive = this.dom.headertonebtn.classList.contains('tone-btn-on');
+					const isActive = this.dom.headertonebtn.classList.contains('ring-2');
 					if (isActive) {
-						this.dom.headertonebtn.classList.remove('tone-btn-on');
-						this.dom.headertonebtn.classList.add('tone-btn-off');
-						this.dom.headertonebtn.textContent = '🎵 Tones Off';
+						this.dom.headertonebtn.classList.remove('ring-2', 'ring-emerald-500');
 						document.getElementById('tone-debug-indicator')?.classList.add('hidden');
 						if (typeof toneEngine !== 'undefined') toneEngine.stop();
 					} else {
@@ -3221,9 +3219,7 @@ class SettingsManager {
 							if (typeof showToast === 'function') showToast('Tone Cadence currently supports 9-Key input only 🎵');
 							return;
 						}
-						this.dom.headertonebtn.classList.add('tone-btn-on');
-						this.dom.headertonebtn.classList.remove('tone-btn-off');
-						this.dom.headertonebtn.textContent = '🎵 Tones ON';
+						this.dom.headertonebtn.classList.add('ring-2', 'ring-emerald-500');
 						document.getElementById('tone-debug-indicator')?.classList.remove('hidden');
 						if (typeof toneEngine !== 'undefined') toneEngine.start();
 					}
@@ -3439,7 +3435,7 @@ class SettingsManager {
 		if (this.dom.openShareInside) this.dom.openShareInside.onclick = () => this.openShare();
 		if (this.dom.closeShareBtn) this.dom.closeShareBtn.onclick = () => { this.closeShare(); };
 		this.rScale = 70;
-		const updateRedeem = () => { if(this.dom.redeemImg) this.dom.redeemImg.style.transform = `scale(${this.rScale/100})`; };
+		const updateRedeem = () => { if(this.dom.redeemImg) this.dom.redeemImg.style.transform = getRedeemImageTransform(this.rScale); };
 		if (this.dom.closeRedeemBtn) this.dom.closeRedeemBtn.onclick = () => this.toggleRedeem(false);
 		if (this.dom.openRedeemSettingsBtn) this.dom.openRedeemSettingsBtn.onclick = () => this.toggleRedeem(true);
 		if (this.dom.redeemPlus) this.dom.redeemPlus.onclick = () => { this.rScale = Math.min(100, this.rScale + 10); updateRedeem(); };
@@ -3682,8 +3678,8 @@ class SettingsManager {
 		if (this.dom.upsidedownToggle) {
 			this.dom.upsidedownToggle.checked = !!this.appSettings.showUpsideDownBtn;
 		}
-		if (this.dom.autoRotateToggle) {
-			this.dom.autoRotateToggle.checked = !!this.appSettings.showAutoRotateBtn;
+		if (this.dom.portraitLockToggle) {
+			this.dom.portraitLockToggle.checked = !!this.appSettings.showPortraitLockBtn;
 		}
 		if (this.dom.headerPlayToggle) this.dom.headerPlayToggle.checked = !!this.appSettings.showHeaderPlayBtn;
 		if (this.dom.headerDeleteToggle) this.dom.headerDeleteToggle.checked = !!this.appSettings.showHeaderDeleteBtn;
@@ -3743,9 +3739,9 @@ class SettingsManager {
 				this.dom.headerupsidedownbtn.classList.add('hidden');
 			}
 		}
-		if (this.dom.headerautorotatebtn) {
-			this.dom.headerautorotatebtn.classList.toggle('hidden', !this.appSettings.showAutoRotateBtn);
-			if (typeof updateAutoRotateBtnState === 'function') updateAutoRotateBtnState();
+		if (this.dom.headerportraitlockbtn) {
+			this.dom.headerportraitlockbtn.classList.toggle('hidden', !this.appSettings.showPortraitLockBtn);
+			if (typeof updatePortraitLockBtnState === 'function') updatePortraitLockBtnState();
 		}
 		if (this.dom.headerpinnedbtn) this.dom.headerpinnedbtn.classList.toggle('hidden', !this.appSettings.showPinnedBtn);
 		if (this.dom.headerdndbtn) this.dom.headerdndbtn.classList.toggle('hidden', !this.appSettings.showDndBtn);
@@ -3783,7 +3779,7 @@ class SettingsManager {
 		if (this.dom.headertonebtn) {
 			this.dom.headertonebtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
 		}
-		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderVolumeBtns || this.appSettings.showHeaderSpeedBtns || this.appSettings.showHeaderCycleInputBtn || this.appSettings.showHeaderNotepadBtn || this.appSettings.showHeaderHelpBtn || this.appSettings.showHeaderModeSwitchBtn || this.appSettings.showHeaderResetBtn || this.appSettings.showHeaderNukeBtn || this.appSettings.showFullscreenBtn || this.appSettings.showUpsideDownBtn || this.appSettings.showAutoRotateBtn || this.appSettings.showPinnedBtn || this.appSettings.showDndBtn || this.appSettings.showPipBtn;
+		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderVolumeBtns || this.appSettings.showHeaderSpeedBtns || this.appSettings.showHeaderCycleInputBtn || this.appSettings.showHeaderNotepadBtn || this.appSettings.showHeaderHelpBtn || this.appSettings.showHeaderModeSwitchBtn || this.appSettings.showHeaderResetBtn || this.appSettings.showHeaderNukeBtn || this.appSettings.showFullscreenBtn || this.appSettings.showUpsideDownBtn || this.appSettings.showPortraitLockBtn || this.appSettings.showPinnedBtn || this.appSettings.showDndBtn || this.appSettings.showPipBtn;
 		if (!showTimer && !showCounter && !showMic && !showCam && !showTouchGesture && !showBigger && !showHand && !showSwap && !this.appSettings.isToneCadenceEnabled && !anyNewBtnShown) {
 			header.classList.add('header-hidden');
 		} else {
@@ -3809,7 +3805,7 @@ class SettingsManager {
 		return [...row.children].filter(el => el.id && !el.dataset.cloneId).map(el => el.id);
 	}
 	_headerBtnLabels() {
-		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerpinnedbtn: '📌 Pinned Mode', headerdndbtn: '🔕 Do Not Disturb', headerpipbtn: '🪟 Picture in Picture', headerupsidedownbtn: '🙃 Upside Down', headerautorotatebtn: '🧭 Auto-Rotate', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headerresetbtn: '♻️ Reset', headernukebtn: '☢️ Nuke', headernotepadbtn: '📝 Notepad' };
+		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerpinnedbtn: '📌 Pinned Mode', headerdndbtn: '🔕 Do Not Disturb', headerpipbtn: '🪟 Picture in Picture', headerupsidedownbtn: '🙃 Upside Down', headerportraitlockbtn: '🔒 Portrait Lock', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headerresetbtn: '♻️ Reset', headernukebtn: '☢️ Nuke', headernotepadbtn: '📝 Notepad' };
 	}
 	_moveHeaderBtn(id, direction) {
 		const row = document.getElementById('header-btn-row');
@@ -3882,7 +3878,7 @@ class SettingsManager {
 		}).filter(Boolean);
 	}
 	_generalToggleLabels() {
-		return { autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙', randomThemeToggle: 'Random Theme 🎲', headerThemeCycleToggle: 'Theme Cycle 🎨', headerCycleInputToggle: 'Cycle Input 🔀', headerModeSwitchToggle: 'Mode Switch 🎮', headerAddMachineToggle: 'Add Machine ➕', bossToggle: 'Boss Mode 🌑', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', autoHideHeaderToggle: 'Auto Hide Header 👻', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', introToggle: 'Show Intro', upsidedownToggle: 'Upside Down 🙃', autoRotateToggle: 'Auto Rotate 🧭', fullscreenToggle: 'Full Screen 🔲', biggerToggle: 'Bigger Buttons', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', positionSwapToggle: 'Position Swap 🔄', pipToggle: 'Picture in Picture 🪟', dndToggle: 'Do Not Disturb 🔕', pinnedModeToggle: 'Pinned Mode 📌', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥' };
+		return { autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙', randomThemeToggle: 'Random Theme 🎲', headerThemeCycleToggle: 'Theme Cycle 🎨', headerCycleInputToggle: 'Cycle Input 🔀', headerModeSwitchToggle: 'Mode Switch 🎮', headerAddMachineToggle: 'Add Machine ➕', bossToggle: 'Boss Mode 🌑', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', autoHideHeaderToggle: 'Auto Hide Header 👻', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', introToggle: 'Show Intro', upsidedownToggle: 'Upside Down 🙃', portraitLockToggle: 'Portrait Lock 🔒', fullscreenToggle: 'Full Screen 🔲', biggerToggle: 'Bigger Buttons', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', positionSwapToggle: 'Position Swap 🔄', pipToggle: 'Picture in Picture 🪟', dndToggle: 'Do Not Disturb 🔕', pinnedModeToggle: 'Pinned Mode 📌', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥' };
 	}
 	_moveGeneralToggle(id, direction) {
 		const grid = document.getElementById('general-toggle-grid');
@@ -5512,11 +5508,39 @@ function handleBackspace(e) {
 	renderUI();
 	saveState();
 }
+function getRedeemImageTransform(scalePercent) {
+	// The redeem barcode's physical on-screen orientation matters more than fitting the
+	// UI layout - it needs to stay scannable regardless of how the phone is held, so it's
+	// counter-rotated in landscape rather than just scaled to fit sideways. This only
+	// applies when genuinely unlocked (data-rotate="0") - when the portrait-lock
+	// compensation system is active, it already visually rotates the whole modal via the
+	// inherited body transform, so adding another rotation here would double up (and for
+	// one of the two landscape directions, add up to 180 degrees instead of canceling out).
+	const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+	const isCompensating = document.body.dataset.rotate !== '0';
+	return (isLandscape && !isCompensating) ? `rotate(90deg) scale(${scalePercent / 100})` : `scale(${scalePercent / 100})`;
+}
 function applyPositionSwapOffsets(isActive) {
 	const footer = document.getElementById('input-footer');
 	const app = document.getElementById('app');
 	const header = document.getElementById('aux-control-header');
 	if (!footer || !app) return;
+	const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+	const inputMode = document.body.dataset.inputMode;
+	const sideRepositioned = isLandscape && (inputMode === 'key9' || inputMode === 'key12');
+	if (sideRepositioned) {
+		// Landscape key9/key12: left/right positioning is handled entirely by CSS via
+		// the layout-swapped class - clear any leftover portrait inline styles so they
+		// don't conflict with it.
+		footer.style.top = '';
+		footer.style.bottom = '';
+		app.style.paddingTop = '';
+		app.style.paddingBottom = '';
+		app.style.paddingLeft = '';
+		app.style.paddingRight = '';
+		if (window.modules && window.modules.settings) window.modules.settings.updateSequenceContainerOffset();
+		return;
+	}
 	if (isActive) {
 		const headerVisible = header && !header.classList.contains('header-hidden');
 		const headerH = headerVisible ? header.offsetHeight : 0;
@@ -5570,6 +5594,7 @@ function renderUI() {
 	container.innerHTML = '';
 	const settings = getProfileSettings();
 	const state = getState();
+	document.body.dataset.inputMode = settings.currentInput;
 	['key9', 'key12', 'piano'].forEach(k => {
 			const el = document.getElementById(`pad-${k}`);
 			if (el) el.style.display = settings.currentInput === k ? 'block' : 'none';
@@ -6906,30 +6931,15 @@ function computeAndApplyRotation() {
 		total = upsideDown ? 180 : 0;
 	}
 	document.body.dataset.rotate = String(total);
-	if (typeof window.__updateRotationDebugOverlay === 'function') window.__updateRotationDebugOverlay();
 }
-window.__updateRotationDebugOverlay = function() {
-	let el = document.getElementById('__rotation-debug');
-	if (!el) {
-		el = document.createElement('div');
-		el.id = '__rotation-debug';
-		el.style.cssText = 'position:fixed;top:0;left:0;z-index:2147483647;background:#0f0;color:#000;font:bold 13px monospace;padding:4px 8px;white-space:pre;pointer-events:none;';
-		document.documentElement.appendChild(el);
-	}
-	const angle = (window.screen?.orientation && typeof window.screen.orientation.angle === 'number') ? window.screen.orientation.angle : 'n/a';
-	const type = window.screen?.orientation?.type ?? 'n/a';
-	const winOrient = (typeof window.orientation !== 'undefined') ? window.orientation : 'n/a';
-	el.textContent = `iw=${window.innerWidth} ih=${window.innerHeight} sw=${window.screen?.width} sh=${window.screen?.height} angle=${angle} type=${type} winOrient=${winOrient} rotate=${document.body.dataset.rotate} locked=${isPortraitLocked}`;
-};
-window.addEventListener('resize', () => { if (typeof window.__updateRotationDebugOverlay === 'function') window.__updateRotationDebugOverlay(); });
 function orientationLockSupported() {
 	return !!(window.screen?.orientation && typeof window.screen.orientation.lock === 'function');
 }
-function updateAutoRotateBtnState() {
-	const btn = document.getElementById('headerautorotatebtn');
+function updatePortraitLockBtnState() {
+	const btn = document.getElementById('headerportraitlockbtn');
 	if (!btn) return;
-	btn.classList.toggle('ring-2', !isPortraitLocked);
-	btn.classList.toggle('ring-emerald-500', !isPortraitLocked);
+	btn.classList.toggle('ring-2', isPortraitLocked);
+	btn.classList.toggle('ring-emerald-500', isPortraitLocked);
 }
 async function attemptNativeLockBestEffort() {
 	// Best-effort only: on devices where this actually works it reinforces the visual
@@ -6946,7 +6956,7 @@ async function attemptNativeLockBestEffort() {
 function lockPortraitOrientation() {
 	isPortraitLocked = true;
 	attemptNativeLockBestEffort();
-	updateAutoRotateBtnState();
+	updatePortraitLockBtnState();
 	computeAndApplyRotation();
 	return true;
 }
@@ -6955,16 +6965,16 @@ function unlockOrientation() {
 		try { window.screen.orientation.unlock(); } catch (e) { /* non-fatal, CSS compensation is already off */ }
 	}
 	isPortraitLocked = false;
-	updateAutoRotateBtnState();
+	updatePortraitLockBtnState();
 	computeAndApplyRotation();
-	if (typeof showToast === 'function') showToast('Auto-Rotate: ON 🧭');
+	if (typeof showToast === 'function') showToast('Portrait Lock: OFF 🔓');
 }
 window.toggleOrientationLock = function() {
 	if (isPortraitLocked) {
 		unlockOrientation();
 	} else {
 		lockPortraitOrientation();
-		if (typeof showToast === 'function') showToast('Locked to Portrait 🔒');
+		if (typeof showToast === 'function') showToast('Portrait Lock: ON 🔒');
 	}
 };
 function pipSupported() {
@@ -7264,15 +7274,21 @@ const startApp = async () => {
 			}
 		};
 	}
-	const headerautorotatebtn = document.getElementById('headerautorotatebtn');
-	if (headerautorotatebtn) {
-		headerautorotatebtn.onclick = () => {
+	const headerportraitlockbtn = document.getElementById('headerportraitlockbtn');
+	if (headerportraitlockbtn) {
+		headerportraitlockbtn.onclick = () => {
 			if (typeof window.toggleOrientationLock === 'function') window.toggleOrientationLock();
 		};
 	}
 	const triggerRotationRecompute = () => {
 		if (typeof computeAndApplyRotation !== 'function') return;
 		computeAndApplyRotation();
+		if (document.body.classList.contains('layout-swapped') && typeof applyPositionSwapOffsets === 'function') {
+			applyPositionSwapOffsets(true);
+		}
+		if (modules.settings && modules.settings.dom.redeemModal && !modules.settings.dom.redeemModal.classList.contains('opacity-0') && modules.settings.dom.redeemImg) {
+			modules.settings.dom.redeemImg.style.transform = getRedeemImageTransform(modules.settings.rScale || 70);
+		}
 		setTimeout(computeAndApplyRotation, 150);
 		setTimeout(computeAndApplyRotation, 400);
 	};

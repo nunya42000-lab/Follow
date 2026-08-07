@@ -43,7 +43,7 @@ alert("Promise Error: " + event.reason);
 <button id="headerpinnedbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">📌</button>
 <button id="headerdndbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔕</button>
 <button id="headerupsidedownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🙃</button>
-<button id="headerautorotatebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Auto-Rotate">🧭</button>
+<button id="headerportraitlockbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Portrait Lock">🔒</button>
 <button id="headerswapbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔄</button>
 <button id="headerplaybtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Play">▶️</button>
 <button id="headerdeletebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Delete">⌫</button>
@@ -200,8 +200,8 @@ alert("Promise Error: " + event.reason);
 </div>
 </div>
 <div id="redeem-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: #ffffff;" class="fixed inset-0 bg-white flex items-center justify-center z-[130] transition-opacity duration-300 opacity-0 pointer-events-none">
-<div class="absolute top-4 right-4 z-50 flex flex-col items-center gap-4">
-<button id="close-redeem-btn" class="bg-gray-800 text-white rounded-full w-10 h-10 font-bold text-xl shadow-lg border border-gray-600">✕</button>
+<div id="redeem-controls" class="absolute top-4 right-4 z-50 flex flex-col items-center gap-4">
+<button id="close-redeem-btn" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600">✕</button>
 <button id="redeem-zoom-in" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">+</button>
 <button id="redeem-zoom-out" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">-</button>
 </div>
@@ -501,8 +501,8 @@ alert("Promise Error: " + event.reason);
 <span class="font-bold text-sm">Upside Down 🙃</span>
 <input type="checkbox" id="upsidedownToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Auto Rotate 🧭</span>
-<input type="checkbox" id="autoRotateToggle" class="h-5 w-5 accent-indigo-500"></div>
+<span class="font-bold text-sm">Portrait Lock 🔒</span>
+<input type="checkbox" id="portraitLockToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Full Screen 🔲</span>
 <input type="checkbox" id="fullscreenToggle" class="h-5 w-5 accent-indigo-500"></div>
@@ -1298,15 +1298,15 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div class="flex items-center gap-3 px-5 pt-4 pb-2">
 <img src="icon192.png" alt="Follow Me" class="w-12 h-12 rounded-xl shadow-lg border border-gray-700 shrink-0" onerror="this.style.display='none'">
 <h3 class="font-bold text-lg text-white flex-1">Share Follow Me 📤</h3>
-<button id="close-share" class="text-2xl text-gray-400 hover:text-white leading-none">&times;</button>
+<button id="close-share" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 shrink-0">✕</button>
 </div>
 <div class="px-5 pb-2 flex justify-center relative">
 <div class="w-80 h-80 rounded-lg shadow-lg border border-gray-700 bg-white p-1 overflow-hidden flex items-center justify-center">
 <img id="qr-img" src="qr.jpg" alt="Scan to open Follow Me" class="w-full h-full object-contain transition-transform duration-200" onerror="this.style.display='none'">
 </div>
 <div class="absolute top-2 right-8 flex flex-col gap-2">
-<button id="qr-zoom-in" type="button" class="bg-gray-800 text-white rounded-full w-7 h-7 font-bold text-sm shadow-lg border border-gray-600 active:bg-gray-700">+</button>
-<button id="qr-zoom-out" type="button" class="bg-gray-800 text-white rounded-full w-7 h-7 font-bold text-sm shadow-lg border border-gray-600 active:bg-gray-700">-</button>
+<button id="qr-zoom-in" type="button" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">+</button>
+<button id="qr-zoom-out" type="button" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">-</button>
 </div>
 </div>
 <div class="grid grid-cols-4 gap-3 px-5 py-4 text-center">
@@ -1510,8 +1510,8 @@ Email
 <div><strong>Do Not Disturb 🔕:</strong> Silences every interruption the app makes - toast popups, all vibration/haptics (including morse buzzes), and spoken audio. The Settings toggle only shows or hides its header button (🔕), right next to Full Screen - tap that header button to actually turn Do Not Disturb on and off. Off by default. Doesn't touch your phone's own system Do Not Disturb, which no web app can control.</div>
 <div><strong>Picture in Picture 🪟:</strong> Opens a small always-on-top window showing your current sequence, so you can read it while using another app. View-only - you can't tap the sequence in the floating window. The Settings toggle only shows or hides its header button (🪟), placed last in the row - tap that header button to actually open or close Picture in Picture.</div>
 <div><strong>Pinned Mode 📌:</strong> Goes fullscreen and blocks the back gesture so you can't accidentally swipe out mid-sequence. The Settings toggle only shows or hides its header button (📌), right next to Full Screen - tap that header button to actually turn Pinned Mode on and off, or to leave once it's on. This is the app's own lock - it can't trigger Android's system screen pinning, which has no web API.</div>
-<div><strong>Upside Down:</strong> Flips the visible UI 180° for a partner facing you - stays flipped correctly even if Auto-Rotate is also locking the screen to portrait.</div>
-<div><strong>Auto Rotate 🧭:</strong> The app locks to portrait on every launch to stop accidental rotation mid-game. The Settings toggle only shows or hides its header button (🧭), right next to Upside Down - tap that header button to allow free rotation, tap again to lock back to portrait. This is done by detecting the device's actual physical orientation and visually counter-rotating the interface to compensate, rather than relying on the phone's built-in rotation lock, which is unreliable on installed home-screen apps and often can't be overridden by the app at all once set.</div>
+<div><strong>Upside Down:</strong> Flips the visible UI 180° for a partner facing you - stays flipped correctly even if Portrait Lock is also locking the screen to portrait.</div>
+<div><strong>Portrait Lock 🔒:</strong> The app locks to portrait on every launch to stop accidental rotation mid-game. The Settings toggle only shows or hides its header button (🔒), right next to Upside Down - tap that header button to allow free rotation (button goes dim, no ring), tap again to lock back to portrait (button rings, matching every other active feature). This is done by detecting the device's actual physical orientation and visually counter-rotating the interface to compensate, rather than relying on the phone's built-in rotation lock, which is unreliable on installed home-screen apps and often can't be overridden by the app at all once set.</div>
 <div><strong>Full Screen:</strong> Hides browser bars.</div>
 <div><strong>Eco Mode 🔋:</strong> Reduces animations/framerate.</div>
 <div><strong>Position Swap 🔄:</strong> Adds a header button that moves the input pad from the bottom of the screen to the top.</div>

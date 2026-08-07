@@ -59,9 +59,31 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 #app { padding-top: 1rem; display: flex; flex-direction: column; }
-@media (orientation:landscape) { #app {padding-top: 0;} #sequence-container { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: .5rem !important; } #sequence-container>div { margin: 0 !important; } }
+@media (orientation:landscape) { body[data-rotate="0"] #app {padding-top: 0;} body[data-rotate="0"] #sequence-container { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: .5rem !important; } body[data-rotate="0"] #sequence-container>div { margin: 0 !important; } }
 #sequence-container { justify-content: flex-start !important; padding-top: 1rem; width: 100%; }
 #input-footer { background-color: var(--card-bg); border-top: 4px solid var(--seq-bubble); padding-bottom: calc(max(.5rem, env(safe-area-inset-bottom)) + var(--inputs-padding-extra, 0px)); max-height: 70vh; overflow-y: auto; }
+@media (orientation: landscape) {
+	body[data-rotate="0"][data-input-mode="key9"] #input-footer, body[data-rotate="0"][data-input-mode="key12"] #input-footer {
+		top: 0 !important; right: 0 !important; bottom: 0 !important; left: auto !important;
+		width: min(42vw, 340px) !important; max-width: none !important; max-height: none !important;
+		box-sizing: border-box !important;
+		display: flex !important; align-items: center !important; justify-content: center !important;
+		border-top: none !important; border-left: 4px solid var(--seq-bubble);
+		padding-bottom: max(.5rem, env(safe-area-inset-bottom)) !important;
+		padding-right: max(.5rem, env(safe-area-inset-right)) !important;
+	}
+	body[data-rotate="0"][data-input-mode="key9"] #app, body[data-rotate="0"][data-input-mode="key12"] #app {
+		padding-right: min(42vw, 340px) !important;
+	}
+	body.layout-swapped[data-rotate="0"][data-input-mode="key9"] #input-footer, body.layout-swapped[data-rotate="0"][data-input-mode="key12"] #input-footer {
+		right: auto !important; left: 0 !important;
+		border-left: none !important; border-right: 4px solid var(--seq-bubble);
+		padding-left: max(.5rem, env(safe-area-inset-left)) !important; padding-right: max(.5rem, env(safe-area-inset-bottom)) !important;
+	}
+	body.layout-swapped[data-rotate="0"][data-input-mode="key9"] #app, body.layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
+		padding-right: 0 !important; padding-left: min(42vw, 340px) !important;
+	}
+}
 body.pinned-mode #input-footer { padding-bottom: calc(max(.5rem, env(safe-area-inset-bottom)) + var(--inputs-padding-extra, 0px) + 60px); }
 body.layout-swapped #input-footer { border-top: none; border-bottom: 4px solid var(--seq-bubble); padding-top: max(.5rem, env(safe-area-inset-top)); padding-bottom: .5rem; }
 .btn-input { transition: all .1s ease-in-out; position: relative; font-weight: 700; border-radius: .75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .3); height: 60px; color: var(--text-main); -webkit-user-select: none; user-select: none; }
@@ -130,7 +152,37 @@ body.hide-controls .control-row { display: none !important; }
 body.hide-controls #pad-key9 .btn-pad-number,
 body.hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; width: 100%; font-size: 2.2rem; transition: all 0.3s ease; box-shadow: 0 8px 15px rgba(0,0,0,0.4); }
 body.hide-controls #piano-keys { height: 300px; transition: height 0.3s ease; }
-@media (orientation: landscape) { body.hide-controls #input-footer .max-w-md, body.hide-controls #input-footer .max-w-lg, body.hide-controls #input-footer .max-w-2xl { max-width: 95vw !important; } body.hide-controls #pad-key9 .btn-pad-number, body.hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; max-height: 15vh; font-size: 2.5rem; width: 100%; margin: 0 auto; } body.hide-controls #input-footer { padding: 5px !important;} body.hide-controls #piano-keys { height: 50vh !important; } }
+@media (orientation: landscape) { body[data-rotate="0"].hide-controls #input-footer .max-w-md, body[data-rotate="0"].hide-controls #input-footer .max-w-lg, body[data-rotate="0"].hide-controls #input-footer .max-w-2xl { max-width: 95vw !important; } body[data-rotate="0"].hide-controls #pad-key9 .btn-pad-number, body[data-rotate="0"].hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; max-height: 15vh; font-size: 2.5rem; width: 100%; margin: 0 auto; } body[data-rotate="0"].hide-controls #input-footer { padding: 5px !important;} body[data-rotate="0"].hide-controls #piano-keys { height: 50vh !important; } }
+@media (orientation: landscape) {
+	body[data-rotate="0"][data-input-mode="piano"] #piano-keys { height: 42vh !important; }
+	body[data-rotate="0"][data-input-mode="piano"] .control-row {
+		position: fixed !important; top: 0 !important; right: 0 !important; bottom: 0 !important; left: auto !important;
+		width: auto !important; max-width: none !important; margin: 0 !important;
+		grid-template-columns: 1fr !important; grid-auto-flow: row; align-content: center; justify-items: center;
+		gap: .5rem !important; padding: .5rem max(.5rem, env(safe-area-inset-right)) .5rem .5rem !important;
+		z-index: 35;
+	}
+	body[data-rotate="0"][data-input-mode="piano"] .control-row .btn-control { width: 60px; }
+	body.layout-swapped[data-rotate="0"][data-input-mode="piano"] .control-row {
+		right: auto !important; left: 0 !important;
+		padding: .5rem .5rem .5rem max(.5rem, env(safe-area-inset-left)) !important;
+	}
+}
+@media (orientation: landscape) {
+	body[data-rotate="0"] #settings-modal { padding-top: max(.5rem, env(safe-area-inset-top)) !important; }
+	body[data-rotate="0"] #settings-modal .settings-modal-bg { max-width: 90vw !important; max-height: calc(100vh - max(.5rem, env(safe-area-inset-top)) - 1rem) !important; }
+	body[data-rotate="0"] #settings-modal #general-toggle-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+	body[data-rotate="0"] #help-modal .settings-modal-bg { max-width: 90vw !important; max-height: 90vh !important; }
+	body[data-rotate="0"] #help-modal .help-tab-bar { grid-template-columns: repeat(7, minmax(0, 1fr)) !important; }
+	body[data-rotate="0"] #share-modal { display: flex !important; align-items: center !important; justify-content: center !important; }
+	body[data-rotate="0"] #share-modal .share-sheet {
+		position: relative !important; bottom: auto !important; width: auto !important; max-width: 420px !important;
+		max-height: 92vh !important; overflow-y: auto;
+		border-radius: 1.5rem !important; transform: none !important; padding-bottom: 1rem;
+	}
+	body[data-rotate="0"] #share-modal .w-80.h-80 { width: 42vh !important; height: 42vh !important; }
+	body[data-rotate="0"] #redeem-controls { flex-direction: row !important; top: max(.5rem, env(safe-area-inset-top)) !important; right: 50% !important; transform: translateX(50%); gap: 1rem !important; }
+}
 body.fullscreen-mode #app { padding-top: 4rem !important; }
 body.fullscreen-mode #aux-control-header { background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 20%, rgba(0, 0, 0, 0) 100%); }
 #developer-options-modal { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
@@ -211,8 +263,6 @@ body.pinned-mode::after { content: ''; position: fixed; inset: 0; z-index: 10010
 .flex-wrap { flex-wrap: wrap; }
 .border-opacity-20 { border-color: rgba(255, 255, 255, 0.03); }
 .ring-2.ring-emerald-500 { box-shadow: 0 0 0 2px #10b981; }
-.tone-btn-on { background-color: #4f46e5 !important; }
-.tone-btn-off { background-color: rgba(49, 46, 129, 0.4) !important; color: #a5b4fc !important; }
 .-translate-y-10 { transform: translateY(-2.5rem); }
 .mt-4 { margin-top: 1rem; }
 .mb-4 { margin-bottom: 1rem; }
@@ -517,6 +567,7 @@ details[open].open\:bg-white\/10 { background-color: rgba(255, 255, 255, 0.1); }
 .max-h-32 { max-height: 8rem; }
 .max-h-64 { max-height: 16rem; }
 .max-h-\[95vh\] { max-height: 95vh; }
+.h-\[95vh\] { height: 95vh; }
 .max-w-\[280px\] { max-width: 280px; }
 .max-w-sm { max-width: 24rem; }
 .min-h-\[64px\] { min-height: 64px; }

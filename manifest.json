@@ -57,19 +57,6 @@
       ]
     },
     {
-      "name": "Restore Defaults",
-      "short_name": "Restore",
-      "description": "Reset all settings back to their defaults - asks to confirm first",
-      "url": "./index.html?restoreDefaults=1",
-      "icons": [
-        {
-          "src": "icon192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
       "name": "View Help",
       "short_name": "Help",
       "description": "Open the app straight to the Help manual",

@@ -65,23 +65,31 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 @media (orientation: landscape) {
 	body[data-rotate="0"][data-input-mode="key9"] #input-footer, body[data-rotate="0"][data-input-mode="key12"] #input-footer {
 		top: 0 !important; right: 0 !important; bottom: 0 !important; left: auto !important;
-		width: min(42vw, 340px) !important; max-width: none !important; max-height: none !important;
+		width: 100vh !important; max-width: none !important; max-height: none !important;
 		box-sizing: border-box !important;
 		display: flex !important; align-items: center !important; justify-content: center !important;
 		border-top: none !important; border-left: 4px solid var(--seq-bubble);
 		padding-bottom: max(.5rem, env(safe-area-inset-bottom)) !important;
 		padding-right: max(.5rem, env(safe-area-inset-right)) !important;
 	}
-	body[data-rotate="0"][data-input-mode="key9"] #app, body[data-rotate="0"][data-input-mode="key12"] #app {
-		padding-right: min(42vw, 340px) !important;
+	body[data-rotate="0"][data-input-mode="key9"] #input-footer > div, body[data-rotate="0"][data-input-mode="key12"] #input-footer > div {
+		width: 100% !important; max-width: none !important;
+	}
+	body[data-rotate="0"][data-input-mode="key9"] #app, body[data-rotate="0"][data-input-mode="key12"] #app,
+	body[data-rotate="0"][data-input-mode="key9"] #gesture-pad-wrapper, body[data-rotate="0"][data-input-mode="key12"] #gesture-pad-wrapper {
+		padding-right: 100vh !important; box-sizing: border-box !important;
+	}
+	body[data-rotate="0"][data-input-mode="key9"] #gesture-pad, body[data-rotate="0"][data-input-mode="key12"] #gesture-pad {
+		box-sizing: border-box !important; width: 100% !important;
 	}
 	body.layout-swapped[data-rotate="0"][data-input-mode="key9"] #input-footer, body.layout-swapped[data-rotate="0"][data-input-mode="key12"] #input-footer {
 		right: auto !important; left: 0 !important;
 		border-left: none !important; border-right: 4px solid var(--seq-bubble);
 		padding-left: max(.5rem, env(safe-area-inset-left)) !important; padding-right: max(.5rem, env(safe-area-inset-bottom)) !important;
 	}
-	body.layout-swapped[data-rotate="0"][data-input-mode="key9"] #app, body.layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
-		padding-right: 0 !important; padding-left: min(42vw, 340px) !important;
+	body.layout-swapped[data-rotate="0"][data-input-mode="key9"] #app, body.layout-swapped[data-rotate="0"][data-input-mode="key12"] #app,
+	body.layout-swapped[data-rotate="0"][data-input-mode="key9"] #gesture-pad-wrapper, body.layout-swapped[data-rotate="0"][data-input-mode="key12"] #gesture-pad-wrapper {
+		padding-right: 0 !important; padding-left: 100vh !important; box-sizing: border-box !important;
 	}
 }
 body.pinned-mode #input-footer { padding-bottom: calc(max(.5rem, env(safe-area-inset-bottom)) + var(--inputs-padding-extra, 0px) + 60px); }
@@ -176,12 +184,22 @@ body.hide-controls #piano-keys { height: 300px; transition: height 0.3s ease; }
 	body[data-rotate="0"] #help-modal .help-tab-bar { grid-template-columns: repeat(7, minmax(0, 1fr)) !important; }
 	body[data-rotate="0"] #share-modal { display: flex !important; align-items: center !important; justify-content: center !important; }
 	body[data-rotate="0"] #share-modal .share-sheet {
-		position: relative !important; bottom: auto !important; width: auto !important; max-width: 420px !important;
+		position: relative !important; bottom: auto !important; width: auto !important; max-width: 620px !important;
 		max-height: 92vh !important; overflow-y: auto;
 		border-radius: 1.5rem !important; transform: none !important; padding-bottom: 1rem;
 	}
-	body[data-rotate="0"] #share-modal .w-80.h-80 { width: 42vh !important; height: 42vh !important; }
+	body[data-rotate="0"] #share-modal .w-80.h-80 { width: 46vh !important; height: 46vh !important; }
+	body[data-rotate="0"] #share-modal .px-5.pb-2.flex.justify-center.relative {
+		flex-direction: column !important; align-items: center !important; gap: .75rem;
+	}
+	body[data-rotate="0"] #share-modal .absolute.top-2.right-8 {
+		position: static !important; flex-direction: row !important; top: auto !important; right: auto !important;
+	}
 	body[data-rotate="0"] #redeem-controls { flex-direction: row !important; top: max(.5rem, env(safe-area-inset-top)) !important; right: 50% !important; transform: translateX(50%); gap: 1rem !important; }
+	body[data-rotate="0"] #redeem-modal { padding-top: 4.5rem !important; box-sizing: border-box; }
+	body[data-rotate="0"] #redeem-modal > div.relative.w-full {
+		max-width: 95vw !important; width: 95vw !important; height: 78vh !important; max-height: none !important;
+	}
 }
 body.fullscreen-mode #app { padding-top: 4rem !important; }
 body.fullscreen-mode #aux-control-header { background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 20%, rgba(0, 0, 0, 0) 100%); }

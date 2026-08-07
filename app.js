@@ -1449,7 +1449,15 @@ class TouchGestureEngine {
 	}
 	_getPathLen(pts) { let l=0; for(let i=1;i<pts.length;i++) l+=Math.hypot(pts[i].x-pts[i-1].x, pts[i].y-pts[i-1].y); return l; }
 	_getDirection(dx, dy) {
-		const ang = Math.atan2(dy, dx) * 180 / Math.PI;
+		// Raw touch dx/dy are always in physical screen space - if the UI is visually
+		// rotated (Portrait Lock compensating for physical landscape), compensate here so
+		// directions match what the user actually sees, not the raw physical movement.
+		const rotate = document.body.dataset.rotate;
+		let cdx = dx, cdy = dy;
+		if (rotate === '90') { cdx = dy; cdy = -dx; }
+		else if (rotate === '180') { cdx = -dx; cdy = -dy; }
+		else if (rotate === '270') { cdx = -dy; cdy = dx; }
+		const ang = Math.atan2(cdy, cdx) * 180 / Math.PI;
 		if (ang > -22.5 && ang <= 22.5) return 'right';
 		if (ang > 22.5 && ang <= 67.5) return 'se';
 		if (ang > 67.5 && ang <= 112.5) return 'down';
@@ -1552,8 +1560,13 @@ class HandMotionTracker {
 		if (maxRadius < this.stillDist && span >= this.stillTimeMs) {
 			return { id: 202, label: '⚓ Anchor Hold' };
 		}
-		const netDx = last.x - first.x;
-		const netDy = last.y - first.y;
+		let netDx = last.x - first.x;
+		let netDy = last.y - first.y;
+		// Camera coordinates are physical-device-relative, same as touch - compensate the same way.
+		const rotate = document.body.dataset.rotate;
+		if (rotate === '90') { const t = netDx; netDx = netDy; netDy = -t; }
+		else if (rotate === '180') { netDx = -netDx; netDy = -netDy; }
+		else if (rotate === '270') { const t = netDx; netDx = -netDy; netDy = t; }
 		const netDist = Math.hypot(netDx, netDy);
 		const pathLen = this._pathLength(pts);
 		if (pathLen < this.minSwipeDist) return null;
@@ -2523,7 +2536,7 @@ class SettingsManager {
 			window.unlockBodyScroll();
 		}
 	}
-	toggleRedeem(show) { if (show) { this.rScale = 70; if (this.dom.redeemImg) this.dom.redeemImg.style.transform = getRedeemImageTransform(this.rScale); if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.add('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'auto'; } if (document.body.classList.contains('eco-mode')) { document.body.classList.remove('eco-mode'); this._ecoModeSuspendedForRedeem = true; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.remove('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'none'; } if (this._ecoModeSuspendedForRedeem && this.appSettings.isEcoModeEnabled) { document.body.classList.add('eco-mode'); } this._ecoModeSuspendedForRedeem = false; if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
+	toggleRedeem(show) { if (show) { const isLandscapeUnlocked = window.matchMedia('(orientation: landscape)').matches && document.body.dataset.rotate === '0'; this.rScale = isLandscapeUnlocked ? 100 : 70; if (this.dom.redeemImg) this.dom.redeemImg.style.transform = getRedeemImageTransform(this.rScale); if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.add('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'auto'; } if (document.body.classList.contains('eco-mode')) { document.body.classList.remove('eco-mode'); this._ecoModeSuspendedForRedeem = true; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.remove('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'none'; } if (this._ecoModeSuspendedForRedeem && this.appSettings.isEcoModeEnabled) { document.body.classList.add('eco-mode'); } this._ecoModeSuspendedForRedeem = false; if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
 	toggleDonate(show) { if (show) { if (this.dom.donateModal) { this.dom.donateModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'auto'; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.donateModal) { this.dom.donateModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'none'; } if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
 	setupTabSwipe(modal) {
 		const content = modal.querySelector('.settings-modal-bg');
@@ -5655,7 +5668,7 @@ function renderUI() {
 		container.appendChild(header);
 	}
 	let gridCols = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? 1 : Math.min(settings.machineCount, 4);
-	container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
+	container.className = `flex-grow grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
 	activeSeqs.forEach((seq, idx) => {
 			const card = document.createElement('div');
 			card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)] relative group";
@@ -6983,7 +6996,9 @@ function pipSupported() {
 function readVisibleSequence() {
 	const container = document.getElementById('sequence-container');
 	if (!container) return [];
-	return Array.from(container.querySelectorAll('.number-box'))
+	const firstCardWithNumbers = Array.from(container.children).find(el => el.querySelector('.number-box'));
+	const scope = firstCardWithNumbers || container;
+	return Array.from(scope.querySelectorAll('.number-box'))
 	.map(el => (el.textContent || '').trim())
 	.filter(t => t.length);
 }
@@ -7301,7 +7316,8 @@ const startApp = async () => {
 	if (appSettings.isWakeLockEnabled && typeof window.wakelockToggle === 'function') {
 		window.wakelockToggle(true);
 	}
-	if (typeof lockPortraitOrientation === 'function') lockPortraitOrientation();
+	if (typeof computeAndApplyRotation === 'function') computeAndApplyRotation();
+	if (typeof updatePortraitLockBtnState === 'function') updatePortraitLockBtnState();
 	modules.settings = new SettingsManager(appSettings, {
 			onSave: () => saveState(),
 			onUpdate: () => updateAllChrome(),

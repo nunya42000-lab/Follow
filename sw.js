@@ -94,15 +94,10 @@ self.addEventListener('fetch', event => {
 
     event.respondWith(
         caches.match(event.request).then(cached => {
-            // Return cached content if available[span_3](start_span)[span_3](end_span)
+            // 1. Return cached content instantly if available
             if (cached) return cached;
 
-            // If it's a page navigation request, guarantee it opens instantly offline by falling back to index.html
-            if (event.request.mode === 'navigate') {
-                return caches.match('./index.html').then(indexCached => indexCached || caches.match('./'));
-            }
-
-            // Otherwise fetch from network and cache it for next time[span_4](start_span)[span_4](end_span)
+            // 2. Fetch from network and lazily cache it for next time
             return fetch(event.request).then(networkResponse => {
                 if (!networkResponse || networkResponse.status !== 200 || networkResponse.type === 'error') {
                     return networkResponse;
@@ -111,8 +106,13 @@ self.addEventListener('fetch', event => {
                 caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
                 return networkResponse;
             }).catch(() => {
+                // 3. ONLY if the network fails (offline), fallback to the cached root
+                if (event.request.mode === 'navigate') {
+                    return caches.match('./index.html').then(indexCached => indexCached || caches.match('./'));
+                }
                 console.log('[SW] Offline & not found:', event.request.url);
             });
         })
     );
 });
+

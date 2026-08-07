@@ -3302,6 +3302,7 @@ class SettingsManager {
 					this.appSettings.runtimeSettings[prop] = val;
 				}
 				if (prop === 'isPracticeModeEnabled') this.callbacks.onUpdate();
+				if (prop === 'currentInput') renderUI();
 				this.callbacks.onSave();
 				this.generatePrompt();
 				if (['showTimer', 'showCounter', 'isVoiceInputEnabled', 'isArModeEnabled', 'showBiggerBtn', 'isHandGesturesEnabled', 'isTouchGestureInputEnabled'].includes(prop)) {
@@ -5713,7 +5714,9 @@ function renderUI() {
 	if (hCam) hCam.classList.toggle('header-btn-active', document.body.classList.contains('ar-active'));
 	if (hGest) hGest.classList.toggle('header-btn-active', isTouchGesturePadVisible);
 	document.querySelectorAll('.reset-button').forEach(b => {
-			b.style.display = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? 'block' : 'none';
+			const showReset = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS;
+			b.style.display = showReset ? 'block' : 'none';
+			b.closest('.control-row')?.classList.toggle('reset-visible', showReset);
 	});
 }
 function disableInput(disabled) {
@@ -6903,7 +6906,22 @@ function computeAndApplyRotation() {
 		total = upsideDown ? 180 : 0;
 	}
 	document.body.dataset.rotate = String(total);
+	if (typeof window.__updateRotationDebugOverlay === 'function') window.__updateRotationDebugOverlay();
 }
+window.__updateRotationDebugOverlay = function() {
+	let el = document.getElementById('__rotation-debug');
+	if (!el) {
+		el = document.createElement('div');
+		el.id = '__rotation-debug';
+		el.style.cssText = 'position:fixed;top:0;left:0;z-index:2147483647;background:#0f0;color:#000;font:bold 13px monospace;padding:4px 8px;white-space:pre;pointer-events:none;';
+		document.documentElement.appendChild(el);
+	}
+	const angle = (window.screen?.orientation && typeof window.screen.orientation.angle === 'number') ? window.screen.orientation.angle : 'n/a';
+	const type = window.screen?.orientation?.type ?? 'n/a';
+	const winOrient = (typeof window.orientation !== 'undefined') ? window.orientation : 'n/a';
+	el.textContent = `iw=${window.innerWidth} ih=${window.innerHeight} sw=${window.screen?.width} sh=${window.screen?.height} angle=${angle} type=${type} winOrient=${winOrient} rotate=${document.body.dataset.rotate} locked=${isPortraitLocked}`;
+};
+window.addEventListener('resize', () => { if (typeof window.__updateRotationDebugOverlay === 'function') window.__updateRotationDebugOverlay(); });
 function orientationLockSupported() {
 	return !!(window.screen?.orientation && typeof window.screen.orientation.lock === 'function');
 }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'follow-me-v95';
+const CACHE_NAME = 'follow-me-v96';
 
 const CRITICAL_ASSETS = [
     './',
@@ -115,4 +115,3 @@ self.addEventListener('fetch', event => {
         })
     );
 });
-

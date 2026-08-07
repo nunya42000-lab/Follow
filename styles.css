@@ -87,6 +87,8 @@ body.boss-active #boss-layer { display: block; }
 .share-sheet { background-color: #1e1e1e !important; border-radius: 1.5rem 1.5rem 0 0 !important; bottom: 0; position: absolute; width: 100%; border-top: 1px solid #333; padding-bottom: 2rem; z-index: 100; transform: translateY(100%); transition: transform .3s ease-out; }
 .share-sheet.active { transform: translateY(0); }
 body.hide-controls .control-row { display: none !important; }
+.control-row { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+.control-row.reset-visible { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
 #aux-control-header { padding-top: max(0.5rem, env(safe-area-inset-top)); padding-bottom: 0.25rem; background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%); pointer-events: none; }
 #header-btn-row button { font-size: calc(1.25rem * var(--header-icon-scale, 1)); }
 .btn-pad-number, .btn-control { font-size: calc(1.5rem * var(--app-font-scale, 1)) !important; }
@@ -128,7 +130,7 @@ body.hide-controls .control-row { display: none !important; }
 body.hide-controls #pad-key9 .btn-pad-number,
 body.hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; width: 100%; font-size: 2.2rem; transition: all 0.3s ease; box-shadow: 0 8px 15px rgba(0,0,0,0.4); }
 body.hide-controls #piano-keys { height: 300px; transition: height 0.3s ease; }
-@media (orientation: landscape) { body.hide-controls #input-footer .max-w-md, body.hide-controls #input-footer .max-w-lg, body.hide-controls #input-footer .max-w-2xl { max-width: 95vw !important; } body.hide-controls #pad-key9 .btn-pad-number, body.hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; font-size: 2.5rem; width: 100%; } body.hide-controls #input-footer { padding: 5px !important;} body.hide-controls #piano-keys { height: 50vh !important; } }
+@media (orientation: landscape) { body.hide-controls #input-footer .max-w-md, body.hide-controls #input-footer .max-w-lg, body.hide-controls #input-footer .max-w-2xl { max-width: 95vw !important; } body.hide-controls #pad-key9 .btn-pad-number, body.hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; max-height: 15vh; font-size: 2.5rem; width: 100%; margin: 0 auto; } body.hide-controls #input-footer { padding: 5px !important;} body.hide-controls #piano-keys { height: 50vh !important; } }
 body.fullscreen-mode #app { padding-top: 4rem !important; }
 body.fullscreen-mode #aux-control-header { background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 20%, rgba(0, 0, 0, 0) 100%); }
 #developer-options-modal { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }

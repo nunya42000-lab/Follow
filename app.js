@@ -2523,7 +2523,7 @@ class SettingsManager {
 			window.unlockBodyScroll();
 		}
 	}
-	toggleRedeem(show) { if (show) { this.rScale = 70; if (this.dom.redeemImg) this.dom.redeemImg.style.transform = getRedeemImageTransform(this.rScale); if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.add('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'auto'; } if (document.body.classList.contains('eco-mode')) { document.body.classList.remove('eco-mode'); this._ecoModeSuspendedForRedeem = true; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.remove('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'none'; } if (this._ecoModeSuspendedForRedeem && this.appSettings.isEcoModeEnabled) { document.body.classList.add('eco-mode'); } this._ecoModeSuspendedForRedeem = false; if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
+	toggleRedeem(show) { if (show) { const isPhysicallyLandscape = window.matchMedia('(orientation: landscape)').matches; this.rScale = isPhysicallyLandscape ? 100 : 70; if (this.dom.redeemImg) this.dom.redeemImg.style.transform = getRedeemImageTransform(this.rScale); if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.add('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'auto'; } if (document.body.classList.contains('eco-mode')) { document.body.classList.remove('eco-mode'); this._ecoModeSuspendedForRedeem = true; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.remove('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'none'; } if (this._ecoModeSuspendedForRedeem && this.appSettings.isEcoModeEnabled) { document.body.classList.add('eco-mode'); } this._ecoModeSuspendedForRedeem = false; if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
 	toggleDonate(show) { if (show) { if (this.dom.donateModal) { this.dom.donateModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'auto'; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.donateModal) { this.dom.donateModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'none'; } if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
 	setupTabSwipe(modal) {
 		const content = modal.querySelector('.settings-modal-bg');
@@ -5509,16 +5509,9 @@ function handleBackspace(e) {
 	saveState();
 }
 function getRedeemImageTransform(scalePercent) {
-	// The redeem barcode's physical on-screen orientation matters more than fitting the
-	// UI layout - it needs to stay scannable regardless of how the phone is held, so it's
-	// counter-rotated in landscape rather than just scaled to fit sideways. This only
-	// applies when genuinely unlocked (data-rotate="0") - when the portrait-lock
-	// compensation system is active, it already visually rotates the whole modal via the
-	// inherited body transform, so adding another rotation here would double up (and for
-	// one of the two landscape directions, add up to 180 degrees instead of canceling out).
-	const isLandscape = window.matchMedia('(orientation: landscape)').matches;
-	const isCompensating = document.body.dataset.rotate !== '0';
-	return (isLandscape && !isCompensating) ? `rotate(90deg) scale(${scalePercent / 100})` : `scale(${scalePercent / 100})`;
+	// Physical rotation is handled by the outer box's CSS (scoped to orientation and lock
+	// state), so the image itself only ever needs the zoom scale, not its own rotation.
+	return `scale(${scalePercent / 100})`;
 }
 function applyPositionSwapOffsets(isActive) {
 	const footer = document.getElementById('input-footer');
@@ -5655,7 +5648,7 @@ function renderUI() {
 		container.appendChild(header);
 	}
 	let gridCols = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? 1 : Math.min(settings.machineCount, 4);
-	container.className = `grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
+	container.className = `flex-grow grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
 	activeSeqs.forEach((seq, idx) => {
 			const card = document.createElement('div');
 			card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)] relative group";

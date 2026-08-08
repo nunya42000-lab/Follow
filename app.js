@@ -7294,7 +7294,8 @@ const startApp = async () => {
 	if (appSettings.isWakeLockEnabled && typeof window.wakelockToggle === 'function') {
 		window.wakelockToggle(true);
 	}
-	if (typeof lockPortraitOrientation === 'function') lockPortraitOrientation();
+	if (typeof computeAndApplyRotation === 'function') computeAndApplyRotation();
+	if (typeof updatePortraitLockBtnState === 'function') updatePortraitLockBtnState();
 	modules.settings = new SettingsManager(appSettings, {
 			onSave: () => saveState(),
 			onUpdate: () => updateAllChrome(),

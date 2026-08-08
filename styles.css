@@ -199,6 +199,22 @@ body[data-rotate="90"] #redeem-modal > div.relative.w-full,
 body[data-rotate="270"] #redeem-modal > div.relative.w-full {
 	height: 95vw !important;
 }
+body[data-rotate="90"] #settings-modal .settings-modal-bg,
+body[data-rotate="270"] #settings-modal .settings-modal-bg {
+	max-height: calc(100vw - max(100px, env(safe-area-inset-top)) - 2rem) !important;
+}
+body[data-rotate="90"] #notepad-modal .settings-modal-bg,
+body[data-rotate="270"] #notepad-modal .settings-modal-bg {
+	max-height: calc(100vw - max(1.5rem, env(safe-area-inset-top)) - 2rem) !important;
+}
+body[data-rotate="90"] #theme-editor-modal .settings-modal-bg,
+body[data-rotate="270"] #theme-editor-modal .settings-modal-bg {
+	max-height: 95vw !important;
+}
+body[data-rotate="90"] #help-modal .settings-modal-bg,
+body[data-rotate="270"] #help-modal .settings-modal-bg {
+	max-height: 90vw !important;
+}
 body.fullscreen-mode #app { padding-top: 4rem !important; }
 body.fullscreen-mode #aux-control-header { background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 20%, rgba(0, 0, 0, 0) 100%); }
 #developer-options-modal { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }

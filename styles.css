@@ -188,6 +188,7 @@ body.hide-controls #piano-keys { height: 300px; transition: height 0.3s ease; }
 	body[data-rotate="0"] #redeem-modal { padding-top: 4.5rem !important; box-sizing: border-box; }
 	body[data-rotate="0"] #redeem-modal > div.relative.w-full {
 		max-width: none !important; width: 78vh !important; height: 95vw !important; max-height: none !important;
+		width: calc(var(--real-vh, 100vh) * 0.78) !important; height: calc(var(--real-vw, 100vw) * 0.95) !important;
 		transform: rotate(90deg);
 	}
 }
@@ -198,6 +199,7 @@ body[data-rotate="270"] #redeem-modal { padding-top: 4.5rem !important; box-sizi
 body[data-rotate="90"] #redeem-modal > div.relative.w-full,
 body[data-rotate="270"] #redeem-modal > div.relative.w-full {
 	height: 95vw !important;
+	height: calc(var(--real-vw, 100vw) * 0.95) !important;
 }
 body[data-rotate="90"] #settings-modal .settings-modal-bg,
 body[data-rotate="270"] #settings-modal .settings-modal-bg {
@@ -236,18 +238,18 @@ body[data-rotate="180"] { transform: rotate(180deg); }
 body[data-rotate="90"] {
 	position: fixed !important; top: 0 !important; left: 0 !important; right: auto !important; bottom: auto !important;
 	width: 100vh !important; height: 100vw !important;
-	width: 100dvh !important; height: 100dvw !important;
+	width: var(--real-vh, 100dvh) !important; height: var(--real-vw, 100dvw) !important;
 	transform: rotate(90deg) translateY(-100vw);
-	transform: rotate(90deg) translateY(-100dvw);
+	transform: rotate(90deg) translateY(calc(-1 * var(--real-vw, 100dvw)));
 	transform-origin: top left;
 	overflow-y: auto;
 }
 body[data-rotate="270"] {
 	position: fixed !important; top: 0 !important; left: 0 !important; right: auto !important; bottom: auto !important;
 	width: 100vh !important; height: 100vw !important;
-	width: 100dvh !important; height: 100dvw !important;
+	width: var(--real-vh, 100dvh) !important; height: var(--real-vw, 100dvw) !important;
 	transform: rotate(-90deg) translateX(-100vh);
-	transform: rotate(-90deg) translateX(-100dvh);
+	transform: rotate(-90deg) translateX(calc(-1 * var(--real-vh, 100dvh)));
 	transform-origin: top left;
 	overflow-y: auto;
 }
@@ -255,14 +257,14 @@ body[data-rotate="180"] .fixed.inset-0 { transform: none !important; }
 body[data-rotate="90"] .fixed.inset-0 {
 	position: fixed !important; top: 0 !important; left: 0 !important; right: auto !important; bottom: auto !important;
 	width: 100vh !important; height: 100vw !important;
-	width: 100dvh !important; height: 100dvw !important;
+	width: var(--real-vh, 100dvh) !important; height: var(--real-vw, 100dvw) !important;
 	box-sizing: border-box !important;
 	transform: none !important;
 }
 body[data-rotate="270"] .fixed.inset-0 {
 	position: fixed !important; top: 0 !important; left: 0 !important; right: auto !important; bottom: auto !important;
 	width: 100vh !important; height: 100vw !important;
-	width: 100dvh !important; height: 100dvw !important;
+	width: var(--real-vh, 100dvh) !important; height: var(--real-vw, 100dvw) !important;
 	box-sizing: border-box !important;
 	transform: none !important;
 }

@@ -7606,7 +7606,9 @@ const startApp = async () => {
 		const apply = () => {
 			const vv = window.visualViewport;
 			const h = (vv && vv.height) || window.innerHeight;
+			const w = (vv && vv.width) || window.innerWidth;
 			document.documentElement.style.setProperty('--real-vh', h + 'px');
+			document.documentElement.style.setProperty('--real-vw', w + 'px');
 			if (vv && footer && !document.body.classList.contains('layout-swapped')) {
 				const offset = window.innerHeight - vv.height - vv.offsetTop;
 				footer.style.bottom = Math.max(0, offset) + 'px';
@@ -7619,6 +7621,35 @@ const startApp = async () => {
 		}
 		window.addEventListener('resize', apply);
 		window.addEventListener('orientationchange', () => setTimeout(apply, 150));
+})();
+// TEMPORARY DIAGNOSTIC - remove once the landscape sizing issue is confirmed resolved.
+// Shows key viewport measurements whenever rotation compensation is active, so a screenshot
+// from a device where the layout still looks wrong carries the actual numbers to diagnose with.
+(function initRotationDiagnosticOverlay() {
+	const overlay = document.createElement('div');
+	overlay.id = 'rotation-diagnostic-overlay';
+	overlay.style.cssText = 'position:fixed; top:4px; left:4px; z-index:99999; background:rgba(255,0,0,0.85); color:#fff; font:10px monospace; padding:4px 6px; border-radius:4px; pointer-events:none; white-space:pre; line-height:1.4; display:none;';
+	document.body.appendChild(overlay);
+	const update = () => {
+		const rotate = document.body.dataset.rotate;
+		if (rotate !== '90' && rotate !== '270') { overlay.style.display = 'none'; return; }
+		const vv = window.visualViewport;
+		const bodyRect = document.body.getBoundingClientRect();
+		overlay.textContent = [
+			`rotate=${rotate}`,
+			`innerW/H=${window.innerWidth}/${window.innerHeight}`,
+			`vvW/H=${vv ? Math.round(vv.width) + '/' + Math.round(vv.height) : 'n/a'}`,
+			`real-vw/vh=${getComputedStyle(document.documentElement).getPropertyValue('--real-vw').trim()}/${getComputedStyle(document.documentElement).getPropertyValue('--real-vh').trim()}`,
+			`bodyRect=${Math.round(bodyRect.width)}x${Math.round(bodyRect.height)}`,
+			`screenAngle=${window.screen?.orientation?.angle ?? 'n/a'}`,
+		].join('\n');
+		overlay.style.display = 'block';
+	};
+	update();
+	window.addEventListener('resize', () => setTimeout(update, 50));
+	window.addEventListener('orientationchange', () => setTimeout(update, 200));
+	const obs = new MutationObserver(update);
+	obs.observe(document.body, { attributes: true, attributeFilter: ['data-rotate'] });
 })();
 document.addEventListener('DOMContentLoaded', startApp);
 if ('serviceWorker' in navigator) {

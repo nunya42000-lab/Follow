@@ -236,14 +236,18 @@ body[data-rotate="180"] { transform: rotate(180deg); }
 body[data-rotate="90"] {
 	position: fixed !important; top: 0 !important; left: 0 !important; right: auto !important; bottom: auto !important;
 	width: 100vh !important; height: 100vw !important;
+	width: 100dvh !important; height: 100dvw !important;
 	transform: rotate(90deg) translateY(-100vw);
+	transform: rotate(90deg) translateY(-100dvw);
 	transform-origin: top left;
 	overflow-y: auto;
 }
 body[data-rotate="270"] {
 	position: fixed !important; top: 0 !important; left: 0 !important; right: auto !important; bottom: auto !important;
 	width: 100vh !important; height: 100vw !important;
+	width: 100dvh !important; height: 100dvw !important;
 	transform: rotate(-90deg) translateX(-100vh);
+	transform: rotate(-90deg) translateX(-100dvh);
 	transform-origin: top left;
 	overflow-y: auto;
 }
@@ -251,12 +255,14 @@ body[data-rotate="180"] .fixed.inset-0 { transform: none !important; }
 body[data-rotate="90"] .fixed.inset-0 {
 	position: fixed !important; top: 0 !important; left: 0 !important; right: auto !important; bottom: auto !important;
 	width: 100vh !important; height: 100vw !important;
+	width: 100dvh !important; height: 100dvw !important;
 	box-sizing: border-box !important;
 	transform: none !important;
 }
 body[data-rotate="270"] .fixed.inset-0 {
 	position: fixed !important; top: 0 !important; left: 0 !important; right: auto !important; bottom: auto !important;
 	width: 100vh !important; height: 100vw !important;
+	width: 100dvh !important; height: 100dvw !important;
 	box-sizing: border-box !important;
 	transform: none !important;
 }

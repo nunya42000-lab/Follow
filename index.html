@@ -207,7 +207,7 @@ alert("Promise Error: " + event.reason);
 </div>
 <div class="relative w-full max-w-[280px] h-[95vh] flex flex-col items-center justify-center p-4">
 <div class="bg-white p-2 rounded-lg w-full h-full flex items-center justify-center overflow-hidden">
-<img id="redeem-img" src="redeem.png" alt="Redeem Barcode" class="w-full h-full object-contain transition-transform duration-200" style="transform: scale(0.7);">
+<img id="redeem-img" src="redeem.png" alt="Redeem Barcode" class="w-full h-full object-contain transition-transform duration-200" style="transform: scale(0.9);">
 </div>
 </div>
 </div>
@@ -1511,7 +1511,7 @@ Email
 <div><strong>Picture in Picture 🪟:</strong> Opens a small always-on-top window showing your current sequence, so you can read it while using another app. View-only - you can't tap the sequence in the floating window. The Settings toggle only shows or hides its header button (🪟), placed last in the row - tap that header button to actually open or close Picture in Picture.</div>
 <div><strong>Pinned Mode 📌:</strong> Goes fullscreen and blocks the back gesture so you can't accidentally swipe out mid-sequence. The Settings toggle only shows or hides its header button (📌), right next to Full Screen - tap that header button to actually turn Pinned Mode on and off, or to leave once it's on. This is the app's own lock - it can't trigger Android's system screen pinning, which has no web API.</div>
 <div><strong>Upside Down:</strong> Flips the visible UI 180° for a partner facing you - stays flipped correctly even if Portrait Lock is also locking the screen to portrait.</div>
-<div><strong>Portrait Lock 🔒:</strong> The app starts unlocked so landscape mode is available right away. The Settings toggle only shows or hides its header button (🔒), right next to Upside Down - tap that header button to lock the screen to portrait and stop accidental rotation mid-game (button rings, matching every other active feature), tap again to allow free rotation (button goes dim, no ring). This is done by detecting the device's actual physical orientation and visually counter-rotating the interface to compensate, rather than relying on the phone's built-in rotation lock, which is unreliable on installed home-screen apps and often can't be overridden by the app at all once set.</div>
+<div><strong>Portrait Lock 🔒:</strong> The app locks to portrait on every launch to stop accidental rotation mid-game. The Settings toggle only shows or hides its header button (🔒), right next to Upside Down - tap that header button to allow free rotation (button goes dim, no ring), tap again to lock back to portrait (button rings, matching every other active feature). This is done by detecting the device's actual physical orientation and visually counter-rotating the interface to compensate, rather than relying on the phone's built-in rotation lock, which is unreliable on installed home-screen apps and often can't be overridden by the app at all once set.</div>
 <div><strong>Full Screen:</strong> Hides browser bars.</div>
 <div><strong>Eco Mode 🔋:</strong> Reduces animations/framerate.</div>
 <div><strong>Position Swap 🔄:</strong> Adds a header button that moves the input pad from the bottom of the screen to the top.</div>
@@ -1548,7 +1548,7 @@ Email
 <p><strong>UI Scale:</strong> Zooms the entire interface in or out.</p>
 <p><strong>Header Size:</strong> Independent scale for just the header's icon row, on top of UI Scale.</p>
 <p><strong>Font Size:</strong> Independent scale for the keypad's number/control buttons and the Settings menu's text, on top of UI Scale.</p>
-<p><strong>Number Size:</strong> Adjusts the font size of the numbers in the sequence cards and on the input buttons.</p>
+<p><strong>Number Size:</strong> Adjusts the font size of the text inside the sequence cards.</p>
 <p><strong>Header Padding:</strong> Extra space between the header and the sequence cards below it, on top of the small built-in gap that always keeps them from touching.</p>
 <p><strong>Inputs Padding:</strong> Extra space at the bottom of the keypad, in case your device's own navigation bar sits close enough to cover part of it.</p>
 <p><strong>AR Playback Speed:</strong> The speed at which your recorded AR background clips play back.</p>

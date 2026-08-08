@@ -2536,7 +2536,7 @@ class SettingsManager {
 			window.unlockBodyScroll();
 		}
 	}
-	toggleRedeem(show) { if (show) { const isLandscapeUnlocked = window.matchMedia('(orientation: landscape)').matches && document.body.dataset.rotate === '0'; this.rScale = isLandscapeUnlocked ? 100 : 70; if (this.dom.redeemImg) this.dom.redeemImg.style.transform = getRedeemImageTransform(this.rScale); if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.add('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'auto'; } if (document.body.classList.contains('eco-mode')) { document.body.classList.remove('eco-mode'); this._ecoModeSuspendedForRedeem = true; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.remove('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'none'; } if (this._ecoModeSuspendedForRedeem && this.appSettings.isEcoModeEnabled) { document.body.classList.add('eco-mode'); } this._ecoModeSuspendedForRedeem = false; if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
+	toggleRedeem(show) { if (show) { const isPhysicallyLandscape = window.matchMedia('(orientation: landscape)').matches; this.rScale = isPhysicallyLandscape ? 100 : 70; if (this.dom.redeemImg) this.dom.redeemImg.style.transform = getRedeemImageTransform(this.rScale); if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.add('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'auto'; } if (document.body.classList.contains('eco-mode')) { document.body.classList.remove('eco-mode'); this._ecoModeSuspendedForRedeem = true; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.remove('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'none'; } if (this._ecoModeSuspendedForRedeem && this.appSettings.isEcoModeEnabled) { document.body.classList.add('eco-mode'); } this._ecoModeSuspendedForRedeem = false; if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
 	toggleDonate(show) { if (show) { if (this.dom.donateModal) { this.dom.donateModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'auto'; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.donateModal) { this.dom.donateModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'none'; } if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
 	setupTabSwipe(modal) {
 		const content = modal.querySelector('.settings-modal-bg');
@@ -3376,8 +3376,8 @@ class SettingsManager {
 			this.applyFontScale();
 			this.callbacks.onSave();
 		};
-		if (this.dom.seqSize) this.dom.seqSize.onchange = (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onUpdate(); };
-		if (this.dom.seqFontSize) this.dom.seqFontSize.onchange = (e) => { this.appSettings.uiFontSizeMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onSave(); this.callbacks.onUpdate(); };
+		if (this.dom.seqSize) this.dom.seqSize.onchange = (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.applyNumberScale(); this.callbacks.onUpdate(); };
+		if (this.dom.seqFontSize) this.dom.seqFontSize.onchange = (e) => { this.appSettings.uiFontSizeMultiplier = parseInt(e.target.value) / 100.0; this.applyNumberFontScale(); this.callbacks.onSave(); this.callbacks.onUpdate(); };
 		if (this.dom.handToggle) {
 			this.dom.handToggle.checked = !!this.appSettings.isHandGesturesEnabled;
 			this.dom.handToggle.onchange = (e) => {
@@ -3503,6 +3503,7 @@ class SettingsManager {
 			this.appSettings.uiScaleMultiplier = Math.min(3.0, (this.appSettings.uiScaleMultiplier || 1.0) + 0.1);
 			const sel = document.getElementById('seq-size-select');
 			if (sel) sel.value = Math.round(this.appSettings.uiScaleMultiplier * 100);
+			this.applyNumberScale();
 			this.callbacks.onSave();
 			this.callbacks.onUpdate();
 			this.updateWelcomeSample();
@@ -3511,6 +3512,7 @@ class SettingsManager {
 			this.appSettings.uiScaleMultiplier = Math.max(0.5, (this.appSettings.uiScaleMultiplier || 1.0) - 0.1);
 			const sel = document.getElementById('seq-size-select');
 			if (sel) sel.value = Math.round(this.appSettings.uiScaleMultiplier * 100);
+			this.applyNumberScale();
 			this.callbacks.onSave();
 			this.callbacks.onUpdate();
 			this.updateWelcomeSample();
@@ -3800,6 +3802,8 @@ class SettingsManager {
 		}
 		this.applyHeaderScale();
 		this.applyFontScale();
+		this.applyNumberScale();
+		this.applyNumberFontScale();
 		this.rebuildInfiniteHeaderScroll();
 		this.renderHeaderOrderList();
 		const autoHideOn = !!this.appSettings.isAutoHideHeaderEnabled;
@@ -4020,6 +4024,12 @@ class SettingsManager {
 	}
 	applyFontScale() {
 		document.body.style.setProperty('--app-font-scale', (this.appSettings.appFontScale || 100) / 100);
+	}
+	applyNumberScale() {
+		document.body.style.setProperty('--number-scale', this.appSettings.uiScaleMultiplier || 1.0);
+	}
+	applyNumberFontScale() {
+		document.body.style.setProperty('--number-font-scale', this.appSettings.uiFontSizeMultiplier || 1.0);
 	}
 	applyHeaderPadding() {
 		this.updateSequenceContainerOffset();
@@ -6180,6 +6190,7 @@ function initTouchGestureEngine() {
 						let newScale = Math.round(raw * 10) / 10;
 						if (newScale !== appSettings.uiScaleMultiplier) {
 							appSettings.uiScaleMultiplier = Math.min(3.0, Math.max(0.5, newScale));
+							if (modules.settings) modules.settings.applyNumberScale();
 							renderUI();
 							showToast(`Cards: ${(appSettings.uiScaleMultiplier * 100).toFixed(0)}% 🔍`);
 						}
@@ -6534,6 +6545,7 @@ function initGlobalListeners() {
 			appSettings.uiScaleMultiplier = Math.min(3.0, (appSettings.uiScaleMultiplier || 1.0) + 0.1);
 			const sel = document.getElementById('seq-size-select');
 			if (sel) sel.value = Math.round(appSettings.uiScaleMultiplier * 100);
+			if (modules.settings) modules.settings.applyNumberScale();
 			renderUI();
 			saveState();
 			showToast(`Cards: ${Math.round(appSettings.uiScaleMultiplier * 100)}% 🔢`);
@@ -6543,6 +6555,7 @@ function initGlobalListeners() {
 			appSettings.uiScaleMultiplier = Math.max(0.5, (appSettings.uiScaleMultiplier || 1.0) - 0.1);
 			const sel = document.getElementById('seq-size-select');
 			if (sel) sel.value = Math.round(appSettings.uiScaleMultiplier * 100);
+			if (modules.settings) modules.settings.applyNumberScale();
 			renderUI();
 			saveState();
 			showToast(`Cards: ${Math.round(appSettings.uiScaleMultiplier * 100)}% 🔢`);

@@ -121,13 +121,20 @@ body.hide-controls .control-row { display: none !important; }
 .control-row.reset-visible { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
 #aux-control-header { padding-top: max(0.5rem, env(safe-area-inset-top)); padding-bottom: 0.25rem; background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%); pointer-events: none; }
 #header-btn-row button { font-size: calc(1.25rem * var(--header-icon-scale, 1)); }
-.btn-pad-number, .btn-control { font-size: calc(1.5rem * var(--app-font-scale, 1)) !important; }
+.btn-control { font-size: calc(1.5rem * var(--app-font-scale, 1)) !important; }
+.btn-pad-number { font-size: calc(1.5rem * var(--number-scale, 1) * var(--number-font-scale, 1)) !important; }
 #settings-modal .text-xs { font-size: calc(0.75rem * var(--app-font-scale, 1)) !important; }
 #settings-modal .text-sm { font-size: calc(0.875rem * var(--app-font-scale, 1)) !important; }
 #settings-modal .text-base { font-size: calc(1rem * var(--app-font-scale, 1)) !important; }
 #settings-modal .text-lg { font-size: calc(1.125rem * var(--app-font-scale, 1)) !important; }
 #settings-modal .text-xl { font-size: calc(1.25rem * var(--app-font-scale, 1)) !important; }
 #settings-modal .text-2xl { font-size: calc(1.5rem * var(--app-font-scale, 1)) !important; }
+#help-modal .text-xs { font-size: calc(0.75rem * var(--app-font-scale, 1)) !important; }
+#help-modal .text-sm { font-size: calc(0.875rem * var(--app-font-scale, 1)) !important; }
+#help-modal .text-base { font-size: calc(1rem * var(--app-font-scale, 1)) !important; }
+#help-modal .text-lg { font-size: calc(1.125rem * var(--app-font-scale, 1)) !important; }
+#help-modal .text-xl { font-size: calc(1.25rem * var(--app-font-scale, 1)) !important; }
+#help-modal .text-2xl { font-size: calc(1.5rem * var(--app-font-scale, 1)) !important; }
 #aux-control-header.header-hidden { transform: translateY(-100%); }
 #aux-control-header button { pointer-events: auto; flex-shrink: 0 !important; min-width: calc(3rem * var(--header-icon-scale, 1)) !important; min-height: calc(3rem * var(--header-icon-scale, 1)) !important; width: calc(3rem * var(--header-icon-scale, 1)) !important; height: calc(3rem * var(--header-icon-scale, 1)) !important; }
 #header-btn-row::-webkit-scrollbar { display: none; }
@@ -158,9 +165,9 @@ body.ar-active .settings-modal-bg { background-color: rgba(18, 18, 18, 0.75) !im
 body.ar-active header { background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 100%); }
 body.hide-controls .control-row { display: none !important; }
 body.hide-controls #pad-key9 .btn-pad-number,
-body.hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; width: 100%; font-size: 2.2rem; transition: all 0.3s ease; box-shadow: 0 8px 15px rgba(0,0,0,0.4); }
+body.hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; width: 100%; font-size: calc(2.2rem * var(--number-scale, 1) * var(--number-font-scale, 1)) !important; transition: all 0.3s ease; box-shadow: 0 8px 15px rgba(0,0,0,0.4); }
 body.hide-controls #piano-keys { height: 300px; transition: height 0.3s ease; }
-@media (orientation: landscape) { body[data-rotate="0"].hide-controls #input-footer .max-w-md, body[data-rotate="0"].hide-controls #input-footer .max-w-lg, body[data-rotate="0"].hide-controls #input-footer .max-w-2xl { max-width: 95vw !important; } body[data-rotate="0"].hide-controls #pad-key9 .btn-pad-number, body[data-rotate="0"].hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; max-height: 15vh; font-size: 2.5rem; width: 100%; margin: 0 auto; } body[data-rotate="0"].hide-controls #input-footer { padding: 5px !important;} body[data-rotate="0"].hide-controls #piano-keys { height: 50vh !important; } }
+@media (orientation: landscape) { body[data-rotate="0"].hide-controls #input-footer .max-w-md, body[data-rotate="0"].hide-controls #input-footer .max-w-lg, body[data-rotate="0"].hide-controls #input-footer .max-w-2xl { max-width: 95vw !important; } body[data-rotate="0"].hide-controls #pad-key9 .btn-pad-number, body[data-rotate="0"].hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; max-height: 15vh; font-size: calc(2.5rem * var(--number-scale, 1) * var(--number-font-scale, 1)) !important; width: 100%; margin: 0 auto; } body[data-rotate="0"].hide-controls #input-footer { padding: 5px !important;} body[data-rotate="0"].hide-controls #piano-keys { height: 50vh !important; } }
 @media (orientation: landscape) {
 	body[data-rotate="0"][data-input-mode="piano"] #piano-keys { height: 42vh !important; }
 	body[data-rotate="0"][data-input-mode="piano"] .control-row {
@@ -200,6 +207,26 @@ body.hide-controls #piano-keys { height: 300px; transition: height 0.3s ease; }
 	body[data-rotate="0"] #redeem-modal > div.relative.w-full {
 		max-width: 95vw !important; width: 95vw !important; height: 78vh !important; max-height: none !important;
 	}
+}
+body[data-rotate="90"] #settings-modal .settings-modal-bg,
+body[data-rotate="270"] #settings-modal .settings-modal-bg {
+	max-height: calc(100vw - max(100px, env(safe-area-inset-top)) - 2rem) !important;
+}
+body[data-rotate="90"] #notepad-modal .settings-modal-bg,
+body[data-rotate="270"] #notepad-modal .settings-modal-bg {
+	max-height: calc(100vw - max(1.5rem, env(safe-area-inset-top)) - 2rem) !important;
+}
+body[data-rotate="90"] #theme-editor-modal .settings-modal-bg,
+body[data-rotate="270"] #theme-editor-modal .settings-modal-bg {
+	max-height: 95vw !important;
+}
+body[data-rotate="90"] #help-modal .settings-modal-bg,
+body[data-rotate="270"] #help-modal .settings-modal-bg {
+	max-height: 90vw !important;
+}
+body[data-rotate="90"] #redeem-modal > div.relative.w-full,
+body[data-rotate="270"] #redeem-modal > div.relative.w-full {
+	height: 95vw !important;
 }
 body.fullscreen-mode #app { padding-top: 4rem !important; }
 body.fullscreen-mode #aux-control-header { background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 20%, rgba(0, 0, 0, 0) 100%); }

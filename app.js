@@ -6991,6 +6991,7 @@ function lockPortraitOrientation() {
 	attemptNativeLockBestEffort();
 	updatePortraitLockBtnState();
 	computeAndApplyRotation();
+	if (typeof requestAppFullscreen === 'function') requestAppFullscreen();
 	return true;
 }
 function unlockOrientation() {
@@ -7668,41 +7669,6 @@ const startApp = async () => {
 	}
 	window.addEventListener('resize', apply);
 	window.addEventListener('orientationchange', () => setTimeout(apply, 150));
-})();
-// TEMPORARY DIAGNOSTIC - remove once the landscape sizing issue is confirmed resolved.
-// Shows key viewport measurements whenever rotation compensation is active, so a screenshot
-// from a device where the layout still looks wrong carries the actual numbers to diagnose with.
-(function initRotationDiagnosticOverlay() {
-	const overlay = document.createElement('div');
-	overlay.id = 'rotation-diagnostic-overlay';
-	overlay.style.cssText = 'position:fixed; top:4px; left:4px; z-index:99999; background:rgba(255,0,0,0.85); color:#fff; font:10px monospace; padding:4px 6px; border-radius:4px; pointer-events:none; white-space:pre; line-height:1.4; display:none;';
-	document.body.appendChild(overlay);
-	const update = () => {
-		const rotate = document.body.dataset.rotate;
-		if (rotate !== '90' && rotate !== '270') { overlay.style.display = 'none'; return; }
-		const seq = document.getElementById('sequence-container');
-		const card = seq ? seq.children[0] : null;
-		const numGrid = card ? card.querySelector('.flex.flex-wrap') : null;
-		const cardRect = card ? card.getBoundingClientRect() : null;
-		const numGridRect = numGrid ? numGrid.getBoundingClientRect() : null;
-		const numGridCs = numGrid ? getComputedStyle(numGrid) : null;
-		overlay.textContent = [
-			`rotate=${rotate}`,
-			`innerW/H=${window.innerWidth}/${window.innerHeight}`,
-			`cardRect=${cardRect ? Math.round(cardRect.width) + 'x' + Math.round(cardRect.height) : 'NO CARD'}`,
-			`numGridRect=${numGridRect ? Math.round(numGridRect.width) + 'x' + Math.round(numGridRect.height) : 'NO NUMGRID'}`,
-			`numGrid.flexDir=${numGridCs ? numGridCs.flexDirection : 'n/a'}`,
-			`numGrid.inlineH=${numGrid ? (numGrid.style.height || '(none)') : 'n/a'}`,
-			`numGrid.cssH=${numGridCs ? numGridCs.height : 'n/a'}`,
-		].join('\n');
-		overlay.style.display = 'block';
-	};
-	update();
-	setInterval(update, 500);
-	window.addEventListener('resize', () => setTimeout(update, 50));
-	window.addEventListener('orientationchange', () => setTimeout(update, 200));
-	const obs = new MutationObserver(update);
-	obs.observe(document.body, { attributes: true, attributeFilter: ['data-rotate'] });
 })();
 document.addEventListener('DOMContentLoaded', startApp);
 if ('serviceWorker' in navigator) {

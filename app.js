@@ -7001,8 +7001,20 @@ function unlockOrientation() {
 	isPortraitLocked = false;
 	updatePortraitLockBtnState();
 	computeAndApplyRotation();
+	
+	// --- NEW CODE: Exit full screen ---
+	try {
+		if (document.fullscreenElement && document.exitFullscreen) {
+			document.exitFullscreen();
+		}
+	} catch (err) {
+		console.warn('[Portrait Lock] exit fullscreen failed:', err && err.message);
+	}
+	// ----------------------------------
+
 	if (typeof showToast === 'function') showToast('Portrait Lock: OFF 🔓');
 }
+
 window.toggleOrientationLock = function() {
 	if (isPortraitLocked) {
 		unlockOrientation();

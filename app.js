@@ -3999,7 +3999,20 @@ class SettingsManager {
 							seq.style.paddingTop = '0px';
 						} else {
 							const userExtra = this.appSettings.headerPadding || 0;
-							const total = header.getBoundingClientRect().height + targetGapPx + userExtra - appPaddingTop;
+							// The header's live height measurement is unreliable while Portrait Lock's
+							// compensation is active (position:fixed within a rotated ancestor), so its
+							// natural height is measured and cached whenever unlocked - where measurement
+							// is reliable - and that cached value is reused while locked instead of
+							// re-measuring live.
+							const isRotating = document.body.dataset.rotate === '90' || document.body.dataset.rotate === '270';
+							let headerHeight;
+							if (isRotating && this._cachedHeaderHeight) {
+								headerHeight = this._cachedHeaderHeight;
+							} else {
+								headerHeight = header.getBoundingClientRect().height;
+								if (!isRotating && headerHeight > 0) this._cachedHeaderHeight = headerHeight;
+							}
+							const total = headerHeight + targetGapPx + userExtra - appPaddingTop;
 							seq.style.paddingTop = Math.max(0, total) + 'px';
 						}
 				});
@@ -5649,6 +5662,8 @@ function renderUI() {
 	}
 	let gridCols = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? 1 : Math.min(settings.machineCount, 4);
 	container.className = `flex-grow grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
+	container.style.gridAutoRows = '1fr';
+	container.style.minHeight = '0';
 	activeSeqs.forEach((seq, idx) => {
 			const card = document.createElement('div');
 			card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)] relative group";

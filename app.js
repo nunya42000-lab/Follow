@@ -7635,13 +7635,20 @@ const startApp = async () => {
 		if (rotate !== '90' && rotate !== '270') { overlay.style.display = 'none'; return; }
 		const vv = window.visualViewport;
 		const bodyRect = document.body.getBoundingClientRect();
+		const app = document.getElementById('app');
+		const seq = document.getElementById('sequence-container');
+		const appRect = app ? app.getBoundingClientRect() : null;
+		const seqRect = seq ? seq.getBoundingClientRect() : null;
+		const bodyCs = getComputedStyle(document.body);
 		overlay.textContent = [
 			`rotate=${rotate}`,
 			`innerW/H=${window.innerWidth}/${window.innerHeight}`,
-			`vvW/H=${vv ? Math.round(vv.width) + '/' + Math.round(vv.height) : 'n/a'}`,
 			`real-vw/vh=${getComputedStyle(document.documentElement).getPropertyValue('--real-vw').trim()}/${getComputedStyle(document.documentElement).getPropertyValue('--real-vh').trim()}`,
+			`bodyCSS-w/h=${bodyCs.width}/${bodyCs.height}`,
 			`bodyRect=${Math.round(bodyRect.width)}x${Math.round(bodyRect.height)}`,
-			`screenAngle=${window.screen?.orientation?.angle ?? 'n/a'}`,
+			`appRect=${appRect ? Math.round(appRect.width) + 'x' + Math.round(appRect.height) : 'n/a'}`,
+			`seqRect=${seqRect ? Math.round(seqRect.width) + 'x' + Math.round(seqRect.height) : 'n/a'}`,
+			`seqClass=${seq ? seq.className.slice(0, 40) : 'n/a'}`,
 		].join('\n');
 		overlay.style.display = 'block';
 	};

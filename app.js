@@ -5737,31 +5737,7 @@ function renderUI() {
 			card.appendChild(numGrid);
 			container.appendChild(card);
 	});
-	// Fix: flex-wrap on numGrid wraps based on its own logical (pre-rotation) axis, which
-	// while Portrait Lock is compensating doesn't match the visual space the card actually
-	// renders at after rotation - a rotated element's logical width becomes its visual
-	// height, and vice versa. For row-direction flex-wrap (the default), wrapping is
-	// governed by logical width, but widening that axis actually shrinks the visual width
-	// (the opposite of what's needed). Flipping to column-direction and sizing the logical
-	// height axis instead means each logical "column" (which becomes a visual row after
-	// rotation) holds enough boxes to span the available visual width.
-	requestAnimationFrame(() => {
-		requestAnimationFrame(() => {
-			const isRotating = document.body.dataset.rotate === '90' || document.body.dataset.rotate === '270';
-			Array.from(container.children).forEach(card => {
-				const numGrid = card.querySelector('.flex.flex-wrap');
-				if (!numGrid) return;
-				if (!isRotating) { numGrid.style.height = ''; numGrid.style.flexDirection = ''; return; }
-				const cardCs = getComputedStyle(card);
-				const vPad = parseFloat(cardCs.paddingTop) + parseFloat(cardCs.paddingBottom);
-				const available = card.clientHeight - vPad;
-				if (available > 0) {
-					numGrid.style.flexDirection = 'column';
-					numGrid.style.height = available + 'px';
-				}
-			});
-		});
-	});
+	fixNumGridOrientation();
 	const hMic = document.getElementById('headervoicebtn');
 	const hCam = document.getElementById('headerarcambtn');
 	const hGest = document.getElementById('headertouchbtn');
@@ -7641,6 +7617,39 @@ const startApp = async () => {
 		if (window.lockBodyScroll) window.lockBodyScroll();
 	}
 };
+function fixNumGridOrientation() {
+	// Flex-wrap on numGrid wraps based on its own logical (pre-rotation) axis, which while
+	// Portrait Lock is compensating doesn't match the visual space the card actually renders
+	// at after rotation - a rotated element's logical width becomes its visual height, and
+	// vice versa. For row-direction flex-wrap (the default), wrapping is governed by logical
+	// width, but widening that axis actually shrinks the visual width (the opposite of what's
+	// needed). Flipping to column-direction and sizing the logical height axis instead means
+	// each logical "column" (which becomes a visual row after rotation) holds enough boxes to
+	// span the available visual width.
+	const container = document.getElementById('sequence-container');
+	if (!container) return;
+	const isRotating = document.body.dataset.rotate === '90' || document.body.dataset.rotate === '270';
+	Array.from(container.children).forEach(card => {
+		const numGrid = card.querySelector && card.querySelector('.flex.flex-wrap');
+		if (!numGrid) return;
+		if (!isRotating) { numGrid.style.height = ''; numGrid.style.flexDirection = ''; return; }
+		const cardCs = getComputedStyle(card);
+		const vPad = parseFloat(cardCs.paddingTop) + parseFloat(cardCs.paddingBottom);
+		const available = card.clientHeight - vPad;
+		if (available > 0) {
+			numGrid.style.flexDirection = 'column';
+			numGrid.style.height = available + 'px';
+		}
+	});
+}
+(function initNumGridOrientationObserver() {
+	const container = document.getElementById('sequence-container');
+	if (!container) return;
+	const obs = new MutationObserver(() => fixNumGridOrientation());
+	obs.observe(container, { childList: true, subtree: false });
+	const bodyObs = new MutationObserver(() => fixNumGridOrientation());
+	bodyObs.observe(document.body, { attributes: true, attributeFilter: ['data-rotate'] });
+})();
 (function initRealViewportHeight() {
 	const footer = document.getElementById('input-footer');
 	const apply = () => {

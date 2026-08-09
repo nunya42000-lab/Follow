@@ -573,7 +573,7 @@ const PREMADE_PROFILES = {
 };
 const DEFAULT_APP = {
 	globalUiScale: 100,
-	uiScaleMultiplier: 2.2,
+	uiScaleMultiplier: 1.0,
 	showWelcomeScreen: true,
 	touchResizeMode: 'global',
 	playbackSpeed: 1.0,
@@ -636,7 +636,7 @@ const DEFAULT_APP = {
 	isHeaderInfiniteScrollEnabled: false,
 	isAutoBrightEnabled: false,
 	isAutoDarkEnabled: false,
-	headerIconScale: 120,
+	headerIconScale: 100,
 	appFontScale: 100,
 	headerPadding: 0,
 	inputsPadding: 0,

@@ -7617,25 +7617,32 @@ const startApp = async () => {
 	}
 };
 (function initRealViewportHeight() {
-		const footer = document.getElementById('input-footer');
-		const apply = () => {
-			const vv = window.visualViewport;
-			const h = (vv && vv.height) || window.innerHeight;
-			const w = (vv && vv.width) || window.innerWidth;
-			document.documentElement.style.setProperty('--real-vh', h + 'px');
-			document.documentElement.style.setProperty('--real-vw', w + 'px');
-			if (vv && footer && !document.body.classList.contains('layout-swapped')) {
-				const offset = window.innerHeight - vv.height - vv.offsetTop;
-				footer.style.bottom = Math.max(0, offset) + 'px';
-			}
-		};
-		apply();
-		if (window.visualViewport) {
-			window.visualViewport.addEventListener('resize', apply);
-			window.visualViewport.addEventListener('scroll', apply);
+	const footer = document.getElementById('input-footer');
+	const apply = () => {
+		const vv = window.visualViewport;
+		const h = (vv && vv.height) || window.innerHeight;
+		const w = (vv && vv.width) || window.innerWidth;
+		document.documentElement.style.setProperty('--real-vh', h + 'px');
+		document.documentElement.style.setProperty('--real-vw', w + 'px');
+		if (vv && footer && !document.body.classList.contains('layout-swapped')) {
+			const offset = window.innerHeight - vv.height - vv.offsetTop;
+			footer.style.bottom = Math.max(0, offset) + 'px';
 		}
-		window.addEventListener('resize', apply);
-		window.addEventListener('orientationchange', () => setTimeout(apply, 150));
+	};
+
+	apply();
+
+	// Re-apply measurements when data-rotate changes (e.g. toggling Portrait Lock),
+	// which doesn't fire a native resize event on its own.
+	const obs = new MutationObserver(apply);
+	obs.observe(document.body, { attributes: true, attributeFilter: ['data-rotate'] });
+
+	if (window.visualViewport) {
+		window.visualViewport.addEventListener('resize', apply);
+		window.visualViewport.addEventListener('scroll', apply);
+	}
+	window.addEventListener('resize', apply);
+	window.addEventListener('orientationchange', () => setTimeout(apply, 150));
 })();
 // TEMPORARY DIAGNOSTIC - remove once the landscape sizing issue is confirmed resolved.
 // Shows key viewport measurements whenever rotation compensation is active, so a screenshot

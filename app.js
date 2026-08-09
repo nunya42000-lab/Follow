@@ -5746,18 +5746,20 @@ function renderUI() {
 	// height axis instead means each logical "column" (which becomes a visual row after
 	// rotation) holds enough boxes to span the available visual width.
 	requestAnimationFrame(() => {
-		const isRotating = document.body.dataset.rotate === '90' || document.body.dataset.rotate === '270';
-		Array.from(container.children).forEach(card => {
-			const numGrid = card.querySelector('.flex.flex-wrap');
-			if (!numGrid) return;
-			if (!isRotating) { numGrid.style.height = ''; numGrid.style.flexDirection = ''; return; }
-			const cardCs = getComputedStyle(card);
-			const vPad = parseFloat(cardCs.paddingTop) + parseFloat(cardCs.paddingBottom);
-			const available = card.clientHeight - vPad;
-			if (available > 0) {
-				numGrid.style.flexDirection = 'column';
-				numGrid.style.height = available + 'px';
-			}
+		requestAnimationFrame(() => {
+			const isRotating = document.body.dataset.rotate === '90' || document.body.dataset.rotate === '270';
+			Array.from(container.children).forEach(card => {
+				const numGrid = card.querySelector('.flex.flex-wrap');
+				if (!numGrid) return;
+				if (!isRotating) { numGrid.style.height = ''; numGrid.style.flexDirection = ''; return; }
+				const cardCs = getComputedStyle(card);
+				const vPad = parseFloat(cardCs.paddingTop) + parseFloat(cardCs.paddingBottom);
+				const available = card.clientHeight - vPad;
+				if (available > 0) {
+					numGrid.style.flexDirection = 'column';
+					numGrid.style.height = available + 'px';
+				}
+			});
 		});
 	});
 	const hMic = document.getElementById('headervoicebtn');
@@ -7678,25 +7680,25 @@ const startApp = async () => {
 	const update = () => {
 		const rotate = document.body.dataset.rotate;
 		if (rotate !== '90' && rotate !== '270') { overlay.style.display = 'none'; return; }
-		const app = document.getElementById('app');
 		const seq = document.getElementById('sequence-container');
 		const card = seq ? seq.children[0] : null;
-		const appRect = app ? app.getBoundingClientRect() : null;
-		const seqRect = seq ? seq.getBoundingClientRect() : null;
+		const numGrid = card ? card.querySelector('.flex.flex-wrap') : null;
 		const cardRect = card ? card.getBoundingClientRect() : null;
-		const seqCs = seq ? getComputedStyle(seq) : null;
+		const numGridRect = numGrid ? numGrid.getBoundingClientRect() : null;
+		const numGridCs = numGrid ? getComputedStyle(numGrid) : null;
 		overlay.textContent = [
 			`rotate=${rotate}`,
 			`innerW/H=${window.innerWidth}/${window.innerHeight}`,
-			`appRect=${appRect ? Math.round(appRect.width) + 'x' + Math.round(appRect.height) : 'n/a'}`,
-			`seqRect=${seqRect ? Math.round(seqRect.width) + 'x' + Math.round(seqRect.height) : 'n/a'}`,
 			`cardRect=${cardRect ? Math.round(cardRect.width) + 'x' + Math.round(cardRect.height) : 'NO CARD'}`,
-			`seqPadTop=${seqCs ? seqCs.paddingTop : 'n/a'}`,
-			`cardClass=${card ? card.className.slice(0, 30) : 'n/a'}`,
+			`numGridRect=${numGridRect ? Math.round(numGridRect.width) + 'x' + Math.round(numGridRect.height) : 'NO NUMGRID'}`,
+			`numGrid.flexDir=${numGridCs ? numGridCs.flexDirection : 'n/a'}`,
+			`numGrid.inlineH=${numGrid ? (numGrid.style.height || '(none)') : 'n/a'}`,
+			`numGrid.cssH=${numGridCs ? numGridCs.height : 'n/a'}`,
 		].join('\n');
 		overlay.style.display = 'block';
 	};
 	update();
+	setInterval(update, 500);
 	window.addEventListener('resize', () => setTimeout(update, 50));
 	window.addEventListener('orientationchange', () => setTimeout(update, 200));
 	const obs = new MutationObserver(update);

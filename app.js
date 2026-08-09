@@ -7648,22 +7648,21 @@ const startApp = async () => {
 	const update = () => {
 		const rotate = document.body.dataset.rotate;
 		if (rotate !== '90' && rotate !== '270') { overlay.style.display = 'none'; return; }
-		const vv = window.visualViewport;
-		const bodyRect = document.body.getBoundingClientRect();
 		const app = document.getElementById('app');
 		const seq = document.getElementById('sequence-container');
+		const card = seq ? seq.children[0] : null;
 		const appRect = app ? app.getBoundingClientRect() : null;
 		const seqRect = seq ? seq.getBoundingClientRect() : null;
-		const bodyCs = getComputedStyle(document.body);
+		const cardRect = card ? card.getBoundingClientRect() : null;
+		const seqCs = seq ? getComputedStyle(seq) : null;
 		overlay.textContent = [
 			`rotate=${rotate}`,
 			`innerW/H=${window.innerWidth}/${window.innerHeight}`,
-			`real-vw/vh=${getComputedStyle(document.documentElement).getPropertyValue('--real-vw').trim()}/${getComputedStyle(document.documentElement).getPropertyValue('--real-vh').trim()}`,
-			`bodyCSS-w/h=${bodyCs.width}/${bodyCs.height}`,
-			`bodyRect=${Math.round(bodyRect.width)}x${Math.round(bodyRect.height)}`,
 			`appRect=${appRect ? Math.round(appRect.width) + 'x' + Math.round(appRect.height) : 'n/a'}`,
 			`seqRect=${seqRect ? Math.round(seqRect.width) + 'x' + Math.round(seqRect.height) : 'n/a'}`,
-			`seqClass=${seq ? seq.className.slice(0, 40) : 'n/a'}`,
+			`cardRect=${cardRect ? Math.round(cardRect.width) + 'x' + Math.round(cardRect.height) : 'NO CARD'}`,
+			`seqPadTop=${seqCs ? seqCs.paddingTop : 'n/a'}`,
+			`cardClass=${card ? card.className.slice(0, 30) : 'n/a'}`,
 		].join('\n');
 		overlay.style.display = 'block';
 	};

@@ -1294,41 +1294,51 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 </div>
 <div id="share-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-60 z-[90] opacity-0 pointer-events-none transition-opacity duration-300">
-<div class="share-sheet">
-<div class="flex items-center gap-3 px-5 pt-4 pb-2">
-<img src="icon192.png" alt="Follow Me" class="w-12 h-12 rounded-xl shadow-lg border border-gray-700 shrink-0" onerror="this.style.display='none'">
-<h3 class="font-bold text-lg text-white flex-1">Share Follow Me 📤</h3>
-<button id="close-share" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 shrink-0">✕</button>
+  <div class="share-sheet">
+    <div class="flex items-center gap-3 px-5 pt-4 pb-2">
+      <img src="icon192.png" alt="Follow Me" class="w-12 h-12 rounded-xl shadow-lg border border-gray-700 shrink-0" onerror="this.style.display='none'">
+      <h3 class="font-bold text-lg text-white flex-1">Share Follow Me 📤</h3>
+      <button id="close-share" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 shrink-0">✕</button>
+    </div>
+
+    <!-- Updated QR Container and Zoom Controls -->
+    <div class="px-5 pb-2 flex flex-row items-center justify-center gap-4">
+      
+      <!-- Scaled down to w-64/h-64 to fit neatly next to the buttons on small screens -->
+      <div class="w-64 h-64 rounded-lg shadow-lg border border-gray-700 bg-white p-1 overflow-hidden flex items-center justify-center">
+        <img id="qr-img" src="qr.jpg" alt="Scan to open Follow Me" class="w-full h-full object-contain transition-transform duration-200" onerror="this.style.display='none'">
+      </div>
+      
+      <!-- Absolute positioning removed, shrink-0 added -->
+      <div class="flex flex-col gap-4 shrink-0">
+        <button id="qr-zoom-in" type="button" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">+</button>
+        <button id="qr-zoom-out" type="button" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">-</button>
+      </div>
+
+    </div>
+
+    <!-- Share Options Grid (Unchanged) -->
+    <div class="grid grid-cols-4 gap-3 px-5 py-4 text-center">
+      <button id="native-share-button" class="flex flex-col items-center gap-2 text-xs text-gray-200">
+        <span class="w-14 h-14 rounded-full bg-indigo-600 flex items-center justify-center text-2xl">📲</span>
+        Share
+      </button>
+      <button id="copy-link-button" class="flex flex-col items-center gap-2 text-xs text-gray-200">
+        <span class="w-14 h-14 rounded-full bg-gray-700 flex items-center justify-center text-2xl">🔗</span>
+        Copy Link
+      </button>
+      <button id="chat-share-button" class="flex flex-col items-center gap-2 text-xs text-gray-200">
+        <span class="w-14 h-14 rounded-full bg-green-600 flex items-center justify-center text-2xl">💬</span>
+        Text
+      </button>
+      <button id="email-share-button" class="flex flex-col items-center gap-2 text-xs text-gray-200">
+        <span class="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center text-2xl">✉️</span>
+        Email
+      </button>
+    </div>
+  </div>
 </div>
-<div class="px-5 pb-2 flex justify-center relative">
-<div class="w-80 h-80 rounded-lg shadow-lg border border-gray-700 bg-white p-1 overflow-hidden flex items-center justify-center">
-<img id="qr-img" src="qr.jpg" alt="Scan to open Follow Me" class="w-full h-full object-contain transition-transform duration-200" onerror="this.style.display='none'">
-</div>
-<div class="absolute top-2 right-8 flex flex-col gap-2">
-<button id="qr-zoom-in" type="button" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">+</button>
-<button id="qr-zoom-out" type="button" class="bg-gray-800 text-white rounded-full w-12 h-12 font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700">-</button>
-</div>
-</div>
-<div class="grid grid-cols-4 gap-3 px-5 py-4 text-center">
-<button id="native-share-button" class="flex flex-col items-center gap-2 text-xs text-gray-200">
-<span class="w-14 h-14 rounded-full bg-indigo-600 flex items-center justify-center text-2xl">📲</span>
-Share
-</button>
-<button id="copy-link-button" class="flex flex-col items-center gap-2 text-xs text-gray-200">
-<span class="w-14 h-14 rounded-full bg-gray-700 flex items-center justify-center text-2xl">🔗</span>
-Copy Link
-</button>
-<button id="chat-share-button" class="flex flex-col items-center gap-2 text-xs text-gray-200">
-<span class="w-14 h-14 rounded-full bg-green-600 flex items-center justify-center text-2xl">💬</span>
-Text
-</button>
-<button id="email-share-button" class="flex flex-col items-center gap-2 text-xs text-gray-200">
-<span class="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center text-2xl">✉️</span>
-Email
-</button>
-</div>
-</div>
-</div>
+
 <div id="notepad-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding-top: max(1.5rem, env(safe-area-inset-top));" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[100] transition-opacity duration-300 opacity-0 pointer-events-none">
 <div style="display: flex; flex-direction: column; max-height: calc(100vh - max(1.5rem, env(safe-area-inset-top)) - 2rem);" class="settings-modal-bg rounded-xl shadow-2xl max-w-md w-full h-full m-4 flex flex-col border border-custom overflow-hidden">
 <div class="p-4 border-b border-custom bg-black bg-opacity-20 flex justify-between items-center shrink-0">

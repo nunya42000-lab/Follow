@@ -1842,29 +1842,35 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 </div>
 <div id="pad-piano" class="max-w-2xl mx-auto pt-0 pb-1" style="display:none;">
-<div id="piano-keys" class="relative h-40 w-full mb-2 border border-custom">
-<div class="flex h-full w-full">
-<div class="key-container"><button data-value="C" class="piano-key-white btn-input btn-pad-number">C</button></div>
-<div class="key-container"><button data-value="D" class="piano-key-white btn-input btn-pad-number">D</button></div>
-<div class="key-container"><button data-value="E" class="piano-key-white btn-input btn-pad-number">E</button></div>
-<div class="key-container"><button data-value="F" class="piano-key-white btn-input btn-pad-number">F</button></div>
-<div class="key-container"><button data-value="G" class="piano-key-white btn-input btn-pad-number">G</button></div>
-<div class="key-container"><button data-value="A" class="piano-key-white btn-input btn-pad-number">A</button></div>
-<div class="key-container"><button data-value="B" class="piano-key-white btn-input btn-pad-number">B</button></div>
+  
+  <!-- Piano Keys (Unchanged) -->
+  <div id="piano-keys" class="relative h-40 w-full mb-2 border border-custom">
+    <div class="flex h-full w-full">
+      <div class="key-container"><button data-value="C" class="piano-key-white btn-input btn-pad-number">C</button></div>
+      <div class="key-container"><button data-value="D" class="piano-key-white btn-input btn-pad-number">D</button></div>
+      <div class="key-container"><button data-value="E" class="piano-key-white btn-input btn-pad-number">E</button></div>
+      <div class="key-container"><button data-value="F" class="piano-key-white btn-input btn-pad-number">F</button></div>
+      <div class="key-container"><button data-value="G" class="piano-key-white btn-input btn-pad-number">G</button></div>
+      <div class="key-container"><button data-value="A" class="piano-key-white btn-input btn-pad-number">A</button></div>
+      <div class="key-container"><button data-value="B" class="piano-key-white btn-input btn-pad-number">B</button></div>
+    </div>
+    <button data-value="1" class="piano-key-black btn-input btn-pad-number black-1">1</button>
+    <button data-value="2" class="piano-key-black btn-input btn-pad-number black-2">2</button>
+    <button data-value="3" class="piano-key-black btn-input btn-pad-number black-3">3</button>
+    <button data-value="4" class="piano-key-black btn-input btn-pad-number black-4">4</button>
+    <button data-value="5" class="piano-key-black btn-input btn-pad-number black-5">5</button>
+  </div>
+
+  <!-- Controls Container (Updated) -->
+  <div class="flex flex-row justify-center items-center gap-4 max-w-lg mx-auto control-row">
+    <button data-action="reset-unique-rounds" class="reset-button btn-input btn-control text-xl bg-red-600" style="display:none" title="Reset Rounds">↺</button>
+    <button data-action="play-demo" class="btn-input btn-control text-xl">▶</button>
+    <button data-action="backspace" class="btn-input btn-control text-xl">←</button>
+    <button data-action="open-settings" class="btn-input btn-control text-xl">⚙️</button>
+  </div>
+  
 </div>
-<button data-value="1" class="piano-key-black btn-input btn-pad-number black-1">1</button>
-<button data-value="2" class="piano-key-black btn-input btn-pad-number black-2">2</button>
-<button data-value="3" class="piano-key-black btn-input btn-pad-number black-3">3</button>
-<button data-value="4" class="piano-key-black btn-input btn-pad-number black-4">4</button>
-<button data-value="5" class="piano-key-black btn-input btn-pad-number black-5">5</button>
-</div>
-<div class="grid grid-cols-4 gap-2 max-w-lg mx-auto control-row">
-<button data-action="reset-unique-rounds" class="reset-button btn-input btn-control text-xl bg-red-600" style="display:none" title="Reset Rounds">↺</button>
-<button data-action="play-demo" class="btn-input btn-control text-xl">▶</button>
-<button data-action="backspace" class="btn-input btn-control text-xl">←</button>
-<button data-action="open-settings" class="btn-input btn-control text-xl">⚙️</button>
-</div>
-</div>
+
 </footer>
 <div id="ar-playback-container" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: none;" class="fixed inset-0 z-[100] hidden bg-black flex-col justify-center items-center touch-none">
 <video id="ar-playback-video" class="w-full h-full object-contain" playsinline controls></video>

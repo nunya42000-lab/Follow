@@ -2395,7 +2395,8 @@ const bindToggleWithCallback = (toggleElement, settingKey, applyCallback) => {
  * Populates the select elements inside the landscape/split-screen accordion.
  * @param {Object} optionsData - An object containing arrays of items for each drop-down.
  */
-function populateLandscapeAccordionDropdowns(optionsData) {
+
+	populateLandscapeAccordionDropdowns(optionsData) {
     // Map your select element IDs to their respective data arrays
     const dropdownMappings = {
         'landscape-mode-select': optionsData.modes || [],
@@ -6597,7 +6598,7 @@ function initGlobalListeners() {
         };
 
         //  Trigger population
-        //populateLandscapeAccordionDropdowns(landscapeConfigOptions);
+        populateLandscapeAccordionDropdowns(landscapeConfigOptions);
 
 		const headerTimer = document.getElementById('headertimerbtn');
 		const headerCounter = document.getElementById('headercounterbtn');

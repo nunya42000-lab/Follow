@@ -6584,20 +6584,20 @@ function initGlobalListeners() {
 		});
 		}
 		// Example dataset mapping to your accordion selects
-const landscapeConfigOptions = {
-    modes: [
+        const landscapeConfigOptions = {
+        modes: [
         { value: 'stacked', label: 'Stacked View' },
         { value: 'side-by-side', label: 'Side-by-Side' }
-    ],
-    layouts: [
+        ],
+        layouts: [
         { value: 'compact', label: 'Compact Grid' },
         { value: 'expanded', label: 'Expanded Workspace' }
-    ],
-    densities: ['Low', 'Medium', 'High']
-};
+        ],
+        densities: ['Low', 'Medium', 'High']
+        };
 
-// Trigger population
-populateLandscapeAccordionDropdowns(landscapeConfigOptions);
+        //  Trigger population
+        //populateLandscapeAccordionDropdowns(landscapeConfigOptions);
 
 		const headerTimer = document.getElementById('headertimerbtn');
 		const headerCounter = document.getElementById('headercounterbtn');

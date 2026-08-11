@@ -6597,7 +6597,7 @@ function initGlobalListeners() {
         densities: ['Low', 'Medium', 'High']
         };
 
-        /        //  Trigger population
+               //  Trigger population
         if (modules.settings && modules.settings.populateLandscapeAccordionDropdowns) {
             modules.settings.populateLandscapeAccordionDropdowns(landscapeConfigOptions);
         }

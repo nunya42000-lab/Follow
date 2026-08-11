@@ -7894,6 +7894,3 @@ if ('serviceWorker' in navigator) {
 			});
 	});
 }ed:', err);
-			});
-	});
-}

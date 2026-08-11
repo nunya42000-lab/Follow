@@ -7894,11 +7894,4 @@ if ('serviceWorker' in navigator) {
 					console.warn('[SW] Registration failed:', err);
 			});
 	});
-});
-}n failed:', err);
-			});
-	});
-}ed:', err);
-			});
-	});
 }

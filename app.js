@@ -448,14 +448,14 @@ const DEFAULT_HEADER_BTN_ORDER = [
     'headertonebtn', 'headertouchbtn', 'headerhandbtn',
     'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn',
     'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn',
-    'headerportraitlockbtn', 'headerswapbtn', 'headerplaybtn',
-    'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn',
-    'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn',
-    'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn',
-    'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn',
-    'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn',
-    'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn',
-    'headernukebtn', 'headernotepadbtn', 'headerpipbtn'
+    'headerportraitlockbtn', 'headerswapbtn', 'headerpipbtn',
+    'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn',
+    'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn',
+    'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn',
+    'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn',
+    'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn',
+    'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn',
+    'headerresetbtn', 'headernukebtn', 'headernotepadbtn'
 ];
 const DEFAULT_GENERAL_TOGGLE_ORDER = [
 'autoBrightToggle', 'autoDarkToggle',
@@ -662,6 +662,8 @@ const DEFAULT_APP = {
 	showPipBtn: false,
 	showUpsideDownBtn: false,
 	showPortraitLockBtn: false,
+	inputFontSizeMultiplier: 1.0,
+	rowMax: 'none',
 	uiFontSizeMultiplier: 2.5,
 	activeProfileId: 'profile_1',
 	profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)),
@@ -779,15 +781,15 @@ const DEFAULT_APP = {
     'headertonebtn', 'headertouchbtn', 'headerhandbtn',
     'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn',
     'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn',
-    'headerportraitlockbtn', 'headerswapbtn', 'headerplaybtn',
-    'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn',
-    'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn',
-    'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn',
-    'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn',
-    'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn',
-    'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn',
-    'headernukebtn', 'headernotepadbtn', 'headerpipbtn'
-	],
+    'headerportraitlockbtn', 'headerswapbtn', 'headerpipbtn',
+    'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn',
+    'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn',
+    'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn',
+    'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn',
+    'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn',
+    'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn',
+    'headerresetbtn', 'headernukebtn', 'headernotepadbtn'
+];
 	generalToggleOrder: [
 'autoBrightToggle', 'autoDarkToggle',
 'randomThemeToggle', 'headerThemeCycleToggle',
@@ -6461,6 +6463,65 @@ function initGlobalListeners() {
 					passive: false
 			});
 		}
+		const inputFontSelect = document.getElementById('input-font-size-select');
+		if (inputFontSelect) {
+		inputFontSelect.value = Math.round((this.appSettings.inputFontSizeMultiplier || 1.0) * 100);
+		inputFontSelect.onchange = (e) => { 
+		this.appSettings.inputFontSizeMultiplier = parseInt(e.target.value) / 100.0;
+		document.documentElement.style.setProperty('--input-font-scale', this.appSettings.inputFontSizeMultiplier);
+		this.callbacks.onSave(); 
+		};
+		}
+		const rowMaxSelect = document.getElementById('row-max-select');
+		if (rowMaxSelect) {
+		rowMaxSelect.value = this.appSettings.rowMax || 'none';
+		
+		// Apply initial state
+		document.getElementById('sequence-container').setAttribute('data-row-max', this.appSettings.rowMax);
+		
+		rowMaxSelect.onchange = (e) => { 
+		this.appSettings.rowMax = e.target.value;
+		document.getElementById('sequence-container').setAttribute('data-row-max', this.appSettings.rowMax);
+		this.callbacks.onSave(); 
+		};
+		}
+		const splitScreenObserver = new ResizeObserver(entries => {
+		for (let entry of entries) {
+		const height = entry.contentRect.height;
+		const screenHeight = window.screen.availHeight || window.innerHeight;
+		
+		// Calculate percentage of vertical screen used
+		const percentage = (height / screenHeight) * 100;
+		
+		let splitMode = "normal";
+		if (percentage <= 35) {
+		splitMode = "25";
+		} else if (percentage > 35 && percentage <= 60) {
+		splitMode = "50";
+		} else if (percentage > 60 && percentage <= 85) {
+		splitMode = "75";
+		}
+		
+		document.body.setAttribute('data-split-mode', splitMode);
+		}
+		});
+		splitScreenObserver.observe(document.documentElement);
+		
+		const split50Align = document.getElementById('split-50-alignment');
+		if (split50Align) {
+		// Default to vertical
+		document.body.setAttribute('data-split-align', split50Align.value);
+		
+		split50Align.addEventListener('change', (e) => {
+		const val = e.target.value;
+		document.body.setAttribute('data-split-align', val);
+		
+		// Update the virtual preview window dynamically
+		const preview = document.getElementById('virtual-screen-preview');
+		preview.style.flexDirection = (val === 'horizontal') ? 'row' : 'column';
+		});
+		}
+		
 		const headerTimer = document.getElementById('headertimerbtn');
 		const headerCounter = document.getElementById('headercounterbtn');
 		const headerMic = document.getElementById('headervoicebtn');
@@ -7144,6 +7205,117 @@ async function exitPipMode() {
 		console.warn('[PiP] exit failed:', err);
 	}
 }
+function resolveButtonConflicts(toggledId, isTurningOn) {
+    if (!isTurningOn) return; // We primarily care about conflicts when turning something ON
+
+    // Helper to turn off a specific button in your app's state
+    const forceOff = (btnId) => {
+        if (appSettings[btnId]) {
+            appSettings[btnId] = false;
+            // --> Call your existing function here to update the UI/trigger logic for turning it OFF
+            // e.g., updateHeaderButtonState(btnId, false); 
+        }
+    };
+
+    // GROUP A: AR Cam turns off PiP and all specialized inputs
+    if (toggledId === 'headerarcambtn') {
+        ['headerpipbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn'].forEach(forceOff);
+    }
+
+    // GROUP B: Mutually Exclusive Inputs (Only one on at a time)
+    const exclusiveInputs = ['headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn'];
+    if (exclusiveInputs.includes(toggledId)) {
+        exclusiveInputs.forEach(id => {
+            if (id !== toggledId) forceOff(id);
+        });
+    }
+
+    // GROUP C & E: PiP vs Full Screen triggers
+    const fullScreenTriggers = ['headerpinnedbtn', 'headerportraitlockbtn', 'headerfullscreenbtn'];
+    
+    // If activating any Full Screen mode -> Turn off PiP
+    if (fullScreenTriggers.includes(toggledId)) {
+        forceOff('headerpipbtn');
+    }
+    
+    // If activating PiP -> Turn off all Full Screen modes
+    if (toggledId === 'headerpipbtn') {
+        fullScreenTriggers.forEach(forceOff);
+    }
+}
+function evaluateFullscreenState() {
+    // Check if ANY of the full screen requirements are currently active
+    const needsFullScreen = 
+        appSettings.headerpinnedbtn === true || 
+        appSettings.headerportraitlockbtn === true || 
+        appSettings.headerfullscreenbtn === true;
+
+    if (needsFullScreen) {
+        // Only request if we aren't already in full screen
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.warn(`Error attempting to enable fullscreen: ${err.message}`);
+            });
+        }
+    } else {
+        // Only exit if we are actually in full screen
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        }
+    }
+}
+function onHeaderButtonClicked(btnId) {
+    // 1. Determine new state
+    const isTurningOn = !appSettings[btnId];
+    appSettings[btnId] = isTurningOn;
+
+    // 2. Resolve conflicts (this will automatically turn off conflicting buttons)
+    resolveButtonConflicts(btnId, isTurningOn);
+
+    // 3. Apply specific logic for the clicked button
+    // (e.g., locking orientation, activating voice, etc.)
+    
+    // 4. Always evaluate full screen at the end to catch any changes
+    evaluateFullscreenState();
+
+    // 5. Save and update UI
+    saveSettings(); 
+    renderAllButtons();
+}
+// Hard Refresh Logic (Deletes Service Worker, Caches, and Reloads)
+async function hardRefreshApp() {
+    if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let registration of registrations) {
+            await registration.unregister();
+        }
+    }
+    if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        for (let cacheName of cacheNames) {
+            await caches.delete(cacheName);
+        }
+    }
+    window.location.reload(true);
+}
+
+// Bind Footer Buttons
+document.getElementById('btn-settings-refresh').addEventListener('click', hardRefreshApp);
+
+document.getElementById('btn-settings-reset').addEventListener('click', () => {
+    // Assuming you have a reset logic function already
+    resetAllSettings(); 
+});
+
+document.getElementById('btn-settings-nuke').addEventListener('click', async () => {
+    resetAllSettings(); // Clear data first
+    await hardRefreshApp(); // Then destroy files and reload
+});
+
+document.getElementById('btn-settings-exit').addEventListener('click', () => {
+    document.getElementById('settings-modal').classList.add('hidden');
+});
+
 async function requestAppFullscreen() {
 	const el = document.documentElement;
 	try {
@@ -7692,4 +7864,3 @@ if ('serviceWorker' in navigator) {
 			});
 	});
 }
-

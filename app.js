@@ -7334,13 +7334,12 @@ async function hardRefreshApp() {
 document.getElementById('btn-settings-refresh').addEventListener('click', hardRefreshApp);
 
 document.getElementById('btn-settings-reset').addEventListener('click', () => {
-    // Assuming you have a reset logic function already
-    resetAllSettings(); 
+    restoreDefaultSettings(); // <--- Replaced resetAllSettings()
 });
 
 document.getElementById('btn-settings-nuke').addEventListener('click', async () => {
-    resetAllSettings(); // Clear data first
-    await hardRefreshApp(); // Then destroy files and reload
+    restoreDefaultSettings(); // <--- Replaced resetAllSettings()
+    await hardRefreshApp(); 
 });
 
 document.getElementById('btn-settings-exit').addEventListener('click', () => {
@@ -7892,6 +7891,9 @@ if ('serviceWorker' in navigator) {
 					reg.update().catch(() => {});
 			}).catch(err => {
 					console.warn('[SW] Registration failed:', err);
+			});
+	});
+}ed:', err);
 			});
 	});
 }

@@ -110,7 +110,7 @@ alert("Promise Error: " + event.reason);
 </div>
 <div class="grid grid-cols-2 gap-4 mb-2">
 <button id="quick-open-help" class="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-bold transition">Help 📚</button>
-<button id="quick-openSettings" class="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-bold transition">Settings</button>
+<button id="quick-open-settings" class="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-bold transition">Settings</button>
 </div>
 </div>
 <div class="flex justify-between items-center pt-4 border-t border-custom mt-2">
@@ -576,7 +576,7 @@ alert("Promise Error: " + event.reason);
 <span class="font-bold text-sm">Clear Gesture 💥</span>
 <input type="checkbox" id="clearToggle" class="h-5 w-5 accent-indigo-500"></div>
 </div>
-<div class="grid grid-cols-2 landscape:grid-cols-4 gap-3" id="general-dropdown-grid">
+<div class="grid grid-cols-2 gap-3 pt-2">
 <div>
 <label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
 <select id="seq-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
@@ -588,32 +588,6 @@ alert("Promise Error: " + event.reason);
 <option value="260">260%</option><option value="270">270%</option><option value="280">280%</option><option value="290">290%</option><option value="300">300%</option>
 </select>
 </div>
-<div>
-    <label class="block text-xs font-bold mb-1 text-muted-custom">Input Size</label>
-    <select id="input-font-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-        <option value="50">50%</option>
-        <option value="75">75%</option>
-        <option value="100">100%</option>
-        <option value="125">125%</option>
-        <option value="150">150%</option>
-        <option value="200">200%</option>
-    </select>
-</div>
-<div>
-    <label class="block text-xs font-bold mb-1 text-muted-custom">Row Max</label>
-    <select id="row-max-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-        <option value="none" selected>None</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="10">10</option>
-        <option value="12">12</option>
-        <option value="15">15</option>
-    </select>
-</div>
-
 <div>
 <label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
 <select id="ui-scale-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
@@ -1027,79 +1001,6 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 </div>
 </details>
-<!-- Landscape & Split Screen Accordion -->
-<div class="accordion-item border border-gray-700 rounded mb-2">
-    <button class="accordion-header w-full text-left p-3 font-bold bg-gray-800 text-gray-200 flex justify-between items-center" onclick="this.nextElementSibling.classList.toggle('hidden')">
-        Landscape & Split Screen Tuning
-        <span>▼</span>
-    </button>
-    <div class="accordion-body hidden p-4 bg-gray-900 flex flex-col gap-4">
-        
-        <!-- Virtual Screen Preview Box -->
-        <div class="w-full bg-black rounded-lg border-2 border-gray-600 flex items-center justify-center overflow-hidden relative" style="height: 180px;">
-            <div class="absolute top-2 left-2 text-[10px] text-gray-400 font-mono z-10">Live Preview</div>
-            <!-- The Mini DOM: This mimics your main layout at 25% scale -->
-            <div id="virtual-screen-preview" class="w-[400%] h-[400%] transform scale-25 origin-top-left pointer-events-none flex flex-col p-4 bg-gray-800">
-                <div class="flex-1 bg-gray-700 rounded mb-2 flex items-center justify-center text-gray-500">Sequence Preview</div>
-                <div class="h-48 bg-gray-600 rounded flex items-center justify-center text-gray-400">Inputs Preview</div>
-            </div>
-        </div>
-
-        <!-- 75% / Landscape Options -->
-        <div class="bg-gray-800 p-3 rounded">
-            <h4 class="text-sm font-bold text-blue-400 mb-2">Landscape & 75% Split</h4>
-            <div class="grid grid-cols-2 gap-2">
-                <div>
-                    <label class="text-xs text-muted-custom block">UI Scale</label>
-                    <select id="split-75-ui-scale" class="settings-input w-full p-1 rounded text-xs"><option>100%</option></select>
-                </div>
-                <div>
-                    <label class="text-xs text-muted-custom block">Seq Size</label>
-                    <select id="split-75-seq-size" class="settings-input w-full p-1 rounded text-xs"><option>Normal</option></select>
-                </div>
-            </div>
-        </div>
-
-        <!-- 50% Split Options -->
-        <div class="bg-gray-800 p-3 rounded">
-            <h4 class="text-sm font-bold text-yellow-400 mb-2">50% Split</h4>
-            <div class="grid grid-cols-3 gap-2">
-                <div>
-                    <label class="text-xs text-muted-custom block">Alignment</label>
-                    <select id="split-50-alignment" class="settings-input w-full p-1 rounded text-xs">
-                        <option value="horizontal">Horizontal</option>
-                        <option value="vertical" selected>Vertical</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-xs text-muted-custom block">UI Scale</label>
-                    <select class="settings-input w-full p-1 rounded text-xs"><option>100%</option></select>
-                </div>
-                <div>
-                    <label class="text-xs text-muted-custom block">Seq Size</label>
-                    <select class="settings-input w-full p-1 rounded text-xs"><option>Normal</option></select>
-                </div>
-            </div>
-        </div>
-
-        <!-- 25% Split Options -->
-        <div class="bg-gray-800 p-3 rounded">
-            <h4 class="text-sm font-bold text-red-400 mb-2">25% Split</h4>
-            <div class="grid grid-cols-2 gap-2">
-                <div>
-                    <label class="text-xs text-muted-custom block">UI Scale</label>
-                    <select class="settings-input w-full p-1 rounded text-xs"><option>100%</option></select>
-                </div>
-                <div>
-                    <label class="text-xs text-muted-custom block">Seq Size</label>
-                    <select class="settings-input w-full p-1 rounded text-xs"><option>Small</option></select>
-                </div>
-            </div>
-        </div>
-
-    </div>
-</div>
-
 <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
 <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
 <span>Header 🔀</span>
@@ -1381,30 +1282,15 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 </div>
 </div>
-<div class="mt-6 border-t border-gray-600 pt-4 grid grid-cols-4 gap-2">
-    <!-- Nuke: Refresh + Reset -->
-    <button id="btn-settings-nuke" class="p-3 bg-red-700 hover:bg-red-600 text-white rounded font-bold text-xs uppercase flex flex-col items-center justify-center">
-        <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-        Nuke
-    </button>
-    <!-- Refresh: Force SW clear and reload -->
-    <button id="btn-settings-refresh" class="p-3 bg-blue-700 hover:bg-blue-600 text-white rounded font-bold text-xs uppercase flex flex-col items-center justify-center">
-        <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-        Refresh
-    </button>
-    <!-- Reset: Clear localStorage only -->
-    <button id="btn-settings-reset" class="p-3 bg-yellow-700 hover:bg-yellow-600 text-white rounded font-bold text-xs uppercase flex flex-col items-center justify-center">
-        <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
-        Reset
-    </button>
-    <!-- Exit: Close Modal -->
-    <button id="btn-settings-exit" class="p-3 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold text-xs uppercase flex flex-col items-center justify-center">
-        <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        Exit
-    </button>
+<div class="mt-8 pt-4 border-t border-gray-700 flex justify-between items-center w-full">
+<button data-action="nuke-app" class="px-4 py-2 bg-red-900 hover:bg-red-700 text-white font-bold rounded shadow-lg border border-red-500 text-xs transition-colors">
+☢️ NUKE CACHE
+</button>
+<button data-action="restore-defaults" class="px-4 py-2 bg-yellow-700 hover:bg-yellow-600 text-white font-bold rounded shadow-lg text-xs transition-colors">
+⚠️ Reset Settings
+</button>
+<button id="close-settings" class="px-8 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold transition shadow">Exit</button>
 </div>
-
-
 </div>
 </div>
 <div id="share-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-60 z-[90] opacity-0 pointer-events-none transition-opacity duration-300">
@@ -1468,7 +1354,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div class="p-3 pt-0 shrink-0">
 <button id="notepad-erase-btn" class="w-full py-2 text-xs bg-red-600 hover:bg-red-500 rounded text-white font-bold transition">🗑️ Erase</button>
 </div>
-<textarea id="notepad-textarea" class="w-full h-full p-4 px-6 text-center resize-none bg-transparent outline-none..." ...></textarea>
+<textarea id="notepad-textarea" class="flex-1 w-full p-4 bg-transparent text-[var(--text-main)] resize-none outline-none text-base" placeholder="Type anything..." style="min-height: 200px;"></textarea>
 </div>
 </div>
 <div id="help-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] transition-opacity duration-300 opacity-0 pointer-events-none">
@@ -1930,7 +1816,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <button data-action="reset-unique-rounds" class="reset-button btn-input btn-control text-xl bg-red-600" style="display:none" title="Reset Rounds">↺</button>
 <button data-action="play-demo" class="btn-input btn-control text-xl">▶</button>
 <button data-action="backspace" class="btn-input btn-control text-xl">←</button>
-<button data-action="openSettings" class="btn-input btn-control text-xl">⚙️</button>
+<button data-action="open-settings" class="btn-input btn-control text-xl">⚙️</button>
 </div>
 </div>
 <div id="pad-key12" class="max-w-lg mx-auto" style="display: none;">
@@ -1952,7 +1838,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <button data-action="reset-unique-rounds" class="reset-button btn-input btn-control text-xl bg-red-600" style="display:none" title="Reset Rounds">↺</button>
 <button data-action="play-demo" class="btn-input btn-control text-xl">▶</button>
 <button data-action="backspace" class="btn-input btn-control text-xl">←</button>
-<button data-action="openSettings" class="btn-input btn-control text-xl">⚙️</button>
+<button data-action="open-settings" class="btn-input btn-control text-xl">⚙️</button>
 </div>
 </div>
 <div id="pad-piano" class="max-w-2xl mx-auto pt-0 pb-1" style="display:none;">
@@ -1976,7 +1862,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <button data-action="reset-unique-rounds" class="reset-button btn-input btn-control text-xl bg-red-600" style="display:none" title="Reset Rounds">↺</button>
 <button data-action="play-demo" class="btn-input btn-control text-xl">▶</button>
 <button data-action="backspace" class="btn-input btn-control text-xl">←</button>
-<button data-action="openSettings" class="btn-input btn-control text-xl">⚙️</button>
+<button data-action="open-settings" class="btn-input btn-control text-xl">⚙️</button>
 </div>
 </div>
 </footer>

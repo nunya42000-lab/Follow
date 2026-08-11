@@ -7893,4 +7893,4 @@ if ('serviceWorker' in navigator) {
 					console.warn('[SW] Registration failed:', err);
 			});
 	});
-}ed:', err);
+}

@@ -2391,6 +2391,43 @@ const bindToggleWithCallback = (toggleElement, settingKey, applyCallback) => {
 		return /enhanced|premium|natural|neural|online/.test(name) ||
 		(name.includes('google') && !name.includes('compact'));
 	}
+    /**
+ * Populates the select elements inside the landscape/split-screen accordion.
+ * @param {Object} optionsData - An object containing arrays of items for each drop-down.
+ */
+function populateLandscapeAccordionDropdowns(optionsData) {
+    // Map your select element IDs to their respective data arrays
+    const dropdownMappings = {
+        'landscape-mode-select': optionsData.modes || [],
+        'landscape-layout-select': optionsData.layouts || [],
+        'split-density-select': optionsData.densities || []
+    };
+
+    Object.entries(dropdownMappings).forEach(([elementId, items]) => {
+        const selectEl = document.getElementById(elementId);
+        if (!selectEl) return;
+
+        // Clear existing options to prevent duplication
+        selectEl.innerHTML = '';
+
+        // Populate options safely
+        items.forEach(item => {
+            const option = document.createElement('option');
+            
+            // Support both primitive arrays (strings/numbers) and object structures ({value, label})
+            if (typeof item === 'object' && item !== null) {
+                option.value = item.value;
+                option.textContent = item.label;
+            } else {
+                option.value = item;
+                option.textContent = item;
+            }
+
+            selectEl.appendChild(option);
+        });
+    });
+}
+
 	populateVoiceNameDropdown() {
 		if (!this.dom.voiceNameSelect || !window.speechSynthesis) return;
 		const voices = window.speechSynthesis.getVoices();
@@ -6546,7 +6583,22 @@ function initGlobalListeners() {
 		preview.style.flexDirection = (val === 'horizontal') ? 'row' : 'column';
 		});
 		}
-		
+		// Example dataset mapping to your accordion selects
+const landscapeConfigOptions = {
+    modes: [
+        { value: 'stacked', label: 'Stacked View' },
+        { value: 'side-by-side', label: 'Side-by-Side' }
+    ],
+    layouts: [
+        { value: 'compact', label: 'Compact Grid' },
+        { value: 'expanded', label: 'Expanded Workspace' }
+    ],
+    densities: ['Low', 'Medium', 'High']
+};
+
+// Trigger population
+populateLandscapeAccordionDropdowns(landscapeConfigOptions);
+
 		const headerTimer = document.getElementById('headertimerbtn');
 		const headerCounter = document.getElementById('headercounterbtn');
 		const headerMic = document.getElementById('headervoicebtn');

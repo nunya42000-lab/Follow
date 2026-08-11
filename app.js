@@ -448,14 +448,14 @@ const DEFAULT_HEADER_BTN_ORDER = [
     'headertonebtn', 'headertouchbtn', 'headerhandbtn',
     'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn',
     'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn',
-    'headerportraitlockbtn', 'headerswapbtn', 'headerplaybtn',
-    'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn',
-    'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn',
-    'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn',
-    'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn',
-    'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn',
-    'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn',
-    'headernukebtn', 'headernotepadbtn', 'headerpipbtn'
+    'headerportraitlockbtn', 'headerswapbtn', 'headerpipbtn',
+    'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn',
+    'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn',
+    'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn',
+    'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn',
+    'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn',
+    'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn',
+    'headerresetbtn', 'headernukebtn', 'headernotepadbtn'
 ];
 const DEFAULT_GENERAL_TOGGLE_ORDER = [
 'autoBrightToggle', 'autoDarkToggle',
@@ -662,6 +662,8 @@ const DEFAULT_APP = {
 	showPipBtn: false,
 	showUpsideDownBtn: false,
 	showPortraitLockBtn: false,
+	inputFontSizeMultiplier: 1.0,
+	rowMax: 'none',
 	uiFontSizeMultiplier: 2.5,
 	activeProfileId: 'profile_1',
 	profiles: JSON.parse(JSON.stringify(PREMADE_PROFILES)),
@@ -779,15 +781,15 @@ const DEFAULT_APP = {
     'headertonebtn', 'headertouchbtn', 'headerhandbtn',
     'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn',
     'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn',
-    'headerportraitlockbtn', 'headerswapbtn', 'headerplaybtn',
-    'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn',
-    'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn',
-    'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn',
-    'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn',
-    'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn',
-    'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn',
-    'headernukebtn', 'headernotepadbtn', 'headerpipbtn'
-	],
+    'headerportraitlockbtn', 'headerswapbtn', 'headerpipbtn',
+    'headerplaybtn', 'headerdeletebtn', 'headersettingsbtn',
+    'headerhelpbtn', 'headermodeswitchbtn', 'headerredeembtn',
+    'headersharebtn', 'headerthemecyclebtn', 'headeraddmachinebtn',
+    'headeruiupbtn', 'headeruidownbtn', 'headersequpbtn',
+    'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn',
+    'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn',
+    'headerresetbtn', 'headernukebtn', 'headernotepadbtn'
+],
 	generalToggleOrder: [
 'autoBrightToggle', 'autoDarkToggle',
 'randomThemeToggle', 'headerThemeCycleToggle',
@@ -2049,17 +2051,20 @@ class SettingsManager {
 					this.callbacks.onSettingsChanged && this.callbacks.onSettingsChanged();
 			});
 		}
-		const bindToggleWithCallback = (toggleElement, settingKey, applyCallback) => {
-			if (toggleElement) {
-				let defaultState = settingKey === 'isWakeLockEnabled' ? true : false;
-				toggleElement.checked = this.appSettings[settingKey] ?? defaultState;
-				toggleElement.onchange = (e) => {
-					this.appSettings[settingKey] = e.target.checked;
-					this.callbacks.onSave();
-					if (applyCallback) applyCallback();
-				};
-			}
-		};
+// Find this inside SettingsManager constructor:
+const bindToggleWithCallback = (toggleElement, settingKey, applyCallback) => {
+    if (toggleElement) {
+        // REPLACE THIS LINE: let defaultState = settingKey === 'isWakeLockEnabled' ? true : false;
+        let defaultState = false; // Force disabled initially
+        toggleElement.checked = this.appSettings[settingKey] ?? defaultState;
+        toggleElement.onchange = (e) => {
+            this.appSettings[settingKey] = e.target.checked;
+            this.callbacks.onSave();
+            if (applyCallback) applyCallback();
+        };
+    }
+};
+
 		bindToggleWithCallback(this.dom.wakelockToggle, 'isWakeLockEnabled', () => {
 				if (typeof window.wakelockToggle === 'function') {
 					window.wakelockToggle(this.appSettings.isWakeLockEnabled);
@@ -3622,11 +3627,16 @@ class SettingsManager {
 		if (this.dom.biggerToggle) this.dom.biggerToggle.checked = this.appSettings.showBiggerBtn;
 		if (this.dom.arcamToggle) this.dom.arcamToggle.checked = !!this.appSettings.isArModeEnabled;
 		if (this.dom.voiceToggle) this.dom.voiceToggle.checked = !!this.appSettings.isVoiceInputEnabled;
-		if (this.dom.longPressToggle) this.dom.longPressToggle.checked = (typeof this.appSettings.isLongPressAutoplayEnabled === 'undefined') ? true : this.appSettings.isLongPressAutoplayEnabled;
+
 		if (this.dom.timerToggle) this.dom.timerToggle.checked = !!this.appSettings.showTimer;
 		if (this.dom.counterToggle) this.dom.counterToggle.checked = !!this.appSettings.showCounter;
-		if (this.dom.haptics) this.dom.haptics.checked = (typeof this.appSettings.isHapticsEnabled === 'undefined') ? true : this.appSettings.isHapticsEnabled;
-		if (this.dom.speedDelete) this.dom.speedDelete.checked = (typeof this.appSettings.isSpeedDeletingEnabled === 'undefined') ? true : this.appSettings.isSpeedDeletingEnabled;
+
+// Replace the truthy fallbacks with falsy fallbacks:
+if (this.dom.longPressToggle) this.dom.longPressToggle.checked = !!this.appSettings.isLongPressAutoplayEnabled;
+if (this.dom.haptics) this.dom.haptics.checked = !!this.appSettings.isHapticsEnabled;
+if (this.dom.speedDelete) this.dom.speedDelete.checked = !!this.appSettings.isSpeedDeletingEnabled;
+if (this.dom.wakelockToggle) this.dom.wakelockToggle.checked = !!this.appSettings.isWakeLockEnabled;
+
 		if (this.dom.speedTouchGesturesToggle) this.dom.speedTouchGesturesToggle.checked = !!this.appSettings.isSpeedTouchGesturesEnabled;
 		if (this.dom.volumeTouchGesturesToggle) this.dom.volumeTouchGesturesToggle.checked = !!this.appSettings.isVolumeTouchGesturesEnabled;
 		if (this.dom.deleteTouchGestureToggle) this.dom.deleteTouchGestureToggle.checked = !!this.appSettings.isDeleteTouchGestureEnabled;
@@ -3661,7 +3671,7 @@ class SettingsManager {
 		if (this.dom.handsignalsToggle) this.dom.handsignalsToggle.checked = !!this.appSettings.isHandSignalsEnabled;
 		if (this.dom.handednessFlipToggle) this.dom.handednessFlipToggle.checked = !!this.appSettings.handednessFlip;
 		if (this.dom.voicecommandsToggle) this.dom.voicecommandsToggle.checked = !!this.appSettings.isVoiceCommandsEnabled;
-		if (this.dom.wakelockToggle) this.dom.wakelockToggle.checked = (typeof this.appSettings.isWakeLockEnabled === 'undefined') ? true : this.appSettings.isWakeLockEnabled;
+
 		if (this.dom.randomThemeToggle) this.dom.randomThemeToggle.checked = !!this.appSettings.isRandomThemeEnabled;
 		if (this.dom.autoHideHeaderToggle) this.dom.autoHideHeaderToggle.checked = !!this.appSettings.isAutoHideHeaderEnabled;
 		if (this.dom.autoBrightToggle) this.dom.autoBrightToggle.checked = !!this.appSettings.isAutoBrightEnabled;
@@ -5745,23 +5755,40 @@ function renderUI() {
 	// (the opposite of what's needed). Flipping to column-direction and sizing the logical
 	// height axis instead means each logical "column" (which becomes a visual row after
 	// rotation) holds enough boxes to span the available visual width.
-	requestAnimationFrame(() => {
-		requestAnimationFrame(() => {
-			const isRotating = document.body.dataset.rotate === '90' || document.body.dataset.rotate === '270';
-			Array.from(container.children).forEach(card => {
-				const numGrid = card.querySelector('.flex.flex-wrap');
-				if (!numGrid) return;
-				if (!isRotating) { numGrid.style.height = ''; numGrid.style.flexDirection = ''; return; }
-				const cardCs = getComputedStyle(card);
-				const vPad = parseFloat(cardCs.paddingTop) + parseFloat(cardCs.paddingBottom);
-				const available = card.clientHeight - vPad;
-				if (available > 0) {
-					numGrid.style.flexDirection = 'column';
-					numGrid.style.height = available + 'px';
-				}
-			});
-		});
-	});
+// Remove the double requestAnimationFrame block and use this:
+const isRotating = document.body.dataset.rotate === '90' || document.body.dataset.rotate === '270';
+
+if (!window._cardResizeObserver) {
+    window._cardResizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+            const card = entry.target;
+            const numGrid = card.querySelector('.flex.flex-wrap');
+            if (!numGrid) continue;
+
+            const isCardRotating = document.body.dataset.rotate === '90' || document.body.dataset.rotate === '270';
+            if (!isCardRotating) { 
+                numGrid.style.height = ''; 
+                numGrid.style.flexDirection = ''; 
+                continue; 
+            }
+
+            const cardCs = getComputedStyle(card);
+            const vPad = parseFloat(cardCs.paddingTop) + parseFloat(cardCs.paddingBottom);
+            const available = entry.contentRect.height - vPad;
+            
+            if (available > 0) {
+                numGrid.style.flexDirection = 'column';
+                numGrid.style.height = available + 'px';
+            }
+        }
+    });
+}
+
+Array.from(container.children).forEach(card => {
+    // Observe each card dynamically so it reacts properly when the layout actually settles
+    window._cardResizeObserver.observe(card);
+});
+
 	const hMic = document.getElementById('headervoicebtn');
 	const hCam = document.getElementById('headerarcambtn');
 	const hGest = document.getElementById('headertouchbtn');
@@ -6461,6 +6488,65 @@ function initGlobalListeners() {
 					passive: false
 			});
 		}
+		const inputFontSelect = document.getElementById('input-font-size-select');
+		if (inputFontSelect) {
+		inputFontSelect.value = Math.round((this.appSettings.inputFontSizeMultiplier || 1.0) * 100);
+		inputFontSelect.onchange = (e) => { 
+		this.appSettings.inputFontSizeMultiplier = parseInt(e.target.value) / 100.0;
+		document.documentElement.style.setProperty('--input-font-scale', this.appSettings.inputFontSizeMultiplier);
+		this.callbacks.onSave(); 
+		};
+		}
+		const rowMaxSelect = document.getElementById('row-max-select');
+		if (rowMaxSelect) {
+		rowMaxSelect.value = this.appSettings.rowMax || 'none';
+		
+		// Apply initial state
+		document.getElementById('sequence-container').setAttribute('data-row-max', this.appSettings.rowMax);
+		
+		rowMaxSelect.onchange = (e) => { 
+		this.appSettings.rowMax = e.target.value;
+		document.getElementById('sequence-container').setAttribute('data-row-max', this.appSettings.rowMax);
+		this.callbacks.onSave(); 
+		};
+		}
+		const splitScreenObserver = new ResizeObserver(entries => {
+		for (let entry of entries) {
+		const height = entry.contentRect.height;
+		const screenHeight = window.screen.availHeight || window.innerHeight;
+		
+		// Calculate percentage of vertical screen used
+		const percentage = (height / screenHeight) * 100;
+		
+		let splitMode = "normal";
+		if (percentage <= 35) {
+		splitMode = "25";
+		} else if (percentage > 35 && percentage <= 60) {
+		splitMode = "50";
+		} else if (percentage > 60 && percentage <= 85) {
+		splitMode = "75";
+		}
+		
+		document.body.setAttribute('data-split-mode', splitMode);
+		}
+		});
+		splitScreenObserver.observe(document.documentElement);
+		
+		const split50Align = document.getElementById('split-50-alignment');
+		if (split50Align) {
+		// Default to vertical
+		document.body.setAttribute('data-split-align', split50Align.value);
+		
+		split50Align.addEventListener('change', (e) => {
+		const val = e.target.value;
+		document.body.setAttribute('data-split-align', val);
+		
+		// Update the virtual preview window dynamically
+		const preview = document.getElementById('virtual-screen-preview');
+		preview.style.flexDirection = (val === 'horizontal') ? 'row' : 'column';
+		});
+		}
+		
 		const headerTimer = document.getElementById('headertimerbtn');
 		const headerCounter = document.getElementById('headercounterbtn');
 		const headerMic = document.getElementById('headervoicebtn');
@@ -7144,6 +7230,123 @@ async function exitPipMode() {
 		console.warn('[PiP] exit failed:', err);
 	}
 }
+// Map button IDs to their actual state properties in appSettings
+const BUTTON_STATE_MAP = {
+    'headerarcambtn': 'isArModeEnabled',
+    'headerpipbtn': 'showPipBtn',
+    'headervoicebtn': 'isVoiceInputEnabled',
+    'headertonebtn': 'isToneCadenceEnabled',
+    'headertouchbtn': 'isTouchGestureInputEnabled',
+    'headerhandbtn': 'isHandGesturesEnabled',
+    'headerpinnedbtn': 'isPinnedModeEnabled',
+    'headerportraitlockbtn': 'showPortraitLockBtn', // Or whichever state tracks the lock
+    'headerfullscreenbtn': 'showFullscreenBtn'
+};
+
+function resolveButtonConflicts(toggledId, isTurningOn) {
+    if (!isTurningOn) return;
+
+    const forceOff = (btnId) => {
+        const prop = BUTTON_STATE_MAP[btnId];
+        if (prop && appSettings[prop]) {
+            appSettings[prop] = false;
+            
+            // Un-highlight the button visually
+            const btn = document.getElementById(btnId);
+            if (btn) btn.classList.remove('ring-2', 'ring-emerald-500', 'header-btn-active');
+
+            // Trigger specific shutdown logic if needed
+            if (btnId === 'headerpipbtn') exitPipMode();
+            if (btnId === 'headerarcambtn' && modules.vision) modules.vision.stop();
+        }
+    };
+
+    if (toggledId === 'headerarcambtn') {
+        ['headerpipbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn'].forEach(forceOff);
+    }
+
+    const exclusiveInputs = ['headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn'];
+    if (exclusiveInputs.includes(toggledId)) {
+        exclusiveInputs.forEach(id => {
+            if (id !== toggledId) forceOff(id);
+        });
+    }
+
+    const fullScreenTriggers = ['headerpinnedbtn', 'headerportraitlockbtn', 'headerfullscreenbtn'];
+    if (fullScreenTriggers.includes(toggledId)) {
+        forceOff('headerpipbtn');
+    }
+    if (toggledId === 'headerpipbtn') {
+        fullScreenTriggers.forEach(forceOff);
+    }
+}
+
+function evaluateFullscreenState() {
+    const needsFullScreen = 
+        appSettings.isPinnedModeEnabled === true || 
+        appSettings.showPortraitLockBtn === true || 
+        appSettings.showFullscreenBtn === true;
+
+    if (needsFullScreen) {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.warn(`Fullscreen error: ${err.message}`);
+            });
+        }
+    } else {
+        if (document.fullscreenElement && document.exitFullscreen) {
+            document.exitFullscreen().catch(err => console.warn(err));
+        }
+    }
+}
+
+function onHeaderButtonClicked(btnId) {
+    const propName = BUTTON_STATE_MAP[btnId] || btnId;
+    const isTurningOn = !appSettings[propName];
+    
+    appSettings[propName] = isTurningOn;
+
+    resolveButtonConflicts(btnId, isTurningOn);
+    evaluateFullscreenState();
+
+    if (modules.settings) modules.settings.callbacks.onSave();
+    if (modules.settings) modules.settings.updateHeaderVisibility();
+}
+
+// Hard Refresh Logic (Deletes Service Worker, Caches, and Reloads)
+async function hardRefreshApp() {
+    if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let registration of registrations) {
+            await registration.unregister();
+        }
+    }
+    if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        for (let cacheName of cacheNames) {
+            await caches.delete(cacheName);
+        }
+    }
+    window.location.reload(true);
+}
+
+// Bind Footer Buttons
+document.getElementById('btn-settings-refresh').addEventListener('click', hardRefreshApp);
+
+document.getElementById('btn-settings-reset').addEventListener('click', () => {
+    // Assuming you have a reset logic function already
+    resetAllSettings(); 
+});
+
+document.getElementById('btn-settings-nuke').addEventListener('click', async () => {
+    resetAllSettings(); // Clear data first
+    await hardRefreshApp(); // Then destroy files and reload
+});
+
+document.getElementById('btn-settings-exit').addEventListener('click', () => {
+    document.getElementById('settings-modal').classList.add('hidden');
+});
+
 async function requestAppFullscreen() {
 	const el = document.documentElement;
 	try {
@@ -7692,4 +7895,3 @@ if ('serviceWorker' in navigator) {
 			});
 	});
 }
-

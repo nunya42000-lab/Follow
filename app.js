@@ -789,7 +789,7 @@ const DEFAULT_APP = {
     'headerseqdownbtn', 'headervolupbtn', 'headervoldownbtn',
     'headerspeedupbtn', 'headerspeeddownbtn', 'headercycleinputbtn',
     'headerresetbtn', 'headernukebtn', 'headernotepadbtn'
-];
+],
 	generalToggleOrder: [
 'autoBrightToggle', 'autoDarkToggle',
 'randomThemeToggle', 'headerThemeCycleToggle',

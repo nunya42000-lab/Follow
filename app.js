@@ -7329,30 +7329,22 @@ async function hardRefreshApp() {
     }
     window.location.reload(true);
 }
+// Bind Footer Buttons safely using optional chaining
+document.getElementById('btn-settings-refresh')?.addEventListener('click', hardRefreshApp);
 
-// Bind Footer Buttons safely
-const bindButton = (id, handler) => {
-    const el = document.getElementById(id);
-    if (el) {
-        el.addEventListener('click', handler);
-    }
-};
-
-bindButton('btn-settings-refresh', hardRefreshApp);
-
-bindButton('btn-settings-reset', () => {
+document.getElementById('btn-settings-reset')?.addEventListener('click', () => {
     restoreDefaultSettings();
 });
 
-bindButton('btn-settings-nuke', async () => {
+document.getElementById('btn-settings-nuke')?.addEventListener('click', async () => {
     restoreDefaultSettings();
     await hardRefreshApp(); 
 });
 
-bindButton('btn-settings-exit', () => {
-    const modal = document.getElementById('settings-modal');
-    if (modal) modal.classList.add('hidden');
+document.getElementById('btn-settings-exit')?.addEventListener('click', () => {
+    document.getElementById('settings-modal')?.classList.add('hidden');
 });
+
 
 
 async function requestAppFullscreen() {
@@ -7902,6 +7894,7 @@ if ('serviceWorker' in navigator) {
 					console.warn('[SW] Registration failed:', err);
 			});
 	});
+});
 }n failed:', err);
 			});
 	});

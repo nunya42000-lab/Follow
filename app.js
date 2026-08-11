@@ -7330,21 +7330,30 @@ async function hardRefreshApp() {
     window.location.reload(true);
 }
 
-// Bind Footer Buttons
-document.getElementById('btn-settings-refresh').addEventListener('click', hardRefreshApp);
+// Bind Footer Buttons safely
+const bindButton = (id, handler) => {
+    const el = document.getElementById(id);
+    if (el) {
+        el.addEventListener('click', handler);
+    }
+};
 
-document.getElementById('btn-settings-reset').addEventListener('click', () => {
-    restoreDefaultSettings(); // <--- Replaced resetAllSettings()
+bindButton('btn-settings-refresh', hardRefreshApp);
+
+bindButton('btn-settings-reset', () => {
+    restoreDefaultSettings();
 });
 
-document.getElementById('btn-settings-nuke').addEventListener('click', async () => {
-    restoreDefaultSettings(); // <--- Replaced resetAllSettings()
+bindButton('btn-settings-nuke', async () => {
+    restoreDefaultSettings();
     await hardRefreshApp(); 
 });
 
-document.getElementById('btn-settings-exit').addEventListener('click', () => {
-    document.getElementById('settings-modal').classList.add('hidden');
+bindButton('btn-settings-exit', () => {
+    const modal = document.getElementById('settings-modal');
+    if (modal) modal.classList.add('hidden');
 });
+
 
 async function requestAppFullscreen() {
 	const el = document.documentElement;
@@ -7891,6 +7900,12 @@ if ('serviceWorker' in navigator) {
 					reg.update().catch(() => {});
 			}).catch(err => {
 					console.warn('[SW] Registration failed:', err);
+			});
+	});
+}n failed:', err);
+			});
+	});
+}ed:', err);
 			});
 	});
 }

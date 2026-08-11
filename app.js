@@ -1989,7 +1989,7 @@ class SettingsManager {
 			closeSettingsBtn: document.getElementById('close-settings'),
 			tabs: document.querySelectorAll('.tab-btn'),
 			contents: document.querySelectorAll('.tab-content'),
-			helpModal: document.getElementById('help-modal'), setupModal: document.getElementById('game-setup-modal'), shareModal: document.getElementById('share-modal'), closeSetupBtn: document.getElementById('close-game-setup-modal'), quickSettings: document.getElementById('quick-open-settings'), quickHelp: document.getElementById('quick-open-help'), grantPermissionsBtn: document.getElementById('grant-permissions-btn'),
+			helpModal: document.getElementById('help-modal'), setupModal: document.getElementById('game-setup-modal'), shareModal: document.getElementById('share-modal'), closeSetupBtn: document.getElementById('close-game-setup-modal'), quickSettings: document.getElementById('quick-openSettings'), quickHelp: document.getElementById('quick-open-help'), grantPermissionsBtn: document.getElementById('grant-permissions-btn'),
 			quickAutoplay: document.getElementById('quick-autoplay-toggle'), quickAudio: document.getElementById('quick-audio-toggle'), dontShowWelcome: document.getElementById('dont-introToggle'), welcomeSettingsLockToggle: document.getElementById('welcome-settings-lock-toggle'),
 			quickResizeUp: document.getElementById('quick-resize-up'), quickResizeDown: document.getElementById('quick-resize-down'),
 			quickCardSizeUp: document.getElementById('quick-cardsize-up'), quickCardSizeDown: document.getElementById('quick-cardsize-down'),
@@ -2395,8 +2395,7 @@ const bindToggleWithCallback = (toggleElement, settingKey, applyCallback) => {
  * Populates the select elements inside the landscape/split-screen accordion.
  * @param {Object} optionsData - An object containing arrays of items for each drop-down.
  */
-
-	populateLandscapeAccordionDropdowns(optionsData) {
+    populateLandscapeAccordionDropdowns(optionsData) {
     // Map your select element IDs to their respective data arrays
     const dropdownMappings = {
         'landscape-mode-select': optionsData.modes || [],
@@ -3325,7 +3324,7 @@ const bindToggleWithCallback = (toggleElement, settingKey, applyCallback) => {
 				}
 			};
 		}
-		const handleProfileSwitch = (val) => { this.callbacks.onProfileSwitch(val); this.open-settings(); };
+		const handleProfileSwitch = (val) => { this.callbacks.onProfileSwitch(val); this.openSettings(); };
 		if (this.dom.configSelect) this.dom.configSelect.onchange = (e) => handleProfileSwitch(e.target.value);
 		if (this.dom.quickConfigSelect) this.dom.quickConfigSelect.onchange = (e) => handleProfileSwitch(e.target.value);
 		const bind = (el, prop, isGlobal, isInt = false, isFloat = false) => {
@@ -3444,13 +3443,13 @@ const bindToggleWithCallback = (toggleElement, settingKey, applyCallback) => {
 		if (this.dom.themeDelete) this.dom.themeDelete.onclick = () => { if (PREMADE_THEMES[this.appSettings.activeTheme]) return alert("Cannot delete built-in."); if (confirm("Delete?")) { delete this.appSettings.customThemes[this.appSettings.activeTheme]; this.appSettings.activeTheme = 'default'; this.callbacks.onSave(); this.callbacks.onUpdate(); this.populateThemeDropdown(); } };
 		if (this.dom.themeSelect) this.dom.themeSelect.onchange = (e) => { this.appSettings.activeTheme = e.target.value; this.callbacks.onUpdate(); this.populateThemeDropdown(); };
 		if (this.dom.fontSelect) this.dom.fontSelect.onchange = (e) => { this.appSettings.activeFontFamily = e.target.value; this.callbacks.onSave(); this.callbacks.onUpdate(); };
-		if (this.dom.configAdd) this.dom.configAdd.onclick = () => { const n = prompt("Profile Name:"); if (n) this.callbacks.onProfileAdd(n); this.open-settings(); };
+		if (this.dom.configAdd) this.dom.configAdd.onclick = () => { const n = prompt("Profile Name:"); if (n) this.callbacks.onProfileAdd(n); this.openSettings(); };
 		if (this.dom.configRename) this.dom.configRename.onclick = () => { const n = prompt("Rename:"); if (n) this.callbacks.onProfileRename(n); this.populateConfigDropdown(); };
-		if (this.dom.configDelete) this.dom.configDelete.onclick = () => { this.callbacks.onProfileDelete(); this.open-settings(); };
+		if (this.dom.configDelete) this.dom.configDelete.onclick = () => { this.callbacks.onProfileDelete(); this.openSettings(); };
 		if (this.dom.configSave) this.dom.configSave.onclick = () => { this.callbacks.onProfileSave(); };
 		if (this.dom.themeSave) this.dom.themeSave.onclick = () => { if (this.tempTheme) { const activeId = this.appSettings.activeTheme; if (PREMADE_THEMES && PREMADE_THEMES[activeId]) { const newId = 'custom_' + Date.now(); this.appSettings.customThemes[newId] = this.tempTheme; this.appSettings.activeTheme = newId; } else { this.appSettings.customThemes[activeId] = this.tempTheme; } this.callbacks.onProfileSave(); this.callbacks.onUpdate(); this.populateThemeDropdown(); alert("Theme Saved!"); } };
 		if (this.dom.closeSetupBtn) this.dom.closeSetupBtn.onclick = () => this.closeSetup();
-		if (this.dom.quickSettings) this.dom.quickSettings.onclick = () => { this.closeSetup(); this.open-settings(); };
+		if (this.dom.quickSettings) this.dom.quickSettings.onclick = () => { this.closeSetup(); this.openSettings(); };
 		if (this.dom.quickHelp) this.dom.quickHelp.onclick = () => { this.closeSetup(); this.generatePrompt(); if (this.dom.helpModal) this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); if (window.lockBodyScroll) window.lockBodyScroll(); };
 		if (this.dom.grantPermissionsBtn) this.dom.grantPermissionsBtn.onclick = () => { if (typeof window.grantAllPermissions === 'function') window.grantAllPermissions(); };
 		if (this.dom.closeHelpBtn) this.dom.closeHelpBtn.onclick = () => { if (this.dom.helpModal) this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none'); if (window.unlockBodyScroll) window.unlockBodyScroll(); };
@@ -3564,7 +3563,7 @@ const bindToggleWithCallback = (toggleElement, settingKey, applyCallback) => {
 	}
 	populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
 	populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
-	open-settings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
+	openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
 	openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); this.updateWelcomeSample(); }
 	applySettingsLockState() {
 		if (!this.dom.settingsLockBtn) return;
@@ -6389,7 +6388,7 @@ function initGlobalListeners() {
 						}
 				});
 		});
-		document.querySelectorAll('button[data-action="open-settings"]').forEach(b => {
+		document.querySelectorAll('button[data-action="openSettings"]').forEach(b => {
 				b.addEventListener('click', () => {
 						if (isDemoPlaying) {
 							isDemoPlaying = false;
@@ -6398,7 +6397,7 @@ function initGlobalListeners() {
 							showToast("Playback Stopped 🛑");
 							return;
 						}
-						modules.settings.open-settings();
+						modules.settings.openSettings();
 				});
 		});
 		const startDelete = e => {
@@ -6642,7 +6641,7 @@ function initGlobalListeners() {
 		const headerPlay = document.getElementById('headerplaybtn');
 		if (headerPlay) headerPlay.onclick = () => playDemo();
 		const headerSettingsBtn = document.getElementById('headersettingsbtn');
-		if (headerSettingsBtn) headerSettingsBtn.onclick = () => { if (modules.settings) modules.settings.open-settings(); };
+		if (headerSettingsBtn) headerSettingsBtn.onclick = () => { if (modules.settings) modules.settings.openSettings(); };
 		const headerRedeem = document.getElementById('headerredeembtn');
 		if (headerRedeem) headerRedeem.onclick = () => { if (modules.settings) modules.settings.toggleRedeem(true); };
 		const headerShare = document.getElementById('headersharebtn');
@@ -7862,7 +7861,7 @@ const startApp = async () => {
 					showToast("Voice: Backspace 🔙");
 				}
 				if (cmd === 'CMD_SETTINGS') {
-					modules.settings.open-settings();
+					modules.settings.openSettings();
 				}
 				if (cmd === 'CMD_VOLUME_UP') {
 					appSettings.runtimeSettings.voiceVolume = Math.min(1.0, (appSettings.runtimeSettings.voiceVolume || 1.0) + 0.1);

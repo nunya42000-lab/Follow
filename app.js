@@ -2767,7 +2767,7 @@ class SettingsManager {
                     if (inputSizeEl) {
                     inputSizeEl.addEventListener('change', (e) => {
                     this.appSettings.inputSize = e.target.value;
-                    this.saveSettings();
+                    this.onSave();
                     this.applyFontSizes(); // Apply the decoupled size
                         });
                         }
@@ -2776,7 +2776,7 @@ class SettingsManager {
                     if (rowMaxEl) {
                     rowMaxEl.addEventListener('change', (e) => {
                     this.appSettings.rowMax = e.target.value;
-                    this.saveSettings();
+                    this.onSave();
                     updateSequenceRowLayout(e.target.value); // Trigger layout adjustment
                     });
                     }

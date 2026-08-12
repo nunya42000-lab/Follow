@@ -2763,23 +2763,28 @@ class SettingsManager {
 							showToast('Tone calibration removed — standard tones restored 🗑️');
 						};
 					}
-                    const inputSizeEl = document.getElementById('inputSizeSelect');
-                    if (inputSizeEl) {
-                    inputSizeEl.addEventListener('change', (e) => {
-                    this.appSettings.inputSize = e.target.value;
-                    this.callbacks.onSave();
-                    this.applyFontSizes(); // Apply the decoupled size
-                        });
-                        }
+                 const inputSizeEl = document.getElementById('inputSizeSelect');
+if (inputSizeEl) {
+    inputSizeEl.addEventListener('change', (e) => {
+        this.appSettings.inputSize = e.target.value;
+        if (this.callbacks && typeof this.callbacks.onSave === 'function') {
+            this.callbacks.onSave();
+        }
+        this.applyFontSizes(); 
+    });
+}
 
-                    const rowMaxEl = document.getElementById('rowMaxSelect');
-                    if (rowMaxEl) {
-                    rowMaxEl.addEventListener('change', (e) => {
-                    this.appSettings.rowMax = e.target.value;
-                    this.callbacks.onSave();
-                    updateSequenceRowLayout(e.target.value); // Trigger layout adjustment
-                    });
-                    }
+const rowMaxEl = document.getElementById('rowMaxSelect');
+if (rowMaxEl) {
+    rowMaxEl.addEventListener('change', (e) => {
+        this.appSettings.rowMax = e.target.value;
+        if (this.callbacks && typeof this.callbacks.onSave === 'function') {
+            this.callbacks.onSave();
+        }
+        updateSequenceRowLayout(e.target.value); 
+    });
+}
+
 					const touchTestContainer = document.getElementById('test-area-lock-container');
 					if (touchTestContainer && !window.__testTouchGestureEngine) {
 						window.__testTouchGestureEngine = new TouchGestureEngine(touchTestContainer, {
@@ -3680,11 +3685,11 @@ class SettingsManager {
             document.getElementById('restoreHeaderToggle').checked = !!this.appSettings.isRestoreHeaderGestureEnabled;
         }
         if (document.getElementById('inputSizeSelect')) {
-    document.getElementById('inputSizeSelect').value = this.appSettings.inputSize || '1.5rem';
-}
-if (document.getElementById('rowMaxSelect')) {
-    document.getElementById('rowMaxSelect').value = this.appSettings.rowMax || 'none';
-}
+        document.getElementById('inputSizeSelect').value = this.appSettings.inputSize || '1.5rem';
+        }
+        if (document.getElementById('rowMaxSelect')) {
+        document.getElementById('rowMaxSelect').value = this.appSettings.rowMax || 'none';
+        }
 
 		if (this.dom.touchResizeModeSelect) this.dom.touchResizeModeSelect.value = this.appSettings.touchResizeMode || 'global';
 		if (this.dom.headerPaddingSelect) this.dom.headerPaddingSelect.value = this.appSettings.headerPadding || 0;
@@ -3744,16 +3749,37 @@ if (document.getElementById('rowMaxSelect')) {
 			this.dom.arSpeedSelect.value = String(speedVal);
 		}
 		this.updateHeaderVisibility();
+        updateSequenceRowLayout(this.appSettings.rowMax)
 	}
-    applyFontSizes() {
+  applyFontSizes() {
     const root = document.documentElement;
-    
-    // Previous global font size now targets ONLY modals/text
     root.style.setProperty('--modal-font-size', `${this.appSettings.fontSize}px`);
+    root.style.setProperty('--input-font-size', this.appSettings.inputSize || '1.5rem');
     
-    // New strictly separate input size
-    root.style.setProperty('--input-font-size', this.appSettings.inputSize);
+    let styleEl = document.getElementById('dynamic-font-styles');
+    if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'dynamic-font-styles';
+        document.head.appendChild(styleEl);
+    }
+    
+    // Injects CSS to force the separation of font sizes
+    styleEl.textContent = `
+        /* Route global font size ONLY to modals/text */
+        .settings-modal, .modal-content, #settings-modal { 
+            font-size: var(--modal-font-size) !important; 
+        }
+        
+        /* Route input size specifically to the buttons */
+        #numpad-container button, 
+        #piano-container button, 
+        .piano-key,
+        .input-btn { 
+            font-size: var(--input-font-size) !important; 
+        }
+    `;
 }
+  
 
 	updateHeaderVisibility() {
 		this.applySavedHeaderOrder();
@@ -5086,33 +5112,37 @@ function loadState() {
 		saveState();
 	}
 }
-function updateSequenceRowLayout(rowMaxState = appSettings.rowMax) {
-    // Replace 'sequence-container' with the actual ID or class of your sequence card row
+function updateSequenceRowLayout(rowMaxState) {
     const sequenceContainer = document.getElementById('sequence-container'); 
     if (!sequenceContainer) return;
 
-    if (rowMaxState === 'none') {
-        // Reset to default flex or auto-flow
-        sequenceContainer.style.display = 'flex'; // Or whatever your default is
-        sequenceContainer.style.flexWrap = 'wrap'; 
+    let styleEl = document.getElementById('dynamic-row-max-styles');
+    if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'dynamic-row-max-styles';
+        document.head.appendChild(styleEl);
+    }
+
+    if (!rowMaxState || rowMaxState === 'none') {
+        // Wipe the grid injection to restore your default layout
+        sequenceContainer.style.display = ''; 
         sequenceContainer.style.gridTemplateColumns = '';
-        
-        // Remove any explicit width restrictions on child cards
-        Array.from(sequenceContainer.children).forEach(card => {
-            card.style.flex = ''; 
-            card.style.width = '';
-        });
+        styleEl.textContent = ''; 
     } else {
-        // Switch to CSS Grid to enforce strict column counts per row
+        // Enforce the strict row maximum using CSS Grid
         const maxColumns = parseInt(rowMaxState, 10);
         sequenceContainer.style.display = 'grid';
-        sequenceContainer.style.gridTemplateColumns = `repeat(${maxColumns}, minmax(0, 1fr))`;
-        sequenceContainer.style.gap = '8px'; // Adjust gap as needed
+        sequenceContainer.style.gridTemplateColumns = `repeat(${maxColumns}, 1fr)`;
+        sequenceContainer.style.gap = '8px';
         
-        // Ensure child cards conform to the grid cell
-        Array.from(sequenceContainer.children).forEach(card => {
-            card.style.width = '100%'; 
-        });
+        // This targets all current AND future cards safely
+        styleEl.textContent = `
+            #sequence-container > * {
+                width: 100% !important;
+                flex: none !important;
+                margin: 0 !important;
+            }
+        `;
     }
 }
 

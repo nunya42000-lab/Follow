@@ -44,6 +44,8 @@ alert("Promise Error: " + event.reason);
 <button id="headerdndbtn"class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔕</button>
 <button id="headerupsidedownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🙃</button>
 <button id="headerportraitlockbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Portrait Lock">🔒</button>
+<button id="headerlandscapelockbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Landscape Lock">🔐</button>
+<button id="headerundobtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Undo Delete">↩️</button>
 <button id="headerswapbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔄</button>
 <button id="headerplaybtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Play">▶️</button>
 <button id="headerdeletebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Delete">⌫</button>
@@ -478,11 +480,11 @@ alert("Promise Error: " + event.reason);
 <span class="font-bold text-sm">Share 📤</span>
 <input type="checkbox" id="headerShareToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Reset ♻️</span>
-<input type="checkbox" id="headerResetToggle" class="h-6 w-6 accent-indigo-500"></div>
+<span class="font-bold text-sm">Hide Intro</span>
+<input type="checkbox" id="hideIntroToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Nuke ☢️</span>
-<input type="checkbox" id="headerNukeToggle" class="h-6 w-6 accent-indigo-500"></div>
+<span class="font-bold text-sm">Undo ↩️</span>
+<input type="checkbox" id="headerUndoToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Timer ⏱️</span>
 <input type="checkbox" id="timerToggle" class="h-6 w-6 accent-indigo-500"></div>
@@ -505,14 +507,14 @@ alert("Promise Error: " + event.reason);
 <span class="font-bold text-sm">Haptics 📳</span>
 <input type="checkbox" id="hapticsToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Show Intro</span>
-<input type="checkbox" id="introToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Upside Down 🙃</span>
 <input type="checkbox" id="upsidedownToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Portrait Lock 🔒</span>
 <input type="checkbox" id="portraitLockToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Landscape Lock 🔐</span>
+<input type="checkbox" id="landscapeLockToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Full Screen 🔲</span>
 <input type="checkbox" id="fullscreenToggle" class="h-5 w-5 accent-indigo-500"></div>
@@ -585,8 +587,14 @@ alert("Promise Error: " + event.reason);
 <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Clear Gesture 💥</span>
 <input type="checkbox" id="clearToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Reset ♻️</span>
+<input type="checkbox" id="headerResetToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Nuke ☢️</span>
+<input type="checkbox" id="headerNukeToggle" class="h-6 w-6 accent-indigo-500"></div>
 </div>
-<div class="grid grid-cols-2 landscape:grid-cols-4 gap-3 mt-4 w-full">
+<div class="grid grid-cols-2 gap-3 pt-2">
 <div>
 <label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
 <select id="seq-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
@@ -637,32 +645,35 @@ alert("Promise Error: " + event.reason);
 <option value="250">Max (Fill)</option>
 </select>
 </div>
-  <!-- New: Input Size Dropdown -->
-    <div class="flex flex-col space-y-1">
-        <label for="inputSizeSelect" class="font-bold text-xs pl-1">Input Size</label>
-        <select id="inputSizeSelect" class="p-2 rounded bg-gray-950 border border-custom settings-input text-sm text-white">
-            <option value="1rem">Small</option>
-            <option value="1.5rem" selected>Medium</option>
-            <option value="2rem">Large</option>
-            <option value="2.5rem">Extra Large</option>
-        </select>
-    </div>
-
-    <!-- New: Row Max Dropdown -->
-    <div class="flex flex-col space-y-1">
-        <label for="rowMaxSelect" class="font-bold text-xs pl-1">Row Max</label>
-        <select id="rowMaxSelect" class="p-2 rounded bg-gray-950 border border-custom settings-input text-sm text-white">
-            <option value="none" selected>None</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="10">10</option>
-            <option value="12">12</option>
-            <option value="15">15</option>
-        </select>
-    </div>
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Input Size</label>
+<select id="input-font-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="75">75%</option>
+<option value="85">85%</option>
+<option value="100" selected>100%</option>
+<option value="115">115%</option>
+<option value="130">130%</option>
+<option value="150">150%</option>
+<option value="175">175%</option>
+<option value="200">200%</option>
+</select>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Row Max</label>
+<select id="row-max-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="none" selected>None</option>
+<option value="4">4 Cards</option>
+<option value="5">5 Cards</option>
+<option value="6">6 Cards</option>
+<option value="7">7 Cards</option>
+<option value="8">8 Cards</option>
+<option value="10">10 Cards</option>
+<option value="12">12 Cards</option>
+<option value="15">15 Cards</option>
+</select>
+</div>
 <div>
 <label class="block text-xs font-bold mb-1 text-muted-custom">AR Playback Speed</label>
 <select id="ar-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
@@ -1318,14 +1329,17 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 </div>
 </div>
-<div class="mt-8 pt-4 border-t border-gray-700 flex justify-between items-center w-full">
-<button data-action="nuke-app" class="px-4 py-2 bg-red-900 hover:bg-red-700 text-white font-bold rounded shadow-lg border border-red-500 text-xs transition-colors">
-☢️ NUKE CACHE
+<div class="mt-8 pt-4 border-t border-gray-700 flex justify-between items-center w-full gap-2 flex-wrap">
+<button data-action="nuke-app" class="px-3 py-2 bg-red-900 hover:bg-red-700 text-white font-bold rounded shadow-lg border border-red-500 text-xs transition-colors">
+☢️ NUKE
 </button>
-<button data-action="restore-defaults" class="px-4 py-2 bg-yellow-700 hover:bg-yellow-600 text-white font-bold rounded shadow-lg text-xs transition-colors">
-⚠️ Reset Settings
+<button data-action="force-refresh" class="px-3 py-2 bg-blue-900 hover:bg-blue-700 text-white font-bold rounded shadow-lg border border-blue-500 text-xs transition-colors">
+🔄 REFRESH
 </button>
-<button id="close-settings" class="px-8 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold transition shadow">Exit</button>
+<button data-action="restore-defaults" class="px-3 py-2 bg-yellow-700 hover:bg-yellow-600 text-white font-bold rounded shadow-lg text-xs transition-colors">
+⚠️ RESET
+</button>
+<button id="close-settings" class="px-8 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold transition shadow ml-auto">Exit</button>
 </div>
 </div>
 </div>

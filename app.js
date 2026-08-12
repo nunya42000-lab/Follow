@@ -4239,8 +4239,7 @@ class SettingsManager {
 		if (cfg.themeSwitch) {
 			if (active) {
 				if (!this._ecoPrevTheme) this._ecoPrevTheme = this.appSettings.activeTheme;
-				const target = (this.appSettings.customThemes && this.appSettings.customThemes['Night Mode']) ? 'Night Mode' : this.appSettings.activeTheme;
-				this.appSettings.activeTheme = target;
+				this.appSettings.activeTheme = 'night';
 			} else if (this._ecoPrevTheme) {
 				this.appSettings.activeTheme = this._ecoPrevTheme;
 				this._ecoPrevTheme = null;
@@ -8537,6 +8536,7 @@ const startApp = async () => {
 	setupARLogic();
 	wireHeaderButtonInteractions();
 	initViewportProfilesUI();
+	if (appSettings.isEcoModeEnabled && typeof modules.settings.applyEcoModeConfig === 'function') modules.settings.applyEcoModeConfig();
 	renderUI();
 	if (new URLSearchParams(window.location.search).has('openHelp')) {
 		history.replaceState(null, '', window.location.pathname);

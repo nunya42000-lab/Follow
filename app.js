@@ -5655,9 +5655,15 @@ window.grantAllPermissions = async function() {
 // in landscape orientation - a full-width app is "landscape", and progressively narrower panes
 // bucket into the 75/50/25 split-screen presets. Portrait is untouched by any of this.
 function detectViewportBucket() {
-	const isLandscapeNow = window.matchMedia('(orientation: landscape)').matches;
-	if (!isLandscapeNow) return 'portrait';
 	const screenW = (window.screen && window.screen.width) ? window.screen.width : window.innerWidth;
+	const screenH = (window.screen && window.screen.height) ? window.screen.height : window.innerHeight;
+	// Use the full device screen's own shape (not the current viewport's) to decide whether
+	// we're in a landscape/split-screen context. A narrow split pane can end up taller than it
+	// is wide even while the device itself is physically landscape, which previously
+	// misclassified it as plain "portrait" and skipped every landscape/split-screen
+	// accommodation (scoped UI/Seq sizing, header button whitelist, swap layout) entirely.
+	const deviceIsLandscape = screenW >= screenH;
+	if (!deviceIsLandscape) return 'portrait';
 	const ratio = screenW > 0 ? (window.innerWidth / screenW) : 1;
 	if (ratio >= 0.92) return 'landscape';
 	if (ratio >= 0.6) return 'split75';
@@ -5968,7 +5974,15 @@ function applyPositionSwapOffsets(isActive) {
 	const app = document.getElementById('app');
 	const header = document.getElementById('aux-control-header');
 	if (!footer || !app) return;
-	const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+	// A narrow split-screen pane can end up taller than it is wide, which flips the CSS
+	// orientation media query to "portrait" even though the device itself is physically in
+	// landscape/split-screen - checking the already-detected viewport bucket alongside the
+	// live media query keeps split-screen panes on the landscape-style layout path instead of
+	// falling back to portrait's "move footer to top with measured padding" math, which breaks
+	// badly against a footer that's much taller than the sliver of height actually available.
+	const viewportBucket = document.body.dataset.viewportBucket;
+	const isSplitBucket = viewportBucket === 'landscape' || viewportBucket === 'split75' || viewportBucket === 'split50' || viewportBucket === 'split25';
+	const isLandscape = window.matchMedia('(orientation: landscape)').matches || isSplitBucket;
 	const inputMode = document.body.dataset.inputMode;
 	const sideRepositioned = isLandscape && (inputMode === 'key9' || inputMode === 'key12');
 	if (sideRepositioned) {

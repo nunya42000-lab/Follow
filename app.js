@@ -3623,7 +3623,7 @@ class SettingsManager {
 	}
 	populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
 	populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
-	openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.initEcoModeConfigUI(); this.renderFullProfileList(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
+	openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.initEcoModeConfigUI(); this.renderFullProfileList(); if (typeof initViewportProfilesUI === 'function') initViewportProfilesUI(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
 	openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); this.updateWelcomeSample(); }
 	applySettingsLockState() {
 		if (!this.dom.settingsLockBtn) return;
@@ -4372,7 +4372,24 @@ class SettingsManager {
 			const cardSize = 40 * scale;
 			const gap = 8; // matches the number-box row's gap-2 utility class (0.5rem)
 			const count = parseInt(rowMax, 10);
-			const maxWidth = (cardSize * count) + (gap * (count - 1));
+			// The flex-wrap row isn't a direct child of #sequence-container - it's nested inside
+			// a card wrapper (p-4 padding) that eats into the available width, so a max-width
+			// calculated only from box sizes was consistently one item short per row. Measuring
+			// the actual card's padding live (falling back to a scaled estimate before any card
+			// has rendered yet) keeps this correct regardless of card styling changes.
+			const card = seqContainer.querySelector(':scope > div');
+			let horizontalPadding;
+			if (card) {
+				const cs = getComputedStyle(card);
+				horizontalPadding = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+			} else {
+				horizontalPadding = 32 * ((this.appSettings.globalUiScale || 100) / 100);
+			}
+			// +1px buffer: when the row's content width is calculated to exactly equal the
+			// available width, browsers can round down by a fraction of a pixel during layout
+			// and wrap the last item anyway - a small safety margin avoids that edge case
+			// without being large enough to ever let an extra item sneak onto the row.
+			const maxWidth = (cardSize * count) + (gap * (count - 1)) + horizontalPadding + 1;
 			seqContainer.style.setProperty('--row-max-width', maxWidth + 'px');
 		}
 	}
@@ -6240,6 +6257,7 @@ function renderUI() {
 			b.style.display = showReset ? 'block' : 'none';
 			b.closest('.control-row')?.classList.toggle('reset-visible', showReset);
 	});
+	if (modules.settings && typeof modules.settings.applyRowMax === 'function') modules.settings.applyRowMax();
 }
 function disableInput(disabled) {
 	const footer = document.getElementById('input-footer');
@@ -7884,6 +7902,7 @@ window.modules = modules;
 window.snapshotForUndo = snapshotForUndo;
 window.performUndo = performUndo;
 window.getState = getState;
+window.renderUI = renderUI;
 window.settingsToBackupCode = settingsToBackupCode;
 window.importSettingsFromBackupCode = importSettingsFromBackupCode;
 window.diffAgainstDefaults = diffAgainstDefaults;
@@ -8055,7 +8074,8 @@ function initViewportProfilesUI() {
 	}
 	populatePipMachineDropdowns();
 
-	switchTab('landscape');
+	const currentBucket = document.body.dataset.viewportBucket;
+	switchTab((currentBucket && buckets.includes(currentBucket)) ? currentBucket : 'landscape');
 }
 const startApp = async () => {
 	loadState();

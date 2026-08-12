@@ -62,8 +62,8 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 @media (orientation:landscape) { body[data-rotate="0"] #app {padding-top: 0;} body[data-rotate="0"] #sequence-container { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: .5rem !important; } body[data-rotate="0"] #sequence-container>div { margin: 0 !important; } }
 #sequence-container { justify-content: flex-start !important; padding-top: 1rem; width: 100%; max-width: var(--row-max-width, none); margin: 0 auto; }
 #input-footer { background-color: var(--card-bg); border-top: 4px solid var(--seq-bubble); padding-bottom: calc(max(.5rem, env(safe-area-inset-bottom)) + var(--inputs-padding-extra, 0px)); max-height: 70vh; overflow-y: auto; }
-@media (orientation: landscape) {
-	body[data-rotate="0"][data-input-mode="key9"] #input-footer, body[data-rotate="0"][data-input-mode="key12"] #input-footer {
+
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #input-footer, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #input-footer {
 		position: fixed !important;
 		top: 0 !important; right: 0 !important; bottom: 0 !important; left: auto !important;
 		width: 100vh !important; max-width: none !important; max-height: none !important;
@@ -74,10 +74,10 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 		padding-right: max(.5rem, env(safe-area-inset-right)) !important;
 		z-index: 30 !important;
 	}
-	body[data-rotate="0"][data-input-mode="key9"] #input-footer > div, body[data-rotate="0"][data-input-mode="key12"] #input-footer > div {
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #input-footer > div, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #input-footer > div {
 		width: 100% !important; max-width: none !important;
 	}
-	body[data-rotate="0"][data-input-mode="key9"] #app, body[data-rotate="0"][data-input-mode="key12"] #app {
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #app, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #app {
 		padding-right: 100vh !important; box-sizing: border-box !important;
 	}
 	body.layout-swapped[data-rotate="0"][data-input-mode="key9"] #input-footer, body.layout-swapped[data-rotate="0"][data-input-mode="key12"] #input-footer {
@@ -91,10 +91,10 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 		padding-right: 0 !important; padding-left: 100vh !important; box-sizing: border-box !important;
 	}
 	@media (max-height: 600px) {
-		body[data-rotate="0"][data-input-mode="key9"] #input-footer, body[data-rotate="0"][data-input-mode="key12"] #input-footer {
+		body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #input-footer, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #input-footer {
 			width: 45vh !important;
 		}
-		body[data-rotate="0"][data-input-mode="key9"] #app, body[data-rotate="0"][data-input-mode="key12"] #app {
+		body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #app, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #app {
 			padding-right: 45vh !important;
 		}
 		body.layout-swapped[data-rotate="0"][data-input-mode="key9"] #input-footer, body.layout-swapped[data-rotate="0"][data-input-mode="key12"] #input-footer {
@@ -104,21 +104,21 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 			padding-left: 45vh !important; padding-right: 0 !important;
 		}
 	}
-}
+
 body.pinned-mode #input-footer { padding-bottom: calc(max(.5rem, env(safe-area-inset-bottom)) + var(--inputs-padding-extra, 0px) + 60px); }
 body.layout-swapped #input-footer { border-top: none; border-bottom: 4px solid var(--seq-bubble); padding-top: max(.5rem, env(safe-area-inset-top)); padding-bottom: .5rem; }
 .btn-input { transition: all .1s ease-in-out; position: relative; font-weight: 700; border-radius: .75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .3); height: 60px; color: var(--text-main); -webkit-user-select: none; user-select: none; }
 .btn-pad-number { background-color: var(--btn-bg); font-size: 1.5rem; border: 1px solid var(--border); border-radius: 9999px; }
 .btn-pad-number:active { filter: brightness(1.3); transform: scale(.96); }
 .btn-pad-number.flash-active { background-color: var(--text-main) !important; color: var(--bg-main) !important; box-shadow: 0 0 15px var(--seq-bubble); transform: scale(1.05); z-index: 10; }
-@media (orientation: landscape) {
-	body[data-rotate="0"][data-input-mode="key9"] #pad-key9, body[data-rotate="0"][data-input-mode="key12"] #pad-key12 { width: 100% !important; max-width: none !important; display: flex !important; flex-direction: column !important; }
-	body[data-rotate="0"] #pad-key9 .grid-cols-3, body[data-rotate="0"] #pad-key12 .grid-cols-4 { flex-grow: 1 !important; display: grid !important; gap: 0.4rem !important; }
-	body[data-rotate="0"] #pad-key9 .btn-pad-number, body[data-rotate="0"] #pad-key12 .btn-pad-number { height: auto !important; aspect-ratio: auto !important; min-height: 2.5rem !important; }
-	body[data-rotate="0"].bigger-buttons-enabled #pad-key9 .btn-pad-number, body[data-rotate="0"].bigger-buttons-enabled #pad-key12 .btn-pad-number { height: 3rem !important; width: 3rem !important; aspect-ratio: 1 / 1 !important; border-radius: 9999px !important; flex-shrink: 0 !important; }
-	body[data-rotate="0"][data-input-mode="key9"].bigger-buttons-enabled #pad-key9, body[data-rotate="0"][data-input-mode="key12"].bigger-buttons-enabled #pad-key12 { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; }
-	body[data-rotate="0"].bigger-buttons-enabled #pad-key9 .grid-cols-3, body[data-rotate="0"].bigger-buttons-enabled #pad-key12 .grid-cols-4 { display: grid !important; gap: 0.5rem !important; justify-items: center !important; }
-}
+
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #pad-key9, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #pad-key12 { width: 100% !important; max-width: none !important; display: flex !important; flex-direction: column !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key9 .grid-cols-3, body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key12 .grid-cols-4 { flex-grow: 1 !important; display: grid !important; gap: 0.4rem !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key12 .btn-pad-number { height: auto !important; aspect-ratio: auto !important; min-height: 2.5rem !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .btn-pad-number { height: 3rem !important; width: 3rem !important; aspect-ratio: 1 / 1 !important; border-radius: 9999px !important; flex-shrink: 0 !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"].hide-controls #pad-key9, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"].hide-controls #pad-key12 { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .grid-cols-3, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .grid-cols-4 { display: grid !important; gap: 0.5rem !important; justify-items: center !important; }
+
 .btn-control { background-color: var(--btn-bg); font-size: 1.5rem; height: 60px; border-radius: 9999px; color: var(--text-main); border: 1px solid var(--border); }
 .btn-control:active { filter: brightness(1.3); transform: scale(.96); }
 .number-box { height: 40px; width: 40px; line-height: 40px; font-size: 1.2rem; font-weight: 800; transition: all .2s; background-color: var(--seq-bubble); color: var(--seq-bubble-text, var(--text-main)); display: flex; align-items: center; justify-content: center; border-radius: .5rem; box-shadow: 0 2px 4px rgba(0, 0, 0, .2); }
@@ -169,9 +169,9 @@ header#aux-control-header.auto-hide-header-enabled.auto-hide-inactive #header-bt
 #redeem-modal.redeem-bright { background-color: #ffffff !important; }
 .header-btn-active { background-color: var(--seq-bubble) !important; border-color: var(--text-main) !important; box-shadow: 0 0 10px var(--seq-bubble) !important; }
 body.input-gestures-mode #input-footer { display: none !important; }
-@media (orientation: landscape) {
-	body[data-rotate="0"].input-gestures-mode #input-footer { display: none !important; }
-}
+
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].input-gestures-mode #input-footer { display: none !important; }
+
 body.input-gestures-mode #gesture-pad-wrapper { display: block !important; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 30; background: rgba(0, 0, 0, 0.05); }
 body.input-gestures-mode #gesture-pad { width: 100% !important; height: 100% !important; margin: 0 !important; border: none !important; border-radius: 0 !important; background: transparent !important;}
 body.input-gestures-mode #gesture-indicator { font-size: 1.2rem; font-weight: bold; opacity: 0.3; pointer-events: none; color: var(--text-main); }
@@ -184,40 +184,40 @@ body.hide-controls .control-row { display: none !important; }
 body.hide-controls #pad-key9 .btn-pad-number,
 body.hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; width: 100%; font-size: 2.2rem; transition: all 0.3s ease; box-shadow: 0 8px 15px rgba(0,0,0,0.4); }
 body.hide-controls #piano-keys { height: 300px; transition: height 0.3s ease; }
-@media (orientation: landscape) {
-	body[data-rotate="0"].hide-controls #input-footer .max-w-md, body[data-rotate="0"].hide-controls #input-footer .max-w-lg, body[data-rotate="0"].hide-controls #input-footer .max-w-2xl { max-width: 95vw !important; }
-	body[data-rotate="0"].hide-controls #pad-key9 .btn-pad-number, body[data-rotate="0"].hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; max-height: 15vh; font-size: 2.5rem; width: 100%; margin: 0 auto; }
-	body[data-rotate="0"].hide-controls #input-footer { padding: 5px !important;}
-	body[data-rotate="0"].hide-controls #piano-keys { height: 50vh !important; }
-	body[data-rotate="0"][data-input-mode="piano"] #pad-piano { display: flex !important; flex-direction: column !important; max-width: none !important; width: 100% !important; }
-	body[data-rotate="0"] #pad-piano #piano-keys { width: 100% !important; flex-grow: 1 !important; }
-	body[data-rotate="0"] #pad-piano .control-row { width: 100% !important; max-width: 100% !important; display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: 0.5rem !important; padding: 0 !important; }
-	body[data-rotate="0"] #pad-piano .btn-control { height: 3rem !important; width: auto !important; border-radius: 0.5rem !important; }
-}
-@media (orientation: landscape) {
-	body[data-rotate="0"][data-input-mode="piano"] #piano-keys { height: 42vh !important; }
-}
-@media (orientation: landscape) {
-	body[data-rotate="0"] #settings-modal { padding-top: max(.5rem, env(safe-area-inset-top)) !important; }
-	body[data-rotate="0"] #settings-modal .settings-modal-bg { max-width: 90vw !important; max-height: calc(100vh - max(.5rem, env(safe-area-inset-top)) - 1rem) !important; }
-	body[data-rotate="0"] #settings-modal #general-toggle-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
-	body[data-rotate="0"] #help-modal .settings-modal-bg { max-width: 90vw !important; max-height: 90vh !important; }
-	body[data-rotate="0"] #help-modal .help-tab-bar { grid-template-columns: repeat(7, minmax(0, 1fr)) !important; }
-	body[data-rotate="0"] #share-modal { display: flex !important; align-items: center !important; justify-content: center !important; }
-	body[data-rotate="0"] #share-modal .share-sheet {
+
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #input-footer .max-w-md, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #input-footer .max-w-lg, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #input-footer .max-w-2xl { max-width: 95vw !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; max-height: 15vh; font-size: 2.5rem; width: 100%; margin: 0 auto; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #input-footer { padding: 5px !important;}
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #piano-keys { height: 50vh !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="piano"] #pad-piano { display: flex !important; flex-direction: column !important; max-width: none !important; width: 100% !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano #piano-keys { width: 100% !important; flex-grow: 1 !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano .control-row { width: 100% !important; max-width: 100% !important; display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: 0.5rem !important; padding: 0 !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano .btn-control { height: 3rem !important; width: auto !important; border-radius: 0.5rem !important; }
+
+
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="piano"] #piano-keys { height: 42vh !important; }
+
+
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #settings-modal { padding-top: max(.5rem, env(safe-area-inset-top)) !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #settings-modal .settings-modal-bg { max-width: 90vw !important; max-height: calc(100vh - max(.5rem, env(safe-area-inset-top)) - 1rem) !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #settings-modal #general-toggle-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #help-modal .settings-modal-bg { max-width: 90vw !important; max-height: 90vh !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #help-modal .help-tab-bar { grid-template-columns: repeat(7, minmax(0, 1fr)) !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #share-modal { display: flex !important; align-items: center !important; justify-content: center !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #share-modal .share-sheet {
 		position: relative !important; bottom: auto !important; width: auto !important; max-width: 85vw !important;
 		max-height: 92vh !important; overflow-y: auto;
 		border-radius: 1.5rem !important; transform: none !important; padding-bottom: 1rem;
 	}
-	body[data-rotate="0"] #share-modal .w-80.h-80 { width: 42vh !important; height: 42vh !important; }
-	body[data-rotate="0"] #redeem-controls { flex-direction: row !important; top: max(.5rem, env(safe-area-inset-top)) !important; right: 50% !important; transform: translateX(50%); gap: 1rem !important; }
-	body[data-rotate="0"] #redeem-modal { padding-top: 4.5rem !important; box-sizing: border-box; }
-	body[data-rotate="0"] #redeem-modal > div.relative.w-full {
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #share-modal .w-80.h-80 { width: 42vh !important; height: 42vh !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #redeem-controls { flex-direction: row !important; top: max(.5rem, env(safe-area-inset-top)) !important; right: 50% !important; transform: translateX(50%); gap: 1rem !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #redeem-modal { padding-top: 4.5rem !important; box-sizing: border-box; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #redeem-modal > div.relative.w-full {
 		max-width: none !important; width: 78vh !important; height: 95vw !important; max-height: none !important;
 		width: calc(var(--real-vh, 100vh) * 0.78) !important; height: calc(var(--real-vw, 100vw) * 0.95) !important;
 		transform: rotate(90deg);
 	}
-}
+
 body[data-rotate="90"] #redeem-controls,
 body[data-rotate="270"] #redeem-controls { flex-direction: row !important; top: max(.5rem, env(safe-area-inset-top)) !important; right: 50% !important; transform: translateX(50%); gap: 1rem !important; }
 body[data-rotate="90"] #redeem-modal,
@@ -675,7 +675,7 @@ body.theme-is-light .text-red-300,
 body.theme-is-light .hover\:text-red-400:hover { color: #b91c1c; }
 body.theme-is-light .text-yellow-300,
 body.theme-is-light .text-yellow-400 { color: #854d0e; }
-@media (orientation: landscape) {
+
 	#notepad-modal { padding-left: max(1.5rem, env(safe-area-inset-left)) !important; padding-right: max(1.5rem, env(safe-area-inset-right)) !important; }
 	#notepad-modal > div { max-width: 90vw !important; width: 90vw !important; }
 	#notepad-textarea { padding: 1rem 2rem !important; }
@@ -692,37 +692,37 @@ body.theme-is-light .text-yellow-400 { color: #854d0e; }
 		flex-direction: column !important;
 		margin: 0 !important;
 	}
-}
+
 /* Landscape swap for non-sidebar input modes (piano, gesture pad): flips which edge the
    accent border sits on, matching swap's intent elsewhere, without the inline top/padding
    math that was pushing #app's padding past 500px for tall footers like piano. */
-@media (orientation: landscape) {
+
 	body.layout-swapped[data-rotate="0"]:not([data-input-mode="key9"]):not([data-input-mode="key12"]) #input-footer {
 		order: -1;
 		border-top: none !important;
 		border-bottom: 4px solid var(--seq-bubble) !important;
 	}
-	body[data-rotate="0"]:not([data-input-mode="key9"]):not([data-input-mode="key12"]) #app {
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"]:not([data-input-mode="key9"]):not([data-input-mode="key12"]) #app {
 		display: flex !important;
 		flex-direction: column !important;
 	}
-}
+
 /* Defensive width guarantees for piano landscape - ensures the keyboard can never end up
    narrower than its container regardless of which other modes/states are active. */
-@media (orientation: landscape) {
-	body[data-rotate="0"]:not([data-input-mode="key9"]):not([data-input-mode="key12"]) #input-footer {
+
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"]:not([data-input-mode="key9"]):not([data-input-mode="key12"]) #input-footer {
 		width: 100% !important;
 		box-sizing: border-box !important;
 	}
-	body[data-rotate="0"] #pad-piano, body[data-rotate="0"] #pad-piano #piano-keys {
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano, body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano #piano-keys {
 		width: 100% !important;
 		max-width: 100% !important;
 		box-sizing: border-box !important;
 	}
-	body[data-rotate="0"] #pad-piano .key-container {
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano .key-container {
 		box-sizing: border-box !important;
 	}
-}
+
 /* At 50%/25% split-screen widths, only a curated subset of header buttons fit/matter.
    These rules hide everything else in #header-btn-row while that bucket is active - visibility
    toggles in Settings still control whether a button is eligible to show at all; this just

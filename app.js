@@ -448,14 +448,14 @@ const DEFAULT_HEADER_BTN_ORDER = [
     'headertonebtn', 'headertouchbtn', 'headerhandbtn',
     'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn',
     'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn',
-    'headerportraitlockbtn', 'headerlandscapelockbtn', 'headerswapbtn', 'headerplaybtn',
-    'headerdeletebtn', 'headerundobtn', 'headersettingsbtn', 'headerhelpbtn',
+    'headerportraitlockbtn', 'headerswapbtn', 'headerplaybtn',
+    'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn',
     'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn',
     'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn',
     'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn',
     'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn',
-    'headerspeeddownbtn', 'headercycleinputbtn',
-    'headernotepadbtn', 'headerpipbtn', 'headerresetbtn', 'headernukebtn'
+    'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn',
+    'headernukebtn', 'headernotepadbtn', 'headerpipbtn'
 ];
 const DEFAULT_GENERAL_TOGGLE_ORDER = [
 'autoBrightToggle', 'autoDarkToggle',
@@ -469,12 +469,12 @@ const DEFAULT_GENERAL_TOGGLE_ORDER = [
 'headerPlayToggle', 'headerDeleteToggle', 
 'headerSettingsToggle', 'headerHelpToggle', 
 'headerRedeemToggle', 'headerShareToggle',
-'hideIntroToggle', 'headerUndoToggle',
+'headerResetToggle', 'headerNukeToggle',
 'timerToggle', 'autotimerToggle',
 'counterToggle', 'autocounterToggle',
 'headerNotepadToggle', 'inputRegulatorToggle',
-'hapticsToggle',
-'upsidedownToggle', 'portraitLockToggle', 'landscapeLockToggle',
+'hapticsToggle', 'introToggle',
+'upsidedownToggle', 'portraitLockToggle',
 'fullscreenToggle', 'biggerToggle',
 'ecoToggle', 'wakelockToggle',
 'positionSwapToggle', 'pipToggle',
@@ -486,8 +486,7 @@ const DEFAULT_GENERAL_TOGGLE_ORDER = [
 'handsignalsToggle', 'handednessFlipToggle',
 'speeddeleteToggle', 'apshortcutToggle',
 'volgesToggle', 'speedToggle',
-'deleteToggle', 'clearToggle',
-'headerResetToggle', 'headerNukeToggle'
+'deleteToggle', 'clearToggle'
 ];
 const CONFIG = {
 	MAX_MACHINES: 4,
@@ -576,6 +575,8 @@ const PREMADE_PROFILES = {
 const DEFAULT_APP = {
 	globalUiScale: 100,
 	uiScaleMultiplier: 1.0,
+    inputSize: '1.5rem',
+    rowMax: 'none',
 	showWelcomeScreen: true,
 	touchResizeMode: 'global',
 	playbackSpeed: 1.0,
@@ -600,9 +601,6 @@ const DEFAULT_APP = {
 	isWakeLockEnabled: false,
 	isDndEnabled: false,
 	isPinnedModeEnabled: false,
-	showHeaderUndoBtn: false,
-	showHeaderLandscapeLockBtn: false,
-	lastSequence: null,
 	isEcoModeEnabled: false,
 	isLongPressAutoplayEnabled: true,
 	showBiggerBtn: false,
@@ -645,21 +643,6 @@ const DEFAULT_APP = {
 	isAutoDarkEnabled: false,
 	headerIconScale: 100,
 	appFontScale: 100,
-	appInputFontScale: 100,
-	appRowMax: 'none',
-	viewportProfiles: {
-		landscape: { uiScale: 100, seqSize: 100 },
-		split75: { uiScale: 100, seqSize: 100 },
-		split50: { uiScale: 100, seqSize: 100, alignment: 'horizontal' },
-		split25: { uiScale: 100, seqSize: 100 }
-	},
-	pipMachineIndex: null,
-	ecoModeConfig: {
-		themeSwitch: false, disableSensors: false, dimBrightness: false, limitWakeLock: false,
-		reduceVideoFps: false, lowerVoiceQuality: false, reduceVolume: false, disableHaptics: false,
-		reduceMicSampling: false, restrictMediaDevices: false, wakeLockLimitSeconds: 300
-	},
-	savedFullProfiles: {},
 	headerPadding: 0,
 	inputsPadding: 0,
 	toneCalibration: {
@@ -801,14 +784,14 @@ const DEFAULT_APP = {
     'headertonebtn', 'headertouchbtn', 'headerhandbtn',
     'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn',
     'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn',
-    'headerportraitlockbtn', 'headerlandscapelockbtn', 'headerswapbtn', 'headerplaybtn',
-    'headerdeletebtn', 'headerundobtn', 'headersettingsbtn', 'headerhelpbtn',
+    'headerportraitlockbtn', 'headerswapbtn', 'headerplaybtn',
+    'headerdeletebtn', 'headersettingsbtn', 'headerhelpbtn',
     'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn',
     'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn',
     'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn',
     'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn',
-    'headerspeeddownbtn', 'headercycleinputbtn',
-    'headernotepadbtn', 'headerpipbtn', 'headerresetbtn', 'headernukebtn'
+    'headerspeeddownbtn', 'headercycleinputbtn', 'headerresetbtn',
+    'headernukebtn', 'headernotepadbtn', 'headerpipbtn'
 	],
 	generalToggleOrder: [
 'autoBrightToggle', 'autoDarkToggle',
@@ -822,12 +805,12 @@ const DEFAULT_APP = {
 'headerPlayToggle', 'headerDeleteToggle', 
 'headerSettingsToggle', 'headerHelpToggle', 
 'headerRedeemToggle', 'headerShareToggle',
-'hideIntroToggle', 'headerUndoToggle',
+'headerResetToggle', 'headerNukeToggle',
 'timerToggle', 'autotimerToggle',
 'counterToggle', 'autocounterToggle',
 'headerNotepadToggle', 'inputRegulatorToggle',
-'hapticsToggle',
-'upsidedownToggle', 'portraitLockToggle', 'landscapeLockToggle',
+'hapticsToggle', 'introToggle',
+'upsidedownToggle', 'portraitLockToggle',
 'fullscreenToggle', 'biggerToggle',
 'ecoToggle', 'wakelockToggle',
 'positionSwapToggle', 'pipToggle',
@@ -839,8 +822,7 @@ const DEFAULT_APP = {
 'handsignalsToggle', 'handednessFlipToggle',
 'speeddeleteToggle', 'apshortcutToggle',
 'volgesToggle', 'speedToggle',
-'deleteToggle', 'clearToggle',
-'headerResetToggle', 'headerNukeToggle'
+'deleteToggle', 'clearToggle'
 	]
 };
 const SETTINGS_PRESETS = [
@@ -961,8 +943,6 @@ let _scrollLocked = false;
 let ambientLightSensor = null;
 let proximitySensor = null;
 let isPortraitLocked = false;
-let isLandscapeLocked = false;
-let lastSquiggleDeleteSnapshotTime = 0;
 let pipCanvas = null, pipVideo = null, pipStream = null, pipTimer = null;
 let pinnedPopHandler = null;
 let pinnedFullscreenRearm = null;
@@ -1964,8 +1944,6 @@ class SettingsManager {
 			headerfullscreenbtn: document.getElementById('headerfullscreenbtn'), headerpinnedbtn: document.getElementById('headerpinnedbtn'), headerdndbtn: document.getElementById('headerdndbtn'), headerpipbtn: document.getElementById('headerpipbtn'),
 			headerupsidedownbtn: document.getElementById('headerupsidedownbtn'),
 			headerportraitlockbtn: document.getElementById('headerportraitlockbtn'),
-			headerlandscapelockbtn: document.getElementById('headerlandscapelockbtn'),
-			headerundobtn: document.getElementById('headerundobtn'),
 			voicePresetSelect: document.getElementById('voice-preset-select'),
 			voicePresetAdd: document.getElementById('voice-preset-add'),
 			voicePresetSave: document.getElementById('voice-preset-save'),
@@ -1988,7 +1966,7 @@ class SettingsManager {
 			arAutoClosePlayback: document.getElementById('ar-autoclose-toggle'),
 			voiceToggle: document.getElementById('voiceToggle'),
 			speedDelete: document.getElementById('speeddeleteToggle'),
-			showWelcome: document.getElementById('hideIntroToggle'),
+			showWelcome: document.getElementById('introToggle'),
 			bossToggle: document.getElementById('bossToggle'),
 			biggerToggle: document.getElementById('biggerToggle'),
 			longPressToggle: document.getElementById('apshortcutToggle'),
@@ -2011,8 +1989,6 @@ class SettingsManager {
 			fontScale: document.getElementById('font-scale-select'),
 			seqSize: document.getElementById('seq-size-select'),
 			seqFontSize: document.getElementById('seq-font-size-select'),
-			inputFontSize: document.getElementById('input-font-size-select'),
-			rowMax: document.getElementById('row-max-select'),
 			touchResizeModeSelect: document.getElementById('gesture-mode-select'),
 			closeSettingsBtn: document.getElementById('close-settings'),
 			tabs: document.querySelectorAll('.tab-btn'),
@@ -2045,8 +2021,6 @@ class SettingsManager {
 			inputsPaddingSelect: document.getElementById('inputs-padding-select'),
 			upsidedownToggle: document.getElementById('upsidedownToggle'),
 			portraitLockToggle: document.getElementById('portraitLockToggle'),
-			landscapeLockToggle: document.getElementById('landscapeLockToggle'),
-			headerUndoToggle: document.getElementById('headerUndoToggle'),
 			fullscreenToggle: document.getElementById('fullscreenToggle'),
 			ecoToggle: document.getElementById('ecoToggle'),
 			arSpeedSelect: document.getElementById('ar-speed-select'),
@@ -2126,26 +2100,10 @@ class SettingsManager {
 				this.callbacks.onSave();
 			};
 		}
-		if (this.dom.landscapeLockToggle) {
-			this.dom.landscapeLockToggle.onchange = (e) => {
-				this.appSettings.showHeaderLandscapeLockBtn = e.target.checked;
-				this.updateHeaderVisibility();
-				this.callbacks.onSave();
-			};
-		}
 		bindToggleWithCallback(this.dom.ecoToggle, 'isEcoModeEnabled', () => {
 				document.body.classList.toggle('eco-mode', this.appSettings.isEcoModeEnabled);
 				if (typeof window.updateProximitySensorState === 'function') window.updateProximitySensorState();
-				this.applyEcoModeConfig();
 		});
-		const fullProfileSaveBtn = document.getElementById('full-profile-save-btn');
-		const fullProfileNameInput = document.getElementById('full-profile-name-input');
-		if (fullProfileSaveBtn && fullProfileNameInput) {
-			fullProfileSaveBtn.onclick = () => {
-				this.saveFullProfile(fullProfileNameInput.value);
-				fullProfileNameInput.value = '';
-			};
-		}
 		if (this.dom.arSpeedSelect) {
 			this.dom.arSpeedSelect.value = this.appSettings.arPlaybackSpeed || 1.0;
 			this.dom.arSpeedSelect.onchange = (e) => {
@@ -2805,6 +2763,28 @@ class SettingsManager {
 							showToast('Tone calibration removed — standard tones restored 🗑️');
 						};
 					}
+                 const inputSizeEl = document.getElementById('inputSizeSelect');
+if (inputSizeEl) {
+    inputSizeEl.addEventListener('change', (e) => {
+        this.appSettings.inputSize = e.target.value;
+        if (this.callbacks && typeof this.callbacks.onSave === 'function') {
+            this.callbacks.onSave();
+        }
+        this.applyFontSizes(); 
+    });
+}
+
+const rowMaxEl = document.getElementById('rowMaxSelect');
+if (rowMaxEl) {
+    rowMaxEl.addEventListener('change', (e) => {
+        this.appSettings.rowMax = e.target.value;
+        if (this.callbacks && typeof this.callbacks.onSave === 'function') {
+            this.callbacks.onSave();
+        }
+        updateSequenceRowLayout(e.target.value); 
+    });
+}
+
 					const touchTestContainer = document.getElementById('test-area-lock-container');
 					if (touchTestContainer && !window.__testTouchGestureEngine) {
 						window.__testTouchGestureEngine = new TouchGestureEngine(touchTestContainer, {
@@ -3143,7 +3123,6 @@ class SettingsManager {
 		bindToggle(this.dom.headerModeSwitchToggle, 'showHeaderModeSwitchBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerResetToggle, 'showHeaderResetBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerNukeToggle, 'showHeaderNukeBtn', () => this.updateHeaderVisibility());
-		bindToggle(this.dom.headerUndoToggle, 'showHeaderUndoBtn', () => this.updateHeaderVisibility());
 		if (this.dom.skeletonDebugToggle) {
 			this.dom.skeletonDebugToggle.checked = !!this.appSettings.isSkeletonDebugEnabled;
 			this.dom.skeletonDebugToggle.onchange = (e) => {
@@ -3388,8 +3367,8 @@ class SettingsManager {
 		if (this.dom.quickAutoplay) this.dom.quickAutoplay.onchange = (e) => { this.appSettings.runtimeSettings.isAutoplayEnabled = e.target.checked; if (this.dom.autoplay) this.dom.autoplay.checked = e.target.checked; this.callbacks.onSave(); };
 		if (this.dom.quickAudio) this.dom.quickAudio.onchange = (e) => { this.appSettings.runtimeSettings.isAudioEnabled = e.target.checked; if (this.dom.audio) this.dom.audio.checked = e.target.checked; this.callbacks.onSave(); };
 		if (this.dom.welcomeSettingsLockToggle) this.dom.welcomeSettingsLockToggle.onchange = (e) => { this.appSettings.isSettingsLockEnabled = e.target.checked; this.applySettingsLockState(); this.callbacks.onSave(); };
-		if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = !e.target.checked; if (this.dom.showWelcome) this.dom.showWelcome.checked = e.target.checked; this.callbacks.onSave(); };
-		if (this.dom.showWelcome) this.dom.showWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = !e.target.checked; if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = e.target.checked; this.callbacks.onSave(); };
+		if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = !e.target.checked; if (this.dom.showWelcome) this.dom.showWelcome.checked = !e.target.checked; this.callbacks.onSave(); };
+		if (this.dom.showWelcome) this.dom.showWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = e.target.checked; if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !e.target.checked; this.callbacks.onSave(); };
 		bind(this.dom.hapticMorse, 'isHapticMorseEnabled', false);
 		if (this.dom.playbackSpeed) this.dom.playbackSpeed.onchange = (e) => { this.appSettings.runtimeSettings.playbackSpeed = parseFloat(e.target.value); this.callbacks.onSave(); this.generatePrompt(); };
 		bind(this.dom.chunk, 'simonChunkSize', false, true);
@@ -3416,16 +3395,6 @@ class SettingsManager {
 		};
 		if (this.dom.seqSize) this.dom.seqSize.onchange = (e) => { this.appSettings.uiScaleMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onUpdate(); };
 		if (this.dom.seqFontSize) this.dom.seqFontSize.onchange = (e) => { this.appSettings.uiFontSizeMultiplier = parseInt(e.target.value) / 100.0; this.callbacks.onSave(); this.callbacks.onUpdate(); };
-		if (this.dom.inputFontSize) this.dom.inputFontSize.onchange = (e) => {
-			this.appSettings.appInputFontScale = parseInt(e.target.value);
-			this.applyInputFontScale();
-			this.callbacks.onSave();
-		};
-		if (this.dom.rowMax) this.dom.rowMax.onchange = (e) => {
-			this.appSettings.appRowMax = e.target.value;
-			this.applyRowMax();
-			this.callbacks.onSave();
-		};
 		if (this.dom.handToggle) {
 			this.dom.handToggle.checked = !!this.appSettings.isHandGesturesEnabled;
 			this.dom.handToggle.onchange = (e) => {
@@ -3528,61 +3497,20 @@ class SettingsManager {
 		}
 		if (this.dom.nukeBtn) {
 			this.dom.nukeBtn.onclick = () => {
-				if (confirm("☢️ NUKE APP? This will wipe all saved data, clear browser caches, unregister Service Workers, and force a fresh update from the server. This works even if the app is broken.")) {
+				if (confirm("☢️ NUKE APP? This will wipe all saved data, clear browser caches, unregister Service Workers, and force a fresh update from the server.")) {
 					if ('serviceWorker' in navigator) {
 						navigator.serviceWorker.getRegistrations().then(regs => {
-								for (let r of regs) {
-									r.unregister().catch(() => {});
-								}
-						}).catch(() => {});
+								for (let r of regs) r.unregister();
+						});
 					}
 					if (window.caches) {
 						caches.keys().then(names => {
-								for (let name of names) {
-									caches.delete(name).catch(() => {});
-								}
-						}).catch(() => {});
-					}
-					if (window.indexedDB) {
-						const dbs = ['follow-me', 'fm-cache', 'app-storage'];
-						dbs.forEach(db => {
-							try {
-								indexedDB.deleteDatabase(db);
-							} catch (e) {}
+								for (let name of names) caches.delete(name);
 						});
 					}
 					localStorage.clear();
 					sessionStorage.clear();
-					document.cookie.split(";").forEach((c) => {
-						document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-					});
-					setTimeout(() => {
-						window.location.href = window.location.pathname + '?nuke=1';
-					}, 100);
-				}
-			};
-		}
-		const refreshBtn = document.querySelector('button[data-action="force-refresh"]');
-		if (refreshBtn) {
-			refreshBtn.onclick = () => {
-				if (confirm("🔄 REFRESH APP? This will clear the browser cache and service worker, forcing a fresh download. Your settings will be kept.")) {
-					if ('serviceWorker' in navigator) {
-						navigator.serviceWorker.getRegistrations().then(regs => {
-								for (let r of regs) {
-									r.unregister().catch(() => {});
-								}
-						}).catch(() => {});
-					}
-					if (window.caches) {
-						caches.keys().then(names => {
-								for (let name of names) {
-									caches.delete(name).catch(() => {});
-								}
-						}).catch(() => {});
-					}
-					setTimeout(() => {
-						window.location.href = window.location.pathname + '?forceRefresh=1';
-					}, 100);
+					window.location.reload(true);
 				}
 			};
 		}
@@ -3623,7 +3551,7 @@ class SettingsManager {
 	}
 	populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
 	populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
-	openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.initEcoModeConfigUI(); this.renderFullProfileList(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
+	openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
 	openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); this.updateWelcomeSample(); }
 	applySettingsLockState() {
 		if (!this.dom.settingsLockBtn) return;
@@ -3700,7 +3628,7 @@ class SettingsManager {
 		if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = this.appSettings.runtimeSettings.isAutoplayEnabled;
 		if (this.dom.quickAudio) this.dom.quickAudio.checked = this.appSettings.runtimeSettings.isAudioEnabled;
 		if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !this.appSettings.showWelcomeScreen;
-		if (this.dom.showWelcome) this.dom.showWelcome.checked = !this.appSettings.showWelcomeScreen;
+		if (this.dom.showWelcome) this.dom.showWelcome.checked = this.appSettings.showWelcomeScreen;
 		if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.runtimeSettings.isHapticMorseEnabled;
 		if (this.dom.flash) this.dom.flash.checked = this.appSettings.runtimeSettings.isFlashEnabled;
 		if (this.dom.pause) this.dom.pause.value = (this.appSettings.runtimeSettings.pauseSetting || 0) / 1000;
@@ -3740,8 +3668,6 @@ class SettingsManager {
 		if (this.dom.fontScale) this.dom.fontScale.value = this.appSettings.appFontScale || 100;
 		if (this.dom.seqSize) this.dom.seqSize.value = Math.round(this.appSettings.uiScaleMultiplier * 100) || 100;
 		if (this.dom.seqFontSize) this.dom.seqFontSize.value = Math.round((this.appSettings.uiFontSizeMultiplier || 1.0) * 100);
-		if (this.dom.inputFontSize) this.dom.inputFontSize.value = this.appSettings.appInputFontScale || 100;
-		if (this.dom.rowMax) this.dom.rowMax.value = this.appSettings.appRowMax || 'none';
 		if (this.dom.touchGestureTapSlider) {
 			const tapVal = this.appSettings.touchGestureTapDelay || 300;
 			this.dom.touchGestureTapSlider.value = tapVal;
@@ -3757,6 +3683,12 @@ class SettingsManager {
         }
         if (document.getElementById('restoreHeaderToggle')) {
             document.getElementById('restoreHeaderToggle').checked = !!this.appSettings.isRestoreHeaderGestureEnabled;
+        }
+        if (document.getElementById('inputSizeSelect')) {
+        document.getElementById('inputSizeSelect').value = this.appSettings.inputSize || '1.5rem';
+        }
+        if (document.getElementById('rowMaxSelect')) {
+        document.getElementById('rowMaxSelect').value = this.appSettings.rowMax || 'none';
         }
 
 		if (this.dom.touchResizeModeSelect) this.dom.touchResizeModeSelect.value = this.appSettings.touchResizeMode || 'global';
@@ -3792,12 +3724,8 @@ class SettingsManager {
 		if (this.dom.portraitLockToggle) {
 			this.dom.portraitLockToggle.checked = !!this.appSettings.showPortraitLockBtn;
 		}
-		if (this.dom.landscapeLockToggle) {
-			this.dom.landscapeLockToggle.checked = !!this.appSettings.showHeaderLandscapeLockBtn;
-		}
 		if (this.dom.headerPlayToggle) this.dom.headerPlayToggle.checked = !!this.appSettings.showHeaderPlayBtn;
 		if (this.dom.headerDeleteToggle) this.dom.headerDeleteToggle.checked = !!this.appSettings.showHeaderDeleteBtn;
-		if (this.dom.headerUndoToggle) this.dom.headerUndoToggle.checked = !!this.appSettings.showHeaderUndoBtn;
 		if (this.dom.headerSettingsToggle) this.dom.headerSettingsToggle.checked = !!this.appSettings.showHeaderSettingsBtn;
 		if (this.dom.headerRedeemToggle) this.dom.headerRedeemToggle.checked = !!this.appSettings.showHeaderRedeemBtn;
 		if (this.dom.headerShareToggle) this.dom.headerShareToggle.checked = !!this.appSettings.showHeaderShareBtn;
@@ -3821,7 +3749,38 @@ class SettingsManager {
 			this.dom.arSpeedSelect.value = String(speedVal);
 		}
 		this.updateHeaderVisibility();
+        updateSequenceRowLayout(this.appSettings.rowMax)
 	}
+  applyFontSizes() {
+    const root = document.documentElement;
+    root.style.setProperty('--modal-font-size', `${this.appSettings.fontSize}px`);
+    root.style.setProperty('--input-font-size', this.appSettings.inputSize || '1.5rem');
+    
+    let styleEl = document.getElementById('dynamic-font-styles');
+    if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'dynamic-font-styles';
+        document.head.appendChild(styleEl);
+    }
+    
+    // Injects CSS to force the separation of font sizes
+    styleEl.textContent = `
+        /* Route global font size ONLY to modals/text */
+        .settings-modal, .modal-content, #settings-modal { 
+            font-size: var(--modal-font-size) !important; 
+        }
+        
+        /* Route input size specifically to the buttons */
+        #numpad-container button, 
+        #piano-container button, 
+        .piano-key,
+        .input-btn { 
+            font-size: var(--input-font-size) !important; 
+        }
+    `;
+}
+  
+
 	updateHeaderVisibility() {
 		this.applySavedHeaderOrder();
 		const header = document.getElementById('aux-control-header');
@@ -3858,10 +3817,6 @@ class SettingsManager {
 			this.dom.headerportraitlockbtn.classList.toggle('hidden', !this.appSettings.showPortraitLockBtn);
 			if (typeof updatePortraitLockBtnState === 'function') updatePortraitLockBtnState();
 		}
-		if (this.dom.headerlandscapelockbtn) {
-			this.dom.headerlandscapelockbtn.classList.toggle('hidden', !this.appSettings.showHeaderLandscapeLockBtn);
-			if (typeof updateLandscapeLockBtnState === 'function') updateLandscapeLockBtnState();
-		}
 		if (this.dom.headerpinnedbtn) this.dom.headerpinnedbtn.classList.toggle('hidden', !this.appSettings.showPinnedBtn);
 		if (this.dom.headerdndbtn) this.dom.headerdndbtn.classList.toggle('hidden', !this.appSettings.showDndBtn);
 		if (this.dom.headerpipbtn) this.dom.headerpipbtn.classList.toggle('hidden', !this.appSettings.showPipBtn);
@@ -3876,7 +3831,6 @@ class SettingsManager {
 		if(this.dom.headerswapbtn) this.dom.headerswapbtn.classList.toggle('hidden', !showSwap);
 		if (this.dom.headerplaybtn) this.dom.headerplaybtn.classList.toggle('hidden', !this.appSettings.showHeaderPlayBtn);
 		if (this.dom.headerdeletebtn) this.dom.headerdeletebtn.classList.toggle('hidden', !this.appSettings.showHeaderDeleteBtn);
-		if (this.dom.headerundobtn) this.dom.headerundobtn.classList.toggle('hidden', !this.appSettings.showHeaderUndoBtn);
 		if (this.dom.headersettingsbtn) this.dom.headersettingsbtn.classList.toggle('hidden', !this.appSettings.showHeaderSettingsBtn);
 		if (this.dom.headerredeembtn) this.dom.headerredeembtn.classList.toggle('hidden', !this.appSettings.showHeaderRedeemBtn);
 		if (this.dom.headersharebtn) this.dom.headersharebtn.classList.toggle('hidden', !this.appSettings.showHeaderShareBtn);
@@ -3899,7 +3853,7 @@ class SettingsManager {
 		if (this.dom.headertonebtn) {
 			this.dom.headertonebtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
 		}
-		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderUndoBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderVolumeBtns || this.appSettings.showHeaderSpeedBtns || this.appSettings.showHeaderCycleInputBtn || this.appSettings.showHeaderNotepadBtn || this.appSettings.showHeaderHelpBtn || this.appSettings.showHeaderModeSwitchBtn || this.appSettings.showHeaderResetBtn || this.appSettings.showHeaderNukeBtn || this.appSettings.showFullscreenBtn || this.appSettings.showUpsideDownBtn || this.appSettings.showPortraitLockBtn || this.appSettings.showHeaderLandscapeLockBtn || this.appSettings.showPinnedBtn || this.appSettings.showDndBtn || this.appSettings.showPipBtn;
+		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderVolumeBtns || this.appSettings.showHeaderSpeedBtns || this.appSettings.showHeaderCycleInputBtn || this.appSettings.showHeaderNotepadBtn || this.appSettings.showHeaderHelpBtn || this.appSettings.showHeaderModeSwitchBtn || this.appSettings.showHeaderResetBtn || this.appSettings.showHeaderNukeBtn || this.appSettings.showFullscreenBtn || this.appSettings.showUpsideDownBtn || this.appSettings.showPortraitLockBtn || this.appSettings.showPinnedBtn || this.appSettings.showDndBtn || this.appSettings.showPipBtn;
 		if (!showTimer && !showCounter && !showMic && !showCam && !showTouchGesture && !showBigger && !showHand && !showSwap && !this.appSettings.isToneCadenceEnabled && !anyNewBtnShown) {
 			header.classList.add('header-hidden');
 		} else {
@@ -3907,8 +3861,6 @@ class SettingsManager {
 		}
 		this.applyHeaderScale();
 		this.applyFontScale();
-		this.applyInputFontScale();
-		this.applyRowMax();
 		this.rebuildInfiniteHeaderScroll();
 		this.renderHeaderOrderList();
 		const autoHideOn = !!this.appSettings.isAutoHideHeaderEnabled;
@@ -3927,7 +3879,7 @@ class SettingsManager {
 		return [...row.children].filter(el => el.id && !el.dataset.cloneId).map(el => el.id);
 	}
 	_headerBtnLabels() {
-		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerpinnedbtn: '📌 Pinned Mode', headerdndbtn: '🔕 Do Not Disturb', headerpipbtn: '🪟 Picture in Picture', headerupsidedownbtn: '🙃 Upside Down', headerportraitlockbtn: '🔒 Portrait Lock', headerlandscapelockbtn: '🔐 Landscape Lock', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headerundobtn: '↩️ Undo', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headerresetbtn: '♻️ Reset', headernukebtn: '☢️ Nuke', headernotepadbtn: '📝 Notepad' };
+		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerpinnedbtn: '📌 Pinned Mode', headerdndbtn: '🔕 Do Not Disturb', headerpipbtn: '🪟 Picture in Picture', headerupsidedownbtn: '🙃 Upside Down', headerportraitlockbtn: '🔒 Portrait Lock', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headerresetbtn: '♻️ Reset', headernukebtn: '☢️ Nuke', headernotepadbtn: '📝 Notepad' };
 	}
 	_moveHeaderBtn(id, direction) {
 		const row = document.getElementById('header-btn-row');
@@ -3958,103 +3910,6 @@ class SettingsManager {
 				if (el) row.appendChild(el);
 		});
 	}
-	_setupDragReorder(container, onReorder) {
-		if (container.dataset.dragWired === '1') return;
-		container.dataset.dragWired = '1';
-		let dragRow = null;
-		let startClientY = 0;
-		const onMove = (e) => {
-			if (!dragRow) return;
-			e.preventDefault();
-			const dy = e.clientY - startClientY;
-			dragRow.style.transform = `translateY(${dy}px)`;
-			const rows = [...container.children];
-			const dragRect = dragRow.getBoundingClientRect();
-			const dragMid = dragRect.top + dragRect.height / 2;
-			for (const r of rows) {
-				if (r === dragRow) continue;
-				const rect = r.getBoundingClientRect();
-				const mid = rect.top + rect.height / 2;
-				if (dragMid < mid && r.previousElementSibling !== dragRow) {
-					container.insertBefore(dragRow, r);
-					dragRow.style.transform = '';
-					startClientY = e.clientY;
-					break;
-				}
-				if (dragMid > mid && r === rows[rows.length - 1] && r.nextElementSibling !== dragRow) {
-					container.appendChild(dragRow);
-					dragRow.style.transform = '';
-					startClientY = e.clientY;
-					break;
-				}
-			}
-			const scrollMargin = 80;
-			if (e.clientY < scrollMargin) window.scrollBy(0, -14);
-			else if (e.clientY > window.innerHeight - scrollMargin) window.scrollBy(0, 14);
-		};
-		const onUp = () => {
-			if (!dragRow) return;
-			dragRow.classList.remove('reorder-dragging');
-			dragRow.style.transform = '';
-			dragRow.style.zIndex = '';
-			dragRow.style.position = '';
-			document.removeEventListener('pointermove', onMove);
-			document.removeEventListener('pointerup', onUp);
-			document.removeEventListener('pointercancel', onUp);
-			const newOrder = [...container.children].map(r => r.dataset.reorderId);
-			dragRow = null;
-			onReorder(newOrder);
-		};
-		container.addEventListener('pointerdown', (e) => {
-			const handle = e.target.closest('.reorder-handle');
-			if (!handle) return;
-			const row = handle.closest('[data-reorder-id]');
-			if (!row) return;
-			e.preventDefault();
-			dragRow = row;
-			startClientY = e.clientY;
-			row.style.position = 'relative';
-			row.style.zIndex = '50';
-			row.classList.add('reorder-dragging');
-			document.addEventListener('pointermove', onMove, { passive: false });
-			document.addEventListener('pointerup', onUp);
-			document.addEventListener('pointercancel', onUp);
-		});
-	}
-	_buildReorderRow(id, label, i, total, moveFn, extraBtn) {
-		const row = document.createElement('div');
-		row.className = 'reorder-row flex items-center gap-2 p-2 rounded bg-gray-950 border border-gray-700 transition-shadow';
-		row.dataset.reorderId = id;
-		const handle = document.createElement('div');
-		handle.className = 'reorder-handle w-9 h-9 flex items-center justify-center text-gray-400 text-lg shrink-0 select-none rounded hover:bg-gray-800 active:bg-gray-700 cursor-grab';
-		handle.style.touchAction = 'none';
-		handle.textContent = '⠿';
-		handle.title = 'Drag to reorder';
-		const labelEl = document.createElement('span');
-		labelEl.className = 'text-xs font-bold flex-grow truncate';
-		labelEl.textContent = label;
-		const btns = document.createElement('div');
-		btns.className = 'flex gap-1 shrink-0';
-		const upBtn = document.createElement('button');
-		upBtn.type = 'button';
-		upBtn.className = 'w-7 h-7 rounded bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold disabled:opacity-20';
-		upBtn.textContent = '▲';
-		upBtn.disabled = i === 0;
-		upBtn.onclick = () => moveFn(id, 'up');
-		const downBtn = document.createElement('button');
-		downBtn.type = 'button';
-		downBtn.className = 'w-7 h-7 rounded bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold disabled:opacity-20';
-		downBtn.textContent = '▼';
-		downBtn.disabled = i === total - 1;
-		downBtn.onclick = () => moveFn(id, 'down');
-		btns.appendChild(upBtn);
-		btns.appendChild(downBtn);
-		if (extraBtn) btns.appendChild(extraBtn);
-		row.appendChild(handle);
-		row.appendChild(labelEl);
-		row.appendChild(btns);
-		return row;
-	}
 	renderHeaderOrderList() {
 		const container = document.getElementById('header-order-list');
 		if (!container) return;
@@ -4062,20 +3917,30 @@ class SettingsManager {
 		const order = this._headerBtnOrder();
 		container.innerHTML = '';
 		order.forEach((id, i) => {
-				container.appendChild(this._buildReorderRow(id, labels[id] || id, i, order.length, (btnId, dir) => this._moveHeaderBtn(btnId, dir)));
-		});
-		this._setupDragReorder(container, (newOrder) => {
-			const row = document.getElementById('header-btn-row');
-			if (row) {
-				newOrder.forEach(id => {
-						const el = document.getElementById(id);
-						if (el) row.appendChild(el);
-				});
-			}
-			this.appSettings.headerBtnOrder = newOrder;
-			this.callbacks.onSave();
-			this.renderHeaderOrderList();
-			this.rebuildInfiniteHeaderScroll();
+				const row = document.createElement('div');
+				row.className = 'flex items-center justify-between p-2 rounded bg-gray-950 border border-gray-700';
+				const label = document.createElement('span');
+				label.className = 'text-xs font-bold';
+				label.textContent = labels[id] || id;
+				const btns = document.createElement('div');
+				btns.className = 'flex gap-1';
+				const upBtn = document.createElement('button');
+				upBtn.type = 'button';
+				upBtn.className = 'w-7 h-7 rounded bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold disabled:opacity-30';
+				upBtn.textContent = '▲';
+				upBtn.disabled = i === 0;
+				upBtn.onclick = () => this._moveHeaderBtn(id, 'up');
+				const downBtn = document.createElement('button');
+				downBtn.type = 'button';
+				downBtn.className = 'w-7 h-7 rounded bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold disabled:opacity-30';
+				downBtn.textContent = '▼';
+				downBtn.disabled = i === order.length - 1;
+				downBtn.onclick = () => this._moveHeaderBtn(id, 'down');
+				btns.appendChild(upBtn);
+				btns.appendChild(downBtn);
+				row.appendChild(label);
+				row.appendChild(btns);
+				container.appendChild(row);
 		});
 	}
 	_generalToggleOrder() {
@@ -4087,7 +3952,7 @@ class SettingsManager {
 		}).filter(Boolean);
 	}
 	_generalToggleLabels() {
-		return { autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙', randomThemeToggle: 'Random Theme 🎲', headerThemeCycleToggle: 'Theme Cycle 🎨', headerCycleInputToggle: 'Cycle Input 🔀', headerModeSwitchToggle: 'Mode Switch 🎮', headerAddMachineToggle: 'Add Machine ➕', bossToggle: 'Boss Mode 🌑', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', autoHideHeaderToggle: 'Auto Hide Header 👻', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️',flickHeaderToggle: 'Flick Header Buttons 💨', restoreHeaderToggle: 'Restore Header Gesture 🪄', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', hideIntroToggle: 'Hide Intro', headerUndoToggle: 'Undo ↩️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', upsidedownToggle: 'Upside Down 🙃', portraitLockToggle: 'Portrait Lock 🔒', landscapeLockToggle: 'Landscape Lock 🔐', fullscreenToggle: 'Full Screen 🔲', biggerToggle: 'Bigger Buttons', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', positionSwapToggle: 'Position Swap 🔄', pipToggle: 'Picture in Picture 🪟', dndToggle: 'Do Not Disturb 🔕', pinnedModeToggle: 'Pinned Mode 📌', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️' };
+		return { autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙', randomThemeToggle: 'Random Theme 🎲', headerThemeCycleToggle: 'Theme Cycle 🎨', headerCycleInputToggle: 'Cycle Input 🔀', headerModeSwitchToggle: 'Mode Switch 🎮', headerAddMachineToggle: 'Add Machine ➕', bossToggle: 'Boss Mode 🌑', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', autoHideHeaderToggle: 'Auto Hide Header 👻', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️',flickHeaderToggle: 'Flick Header Buttons 💨', restoreHeaderToggle: 'Restore Header Gesture 🪄', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', introToggle: 'Show Intro', upsidedownToggle: 'Upside Down 🙃', portraitLockToggle: 'Portrait Lock 🔒', fullscreenToggle: 'Full Screen 🔲', biggerToggle: 'Bigger Buttons', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', positionSwapToggle: 'Position Swap 🔄', pipToggle: 'Picture in Picture 🪟', dndToggle: 'Do Not Disturb 🔕', pinnedModeToggle: 'Pinned Mode 📌', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥' };
 	}
 	_moveGeneralToggle(id, direction) {
 		const grid = document.getElementById('general-toggle-grid');
@@ -4150,28 +4015,38 @@ class SettingsManager {
 		const hidden = Array.isArray(this.appSettings.hiddenGeneralToggles) ? this.appSettings.hiddenGeneralToggles : [];
 		container.innerHTML = '';
 		order.forEach((id, i) => {
+				const row = document.createElement('div');
+				row.className = 'flex items-center justify-between p-2 rounded bg-gray-950 border border-gray-700';
 				const isHidden = hidden.includes(id);
+				const label = document.createElement('span');
+				label.className = 'text-xs font-bold' + (isHidden ? ' opacity-40' : '');
+				label.textContent = labels[id] || id;
+				const btns = document.createElement('div');
+				btns.className = 'flex gap-1';
+				const upBtn = document.createElement('button');
+				upBtn.type = 'button';
+				upBtn.className = 'w-7 h-7 rounded bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold disabled:opacity-30';
+				upBtn.textContent = '▲';
+				upBtn.disabled = i === 0;
+				upBtn.onclick = () => this._moveGeneralToggle(id, 'up');
+				const downBtn = document.createElement('button');
+				downBtn.type = 'button';
+				downBtn.className = 'w-7 h-7 rounded bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold disabled:opacity-30';
+				downBtn.textContent = '▼';
+				downBtn.disabled = i === order.length - 1;
+				downBtn.onclick = () => this._moveGeneralToggle(id, 'down');
 				const hideBtn = document.createElement('button');
 				hideBtn.type = 'button';
 				hideBtn.className = 'w-7 h-7 rounded text-xs font-bold ' + (isHidden ? 'bg-indigo-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-white');
 				hideBtn.textContent = isHidden ? '🚫' : '👁️';
 				hideBtn.title = isHidden ? 'Hidden - tap to show' : 'Tap to hide';
 				hideBtn.onclick = () => this._toggleGeneralToggleVisibility(id);
-				const row = this._buildReorderRow(id, labels[id] || id, i, order.length, (tid, dir) => this._moveGeneralToggle(tid, dir), hideBtn);
-				if (isHidden) row.querySelector('.flex-grow').classList.add('opacity-40');
+				btns.appendChild(upBtn);
+				btns.appendChild(downBtn);
+				btns.appendChild(hideBtn);
+				row.appendChild(label);
+				row.appendChild(btns);
 				container.appendChild(row);
-		});
-		this._setupDragReorder(container, (newOrder) => {
-			const grid = document.getElementById('general-toggle-grid');
-			if (grid) {
-				newOrder.forEach(cbId => {
-						const cb = document.getElementById(cbId);
-						if (cb && cb.parentElement) grid.appendChild(cb.parentElement);
-				});
-			}
-			this.appSettings.generalToggleOrder = newOrder;
-			this.callbacks.onSave();
-			this.renderGeneralOrderList();
 		});
 	}
 	applyHeaderScale() {
@@ -4194,15 +4069,7 @@ class SettingsManager {
 		const appPaddingTop = parseFloat(getComputedStyle(app).paddingTop) || 0;
 		requestAnimationFrame(() => {
 				requestAnimationFrame(() => {
-						const isLandscapeNow = window.matchMedia('(orientation: landscape)').matches;
-						const isSwapped = document.body.classList.contains('layout-swapped');
-						// Portrait swap moves the input footer to the top, and #app's own padding-top
-						// (set in applyPositionSwapOffsets) already accounts for header+footer height there,
-						// so the sequence container needs no extra offset in that case. Landscape swap moves
-						// the footer to the side instead - the header stays pinned at the top regardless -
-						// so the sequence container still needs to clear the header itself, or header
-						// buttons end up rendered underneath (and covered by) the sequence numbers.
-						if (isSwapped && !isLandscapeNow) {
+						if (document.body.classList.contains('layout-swapped')) {
 							seq.style.paddingTop = '0px';
 						} else {
 							const userExtra = this.appSettings.headerPadding || 0;
@@ -4227,154 +4094,6 @@ class SettingsManager {
 	}
 	applyFontScale() {
 		document.body.style.setProperty('--app-font-scale', (this.appSettings.appFontScale || 100) / 100);
-	}
-	applyInputFontScale() {
-		document.body.style.setProperty('--input-font-scale', (this.appSettings.appInputFontScale || 100) / 100);
-	}
-	applyEcoModeConfig() {
-		const cfg = this.appSettings.ecoModeConfig || {};
-		const active = this.appSettings.isEcoModeEnabled;
-		// Theme switch: remember whatever theme was active, drop to a low-brightness one while
-		// eco mode runs, restore it automatically when eco mode turns back off.
-		if (cfg.themeSwitch) {
-			if (active) {
-				if (!this._ecoPrevTheme) this._ecoPrevTheme = this.appSettings.activeTheme;
-				this.appSettings.activeTheme = 'night';
-			} else if (this._ecoPrevTheme) {
-				this.appSettings.activeTheme = this._ecoPrevTheme;
-				this._ecoPrevTheme = null;
-			}
-			if (typeof applyTheme === 'function') applyTheme(this.appSettings.activeTheme);
-		}
-		// Wake lock limit: release the screen wake lock automatically after N seconds instead
-		// of holding it indefinitely, so eco mode doesn't defeat the point of screen timeout.
-		if (this._ecoWakeLockTimer) {
-			clearTimeout(this._ecoWakeLockTimer);
-			this._ecoWakeLockTimer = null;
-		}
-		if (active && cfg.limitWakeLock) {
-			const seconds = cfg.wakeLockLimitSeconds || 300;
-			this._ecoWakeLockTimer = setTimeout(() => {
-				if (window.__activeWakeLock && typeof window.__activeWakeLock.release === 'function') {
-					window.__activeWakeLock.release().catch(() => {});
-				}
-			}, seconds * 1000);
-		}
-		this.callbacks.onSave();
-	}
-	initEcoModeConfigUI() {
-		const cfg = this.appSettings.ecoModeConfig || {};
-		const map = {
-			'eco-theme-switch-toggle': 'themeSwitch', 'eco-sensors-toggle': 'disableSensors',
-			'eco-brightness-toggle': 'dimBrightness', 'eco-wakelock-toggle': 'limitWakeLock',
-			'eco-videofps-toggle': 'reduceVideoFps', 'eco-voicequality-toggle': 'lowerVoiceQuality',
-			'eco-volume-toggle': 'reduceVolume', 'eco-haptics-toggle': 'disableHaptics',
-			'eco-micsampling-toggle': 'reduceMicSampling', 'eco-restrictmediadevices-toggle': 'restrictMediaDevices'
-		};
-		Object.keys(map).forEach(elId => {
-			const el = document.getElementById(elId);
-			if (!el) return;
-			el.checked = !!cfg[map[elId]];
-			el.onchange = (e) => {
-				this.appSettings.ecoModeConfig[map[elId]] = e.target.checked;
-				this.applyEcoModeConfig();
-			};
-		});
-		const wakeLockSel = document.getElementById('eco-wakelock-limit-select');
-		if (wakeLockSel) {
-			wakeLockSel.value = String(cfg.wakeLockLimitSeconds || 300);
-			wakeLockSel.onchange = (e) => {
-				this.appSettings.ecoModeConfig.wakeLockLimitSeconds = parseInt(e.target.value, 10);
-				this.applyEcoModeConfig();
-			};
-		}
-	}
-	renderFullProfileList() {
-		const container = document.getElementById('full-profile-list');
-		if (!container) return;
-		const profiles = this.appSettings.savedFullProfiles || {};
-		container.innerHTML = '';
-		const ids = Object.keys(profiles);
-		if (ids.length === 0) {
-			const empty = document.createElement('p');
-			empty.className = 'text-[10px] text-gray-500 italic';
-			empty.textContent = 'No saved profiles yet.';
-			container.appendChild(empty);
-			return;
-		}
-		ids.forEach(id => {
-			const p = profiles[id];
-			const row = document.createElement('div');
-			row.className = 'flex items-center gap-2 p-2 rounded bg-gray-950 border border-gray-700';
-			const label = document.createElement('span');
-			label.className = 'text-xs font-bold flex-grow truncate';
-			label.textContent = p.name || id;
-			const loadBtn = document.createElement('button');
-			loadBtn.type = 'button';
-			loadBtn.className = 'px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold shrink-0';
-			loadBtn.textContent = 'Load';
-			loadBtn.onclick = () => this.loadFullProfile(id);
-			const delBtn = document.createElement('button');
-			delBtn.type = 'button';
-			delBtn.className = 'px-3 py-1.5 text-xs bg-red-700 hover:bg-red-600 rounded text-white font-bold shrink-0';
-			delBtn.textContent = '🗑️';
-			delBtn.onclick = () => this.deleteFullProfile(id);
-			row.appendChild(label);
-			row.appendChild(loadBtn);
-			row.appendChild(delBtn);
-			container.appendChild(row);
-		});
-	}
-	saveFullProfile(name) {
-		if (!name || !name.trim()) return;
-		if (!this.appSettings.savedFullProfiles) this.appSettings.savedFullProfiles = {};
-		const id = 'p_' + Date.now();
-		const snapshot = (typeof diffAgainstDefaults === 'function') ? diffAgainstDefaults(this.appSettings, DEFAULT_APP) : {};
-		this.appSettings.savedFullProfiles[id] = { name: name.trim(), snapshot, timestamp: Date.now() };
-		this.callbacks.onSave();
-		this.renderFullProfileList();
-		if (typeof showToast === 'function') showToast(`Saved profile "${name.trim()}" 💾`);
-	}
-	loadFullProfile(id) {
-		const profile = this.appSettings.savedFullProfiles && this.appSettings.savedFullProfiles[id];
-		if (!profile || typeof mergeWithDefaults !== 'function') return;
-		const preservedProfiles = this.appSettings.savedFullProfiles;
-		const merged = mergeWithDefaults(profile.snapshot, DEFAULT_APP);
-		Object.keys(this.appSettings).forEach(k => delete this.appSettings[k]);
-		Object.assign(this.appSettings, merged);
-		this.appSettings.savedFullProfiles = preservedProfiles;
-		this.callbacks.onSave();
-		if (typeof updateAllChrome === 'function') updateAllChrome();
-		this.updateUIFromSettings();
-		this.updateHeaderVisibility();
-		this.renderFullProfileList();
-		if (typeof showToast === 'function') showToast(`Loaded profile "${profile.name}" ✅`);
-	}
-	deleteFullProfile(id) {
-		if (!this.appSettings.savedFullProfiles || !this.appSettings.savedFullProfiles[id]) return;
-		if (!confirm(`Delete profile "${this.appSettings.savedFullProfiles[id].name}"?`)) return;
-		delete this.appSettings.savedFullProfiles[id];
-		this.callbacks.onSave();
-		this.renderFullProfileList();
-	}
-	applyRowMax() {
-		const seqContainer = document.getElementById('sequence-container');
-		if (!seqContainer) return;
-		const rowMax = this.appSettings.appRowMax || 'none';
-		if (rowMax === 'none') {
-			seqContainer.style.removeProperty('--row-max-width');
-		} else {
-			// Must mirror the exact box-size formula used when rendering each number-box
-			// (40 * scale) - reading a --number-size CSS variable here silently fell back to a
-			// flat 40px every time, since that variable was never actually set anywhere, which
-			// made Row Max wrong for any Sequence Size other than 100%.
-			const scale = (typeof getEffectiveSeqScaleMultiplier === 'function') ? getEffectiveSeqScaleMultiplier() : (this.appSettings.uiScaleMultiplier || 1.0);
-			const cardSize = 40 * scale;
-			const gap = 8; // matches the number-box row's gap-2 utility class (0.5rem)
-			const count = parseInt(rowMax, 10);
-			const maxWidth = (cardSize * count) + (gap * (count - 1));
-			seqContainer.style.setProperty('--row-max-width', maxWidth + 'px');
-		}
 	}
 	applyHeaderPadding() {
 		this.updateSequenceContainerOffset();
@@ -4591,7 +4310,7 @@ class SettingsManager {
 				return a.localeCompare(b);
 		});
 		const labels = ["1", "2", "3", "4", "5", "6 C", "7 D", "8 E", "9 F", "10 G", "11 A", "12 B"];
-		let gridHtml = `<div class="grid grid-cols-4 gap-y-3 gap-x-4 items-center">`;
+		let gridHtml = `<div class="grid grid-cols-4 gap-y-3 gap-x-2 items-center">`;
 		labels.forEach((label, index) => {
 				const val = index + 1;
 				let optionsHtml = `<optgroup label="Morse Patterns">`;
@@ -4961,8 +4680,8 @@ class VoiceCommander {
 			'reset': 'CMD_CLEAR',
 			'delete': 'CMD_DELETE',
 			'backspace': 'CMD_DELETE',
+			'undo': 'CMD_DELETE',
 			'back': 'CMD_DELETE',
-			'undo': 'CMD_UNDO',
 			'settings': 'CMD_SETTINGS',
 			'options': 'CMD_SETTINGS',
 			'louder': 'CMD_VOLUME_UP',
@@ -5393,6 +5112,40 @@ function loadState() {
 		saveState();
 	}
 }
+function updateSequenceRowLayout(rowMaxState) {
+    const sequenceContainer = document.getElementById('sequence-container'); 
+    if (!sequenceContainer) return;
+
+    let styleEl = document.getElementById('dynamic-row-max-styles');
+    if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'dynamic-row-max-styles';
+        document.head.appendChild(styleEl);
+    }
+
+    if (!rowMaxState || rowMaxState === 'none') {
+        // Wipe the grid injection to restore your default layout
+        sequenceContainer.style.display = ''; 
+        sequenceContainer.style.gridTemplateColumns = '';
+        styleEl.textContent = ''; 
+    } else {
+        // Enforce the strict row maximum using CSS Grid
+        const maxColumns = parseInt(rowMaxState, 10);
+        sequenceContainer.style.display = 'grid';
+        sequenceContainer.style.gridTemplateColumns = `repeat(${maxColumns}, 1fr)`;
+        sequenceContainer.style.gap = '8px';
+        
+        // This targets all current AND future cards safely
+        styleEl.textContent = `
+            #sequence-container > * {
+                width: 100% !important;
+                flex: none !important;
+                margin: 0 !important;
+            }
+        `;
+    }
+}
+
 function restoreDefaultSettings() {
 	const fresh = JSON.parse(JSON.stringify(DEFAULT_APP));
 	Object.keys(appSettings).forEach(k => delete appSettings[k]);
@@ -5409,7 +5162,6 @@ function hapticPulse(pattern) {
 }
 function vibrate() {
 	if (appSettings.isDndEnabled) return;
-	if (appSettings.isEcoModeEnabled && appSettings.ecoModeConfig && appSettings.ecoModeConfig.disableHaptics) return;
 	if (appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10);
 }
 function vibrateMorse(val) {
@@ -5649,65 +5401,9 @@ window.grantAllPermissions = async function() {
 	}
 	if (typeof showToast === 'function') showToast('Permission check complete ✅');
 };
-// Landscape and Split-Screen viewport detection: there's no official API for split-screen
-// ratio, so this compares the app's actual width against the device's full screen width while
-// in landscape orientation - a full-width app is "landscape", and progressively narrower panes
-// bucket into the 75/50/25 split-screen presets. Portrait is untouched by any of this.
-function detectViewportBucket() {
-	const screenW = (window.screen && window.screen.width) ? window.screen.width : window.innerWidth;
-	const screenH = (window.screen && window.screen.height) ? window.screen.height : window.innerHeight;
-	// Use the full device screen's own shape (not the current viewport's) to decide whether
-	// we're in a landscape/split-screen context. A narrow split pane can end up taller than it
-	// is wide even while the device itself is physically landscape, which previously
-	// misclassified it as plain "portrait" and skipped every landscape/split-screen
-	// accommodation (scoped UI/Seq sizing, header button whitelist, swap layout) entirely.
-	const deviceIsLandscape = screenW >= screenH;
-	if (!deviceIsLandscape) return 'portrait';
-	const ratio = screenW > 0 ? (window.innerWidth / screenW) : 1;
-	if (ratio >= 0.92) return 'landscape';
-	if (ratio >= 0.6) return 'split75';
-	if (ratio >= 0.35) return 'split50';
-	return 'split25';
-}
-function getViewportProfile() {
-	const bucket = document.body.dataset.viewportBucket;
-	if (!bucket || bucket === 'portrait') return null;
-	return (appSettings.viewportProfiles && appSettings.viewportProfiles[bucket]) || null;
-}
-function getEffectiveGlobalUiScale() {
-	const vp = getViewportProfile();
-	return vp ? (vp.uiScale || 100) : (appSettings.globalUiScale || 100);
-}
-function getEffectiveSeqScaleMultiplier() {
-	const vp = getViewportProfile();
-	return vp ? (vp.seqSize || 100) / 100 : (appSettings.uiScaleMultiplier || 1.0);
-}
-function syncPipSequenceOnlyMode() {
-	const bucket = document.body.dataset.viewportBucket;
-	const isSplitSmall = bucket === 'split50' || bucket === 'split25';
-	const pipActive = !!document.pictureInPictureElement;
-	document.body.classList.toggle('pip-sequence-only', isSplitSmall && pipActive);
-}
-function applyViewportProfile() {
-	const bucket = detectViewportBucket();
-	const prevBucket = document.body.dataset.viewportBucket;
-	document.body.dataset.viewportBucket = bucket;
-	if (bucket === 'split50') {
-		const profile = appSettings.viewportProfiles && appSettings.viewportProfiles.split50;
-		document.body.dataset.splitAlignment = (profile && profile.alignment) || 'horizontal';
-	} else {
-		delete document.body.dataset.splitAlignment;
-	}
-	syncPipSequenceOnlyMode();
-	if (bucket !== prevBucket) {
-		document.documentElement.style.fontSize = `${getEffectiveGlobalUiScale()}%`;
-		renderUI();
-		if (modules.settings && typeof modules.settings.applyRowMax === 'function') modules.settings.applyRowMax();
-	}
-}
 function updateAllChrome() {
 	applyTheme(appSettings.activeTheme);
-	document.documentElement.style.fontSize = `${getEffectiveGlobalUiScale()}%`;
+	document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
 	document.body.style.fontFamily = appSettings.activeFontFamily || "'Inter', sans-serif";
 	renderUI();
 }
@@ -5901,36 +5597,6 @@ function resetCurrentMachine() {
 	renderUI();
 	saveState();
 }
-function snapshotForUndo() {
-	try {
-		const s = getState();
-		appSettings.lastSequence = {
-			sequences: JSON.parse(JSON.stringify(s.sequences)),
-			nextSequenceIndex: s.nextSequenceIndex,
-			currentRound: s.currentRound
-		};
-	} catch (e) {
-		console.warn('[Undo] snapshot failed:', e);
-	}
-}
-function performUndo() {
-	if (!appSettings.lastSequence) {
-		if (typeof showToast === 'function') showToast("Nothing to undo");
-		return;
-	}
-	try {
-		const s = getState();
-		s.sequences = JSON.parse(JSON.stringify(appSettings.lastSequence.sequences));
-		s.nextSequenceIndex = appSettings.lastSequence.nextSequenceIndex;
-		s.currentRound = appSettings.lastSequence.currentRound;
-		appSettings.lastSequence = null;
-		renderUI();
-		saveState();
-		if (typeof showToast === 'function') showToast("Undone ↩️");
-	} catch (e) {
-		console.warn('[Undo] restore failed:', e);
-	}
-}
 function handleBackspace(e) {
 	if (e) {
 		e.preventDefault();
@@ -5973,15 +5639,7 @@ function applyPositionSwapOffsets(isActive) {
 	const app = document.getElementById('app');
 	const header = document.getElementById('aux-control-header');
 	if (!footer || !app) return;
-	// A narrow split-screen pane can end up taller than it is wide, which flips the CSS
-	// orientation media query to "portrait" even though the device itself is physically in
-	// landscape/split-screen - checking the already-detected viewport bucket alongside the
-	// live media query keeps split-screen panes on the landscape-style layout path instead of
-	// falling back to portrait's "move footer to top with measured padding" math, which breaks
-	// badly against a footer that's much taller than the sliver of height actually available.
-	const viewportBucket = document.body.dataset.viewportBucket;
-	const isSplitBucket = viewportBucket === 'landscape' || viewportBucket === 'split75' || viewportBucket === 'split50' || viewportBucket === 'split25';
-	const isLandscape = window.matchMedia('(orientation: landscape)').matches || isSplitBucket;
+	const isLandscape = window.matchMedia('(orientation: landscape)').matches;
 	const inputMode = document.body.dataset.inputMode;
 	const sideRepositioned = isLandscape && (inputMode === 'key9' || inputMode === 'key12');
 	if (sideRepositioned) {
@@ -5994,20 +5652,6 @@ function applyPositionSwapOffsets(isActive) {
 		app.style.paddingBottom = '';
 		app.style.paddingLeft = '';
 		app.style.paddingRight = '';
-		if (window.modules && window.modules.settings) window.modules.settings.updateSequenceContainerOffset();
-		return;
-	}
-	if (isLandscape) {
-		// Landscape, non-key9/12 (piano, gesture pad): these footers can be much taller than
-		// the portrait "move to top with measured padding" math assumes, which was pushing
-		// #app's padding-top past 500px and squeezing everything else into a sliver. In
-		// landscape, swap for these modes is handled by CSS alone (border flip via
-		// layout-swapped) rather than inline top/padding measurements - clear any leftover
-		// inline values so they can't conflict with it.
-		footer.style.top = '';
-		footer.style.bottom = '';
-		app.style.paddingTop = '';
-		app.style.paddingBottom = '';
 		if (window.modules && window.modules.settings) window.modules.settings.updateSequenceContainerOffset();
 		return;
 	}
@@ -6188,7 +5832,7 @@ function renderUI() {
 			(seq || []).forEach(num => {
 					const span = document.createElement('span');
 					span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold";
-					const scale = getEffectiveSeqScaleMultiplier();
+					const scale = appSettings.uiScaleMultiplier || 1.0;
 					const boxSize = 40 * scale;
 					span.style.width = boxSize + 'px';
 					span.style.height = boxSize + 'px';
@@ -6613,9 +6257,6 @@ function initTouchGestureEngine() {
 				console.log("Continuous Gesture:", data.type, "Fingers:", data.fingers);
 				if (data.type === 'squiggle' && data.fingers === 1) {
 					if (appSettings.isDeleteTouchGestureEnabled) {
-						const now = Date.now();
-						if (now - lastSquiggleDeleteSnapshotTime > 400) snapshotForUndo();
-						lastSquiggleDeleteSnapshotTime = now;
 						handleBackspace();
 						showToast("Deleted ⌫");
 						vibrate();
@@ -6624,7 +6265,6 @@ function initTouchGestureEngine() {
 				}
 				if (data.type === 'squiggle' && data.fingers === 2) {
 					if (appSettings.isClearTouchGestureEnabled) {
-						snapshotForUndo();
 						const s = getState();
 						s.sequences = Array.from({
 								length: CONFIG.MAX_MACHINES
@@ -6932,7 +6572,6 @@ function initGlobalListeners() {
 		document.querySelectorAll('button[data-action="reset-unique-rounds"]').forEach(b => {
 				b.addEventListener('click', () => {
 						if (confirm("Reset Round Counter to 1?")) {
-							snapshotForUndo();
 							const s = getState();
 							s.currentRound = 1;
 							s.sequences[0] = [];
@@ -6961,7 +6600,6 @@ function initGlobalListeners() {
 				e.preventDefault();
 				e.stopPropagation();
 			}
-			snapshotForUndo();
 			handleBackspace(null);
 			if (!appSettings.isSpeedDeletingEnabled) return;
 			timers.initialDelay = setTimeout(() => {
@@ -6992,10 +6630,6 @@ function initGlobalListeners() {
 			headerDeleteBtnEl.addEventListener('mouseleave', stopDelete);
 			headerDeleteBtnEl.addEventListener('touchend', stopDelete);
 			headerDeleteBtnEl.addEventListener('touchcancel', stopDelete);
-		}
-		const headerUndoBtnEl = document.getElementById('headerundobtn');
-		if (headerUndoBtnEl) {
-			headerUndoBtnEl.onclick = () => performUndo();
 		}
 		if (appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
 		const handlePause = e => {
@@ -7585,17 +7219,6 @@ function computeAndApplyRotation() {
 			// applies the Upside Down flip on its own, since that has no direction ambiguity).
 			total = upsideDown ? 180 : 0;
 		}
-	} else if (isLandscapeLocked) {
-		const isPhysicallyLandscape = window.innerWidth > window.innerHeight;
-		if (isPhysicallyLandscape) {
-			// Already presenting landscape naturally - no compensation needed beyond Upside Down.
-			total = upsideDown ? 180 : 0;
-		} else {
-			// Physically portrait - rotate 90deg to force a landscape presentation. Direction
-			// (90 vs 270) can't be reliably determined without more sensor data, so this
-			// defaults to 90 and Upside Down can correct it if it renders backwards.
-			total = (90 + (upsideDown ? 180 : 0)) % 360;
-		}
 	} else {
 		total = upsideDown ? 180 : 0;
 	}
@@ -7604,32 +7227,11 @@ function computeAndApplyRotation() {
 function orientationLockSupported() {
 	return !!(window.screen?.orientation && typeof window.screen.orientation.lock === 'function');
 }
-function isHeaderBtnOn(id) {
-	const btn = document.getElementById(id);
-	return !!(btn && (btn.classList.contains('ring-2') || btn.classList.contains('header-btn-active')));
-}
-// Shared by Pinned Mode, Portrait Lock, Landscape Lock, and the plain Fullscreen button - all
-// four can independently request fullscreen, so exiting must only happen once none of them
-// still need it, otherwise turning one off would yank fullscreen out from under the others.
-function releaseFullscreenIfUnused() {
-	if (appSettings.isPinnedModeEnabled || isPortraitLocked || isLandscapeLocked || isHeaderBtnOn('headerfullscreenbtn')) return;
-	try {
-		if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
-	} catch (err) {
-		console.warn('[Fullscreen] exit failed:', err && err.message);
-	}
-}
 function updatePortraitLockBtnState() {
 	const btn = document.getElementById('headerportraitlockbtn');
 	if (!btn) return;
 	btn.classList.toggle('ring-2', isPortraitLocked);
 	btn.classList.toggle('ring-emerald-500', isPortraitLocked);
-}
-function updateLandscapeLockBtnState() {
-	const btn = document.getElementById('headerlandscapelockbtn');
-	if (!btn) return;
-	btn.classList.toggle('ring-2', isLandscapeLocked);
-	btn.classList.toggle('ring-emerald-500', isLandscapeLocked);
 }
 async function attemptNativeLockBestEffort() {
 	// Best-effort only: on devices where this actually works it reinforces the visual
@@ -7643,19 +7245,8 @@ async function attemptNativeLockBestEffort() {
 		try { await window.screen.orientation.lock('portrait'); } catch (e2) { /* expected on many devices */ }
 	}
 }
-async function attemptNativeLandscapeLockBestEffort() {
-	if (!orientationLockSupported()) return;
-	try {
-		await window.screen.orientation.lock('landscape-primary');
-	} catch (e) {
-		try { await window.screen.orientation.lock('landscape'); } catch (e2) { /* expected on many devices */ }
-	}
-}
 function lockPortraitOrientation() {
-	// Set the new state before releasing the old one, so if Landscape Lock was active,
-	// its unlock sees Portrait Lock already on and won't needlessly drop fullscreen.
 	isPortraitLocked = true;
-	if (isLandscapeLocked) unlockLandscapeOrientation();
 	attemptNativeLockBestEffort();
 	updatePortraitLockBtnState();
 	computeAndApplyRotation();
@@ -7669,7 +7260,17 @@ function unlockOrientation() {
 	isPortraitLocked = false;
 	updatePortraitLockBtnState();
 	computeAndApplyRotation();
-	releaseFullscreenIfUnused();
+	
+	// --- NEW CODE: Exit full screen ---
+	try {
+		if (document.fullscreenElement && document.exitFullscreen) {
+			document.exitFullscreen();
+		}
+	} catch (err) {
+		console.warn('[Portrait Lock] exit fullscreen failed:', err && err.message);
+	}
+	// ----------------------------------
+
 	if (typeof showToast === 'function') showToast('Portrait Lock: OFF 🔓');
 }
 
@@ -7681,44 +7282,10 @@ window.toggleOrientationLock = function() {
 		if (typeof showToast === 'function') showToast('Portrait Lock: ON 🔒');
 	}
 };
-function lockLandscapeOrientation() {
-	// Set the new state before releasing the old one, so if Portrait Lock was active,
-	// its unlock sees Landscape Lock already on and won't needlessly drop fullscreen.
-	isLandscapeLocked = true;
-	if (isPortraitLocked) unlockOrientation();
-	attemptNativeLandscapeLockBestEffort();
-	updateLandscapeLockBtnState();
-	computeAndApplyRotation();
-	if (typeof requestAppFullscreen === 'function') requestAppFullscreen();
-	return true;
-}
-function unlockLandscapeOrientation() {
-	if (orientationLockSupported()) {
-		try { window.screen.orientation.unlock(); } catch (e) { /* non-fatal, CSS compensation is already off */ }
-	}
-	isLandscapeLocked = false;
-	updateLandscapeLockBtnState();
-	computeAndApplyRotation();
-	releaseFullscreenIfUnused();
-	if (typeof showToast === 'function') showToast('Landscape Lock: OFF 🔓');
-}
-window.toggleLandscapeLock = function() {
-	if (isLandscapeLocked) {
-		unlockLandscapeOrientation();
-	} else {
-		lockLandscapeOrientation();
-		if (typeof showToast === 'function') showToast('Landscape Lock: ON 🔒');
-	}
-};
 function pipSupported() {
 	return !!(document.pictureInPictureEnabled && HTMLCanvasElement.prototype.captureStream);
 }
-function readVisibleSequence(machineIndex) {
-	if (typeof machineIndex === 'number') {
-		const state = getState();
-		const seq = (state && state.sequences && state.sequences[machineIndex]) || [];
-		return seq.map(v => String(v));
-	}
+function readVisibleSequence() {
 	const container = document.getElementById('sequence-container');
 	if (!container) return [];
 	return Array.from(container.querySelectorAll('.number-box'))
@@ -7735,7 +7302,7 @@ function drawPipFrame() {
 	const W = pipCanvas.width, H = pipCanvas.height;
 	ctx.fillStyle = bg;
 	ctx.fillRect(0, 0, W, H);
-	const vals = readVisibleSequence(typeof appSettings.pipMachineIndex === 'number' ? appSettings.pipMachineIndex : undefined);
+	const vals = readVisibleSequence();
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'middle';
 	if (!vals.length) {
@@ -7806,7 +7373,6 @@ async function enterPipMode() {
 					if (t) t.checked = false;
 					const b = document.getElementById('headerpipbtn');
 					if (b) b.classList.remove('ring-2', 'ring-emerald-500');
-					syncPipSequenceOnlyMode();
 			});
 		}
 		drawPipFrame();
@@ -7818,7 +7384,6 @@ async function enterPipMode() {
 		await pipVideo.requestPictureInPicture();
 		if (pipTimer) clearInterval(pipTimer);
 		pipTimer = setInterval(drawPipFrame, 200);
-		syncPipSequenceOnlyMode();
 		return true;
 	} catch (err) {
 		console.warn('[PiP] could not open Picture-in-Picture:', err);
@@ -7837,7 +7402,6 @@ async function exitPipMode() {
 	} catch (err) {
 		console.warn('[PiP] exit failed:', err);
 	}
-	syncPipSequenceOnlyMode();
 }
 async function requestAppFullscreen() {
 	const el = document.documentElement;
@@ -7878,12 +7442,26 @@ async function exitPinnedMode() {
 		window.removeEventListener('pointerdown', pinnedFullscreenRearm);
 		pinnedFullscreenRearm = null;
 	}
-	releaseFullscreenIfUnused();
+	try {
+		if (document.fullscreenElement && document.exitFullscreen) await document.exitFullscreen();
+	} catch (err) {
+		console.warn('[Pinned] exit fullscreen failed:', err && err.message);
+	}
+}
+function restorePinnedModeOnBoot() {
+	if (!appSettings.isPinnedModeEnabled) return;
+	document.body.classList.add('pinned-mode');
+	const headerBtn = document.getElementById('headerpinnedbtn');
+	if (headerBtn) headerBtn.classList.add('ring-2', 'ring-emerald-500');
+	armPinnedBackTrap();
+	pinnedFullscreenRearm = () => {
+		window.removeEventListener('pointerdown', pinnedFullscreenRearm);
+		pinnedFullscreenRearm = null;
+		if (appSettings.isPinnedModeEnabled) requestAppFullscreen();
+	};
+	window.addEventListener('pointerdown', pinnedFullscreenRearm, { once: false });
 }
 window.modules = modules;
-window.snapshotForUndo = snapshotForUndo;
-window.performUndo = performUndo;
-window.getState = getState;
 window.settingsToBackupCode = settingsToBackupCode;
 window.importSettingsFromBackupCode = importSettingsFromBackupCode;
 window.diffAgainstDefaults = diffAgainstDefaults;
@@ -7892,168 +7470,6 @@ window.DEFAULT_APP = DEFAULT_APP;
 window.DEFAULT_HEADER_BTN_ORDER = DEFAULT_HEADER_BTN_ORDER;
 window.lockBodyScroll = lockBodyScroll;
 window.unlockBodyScroll = unlockBodyScroll;
-function wireHeaderButtonInteractions() {
-	const $ = id => document.getElementById(id);
-	const isOn = id => isHeaderBtnOn(id);
-	// Reuses each button's own existing off-logic by synthetically re-clicking it, rather than
-	// duplicating that logic here - safe against loops because every listener below only acts
-	// when the button is currently ON, so a button being turned off never re-triggers itself.
-	const turnOff = id => { const btn = $(id); if (btn && isOn(id)) btn.click(); };
-
-	// AR Mode occupies the camera/screen and conflicts with the other input-assist modes and
-	// PiP, so activating it turns all of them off.
-	const arBtn = $('headerarcambtn');
-	if (arBtn) {
-		arBtn.addEventListener('click', () => {
-			if (isOn('headerarcambtn')) {
-				['headerpipbtn', 'headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn'].forEach(turnOff);
-			}
-		});
-	}
-
-	// Voice, Tone Cadence, Touch Gesture Pad, and Hand Tracking are all mutually exclusive input
-	// assist modes - only one can be active at a time, so activating one turns the others off.
-	const exclusiveInputBtns = ['headervoicebtn', 'headertonebtn', 'headertouchbtn', 'headerhandbtn'];
-	exclusiveInputBtns.forEach(selfId => {
-		const btn = $(selfId);
-		if (!btn) return;
-		btn.addEventListener('click', () => {
-			if (isOn(selfId)) {
-				exclusiveInputBtns.filter(id => id !== selfId).forEach(turnOff);
-			}
-		});
-	});
-
-	// PiP shares screen space with the sequence view, so it's automatically released whenever
-	// fullscreen activates (from the Fullscreen button itself, Pinned Mode, Portrait Lock, or
-	// Landscape Lock - this listener covers all of those entry points at once).
-	document.addEventListener('fullscreenchange', () => {
-		if (document.fullscreenElement) turnOff('headerpipbtn');
-	});
-}
-function initViewportProfilesUI() {
-	const buckets = ['landscape', 'split75', 'split50', 'split25'];
-	const tabBtns = {};
-	const panels = {};
-	buckets.forEach(b => {
-		tabBtns[b] = document.getElementById('viewport-tab-btn-' + b);
-		panels[b] = document.getElementById('viewport-panel-' + b);
-	});
-	let activeTab = 'landscape';
-
-	function renderPreview() {
-		const screen = document.getElementById('viewport-preview-screen');
-		const headerEl = document.getElementById('viewport-preview-header');
-		const seqEl = document.getElementById('viewport-preview-seq');
-		const inputsEl = document.getElementById('viewport-preview-inputs');
-		if (!screen || !headerEl || !seqEl || !inputsEl) return;
-		const bucket = activeTab;
-		const profile = (appSettings.viewportProfiles && appSettings.viewportProfiles[bucket]) || { uiScale: 100, seqSize: 100 };
-		const widthByBucket = { landscape: 220, split75: 176, split50: 120, split25: 64 };
-		screen.style.width = (widthByBucket[bucket] || 220) + 'px';
-		screen.style.height = '124px';
-		headerEl.innerHTML = '';
-		const dotCount = (bucket === 'split50' || bucket === 'split25') ? 8 : 12;
-		for (let i = 0; i < dotCount; i++) {
-			const dot = document.createElement('div');
-			dot.style.cssText = 'width:6px;height:6px;border-radius:50%;background:#4b5563;flex-shrink:0;';
-			headerEl.appendChild(dot);
-		}
-		seqEl.innerHTML = '';
-		const seqScale = (profile.seqSize || 100) / 100;
-		const bubbleSize = Math.max(6, Math.round(10 * seqScale));
-		for (let i = 0; i < 5; i++) {
-			const bubble = document.createElement('div');
-			bubble.style.cssText = `width:${bubbleSize}px;height:${bubbleSize}px;border-radius:3px;background:#6366f1;flex-shrink:0;`;
-			seqEl.appendChild(bubble);
-		}
-		inputsEl.innerHTML = '';
-		const uiScale = (profile.uiScale || 100) / 100;
-		const btnW = Math.max(8, Math.round(14 * uiScale));
-		const btnH = Math.max(6, Math.round(8 * uiScale));
-		const alignSel = document.getElementById('viewport-alignment-split50');
-		const isVertical = bucket === 'split50' && alignSel && alignSel.value === 'vertical';
-		inputsEl.style.flexDirection = isVertical ? 'column' : 'row';
-		for (let i = 0; i < 6; i++) {
-			const btn = document.createElement('div');
-			btn.style.cssText = `width:${btnW}px;height:${btnH}px;border-radius:2px;background:#1a1a1a;border:1px solid #444;flex-shrink:0;`;
-			inputsEl.appendChild(btn);
-		}
-	}
-
-	function switchTab(bucket) {
-		activeTab = bucket;
-		buckets.forEach(b => {
-			if (tabBtns[b]) tabBtns[b].className = 'viewport-tab-btn py-2 rounded-lg text-[10px] font-bold ' + (b === bucket ? 'bg-emerald-600 text-white' : 'bg-gray-700 text-gray-300');
-			if (panels[b]) panels[b].classList.toggle('hidden', b !== bucket);
-		});
-		renderPreview();
-	}
-	buckets.forEach(b => {
-		if (tabBtns[b]) tabBtns[b].onclick = () => switchTab(b);
-	});
-
-	function loadDropdowns() {
-		buckets.forEach(b => {
-			const profile = appSettings.viewportProfiles[b];
-			if (!profile) return;
-			const uiSel = document.getElementById('viewport-uiscale-' + b);
-			const seqSel = document.getElementById('viewport-seqsize-' + b);
-			if (uiSel) uiSel.value = profile.uiScale || 100;
-			if (seqSel) seqSel.value = profile.seqSize || 100;
-		});
-		const alignSel = document.getElementById('viewport-alignment-split50');
-		if (alignSel) alignSel.value = (appSettings.viewportProfiles.split50 && appSettings.viewportProfiles.split50.alignment) || 'horizontal';
-	}
-	loadDropdowns();
-
-	buckets.forEach(b => {
-		const uiSel = document.getElementById('viewport-uiscale-' + b);
-		const seqSel = document.getElementById('viewport-seqsize-' + b);
-		if (uiSel) uiSel.onchange = (e) => {
-			appSettings.viewportProfiles[b].uiScale = parseInt(e.target.value);
-			saveState();
-			if (typeof applyViewportProfile === 'function') applyViewportProfile();
-			renderPreview();
-		};
-		if (seqSel) seqSel.onchange = (e) => {
-			appSettings.viewportProfiles[b].seqSize = parseInt(e.target.value);
-			saveState();
-			if (typeof applyViewportProfile === 'function') applyViewportProfile();
-			renderPreview();
-		};
-	});
-	const alignSel = document.getElementById('viewport-alignment-split50');
-	if (alignSel) alignSel.onchange = (e) => {
-		appSettings.viewportProfiles.split50.alignment = e.target.value;
-		saveState();
-		if (typeof applyViewportProfile === 'function') applyViewportProfile();
-		renderPreview();
-	};
-
-	function populatePipMachineDropdown() {
-		const sel = document.getElementById('viewport-pip-machine');
-		if (!sel) return;
-		const settings = (typeof getProfileSettings === 'function') ? getProfileSettings() : null;
-		const machineCount = (settings && settings.machineCount) || 1;
-		sel.innerHTML = '<option value="same">Same as Main Area</option>';
-		for (let i = 0; i < machineCount; i++) {
-			const opt = document.createElement('option');
-			opt.value = String(i);
-			opt.textContent = 'Machine ' + (i + 1);
-			sel.appendChild(opt);
-		}
-		sel.value = (typeof appSettings.pipMachineIndex === 'number') ? String(appSettings.pipMachineIndex) : 'same';
-	}
-	populatePipMachineDropdown();
-	const pipMachineSel = document.getElementById('viewport-pip-machine');
-	if (pipMachineSel) pipMachineSel.onchange = (e) => {
-		appSettings.pipMachineIndex = (e.target.value === 'same') ? null : parseInt(e.target.value, 10);
-		saveState();
-	};
-
-	switchTab('landscape');
-}
 const startApp = async () => {
 	loadState();
 	window.appSettings = appSettings;
@@ -8072,42 +7488,15 @@ const startApp = async () => {
 			} catch (e) {
 				console.warn('Nuke - cache clear failed:', e);
 			}
-			try {
-				if (window.indexedDB) {
-					const dbs = ['follow-me', 'fm-cache', 'app-storage'];
-					dbs.forEach(db => {
-						try { indexedDB.deleteDatabase(db); } catch (e) {}
-					});
-				}
-			} catch (e) {
-				console.warn('Nuke - IndexedDB clear failed:', e);
-			}
 			localStorage.clear();
 			sessionStorage.clear();
-			try {
-				document.cookie.split(";").forEach((c) => {
-					document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-				});
-			} catch (e) {}
 			location.reload();
 			return;
 		}
 	}
 	if (new URLSearchParams(window.location.search).has('forceRefresh')) {
 		history.replaceState(null, '', window.location.pathname);
-		try {
-			const regs = await navigator.serviceWorker.getRegistrations();
-			await Promise.all(regs.map(r => r.unregister()));
-		} catch (e) {
-			console.warn('Refresh - service worker unregister failed:', e);
-		}
-		try {
-			const names = await caches.keys();
-			await Promise.all(names.map(n => caches.delete(n)));
-		} catch (e) {
-			console.warn('Refresh - cache clear failed:', e);
-		}
-		if (typeof showToast === 'function') showToast('🔄 Refreshed to the latest version ✅');
+		if (typeof showToast === 'function') showToast('Refreshed to the latest version ✅');
 	}
 	if (new URLSearchParams(window.location.search).has('restoreDefaults')) {
 		history.replaceState(null, '', window.location.pathname);
@@ -8119,13 +7508,10 @@ const startApp = async () => {
 			document.body.classList.toggle('fullscreen-mode', !!document.fullscreenElement);
 			if (typeof triggerRotationRecompute === 'function') triggerRotationRecompute();
 	});
-	// Pinned Mode and Do Not Disturb never auto-activate on launch, even if they were on when
-	// the app was last closed - both have real side effects (kiosk-lock, silencing everything)
-	// that shouldn't surprise someone who's just opening the app fresh.
-	if (appSettings.isPinnedModeEnabled || appSettings.isDndEnabled) {
-		appSettings.isPinnedModeEnabled = false;
-		appSettings.isDndEnabled = false;
-		saveState();
+	restorePinnedModeOnBoot();
+	if (appSettings.isDndEnabled) {
+		const dndBtn = document.getElementById('headerdndbtn');
+		if (dndBtn) dndBtn.classList.add('ring-2', 'ring-emerald-500');
 	}
 	if (appSettings.isEcoModeEnabled) document.body.classList.add('eco-mode');
 	const headerfullscreenbtn = document.getElementById('headerfullscreenbtn');
@@ -8137,8 +7523,8 @@ const startApp = async () => {
 				});
 				headerfullscreenbtn.classList.add('ring-2', 'ring-emerald-500');
 			} else {
+				document.exitFullscreen();
 				headerfullscreenbtn.classList.remove('ring-2', 'ring-emerald-500');
-				releaseFullscreenIfUnused();
 			}
 		};
 	}
@@ -8199,16 +7585,9 @@ const startApp = async () => {
 			if (typeof window.toggleOrientationLock === 'function') window.toggleOrientationLock();
 		};
 	}
-	const headerlandscapelockbtn = document.getElementById('headerlandscapelockbtn');
-	if (headerlandscapelockbtn) {
-		headerlandscapelockbtn.onclick = () => {
-			if (typeof window.toggleLandscapeLock === 'function') window.toggleLandscapeLock();
-		};
-	}
 	const triggerRotationRecompute = () => {
 		if (typeof computeAndApplyRotation !== 'function') return;
 		computeAndApplyRotation();
-		if (typeof applyViewportProfile === 'function') applyViewportProfile();
 		if (document.body.classList.contains('layout-swapped') && typeof applyPositionSwapOffsets === 'function') {
 			applyPositionSwapOffsets(true);
 		}
@@ -8217,8 +7596,6 @@ const startApp = async () => {
 		}
 		setTimeout(computeAndApplyRotation, 150);
 		setTimeout(computeAndApplyRotation, 400);
-		setTimeout(() => { if (typeof applyViewportProfile === 'function') applyViewportProfile(); }, 150);
-		setTimeout(() => { if (typeof applyViewportProfile === 'function') applyViewportProfile(); }, 400);
 	};
 	window.addEventListener('resize', triggerRotationRecompute);
 	window.addEventListener('orientationchange', triggerRotationRecompute);
@@ -8476,7 +7853,6 @@ const startApp = async () => {
 					showToast("Voice: Stopped 🛑");
 				}
 				if (cmd === 'CMD_CLEAR') {
-					snapshotForUndo();
 					const s = getState();
 					s.sequences = Array.from({
 							length: CONFIG.MAX_MACHINES
@@ -8485,13 +7861,8 @@ const startApp = async () => {
 					showToast("Voice: Cleared All 💥");
 				}
 				if (cmd === 'CMD_DELETE') {
-					snapshotForUndo();
 					handleBackspace();
 					showToast("Voice: Backspace 🔙");
-				}
-				if (cmd === 'CMD_UNDO') {
-					performUndo();
-					showToast("Voice: Undo ↩️");
 				}
 				if (cmd === 'CMD_SETTINGS') {
 					modules.settings.openSettings();
@@ -8526,7 +7897,6 @@ const startApp = async () => {
 		}
 	}
 	updateAllChrome();
-	if (typeof applyViewportProfile === 'function') applyViewportProfile();
 	initFirebaseAndComments();
 	modules.settings.updateHeaderVisibility();
 	initGlobalListeners();
@@ -8534,9 +7904,6 @@ const startApp = async () => {
 	if (typeof window.updateProximitySensorState === 'function') window.updateProximitySensorState(true);
 	initTouchGestureEngine();
 	setupARLogic();
-	wireHeaderButtonInteractions();
-	initViewportProfilesUI();
-	if (appSettings.isEcoModeEnabled && typeof modules.settings.applyEcoModeConfig === 'function') modules.settings.applyEcoModeConfig();
 	renderUI();
 	if (new URLSearchParams(window.location.search).has('openHelp')) {
 		history.replaceState(null, '', window.location.pathname);

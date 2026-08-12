@@ -594,6 +594,7 @@ alert("Promise Error: " + event.reason);
 <span class="font-bold text-sm">Nuke ☢️</span>
 <input type="checkbox" id="headerNukeToggle" class="h-6 w-6 accent-indigo-500"></div>
 </div>
+<div id="general-scale-dropdowns">
 <div class="grid grid-cols-2 gap-3 pt-2">
 <div>
 <label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
@@ -656,6 +657,10 @@ alert("Promise Error: " + event.reason);
 <option value="150">150%</option>
 <option value="175">175%</option>
 <option value="200">200%</option>
+<option value="225">225%</option>
+<option value="250">250%</option>
+<option value="275">275%</option>
+<option value="300">300%</option>
 </select>
 </div>
 </div>
@@ -733,6 +738,7 @@ alert("Promise Error: " + event.reason);
 <option value="70">70px</option>
 <option value="80">80px</option>
 </select>
+</div>
 </div>
 </div>
 </div>
@@ -1050,12 +1056,129 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </details>
 <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
 <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
+<span>Landscape and Split Screen 📐</span>
+<span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+</summary>
+<div class="p-3 border-t border-gray-700">
+<p class="text-[10px] text-gray-400 mb-3">Fine-tune UI and sequence sizing separately for each viewport width, so switching to split-screen or multitasking never means readjusting your normal settings.</p>
+<div class="grid grid-cols-4 gap-1 mb-3">
+<button type="button" id="viewport-tab-btn-landscape" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-emerald-600 text-white">Landscape</button>
+<button type="button" id="viewport-tab-btn-split75" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300">75%</button>
+<button type="button" id="viewport-tab-btn-split50" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300">50%</button>
+<button type="button" id="viewport-tab-btn-split25" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300">25%</button>
+</div>
+<div class="p-3 rounded-lg bg-gray-950 border border-gray-700 mb-3 flex items-center justify-center" style="min-height: 140px;">
+<div id="viewport-preview-screen" class="relative bg-black rounded border border-gray-600 overflow-hidden" style="width: 220px; height: 124px;">
+<div id="viewport-preview-header" class="absolute top-0 left-0 right-0 flex items-center gap-1 px-1" style="height: 14px;"></div>
+<div id="viewport-preview-seq" class="absolute flex flex-wrap items-center justify-center gap-1 content-center" style="top: 16px; left: 4px; right: 4px; bottom: 34px;"></div>
+<div id="viewport-preview-inputs" class="absolute bottom-1 left-1 right-1 flex flex-wrap gap-1 justify-center"></div>
+</div>
+</div>
+<div id="viewport-panel-landscape" class="viewport-panel">
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
+<select id="viewport-uiscale-landscape" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
+<select id="viewport-seqsize-landscape" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+</div>
+</div>
+<div id="viewport-panel-split75" class="viewport-panel hidden">
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
+<select id="viewport-uiscale-split75" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
+<select id="viewport-seqsize-split75" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+</div>
+</div>
+<div id="viewport-panel-split50" class="viewport-panel hidden">
+<div class="grid grid-cols-2 gap-3 mb-3">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
+<select id="viewport-uiscale-split50" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
+<select id="viewport-seqsize-split50" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+</div>
+<div class="mb-3">
+<label class="block text-xs font-bold mb-1 text-muted-custom">Alignment</label>
+<select id="viewport-alignment-split50" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="horizontal" selected>Horizontal (Normal)</option>
+<option value="vertical">Vertical</option>
+</select>
+</div>
+<div class="mb-1">
+<label class="block text-xs font-bold mb-1 text-muted-custom">Picture-in-Picture Shows</label>
+<select id="viewport-pip-machine" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="same" selected>Same as Main Area</option>
+</select>
+<p class="text-[10px] text-gray-400 mt-1">If Picture-in-Picture is active at this size, the sequence only appears in the popup - the main screen shows inputs only.</p>
+</div>
+</div>
+<div id="viewport-panel-split25" class="viewport-panel hidden">
+<div class="grid grid-cols-2 gap-3 mb-3">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
+<select id="viewport-uiscale-split25" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
+<select id="viewport-seqsize-split25" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+</div>
+<p class="text-[10px] text-gray-400">Same header button set as 50% and the same Picture-in-Picture behavior above. Turn on Infinite Header Scroll (General) so scrolling through header buttons works at this width.</p>
+</div>
+</div>
+</details>
+<details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
 <span>Header 🔀</span>
 <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
 </summary>
 <div class="p-3 border-t border-gray-700">
 <p class="text-[10px] text-gray-400 mb-3">Sets the order header buttons appear in, left to right. Only affects order, not which ones show - that's still controlled by each button's own toggle in General.</p>
-<div id="header-order-list" class="space-y-1 max-h-64 overflow-y-auto"></div>
+<div id="header-order-list" class="space-y-1 relative"></div>
 <button type="button" id="header-order-reset-btn" class="w-full py-2 mt-3 text-xs font-bold bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition">↩️ Reset to Default Order</button>
 </div>
 </details>
@@ -1066,7 +1189,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </summary>
 <div class="p-3 border-t border-gray-700">
 <p class="text-[10px] text-gray-400 mb-3">Sets the order toggles appear in on the General tab, and can hide ones you never use - a hidden toggle's setting stays exactly as it was, it just won't be adjustable here until shown again.</p>
-<div id="general-order-list" class="space-y-1 max-h-64 overflow-y-auto"></div>
+<div id="general-order-list" class="space-y-1 relative"></div>
 <button type="button" id="general-order-reset-btn" class="w-full py-2 mt-3 text-xs font-bold bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition">↩️ Reset to Default Order</button>
 </div>
 </details>
@@ -1307,9 +1430,84 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div id="morse-container-target"></div>
 </div>
 </details>
+<details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
+<span>Eco Mode 🔋</span>
+<span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+</summary>
+<div class="p-3 border-t border-gray-700 space-y-3">
+<p class="text-[10px] text-gray-400">Fine-tune what Eco Mode actually does when it's turned on (via the header button or General Settings toggle). Nothing here takes effect unless Eco Mode itself is active.</p>
+<div class="grid grid-cols-2 gap-3">
+<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
+<span class="text-xs font-bold">Switch Theme</span>
+<input type="checkbox" id="eco-theme-switch-toggle" class="h-5 w-5 accent-indigo-500">
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
+<span class="text-xs font-bold">Disable Sensors</span>
+<input type="checkbox" id="eco-sensors-toggle" class="h-5 w-5 accent-indigo-500">
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
+<span class="text-xs font-bold">Dim Brightness</span>
+<input type="checkbox" id="eco-brightness-toggle" class="h-5 w-5 accent-indigo-500">
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
+<span class="text-xs font-bold">Limit Wake Lock</span>
+<input type="checkbox" id="eco-wakelock-toggle" class="h-5 w-5 accent-indigo-500">
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
+<span class="text-xs font-bold">Reduce Video FPS</span>
+<input type="checkbox" id="eco-videofps-toggle" class="h-5 w-5 accent-indigo-500">
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
+<span class="text-xs font-bold">Lower Voice Quality</span>
+<input type="checkbox" id="eco-voicequality-toggle" class="h-5 w-5 accent-indigo-500">
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
+<span class="text-xs font-bold">Reduce Volume</span>
+<input type="checkbox" id="eco-volume-toggle" class="h-5 w-5 accent-indigo-500">
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
+<span class="text-xs font-bold">Disable Haptics</span>
+<input type="checkbox" id="eco-haptics-toggle" class="h-5 w-5 accent-indigo-500">
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
+<span class="text-xs font-bold">Reduce Mic Sampling</span>
+<input type="checkbox" id="eco-micsampling-toggle" class="h-5 w-5 accent-indigo-500">
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
+<span class="text-xs font-bold">Restrict Mic/Camera</span>
+<input type="checkbox" id="eco-restrictmediadevices-toggle" class="h-5 w-5 accent-indigo-500">
+</div>
+</div>
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Wake Lock Limit</label>
+<select id="eco-wakelock-limit-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="60">1 minute</option>
+<option value="300" selected>5 minutes</option>
+<option value="600">10 minutes</option>
+<option value="1800">30 minutes</option>
+</select>
+</div>
+</div>
+</details>
+<details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
+<span>Backup & Restore 💾</span>
+<span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+</summary>
+<div class="p-3 border-t border-gray-700 space-y-3">
 <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
-<h4 class="font-bold text-sm mb-2 text-primary-app">Backup / Restore 💾</h4>
-<p class="text-[10px] text-gray-400 mb-2">Export your full settings (including custom presets) as a backup code before resetting, or paste one back in to restore it.</p>
+<h4 class="font-bold text-sm mb-2 text-primary-app">Saved Profiles 📁</h4>
+<p class="text-[10px] text-gray-400 mb-2">Save your entire current configuration under a name, and load it back any time with one tap - no more copy-pasting a code just to switch setups.</p>
+<div id="full-profile-list" class="space-y-1 mb-2"></div>
+<div class="grid grid-cols-2 gap-2">
+<input id="full-profile-name-input" type="text" placeholder="Profile name..." class="col-span-2 p-2 bg-gray-800 border border-gray-600 rounded text-white text-xs mb-1">
+<button id="full-profile-save-btn" type="button" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold col-span-2">💾 Save Current Settings As New Profile</button>
+</div>
+</div>
+<div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
+<h4 class="font-bold text-sm mb-2 text-primary-app">Export / Import 📤</h4>
+<p class="text-[10px] text-gray-400 mb-2">For sharing your setup with another device or another person - export a code, send it, and they paste it in and tap Import.</p>
 <div class="grid grid-cols-2 gap-2 mb-2">
 <button id="hex-export-btn" type="button" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">Export Backup Code</button>
 <button id="hex-copy-btn" type="button" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">Copy</button>
@@ -1322,12 +1520,13 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
 <h4 class="font-bold text-sm mb-2 text-primary-app">Settings Presets 🎯</h4>
-<p class="text-[10px] text-gray-400 mb-2">Pick a preset, copy its code below, then paste it into the backup code box above and tap Import.</p>
+<p class="text-[10px] text-gray-400 mb-2">Pick a preset, copy its code below, then paste it into the Export/Import box above and tap Import.</p>
 <select id="preset-select" class="w-full p-2 mb-2 bg-gray-800 border border-gray-600 rounded text-white text-xs"></select>
 <textarea id="preset-output" readonly class="w-full h-20 bg-gray-950 border border-gray-600 rounded p-2 text-[10px] font-mono text-green-400 resize-none mb-2"></textarea>
 <button id="preset-copy-btn" type="button" class="w-full py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">Copy</button>
 </div>
 </div>
+</details>
 </div>
 <div class="mt-8 pt-4 border-t border-gray-700 flex justify-between items-center w-full gap-2 flex-wrap">
 <button data-action="nuke-app" class="px-3 py-2 bg-red-900 hover:bg-red-700 text-white font-bold rounded shadow-lg border border-red-500 text-xs transition-colors">
@@ -1489,8 +1688,8 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">⌨️</span> <strong>Bigger Buttons:</strong> Hide the UI and make every key perfectly square for maximum touch targets.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔄</span> <strong>Position Swap:</strong> Move the input keypad from the bottom of the screen to the top.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔲</span> <strong>Full Screen:</strong> Hide the browser's address bar and UI chrome.</li>
-<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📌</span> <strong>Pinned Mode:</strong> Fullscreen plus a back-gesture block, so you can't accidentally swipe out mid-sequence.</li>
-<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔕</span> <strong>Do Not Disturb:</strong> Silences toasts, vibration, and spoken audio.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📌</span> <strong>Pinned Mode:</strong> Fullscreen plus a back-gesture block, so you can't accidentally swipe out mid-sequence. Always starts off when you open the app, even if it was on last time - turn it back on each session.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔕</span> <strong>Do Not Disturb:</strong> Silences toasts, vibration, and spoken audio. Always starts off when you open the app, even if it was on last time - turn it back on each session.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🙃</span> <strong>Upside Down:</strong> Flip the entire interface 180° (for a partner facing you).</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">▶️</span> <strong>Play:</strong> Play back the current sequence. Long-press toggles Autoplay on/off if "AP Shortcut" is enabled in Settings → General.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">⌫</span> <strong>Delete:</strong> Remove the last entry. Press and hold to delete repeatedly if "Quick Erase" is on in Settings → General.</li>
@@ -1507,7 +1706,11 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🐇±</span> <strong>Speed:</strong> Two buttons that raise/lower playback speed, same value the twist-gesture and voice "faster"/"slower" commands adjust.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔀</span> <strong>Cycle Input:</strong> Step through 9-Key → 12-Key → Piano layouts.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">♻️</span> <strong>Reset:</strong> Factory reset - restores default settings (asks to confirm first).</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔄</span> <strong>Refresh:</strong> Clears the browser cache and cached app files, then force-reloads the newest version - without touching your saved settings, sequences, or comments. Use this first if something seems stuck or out of date.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">☢️</span> <strong>Nuke:</strong> Full wipe - clears saved data, browser cache, and forces a fresh reload (asks to confirm first). Use if the app is behaving strangely after an update.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">↩️</span> <strong>Undo:</strong> Brings back the last thing you deleted - a single backspace or an entire sequence wiped via clear/reset, whichever happened most recently.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔒</span> <strong>Portrait Lock:</strong> Keeps the layout in portrait no matter how you physically rotate the device.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔐</span> <strong>Landscape Lock:</strong> The landscape counterpart to Portrait Lock - keeps the layout in landscape regardless of physical rotation. Only one of the two locks can be active at a time.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📝</span> <strong>Notepad:</strong> A simple scratchpad that opens the keyboard immediately. Long-press this icon (instead of tapping) to instantly copy the whole note to your clipboard.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🪟</span> <strong>Picture in Picture:</strong> Opens a small always-on-top window showing your sequence, so you can read it while using another app.</li>
 </ul>

@@ -586,7 +586,7 @@ alert("Promise Error: " + event.reason);
 <span class="font-bold text-sm">Clear Gesture 💥</span>
 <input type="checkbox" id="clearToggle" class="h-5 w-5 accent-indigo-500"></div>
 </div>
-<div class="grid grid-cols-2 gap-3 pt-2">
+<div class="grid grid-cols-2 landscape:grid-cols-4 gap-3 mt-4 w-full">
 <div>
 <label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
 <select id="seq-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
@@ -637,6 +637,32 @@ alert("Promise Error: " + event.reason);
 <option value="250">Max (Fill)</option>
 </select>
 </div>
+  <!-- New: Input Size Dropdown -->
+    <div class="flex flex-col space-y-1">
+        <label for="inputSizeSelect" class="font-bold text-xs pl-1">Input Size</label>
+        <select id="inputSizeSelect" class="p-2 rounded bg-gray-950 border border-custom settings-input text-sm text-white">
+            <option value="1rem">Small</option>
+            <option value="1.5rem" selected>Medium</option>
+            <option value="2rem">Large</option>
+            <option value="2.5rem">Extra Large</option>
+        </select>
+    </div>
+
+    <!-- New: Row Max Dropdown -->
+    <div class="flex flex-col space-y-1">
+        <label for="rowMaxSelect" class="font-bold text-xs pl-1">Row Max</label>
+        <select id="rowMaxSelect" class="p-2 rounded bg-gray-950 border border-custom settings-input text-sm text-white">
+            <option value="none" selected>None</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="10">10</option>
+            <option value="12">12</option>
+            <option value="15">15</option>
+        </select>
+    </div>
 <div>
 <label class="block text-xs font-bold mb-1 text-muted-custom">AR Playback Speed</label>
 <select id="ar-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">

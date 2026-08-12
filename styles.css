@@ -35,7 +35,15 @@ ul, ol {
 img, svg, video, canvas {
     display: block;
     max-width: 100%;
+}/* Assign these variables to the specific scopes rather than the global :root entirely */
+.modal-content, .settings-modal {
+    font-size: var(--modal-font-size, 16px); 
 }
+
+.input-button, .piano-key { /* Use the actual classes of your input buttons */
+    font-size: var(--input-font-size, 1.5rem);
+}
+
 .opacity-0 { opacity: 0 !important; }
 .pointer-events-none { pointer-events: none !important; }
 .hidden { display: none !important; }

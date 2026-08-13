@@ -490,7 +490,7 @@ const DEFAULT_GENERAL_TOGGLE_ORDER = [
 'upsidedownToggle', 'portraitLockToggle', 'landscapeLockToggle',
 'fullscreenToggle', 'biggerToggle',
 'ecoToggle', 'wakelockToggle',
-'positionSwapToggle', 'pipToggle',
+'positionSwapToggle', 'landscapeInputResizeToggle', 'pipToggle',
 'dndToggle', 'pinnedModeToggle',
 'arcamToggle', 'arAutoCloseGeneralToggle',
 'voiceToggle', 'voicecommandsToggle',
@@ -680,6 +680,8 @@ const DEFAULT_APP = {
 		notes: {}
 	},
 	isPositionSwapEnabled: false,
+	isLandscapeInputResizeEnabled: false,
+	landscapeInputWidthPct: 50,
 	isSkeletonDebugEnabled: false,
 	activeFontFamily: "'Inter', sans-serif",
 	handGestureCooldown: 600,
@@ -843,7 +845,7 @@ const DEFAULT_APP = {
 'upsidedownToggle', 'portraitLockToggle', 'landscapeLockToggle',
 'fullscreenToggle', 'biggerToggle',
 'ecoToggle', 'wakelockToggle',
-'positionSwapToggle', 'pipToggle',
+'positionSwapToggle', 'landscapeInputResizeToggle', 'pipToggle',
 'dndToggle', 'pinnedModeToggle',
 'arcamToggle', 'arAutoCloseGeneralToggle',
 'voiceToggle', 'voicecommandsToggle',
@@ -2031,6 +2033,7 @@ class SettingsManager {
 			voicecommandsToggle: document.getElementById('voicecommandsToggle'),
 			wakelockToggle: document.getElementById('wakelockToggle'), dndToggle: document.getElementById('dndToggle'), pipToggle: document.getElementById('pipToggle'), pinnedModeToggle: document.getElementById('pinnedModeToggle'), settingsLockBtn: document.getElementById('settings-lock-toggle'),
 			positionSwapToggle: document.getElementById('positionSwapToggle'),
+			landscapeInputResizeToggle: document.getElementById('landscapeInputResizeToggle'),
 			headerswapbtn: document.getElementById('headerswapbtn'),
 			headerplaybtn: document.getElementById('headerplaybtn'), headerdeletebtn: document.getElementById('headerdeletebtn'), headersettingsbtn: document.getElementById('headersettingsbtn'), headerredeembtn: document.getElementById('headerredeembtn'), headersharebtn: document.getElementById('headersharebtn'), headerthemecyclebtn: document.getElementById('headerthemecyclebtn'), headeraddmachinebtn: document.getElementById('headeraddmachinebtn'), headeruiupbtn: document.getElementById('headeruiupbtn'), headeruidownbtn: document.getElementById('headeruidownbtn'), headersequpbtn: document.getElementById('headersequpbtn'), headerseqdownbtn: document.getElementById('headerseqdownbtn'), headervolupbtn: document.getElementById('headervolupbtn'), headervoldownbtn: document.getElementById('headervoldownbtn'), headerspeedupbtn: document.getElementById('headerspeedupbtn'), headerspeeddownbtn: document.getElementById('headerspeeddownbtn'), headercycleinputbtn: document.getElementById('headercycleinputbtn'),
 			headernotepadbtn: document.getElementById('headernotepadbtn'), headerhelpbtn: document.getElementById('headerhelpbtn'), headermodeswitchbtn: document.getElementById('headermodeswitchbtn'), headerresetbtn: document.getElementById('headerresetbtn'), headernukebtn: document.getElementById('headernukebtn'),
@@ -3128,6 +3131,11 @@ class SettingsManager {
 			};
 		};
 		bindToggle(this.dom.positionSwapToggle, 'isPositionSwapEnabled', true);
+		if (this.dom.landscapeInputResizeToggle) this.dom.landscapeInputResizeToggle.onchange = (e) => {
+			this.appSettings.isLandscapeInputResizeEnabled = e.target.checked;
+			document.body.classList.toggle('landscape-resize-enabled', e.target.checked);
+			this.callbacks.onSave();
+		};
 		bindToggle(this.dom.pinnedModeToggle, 'showPinnedBtn', true);
 		bindToggle(this.dom.dndToggle, 'showDndBtn', true);
 		bindToggle(this.dom.pipToggle, 'showPipBtn', true);
@@ -3811,6 +3819,7 @@ class SettingsManager {
 		if (this.dom.skeletonDebugToggle) this.dom.skeletonDebugToggle.checked = !!this.appSettings.isSkeletonDebugEnabled;
 		if (this.dom.fontSelect) this.dom.fontSelect.value = this.appSettings.activeFontFamily || "'Inter', sans-serif";
 		if (this.dom.positionSwapToggle) this.dom.positionSwapToggle.checked = !!this.appSettings.isPositionSwapEnabled;
+		if (this.dom.landscapeInputResizeToggle) this.dom.landscapeInputResizeToggle.checked = !!this.appSettings.isLandscapeInputResizeEnabled;
 		if (this.dom.fullscreenToggle) {
 			this.dom.fullscreenToggle.checked = !!this.appSettings.showFullscreenBtn;
 		}
@@ -4127,7 +4136,7 @@ class SettingsManager {
 		}).filter(Boolean);
 	}
 	_generalToggleLabels() {
-		return { autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙', randomThemeToggle: 'Random Theme 🎲', headerThemeCycleToggle: 'Theme Cycle 🎨', headerCycleInputToggle: 'Cycle Input 🔀', headerModeSwitchToggle: 'Mode Switch 🎮', headerAddMachineToggle: 'Add Machine ➕', bossToggle: 'Boss Mode 🌑', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', autoHideHeaderToggle: 'Auto Hide Header 👻', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️',flickHeaderToggle: 'Flick Header Buttons 💨', restoreHeaderToggle: 'Restore Header Gesture 🪄', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', hideIntroToggle: 'Hide Intro', headerUndoToggle: 'Undo ↩️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', upsidedownToggle: 'Upside Down 🙃', portraitLockToggle: 'Portrait Lock 🔒', landscapeLockToggle: 'Landscape Lock 🔐', fullscreenToggle: 'Full Screen 🔲', biggerToggle: 'Bigger Buttons', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', positionSwapToggle: 'Position Swap 🔄', pipToggle: 'Picture in Picture 🪟', dndToggle: 'Do Not Disturb 🔕', pinnedModeToggle: 'Pinned Mode 📌', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️' };
+		return { autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙', randomThemeToggle: 'Random Theme 🎲', headerThemeCycleToggle: 'Theme Cycle 🎨', headerCycleInputToggle: 'Cycle Input 🔀', headerModeSwitchToggle: 'Mode Switch 🎮', headerAddMachineToggle: 'Add Machine ➕', bossToggle: 'Boss Mode 🌑', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', autoHideHeaderToggle: 'Auto Hide Header 👻', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️',flickHeaderToggle: 'Flick Header Buttons 💨', restoreHeaderToggle: 'Restore Header Gesture 🪄', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', hideIntroToggle: 'Hide Intro', headerUndoToggle: 'Undo ↩️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', upsidedownToggle: 'Upside Down 🙃', portraitLockToggle: 'Portrait Lock 🔒', landscapeLockToggle: 'Landscape Lock 🔐', fullscreenToggle: 'Full Screen 🔲', biggerToggle: 'Bigger Buttons', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', positionSwapToggle: 'Position Swap 🔄', landscapeInputResizeToggle: 'Resizable Input Area ↔️', pipToggle: 'Picture in Picture 🪟', dndToggle: 'Do Not Disturb 🔕', pinnedModeToggle: 'Pinned Mode 📌', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️' };
 	}
 	_moveGeneralToggle(id, direction) {
 		const grid = document.getElementById('general-toggle-grid');
@@ -5809,6 +5818,15 @@ function applyViewportHeaderButtonCuration(bucket) {
 		if (el) el.classList.add('vp-curated-hidden');
 	});
 }
+function applyLandscapeInputWidth() {
+	document.body.classList.toggle('landscape-resize-enabled', !!appSettings.isLandscapeInputResizeEnabled);
+	if (!appSettings.isLandscapeInputResizeEnabled) {
+		document.documentElement.style.removeProperty('--landscape-input-width');
+		return;
+	}
+	const pct = Math.min(80, Math.max(20, appSettings.landscapeInputWidthPct || 50));
+	document.documentElement.style.setProperty('--landscape-input-width', pct + 'vw');
+}
 function applyViewportProfile() {
 	const bucket = detectViewportBucket();
 	const prevBucket = document.body.dataset.viewportBucket;
@@ -5820,6 +5838,7 @@ function applyViewportProfile() {
 		delete document.body.dataset.splitAlignment;
 	}
 	applyViewportHeaderButtonCuration(bucket);
+	applyLandscapeInputWidth();
 	syncPipSequenceOnlyMode();
 	if (bucket !== prevBucket) {
 		document.documentElement.style.fontSize = `${getEffectiveGlobalUiScale()}%`;
@@ -8021,6 +8040,7 @@ window.unlockBodyScroll = unlockBodyScroll;
 // edits into the iframe and force it to re-render without a full page reload.
 window.applyViewportProfile = applyViewportProfile;
 window.applyViewportHeaderButtonCuration = applyViewportHeaderButtonCuration;
+window.applyLandscapeInputWidth = applyLandscapeInputWidth;
 window.detectViewportBucket = detectViewportBucket;
 window.getEffectiveGlobalUiScale = getEffectiveGlobalUiScale;
 window.getEffectiveSeqScaleMultiplier = getEffectiveSeqScaleMultiplier;
@@ -8062,6 +8082,47 @@ function wireHeaderButtonInteractions() {
 	document.addEventListener('fullscreenchange', () => {
 		if (document.fullscreenElement) turnOff('headerpipbtn');
 	});
+
+	// Draggable divider between the sequence area and the input panel in landscape/split-screen
+	// key9/key12 mode (opt-in via "Resizable Input Area" in General). Replaces the input panel's
+	// old fixed width (100vh, i.e. sized off the device's height regardless of how narrow a
+	// split-screen window actually is) with a percentage of the real available viewport width
+	// that the person can drag to their own preference, persisted across sessions.
+	const resizeHandle = $('landscape-resize-handle');
+	if (resizeHandle) {
+		let isDraggingDivider = false;
+		const onDividerMove = (e) => {
+			if (!isDraggingDivider) return;
+			e.preventDefault();
+			const swapped = document.body.classList.contains('layout-swapped');
+			// The input panel sits on the right normally, left when layout is swapped - the
+			// fraction of screen width it should occupy is measured from whichever edge it's
+			// actually anchored to, matching the CSS above (right: 0 / left: 0 respectively).
+			const rawPct = swapped
+				? (e.clientX / window.innerWidth) * 100
+				: ((window.innerWidth - e.clientX) / window.innerWidth) * 100;
+			const clamped = Math.min(80, Math.max(20, rawPct));
+			appSettings.landscapeInputWidthPct = Math.round(clamped);
+			document.documentElement.style.setProperty('--landscape-input-width', clamped + 'vw');
+		};
+		const onDividerUp = () => {
+			if (!isDraggingDivider) return;
+			isDraggingDivider = false;
+			document.body.classList.remove('landscape-resize-dragging');
+			saveState();
+			document.removeEventListener('pointermove', onDividerMove);
+			document.removeEventListener('pointerup', onDividerUp);
+			document.removeEventListener('pointercancel', onDividerUp);
+		};
+		resizeHandle.addEventListener('pointerdown', (e) => {
+			e.preventDefault();
+			isDraggingDivider = true;
+			document.body.classList.add('landscape-resize-dragging');
+			document.addEventListener('pointermove', onDividerMove, { passive: false });
+			document.addEventListener('pointerup', onDividerUp);
+			document.addEventListener('pointercancel', onDividerUp);
+		});
+	}
 }
 let viewportConfigState = { configBucket: null, tempSettings: {}, activeTab: 'landscape' };
 

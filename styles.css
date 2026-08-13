@@ -66,7 +66,7 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #input-footer, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #input-footer {
 		position: fixed !important;
 		top: 0 !important; right: 0 !important; bottom: 0 !important; left: auto !important;
-		width: 100vh !important; max-width: none !important; max-height: none !important;
+		width: var(--landscape-input-width, 100vh) !important; max-width: none !important; max-height: none !important;
 		box-sizing: border-box !important;
 		display: flex !important; align-items: center !important; justify-content: center !important;
 		border-top: none !important; border-left: 4px solid var(--seq-bubble);
@@ -78,7 +78,7 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 		width: 100% !important; max-width: none !important;
 	}
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #app, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #app {
-		padding-right: 100vh !important; box-sizing: border-box !important;
+		padding-right: var(--landscape-input-width, 100vh) !important; box-sizing: border-box !important;
 	}
 	body.layout-swapped[data-rotate="0"][data-input-mode="key9"] #input-footer, body.layout-swapped[data-rotate="0"][data-input-mode="key12"] #input-footer {
 		position: fixed !important;
@@ -88,20 +88,42 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 		z-index: 30 !important;
 	}
 	body.layout-swapped[data-rotate="0"][data-input-mode="key9"] #app, body.layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
-		padding-right: 0 !important; padding-left: 100vh !important; box-sizing: border-box !important;
+		padding-right: 0 !important; padding-left: var(--landscape-input-width, 100vh) !important; box-sizing: border-box !important;
+	}
+	/* Draggable divider handle - sits on top of the border between the sequence area and the
+	   input panel. Only shown while isLandscapeInputResizeEnabled is on (General settings) so it
+	   doesn't add an unexpected extra control for people who never touch this. */
+	#landscape-resize-handle {
+		display: none;
+		position: fixed;
+		top: 0; bottom: 0;
+		width: 28px;
+		z-index: 31;
+		cursor: ew-resize;
+		touch-action: none;
+	}
+	body.landscape-resize-enabled:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #landscape-resize-handle,
+	body.landscape-resize-enabled:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #landscape-resize-handle {
+		display: block;
+		right: calc(var(--landscape-input-width, 100vh) - 14px);
+	}
+	body.landscape-resize-enabled.layout-swapped[data-rotate="0"][data-input-mode="key9"] #landscape-resize-handle,
+	body.landscape-resize-enabled.layout-swapped[data-rotate="0"][data-input-mode="key12"] #landscape-resize-handle {
+		right: auto;
+		left: calc(var(--landscape-input-width, 100vh) - 14px);
 	}
 	@media (max-height: 600px) {
 		body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #input-footer, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #input-footer {
-			width: 45vh !important;
+			width: var(--landscape-input-width, 45vh) !important;
 		}
 		body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #app, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #app {
-			padding-right: 45vh !important;
+			padding-right: var(--landscape-input-width, 45vh) !important;
 		}
 		body.layout-swapped[data-rotate="0"][data-input-mode="key9"] #input-footer, body.layout-swapped[data-rotate="0"][data-input-mode="key12"] #input-footer {
-			width: 45vh !important;
+			width: var(--landscape-input-width, 45vh) !important;
 		}
 		body.layout-swapped[data-rotate="0"][data-input-mode="key9"] #app, body.layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
-			padding-left: 45vh !important; padding-right: 0 !important;
+			padding-left: var(--landscape-input-width, 45vh) !important; padding-right: 0 !important;
 		}
 	}
 

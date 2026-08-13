@@ -533,6 +533,9 @@ alert("Promise Error: " + event.reason);
 <span class="font-bold text-sm">Position Swap 🔄</span>
 <input type="checkbox" id="positionSwapToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Resizable Input Area ↔️</span>
+<input type="checkbox" id="landscapeInputResizeToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Picture in Picture 🪟</span>
 <input type="checkbox" id="pipToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
@@ -2088,6 +2091,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div id="gesture-indicator" class="text-center text-sm opacity-80">Use gestures here — swipes, taps, multi-finger.</div>
 </div>
 </div>
+<div id="landscape-resize-handle" title="Drag to resize input area"></div>
 <footer id="input-footer" class="fixed bottom-0 left-0 right-0 p-2 md:p-4 shadow-2xl z-40 transition-colors duration-200">
 <div id="pad-key9" class="max-w-md mx-auto">
 <div class="grid grid-cols-3 gap-3 mb-2">

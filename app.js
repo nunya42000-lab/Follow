@@ -1,3 +1,16 @@
+// Viewport Preview mode: when this file is loaded inside the Landscape/Split Screen configure
+// modal's live iframe, ?vpPreview=1&vpBucket=split50 (etc) forces detectViewportBucket() to
+// report that bucket regardless of the real device's screen/window ratio, so the preview can
+// show any bucket without physically resizing the browser window.
+(function() {
+	try {
+		const params = new URLSearchParams(location.search);
+		if (params.get('vpPreview') === '1') {
+			const forced = params.get('vpBucket');
+			if (forced) window.__vpPreviewForceBucket = forced;
+		}
+	} catch (e) {}
+})();
 const TONE_TABLE = [
 	{ n: 1, f: 261.63, name: 'C' },
 	{ n: 2, f: 293.66, name: 'D' },
@@ -648,10 +661,10 @@ const DEFAULT_APP = {
 	appInputFontScale: 100,
 	appRowMax: 'none',
 	viewportProfiles: {
-		landscape: { uiScale: 100, seqSize: 100, rowMax: 6, bubbleSpacing: 4, headerButtons: [] },
-		split75: { uiScale: 100, seqSize: 100, rowMax: 5, bubbleSpacing: 3, headerButtons: [] },
-		split50: { uiScale: 100, seqSize: 100, rowMax: 4, bubbleSpacing: 2, alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
-		split25: { uiScale: 100, seqSize: 100, rowMax: 3, bubbleSpacing: 1, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }
+		landscape: { uiScale: 100, seqSize: 100, rowMax: 'none', headerButtons: [] },
+		split75: { uiScale: 100, seqSize: 100, rowMax: 'none', headerButtons: [] },
+		split50: { uiScale: 100, seqSize: 100, rowMax: 'none', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
+		split25: { uiScale: 100, seqSize: 100, rowMax: 'none', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }
 	},
 	pipMachineIndex: null,
 	ecoModeConfig: {
@@ -4360,7 +4373,11 @@ class SettingsManager {
 	applyRowMax() {
 		const seqContainer = document.getElementById('sequence-container');
 		if (!seqContainer) return;
-		const rowMax = this.appSettings.appRowMax || 'none';
+		// Per-viewport Row Max (set via the Landscape/Split Screen configure modal) overrides the
+		// global Row Max setting while that bucket is active - same precedence pattern as
+		// getEffectiveGlobalUiScale()/getEffectiveSeqScaleMultiplier() use for uiScale/seqSize.
+		const vp = (typeof getViewportProfile === 'function') ? getViewportProfile() : null;
+		const rowMax = (vp && vp.rowMax !== undefined && vp.rowMax !== null) ? String(vp.rowMax) : (this.appSettings.appRowMax || 'none');
 		if (rowMax === 'none') {
 			seqContainer.style.removeProperty('--row-max-width');
 		} else {
@@ -5671,6 +5688,10 @@ window.grantAllPermissions = async function() {
 // in landscape orientation - a full-width app is "landscape", and progressively narrower panes
 // bucket into the 75/50/25 split-screen presets. Portrait is untouched by any of this.
 function detectViewportBucket() {
+	// Viewport Preview mode (Landscape and Split Screen configure modal): the iframe is asked
+	// to pretend to be a specific bucket regardless of the real device's screen/window ratio,
+	// so the person can preview split50/split25 etc without physically resizing their window.
+	if (window.__vpPreviewForceBucket) return window.__vpPreviewForceBucket;
 	const screenW = (window.screen && window.screen.width) ? window.screen.width : window.innerWidth;
 	const screenH = (window.screen && window.screen.height) ? window.screen.height : window.innerHeight;
 	// Use the full device screen's own shape (not the current viewport's) to decide whether
@@ -5705,6 +5726,31 @@ function syncPipSequenceOnlyMode() {
 	const pipActive = !!document.pictureInPictureElement;
 	document.body.classList.toggle('pip-sequence-only', isSplitSmall && pipActive);
 }
+// Maps the curated header-button ids used in the Landscape/Split Screen configure modal's
+// checklist to their actual DOM element ids, so the person's per-viewport selection can
+// actually gate visibility (previously the checklist wrote appSettings.viewportProfiles[bucket]
+// .headerButtons but nothing read it - the 50%/25% curated set was hardcoded in CSS instead).
+const VP_HEADER_BUTTON_ID_MAP = {
+	timer: 'headertimerbtn', counter: 'headercounterbtn', play: 'headerplaybtn',
+	delete: 'headerdeletebtn', bigger: 'headerbiggerbtn', swap: 'headerswapbtn',
+	pip: 'headerpipbtn', touch: 'headertouchbtn'
+};
+function applyViewportHeaderButtonCuration(bucket) {
+	const isCurated = bucket === 'split50' || bucket === 'split25';
+	Object.keys(VP_HEADER_BUTTON_ID_MAP).forEach(curatedId => {
+		const el = document.getElementById(VP_HEADER_BUTTON_ID_MAP[curatedId]);
+		if (!el) return;
+		el.classList.remove('vp-curated-hidden');
+	});
+	if (!isCurated) return;
+	const profile = appSettings.viewportProfiles && appSettings.viewportProfiles[bucket];
+	const selected = (profile && Array.isArray(profile.headerButtons)) ? profile.headerButtons : [];
+	Object.keys(VP_HEADER_BUTTON_ID_MAP).forEach(curatedId => {
+		if (selected.includes(curatedId)) return;
+		const el = document.getElementById(VP_HEADER_BUTTON_ID_MAP[curatedId]);
+		if (el) el.classList.add('vp-curated-hidden');
+	});
+}
 function applyViewportProfile() {
 	const bucket = detectViewportBucket();
 	const prevBucket = document.body.dataset.viewportBucket;
@@ -5715,6 +5761,7 @@ function applyViewportProfile() {
 	} else {
 		delete document.body.dataset.splitAlignment;
 	}
+	applyViewportHeaderButtonCuration(bucket);
 	syncPipSequenceOnlyMode();
 	if (bucket !== prevBucket) {
 		document.documentElement.style.fontSize = `${getEffectiveGlobalUiScale()}%`;
@@ -7015,7 +7062,7 @@ function initGlobalListeners() {
 		if (headerUndoBtnEl) {
 			headerUndoBtnEl.onclick = () => performUndo();
 		}
-		if (appSettings.showWelcomeScreen && modules.settings) setTimeout(() => modules.settings.openSetup(), 500);
+		if (appSettings.showWelcomeScreen && modules.settings && !location.search.includes('vpPreview=1')) setTimeout(() => modules.settings.openSetup(), 500);
 		const handlePause = e => {
 			if (isDemoPlaying) {
 				isPlaybackPaused = true;
@@ -7911,6 +7958,14 @@ window.DEFAULT_APP = DEFAULT_APP;
 window.DEFAULT_HEADER_BTN_ORDER = DEFAULT_HEADER_BTN_ORDER;
 window.lockBodyScroll = lockBodyScroll;
 window.unlockBodyScroll = unlockBodyScroll;
+// Exposed so the Landscape/Split Screen configure modal's live preview iframe (a module script,
+// so top-level function declarations don't auto-attach to window) can push unsaved slider/select
+// edits into the iframe and force it to re-render without a full page reload.
+window.applyViewportProfile = applyViewportProfile;
+window.applyViewportHeaderButtonCuration = applyViewportHeaderButtonCuration;
+window.detectViewportBucket = detectViewportBucket;
+window.getEffectiveGlobalUiScale = getEffectiveGlobalUiScale;
+window.getEffectiveSeqScaleMultiplier = getEffectiveSeqScaleMultiplier;
 function wireHeaderButtonInteractions() {
 	const $ = id => document.getElementById(id);
 	const isOn = id => isHeaderBtnOn(id);
@@ -7951,6 +8006,100 @@ function wireHeaderButtonInteractions() {
 	});
 }
 let viewportConfigState = { configBucket: null, tempSettings: {}, activeTab: 'landscape' };
+
+// Real screen ratio bands, matching detectViewportBucket() exactly, so the iframe's pixel
+// width corresponds to what that bucket actually looks like on this device.
+const VP_BUCKET_RATIO = { landscape: 1.0, split75: 0.75, split50: 0.5, split25: 0.3 };
+
+// Curated header buttons available at 50%/25% - matches the memory spec:
+// Timer, Counter, Play, Delete, Bigger Buttons, Swap Position, PiP, Touch Gestures
+const VP_CURATED_HEADER_BUTTONS = [
+	{ id: 'timer', label: '⏱️ Timer' },
+	{ id: 'counter', label: '🔢 Counter' },
+	{ id: 'play', label: '▶️ Play' },
+	{ id: 'delete', label: '⌫ Delete' },
+	{ id: 'bigger', label: '🔲 Bigger Buttons' },
+	{ id: 'swap', label: '🔄 Swap Position' },
+	{ id: 'pip', label: '🪟 Picture-in-Picture' },
+	{ id: 'touch', label: '👆 Touch Gestures' }
+];
+
+function vpGetIframeTargetSize(bucket) {
+	const screenW = (window.screen && window.screen.width) ? window.screen.width : window.innerWidth;
+	const screenH = (window.screen && window.screen.height) ? window.screen.height : window.innerHeight;
+	// The device's own landscape dimensions: width is the long edge, height the short edge,
+	// matching what detectViewportBucket() assumes when it says "deviceIsLandscape".
+	const fullW = Math.max(screenW, screenH);
+	const fullH = Math.min(screenW, screenH);
+	const ratio = VP_BUCKET_RATIO[bucket] || 1.0;
+	return { width: Math.round(fullW * ratio), height: fullH };
+}
+
+function vpFitIframeToWrapper() {
+	const wrap = document.getElementById('viewport-config-frame-wrap');
+	const scaler = document.getElementById('viewport-config-frame-scaler');
+	const iframe = document.getElementById('viewport-config-iframe');
+	if (!wrap || !scaler || !iframe || !viewportConfigState.configBucket) return;
+	const target = vpGetIframeTargetSize(viewportConfigState.configBucket);
+	iframe.style.width = target.width + 'px';
+	iframe.style.height = target.height + 'px';
+	scaler.style.width = target.width + 'px';
+	scaler.style.height = target.height + 'px';
+	const wrapW = wrap.clientWidth || target.width;
+	const scale = Math.min(1, wrapW / target.width);
+	scaler.style.transform = `scale(${scale})`;
+	wrap.style.height = (target.height * scale) + 'px';
+	const dimsEl = document.getElementById('viewport-config-dims');
+	if (dimsEl) dimsEl.textContent = `${target.width}×${target.height}px (${Math.round(scale * 100)}%)`;
+}
+
+function vpLoadPreviewIframe(bucket) {
+	const iframe = document.getElementById('viewport-config-iframe');
+	if (!iframe) return;
+	vpFitIframeToWrapper();
+	iframe.src = './index.html?vpPreview=1&vpBucket=' + encodeURIComponent(bucket);
+}
+
+// Pushes the currently-being-edited (unsaved) profile values into the live iframe so the
+// preview updates immediately as sliders/selects/checkboxes change, without a full reload.
+function vpPushLiveEditsToPreview() {
+	const iframe = document.getElementById('viewport-config-iframe');
+	if (!iframe || !iframe.contentWindow || !viewportConfigState.configBucket) return;
+	const win = iframe.contentWindow;
+	try {
+		if (!win.appSettings || !win.appSettings.viewportProfiles) return;
+		const bucket = viewportConfigState.configBucket;
+		const liveProfile = win.appSettings.viewportProfiles[bucket];
+		if (!liveProfile) return;
+		Object.keys(viewportConfigState.tempSettings).forEach(key => {
+			if (key === 'pipMachine') {
+				win.appSettings.pipMachineIndex = (viewportConfigState.tempSettings.pipMachine === 'same') ? null : parseInt(viewportConfigState.tempSettings.pipMachine, 10);
+				return;
+			}
+			liveProfile[key] = viewportConfigState.tempSettings[key];
+		});
+		if (typeof win.applyViewportProfile === 'function') win.applyViewportProfile();
+		if (typeof win.renderUI === 'function') win.renderUI();
+		if (win.document && win.document.documentElement) {
+			win.document.documentElement.style.fontSize = (typeof win.getEffectiveGlobalUiScale === 'function' ? win.getEffectiveGlobalUiScale() : 100) + '%';
+		}
+		if (win.modules && win.modules.settings && typeof win.modules.settings.applyRowMax === 'function') win.modules.settings.applyRowMax();
+	} catch (e) {
+		// Cross-origin or not-yet-loaded - safe to ignore, next reload will pick it up.
+	}
+}
+
+function vpRenderConfigScreen() {
+	vpFitIframeToWrapper();
+	vpPushLiveEditsToPreview();
+}
+
+if (!window.__vpResizeListenerBound) {
+	window.__vpResizeListenerBound = true;
+	window.addEventListener('resize', () => {
+		if (viewportConfigState.configBucket) vpFitIframeToWrapper();
+	});
+}
 
 function initViewportProfilesUI() {
 	const buckets = ['landscape', 'split75', 'split50', 'split25'];
@@ -8085,63 +8234,6 @@ function initViewportProfilesUI() {
 	const configCancelBtn = document.getElementById('viewport-config-cancel-btn');
 	const configureBtns = document.querySelectorAll('.viewport-configure-btn');
 
-	function renderConfigScreen() {
-		const screen = document.getElementById('viewport-config-screen');
-		const headerEl = document.getElementById('viewport-config-header');
-		const seqEl = document.getElementById('viewport-config-seq');
-		const inputsEl = document.getElementById('viewport-config-inputs');
-		if (!screen || !headerEl || !seqEl || !inputsEl || !viewportConfigState.configBucket) return;
-		const profile = appSettings.viewportProfiles[viewportConfigState.configBucket];
-		const widthByBucket = { landscape: 280, split75: 224, split50: 168, split25: 112 };
-		const heightByBucket = { landscape: 180, split75: 160, split50: 140, split25: 120 };
-		screen.style.width = (widthByBucket[viewportConfigState.configBucket] || 280) + 'px';
-		screen.style.height = (heightByBucket[viewportConfigState.configBucket] || 180) + 'px';
-
-		headerEl.innerHTML = '';
-		const dotCount = (viewportConfigState.configBucket === 'split50' || viewportConfigState.configBucket === 'split25') ? 6 : 8;
-		for (let i = 0; i < dotCount; i++) {
-			const dot = document.createElement('div');
-			dot.style.cssText = 'width:4px;height:4px;border-radius:50%;background:#4b5563;flex-shrink:0;';
-			headerEl.appendChild(dot);
-		}
-
-		seqEl.innerHTML = '';
-		const seqScale = (viewportConfigState.tempSettings.seqSize || profile.seqSize || 100) / 100;
-		const bubbleSize = Math.max(4, Math.round(8 * seqScale));
-		for (let i = 0; i < 6; i++) {
-			const bubble = document.createElement('div');
-			bubble.style.cssText = `width:${bubbleSize}px;height:${bubbleSize}px;border-radius:2px;background:#6366f1;flex-shrink:0;`;
-			seqEl.appendChild(bubble);
-		}
-
-		inputsEl.innerHTML = '';
-		const uiScale = (viewportConfigState.tempSettings.uiScale || profile.uiScale || 100) / 100;
-		const btnW = Math.max(6, Math.round(10 * uiScale));
-		const btnH = Math.max(4, Math.round(6 * uiScale));
-		const alignSel = document.getElementById('viewport-config-alignment');
-		const isVertical = viewportConfigState.configBucket === 'split50' && alignSel && alignSel.value === 'vertical';
-		inputsEl.style.flexDirection = isVertical ? 'column' : 'row';
-		const btnCount = viewportConfigState.configBucket === 'split25' ? 4 : (viewportConfigState.configBucket === 'split50' ? 5 : 6);
-		for (let i = 0; i < btnCount; i++) {
-			const btn = document.createElement('div');
-			btn.style.cssText = `width:${btnW}px;height:${btnH}px;border-radius:1px;background:#1a1a1a;border:1px solid #444;flex-shrink:0;`;
-			inputsEl.appendChild(btn);
-		}
-	}
-
-	// Curated header buttons available at 50%/25% - matches the memory spec:
-	// Timer, Counter, Play, Delete, Bigger Buttons, Swap Position, PiP, Touch Gestures
-	const CURATED_HEADER_BUTTONS = [
-		{ id: 'timer', label: '⏱️ Timer' },
-		{ id: 'counter', label: '🔢 Counter' },
-		{ id: 'play', label: '▶️ Play' },
-		{ id: 'delete', label: '⌫ Delete' },
-		{ id: 'bigger', label: '🔲 Bigger Buttons' },
-		{ id: 'swap', label: '🔄 Swap Position' },
-		{ id: 'pip', label: '🪟 Picture-in-Picture' },
-		{ id: 'touch', label: '👆 Touch Gestures' }
-	];
-
 	function renderConfigSettings() {
 		const settingsDiv = document.getElementById('viewport-config-settings');
 		if (!settingsDiv || !viewportConfigState.configBucket) return;
@@ -8177,7 +8269,7 @@ function initViewportProfilesUI() {
 			input.onchange = input.oninput = (e) => {
 				viewportConfigState.tempSettings[key] = parseInt(e.target.value);
 				valueSpan.textContent = e.target.value + suffix;
-				renderConfigScreen();
+				vpRenderConfigScreen();
 			};
 			div.appendChild(labelEl);
 			div.appendChild(input);
@@ -8201,8 +8293,8 @@ function initViewportProfilesUI() {
 			const curVal = viewportConfigState.tempSettings[key] !== undefined ? viewportConfigState.tempSettings[key] : (profile[key] !== undefined ? profile[key] : defaultVal);
 			select.value = curVal;
 			select.onchange = (e) => {
-				viewportConfigState.tempSettings[key] = key === 'rowMax' ? parseInt(e.target.value) : e.target.value;
-				renderConfigScreen();
+				viewportConfigState.tempSettings[key] = e.target.value;
+				vpRenderConfigScreen();
 			};
 			div.appendChild(labelEl);
 			div.appendChild(select);
@@ -8210,16 +8302,17 @@ function initViewportProfilesUI() {
 			return select;
 		};
 
-		// --- Sizing (all tabs) ---
+		// --- Sizing (all tabs) - ranges match the real General settings exactly ---
 		sectionLabel('Sizing');
-		createSlider('UI Scale', 'uiScale', 50, 150, 10, '%');
-		createSlider('Sequence Size', 'seqSize', 50, 150, 10, '%');
+		createSlider('UI Scale', 'uiScale', 50, 200, 10, '%');
+		createSlider('Sequence Size', 'seqSize', 50, 300, 10, '%');
 		createSelect('Row Max', 'rowMax', [
-			{ value: '3', text: '3 per row' }, { value: '4', text: '4 per row' },
-			{ value: '5', text: '5 per row' }, { value: '6', text: '6 per row' },
-			{ value: '7', text: '7 per row' }, { value: '8', text: '8 per row' }
-		], profile.rowMax || 6);
-		createSlider('Bubble Spacing', 'bubbleSpacing', 0, 8, 1, 'px');
+			{ value: 'none', text: 'None' },
+			{ value: '4', text: '4 Cards' }, { value: '5', text: '5 Cards' },
+			{ value: '6', text: '6 Cards' }, { value: '7', text: '7 Cards' },
+			{ value: '8', text: '8 Cards' }, { value: '10', text: '10 Cards' },
+			{ value: '12', text: '12 Cards' }, { value: '15', text: '15 Cards' }
+		], profile.rowMax || 'none');
 
 		// --- Layout (split50 only: alignment) ---
 		if (bucket === 'split50') {
@@ -8252,7 +8345,7 @@ function initViewportProfilesUI() {
 			note.textContent = 'Only these buttons can show at this width. Still gated by each button\'s own General toggle.';
 			settingsDiv.appendChild(note);
 			const currentSelected = viewportConfigState.tempSettings.headerButtons !== undefined ? viewportConfigState.tempSettings.headerButtons : (profile.headerButtons || []);
-			CURATED_HEADER_BUTTONS.forEach(btnDef => {
+			VP_CURATED_HEADER_BUTTONS.forEach(btnDef => {
 				const row = document.createElement('label');
 				row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 8px; margin-bottom: 4px; background: #222; border-radius: 4px; cursor: pointer;';
 				const span = document.createElement('span');
@@ -8270,7 +8363,7 @@ function initViewportProfilesUI() {
 						list = list.filter(id => id !== btnDef.id);
 					}
 					viewportConfigState.tempSettings.headerButtons = list;
-					renderConfigScreen();
+					vpRenderConfigScreen();
 				};
 				row.appendChild(span);
 				row.appendChild(checkbox);
@@ -8296,12 +8389,12 @@ function initViewportProfilesUI() {
 			titleEl.textContent = 'Configure ' + (bucketLabels[bucket] || bucket);
 		}
 		renderConfigSettings();
-		renderConfigScreen();
 		if (configModal) {
 			configModal.classList.remove('opacity-0', 'pointer-events-none');
 			configModal.style.opacity = '1';
 			configModal.style.pointerEvents = 'auto';
 		}
+		vpLoadPreviewIframe(bucket);
 	}
 
 	function closeConfigModal() {
@@ -8310,6 +8403,8 @@ function initViewportProfilesUI() {
 			configModal.style.opacity = '0';
 			configModal.style.pointerEvents = 'none';
 		}
+		const iframe = document.getElementById('viewport-config-iframe');
+		if (iframe) iframe.src = 'about:blank';
 		viewportConfigState.configBucket = null;
 		viewportConfigState.tempSettings = {};
 	}
@@ -8342,6 +8437,13 @@ function initViewportProfilesUI() {
 			if (bucket && configModal) openConfigModal(bucket);
 		};
 	});
+
+	if (!window.__vpResizeListenerBound) {
+		window.__vpResizeListenerBound = true;
+		window.addEventListener('resize', () => {
+			if (viewportConfigState.configBucket) vpFitIframeToWrapper();
+		});
+	}
 }
 const startApp = async () => {
 	loadState();
@@ -8864,7 +8966,7 @@ const startApp = async () => {
 	window.addEventListener('orientationchange', () => setTimeout(apply, 150));
 })();
 document.addEventListener('DOMContentLoaded', startApp);
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && !location.search.includes('vpPreview=1')) {
 	window.addEventListener('load', () => {
 			navigator.serviceWorker.register('./sw.js').then(reg => {
 					reg.update().catch(() => {});

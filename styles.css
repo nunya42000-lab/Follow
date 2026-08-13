@@ -749,6 +749,30 @@ body[data-viewport-bucket="split25"] #header-btn-row > button#headerpipbtn,
 body[data-viewport-bucket="split25"] #header-btn-row > button#headertouchbtn {
 	display: flex !important;
 }
+/* Per-viewport header button selection (Landscape/Split Screen configure modal checklist):
+   within the curated set above, the person can further narrow which of those specific buttons
+   actually show for that bucket. Uses the same #id + .vp-curated-hidden specificity as the
+   curated-set rule above (matching ID selector weight) so source order correctly decides the
+   !important tie - a plain .vp-curated-hidden class selector alone has lower specificity than
+   the curated set's #id selectors and would silently lose regardless of source order. */
+body[data-viewport-bucket="split50"] #header-btn-row > button#headertimerbtn.vp-curated-hidden,
+body[data-viewport-bucket="split50"] #header-btn-row > button#headercounterbtn.vp-curated-hidden,
+body[data-viewport-bucket="split50"] #header-btn-row > button#headerplaybtn.vp-curated-hidden,
+body[data-viewport-bucket="split50"] #header-btn-row > button#headerdeletebtn.vp-curated-hidden,
+body[data-viewport-bucket="split50"] #header-btn-row > button#headerbiggerbtn.vp-curated-hidden,
+body[data-viewport-bucket="split50"] #header-btn-row > button#headerswapbtn.vp-curated-hidden,
+body[data-viewport-bucket="split50"] #header-btn-row > button#headerpipbtn.vp-curated-hidden,
+body[data-viewport-bucket="split50"] #header-btn-row > button#headertouchbtn.vp-curated-hidden,
+body[data-viewport-bucket="split25"] #header-btn-row > button#headertimerbtn.vp-curated-hidden,
+body[data-viewport-bucket="split25"] #header-btn-row > button#headercounterbtn.vp-curated-hidden,
+body[data-viewport-bucket="split25"] #header-btn-row > button#headerplaybtn.vp-curated-hidden,
+body[data-viewport-bucket="split25"] #header-btn-row > button#headerdeletebtn.vp-curated-hidden,
+body[data-viewport-bucket="split25"] #header-btn-row > button#headerbiggerbtn.vp-curated-hidden,
+body[data-viewport-bucket="split25"] #header-btn-row > button#headerswapbtn.vp-curated-hidden,
+body[data-viewport-bucket="split25"] #header-btn-row > button#headerpipbtn.vp-curated-hidden,
+body[data-viewport-bucket="split25"] #header-btn-row > button#headertouchbtn.vp-curated-hidden {
+	display: none !important;
+}
 /* 50% vertical alignment option: stacks input rows vertically instead of the normal horizontal flow. */
 body[data-viewport-bucket="split50"][data-split-alignment="vertical"] #input-footer .grid {
 	grid-template-columns: 1fr !important;

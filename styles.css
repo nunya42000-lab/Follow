@@ -781,12 +781,12 @@ body.theme-is-light .text-yellow-400 { color: #854d0e; }
 		box-sizing: border-box !important;
 	}
 
-/* At 50%/25% split-screen widths, only a curated subset of header buttons fit/matter.
+/* At 50%/33% split-screen widths, only a curated subset of header buttons fit/matter.
    These rules hide everything else in #header-btn-row while that bucket is active - visibility
    toggles in Settings still control whether a button is eligible to show at all; this just
    additionally narrows that set down for the cramped split-screen buckets. */
 body[data-viewport-bucket="split50"] #header-btn-row > button,
-body[data-viewport-bucket="split25"] #header-btn-row > button {
+body[data-viewport-bucket="split33"] #header-btn-row > button {
 	display: none !important;
 }
 body[data-viewport-bucket="split50"] #header-btn-row > button#headertimerbtn,
@@ -797,14 +797,14 @@ body[data-viewport-bucket="split50"] #header-btn-row > button#headerbiggerbtn,
 body[data-viewport-bucket="split50"] #header-btn-row > button#headerswapbtn,
 body[data-viewport-bucket="split50"] #header-btn-row > button#headerpipbtn,
 body[data-viewport-bucket="split50"] #header-btn-row > button#headertouchbtn,
-body[data-viewport-bucket="split25"] #header-btn-row > button#headertimerbtn,
-body[data-viewport-bucket="split25"] #header-btn-row > button#headercounterbtn,
-body[data-viewport-bucket="split25"] #header-btn-row > button#headerplaybtn,
-body[data-viewport-bucket="split25"] #header-btn-row > button#headerdeletebtn,
-body[data-viewport-bucket="split25"] #header-btn-row > button#headerbiggerbtn,
-body[data-viewport-bucket="split25"] #header-btn-row > button#headerswapbtn,
-body[data-viewport-bucket="split25"] #header-btn-row > button#headerpipbtn,
-body[data-viewport-bucket="split25"] #header-btn-row > button#headertouchbtn {
+body[data-viewport-bucket="split33"] #header-btn-row > button#headertimerbtn,
+body[data-viewport-bucket="split33"] #header-btn-row > button#headercounterbtn,
+body[data-viewport-bucket="split33"] #header-btn-row > button#headerplaybtn,
+body[data-viewport-bucket="split33"] #header-btn-row > button#headerdeletebtn,
+body[data-viewport-bucket="split33"] #header-btn-row > button#headerbiggerbtn,
+body[data-viewport-bucket="split33"] #header-btn-row > button#headerswapbtn,
+body[data-viewport-bucket="split33"] #header-btn-row > button#headerpipbtn,
+body[data-viewport-bucket="split33"] #header-btn-row > button#headertouchbtn {
 	display: flex !important;
 }
 /* Per-viewport header button selection (Landscape/Split Screen configure modal checklist):
@@ -821,21 +821,21 @@ body[data-viewport-bucket="split50"] #header-btn-row > button#headerbiggerbtn.vp
 body[data-viewport-bucket="split50"] #header-btn-row > button#headerswapbtn.vp-curated-hidden,
 body[data-viewport-bucket="split50"] #header-btn-row > button#headerpipbtn.vp-curated-hidden,
 body[data-viewport-bucket="split50"] #header-btn-row > button#headertouchbtn.vp-curated-hidden,
-body[data-viewport-bucket="split25"] #header-btn-row > button#headertimerbtn.vp-curated-hidden,
-body[data-viewport-bucket="split25"] #header-btn-row > button#headercounterbtn.vp-curated-hidden,
-body[data-viewport-bucket="split25"] #header-btn-row > button#headerplaybtn.vp-curated-hidden,
-body[data-viewport-bucket="split25"] #header-btn-row > button#headerdeletebtn.vp-curated-hidden,
-body[data-viewport-bucket="split25"] #header-btn-row > button#headerbiggerbtn.vp-curated-hidden,
-body[data-viewport-bucket="split25"] #header-btn-row > button#headerswapbtn.vp-curated-hidden,
-body[data-viewport-bucket="split25"] #header-btn-row > button#headerpipbtn.vp-curated-hidden,
-body[data-viewport-bucket="split25"] #header-btn-row > button#headertouchbtn.vp-curated-hidden {
+body[data-viewport-bucket="split33"] #header-btn-row > button#headertimerbtn.vp-curated-hidden,
+body[data-viewport-bucket="split33"] #header-btn-row > button#headercounterbtn.vp-curated-hidden,
+body[data-viewport-bucket="split33"] #header-btn-row > button#headerplaybtn.vp-curated-hidden,
+body[data-viewport-bucket="split33"] #header-btn-row > button#headerdeletebtn.vp-curated-hidden,
+body[data-viewport-bucket="split33"] #header-btn-row > button#headerbiggerbtn.vp-curated-hidden,
+body[data-viewport-bucket="split33"] #header-btn-row > button#headerswapbtn.vp-curated-hidden,
+body[data-viewport-bucket="split33"] #header-btn-row > button#headerpipbtn.vp-curated-hidden,
+body[data-viewport-bucket="split33"] #header-btn-row > button#headertouchbtn.vp-curated-hidden {
 	display: none !important;
 }
 /* 50% vertical alignment option: stacks input rows vertically instead of the normal horizontal flow. */
 body[data-viewport-bucket="split50"][data-split-alignment="vertical"] #input-footer .grid {
 	grid-template-columns: 1fr !important;
 }
-/* PiP-sequence-only mode: at 50%/25% with PiP active, the sequence is shown ONLY in the PiP
+/* PiP-sequence-only mode: at 50%/33% with PiP active, the sequence is shown ONLY in the PiP
    popup (which renders independently via canvas in drawPipFrame) - the main screen keeps just
    the inputs, freeing up the cramped split-screen space entirely for interaction. */
 body.pip-sequence-only #sequence-container {

@@ -668,9 +668,9 @@ const DEFAULT_APP = {
 	// modal - see getEffectiveHeaderScale() etc. below for the fallback-to-global resolution.
 	viewportProfiles: {
 		landscape: { uiScale: 100, seqSize: 100, rowMax: 'none', headerButtons: [] },
-		split75: { uiScale: 100, seqSize: 100, rowMax: 'none', headerButtons: [] },
+		split66: { uiScale: 100, seqSize: 100, rowMax: 'none', headerButtons: [] },
 		split50: { uiScale: 100, seqSize: 100, rowMax: 'none', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
-		split25: { uiScale: 100, seqSize: 100, rowMax: 'none', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }
+		split33: { uiScale: 100, seqSize: 100, rowMax: 'none', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }
 	},
 	pipMachineIndex: null,
 	ecoModeConfig: {
@@ -5468,6 +5468,21 @@ function loadState() {
 			Object.values(appSettings.profiles || {}).forEach(p => {
 					if (p && p.settings) p.settings.pauseSetting = migratePause(p.settings.pauseSetting);
 			});
+			// The split-screen buckets were originally (incorrectly) modeled as 75%/50%/25% of
+			// the screen; real split-screen (Android and most OSes) only ever snaps to
+			// 66%/50%/33%, so the buckets were renamed split75->split66 and split25->split33 to
+			// match reality. Carry forward any customization saved under the old names rather
+			// than letting the orphan-pruning below silently discard it.
+			if (appSettings.viewportProfiles) {
+				if (appSettings.viewportProfiles.split75 && !appSettings.viewportProfiles.split66) {
+					appSettings.viewportProfiles.split66 = appSettings.viewportProfiles.split75;
+				}
+				if (appSettings.viewportProfiles.split25 && !appSettings.viewportProfiles.split33) {
+					appSettings.viewportProfiles.split33 = appSettings.viewportProfiles.split25;
+				}
+				delete appSettings.viewportProfiles.split75;
+				delete appSettings.viewportProfiles.split25;
+			}
 			const pruneOrphaned = (obj, schema) => {
 				if (!obj || !schema) return;
 				Object.keys(obj).forEach(k => { if (!(k in schema)) delete obj[k]; });
@@ -5493,7 +5508,7 @@ function loadState() {
 			// before a newer per-viewport setting like headerButtons/rowMax existed) keeps that
 			// entire old object verbatim - new keys never get backfilled, silently reappearing as
 			// "missing"/empty (e.g. an empty headerButtons array making every curated header button
-			// vanish at 50%/25% even though the person never touched that setting). Fill in any
+			// vanish at 50%/33% even though the person never touched that setting). Fill in any
 			// bucket or key absent from their saved profile with the current default, and leave
 			// every key they've actually customized untouched.
 			if (!appSettings.viewportProfiles || typeof appSettings.viewportProfiles !== 'object') {
@@ -5510,7 +5525,7 @@ function loadState() {
 							return;
 						}
 						// headerButtons specifically: an empty array is never a real user choice
-						// (nobody wants zero header buttons available at 50%/25%) - it only happens
+						// (nobody wants zero header buttons available at 50%/33%) - it only happens
 						// when the key existed under an older schema before this list was populated.
 						// Treat it as unset and backfill, same as a missing key, for this field only.
 						if (key === 'headerButtons' && Array.isArray(appSettings.viewportProfiles[bucket][key]) && appSettings.viewportProfiles[bucket][key].length === 0 && DEFAULT_APP.viewportProfiles[bucket][key].length > 0) {
@@ -5801,7 +5816,7 @@ window.grantAllPermissions = async function() {
 function detectViewportBucket() {
 	// Viewport Preview mode (Landscape and Split Screen configure modal): the iframe is asked
 	// to pretend to be a specific bucket regardless of the real device's screen/window ratio,
-	// so the person can preview split50/split25 etc without physically resizing their window.
+	// so the person can preview split50/split33 etc without physically resizing their window.
 	if (window.__vpPreviewForceBucket) return window.__vpPreviewForceBucket;
 	const screenW = (window.screen && window.screen.width) ? window.screen.width : window.innerWidth;
 	const screenH = (window.screen && window.screen.height) ? window.screen.height : window.innerHeight;
@@ -5813,10 +5828,14 @@ function detectViewportBucket() {
 	const deviceIsLandscape = screenW >= screenH;
 	if (!deviceIsLandscape) return 'portrait';
 	const ratio = screenW > 0 ? (window.innerWidth / screenW) : 1;
+	// Real split-screen (Android and most OSes) only ever snaps the divider to thirds and half -
+	// approximately 33%/50%/66% of the screen - never 25%/75%. The boundaries below sit at the
+	// midpoints between those three actual snap points (~42% and ~58%), so whichever one the OS
+	// actually landed on gets bucketed correctly regardless of minor rendering/rounding variance.
 	if (ratio >= 0.92) return 'landscape';
-	if (ratio >= 0.6) return 'split75';
-	if (ratio >= 0.35) return 'split50';
-	return 'split25';
+	if (ratio >= 0.58) return 'split66';
+	if (ratio >= 0.42) return 'split50';
+	return 'split33';
 }
 function getViewportProfile() {
 	const bucket = document.body.dataset.viewportBucket;
@@ -5858,21 +5877,21 @@ function getEffectiveInputAreaPct() {
 }
 function syncPipSequenceOnlyMode() {
 	const bucket = document.body.dataset.viewportBucket;
-	const isSplitSmall = bucket === 'split50' || bucket === 'split25';
+	const isSplitSmall = bucket === 'split50' || bucket === 'split33';
 	const pipActive = !!document.pictureInPictureElement;
 	document.body.classList.toggle('pip-sequence-only', isSplitSmall && pipActive);
 }
 // Maps the curated header-button ids used in the Landscape/Split Screen configure modal's
 // checklist to their actual DOM element ids, so the person's per-viewport selection can
 // actually gate visibility (previously the checklist wrote appSettings.viewportProfiles[bucket]
-// .headerButtons but nothing read it - the 50%/25% curated set was hardcoded in CSS instead).
+// .headerButtons but nothing read it - the 50%/33% curated set was hardcoded in CSS instead).
 const VP_HEADER_BUTTON_ID_MAP = {
 	timer: 'headertimerbtn', counter: 'headercounterbtn', play: 'headerplaybtn',
 	delete: 'headerdeletebtn', bigger: 'headerbiggerbtn', swap: 'headerswapbtn',
 	pip: 'headerpipbtn', touch: 'headertouchbtn'
 };
 function applyViewportHeaderButtonCuration(bucket) {
-	const isCurated = bucket === 'split50' || bucket === 'split25';
+	const isCurated = bucket === 'split50' || bucket === 'split33';
 	Object.keys(VP_HEADER_BUTTON_ID_MAP).forEach(curatedId => {
 		const el = document.getElementById(VP_HEADER_BUTTON_ID_MAP[curatedId]);
 		if (!el) return;
@@ -5889,7 +5908,7 @@ function applyViewportHeaderButtonCuration(bucket) {
 }
 function applyLandscapeInputWidth() {
 	const bucket = document.body.dataset.viewportBucket;
-	const isLandscapeFamily = bucket === 'landscape' || bucket === 'split75' || bucket === 'split50' || bucket === 'split25';
+	const isLandscapeFamily = bucket === 'landscape' || bucket === 'split66' || bucket === 'split50' || bucket === 'split33';
 	const landscapeEnabled = isLandscapeFamily ? getEffectiveInputAreaEnabled() : !!appSettings.isLandscapeInputResizeEnabled;
 	document.body.classList.toggle('landscape-resize-enabled', !!landscapeEnabled || (bucket === 'portrait' && !!appSettings.isLandscapeInputResizeEnabled));
 	if (isLandscapeFamily) {
@@ -6206,7 +6225,7 @@ function applyPositionSwapOffsets(isActive) {
 	// falling back to portrait's "move footer to top with measured padding" math, which breaks
 	// badly against a footer that's much taller than the sliver of height actually available.
 	const viewportBucket = document.body.dataset.viewportBucket;
-	const isSplitBucket = viewportBucket === 'landscape' || viewportBucket === 'split75' || viewportBucket === 'split50' || viewportBucket === 'split25';
+	const isSplitBucket = viewportBucket === 'landscape' || viewportBucket === 'split66' || viewportBucket === 'split50' || viewportBucket === 'split33';
 	const isLandscape = window.matchMedia('(orientation: landscape)').matches || isSplitBucket;
 	const inputMode = document.body.dataset.inputMode;
 	const sideRepositioned = isLandscape && (inputMode === 'key9' || inputMode === 'key12');
@@ -8258,9 +8277,9 @@ let viewportConfigState = { configBucket: null, tempSettings: {}, activeTab: 'la
 
 // Real screen ratio bands, matching detectViewportBucket() exactly, so the iframe's pixel
 // width corresponds to what that bucket actually looks like on this device.
-const VP_BUCKET_RATIO = { landscape: 1.0, split75: 0.75, split50: 0.5, split25: 0.3 };
+const VP_BUCKET_RATIO = { landscape: 1.0, split66: 0.66, split50: 0.5, split33: 0.33 };
 
-// Curated header buttons available at 50%/25% - matches the memory spec:
+// Curated header buttons available at 50%/33% - matches the memory spec:
 // Timer, Counter, Play, Delete, Bigger Buttons, Swap Position, PiP, Touch Gestures
 const VP_CURATED_HEADER_BUTTONS = [
 	{ id: 'timer', label: '⏱️ Timer' },
@@ -8377,7 +8396,7 @@ if (!window.__vpResizeListenerBound) {
 }
 
 function initViewportProfilesUI() {
-	const buckets = ['landscape', 'split75', 'split50', 'split25'];
+	const buckets = ['landscape', 'split66', 'split50', 'split33'];
 	const tabBtns = {};
 	const panels = {};
 	buckets.forEach(b => {
@@ -8394,11 +8413,11 @@ function initViewportProfilesUI() {
 		if (!screen || !headerEl || !seqEl || !inputsEl) return;
 		const bucket = viewportConfigState.activeTab;
 		const profile = (appSettings.viewportProfiles && appSettings.viewportProfiles[bucket]) || { uiScale: 100, seqSize: 100 };
-		const widthByBucket = { landscape: 220, split75: 176, split50: 120, split25: 64 };
+		const widthByBucket = { landscape: 220, split66: 176, split50: 120, split33: 64 };
 		screen.style.width = (widthByBucket[bucket] || 220) + 'px';
 		screen.style.height = '124px';
 		headerEl.innerHTML = '';
-		const dotCount = (bucket === 'split50' || bucket === 'split25') ? 8 : 12;
+		const dotCount = (bucket === 'split50' || bucket === 'split33') ? 8 : 12;
 		for (let i = 0; i < dotCount; i++) {
 			const dot = document.createElement('div');
 			dot.style.cssText = 'width:6px;height:6px;border-radius:50%;background:#4b5563;flex-shrink:0;';
@@ -8633,7 +8652,7 @@ function initViewportProfilesUI() {
 		], 'inherit');
 		inheritNote('Button Size');
 
-		// --- Adjust Input Area (landscape/split75/50/25 only - portrait has its own separate
+		// --- Adjust Input Area (landscape/split66/50/25 only - portrait has its own separate
 		// global-only version of this feature since it isn't part of viewportProfiles) ---
 		sectionLabel('Adjust Input Area');
 		const inputAreaToggleWrap = document.createElement('label');
@@ -8670,8 +8689,8 @@ function initViewportProfilesUI() {
 			], 'horizontal');
 		}
 
-		// --- Picture-in-Picture (split50/split25 only) ---
-		if (bucket === 'split50' || bucket === 'split25') {
+		// --- Picture-in-Picture (split50/split33 only) ---
+		if (bucket === 'split50' || bucket === 'split33') {
 			sectionLabel('Picture-in-Picture');
 			const settings = (typeof getProfileSettings === 'function') ? getProfileSettings() : null;
 			const machineCount = (settings && settings.machineCount) || 1;
@@ -8684,8 +8703,8 @@ function initViewportProfilesUI() {
 			settingsDiv.appendChild(note);
 		}
 
-		// --- Header Buttons (split50/split25 only - curated set) ---
-		if (bucket === 'split50' || bucket === 'split25') {
+		// --- Header Buttons (split50/split33 only - curated set) ---
+		if (bucket === 'split50' || bucket === 'split33') {
 			sectionLabel('Header Buttons');
 			const note = document.createElement('p');
 			note.style.cssText = 'color: #888; font-size: 10px; margin: -2px 0 8px;';
@@ -8718,8 +8737,8 @@ function initViewportProfilesUI() {
 			});
 		}
 
-		// --- Infinite scroll reminder (split25 only) ---
-		if (bucket === 'split25') {
+		// --- Infinite scroll reminder (split33 only) ---
+		if (bucket === 'split33') {
 			const note = document.createElement('p');
 			note.style.cssText = 'color: #888; font-size: 10px; margin: 10px 0 0;';
 			note.textContent = 'Turn on Infinite Header Scroll (General tab) so scrolling through header buttons works at this width.';
@@ -8732,7 +8751,7 @@ function initViewportProfilesUI() {
 		viewportConfigState.tempSettings = {};
 		const titleEl = document.getElementById('viewport-config-title');
 		if (titleEl) {
-			const bucketLabels = { landscape: 'Landscape', split75: '75%', split50: '50%', split25: '25%' };
+			const bucketLabels = { landscape: 'Landscape', split66: '66%', split50: '50%', split33: '33%' };
 			titleEl.textContent = 'Configure ' + (bucketLabels[bucket] || bucket);
 		}
 		renderConfigSettings();

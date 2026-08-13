@@ -8321,6 +8321,7 @@ function vpPushLiveEditsToPreview() {
 		const liveProfile = win.appSettings.viewportProfiles[bucket];
 		if (!liveProfile) return;
 		const INHERITABLE_NUMERIC_KEYS = ['headerScale', 'numberSize', 'inputFontSize', 'btnSize'];
+		const PLAIN_NUMERIC_KEYS = ['uiScale', 'seqSize'];
 		Object.keys(viewportConfigState.tempSettings).forEach(key => {
 			if (key === 'pipMachine') {
 				win.appSettings.pipMachineIndex = (viewportConfigState.tempSettings.pipMachine === 'same') ? null : parseInt(viewportConfigState.tempSettings.pipMachine, 10);
@@ -8330,6 +8331,10 @@ function vpPushLiveEditsToPreview() {
 				const raw = viewportConfigState.tempSettings[key];
 				if (raw === 'inherit') delete liveProfile[key];
 				else liveProfile[key] = parseInt(raw, 10);
+				return;
+			}
+			if (PLAIN_NUMERIC_KEYS.includes(key)) {
+				liveProfile[key] = parseInt(viewportConfigState.tempSettings[key], 10);
 				return;
 			}
 			if (key === 'inputAreaEnabled') {
@@ -8572,10 +8577,18 @@ function initViewportProfilesUI() {
 			return select;
 		};
 
-		// --- Sizing (all tabs) - ranges match the real General settings exactly ---
+		// --- Sizing (all tabs) - dropdowns match the real General settings dropdowns exactly
+		// (same option lists, same values) rather than a slider covering the same range, per
+		// explicit request: sliders let you land between the real steps, which never matches
+		// what the actual General-tab dropdown could produce. ---
 		sectionLabel('Sizing');
-		createSlider('UI Scale', 'uiScale', 50, 200, 10, '%');
-		createSlider('Sequence Size', 'seqSize', 50, 300, 10, '%');
+		const percentOptions = (min, max, step) => {
+			const opts = [];
+			for (let v = min; v <= max; v += step) opts.push({ value: String(v), text: v + '%' });
+			return opts;
+		};
+		createSelect('UI Scale', 'uiScale', percentOptions(50, 500, 10), '100');
+		createSelect('Sequence Size', 'seqSize', percentOptions(50, 300, 10), '100');
 		createSelect('Row Max', 'rowMax', [
 			{ value: 'none', text: 'None' },
 			{ value: '4', text: '4 Cards' }, { value: '5', text: '5 Cards' },
@@ -8749,6 +8762,7 @@ function initViewportProfilesUI() {
 			if (!viewportConfigState.configBucket) return;
 			const profile = appSettings.viewportProfiles[viewportConfigState.configBucket];
 			const INHERITABLE_NUMERIC_KEYS = ['headerScale', 'numberSize', 'inputFontSize', 'btnSize'];
+			const PLAIN_NUMERIC_KEYS = ['uiScale', 'seqSize'];
 			Object.keys(viewportConfigState.tempSettings).forEach(key => {
 				if (key === 'pipMachine') {
 					appSettings.pipMachineIndex = (viewportConfigState.tempSettings.pipMachine === 'same') ? null : parseInt(viewportConfigState.tempSettings.pipMachine, 10);
@@ -8761,6 +8775,10 @@ function initViewportProfilesUI() {
 					} else {
 						profile[key] = parseInt(raw, 10);
 					}
+					return;
+				}
+				if (PLAIN_NUMERIC_KEYS.includes(key)) {
+					profile[key] = parseInt(viewportConfigState.tempSettings[key], 10);
 					return;
 				}
 				if (key === 'inputAreaEnabled') {

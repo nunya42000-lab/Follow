@@ -7950,6 +7950,8 @@ function wireHeaderButtonInteractions() {
 		if (document.fullscreenElement) turnOff('headerpipbtn');
 	});
 }
+let viewportConfigState = { configBucket: null, tempSettings: {}, activeTab: 'landscape' };
+
 function initViewportProfilesUI() {
 	const buckets = ['landscape', 'split75', 'split50', 'split25'];
 	const tabBtns = {};
@@ -7958,7 +7960,7 @@ function initViewportProfilesUI() {
 		tabBtns[b] = document.getElementById('viewport-tab-btn-' + b);
 		panels[b] = document.getElementById('viewport-panel-' + b);
 	});
-	let activeTab = 'landscape';
+	viewportConfigState.activeTab = 'landscape';
 
 	function renderPreview() {
 		const screen = document.getElementById('viewport-preview-screen');
@@ -7966,7 +7968,7 @@ function initViewportProfilesUI() {
 		const seqEl = document.getElementById('viewport-preview-seq');
 		const inputsEl = document.getElementById('viewport-preview-inputs');
 		if (!screen || !headerEl || !seqEl || !inputsEl) return;
-		const bucket = activeTab;
+		const bucket = viewportConfigState.activeTab;
 		const profile = (appSettings.viewportProfiles && appSettings.viewportProfiles[bucket]) || { uiScale: 100, seqSize: 100 };
 		const widthByBucket = { landscape: 220, split75: 176, split50: 120, split25: 64 };
 		screen.style.width = (widthByBucket[bucket] || 220) + 'px';
@@ -8001,7 +8003,7 @@ function initViewportProfilesUI() {
 	}
 
 	function switchTab(bucket) {
-		activeTab = bucket;
+		viewportConfigState.activeTab = bucket;
 		buckets.forEach(b => {
 			if (tabBtns[b]) tabBtns[b].className = 'viewport-tab-btn py-2 rounded-lg text-[10px] font-bold ' + (b === bucket ? 'bg-emerald-600 text-white' : 'bg-gray-700 text-gray-300');
 			if (panels[b]) panels[b].classList.toggle('hidden', b !== bucket);
@@ -8082,23 +8084,21 @@ function initViewportProfilesUI() {
 	const configSaveBtn = document.getElementById('viewport-config-save-btn');
 	const configCancelBtn = document.getElementById('viewport-config-cancel-btn');
 	const configureBtns = document.querySelectorAll('.viewport-configure-btn');
-	let configBucket = null;
-	let tempSettings = {};
 
 	function renderConfigScreen() {
 		const screen = document.getElementById('viewport-config-screen');
 		const headerEl = document.getElementById('viewport-config-header');
 		const seqEl = document.getElementById('viewport-config-seq');
 		const inputsEl = document.getElementById('viewport-config-inputs');
-		if (!screen || !headerEl || !seqEl || !inputsEl || !configBucket) return;
-		const profile = appSettings.viewportProfiles[configBucket];
+		if (!screen || !headerEl || !seqEl || !inputsEl || !viewportConfigState.configBucket) return;
+		const profile = appSettings.viewportProfiles[viewportConfigState.configBucket];
 		const widthByBucket = { landscape: 280, split75: 224, split50: 168, split25: 112 };
 		const heightByBucket = { landscape: 180, split75: 160, split50: 140, split25: 120 };
-		screen.style.width = (widthByBucket[configBucket] || 280) + 'px';
-		screen.style.height = (heightByBucket[configBucket] || 180) + 'px';
+		screen.style.width = (widthByBucket[viewportConfigState.configBucket] || 280) + 'px';
+		screen.style.height = (heightByBucket[viewportConfigState.configBucket] || 180) + 'px';
 
 		headerEl.innerHTML = '';
-		const dotCount = (configBucket === 'split50' || configBucket === 'split25') ? 6 : 8;
+		const dotCount = (viewportConfigState.configBucket === 'split50' || viewportConfigState.configBucket === 'split25') ? 6 : 8;
 		for (let i = 0; i < dotCount; i++) {
 			const dot = document.createElement('div');
 			dot.style.cssText = 'width:4px;height:4px;border-radius:50%;background:#4b5563;flex-shrink:0;';
@@ -8106,7 +8106,7 @@ function initViewportProfilesUI() {
 		}
 
 		seqEl.innerHTML = '';
-		const seqScale = (tempSettings.seqSize || profile.seqSize || 100) / 100;
+		const seqScale = (viewportConfigState.tempSettings.seqSize || profile.seqSize || 100) / 100;
 		const bubbleSize = Math.max(4, Math.round(8 * seqScale));
 		for (let i = 0; i < 6; i++) {
 			const bubble = document.createElement('div');
@@ -8115,13 +8115,13 @@ function initViewportProfilesUI() {
 		}
 
 		inputsEl.innerHTML = '';
-		const uiScale = (tempSettings.uiScale || profile.uiScale || 100) / 100;
+		const uiScale = (viewportConfigState.tempSettings.uiScale || profile.uiScale || 100) / 100;
 		const btnW = Math.max(6, Math.round(10 * uiScale));
 		const btnH = Math.max(4, Math.round(6 * uiScale));
 		const alignSel = document.getElementById('viewport-config-alignment');
-		const isVertical = configBucket === 'split50' && alignSel && alignSel.value === 'vertical';
+		const isVertical = viewportConfigState.configBucket === 'split50' && alignSel && alignSel.value === 'vertical';
 		inputsEl.style.flexDirection = isVertical ? 'column' : 'row';
-		const btnCount = configBucket === 'split25' ? 4 : (configBucket === 'split50' ? 5 : 6);
+		const btnCount = viewportConfigState.configBucket === 'split25' ? 4 : (viewportConfigState.configBucket === 'split50' ? 5 : 6);
 		for (let i = 0; i < btnCount; i++) {
 			const btn = document.createElement('div');
 			btn.style.cssText = `width:${btnW}px;height:${btnH}px;border-radius:1px;background:#1a1a1a;border:1px solid #444;flex-shrink:0;`;
@@ -8131,8 +8131,8 @@ function initViewportProfilesUI() {
 
 	function renderConfigSettings() {
 		const settingsDiv = document.getElementById('viewport-config-settings');
-		if (!settingsDiv || !configBucket) return;
-		const profile = appSettings.viewportProfiles[configBucket];
+		if (!settingsDiv || !viewportConfigState.configBucket) return;
+		const profile = appSettings.viewportProfiles[viewportConfigState.configBucket];
 		settingsDiv.innerHTML = '';
 
 		const createSetting = (label, key, min, max, step = 1) => {
@@ -8146,14 +8146,14 @@ function initViewportProfilesUI() {
 			input.min = min;
 			input.max = max;
 			input.step = step;
-			input.value = tempSettings[key] !== undefined ? tempSettings[key] : (profile[key] || 100);
+			input.value = viewportConfigState.tempSettings[key] !== undefined ? viewportConfigState.tempSettings[key] : (profile[key] || 100);
 			input.style.cssText = 'width: 100%; cursor: pointer;';
 			const valueSpan = document.createElement('span');
 			valueSpan.style.cssText = 'display: inline-block; color: #fff; font-size: 11px; margin-left: 8px; min-width: 30px;';
 			valueSpan.textContent = input.value + '%';
 			labelEl.appendChild(valueSpan);
 			input.onchange = input.oninput = (e) => {
-				tempSettings[key] = parseInt(e.target.value);
+				viewportConfigState.tempSettings[key] = parseInt(e.target.value);
 				valueSpan.textContent = e.target.value + '%';
 				renderConfigScreen();
 			};
@@ -8165,7 +8165,7 @@ function initViewportProfilesUI() {
 		createSetting('UI Scale', 'uiScale', 50, 150, 10);
 		createSetting('Sequence Size', 'seqSize', 50, 150, 10);
 
-		if (configBucket === 'split50') {
+		if (viewportConfigState.configBucket === 'split50') {
 			const div = document.createElement('div');
 			div.style.cssText = 'margin-bottom: 12px;';
 			const labelEl = document.createElement('label');
@@ -8177,7 +8177,7 @@ function initViewportProfilesUI() {
 			select.innerHTML = '<option value="horizontal">Horizontal</option><option value="vertical">Vertical</option>';
 			select.value = profile.alignment || 'horizontal';
 			select.onchange = (e) => {
-				tempSettings.alignment = e.target.value;
+				viewportConfigState.tempSettings.alignment = e.target.value;
 				renderConfigScreen();
 			};
 			div.appendChild(labelEl);
@@ -8187,43 +8187,50 @@ function initViewportProfilesUI() {
 	}
 
 	function openConfigModal(bucket) {
-		configBucket = bucket;
-		tempSettings = {};
+		viewportConfigState.configBucket = bucket;
+		viewportConfigState.tempSettings = {};
 		const titleEl = document.getElementById('viewport-config-title');
 		if (titleEl) titleEl.textContent = 'Configure ' + (bucket.charAt(0).toUpperCase() + bucket.slice(1).replace('split', ''));
 		renderConfigSettings();
 		renderConfigScreen();
-		configModal.style.opacity = '1';
-		configModal.style.pointerEvents = 'auto';
+		if (configModal) {
+			configModal.style.opacity = '1';
+			configModal.style.pointerEvents = 'auto';
+		}
 	}
 
 	function closeConfigModal() {
-		configModal.style.opacity = '0';
-		configModal.style.pointerEvents = 'none';
-		configBucket = null;
-		tempSettings = {};
+		if (configModal) {
+			configModal.style.opacity = '0';
+			configModal.style.pointerEvents = 'none';
+		}
+		viewportConfigState.configBucket = null;
+		viewportConfigState.tempSettings = {};
+	}
+
+	if (configCancelBtn) configCancelBtn.onclick = closeConfigModal;
+	if (configSaveBtn) {
+		configSaveBtn.onclick = () => {
+			if (!viewportConfigState.configBucket) return;
+			const profile = appSettings.viewportProfiles[viewportConfigState.configBucket];
+			Object.keys(viewportConfigState.tempSettings).forEach(key => {
+				profile[key] = viewportConfigState.tempSettings[key];
+			});
+			saveState();
+			if (typeof applyViewportProfile === 'function') applyViewportProfile();
+			renderPreview();
+			loadDropdowns();
+			closeConfigModal();
+		};
 	}
 
 	configureBtns.forEach(btn => {
+		if (!btn) return;
 		btn.onclick = () => {
 			const bucket = btn.dataset.bucket;
-			if (bucket) openConfigModal(bucket);
+			if (bucket && configModal) openConfigModal(bucket);
 		};
 	});
-
-	configCancelBtn.onclick = closeConfigModal;
-	configSaveBtn.onclick = () => {
-		if (!configBucket) return;
-		const profile = appSettings.viewportProfiles[configBucket];
-		Object.keys(tempSettings).forEach(key => {
-			profile[key] = tempSettings[key];
-		});
-		saveState();
-		if (typeof applyViewportProfile === 'function') applyViewportProfile();
-		renderPreview();
-		loadDropdowns();
-		closeConfigModal();
-	};
 }
 const startApp = async () => {
 	loadState();

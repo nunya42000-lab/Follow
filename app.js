@@ -661,16 +661,18 @@ const DEFAULT_APP = {
 	appInputFontScale: 100,
 	appInputBtnScale: 100,
 	appRowMax: 'none',
-	// viewportProfiles[bucket] additionally supports these OPTIONAL override keys, all omitted
-	// by default (meaning "inherit the matching global setting"): headerScale, numberSize,
-	// inputFontSize, btnSize, inputAreaEnabled, inputAreaPct. They're only written once the
-	// person sets an explicit override for that bucket via the Landscape/Split Screen configure
-	// modal - see getEffectiveHeaderScale() etc. below for the fallback-to-global resolution.
+	// Every bucket has fully independent sizing - uiScale, seqSize, headerScale, numberSize,
+	// inputFontSize, btnSize are always present (never fall back to the matching General-tab
+	// global setting). This is deliberate: landscape and each split bucket are meant to be
+	// configured entirely on their own terms via their own settings modal, so changing General
+	// settings' UI Scale/Number Size/etc must never silently move landscape's or a split bucket's
+	// layout. Portrait remains the only context that still uses the General-tab globals directly
+	// (see getViewportProfile()'s early return for 'portrait' - it was never part of this system).
 	viewportProfiles: {
-		landscape: { uiScale: 100, seqSize: 100, rowMax: 'none', headerButtons: [] },
-		split66: { uiScale: 100, seqSize: 100, rowMax: 'none', headerButtons: [] },
-		split50: { uiScale: 100, seqSize: 100, rowMax: 'none', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
-		split33: { uiScale: 100, seqSize: 100, rowMax: 'none', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }
+		landscape: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', headerButtons: [] },
+		split66: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', headerButtons: [] },
+		split50: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
+		split33: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }
 	},
 	pipMachineIndex: null,
 	ecoModeConfig: {
@@ -5844,27 +5846,27 @@ function getViewportProfile() {
 }
 function getEffectiveGlobalUiScale() {
 	const vp = getViewportProfile();
-	return vp ? (vp.uiScale || 100) : (appSettings.globalUiScale || 100);
+	return vp ? vp.uiScale : (appSettings.globalUiScale || 100);
 }
 function getEffectiveSeqScaleMultiplier() {
 	const vp = getViewportProfile();
-	return vp ? (vp.seqSize || 100) / 100 : (appSettings.uiScaleMultiplier || 1.0);
+	return vp ? vp.seqSize / 100 : (appSettings.uiScaleMultiplier || 1.0);
 }
 function getEffectiveHeaderScale() {
 	const vp = getViewportProfile();
-	return (vp && vp.headerScale !== undefined && vp.headerScale !== null) ? vp.headerScale : (appSettings.headerIconScale || 100);
+	return vp ? vp.headerScale : (appSettings.headerIconScale || 100);
 }
 function getEffectiveNumberSize() {
 	const vp = getViewportProfile();
-	return (vp && vp.numberSize !== undefined && vp.numberSize !== null) ? vp.numberSize : Math.round((appSettings.uiFontSizeMultiplier || 2.5) * 100);
+	return vp ? vp.numberSize : Math.round((appSettings.uiFontSizeMultiplier || 2.5) * 100);
 }
 function getEffectiveInputFontSize() {
 	const vp = getViewportProfile();
-	return (vp && vp.inputFontSize !== undefined && vp.inputFontSize !== null) ? vp.inputFontSize : (appSettings.appInputFontScale || 100);
+	return vp ? vp.inputFontSize : (appSettings.appInputFontScale || 100);
 }
 function getEffectiveInputBtnSize() {
 	const vp = getViewportProfile();
-	return (vp && vp.btnSize !== undefined && vp.btnSize !== null) ? vp.btnSize : (appSettings.appInputBtnScale || 100);
+	return vp ? vp.btnSize : (appSettings.appInputBtnScale || 100);
 }
 function getEffectiveInputAreaEnabled() {
 	const vp = getViewportProfile();
@@ -7374,7 +7376,7 @@ function initGlobalListeners() {
 		const headerPlay = document.getElementById('headerplaybtn');
 		if (headerPlay) headerPlay.onclick = () => playDemo();
 		const headerSettingsBtn = document.getElementById('headersettingsbtn');
-		if (headerSettingsBtn) headerSettingsBtn.onclick = () => { if (modules.settings) modules.settings.openSettings(); };
+		if (headerSettingsBtn) headerSettingsBtn.onclick = () => { if (typeof openOrientationSettings === 'function') openOrientationSettings(); };
 		const headerRedeem = document.getElementById('headerredeembtn');
 		if (headerRedeem) headerRedeem.onclick = () => { if (modules.settings) modules.settings.toggleRedeem(true); };
 		const headerShare = document.getElementById('headersharebtn');
@@ -8273,6 +8275,73 @@ function wireHeaderButtonInteractions() {
 		});
 	}
 }
+// Shared UI-builder helpers for both the full (landscape/split66) and mini (split50/split33)
+// viewport configure modals - parameterized by target container div and a state object so
+// each modal's own tempSettings/profile stay isolated while reusing the same rendering logic.
+function vpMakeSectionLabel(container, text) {
+	const el = document.createElement('div');
+	el.style.cssText = 'color: #6366f1; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin: 14px 0 8px; border-top: 1px solid #333; padding-top: 12px;';
+	el.textContent = text;
+	container.appendChild(el);
+}
+function vpMakeSlider(container, tempSettings, profile, onChange, label, key, min, max, step, suffix, fallback) {
+	const div = document.createElement('div');
+	div.style.cssText = 'margin-bottom: 12px;';
+	const labelEl = document.createElement('label');
+	labelEl.style.cssText = 'display: block; color: #aaa; font-size: 11px; font-weight: bold; margin-bottom: 4px;';
+	labelEl.textContent = label;
+	const input = document.createElement('input');
+	input.type = 'range';
+	input.min = min;
+	input.max = max;
+	input.step = step;
+	const curVal = tempSettings[key] !== undefined ? tempSettings[key] : (profile[key] !== undefined ? profile[key] : (fallback !== undefined ? fallback : min));
+	input.value = curVal;
+	input.style.cssText = 'width: 100%; cursor: pointer;';
+	const valueSpan = document.createElement('span');
+	valueSpan.style.cssText = 'display: inline-block; color: #fff; font-size: 11px; margin-left: 8px; min-width: 30px;';
+	valueSpan.textContent = curVal + suffix;
+	labelEl.appendChild(valueSpan);
+	input.onchange = input.oninput = (e) => {
+		tempSettings[key] = parseInt(e.target.value);
+		valueSpan.textContent = e.target.value + suffix;
+		onChange();
+	};
+	div.appendChild(labelEl);
+	div.appendChild(input);
+	container.appendChild(div);
+	return input;
+}
+function vpMakeSelect(container, tempSettings, profile, onChange, label, key, options, defaultVal) {
+	const div = document.createElement('div');
+	div.style.cssText = 'margin-bottom: 12px;';
+	const labelEl = document.createElement('label');
+	labelEl.style.cssText = 'display: block; color: #aaa; font-size: 11px; font-weight: bold; margin-bottom: 4px;';
+	labelEl.textContent = label;
+	const select = document.createElement('select');
+	select.style.cssText = 'width: 100%; padding: 6px; background: #2a2a2a; color: #fff; border: 1px solid #444; border-radius: 4px; font-size: 11px;';
+	options.forEach(opt => {
+		const o = document.createElement('option');
+		o.value = opt.value;
+		o.textContent = opt.text;
+		select.appendChild(o);
+	});
+	const curVal = tempSettings[key] !== undefined ? tempSettings[key] : (profile[key] !== undefined ? profile[key] : defaultVal);
+	select.value = curVal;
+	select.onchange = (e) => {
+		tempSettings[key] = e.target.value;
+		onChange();
+	};
+	div.appendChild(labelEl);
+	div.appendChild(select);
+	container.appendChild(div);
+	return select;
+}
+function vpPercentOptions(min, max, step) {
+	const opts = [];
+	for (let v = min; v <= max; v += step) opts.push({ value: String(v), text: v + '%' });
+	return opts;
+}
 let viewportConfigState = { configBucket: null, tempSettings: {}, activeTab: 'landscape' };
 
 // Real screen ratio bands, matching detectViewportBucket() exactly, so the iframe's pixel
@@ -8339,20 +8408,13 @@ function vpPushLiveEditsToPreview() {
 		const bucket = viewportConfigState.configBucket;
 		const liveProfile = win.appSettings.viewportProfiles[bucket];
 		if (!liveProfile) return;
-		const INHERITABLE_NUMERIC_KEYS = ['headerScale', 'numberSize', 'inputFontSize', 'btnSize'];
-		const PLAIN_NUMERIC_KEYS = ['uiScale', 'seqSize'];
+		const NUMERIC_KEYS = ['headerScale', 'numberSize', 'inputFontSize', 'btnSize', 'uiScale', 'seqSize'];
 		Object.keys(viewportConfigState.tempSettings).forEach(key => {
 			if (key === 'pipMachine') {
 				win.appSettings.pipMachineIndex = (viewportConfigState.tempSettings.pipMachine === 'same') ? null : parseInt(viewportConfigState.tempSettings.pipMachine, 10);
 				return;
 			}
-			if (INHERITABLE_NUMERIC_KEYS.includes(key)) {
-				const raw = viewportConfigState.tempSettings[key];
-				if (raw === 'inherit') delete liveProfile[key];
-				else liveProfile[key] = parseInt(raw, 10);
-				return;
-			}
-			if (PLAIN_NUMERIC_KEYS.includes(key)) {
+			if (NUMERIC_KEYS.includes(key)) {
 				liveProfile[key] = parseInt(viewportConfigState.tempSettings[key], 10);
 				return;
 			}
@@ -8535,79 +8597,19 @@ function initViewportProfilesUI() {
 		const profile = appSettings.viewportProfiles[bucket];
 		settingsDiv.innerHTML = '';
 
-		const sectionLabel = (text) => {
-			const el = document.createElement('div');
-			el.style.cssText = 'color: #6366f1; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin: 14px 0 8px; border-top: 1px solid #333; padding-top: 12px;';
-			el.textContent = text;
-			settingsDiv.appendChild(el);
-		};
-
-		const createSlider = (label, key, min, max, step, suffix, fallback) => {
-			const div = document.createElement('div');
-			div.style.cssText = 'margin-bottom: 12px;';
-			const labelEl = document.createElement('label');
-			labelEl.style.cssText = 'display: block; color: #aaa; font-size: 11px; font-weight: bold; margin-bottom: 4px;';
-			labelEl.textContent = label;
-			const input = document.createElement('input');
-			input.type = 'range';
-			input.min = min;
-			input.max = max;
-			input.step = step;
-			const curVal = viewportConfigState.tempSettings[key] !== undefined ? viewportConfigState.tempSettings[key] : (profile[key] !== undefined ? profile[key] : (fallback !== undefined ? fallback : min));
-			input.value = curVal;
-			input.style.cssText = 'width: 100%; cursor: pointer;';
-			const valueSpan = document.createElement('span');
-			valueSpan.style.cssText = 'display: inline-block; color: #fff; font-size: 11px; margin-left: 8px; min-width: 30px;';
-			valueSpan.textContent = curVal + suffix;
-			labelEl.appendChild(valueSpan);
-			input.onchange = input.oninput = (e) => {
-				viewportConfigState.tempSettings[key] = parseInt(e.target.value);
-				valueSpan.textContent = e.target.value + suffix;
-				vpRenderConfigScreen();
-			};
-			div.appendChild(labelEl);
-			div.appendChild(input);
-			settingsDiv.appendChild(div);
-		};
-
-		const createSelect = (label, key, options, defaultVal) => {
-			const div = document.createElement('div');
-			div.style.cssText = 'margin-bottom: 12px;';
-			const labelEl = document.createElement('label');
-			labelEl.style.cssText = 'display: block; color: #aaa; font-size: 11px; font-weight: bold; margin-bottom: 4px;';
-			labelEl.textContent = label;
-			const select = document.createElement('select');
-			select.style.cssText = 'width: 100%; padding: 6px; background: #2a2a2a; color: #fff; border: 1px solid #444; border-radius: 4px; font-size: 11px;';
-			options.forEach(opt => {
-				const o = document.createElement('option');
-				o.value = opt.value;
-				o.textContent = opt.text;
-				select.appendChild(o);
-			});
-			const curVal = viewportConfigState.tempSettings[key] !== undefined ? viewportConfigState.tempSettings[key] : (profile[key] !== undefined ? profile[key] : defaultVal);
-			select.value = curVal;
-			select.onchange = (e) => {
-				viewportConfigState.tempSettings[key] = e.target.value;
-				vpRenderConfigScreen();
-			};
-			div.appendChild(labelEl);
-			div.appendChild(select);
-			settingsDiv.appendChild(div);
-			return select;
-		};
+		const sectionLabel = (text) => vpMakeSectionLabel(settingsDiv, text);
+		const createSlider = (label, key, min, max, step, suffix, fallback) =>
+			vpMakeSlider(settingsDiv, viewportConfigState.tempSettings, profile, vpRenderConfigScreen, label, key, min, max, step, suffix, fallback);
+		const createSelect = (label, key, options, defaultVal) =>
+			vpMakeSelect(settingsDiv, viewportConfigState.tempSettings, profile, vpRenderConfigScreen, label, key, options, defaultVal);
 
 		// --- Sizing (all tabs) - dropdowns match the real General settings dropdowns exactly
 		// (same option lists, same values) rather than a slider covering the same range, per
 		// explicit request: sliders let you land between the real steps, which never matches
 		// what the actual General-tab dropdown could produce. ---
 		sectionLabel('Sizing');
-		const percentOptions = (min, max, step) => {
-			const opts = [];
-			for (let v = min; v <= max; v += step) opts.push({ value: String(v), text: v + '%' });
-			return opts;
-		};
-		createSelect('UI Scale', 'uiScale', percentOptions(50, 500, 10), '100');
-		createSelect('Sequence Size', 'seqSize', percentOptions(50, 300, 10), '100');
+		createSelect('UI Scale', 'uiScale', vpPercentOptions(50, 500, 10), '100');
+		createSelect('Sequence Size', 'seqSize', vpPercentOptions(50, 300, 10), '100');
 		createSelect('Row Max', 'rowMax', [
 			{ value: 'none', text: 'None' },
 			{ value: '4', text: '4 Cards' }, { value: '5', text: '5 Cards' },
@@ -8616,41 +8618,24 @@ function initViewportProfilesUI() {
 			{ value: '12', text: '12 Cards' }, { value: '15', text: '15 Cards' }
 		], profile.rowMax || 'none');
 
-		// --- Text & Button Sizing (all tabs) - per-bucket overrides for the same controls that
-		// live in General settings globally. Each defaults to inheriting the global value
-		// (option value 'inherit') until the person picks an explicit override for this bucket. ---
+		// --- Text & Button Sizing (all tabs) - every bucket has its OWN independent value here,
+		// entirely separate from the matching General-tab global setting (landscape and each
+		// split bucket are meant to be configured on their own terms; changing General settings
+		// never moves these). No "inherit" option - there's always a real per-bucket value. ---
 		sectionLabel('Header, Number & Button Sizing');
-		const inheritNote = (label) => {
-			const p = document.createElement('p');
-			p.style.cssText = 'color: #666; font-size: 9px; margin: -8px 0 10px;';
-			p.textContent = `"Inherit" follows the global ${label} setting (General tab).`;
-			settingsDiv.appendChild(p);
-		};
-		createSelect('Header Size', 'headerScale', [
-			{ value: 'inherit', text: 'Inherit (Global)' },
-			{ value: '70', text: '70%' }, { value: '80', text: '80%' }, { value: '90', text: '90%' },
-			{ value: '100', text: '100%' }, { value: '110', text: '110%' }, { value: '120', text: '120%' },
-			{ value: '130', text: '130%' }, { value: '140', text: '140%' }, { value: '150', text: '150%' }
-		], 'inherit');
-		inheritNote('Header Size');
+		createSelect('Header Size', 'headerScale', vpPercentOptions(70, 150, 10), '100');
 		createSelect('Number Size', 'numberSize', [
-			{ value: 'inherit', text: 'Inherit (Global)' },
 			{ value: '100', text: 'Normal' }, { value: '150', text: 'Large' },
 			{ value: '200', text: 'Huge' }, { value: '250', text: 'Max (Fill)' }
-		], 'inherit');
-		inheritNote('Number Size');
+		], '250');
 		createSelect('Input Font Size', 'inputFontSize', [
-			{ value: 'inherit', text: 'Inherit (Global)' },
 			{ value: '100', text: 'Normal' }, { value: '150', text: 'Large' },
 			{ value: '200', text: 'Huge' }, { value: '250', text: 'Max (Fill)' }
-		], 'inherit');
-		inheritNote('Input Font Size');
+		], '100');
 		createSelect('Button Size', 'btnSize', [
-			{ value: 'inherit', text: 'Inherit (Global)' },
 			{ value: '70', text: 'Small' }, { value: '85', text: 'Compact' },
 			{ value: '100', text: 'Normal' }, { value: '125', text: 'Large' }, { value: '150', text: 'Huge' }
-		], 'inherit');
-		inheritNote('Button Size');
+		], '100');
 
 		// --- Adjust Input Area (landscape/split66/50/25 only - portrait has its own separate
 		// global-only version of this feature since it isn't part of viewportProfiles) ---
@@ -8762,6 +8747,7 @@ function initViewportProfilesUI() {
 		}
 		vpLoadPreviewIframe(bucket);
 	}
+	window.__vpOpenConfigModalDirect = openConfigModal;
 
 	function closeConfigModal() {
 		if (configModal) {
@@ -8780,23 +8766,13 @@ function initViewportProfilesUI() {
 		configSaveBtn.onclick = () => {
 			if (!viewportConfigState.configBucket) return;
 			const profile = appSettings.viewportProfiles[viewportConfigState.configBucket];
-			const INHERITABLE_NUMERIC_KEYS = ['headerScale', 'numberSize', 'inputFontSize', 'btnSize'];
-			const PLAIN_NUMERIC_KEYS = ['uiScale', 'seqSize'];
+			const NUMERIC_KEYS = ['headerScale', 'numberSize', 'inputFontSize', 'btnSize', 'uiScale', 'seqSize'];
 			Object.keys(viewportConfigState.tempSettings).forEach(key => {
 				if (key === 'pipMachine') {
 					appSettings.pipMachineIndex = (viewportConfigState.tempSettings.pipMachine === 'same') ? null : parseInt(viewportConfigState.tempSettings.pipMachine, 10);
 					return;
 				}
-				if (INHERITABLE_NUMERIC_KEYS.includes(key)) {
-					const raw = viewportConfigState.tempSettings[key];
-					if (raw === 'inherit') {
-						delete profile[key];
-					} else {
-						profile[key] = parseInt(raw, 10);
-					}
-					return;
-				}
-				if (PLAIN_NUMERIC_KEYS.includes(key)) {
+				if (NUMERIC_KEYS.includes(key)) {
 					profile[key] = parseInt(viewportConfigState.tempSettings[key], 10);
 					return;
 				}
@@ -8834,6 +8810,171 @@ function initViewportProfilesUI() {
 		});
 	}
 }
+
+// --- Mini viewport modal (split50/split33): compact sizing/layout + header buttons, no live
+// preview - the pane is too narrow at this width to usefully show one at a readable size. ---
+let miniViewportState = { bucket: null, tempSettings: {} };
+
+function renderMiniViewportSettings() {
+	const settingsDiv = document.getElementById('mini-viewport-settings');
+	if (!settingsDiv || !miniViewportState.bucket) return;
+	const bucket = miniViewportState.bucket;
+	const profile = appSettings.viewportProfiles[bucket];
+	settingsDiv.innerHTML = '';
+
+	const sectionLabel = (text) => vpMakeSectionLabel(settingsDiv, text);
+	const createSelect = (label, key, options, defaultVal) =>
+		vpMakeSelect(settingsDiv, miniViewportState.tempSettings, profile, () => {}, label, key, options, defaultVal);
+
+	sectionLabel('Sizing');
+	createSelect('UI Scale', 'uiScale', vpPercentOptions(50, 500, 10), '100');
+	createSelect('Sequence Size', 'seqSize', vpPercentOptions(50, 300, 10), '100');
+	createSelect('Header Size', 'headerScale', vpPercentOptions(70, 150, 10), '100');
+	createSelect('Number Size', 'numberSize', [
+		{ value: '100', text: 'Normal' }, { value: '150', text: 'Large' },
+		{ value: '200', text: 'Huge' }, { value: '250', text: 'Max (Fill)' }
+	], '250');
+	createSelect('Input Font Size', 'inputFontSize', [
+		{ value: '100', text: 'Normal' }, { value: '150', text: 'Large' },
+		{ value: '200', text: 'Huge' }, { value: '250', text: 'Max (Fill)' }
+	], '100');
+	createSelect('Button Size', 'btnSize', [
+		{ value: '70', text: 'Small' }, { value: '85', text: 'Compact' },
+		{ value: '100', text: 'Normal' }, { value: '125', text: 'Large' }, { value: '150', text: 'Huge' }
+	], '100');
+
+	if (bucket === 'split50') {
+		sectionLabel('Layout');
+		createSelect('Alignment', 'alignment', [
+			{ value: 'horizontal', text: 'Horizontal (Normal)' },
+			{ value: 'vertical', text: 'Vertical' }
+		], 'horizontal');
+	}
+
+	sectionLabel('Header Buttons');
+	const note = document.createElement('p');
+	note.style.cssText = 'color: #888; font-size: 10px; margin: -2px 0 8px;';
+	note.textContent = 'Only these buttons can show at this width. Still gated by each button\'s own General toggle.';
+	settingsDiv.appendChild(note);
+	const currentSelected = miniViewportState.tempSettings.headerButtons !== undefined ? miniViewportState.tempSettings.headerButtons : (profile.headerButtons || []);
+	VP_CURATED_HEADER_BUTTONS.forEach(btnDef => {
+		const row = document.createElement('label');
+		row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 8px; margin-bottom: 4px; background: #222; border-radius: 4px; cursor: pointer;';
+		const span = document.createElement('span');
+		span.style.cssText = 'color: #ddd; font-size: 11px;';
+		span.textContent = btnDef.label;
+		const checkbox = document.createElement('input');
+		checkbox.type = 'checkbox';
+		checkbox.checked = currentSelected.includes(btnDef.id);
+		checkbox.style.cssText = 'width: 16px; height: 16px; cursor: pointer;';
+		checkbox.onchange = (e) => {
+			let list = miniViewportState.tempSettings.headerButtons !== undefined ? miniViewportState.tempSettings.headerButtons.slice() : (profile.headerButtons || []).slice();
+			if (e.target.checked) {
+				if (!list.includes(btnDef.id)) list.push(btnDef.id);
+			} else {
+				list = list.filter(id => id !== btnDef.id);
+			}
+			miniViewportState.tempSettings.headerButtons = list;
+		};
+		row.appendChild(span);
+		row.appendChild(checkbox);
+		settingsDiv.appendChild(row);
+	});
+
+	if (bucket === 'split33') {
+		const scrollNote = document.createElement('p');
+		scrollNote.style.cssText = 'color: #888; font-size: 10px; margin: 10px 0 0;';
+		scrollNote.textContent = 'Turn on Infinite Header Scroll (General tab) so scrolling through header buttons works at this width.';
+		settingsDiv.appendChild(scrollNote);
+	}
+}
+
+function openMiniViewportModal(bucket) {
+	miniViewportState.bucket = bucket;
+	miniViewportState.tempSettings = {};
+	const titleEl = document.getElementById('mini-viewport-title');
+	if (titleEl) titleEl.textContent = 'Configure ' + (bucket === 'split50' ? '50%' : '33%');
+	renderMiniViewportSettings();
+	const modal = document.getElementById('mini-viewport-modal');
+	if (modal) {
+		modal.classList.remove('opacity-0', 'pointer-events-none');
+		modal.style.opacity = '1';
+		modal.style.pointerEvents = 'auto';
+	}
+}
+
+function closeMiniViewportModal() {
+	const modal = document.getElementById('mini-viewport-modal');
+	if (modal) {
+		modal.classList.add('opacity-0', 'pointer-events-none');
+		modal.style.opacity = '0';
+		modal.style.pointerEvents = 'none';
+	}
+	miniViewportState.bucket = null;
+	miniViewportState.tempSettings = {};
+}
+
+function saveMiniViewportModal() {
+	if (!miniViewportState.bucket) return;
+	const profile = appSettings.viewportProfiles[miniViewportState.bucket];
+	const NUMERIC_KEYS = ['headerScale', 'numberSize', 'inputFontSize', 'btnSize', 'uiScale', 'seqSize'];
+	Object.keys(miniViewportState.tempSettings).forEach(key => {
+		if (NUMERIC_KEYS.includes(key)) {
+			profile[key] = parseInt(miniViewportState.tempSettings[key], 10);
+			return;
+		}
+		profile[key] = miniViewportState.tempSettings[key];
+	});
+	saveState();
+	if (typeof applyViewportProfile === 'function') applyViewportProfile();
+	closeMiniViewportModal();
+}
+
+function initMiniViewportModal() {
+	if (window.__miniVpWired) return;
+	window.__miniVpWired = true;
+	const cancelBtn = document.getElementById('mini-viewport-cancel-btn');
+	const closeXBtn = document.getElementById('mini-viewport-close-x');
+	const saveBtn = document.getElementById('mini-viewport-save-btn');
+	const fullSettingsBtn = document.getElementById('mini-viewport-full-settings-btn');
+	if (cancelBtn) cancelBtn.onclick = closeMiniViewportModal;
+	if (closeXBtn) closeXBtn.onclick = closeMiniViewportModal;
+	if (saveBtn) saveBtn.onclick = saveMiniViewportModal;
+	if (fullSettingsBtn) fullSettingsBtn.onclick = () => {
+		closeMiniViewportModal();
+		if (modules.settings) modules.settings.openSettings();
+	};
+}
+
+// --- Orientation-aware settings routing: the header Settings gear opens a different experience
+// depending on the current viewport bucket, instead of always opening the full General/Advanced
+// settings modal. Portrait keeps the original full modal (it was never part of this system).
+// Landscape/split66 jump straight into their own full configure-with-live-preview modal.
+// split50/split33 get the compact mini modal. ---
+function openOrientationSettings() {
+	const bucket = document.body.dataset.viewportBucket;
+	if (bucket === 'landscape' || bucket === 'split66') {
+		if (typeof initViewportProfilesUI === 'function') initViewportProfilesUI();
+		// initViewportProfilesUI() wires the tab/panel UI but doesn't itself open the config
+		// modal - call openConfigModal directly for the bucket we're already in, skipping the
+		// tab-selector step entirely since there's nothing to choose (we know the orientation).
+		const openFn = window.__vpOpenConfigModalDirect;
+		if (typeof openFn === 'function') openFn(bucket);
+		return;
+	}
+	if (bucket === 'split50' || bucket === 'split33') {
+		initMiniViewportModal();
+		openMiniViewportModal(bucket);
+		return;
+	}
+	if (modules.settings) modules.settings.openSettings();
+}
+window.openOrientationSettings = openOrientationSettings;
+window.openMiniViewportModal = openMiniViewportModal;
+window.closeMiniViewportModal = closeMiniViewportModal;
+window.saveMiniViewportModal = saveMiniViewportModal;
+window.initMiniViewportModal = initMiniViewportModal;
+
 const startApp = async () => {
 	loadState();
 	window.appSettings = appSettings;

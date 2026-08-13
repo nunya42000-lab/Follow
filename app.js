@@ -8129,13 +8129,34 @@ function initViewportProfilesUI() {
 		}
 	}
 
+	// Curated header buttons available at 50%/25% - matches the memory spec:
+	// Timer, Counter, Play, Delete, Bigger Buttons, Swap Position, PiP, Touch Gestures
+	const CURATED_HEADER_BUTTONS = [
+		{ id: 'timer', label: '⏱️ Timer' },
+		{ id: 'counter', label: '🔢 Counter' },
+		{ id: 'play', label: '▶️ Play' },
+		{ id: 'delete', label: '⌫ Delete' },
+		{ id: 'bigger', label: '🔲 Bigger Buttons' },
+		{ id: 'swap', label: '🔄 Swap Position' },
+		{ id: 'pip', label: '🪟 Picture-in-Picture' },
+		{ id: 'touch', label: '👆 Touch Gestures' }
+	];
+
 	function renderConfigSettings() {
 		const settingsDiv = document.getElementById('viewport-config-settings');
 		if (!settingsDiv || !viewportConfigState.configBucket) return;
-		const profile = appSettings.viewportProfiles[viewportConfigState.configBucket];
+		const bucket = viewportConfigState.configBucket;
+		const profile = appSettings.viewportProfiles[bucket];
 		settingsDiv.innerHTML = '';
 
-		const createSetting = (label, key, min, max, step = 1) => {
+		const sectionLabel = (text) => {
+			const el = document.createElement('div');
+			el.style.cssText = 'color: #6366f1; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin: 14px 0 8px; border-top: 1px solid #333; padding-top: 12px;';
+			el.textContent = text;
+			settingsDiv.appendChild(el);
+		};
+
+		const createSlider = (label, key, min, max, step, suffix) => {
 			const div = document.createElement('div');
 			div.style.cssText = 'margin-bottom: 12px;';
 			const labelEl = document.createElement('label');
@@ -8146,15 +8167,16 @@ function initViewportProfilesUI() {
 			input.min = min;
 			input.max = max;
 			input.step = step;
-			input.value = viewportConfigState.tempSettings[key] !== undefined ? viewportConfigState.tempSettings[key] : (profile[key] || 100);
+			const curVal = viewportConfigState.tempSettings[key] !== undefined ? viewportConfigState.tempSettings[key] : (profile[key] !== undefined ? profile[key] : min);
+			input.value = curVal;
 			input.style.cssText = 'width: 100%; cursor: pointer;';
 			const valueSpan = document.createElement('span');
 			valueSpan.style.cssText = 'display: inline-block; color: #fff; font-size: 11px; margin-left: 8px; min-width: 30px;';
-			valueSpan.textContent = input.value + '%';
+			valueSpan.textContent = curVal + suffix;
 			labelEl.appendChild(valueSpan);
 			input.onchange = input.oninput = (e) => {
 				viewportConfigState.tempSettings[key] = parseInt(e.target.value);
-				valueSpan.textContent = e.target.value + '%';
+				valueSpan.textContent = e.target.value + suffix;
 				renderConfigScreen();
 			};
 			div.appendChild(labelEl);
@@ -8162,27 +8184,106 @@ function initViewportProfilesUI() {
 			settingsDiv.appendChild(div);
 		};
 
-		createSetting('UI Scale', 'uiScale', 50, 150, 10);
-		createSetting('Sequence Size', 'seqSize', 50, 150, 10);
-
-		if (viewportConfigState.configBucket === 'split50') {
+		const createSelect = (label, key, options, defaultVal) => {
 			const div = document.createElement('div');
 			div.style.cssText = 'margin-bottom: 12px;';
 			const labelEl = document.createElement('label');
 			labelEl.style.cssText = 'display: block; color: #aaa; font-size: 11px; font-weight: bold; margin-bottom: 4px;';
-			labelEl.textContent = 'Alignment';
+			labelEl.textContent = label;
 			const select = document.createElement('select');
-			select.id = 'viewport-config-alignment';
-			select.style.cssText = 'width: 100%; padding: 4px; background: #2a2a2a; color: #fff; border: 1px solid #444; border-radius: 4px; font-size: 11px;';
-			select.innerHTML = '<option value="horizontal">Horizontal</option><option value="vertical">Vertical</option>';
-			select.value = profile.alignment || 'horizontal';
+			select.style.cssText = 'width: 100%; padding: 6px; background: #2a2a2a; color: #fff; border: 1px solid #444; border-radius: 4px; font-size: 11px;';
+			options.forEach(opt => {
+				const o = document.createElement('option');
+				o.value = opt.value;
+				o.textContent = opt.text;
+				select.appendChild(o);
+			});
+			const curVal = viewportConfigState.tempSettings[key] !== undefined ? viewportConfigState.tempSettings[key] : (profile[key] !== undefined ? profile[key] : defaultVal);
+			select.value = curVal;
 			select.onchange = (e) => {
-				viewportConfigState.tempSettings.alignment = e.target.value;
+				viewportConfigState.tempSettings[key] = key === 'rowMax' ? parseInt(e.target.value) : e.target.value;
 				renderConfigScreen();
 			};
 			div.appendChild(labelEl);
 			div.appendChild(select);
 			settingsDiv.appendChild(div);
+			return select;
+		};
+
+		// --- Sizing (all tabs) ---
+		sectionLabel('Sizing');
+		createSlider('UI Scale', 'uiScale', 50, 150, 10, '%');
+		createSlider('Sequence Size', 'seqSize', 50, 150, 10, '%');
+		createSelect('Row Max', 'rowMax', [
+			{ value: '3', text: '3 per row' }, { value: '4', text: '4 per row' },
+			{ value: '5', text: '5 per row' }, { value: '6', text: '6 per row' },
+			{ value: '7', text: '7 per row' }, { value: '8', text: '8 per row' }
+		], profile.rowMax || 6);
+		createSlider('Bubble Spacing', 'bubbleSpacing', 0, 8, 1, 'px');
+
+		// --- Layout (split50 only: alignment) ---
+		if (bucket === 'split50') {
+			sectionLabel('Layout');
+			createSelect('Alignment', 'alignment', [
+				{ value: 'horizontal', text: 'Horizontal (Normal)' },
+				{ value: 'vertical', text: 'Vertical' }
+			], 'horizontal');
+		}
+
+		// --- Picture-in-Picture (split50/split25 only) ---
+		if (bucket === 'split50' || bucket === 'split25') {
+			sectionLabel('Picture-in-Picture');
+			const settings = (typeof getProfileSettings === 'function') ? getProfileSettings() : null;
+			const machineCount = (settings && settings.machineCount) || 1;
+			const pipOptions = [{ value: 'same', text: 'Same as Main Area' }];
+			for (let i = 0; i < machineCount; i++) pipOptions.push({ value: String(i), text: 'Machine ' + (i + 1) });
+			createSelect('PiP Shows', 'pipMachine', pipOptions, 'same');
+			const note = document.createElement('p');
+			note.style.cssText = 'color: #888; font-size: 10px; margin: -6px 0 12px;';
+			note.textContent = 'If PiP is active at this size, the sequence only appears in the popup - the main screen shows inputs only.';
+			settingsDiv.appendChild(note);
+		}
+
+		// --- Header Buttons (split50/split25 only - curated set) ---
+		if (bucket === 'split50' || bucket === 'split25') {
+			sectionLabel('Header Buttons');
+			const note = document.createElement('p');
+			note.style.cssText = 'color: #888; font-size: 10px; margin: -2px 0 8px;';
+			note.textContent = 'Only these buttons can show at this width. Still gated by each button\'s own General toggle.';
+			settingsDiv.appendChild(note);
+			const currentSelected = viewportConfigState.tempSettings.headerButtons !== undefined ? viewportConfigState.tempSettings.headerButtons : (profile.headerButtons || []);
+			CURATED_HEADER_BUTTONS.forEach(btnDef => {
+				const row = document.createElement('label');
+				row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 8px; margin-bottom: 4px; background: #222; border-radius: 4px; cursor: pointer;';
+				const span = document.createElement('span');
+				span.style.cssText = 'color: #ddd; font-size: 11px;';
+				span.textContent = btnDef.label;
+				const checkbox = document.createElement('input');
+				checkbox.type = 'checkbox';
+				checkbox.checked = currentSelected.includes(btnDef.id);
+				checkbox.style.cssText = 'width: 16px; height: 16px; cursor: pointer;';
+				checkbox.onchange = (e) => {
+					let list = viewportConfigState.tempSettings.headerButtons !== undefined ? viewportConfigState.tempSettings.headerButtons.slice() : (profile.headerButtons || []).slice();
+					if (e.target.checked) {
+						if (!list.includes(btnDef.id)) list.push(btnDef.id);
+					} else {
+						list = list.filter(id => id !== btnDef.id);
+					}
+					viewportConfigState.tempSettings.headerButtons = list;
+					renderConfigScreen();
+				};
+				row.appendChild(span);
+				row.appendChild(checkbox);
+				settingsDiv.appendChild(row);
+			});
+		}
+
+		// --- Infinite scroll reminder (split25 only) ---
+		if (bucket === 'split25') {
+			const note = document.createElement('p');
+			note.style.cssText = 'color: #888; font-size: 10px; margin: 10px 0 0;';
+			note.textContent = 'Turn on Infinite Header Scroll (General tab) so scrolling through header buttons works at this width.';
+			settingsDiv.appendChild(note);
 		}
 	}
 
@@ -8190,10 +8291,14 @@ function initViewportProfilesUI() {
 		viewportConfigState.configBucket = bucket;
 		viewportConfigState.tempSettings = {};
 		const titleEl = document.getElementById('viewport-config-title');
-		if (titleEl) titleEl.textContent = 'Configure ' + (bucket.charAt(0).toUpperCase() + bucket.slice(1).replace('split', ''));
+		if (titleEl) {
+			const bucketLabels = { landscape: 'Landscape', split75: '75%', split50: '50%', split25: '25%' };
+			titleEl.textContent = 'Configure ' + (bucketLabels[bucket] || bucket);
+		}
 		renderConfigSettings();
 		renderConfigScreen();
 		if (configModal) {
+			configModal.classList.remove('opacity-0', 'pointer-events-none');
 			configModal.style.opacity = '1';
 			configModal.style.pointerEvents = 'auto';
 		}
@@ -8201,6 +8306,7 @@ function initViewportProfilesUI() {
 
 	function closeConfigModal() {
 		if (configModal) {
+			configModal.classList.add('opacity-0', 'pointer-events-none');
 			configModal.style.opacity = '0';
 			configModal.style.pointerEvents = 'none';
 		}
@@ -8214,12 +8320,17 @@ function initViewportProfilesUI() {
 			if (!viewportConfigState.configBucket) return;
 			const profile = appSettings.viewportProfiles[viewportConfigState.configBucket];
 			Object.keys(viewportConfigState.tempSettings).forEach(key => {
+				if (key === 'pipMachine') {
+					appSettings.pipMachineIndex = (viewportConfigState.tempSettings.pipMachine === 'same') ? null : parseInt(viewportConfigState.tempSettings.pipMachine, 10);
+					return;
+				}
 				profile[key] = viewportConfigState.tempSettings[key];
 			});
 			saveState();
 			if (typeof applyViewportProfile === 'function') applyViewportProfile();
 			renderPreview();
 			loadDropdowns();
+			populatePipMachineDropdowns();
 			closeConfigModal();
 		};
 	}

@@ -945,6 +945,21 @@ let lastMachineInputTime = {};
 let ignoreNextClick = false;
 let voiceModule = null;
 let isTouchGesturePadVisible = false;
+// Real touchscreens fire both a real 'touchstart'/'touchend' AND a synthetic compatibility
+// 'mousedown'/'mouseup' for the same physical tap (the browser's legacy mouse-event emulation
+// layer exists so code that only listens for mouse events still works on touch devices - it can
+// fire even when the touch handler calls preventDefault(), depending on browser/OS). Any element
+// with both a touch and a mouse listener calling the same handler needs this guard, or every tap
+// on a real device double-fires. Not needed on elements that only bind one event type.
+function dedupeTouchMouseHandler(fn, windowMs = 400) {
+	let lastFiredAt = 0;
+	return function guarded(e) {
+		const now = Date.now();
+		if (now - lastFiredAt < windowMs) return;
+		lastFiredAt = now;
+		return fn.apply(this, arguments);
+	};
+}
 let simpleTimer = {
 	interval: null,
 	startTime: 0,
@@ -3981,24 +3996,36 @@ class SettingsManager {
 			e.preventDefault();
 			const dy = e.clientY - startClientY;
 			dragRow.style.transform = `translateY(${dy}px)`;
-			const rows = [...container.children];
 			const dragRect = dragRow.getBoundingClientRect();
 			const dragMid = dragRect.top + dragRect.height / 2;
-			for (const r of rows) {
-				if (r === dragRow) continue;
-				const rect = r.getBoundingClientRect();
-				const mid = rect.top + rect.height / 2;
-				if (dragMid < mid && r.previousElementSibling !== dragRow) {
-					container.insertBefore(dragRow, r);
-					dragRow.style.transform = '';
-					startClientY = e.clientY;
-					break;
+			// Only ever compare against the immediate previous/next sibling in the direction the
+			// pointer is actually moving, and swap one step at a time. The old version scanned
+			// every row in the list top-to-bottom on every tick and swapped with the first one
+			// whose midpoint satisfied a loose inequality - that matched rows on the wrong side of
+			// the drag (e.g. rows below when dragging up), which is why dragging up moved the row
+			// down instead, and why a single continued drag could cascade through many rows at
+			// once instead of moving one slot per crossing.
+			if (dy < 0) {
+				const prev = dragRow.previousElementSibling;
+				if (prev) {
+					const prevRect = prev.getBoundingClientRect();
+					const prevMid = prevRect.top + prevRect.height / 2;
+					if (dragMid < prevMid) {
+						container.insertBefore(dragRow, prev);
+						dragRow.style.transform = '';
+						startClientY = e.clientY;
+					}
 				}
-				if (dragMid > mid && r === rows[rows.length - 1] && r.nextElementSibling !== dragRow) {
-					container.appendChild(dragRow);
-					dragRow.style.transform = '';
-					startClientY = e.clientY;
-					break;
+			} else if (dy > 0) {
+				const next = dragRow.nextElementSibling;
+				if (next) {
+					const nextRect = next.getBoundingClientRect();
+					const nextMid = nextRect.top + nextRect.height / 2;
+					if (dragMid > nextMid) {
+						container.insertBefore(dragRow, next.nextElementSibling);
+						dragRow.style.transform = '';
+						startClientY = e.clientY;
+					}
 				}
 			}
 			const scrollMargin = 80;
@@ -6965,7 +6992,7 @@ function initGlobalListeners() {
 				window.__unhideHeaderFromSensor = unhideHeaderNow;
 		})();
 		document.querySelectorAll('.btn-pad-number').forEach(b => {
-				const press = e => {
+				const press = dedupeTouchMouseHandler(e => {
 					if (e) {
 						e.preventDefault();
 						e.stopPropagation();
@@ -6974,7 +7001,7 @@ function initGlobalListeners() {
 					addValue(b.dataset.value);
 					b.classList.add('flash-active');
 					setTimeout(() => b.classList.remove('flash-active'), 150);
-				};
+				});
 				b.addEventListener('mousedown', press);
 				b.addEventListener('touchstart', press, {
 						passive: false
@@ -6983,7 +7010,7 @@ function initGlobalListeners() {
 		document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
 				let wasPlaying = false;
 				let lpTriggered = false;
-				const handleDown = e => {
+				const handleDown = dedupeTouchMouseHandler(e => {
 					if (e && e.cancelable) {
 						e.preventDefault();
 						e.stopPropagation();
@@ -7006,8 +7033,8 @@ function initGlobalListeners() {
 								setTimeout(() => ignoreNextClick = false, 500);
 							}, 800);
 					}
-				};
-				const handleUp = e => {
+				});
+				const handleUp = dedupeTouchMouseHandler(e => {
 					if (e && e.cancelable) {
 						e.preventDefault();
 						e.stopPropagation();
@@ -7016,7 +7043,7 @@ function initGlobalListeners() {
 					if (!wasPlaying && !lpTriggered) {
 						playDemo();
 					}
-				};
+				});
 				b.addEventListener('mousedown', handleDown);
 				b.addEventListener('touchstart', handleDown, {
 						passive: false
@@ -7052,7 +7079,7 @@ function initGlobalListeners() {
 						modules.settings.openSettings();
 				});
 		});
-		const startDelete = e => {
+		const startDelete = dedupeTouchMouseHandler(e => {
 			if (e) {
 				e.preventDefault();
 				e.stopPropagation();
@@ -7063,7 +7090,7 @@ function initGlobalListeners() {
 			timers.initialDelay = setTimeout(() => {
 					timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL);
 				}, CONFIG.SPEED_DELETE_DELAY);
-		};
+		});
 		const stopDelete = () => {
 			clearTimeout(timers.initialDelay);
 			clearInterval(timers.speedDelete);
@@ -7324,7 +7351,7 @@ function initGlobalListeners() {
 		if (headerPlayBtnEl) {
 			let hpWasPlaying = false;
 			let hpLongPressTriggered = false;
-			const headerPlayDown = e => {
+			const headerPlayDown = dedupeTouchMouseHandler(e => {
 				if (e && e.cancelable) {
 					e.preventDefault();
 					e.stopPropagation();
@@ -7347,8 +7374,8 @@ function initGlobalListeners() {
 							setTimeout(() => ignoreNextClick = false, 500);
 						}, 800);
 				}
-			};
-			const headerPlayUp = e => {
+			});
+			const headerPlayUp = dedupeTouchMouseHandler(e => {
 				if (e && e.cancelable) {
 					e.preventDefault();
 					e.stopPropagation();
@@ -7357,7 +7384,7 @@ function initGlobalListeners() {
 				if (!hpWasPlaying && !hpLongPressTriggered) {
 					playDemo();
 				}
-			};
+			});
 			headerPlayBtnEl.addEventListener('mousedown', headerPlayDown);
 			headerPlayBtnEl.addEventListener('touchstart', headerPlayDown, { passive: false });
 			headerPlayBtnEl.addEventListener('mouseup', headerPlayUp);
@@ -7543,11 +7570,11 @@ function initGlobalListeners() {
 						resetTimer();
 					}, 600);
 			};
-			const endT = e => {
+			const endT = dedupeTouchMouseHandler(e => {
 				if (e) e.preventDefault();
 				clearTimeout(tTimer);
 				if (!tIsLong) toggleTimer();
-			};
+			});
 			headerTimer.addEventListener('mousedown', startT);
 			headerTimer.addEventListener('touchstart', startT, {
 					passive: true
@@ -7589,11 +7616,11 @@ function initGlobalListeners() {
 						resetCounter();
 					}, 600);
 			};
-			const endC = e => {
+			const endC = dedupeTouchMouseHandler(e => {
 				if (e) e.preventDefault();
 				clearTimeout(cTimer);
 				if (!cIsLong) increment();
-			};
+			});
 			headerCounter.addEventListener('mousedown', startC);
 			headerCounter.addEventListener('touchstart', startC, {
 					passive: true

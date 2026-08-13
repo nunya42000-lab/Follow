@@ -1,4 +1,4 @@
-const CACHE_NAME = 'follow-me-v126';
+const CACHE_NAME = 'follow-me-v127';
 
 const CRITICAL_ASSETS = [
     './',
@@ -87,6 +87,17 @@ self.addEventListener('fetch', event => {
                         return fetch(event.request);
                     }
                 })()
+            );
+            return;
+        }
+        // Landscape/Split Screen configure modal's live preview iframe (?vpPreview=1) must
+        // always get the current, real files straight from the network - never a cached
+        // (possibly stale/pre-update) copy. Serving a stale app.js/index.html here silently
+        // breaks the preview (blank/black, since an older build may not know about vpPreview
+        // mode at all) without ever touching the real cached app the person actually uses.
+        if (url.searchParams.get('vpPreview') === '1') {
+            event.respondWith(
+                fetch(event.request, { cache: 'no-store' }).catch(() => caches.match('./index.html'))
             );
             return;
         }

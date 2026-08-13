@@ -5408,6 +5408,37 @@ function loadState() {
 			Object.values(appSettings.profiles || {}).forEach(p => {
 					if (p && p.settings) pruneOrphaned(p.settings, DEFAULT_PROFILE_SETTINGS);
 			});
+			// Backfill viewportProfiles: loadState() above does a SHALLOW spread ({...DEFAULT_APP,
+			// ...loaded}), so a person whose saved data already has a viewportProfiles object (from
+			// before a newer per-viewport setting like headerButtons/rowMax existed) keeps that
+			// entire old object verbatim - new keys never get backfilled, silently reappearing as
+			// "missing"/empty (e.g. an empty headerButtons array making every curated header button
+			// vanish at 50%/25% even though the person never touched that setting). Fill in any
+			// bucket or key absent from their saved profile with the current default, and leave
+			// every key they've actually customized untouched.
+			if (!appSettings.viewportProfiles || typeof appSettings.viewportProfiles !== 'object') {
+				appSettings.viewportProfiles = JSON.parse(JSON.stringify(DEFAULT_APP.viewportProfiles));
+			} else {
+				Object.keys(DEFAULT_APP.viewportProfiles).forEach(bucket => {
+					if (!appSettings.viewportProfiles[bucket] || typeof appSettings.viewportProfiles[bucket] !== 'object') {
+						appSettings.viewportProfiles[bucket] = JSON.parse(JSON.stringify(DEFAULT_APP.viewportProfiles[bucket]));
+						return;
+					}
+					Object.keys(DEFAULT_APP.viewportProfiles[bucket]).forEach(key => {
+						if (!(key in appSettings.viewportProfiles[bucket])) {
+							appSettings.viewportProfiles[bucket][key] = JSON.parse(JSON.stringify(DEFAULT_APP.viewportProfiles[bucket][key]));
+							return;
+						}
+						// headerButtons specifically: an empty array is never a real user choice
+						// (nobody wants zero header buttons available at 50%/25%) - it only happens
+						// when the key existed under an older schema before this list was populated.
+						// Treat it as unset and backfill, same as a missing key, for this field only.
+						if (key === 'headerButtons' && Array.isArray(appSettings.viewportProfiles[bucket][key]) && appSettings.viewportProfiles[bucket][key].length === 0 && DEFAULT_APP.viewportProfiles[bucket][key].length > 0) {
+							appSettings.viewportProfiles[bucket][key] = JSON.parse(JSON.stringify(DEFAULT_APP.viewportProfiles[bucket][key]));
+						}
+					});
+				});
+			}
 		} else {
 			appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles['profile_1'].settings));
 		}

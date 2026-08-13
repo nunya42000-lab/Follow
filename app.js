@@ -598,7 +598,7 @@ const DEFAULT_APP = {
 	isHapticsEnabled: false,
 	isFlashEnabled: false,
 	pauseSetting: 200,
-	isSpeedDeletingEnabled: true,
+	isSpeedDeletingEnabled: false,
 	isSpeedTouchGesturesEnabled: false,
 	isVolumeTouchGesturesEnabled: false,
 	isArModeEnabled: false,
@@ -606,8 +606,8 @@ const DEFAULT_APP = {
 	isVoiceInputEnabled: false,
 	arPlaybackSpeed: 1.00,
 	voiceTriggerWord: 'set',
-	isDeleteTouchGestureEnabled: true,
-	isClearTouchGestureEnabled: true,
+	isDeleteTouchGestureEnabled: false,
+	isClearTouchGestureEnabled: false,
 	isAutoTimerEnabled: false,
 	isAutoCounterEnabled: false,
 	isWakeLockEnabled: false,
@@ -617,7 +617,7 @@ const DEFAULT_APP = {
 	showHeaderLandscapeLockBtn: false,
 	lastSequence: null,
 	isEcoModeEnabled: false,
-	isLongPressAutoplayEnabled: true,
+	isLongPressAutoplayEnabled: false,
 	showBiggerBtn: false,
 	activeTheme: 'default',
 	customThemes: {},
@@ -659,7 +659,13 @@ const DEFAULT_APP = {
 	headerIconScale: 100,
 	appFontScale: 100,
 	appInputFontScale: 100,
+	appInputBtnScale: 100,
 	appRowMax: 'none',
+	// viewportProfiles[bucket] additionally supports these OPTIONAL override keys, all omitted
+	// by default (meaning "inherit the matching global setting"): headerScale, numberSize,
+	// inputFontSize, btnSize, inputAreaEnabled, inputAreaPct. They're only written once the
+	// person sets an explicit override for that bucket via the Landscape/Split Screen configure
+	// modal - see getEffectiveHeaderScale() etc. below for the fallback-to-global resolution.
 	viewportProfiles: {
 		landscape: { uiScale: 100, seqSize: 100, rowMax: 'none', headerButtons: [] },
 		split75: { uiScale: 100, seqSize: 100, rowMax: 'none', headerButtons: [] },
@@ -682,6 +688,7 @@ const DEFAULT_APP = {
 	isPositionSwapEnabled: false,
 	isLandscapeInputResizeEnabled: false,
 	landscapeInputWidthPct: 50,
+	portraitInputHeightPct: 40,
 	isSkeletonDebugEnabled: false,
 	activeFontFamily: "'Inter', sans-serif",
 	handGestureCooldown: 600,
@@ -2043,6 +2050,7 @@ class SettingsManager {
 			seqSize: document.getElementById('seq-size-select'),
 			seqFontSize: document.getElementById('seq-font-size-select'),
 			inputFontSize: document.getElementById('input-font-size-select'),
+			inputBtnSize: document.getElementById('input-btn-size-select'),
 			rowMax: document.getElementById('row-max-select'),
 			touchResizeModeSelect: document.getElementById('gesture-mode-select'),
 			closeSettingsBtn: document.getElementById('close-settings'),
@@ -3457,6 +3465,11 @@ class SettingsManager {
 			this.applyInputFontScale();
 			this.callbacks.onSave();
 		};
+		if (this.dom.inputBtnSize) this.dom.inputBtnSize.onchange = (e) => {
+			this.appSettings.appInputBtnScale = parseInt(e.target.value);
+			this.applyInputBtnScale();
+			this.callbacks.onSave();
+		};
 		if (this.dom.rowMax) this.dom.rowMax.onchange = (e) => {
 			this.appSettings.appRowMax = e.target.value;
 			this.applyRowMax();
@@ -3945,6 +3958,7 @@ class SettingsManager {
 		this.applyHeaderScale();
 		this.applyFontScale();
 		this.applyInputFontScale();
+		this.applyInputBtnScale();
 		this.applyRowMax();
 		this.rebuildInfiniteHeaderScroll();
 		this.renderHeaderOrderList();
@@ -4136,7 +4150,7 @@ class SettingsManager {
 		}).filter(Boolean);
 	}
 	_generalToggleLabels() {
-		return { autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙', randomThemeToggle: 'Random Theme 🎲', headerThemeCycleToggle: 'Theme Cycle 🎨', headerCycleInputToggle: 'Cycle Input 🔀', headerModeSwitchToggle: 'Mode Switch 🎮', headerAddMachineToggle: 'Add Machine ➕', bossToggle: 'Boss Mode 🌑', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', autoHideHeaderToggle: 'Auto Hide Header 👻', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️',flickHeaderToggle: 'Flick Header Buttons 💨', restoreHeaderToggle: 'Restore Header Gesture 🪄', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', hideIntroToggle: 'Hide Intro', headerUndoToggle: 'Undo ↩️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', upsidedownToggle: 'Upside Down 🙃', portraitLockToggle: 'Portrait Lock 🔒', landscapeLockToggle: 'Landscape Lock 🔐', fullscreenToggle: 'Full Screen 🔲', biggerToggle: 'Bigger Buttons', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', positionSwapToggle: 'Position Swap 🔄', landscapeInputResizeToggle: 'Resizable Input Area ↔️', pipToggle: 'Picture in Picture 🪟', dndToggle: 'Do Not Disturb 🔕', pinnedModeToggle: 'Pinned Mode 📌', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️' };
+		return { autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙', randomThemeToggle: 'Random Theme 🎲', headerThemeCycleToggle: 'Theme Cycle 🎨', headerCycleInputToggle: 'Cycle Input 🔀', headerModeSwitchToggle: 'Mode Switch 🎮', headerAddMachineToggle: 'Add Machine ➕', bossToggle: 'Boss Mode 🌑', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', autoHideHeaderToggle: 'Auto Hide Header 👻', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️',flickHeaderToggle: 'Flick Header Buttons 💨', restoreHeaderToggle: 'Restore Header Gesture 🪄', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', hideIntroToggle: 'Hide Intro', headerUndoToggle: 'Undo ↩️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', upsidedownToggle: 'Upside Down 🙃', portraitLockToggle: 'Portrait Lock 🔒', landscapeLockToggle: 'Landscape Lock 🔐', fullscreenToggle: 'Full Screen 🔲', biggerToggle: 'Bigger Buttons', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', positionSwapToggle: 'Position Swap 🔄', landscapeInputResizeToggle: 'Adjust Input Area ↔️', pipToggle: 'Picture in Picture 🪟', dndToggle: 'Do Not Disturb 🔕', pinnedModeToggle: 'Pinned Mode 📌', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️' };
 	}
 	_moveGeneralToggle(id, direction) {
 		const grid = document.getElementById('general-toggle-grid');
@@ -4226,7 +4240,7 @@ class SettingsManager {
 	applyHeaderScale() {
 		const row = document.getElementById('header-btn-row');
 		if (!row) return;
-		const scale = (this.appSettings.headerIconScale || 100) / 100;
+		const scale = (typeof getEffectiveHeaderScale === 'function' ? getEffectiveHeaderScale() : (this.appSettings.headerIconScale || 100)) / 100;
 		row.style.setProperty('--header-icon-scale', scale);
 		const headerTimer = document.getElementById('headertimerbtn');
 		const headerCounter = document.getElementById('headercounterbtn');
@@ -4278,7 +4292,12 @@ class SettingsManager {
 		document.body.style.setProperty('--app-font-scale', (this.appSettings.appFontScale || 100) / 100);
 	}
 	applyInputFontScale() {
-		document.body.style.setProperty('--input-font-scale', (this.appSettings.appInputFontScale || 100) / 100);
+		const val = typeof getEffectiveInputFontSize === 'function' ? getEffectiveInputFontSize() : (this.appSettings.appInputFontScale || 100);
+		document.body.style.setProperty('--input-font-scale', val / 100);
+	}
+	applyInputBtnScale() {
+		const val = typeof getEffectiveInputBtnSize === 'function' ? getEffectiveInputBtnSize() : (this.appSettings.appInputBtnScale || 100);
+		document.body.style.setProperty('--input-btn-scale', val / 100);
 	}
 	applyEcoModeConfig() {
 		const cfg = this.appSettings.ecoModeConfig || {};
@@ -5331,17 +5350,31 @@ async function gzipDecompress(bytes) {
 	for (const c of chunks) { out.set(c, offset); offset += c.length; }
 	return new TextDecoder().decode(out);
 }
-function diffAgainstDefaults(current, defaults) {
+function diffAgainstDefaults(current, defaults, _allowSparse) {
 	const isPlainObject = v => v !== null && typeof v === 'object' && !Array.isArray(v);
 	const diff = {};
 	for (const key of Object.keys(current)) {
-		if (!defaults || !(key in defaults)) continue;
-		const cv = current[key];
-		const dv = defaults[key];
-		if (isPlainObject(cv) && isPlainObject(dv)) {
-			const nested = diffAgainstDefaults(cv, dv);
+		const keyInDefaults = defaults && (key in defaults);
+		// viewportProfiles (and its per-bucket children) intentionally support optional keys -
+		// headerScale, numberSize, inputFontSize, btnSize, inputAreaEnabled, inputAreaPct - that
+		// never exist in DEFAULT_APP at all, since "absent" IS their default state (inherit the
+		// matching global setting). The normal orphan-pruning guard below would otherwise treat
+		// "not in defaults" the same as "orphaned old schema key" and silently drop every
+		// per-bucket sizing override from every backup/export code. sparse marks that we're
+		// inside that specific subtree, not a blanket bypass for arbitrary plain objects (which
+		// could otherwise leak genuinely-orphaned removed settings back into new backups) - it
+		// must apply to BOTH the recurse-into-object case below AND the plain-value case, since a
+		// sparse key's value (e.g. headerScale: 150) is a primitive, not an object.
+		const sparse = _allowSparse || key === 'viewportProfiles';
+		if (isPlainObject(current[key]) && (keyInDefaults || sparse)) {
+			const nested = diffAgainstDefaults(current[key], keyInDefaults ? defaults[key] : {}, sparse);
 			if (Object.keys(nested).length > 0) diff[key] = nested;
-		} else if (Array.isArray(cv)) {
+			continue;
+		}
+		if (!keyInDefaults && !sparse) continue;
+		const cv = current[key];
+		const dv = keyInDefaults ? defaults[key] : undefined;
+		if (Array.isArray(cv)) {
 			if (JSON.stringify(cv) !== JSON.stringify(dv)) diff[key] = cv;
 		} else if (cv !== dv) {
 			diff[key] = cv;
@@ -5444,6 +5477,17 @@ function loadState() {
 			Object.values(appSettings.profiles || {}).forEach(p => {
 					if (p && p.settings) pruneOrphaned(p.settings, DEFAULT_PROFILE_SETTINGS);
 			});
+			// Input Font Size dropdown used to offer 12 arbitrary percentages (75-300); it now
+			// matches Number Size's 4 semantic options (100/150/200/250) instead. A saved value
+			// that isn't one of those four (e.g. 115, 275 from the old dropdown) would show the
+			// select with nothing matched - snap it to the nearest of the new options instead of
+			// leaving it stranded.
+			if (typeof appSettings.appInputFontScale === 'number' && ![100, 150, 200, 250].includes(appSettings.appInputFontScale)) {
+				const options = [100, 150, 200, 250];
+				appSettings.appInputFontScale = options.reduce((nearest, opt) =>
+					Math.abs(opt - appSettings.appInputFontScale) < Math.abs(nearest - appSettings.appInputFontScale) ? opt : nearest
+				, options[0]);
+			}
 			// Backfill viewportProfiles: loadState() above does a SHALLOW spread ({...DEFAULT_APP,
 			// ...loaded}), so a person whose saved data already has a viewportProfiles object (from
 			// before a newer per-viewport setting like headerButtons/rowMax existed) keeps that
@@ -5787,6 +5831,31 @@ function getEffectiveSeqScaleMultiplier() {
 	const vp = getViewportProfile();
 	return vp ? (vp.seqSize || 100) / 100 : (appSettings.uiScaleMultiplier || 1.0);
 }
+function getEffectiveHeaderScale() {
+	const vp = getViewportProfile();
+	return (vp && vp.headerScale !== undefined && vp.headerScale !== null) ? vp.headerScale : (appSettings.headerIconScale || 100);
+}
+function getEffectiveNumberSize() {
+	const vp = getViewportProfile();
+	return (vp && vp.numberSize !== undefined && vp.numberSize !== null) ? vp.numberSize : Math.round((appSettings.uiFontSizeMultiplier || 2.5) * 100);
+}
+function getEffectiveInputFontSize() {
+	const vp = getViewportProfile();
+	return (vp && vp.inputFontSize !== undefined && vp.inputFontSize !== null) ? vp.inputFontSize : (appSettings.appInputFontScale || 100);
+}
+function getEffectiveInputBtnSize() {
+	const vp = getViewportProfile();
+	return (vp && vp.btnSize !== undefined && vp.btnSize !== null) ? vp.btnSize : (appSettings.appInputBtnScale || 100);
+}
+function getEffectiveInputAreaEnabled() {
+	const vp = getViewportProfile();
+	return (vp && vp.inputAreaEnabled !== undefined && vp.inputAreaEnabled !== null) ? vp.inputAreaEnabled : !!appSettings.isLandscapeInputResizeEnabled;
+}
+function getEffectiveInputAreaPct() {
+	const vp = getViewportProfile();
+	if (vp && vp.inputAreaPct !== undefined && vp.inputAreaPct !== null) return vp.inputAreaPct;
+	return appSettings.landscapeInputWidthPct || 50;
+}
 function syncPipSequenceOnlyMode() {
 	const bucket = document.body.dataset.viewportBucket;
 	const isSplitSmall = bucket === 'split50' || bucket === 'split25';
@@ -5819,13 +5888,29 @@ function applyViewportHeaderButtonCuration(bucket) {
 	});
 }
 function applyLandscapeInputWidth() {
-	document.body.classList.toggle('landscape-resize-enabled', !!appSettings.isLandscapeInputResizeEnabled);
-	if (!appSettings.isLandscapeInputResizeEnabled) {
+	const bucket = document.body.dataset.viewportBucket;
+	const isLandscapeFamily = bucket === 'landscape' || bucket === 'split75' || bucket === 'split50' || bucket === 'split25';
+	const landscapeEnabled = isLandscapeFamily ? getEffectiveInputAreaEnabled() : !!appSettings.isLandscapeInputResizeEnabled;
+	document.body.classList.toggle('landscape-resize-enabled', !!landscapeEnabled || (bucket === 'portrait' && !!appSettings.isLandscapeInputResizeEnabled));
+	if (isLandscapeFamily) {
+		if (!landscapeEnabled) {
+			document.documentElement.style.removeProperty('--landscape-input-width');
+		} else {
+			const widthPct = Math.min(80, Math.max(20, getEffectiveInputAreaPct()));
+			document.documentElement.style.setProperty('--landscape-input-width', widthPct + 'vw');
+		}
+	} else {
 		document.documentElement.style.removeProperty('--landscape-input-width');
-		return;
 	}
-	const pct = Math.min(80, Math.max(20, appSettings.landscapeInputWidthPct || 50));
-	document.documentElement.style.setProperty('--landscape-input-width', pct + 'vw');
+	// Portrait height stays a single global setting (Adjust Input Area toggle applies to every
+	// orientation, but portrait isn't part of viewportProfiles/the configure modal - see
+	// getViewportProfile()'s early return for 'portrait').
+	if (!appSettings.isLandscapeInputResizeEnabled) {
+		document.documentElement.style.removeProperty('--portrait-input-height');
+	} else {
+		const heightPct = Math.min(80, Math.max(20, appSettings.portraitInputHeightPct || 40));
+		document.documentElement.style.setProperty('--portrait-input-height', heightPct + 'vh');
+	}
 }
 function applyViewportProfile() {
 	const bucket = detectViewportBucket();
@@ -6333,7 +6418,7 @@ function renderUI() {
 					const boxSize = 40 * scale;
 					span.style.width = boxSize + 'px';
 					span.style.height = boxSize + 'px';
-					const fontMult = appSettings.uiFontSizeMultiplier || 1.0;
+					const fontMult = (typeof getEffectiveNumberSize === 'function' ? getEffectiveNumberSize() : (appSettings.uiFontSizeMultiplier || 1.0) * 100) / 100;
 					const fontSizePx = boxSize * 0.5 * fontMult;
 					span.style.fontSize = fontSizePx + 'px';
 					span.textContent = num;
@@ -8041,6 +8126,12 @@ window.unlockBodyScroll = unlockBodyScroll;
 window.applyViewportProfile = applyViewportProfile;
 window.applyViewportHeaderButtonCuration = applyViewportHeaderButtonCuration;
 window.applyLandscapeInputWidth = applyLandscapeInputWidth;
+window.getEffectiveHeaderScale = getEffectiveHeaderScale;
+window.getEffectiveNumberSize = getEffectiveNumberSize;
+window.getEffectiveInputFontSize = getEffectiveInputFontSize;
+window.getEffectiveInputBtnSize = getEffectiveInputBtnSize;
+window.getEffectiveInputAreaEnabled = getEffectiveInputAreaEnabled;
+window.getEffectiveInputAreaPct = getEffectiveInputAreaPct;
 window.detectViewportBucket = detectViewportBucket;
 window.getEffectiveGlobalUiScale = getEffectiveGlobalUiScale;
 window.getEffectiveSeqScaleMultiplier = getEffectiveSeqScaleMultiplier;
@@ -8123,6 +8214,45 @@ function wireHeaderButtonInteractions() {
 			document.addEventListener('pointercancel', onDividerUp);
 		});
 	}
+
+	// Same idea as above but for portrait mode, where the sequence area and input panel are
+	// stacked vertically instead of side by side - drags the horizontal divider to change the
+	// input panel's height instead of width.
+	const portraitResizeHandle = $('portrait-resize-handle');
+	if (portraitResizeHandle) {
+		let isDraggingPortraitDivider = false;
+		const onPortraitDividerMove = (e) => {
+			if (!isDraggingPortraitDivider) return;
+			e.preventDefault();
+			const swapped = document.body.classList.contains('layout-swapped');
+			// Normally the input panel is anchored to the bottom of the screen, so its height is
+			// measured up from the bottom edge; layout-swapped anchors it to the top instead,
+			// matching the CSS above (bottom: 0 / top: 0 respectively).
+			const rawPct = swapped
+				? (e.clientY / window.innerHeight) * 100
+				: ((window.innerHeight - e.clientY) / window.innerHeight) * 100;
+			const clamped = Math.min(80, Math.max(20, rawPct));
+			appSettings.portraitInputHeightPct = Math.round(clamped);
+			document.documentElement.style.setProperty('--portrait-input-height', clamped + 'vh');
+		};
+		const onPortraitDividerUp = () => {
+			if (!isDraggingPortraitDivider) return;
+			isDraggingPortraitDivider = false;
+			document.body.classList.remove('landscape-resize-dragging');
+			saveState();
+			document.removeEventListener('pointermove', onPortraitDividerMove);
+			document.removeEventListener('pointerup', onPortraitDividerUp);
+			document.removeEventListener('pointercancel', onPortraitDividerUp);
+		};
+		portraitResizeHandle.addEventListener('pointerdown', (e) => {
+			e.preventDefault();
+			isDraggingPortraitDivider = true;
+			document.body.classList.add('landscape-resize-dragging');
+			document.addEventListener('pointermove', onPortraitDividerMove, { passive: false });
+			document.addEventListener('pointerup', onPortraitDividerUp);
+			document.addEventListener('pointercancel', onPortraitDividerUp);
+		});
+	}
 }
 let viewportConfigState = { configBucket: null, tempSettings: {}, activeTab: 'landscape' };
 
@@ -8190,9 +8320,24 @@ function vpPushLiveEditsToPreview() {
 		const bucket = viewportConfigState.configBucket;
 		const liveProfile = win.appSettings.viewportProfiles[bucket];
 		if (!liveProfile) return;
+		const INHERITABLE_NUMERIC_KEYS = ['headerScale', 'numberSize', 'inputFontSize', 'btnSize'];
 		Object.keys(viewportConfigState.tempSettings).forEach(key => {
 			if (key === 'pipMachine') {
 				win.appSettings.pipMachineIndex = (viewportConfigState.tempSettings.pipMachine === 'same') ? null : parseInt(viewportConfigState.tempSettings.pipMachine, 10);
+				return;
+			}
+			if (INHERITABLE_NUMERIC_KEYS.includes(key)) {
+				const raw = viewportConfigState.tempSettings[key];
+				if (raw === 'inherit') delete liveProfile[key];
+				else liveProfile[key] = parseInt(raw, 10);
+				return;
+			}
+			if (key === 'inputAreaEnabled') {
+				liveProfile.inputAreaEnabled = !!viewportConfigState.tempSettings.inputAreaEnabled;
+				return;
+			}
+			if (key === 'inputAreaPct') {
+				liveProfile.inputAreaPct = parseInt(viewportConfigState.tempSettings.inputAreaPct, 10);
 				return;
 			}
 			liveProfile[key] = viewportConfigState.tempSettings[key];
@@ -8202,7 +8347,13 @@ function vpPushLiveEditsToPreview() {
 		if (win.document && win.document.documentElement) {
 			win.document.documentElement.style.fontSize = (typeof win.getEffectiveGlobalUiScale === 'function' ? win.getEffectiveGlobalUiScale() : 100) + '%';
 		}
-		if (win.modules && win.modules.settings && typeof win.modules.settings.applyRowMax === 'function') win.modules.settings.applyRowMax();
+		if (win.modules && win.modules.settings) {
+			if (typeof win.modules.settings.applyRowMax === 'function') win.modules.settings.applyRowMax();
+			if (typeof win.modules.settings.applyHeaderScale === 'function') win.modules.settings.applyHeaderScale();
+			if (typeof win.modules.settings.applyInputFontScale === 'function') win.modules.settings.applyInputFontScale();
+			if (typeof win.modules.settings.applyInputBtnScale === 'function') win.modules.settings.applyInputBtnScale();
+		}
+		if (typeof win.applyLandscapeInputWidth === 'function') win.applyLandscapeInputWidth();
 	} catch (e) {
 		// Cross-origin or not-yet-loaded - safe to ignore, next reload will pick it up.
 	}
@@ -8367,7 +8518,7 @@ function initViewportProfilesUI() {
 			settingsDiv.appendChild(el);
 		};
 
-		const createSlider = (label, key, min, max, step, suffix) => {
+		const createSlider = (label, key, min, max, step, suffix, fallback) => {
 			const div = document.createElement('div');
 			div.style.cssText = 'margin-bottom: 12px;';
 			const labelEl = document.createElement('label');
@@ -8378,7 +8529,7 @@ function initViewportProfilesUI() {
 			input.min = min;
 			input.max = max;
 			input.step = step;
-			const curVal = viewportConfigState.tempSettings[key] !== undefined ? viewportConfigState.tempSettings[key] : (profile[key] !== undefined ? profile[key] : min);
+			const curVal = viewportConfigState.tempSettings[key] !== undefined ? viewportConfigState.tempSettings[key] : (profile[key] !== undefined ? profile[key] : (fallback !== undefined ? fallback : min));
 			input.value = curVal;
 			input.style.cssText = 'width: 100%; cursor: pointer;';
 			const valueSpan = document.createElement('span');
@@ -8432,6 +8583,70 @@ function initViewportProfilesUI() {
 			{ value: '8', text: '8 Cards' }, { value: '10', text: '10 Cards' },
 			{ value: '12', text: '12 Cards' }, { value: '15', text: '15 Cards' }
 		], profile.rowMax || 'none');
+
+		// --- Text & Button Sizing (all tabs) - per-bucket overrides for the same controls that
+		// live in General settings globally. Each defaults to inheriting the global value
+		// (option value 'inherit') until the person picks an explicit override for this bucket. ---
+		sectionLabel('Header, Number & Button Sizing');
+		const inheritNote = (label) => {
+			const p = document.createElement('p');
+			p.style.cssText = 'color: #666; font-size: 9px; margin: -8px 0 10px;';
+			p.textContent = `"Inherit" follows the global ${label} setting (General tab).`;
+			settingsDiv.appendChild(p);
+		};
+		createSelect('Header Size', 'headerScale', [
+			{ value: 'inherit', text: 'Inherit (Global)' },
+			{ value: '70', text: '70%' }, { value: '80', text: '80%' }, { value: '90', text: '90%' },
+			{ value: '100', text: '100%' }, { value: '110', text: '110%' }, { value: '120', text: '120%' },
+			{ value: '130', text: '130%' }, { value: '140', text: '140%' }, { value: '150', text: '150%' }
+		], 'inherit');
+		inheritNote('Header Size');
+		createSelect('Number Size', 'numberSize', [
+			{ value: 'inherit', text: 'Inherit (Global)' },
+			{ value: '100', text: 'Normal' }, { value: '150', text: 'Large' },
+			{ value: '200', text: 'Huge' }, { value: '250', text: 'Max (Fill)' }
+		], 'inherit');
+		inheritNote('Number Size');
+		createSelect('Input Font Size', 'inputFontSize', [
+			{ value: 'inherit', text: 'Inherit (Global)' },
+			{ value: '100', text: 'Normal' }, { value: '150', text: 'Large' },
+			{ value: '200', text: 'Huge' }, { value: '250', text: 'Max (Fill)' }
+		], 'inherit');
+		inheritNote('Input Font Size');
+		createSelect('Button Size', 'btnSize', [
+			{ value: 'inherit', text: 'Inherit (Global)' },
+			{ value: '70', text: 'Small' }, { value: '85', text: 'Compact' },
+			{ value: '100', text: 'Normal' }, { value: '125', text: 'Large' }, { value: '150', text: 'Huge' }
+		], 'inherit');
+		inheritNote('Button Size');
+
+		// --- Adjust Input Area (landscape/split75/50/25 only - portrait has its own separate
+		// global-only version of this feature since it isn't part of viewportProfiles) ---
+		sectionLabel('Adjust Input Area');
+		const inputAreaToggleWrap = document.createElement('label');
+		inputAreaToggleWrap.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 8px; margin-bottom: 10px; background: #222; border-radius: 4px; cursor: pointer;';
+		const inputAreaToggleSpan = document.createElement('span');
+		inputAreaToggleSpan.style.cssText = 'color: #ddd; font-size: 11px;';
+		inputAreaToggleSpan.textContent = 'Enable draggable divider for this size';
+		const inputAreaToggleCb = document.createElement('input');
+		inputAreaToggleCb.type = 'checkbox';
+		inputAreaToggleCb.style.cssText = 'width: 16px; height: 16px; cursor: pointer;';
+		const curInputAreaEnabled = viewportConfigState.tempSettings.inputAreaEnabled !== undefined
+			? viewportConfigState.tempSettings.inputAreaEnabled
+			: (profile.inputAreaEnabled !== undefined ? profile.inputAreaEnabled : appSettings.isLandscapeInputResizeEnabled);
+		inputAreaToggleCb.checked = !!curInputAreaEnabled;
+		inputAreaToggleCb.onchange = (e) => {
+			viewportConfigState.tempSettings.inputAreaEnabled = e.target.checked;
+			vpRenderConfigScreen();
+		};
+		inputAreaToggleWrap.appendChild(inputAreaToggleSpan);
+		inputAreaToggleWrap.appendChild(inputAreaToggleCb);
+		settingsDiv.appendChild(inputAreaToggleWrap);
+		createSlider('Input Area Width', 'inputAreaPct', 20, 80, 5, '%', appSettings.landscapeInputWidthPct || 50);
+		const inputAreaNote = document.createElement('p');
+		inputAreaNote.style.cssText = 'color: #666; font-size: 9px; margin: -8px 0 12px;';
+		inputAreaNote.textContent = 'Also draggable live on the divider line itself in the preview above.';
+		settingsDiv.appendChild(inputAreaNote);
 
 		// --- Layout (split50 only: alignment) ---
 		if (bucket === 'split50') {
@@ -8533,9 +8748,27 @@ function initViewportProfilesUI() {
 		configSaveBtn.onclick = () => {
 			if (!viewportConfigState.configBucket) return;
 			const profile = appSettings.viewportProfiles[viewportConfigState.configBucket];
+			const INHERITABLE_NUMERIC_KEYS = ['headerScale', 'numberSize', 'inputFontSize', 'btnSize'];
 			Object.keys(viewportConfigState.tempSettings).forEach(key => {
 				if (key === 'pipMachine') {
 					appSettings.pipMachineIndex = (viewportConfigState.tempSettings.pipMachine === 'same') ? null : parseInt(viewportConfigState.tempSettings.pipMachine, 10);
+					return;
+				}
+				if (INHERITABLE_NUMERIC_KEYS.includes(key)) {
+					const raw = viewportConfigState.tempSettings[key];
+					if (raw === 'inherit') {
+						delete profile[key];
+					} else {
+						profile[key] = parseInt(raw, 10);
+					}
+					return;
+				}
+				if (key === 'inputAreaEnabled') {
+					profile.inputAreaEnabled = !!viewportConfigState.tempSettings.inputAreaEnabled;
+					return;
+				}
+				if (key === 'inputAreaPct') {
+					profile.inputAreaPct = parseInt(viewportConfigState.tempSettings.inputAreaPct, 10);
 					return;
 				}
 				profile[key] = viewportConfigState.tempSettings[key];

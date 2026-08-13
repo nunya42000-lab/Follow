@@ -98,7 +98,7 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 		position: fixed;
 		top: 0; bottom: 0;
 		width: 28px;
-		z-index: 31;
+		z-index: 45;
 		cursor: ew-resize;
 		touch-action: none;
 	}
@@ -127,21 +127,57 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 		}
 	}
 
+	/* Portrait mode: the sequence area sits above and the input panel below, stacked
+	   vertically, so the adjustable dimension is height (via a horizontal handle) rather than
+	   width. Shares the same isLandscapeInputResizeEnabled toggle - one "Adjust Input Area"
+	   setting covers every orientation instead of a separate switch per layout. Uses a real
+	   fixed height rather than max-height: max-height is only a ceiling, and the number pad's
+	   actual content is almost always shorter than that ceiling, so dragging the handle never
+	   visibly changed anything - a fixed height is what actually makes the panel grow/shrink. */
+	body.landscape-resize-enabled[data-viewport-bucket="portrait"] #input-footer {
+		height: var(--portrait-input-height, 70vh) !important;
+		max-height: var(--portrait-input-height, 70vh) !important;
+		box-sizing: border-box !important;
+		display: flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+	}
+	body.landscape-resize-enabled[data-viewport-bucket="portrait"] #input-footer > div {
+		width: 100%;
+	}
+	#portrait-resize-handle {
+		display: none;
+		position: fixed;
+		left: 0; right: 0;
+		height: 28px;
+		z-index: 45;
+		cursor: ns-resize;
+		touch-action: none;
+	}
+	body.landscape-resize-enabled[data-viewport-bucket="portrait"] #portrait-resize-handle {
+		display: block;
+		bottom: calc(var(--portrait-input-height, 70vh) - 14px);
+	}
+	body.landscape-resize-enabled.layout-swapped[data-viewport-bucket="portrait"] #portrait-resize-handle {
+		bottom: auto;
+		top: calc(var(--portrait-input-height, 70vh) - 14px);
+	}
+
 body.pinned-mode #input-footer { padding-bottom: calc(max(.5rem, env(safe-area-inset-bottom)) + var(--inputs-padding-extra, 0px) + 60px); }
 body.layout-swapped #input-footer { border-top: none; border-bottom: 4px solid var(--seq-bubble); padding-top: max(.5rem, env(safe-area-inset-top)); padding-bottom: .5rem; }
-.btn-input { transition: all .1s ease-in-out; position: relative; font-weight: 700; border-radius: .75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .3); height: 60px; color: var(--text-main); -webkit-user-select: none; user-select: none; }
+.btn-input { transition: all .1s ease-in-out; position: relative; font-weight: 700; border-radius: .75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .3); height: calc(60px * var(--input-btn-scale, 1)); color: var(--text-main); -webkit-user-select: none; user-select: none; }
 .btn-pad-number { background-color: var(--btn-bg); font-size: 1.5rem; border: 1px solid var(--border); border-radius: 9999px; }
 .btn-pad-number:active { filter: brightness(1.3); transform: scale(.96); }
 .btn-pad-number.flash-active { background-color: var(--text-main) !important; color: var(--bg-main) !important; box-shadow: 0 0 15px var(--seq-bubble); transform: scale(1.05); z-index: 10; }
 
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #pad-key9, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #pad-key12 { width: 100% !important; max-width: none !important; display: flex !important; flex-direction: column !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key9 .grid-cols-3, body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key12 .grid-cols-4 { flex-grow: 1 !important; display: grid !important; gap: 0.4rem !important; }
-	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key12 .btn-pad-number { height: auto !important; aspect-ratio: auto !important; min-height: 2.5rem !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key12 .btn-pad-number { height: auto !important; aspect-ratio: auto !important; min-height: calc(2.5rem * var(--input-btn-scale, 1)) !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .btn-pad-number { height: 3rem !important; width: 3rem !important; aspect-ratio: 1 / 1 !important; border-radius: 9999px !important; flex-shrink: 0 !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"].hide-controls #pad-key9, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"].hide-controls #pad-key12 { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .grid-cols-3, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .grid-cols-4 { display: grid !important; gap: 0.5rem !important; justify-items: center !important; }
 
-.btn-control { background-color: var(--btn-bg); font-size: 1.5rem; height: 60px; border-radius: 9999px; color: var(--text-main); border: 1px solid var(--border); }
+.btn-control { background-color: var(--btn-bg); font-size: 1.5rem; height: calc(60px * var(--input-btn-scale, 1)); border-radius: 9999px; color: var(--text-main); border: 1px solid var(--border); }
 .btn-control:active { filter: brightness(1.3); transform: scale(.96); }
 .number-box { height: 40px; width: 40px; line-height: 40px; font-size: 1.2rem; font-weight: 800; transition: all .2s; background-color: var(--seq-bubble); color: var(--seq-bubble-text, var(--text-main)); display: flex; align-items: center; justify-content: center; border-radius: .5rem; box-shadow: 0 2px 4px rgba(0, 0, 0, .2); }
 #piano-keys { position: relative; display: flex; width: 100%; height: 200px; background-color: #111; border-radius: .25rem; overflow: hidden; border: 1px solid var(--border); }

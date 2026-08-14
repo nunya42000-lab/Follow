@@ -5946,11 +5946,16 @@ function applyViewportProfile() {
 	applyViewportHeaderButtonCuration(bucket);
 	applyLandscapeInputWidth();
 	syncPipSequenceOnlyMode();
-	if (bucket !== prevBucket) {
-		document.documentElement.style.fontSize = `${getEffectiveGlobalUiScale()}%`;
-		renderUI();
-		if (modules.settings && typeof modules.settings.applyRowMax === 'function') modules.settings.applyRowMax();
-	}
+	// Always refresh the actual on-screen layout, not just when the bucket itself changes.
+	// This used to be gated behind bucket !== prevBucket, which meant editing a setting for the
+	// bucket you're ALREADY in (the normal case - you open Configure while in landscape to
+	// change landscape's own UI Scale/Sequence Size/etc, you don't leave landscape to do it)
+	// never visibly took effect on Save. It would only ever show up once something unrelated
+	// happened to trigger a genuine bucket transition (rotating the device, resizing a
+	// split-screen pane), which made the settings look like they silently didn't work.
+	document.documentElement.style.fontSize = `${getEffectiveGlobalUiScale()}%`;
+	renderUI();
+	if (modules.settings && typeof modules.settings.applyRowMax === 'function') modules.settings.applyRowMax();
 }
 function updateAllChrome() {
 	applyTheme(appSettings.activeTheme);

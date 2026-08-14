@@ -8802,13 +8802,6 @@ function initViewportProfilesUI() {
 			if (bucket && configModal) openConfigModal(bucket);
 		};
 	});
-
-	if (!window.__vpResizeListenerBound) {
-		window.__vpResizeListenerBound = true;
-		window.addEventListener('resize', () => {
-			if (viewportConfigState.configBucket) vpFitIframeToWrapper();
-		});
-	}
 }
 
 // --- Mini viewport modal (split50/split33): compact sizing/layout + header buttons, no live

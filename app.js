@@ -5883,14 +5883,32 @@ function detectViewportBucket() {
 	const ratio = windowIsLandscape
 		? (deviceLongEdge > 0 ? window.innerWidth / deviceLongEdge : 1)
 		: (deviceLongEdge > 0 ? window.innerHeight / deviceLongEdge : 1);
-	// Real split-screen (Android and most OSes) only ever snaps the divider to thirds and half -
-	// approximately 33%/50%/66% of the screen - never 25%/75%. The boundaries below sit at the
-	// midpoints between those three actual snap points (~42% and ~58%), so whichever one the OS
-	// actually landed on gets bucketed correctly regardless of minor rendering/rounding variance.
 	if (ratio >= 0.92) return windowIsLandscape ? 'landscape' : 'portrait';
-	if (ratio >= 0.58) return 'split66';
-	if (ratio >= 0.42) return 'split50';
-	return 'split33';
+	// Real split-screen always opens at 50/50 - there's no way to enter split-screen at 33 or
+	// 66 directly, only by manually dragging the divider away from center afterward. A fixed
+	// midpoint threshold between 50 and 66 (or 50 and 33) assumed the real-world 50/50 ratio
+	// would land close to the mathematical 0.5 - but system UI overhead (nav bars, the divider
+	// itself, status bar insets) can easily push a genuine 50/50 split's usable-area ratio well
+	// past that, misclassifying it as 66 on the very first split. Anchoring to whichever bucket
+	// was last detected fixes this: a fresh session (no prior bucket, i.e. just transitioning
+	// out of landscape/portrait into a split) always starts at split50, matching how split-screen
+	// actually behaves, and only moves to split66/split33 once the ratio has clearly crossed
+	// toward one of those two actual snap points - not merely past the old midpoint - which only
+	// happens once someone has deliberately dragged the divider.
+	const lastBucket = window.__vpLastDetectedBucket;
+	const wasAlreadySplit = lastBucket === 'split66' || lastBucket === 'split50' || lastBucket === 'split33';
+	let bucket;
+	if (!wasAlreadySplit) {
+		bucket = 'split50';
+	} else if (ratio >= 0.66) {
+		bucket = 'split66';
+	} else if (ratio <= 0.4) {
+		bucket = 'split33';
+	} else {
+		bucket = 'split50';
+	}
+	window.__vpLastDetectedBucket = bucket;
+	return bucket;
 }
 function getViewportProfile() {
 	const bucket = document.body.dataset.viewportBucket;
@@ -9136,7 +9154,11 @@ function maybeShowOrientationIntro(bucket) {
 		if (typeof openFn === 'function') openFn(bucket, true);
 		return;
 	}
-	if (bucket === 'split50' || bucket === 'split33') {
+	// split50 doesn't get an intro at all - see openOrientationSettings for why: it's the
+	// universal default every split-screen session starts at, not a destination someone
+	// deliberately navigated to, so there's no "first time you're here on purpose" moment to
+	// walk them through.
+	if (bucket === 'split33') {
 		initMiniViewportModal();
 		openMiniViewportModal(bucket, true);
 	}
@@ -9154,7 +9176,14 @@ function openOrientationSettings() {
 		if (typeof openFn === 'function') openFn(bucket);
 		return;
 	}
-	if (bucket === 'split50' || bucket === 'split33') {
+	// split50 deliberately does NOT get the mini modal here: every real split-screen session
+	// starts at 50/50 (there's no way to enter split-screen at 33 or 66 directly), so it's the
+	// universal default rather than a distinct destination someone chose to navigate to. Routing
+	// it to the same special setup flow as 66/33 meant the very first split-screen session
+	// always landed in a "special" settings screen the person never asked for, right as they were
+	// just trying to check regular settings. split66 and split33 still get it, since reaching
+	// those requires deliberately dragging the divider away from center.
+	if (bucket === 'split33') {
 		initMiniViewportModal();
 		openMiniViewportModal(bucket);
 		return;

@@ -6427,11 +6427,15 @@ function renderUI() {
 				card.appendChild(headerRow);
 			}
 			const numGrid = document.createElement('div');
-			if (settings.machineCount > 1) {
-				numGrid.className = "grid grid-cols-4 gap-2 justify-items-center";
-			} else {
-				numGrid.className = "flex flex-wrap gap-2 justify-center";
-			}
+			// Both single- and multi-machine sequences use the same flex-wrap layout, so Row
+			// Max / UI Scale / Sequence Size (including the per-viewport-bucket overrides from
+			// the Landscape/Split Screen configure modal) actually apply to what's on screen.
+			// This used to hard-code a 4-column CSS grid whenever more than one machine was
+			// active, which ignored all of those settings outright - the grid packed exactly 4
+			// per row no matter what Row Max said, and no matter how large the boxes were sized
+			// to be, so real gameplay with 2+ machines never matched what the settings preview
+			// (which only ever previews a single machine) showed.
+			numGrid.className = "flex flex-wrap gap-2 justify-center";
 			(seq || []).forEach(num => {
 					const span = document.createElement('span');
 					span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold";
@@ -8387,7 +8391,7 @@ function vpFitIframeToWrapper() {
 	scaler.style.transform = `scale(${scale})`;
 	wrap.style.height = (target.height * scale) + 'px';
 	const dimsEl = document.getElementById('viewport-config-dims');
-	if (dimsEl) dimsEl.textContent = `${target.width}×${target.height}px (${Math.round(scale * 100)}%)`;
+	if (dimsEl) dimsEl.textContent = `${target.width}×${target.height}px real size, shown at ${Math.round(scale * 100)}% zoom to fit`;
 }
 
 function vpLoadPreviewIframe(bucket) {
@@ -8761,7 +8765,19 @@ function initViewportProfilesUI() {
 		viewportConfigState.tempSettings = {};
 	}
 
-	if (configCancelBtn) configCancelBtn.onclick = closeConfigModal;
+	function closeConfigModalWithConfirm() {
+		// Adjusting a slider/dropdown updates the live preview immediately, which can make it
+		// look like the change already took effect - but only Save & Exit actually persists it.
+		// Closing any other way (Cancel, this button) silently discards everything typed since
+		// the modal opened, with no prior warning, which is exactly the gap that made real
+		// gameplay end up looking different from what the preview had just shown.
+		if (Object.keys(viewportConfigState.tempSettings).length > 0) {
+			if (!confirm('You have unsaved changes that will be lost. Discard them?')) return;
+		}
+		closeConfigModal();
+	}
+
+	if (configCancelBtn) configCancelBtn.onclick = closeConfigModalWithConfirm;
 	if (configSaveBtn) {
 		configSaveBtn.onclick = () => {
 			if (!viewportConfigState.configBucket) return;
@@ -8907,6 +8923,13 @@ function closeMiniViewportModal() {
 	miniViewportState.tempSettings = {};
 }
 
+function closeMiniViewportModalWithConfirm() {
+	if (Object.keys(miniViewportState.tempSettings).length > 0) {
+		if (!confirm('You have unsaved changes that will be lost. Discard them?')) return;
+	}
+	closeMiniViewportModal();
+}
+
 function saveMiniViewportModal() {
 	if (!miniViewportState.bucket) return;
 	const profile = appSettings.viewportProfiles[miniViewportState.bucket];
@@ -8930,8 +8953,8 @@ function initMiniViewportModal() {
 	const closeXBtn = document.getElementById('mini-viewport-close-x');
 	const saveBtn = document.getElementById('mini-viewport-save-btn');
 	const fullSettingsBtn = document.getElementById('mini-viewport-full-settings-btn');
-	if (cancelBtn) cancelBtn.onclick = closeMiniViewportModal;
-	if (closeXBtn) closeXBtn.onclick = closeMiniViewportModal;
+	if (cancelBtn) cancelBtn.onclick = closeMiniViewportModalWithConfirm;
+	if (closeXBtn) closeXBtn.onclick = closeMiniViewportModalWithConfirm;
 	if (saveBtn) saveBtn.onclick = saveMiniViewportModal;
 	if (fullSettingsBtn) fullSettingsBtn.onclick = () => {
 		closeMiniViewportModal();
@@ -8965,6 +8988,7 @@ function openOrientationSettings() {
 window.openOrientationSettings = openOrientationSettings;
 window.openMiniViewportModal = openMiniViewportModal;
 window.closeMiniViewportModal = closeMiniViewportModal;
+window.closeMiniViewportModalWithConfirm = closeMiniViewportModalWithConfirm;
 window.saveMiniViewportModal = saveMiniViewportModal;
 window.initMiniViewportModal = initMiniViewportModal;
 

@@ -675,6 +675,16 @@ const DEFAULT_APP = {
 		split33: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }
 	},
 	pipMachineIndex: null,
+	// Orientation Intro panel: the first time the person enters landscape/66%/50%/33% and that
+	// bucket has never actually been saved (via this panel or the regular Configure/mini modal),
+	// a full settings panel for that orientation pops up automatically so they can dial
+	// everything in before playing, instead of discovering mid-game that something's off. Each
+	// bucket tracks its own "configured" flag independently - dismissing without saving means it
+	// shows again next time, since the person still hasn't actually set anything up for that
+	// bucket. isOrientationIntroDisabled is the explicit opt-out inside the panel itself; once
+	// set, nothing shows again for any bucket until the person resets their settings.
+	orientationIntroConfigured: { landscape: false, split66: false, split50: false, split33: false },
+	isOrientationIntroDisabled: false,
 	ecoModeConfig: {
 		themeSwitch: false, disableSensors: false, dimBrightness: false, limitWakeLock: false,
 		reduceVideoFps: false, lowerVoiceQuality: false, reduceVolume: false, disableHaptics: false,
@@ -5946,6 +5956,9 @@ function applyViewportProfile() {
 	applyViewportHeaderButtonCuration(bucket);
 	applyLandscapeInputWidth();
 	syncPipSequenceOnlyMode();
+	if (bucket !== prevBucket) {
+		maybeShowOrientationIntro(bucket);
+	}
 	// Always refresh the actual on-screen layout, not just when the bucket itself changes.
 	// This used to be gated behind bucket !== prevBucket, which meant editing a setting for the
 	// bucket you're ALREADY in (the normal case - you open Configure while in landscape to
@@ -8740,14 +8753,20 @@ function initViewportProfilesUI() {
 		}
 	}
 
-	function openConfigModal(bucket) {
+	function openConfigModal(bucket, isIntro) {
 		viewportConfigState.configBucket = bucket;
 		viewportConfigState.tempSettings = {};
 		const titleEl = document.getElementById('viewport-config-title');
 		if (titleEl) {
 			const bucketLabels = { landscape: 'Landscape', split66: '66%', split50: '50%', split33: '33%' };
-			titleEl.textContent = 'Configure ' + (bucketLabels[bucket] || bucket);
+			titleEl.textContent = (isIntro ? 'Set Up ' : 'Configure ') + (bucketLabels[bucket] || bucket);
 		}
+		const banner = document.getElementById('viewport-config-intro-banner');
+		if (banner) banner.style.display = isIntro ? 'block' : 'none';
+		const dontShowRow = document.getElementById('viewport-config-dont-show-row');
+		const dontShowCb = document.getElementById('viewport-config-dont-show-checkbox');
+		if (dontShowRow) dontShowRow.style.display = isIntro ? 'flex' : 'none';
+		if (dontShowCb) dontShowCb.checked = false;
 		renderConfigSettings();
 		if (configModal) {
 			configModal.classList.remove('opacity-0', 'pointer-events-none');
@@ -8807,6 +8826,13 @@ function initViewportProfilesUI() {
 				}
 				profile[key] = viewportConfigState.tempSettings[key];
 			});
+			if (appSettings.orientationIntroConfigured) {
+				appSettings.orientationIntroConfigured[viewportConfigState.configBucket] = true;
+			}
+			const dontShowCb = document.getElementById('viewport-config-dont-show-checkbox');
+			if (dontShowCb && dontShowCb.checked) {
+				appSettings.isOrientationIntroDisabled = true;
+			}
 			saveState();
 			if (typeof applyViewportProfile === 'function') applyViewportProfile();
 			renderPreview();
@@ -8903,11 +8929,17 @@ function renderMiniViewportSettings() {
 	}
 }
 
-function openMiniViewportModal(bucket) {
+function openMiniViewportModal(bucket, isIntro) {
 	miniViewportState.bucket = bucket;
 	miniViewportState.tempSettings = {};
 	const titleEl = document.getElementById('mini-viewport-title');
-	if (titleEl) titleEl.textContent = 'Configure ' + (bucket === 'split50' ? '50%' : '33%');
+	if (titleEl) titleEl.textContent = (isIntro ? 'Set Up ' : 'Configure ') + (bucket === 'split50' ? '50%' : '33%');
+	const banner = document.getElementById('mini-viewport-intro-banner');
+	if (banner) banner.style.display = isIntro ? 'block' : 'none';
+	const dontShowRow = document.getElementById('mini-viewport-dont-show-row');
+	const dontShowCb = document.getElementById('mini-viewport-dont-show-checkbox');
+	if (dontShowRow) dontShowRow.style.display = isIntro ? 'flex' : 'none';
+	if (dontShowCb) dontShowCb.checked = false;
 	renderMiniViewportSettings();
 	const modal = document.getElementById('mini-viewport-modal');
 	if (modal) {
@@ -8946,6 +8978,13 @@ function saveMiniViewportModal() {
 		}
 		profile[key] = miniViewportState.tempSettings[key];
 	});
+	if (appSettings.orientationIntroConfigured) {
+		appSettings.orientationIntroConfigured[miniViewportState.bucket] = true;
+	}
+	const dontShowCb = document.getElementById('mini-viewport-dont-show-checkbox');
+	if (dontShowCb && dontShowCb.checked) {
+		appSettings.isOrientationIntroDisabled = true;
+	}
 	saveState();
 	if (typeof applyViewportProfile === 'function') applyViewportProfile();
 	closeMiniViewportModal();
@@ -8972,6 +9011,29 @@ function initMiniViewportModal() {
 // settings modal. Portrait keeps the original full modal (it was never part of this system).
 // Landscape/split66 jump straight into their own full configure-with-live-preview modal.
 // split50/split33 get the compact mini modal. ---
+// Fires on a genuine transition into landscape/66%/50%/33% (see applyViewportProfile). Shows
+// the same Configure/mini modal used for manual setup, but framed as a one-time intro: banner
+// copy explaining why it's here, and a "don't show again" toggle. Reappears every time the
+// person re-enters a bucket they haven't actually saved anything for yet (dismissing via
+// Cancel/X doesn't count as configured - only a real Save does), so it can't be dodged by
+// accident, but never nags once genuinely set up or explicitly turned off.
+function maybeShowOrientationIntro(bucket) {
+	if (appSettings.isOrientationIntroDisabled) return;
+	if (!appSettings.orientationIntroConfigured) return;
+	if (appSettings.orientationIntroConfigured[bucket]) return;
+	if (bucket === 'landscape' || bucket === 'split66') {
+		if (typeof initViewportProfilesUI === 'function') initViewportProfilesUI();
+		const openFn = window.__vpOpenConfigModalDirect;
+		if (typeof openFn === 'function') openFn(bucket, true);
+		return;
+	}
+	if (bucket === 'split50' || bucket === 'split33') {
+		initMiniViewportModal();
+		openMiniViewportModal(bucket, true);
+	}
+}
+window.maybeShowOrientationIntro = maybeShowOrientationIntro;
+
 function openOrientationSettings() {
 	const bucket = document.body.dataset.viewportBucket;
 	if (bucket === 'landscape' || bucket === 'split66') {

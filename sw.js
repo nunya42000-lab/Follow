@@ -1,4 +1,4 @@
-const CACHE_NAME = 'follow-me-v141';
+const CACHE_NAME = 'follow-me-v143';
 
 const CRITICAL_ASSETS = [
     './',

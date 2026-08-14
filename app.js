@@ -671,7 +671,7 @@ const DEFAULT_APP = {
 	viewportProfiles: {
 		landscape: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', headerButtons: [] },
 		split66: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', headerButtons: [] },
-		split50: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
+		split50: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', alignment: 'horizontal', portraitSplitLayout: 'stacked', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
 		split33: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }
 	},
 	pipMachineIndex: null,
@@ -5825,26 +5825,69 @@ window.grantAllPermissions = async function() {
 // ratio, so this compares the app's actual width against the device's full screen width while
 // in landscape orientation - a full-width app is "landscape", and progressively narrower panes
 // bucket into the 75/50/25 split-screen presets. Portrait is untouched by any of this.
+// Whether the CURRENT WINDOW is landscape-shaped or portrait-shaped right now - used both by
+// detectViewportBucket() (below) and by applyViewportProfile() to decide, independent of which
+// split-ratio bucket you're in, whether this is a sideways split (wide short window) or an
+// upright split (narrow tall window, from holding the phone normally). The same bucket name
+// (e.g. split50) can happen in either window shape, and the two need different layouts.
+function isWindowLandscapeShaped() {
+	if (window.__vpPreviewForceBucket) {
+		// Preview mode always simulates a sideways split, matching how the configure modal's
+		// live preview iframe is sized (see vpGetIframeTargetSize) - there's no portrait-shaped
+		// preview mode built yet.
+		return window.__vpPreviewForceBucket !== 'portrait';
+	}
+	// The window's OWN aspect ratio can't reliably tell sideways split-screen apart from
+	// portrait split-screen: a narrow enough slice of either one ends up looking similar. A
+	// 33%-height portrait split (e.g. 400x297) is wider than tall by that math, and a
+	// 33%-width sideways split (e.g. 297x400) is taller than wide - each would get
+	// misclassified as the other orientation using window shape alone.
+	// screen.orientation.type looked like the fix (it describes the device's actual physical
+	// rotation, independent of how narrow the current split is) but testing found it can report
+	// a stale/default value that directly contradicts window.screen.width/height themselves -
+	// e.g. "landscape-primary" while screen.width/height are genuinely portrait-shaped. Comparing
+	// screen.width/height directly is more consistent: those are the same values
+	// detectViewportBucket() already uses for its own ratio math, they're standard and
+	// well-supported, and they DO update on a real device's rotation the same way orientation.type
+	// is supposed to.
+	if (window.screen && window.screen.width && window.screen.height) {
+		return window.screen.width >= window.screen.height;
+	}
+	if (typeof window.orientation === 'number') {
+		return Math.abs(window.orientation) === 90;
+	}
+	return window.innerWidth >= window.innerHeight;
+}
 function detectViewportBucket() {
 	// Viewport Preview mode (Landscape and Split Screen configure modal): the iframe is asked
 	// to pretend to be a specific bucket regardless of the real device's screen/window ratio,
 	// so the person can preview split50/split33 etc without physically resizing their window.
 	if (window.__vpPreviewForceBucket) return window.__vpPreviewForceBucket;
+	// Whether the CURRENT WINDOW is landscape-shaped or portrait-shaped - not the device's own
+	// physical shape. A phone is always physically taller than wide, but split-screen while
+	// holding it normally still produces a landscape-shaped pane if you're in a landscape app
+	// and a portrait-shaped one if you're in a portrait app; the device's own shape was
+	// previously used as a shortcut ("deviceIsLandscape"), which meant split-screen while
+	// holding the phone normally (the actual common case) always short-circuited straight to
+	// 'portrait' before ever checking the real window ratio - the split-screen buckets could
+	// never be detected at all in that orientation, regardless of what ratio the split was
+	// genuinely at.
+	const windowIsLandscape = isWindowLandscapeShaped();
 	const screenW = (window.screen && window.screen.width) ? window.screen.width : window.innerWidth;
 	const screenH = (window.screen && window.screen.height) ? window.screen.height : window.innerHeight;
-	// Use the full device screen's own shape (not the current viewport's) to decide whether
-	// we're in a landscape/split-screen context. A narrow split pane can end up taller than it
-	// is wide even while the device itself is physically landscape, which previously
-	// misclassified it as plain "portrait" and skipped every landscape/split-screen
-	// accommodation (scoped UI/Seq sizing, header button whitelist, swap layout) entirely.
-	const deviceIsLandscape = screenW >= screenH;
-	if (!deviceIsLandscape) return 'portrait';
-	const ratio = screenW > 0 ? (window.innerWidth / screenW) : 1;
+	// The device's full screen dimension along whichever axis the current window is actually
+	// splitting - i.e. if the window is landscape-shaped, compare its width against the
+	// device's own long edge; if portrait-shaped, compare its height against the device's own
+	// long edge (a portrait split-screen divides height, not width).
+	const deviceLongEdge = Math.max(screenW, screenH);
+	const ratio = windowIsLandscape
+		? (deviceLongEdge > 0 ? window.innerWidth / deviceLongEdge : 1)
+		: (deviceLongEdge > 0 ? window.innerHeight / deviceLongEdge : 1);
 	// Real split-screen (Android and most OSes) only ever snaps the divider to thirds and half -
 	// approximately 33%/50%/66% of the screen - never 25%/75%. The boundaries below sit at the
 	// midpoints between those three actual snap points (~42% and ~58%), so whichever one the OS
 	// actually landed on gets bucketed correctly regardless of minor rendering/rounding variance.
-	if (ratio >= 0.92) return 'landscape';
+	if (ratio >= 0.92) return windowIsLandscape ? 'landscape' : 'portrait';
 	if (ratio >= 0.58) return 'split66';
 	if (ratio >= 0.42) return 'split50';
 	return 'split33';
@@ -5952,6 +5995,24 @@ function applyViewportProfile() {
 		document.body.dataset.splitAlignment = (profile && profile.alignment) || 'horizontal';
 	} else {
 		delete document.body.dataset.splitAlignment;
+	}
+	// Only meaningful for a split bucket while the window is portrait-shaped (holding the phone
+	// normally) - sideways split-screen already has its own established side-by-side layout and
+	// doesn't need this. 66% always stacks (plenty of vertical room, matches normal portrait);
+	// 33% always goes side-by-side (too narrow for a stacked pad to stay usable); 50% is
+	// genuinely ambiguous either way, so it follows whatever the person actually chose.
+	const isSplitBucket = bucket === 'split66' || bucket === 'split50' || bucket === 'split33';
+	if (isSplitBucket && !isWindowLandscapeShaped()) {
+		if (bucket === 'split66') {
+			document.body.dataset.portraitSplitLayout = 'stacked';
+		} else if (bucket === 'split33') {
+			document.body.dataset.portraitSplitLayout = 'sideBySide';
+		} else {
+			const profile = appSettings.viewportProfiles && appSettings.viewportProfiles.split50;
+			document.body.dataset.portraitSplitLayout = (profile && profile.portraitSplitLayout) || 'stacked';
+		}
+	} else {
+		delete document.body.dataset.portraitSplitLayout;
 	}
 	applyViewportHeaderButtonCuration(bucket);
 	applyLandscapeInputWidth();
@@ -8694,6 +8755,14 @@ function initViewportProfilesUI() {
 				{ value: 'horizontal', text: 'Horizontal (Normal)' },
 				{ value: 'vertical', text: 'Vertical' }
 			], 'horizontal');
+			createSelect('When Holding Phone Normally', 'portraitSplitLayout', [
+				{ value: 'stacked', text: 'Stacked (like Portrait)' },
+				{ value: 'sideBySide', text: 'Side-by-Side (like Landscape)' }
+			], 'stacked');
+			const portraitLayoutNote = document.createElement('p');
+			portraitLayoutNote.style.cssText = 'color: #666; font-size: 9px; margin: -8px 0 10px;';
+			portraitLayoutNote.textContent = 'Only matters when this 50/50 split happens while holding the phone upright, not sideways.';
+			settingsDiv.appendChild(portraitLayoutNote);
 		}
 
 		// --- Picture-in-Picture (split50/split33 only) ---
@@ -8788,6 +8857,7 @@ function initViewportProfilesUI() {
 		viewportConfigState.configBucket = null;
 		viewportConfigState.tempSettings = {};
 	}
+	window.__vpCloseConfigModalDirect = closeConfigModal;
 
 	function closeConfigModalWithConfirm() {
 		// Adjusting a slider/dropdown updates the live preview immediately, which can make it
@@ -8889,6 +8959,14 @@ function renderMiniViewportSettings() {
 			{ value: 'horizontal', text: 'Horizontal (Normal)' },
 			{ value: 'vertical', text: 'Vertical' }
 		], 'horizontal');
+		createSelect('When Holding Phone Normally', 'portraitSplitLayout', [
+			{ value: 'stacked', text: 'Stacked (like Portrait)' },
+			{ value: 'sideBySide', text: 'Side-by-Side (like Landscape)' }
+		], 'stacked');
+		const portraitLayoutNote = document.createElement('p');
+		portraitLayoutNote.style.cssText = 'color: #666; font-size: 9px; margin: -8px 0 10px;';
+		portraitLayoutNote.textContent = 'Only matters when this 50/50 split happens while holding the phone upright, not sideways.';
+		settingsDiv.appendChild(portraitLayoutNote);
 	}
 
 	sectionLabel('Header Buttons');
@@ -9018,9 +9096,40 @@ function initMiniViewportModal() {
 // Cancel/X doesn't count as configured - only a real Save does), so it can't be dodged by
 // accident, but never nags once genuinely set up or explicitly turned off.
 function maybeShowOrientationIntro(bucket) {
+	// This runs inside the Landscape/Split Screen configure modal's live preview iframe too,
+	// since that iframe is a real load of this same index.html/app.js with its own
+	// applyViewportProfile() call. Without this guard, entering a bucket for the first time
+	// opens the intro, which contains a live preview iframe, which itself detects the same
+	// first-time entry and opens ITS OWN intro, nesting infinitely (matching the "app inside
+	// the app inside the app" screenshot). vpPreview=1 already gates the welcome screen and
+	// service worker registration the same way for the same reason - this was just missed when
+	// the intro panel was first built.
+	if (location.search.includes('vpPreview=1')) return;
 	if (appSettings.isOrientationIntroDisabled) return;
 	if (!appSettings.orientationIntroConfigured) return;
 	if (appSettings.orientationIntroConfigured[bucket]) return;
+	// A real device rotation or split-screen resize doesn't jump straight to its final ratio -
+	// the OS animates through it, and applyViewportProfile() is deliberately called several
+	// times in quick succession (0/150/400ms) to catch wherever it settles. Each of those calls
+	// can see a different, still-transitional bucket (e.g. briefly reading as landscape, then
+	// settling at split66), and without this check each one would independently pop its own
+	// intro, stacking a second setup panel for a bucket the person was only ever passing
+	// through. If an intro/mini modal is already open for a DIFFERENT bucket, treat this as
+	// "the transition kept going" and swap it to the new bucket in place rather than layering a
+	// second modal on top.
+	const fullModalEl = document.getElementById('viewport-config-modal');
+	const fullModalOpen = fullModalEl && getComputedStyle(fullModalEl).opacity !== '0';
+	const miniModalEl = document.getElementById('mini-viewport-modal');
+	const miniModalOpen = miniModalEl && getComputedStyle(miniModalEl).opacity !== '0';
+	if ((fullModalOpen && viewportConfigState.configBucket && viewportConfigState.configBucket !== bucket) ||
+		(miniModalOpen && miniViewportState.bucket && miniViewportState.bucket !== bucket)) {
+		if (fullModalOpen && typeof window.__vpCloseConfigModalDirect === 'function') window.__vpCloseConfigModalDirect();
+		if (miniModalOpen) closeMiniViewportModal();
+	} else if (fullModalOpen || miniModalOpen) {
+		// Already showing the intro for THIS SAME bucket - a later settle call for the same
+		// final bucket shouldn't re-open/flash it.
+		return;
+	}
 	if (bucket === 'landscape' || bucket === 'split66') {
 		if (typeof initViewportProfilesUI === 'function') initViewportProfilesUI();
 		const openFn = window.__vpOpenConfigModalDirect;

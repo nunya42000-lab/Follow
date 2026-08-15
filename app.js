@@ -3513,6 +3513,28 @@ class SettingsManager {
 		if (this.dom.quickHelp) this.dom.quickHelp.onclick = () => { this.closeSetup(); this.generatePrompt(); if (this.dom.helpModal) this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); if (window.lockBodyScroll) window.lockBodyScroll(); };
 		if (this.dom.grantPermissionsBtn) this.dom.grantPermissionsBtn.onclick = () => { if (typeof window.grantAllPermissions === 'function') window.grantAllPermissions(); };
 		if (this.dom.closeHelpBtn) this.dom.closeHelpBtn.onclick = () => { if (this.dom.helpModal) this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none'); if (window.unlockBodyScroll) window.unlockBodyScroll(); };
+		const viewportDiagBtn = document.getElementById('viewport-diag-toggle-btn');
+		const viewportDiagPanel = document.getElementById('viewport-diag-panel');
+		let viewportDiagResizeHandler = null;
+		if (viewportDiagBtn && viewportDiagPanel) {
+			viewportDiagBtn.onclick = () => {
+				const isHidden = viewportDiagPanel.classList.contains('hidden');
+				if (isHidden) {
+					viewportDiagPanel.classList.remove('hidden');
+					viewportDiagBtn.textContent = 'Hide Live Diagnostic';
+					if (typeof window.renderViewportDiagnostic === 'function') window.renderViewportDiagnostic();
+					viewportDiagResizeHandler = () => { if (typeof window.renderViewportDiagnostic === 'function') window.renderViewportDiagnostic(); };
+					window.addEventListener('resize', viewportDiagResizeHandler);
+				} else {
+					viewportDiagPanel.classList.add('hidden');
+					viewportDiagBtn.textContent = 'Show Live Diagnostic';
+					if (viewportDiagResizeHandler) {
+						window.removeEventListener('resize', viewportDiagResizeHandler);
+						viewportDiagResizeHandler = null;
+					}
+				}
+			};
+		}
 		if (this.dom.closeHelpBtnBottom) this.dom.closeHelpBtnBottom.onclick = () => { if (this.dom.helpModal) this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none'); if (window.unlockBodyScroll) window.unlockBodyScroll(); };
 		if (this.dom.openHelpBtn) this.dom.openHelpBtn.onclick = () => { this.generatePrompt(); if (this.dom.helpModal) this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); if (window.lockBodyScroll) window.lockBodyScroll(); };
 		if (this.dom.closeSettingsBtn) this.dom.closeSettingsBtn.onclick = () => { if (window.__stopAllAdvancedTests) window.__stopAllAdvancedTests(); this.callbacks.onSave(); if (this.dom.settingsModal) { this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.add('scale-90'); } if (window.unlockBodyScroll) window.unlockBodyScroll(); };
@@ -3568,63 +3590,22 @@ class SettingsManager {
 			this.dom.restoreBtn.onclick = () => { if (confirm("Factory Reset?")) this.callbacks.onReset(); };
 		}
 		if (this.dom.nukeBtn) {
-			this.dom.nukeBtn.onclick = () => {
-				if (confirm("☢️ NUKE APP? This will wipe all saved data, clear browser caches, unregister Service Workers, and force a fresh update from the server. This works even if the app is broken.")) {
-					if ('serviceWorker' in navigator) {
-						navigator.serviceWorker.getRegistrations().then(regs => {
-								for (let r of regs) {
-									r.unregister().catch(() => {});
-								}
-						}).catch(() => {});
-					}
-					if (window.caches) {
-						caches.keys().then(names => {
-								for (let name of names) {
-									caches.delete(name).catch(() => {});
-								}
-						}).catch(() => {});
-					}
-					if (window.indexedDB) {
-						const dbs = ['follow-me', 'fm-cache', 'app-storage'];
-						dbs.forEach(db => {
-							try {
-								indexedDB.deleteDatabase(db);
-							} catch (e) {}
-						});
-					}
-					localStorage.clear();
-					sessionStorage.clear();
-					document.cookie.split(";").forEach((c) => {
-						document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-					});
-					setTimeout(() => {
-						window.location.href = window.location.pathname + '?nuke=1';
-					}, 100);
-				}
+			this.dom.nukeBtn.onclick = async () => {
+				if (!confirm("☢️ NUKE APP? This will wipe all saved data, clear browser caches, unregister Service Workers, and force a fresh update from the server. This works even if the app is broken.")) return;
+				this.dom.nukeBtn.disabled = true;
+				this.dom.nukeBtn.textContent = '⏳';
+				await performNuke();
+				window.location.href = window.location.pathname;
 			};
 		}
 		const refreshBtn = document.querySelector('button[data-action="force-refresh"]');
 		if (refreshBtn) {
-			refreshBtn.onclick = () => {
-				if (confirm("🔄 REFRESH APP? This will clear the browser cache and service worker, forcing a fresh download. Your settings will be kept.")) {
-					if ('serviceWorker' in navigator) {
-						navigator.serviceWorker.getRegistrations().then(regs => {
-								for (let r of regs) {
-									r.unregister().catch(() => {});
-								}
-						}).catch(() => {});
-					}
-					if (window.caches) {
-						caches.keys().then(names => {
-								for (let name of names) {
-									caches.delete(name).catch(() => {});
-								}
-						}).catch(() => {});
-					}
-					setTimeout(() => {
-						window.location.href = window.location.pathname + '?forceRefresh=1';
-					}, 100);
-				}
+			refreshBtn.onclick = async () => {
+				if (!confirm("🔄 REFRESH APP? This will clear the browser cache and service worker, forcing a fresh download. Your settings will be kept.")) return;
+				refreshBtn.disabled = true;
+				refreshBtn.textContent = '⏳';
+				await performForceRefresh();
+				window.location.reload();
 			};
 		}
 		if (this.dom.quickResizeUp) this.dom.quickResizeUp.onclick = () => { this.appSettings.globalUiScale = Math.min(200, this.appSettings.globalUiScale + 10); this.callbacks.onSave(); this.callbacks.onUpdate(); this.updateWelcomeSample(); };
@@ -6007,6 +5988,43 @@ function detectViewportBucket() {
 	if (ratio >= 0.42) return windowIsLandscape ? 'split50h' : 'split50v';
 	return 'split33';
 }
+// Live diagnostic for the viewport/orientation detection above - shows exactly what THIS
+// device is really reporting at every step, since synthetic tests can pass while genuine
+// Android WebView behavior (which varies by manufacturer/browser) still differs from what's
+// assumed. Rendered into the Help modal's Basics tab, toggled on demand rather than always-on.
+function renderViewportDiagnostic() {
+	const panel = document.getElementById('viewport-diag-panel');
+	if (!panel) return;
+	const screenW = window.screen ? window.screen.width : 'n/a';
+	const screenH = window.screen ? window.screen.height : 'n/a';
+	const innerW = window.innerWidth;
+	const innerH = window.innerHeight;
+	const shortEdge = (window.screen && window.screen.width && window.screen.height) ? Math.min(window.screen.width, window.screen.height) : 'n/a';
+	const widthDeficit = (shortEdge !== 'n/a') ? Math.abs(innerW - shortEdge) : 'n/a';
+	const heightDeficit = (shortEdge !== 'n/a') ? Math.abs(innerH - shortEdge) : 'n/a';
+	const windowIsLandscape = isWindowLandscapeShaped();
+	const bucket = detectViewportBucket();
+	const mediaQueryLandscape = window.matchMedia('(orientation: landscape)').matches;
+	const orientationApiType = (window.screen && window.screen.orientation) ? window.screen.orientation.type : 'n/a';
+	panel.textContent =
+		`window.screen.width:  ${screenW}\n` +
+		`window.screen.height: ${screenH}\n` +
+		`window.innerWidth:    ${innerW}\n` +
+		`window.innerHeight:   ${innerH}\n` +
+		`\n` +
+		`short edge (min of screen w/h): ${shortEdge}\n` +
+		`width deficit from short edge:  ${widthDeficit}\n` +
+		`height deficit from short edge: ${heightDeficit}\n` +
+		`\n` +
+		`isWindowLandscapeShaped(): ${windowIsLandscape}\n` +
+		`detectViewportBucket():    ${bucket}\n` +
+		`\n` +
+		`(orientation:landscape) media query: ${mediaQueryLandscape}\n` +
+		`screen.orientation.type:             ${orientationApiType}\n` +
+		`data-viewport-bucket on <body>:      ${document.body.dataset.viewportBucket || '(unset)'}\n` +
+		`data-portrait-split-layout:          ${document.body.dataset.portraitSplitLayout || '(unset)'}`;
+}
+window.renderViewportDiagnostic = renderViewportDiagnostic;
 function getViewportProfile() {
 	const bucket = document.body.dataset.viewportBucket;
 	if (!bucket || bucket === 'portrait') return null;
@@ -9048,59 +9066,97 @@ function openOrientationSettings() {
 }
 window.openOrientationSettings = openOrientationSettings;
 
+// The actual, reliable cleanup sequence for Nuke - every step genuinely awaited in order, each
+// wrapped in its own try/catch so one failure (e.g. no service worker registered) doesn't skip
+// the rest. Called directly from the header/settings button now, instead of the old approach of
+// doing a rushed, un-awaited fire-and-forget cleanup and then navigating to a URL flag that
+// re-ran a SEPARATE, correct copy of this same logic - which required confirming a second,
+// easy-to-miss dialog after the page had already reloaded. Missing that second prompt meant
+// nothing actually got cleaned up, which is the likely reason this needed repeated attempts.
+async function performNuke() {
+	try {
+		const regs = await navigator.serviceWorker.getRegistrations();
+		await Promise.all(regs.map(r => r.unregister()));
+	} catch (e) {
+		console.warn('Nuke - service worker unregister failed:', e);
+	}
+	try {
+		const names = await caches.keys();
+		await Promise.all(names.map(n => caches.delete(n)));
+	} catch (e) {
+		console.warn('Nuke - cache clear failed:', e);
+	}
+	try {
+		if (window.indexedDB && indexedDB.databases) {
+			// Enumerate whatever IndexedDB databases actually exist under this origin, rather
+			// than guessing specific names - this app doesn't open any IndexedDB database
+			// itself today, but a hardcoded guess-list would silently miss anything a future
+			// feature (or a browser/PWA implementation detail) creates.
+			const dbs = await indexedDB.databases();
+			await Promise.all(dbs.map(db => new Promise((resolve) => {
+				if (!db.name) { resolve(); return; }
+				const req = indexedDB.deleteDatabase(db.name);
+				req.onsuccess = () => resolve();
+				req.onerror = () => resolve();
+				req.onblocked = () => resolve();
+			})));
+		}
+	} catch (e) {
+		console.warn('Nuke - IndexedDB clear failed:', e);
+	}
+	try {
+		localStorage.clear();
+	} catch (e) {
+		console.warn('Nuke - localStorage clear failed:', e);
+	}
+	try {
+		sessionStorage.clear();
+	} catch (e) {
+		console.warn('Nuke - sessionStorage clear failed:', e);
+	}
+	try {
+		document.cookie.split(";").forEach((c) => {
+			document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+		});
+	} catch (e) {
+		console.warn('Nuke - cookie clear failed:', e);
+	}
+}
+window.performNuke = performNuke;
+
+// Shared, properly-awaited refresh cleanup - same reasoning as performNuke: the old button
+// handler started this cleanup but navigated after a fixed 100ms regardless of whether it had
+// actually finished, so on a slower device the reload could beat the real cleanup to the punch.
+async function performForceRefresh() {
+	try {
+		const regs = await navigator.serviceWorker.getRegistrations();
+		await Promise.all(regs.map(r => r.unregister()));
+	} catch (e) {
+		console.warn('Refresh - service worker unregister failed:', e);
+	}
+	try {
+		const names = await caches.keys();
+		await Promise.all(names.map(n => caches.delete(n)));
+	} catch (e) {
+		console.warn('Refresh - cache clear failed:', e);
+	}
+}
+window.performForceRefresh = performForceRefresh;
+
 const startApp = async () => {
 	loadState();
 	window.appSettings = appSettings;
 	if (new URLSearchParams(window.location.search).has('nuke')) {
 		history.replaceState(null, '', window.location.pathname);
 		if (confirm('☢️ NUKE APP? This will wipe all saved data (settings, sequences, comments), clear browser caches, unregister Service Workers, and force a fresh update from the server. This is the same as the in-app Nuke button, just reachable even if the app won\'t load. Continue?')) {
-			try {
-				const regs = await navigator.serviceWorker.getRegistrations();
-				await Promise.all(regs.map(r => r.unregister()));
-			} catch (e) {
-				console.warn('Nuke - service worker unregister failed:', e);
-			}
-			try {
-				const names = await caches.keys();
-				await Promise.all(names.map(n => caches.delete(n)));
-			} catch (e) {
-				console.warn('Nuke - cache clear failed:', e);
-			}
-			try {
-				if (window.indexedDB) {
-					const dbs = ['follow-me', 'fm-cache', 'app-storage'];
-					dbs.forEach(db => {
-						try { indexedDB.deleteDatabase(db); } catch (e) {}
-					});
-				}
-			} catch (e) {
-				console.warn('Nuke - IndexedDB clear failed:', e);
-			}
-			localStorage.clear();
-			sessionStorage.clear();
-			try {
-				document.cookie.split(";").forEach((c) => {
-					document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-				});
-			} catch (e) {}
+			await performNuke();
 			location.reload();
 			return;
 		}
 	}
 	if (new URLSearchParams(window.location.search).has('forceRefresh')) {
 		history.replaceState(null, '', window.location.pathname);
-		try {
-			const regs = await navigator.serviceWorker.getRegistrations();
-			await Promise.all(regs.map(r => r.unregister()));
-		} catch (e) {
-			console.warn('Refresh - service worker unregister failed:', e);
-		}
-		try {
-			const names = await caches.keys();
-			await Promise.all(names.map(n => caches.delete(n)));
-		} catch (e) {
-			console.warn('Refresh - cache clear failed:', e);
-		}
+		await performForceRefresh();
 		if (typeof showToast === 'function') showToast('🔄 Refreshed to the latest version ✅');
 	}
 	if (new URLSearchParams(window.location.search).has('restoreDefaults')) {

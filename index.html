@@ -1739,6 +1739,12 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Lock Settings 🔒</strong>
 <p class="text-xs opacity-90">The welcome screen (and the lock icon inside Settings) both toggle the same Settings Lock - turn it on to stop someone else from changing your setup mid-game. Either one unlocks it again just as easily.</p>
 </div>
+<div class="space-y-3">
+<strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Viewport Diagnostic 🔬</strong>
+<p class="text-xs opacity-90">If Landscape/Split Screen detection ever looks wrong (stuck on the wrong percentage, or a setting applying to the wrong size), this shows exactly what your device is actually reporting - screen size, window size, and which orientation the app thinks you're in. Screenshot it and send it over if something's off; it's the fastest way to actually pin down what's happening on your specific device.</p>
+<button type="button" id="viewport-diag-toggle-btn" class="w-full py-2 text-xs font-bold bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition">Show Live Diagnostic</button>
+<div id="viewport-diag-panel" class="hidden mt-2 p-3 rounded-lg bg-black border border-gray-700 font-mono text-[10px] leading-5 text-green-400 whitespace-pre-wrap"></div>
+</div>
 </div>
 <div id="tab-help-buttons" class="tab-content space-y-4">
 <div class="space-y-3">

@@ -90,6 +90,31 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 	body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app, body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
 		padding-right: 0 !important; padding-left: var(--landscape-input-width, 100vh) !important; box-sizing: border-box !important;
 	}
+	/* split50/split33 always get a fixed, exact 50/50 split - not the adjustable divider
+	   landscape/split66 use. Higher specificity than the width/padding rules above (an extra
+	   attribute selector) so this correctly wins for these two buckets. data-portrait-split-layout
+	   is only ever 'stacked' for split66, or the person's real choice for split50, or absent
+	   entirely for a sideways split33/split50 - so :not([data-portrait-split-layout="stacked"])
+	   alone correctly covers both the sideways and portrait-sideBySide cases for split33 without
+	   needing separate selector variants for each. */
+	body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #input-footer,
+	body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #input-footer,
+	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #input-footer,
+	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #input-footer {
+		width: 50% !important;
+	}
+	body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #app,
+	body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #app,
+	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #app,
+	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #app {
+		padding-right: 50% !important;
+	}
+	body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
+	body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app,
+	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
+	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
+		padding-left: 50% !important; padding-right: 0 !important;
+	}
 	/* Draggable divider handle - sits on top of the border between the sequence area and the
 	   input panel. Only shown while isLandscapeInputResizeEnabled is on (General settings) so it
 	   doesn't add an unexpected extra control for people who never touch this. */
@@ -124,6 +149,30 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 		}
 		body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app, body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
 			padding-left: var(--landscape-input-width, 45vh) !important; padding-right: 0 !important;
+		}
+		/* split50/split33 still get a fixed, exact 50/50 split on short screens too - same
+		   override as the main (taller-screen) rules above, just repeated here since a media
+		   query block doesn't inherit rules from outside it. This was the actual root cause of
+		   the override appearing not to work at all: it only existed for the main rules, so any
+		   genuinely short landscape viewport (a very common real phone height) fell through to
+		   this block instead, where only the old adjustable-width rule was present. */
+		body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #input-footer,
+		body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #input-footer,
+		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #input-footer,
+		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #input-footer {
+			width: 50% !important;
+		}
+		body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #app,
+		body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #app,
+		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #app,
+		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #app {
+			padding-right: 50% !important;
+		}
+		body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
+		body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app,
+		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
+		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
+			padding-left: 50% !important; padding-right: 0 !important;
 		}
 	}
 
@@ -176,6 +225,29 @@ body.layout-swapped #input-footer { border-top: none; border-bottom: 4px solid v
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .btn-pad-number { height: calc(3rem * var(--input-btn-scale, 1)) !important; width: calc(3rem * var(--input-btn-scale, 1)) !important; aspect-ratio: 1 / 1 !important; border-radius: 9999px !important; flex-shrink: 0 !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"].hide-controls #pad-key9, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"].hide-controls #pad-key12 { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .grid-cols-3, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .grid-cols-4 { display: grid !important; gap: 0.5rem !important; justify-items: center !important; }
+	/* Auto-fit buckets (landscape/66/50/33): --auto-fit-btn-size is computed in JS (see
+	   applyInputBtnScale) to make a genuine 3-column grid fill the input pane exactly. Falls
+	   back to the normal scale-based sizing above when unset, so this has no effect anywhere
+	   else. Higher specificity (extra :not()) than the base rule above so it wins when set. */
+	body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #pad-key9 .btn-pad-number,
+	body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #pad-key12 .btn-pad-number {
+		height: var(--auto-fit-btn-size, calc(2.5rem * var(--input-btn-scale, 1))) !important;
+		width: var(--auto-fit-btn-size, auto) !important;
+		min-height: var(--auto-fit-btn-size, calc(2.5rem * var(--input-btn-scale, 1))) !important;
+	}
+	body:not([data-viewport-bucket="portrait"])[data-portrait-split-layout="stacked"][data-rotate="0"][data-input-mode="key9"] #pad-key9 .btn-pad-number,
+	body:not([data-viewport-bucket="portrait"])[data-portrait-split-layout="stacked"][data-rotate="0"][data-input-mode="key12"] #pad-key12 .btn-pad-number {
+		height: var(--auto-fit-btn-size, calc(2.5rem * var(--input-btn-scale, 1))) !important;
+		width: var(--auto-fit-btn-size, auto) !important;
+		min-height: var(--auto-fit-btn-size, calc(2.5rem * var(--input-btn-scale, 1))) !important;
+	}
+	body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #pad-key9 .grid-cols-3,
+	body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #pad-key12 .grid-cols-4,
+	body:not([data-viewport-bucket="portrait"])[data-portrait-split-layout="stacked"][data-rotate="0"][data-input-mode="key9"] #pad-key9 .grid-cols-3,
+	body:not([data-viewport-bucket="portrait"])[data-portrait-split-layout="stacked"][data-rotate="0"][data-input-mode="key12"] #pad-key12 .grid-cols-4 {
+		grid-template-columns: repeat(3, var(--auto-fit-btn-size, 1fr)) !important;
+	}
+
 
 .btn-control { background-color: var(--btn-bg); font-size: 1.5rem; height: calc(60px * var(--input-btn-scale, 1)); border-radius: 9999px; color: var(--text-main); border: 1px solid var(--border); }
 .btn-control:active { filter: brightness(1.3); transform: scale(.96); }

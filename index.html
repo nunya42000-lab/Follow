@@ -1063,7 +1063,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 </div>
 </details>
-<details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+<details id="viewport-accordion" class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
 <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
 <span>Landscape and Split Screen 📐</span>
 <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
@@ -2056,9 +2056,6 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 <div id="viewport-config-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000000; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 300ms; overflow-y: auto;" class="opacity-0 pointer-events-none">
 <div class="w-full flex flex-col items-center p-4" style="min-height: 100%;">
-<div id="viewport-config-intro-banner" style="display: none; width: 100%; max-width: 500px; background: #1e293b; border: 1px solid #4f46e5; border-radius: 8px; padding: 12px; margin-bottom: 12px; color: #cbd5e1; font-size: 12px; line-height: 1.5;">
-You're in a new screen size. Set everything up here once and it'll be ready every time you come back to this size.
-</div>
 <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 500px; margin-bottom: 8px;">
 <h3 style="color: #fff; font-weight: bold; font-size: 14px;" id="viewport-config-title">Configure Landscape</h3>
 <span id="viewport-config-dims" style="color: #888; font-size: 10px; font-family: monospace;"></span>
@@ -2071,10 +2068,6 @@ You're in a new screen size. Set everything up here once and it'll be ready ever
 <p style="color: #666; font-size: 10px; margin: 0 0 16px; text-align: center;">This is the actual app, live - tap and scroll it like normal. Changes below update it instantly.</p>
 <div style="background: #1a1a1a; border: 1px solid #666; border-radius: 8px; padding: 16px; width: 100%; max-width: 500px; margin-bottom: 20px;">
 <div id="viewport-config-settings"></div>
-<label id="viewport-config-dont-show-row" style="display: none; align-items: center; justify-content: space-between; padding: 8px; margin-top: 12px; background: #222; border-radius: 4px; cursor: pointer;">
-<span style="color: #ddd; font-size: 11px;">Don't show this setup screen again (any orientation)</span>
-<input type="checkbox" id="viewport-config-dont-show-checkbox" style="width: 16px; height: 16px; cursor: pointer;">
-</label>
 <div style="display: flex; gap: 8px; margin-top: 16px;">
 <button id="viewport-config-cancel-btn" type="button" style="flex: 1; padding: 10px; background: #666; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">Cancel</button>
 <button id="viewport-config-save-btn" type="button" style="flex: 1; padding: 10px; background: #4f46e5; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">Save & Exit</button>
@@ -2082,30 +2075,7 @@ You're in a new screen size. Set everything up here once and it'll be ready ever
 </div>
 </div>
 </div>
-<!-- Compact orientation settings modal for split50/split33: no live preview (screen is too
-     narrow to usefully show one at readable size) - sizing/layout, curated header buttons, and
-     a link into the full Settings modal for anything else. -->
-<div id="mini-viewport-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 250ms; display: flex; align-items: center; justify-content: center;" class="opacity-0 pointer-events-none">
-<div style="background: #1a1a1a; border: 1px solid #666; border-radius: 12px; padding: 16px; width: 92%; max-width: 340px; max-height: 85vh; overflow-y: auto;">
-<div id="mini-viewport-intro-banner" style="display: none; background: #1e293b; border: 1px solid #4f46e5; border-radius: 8px; padding: 10px; margin-bottom: 12px; color: #cbd5e1; font-size: 11px; line-height: 1.5;">
-You're in a new screen size. Set everything up here once and it'll be ready every time you come back to this size.
-</div>
-<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-<h3 style="color: #fff; font-weight: bold; font-size: 15px;" id="mini-viewport-title">Configure 50%</h3>
-<button type="button" id="mini-viewport-close-x" style="background: none; border: none; color: #888; font-size: 20px; cursor: pointer; line-height: 1; padding: 4px;">&times;</button>
-</div>
-<div id="mini-viewport-settings"></div>
-<button type="button" id="mini-viewport-full-settings-btn" style="width: 100%; padding: 10px; margin-top: 8px; background: #333; color: #ccc; border: 1px solid #555; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">⚙️ Open Full Settings</button>
-<label id="mini-viewport-dont-show-row" style="display: none; align-items: center; justify-content: space-between; padding: 8px; margin-top: 8px; background: #222; border-radius: 4px; cursor: pointer;">
-<span style="color: #ddd; font-size: 11px;">Don't show this setup screen again (any orientation)</span>
-<input type="checkbox" id="mini-viewport-dont-show-checkbox" style="width: 16px; height: 16px; cursor: pointer;">
-</label>
-<div style="display: flex; gap: 8px; margin-top: 10px;">
-<button id="mini-viewport-cancel-btn" type="button" style="flex: 1; padding: 10px; background: #666; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">Cancel</button>
-<button id="mini-viewport-save-btn" type="button" style="flex: 1; padding: 10px; background: #4f46e5; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">Save & Exit</button>
-</div>
-</div>
-</div>
+
 <div id="comment-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[120] transition-opacity duration-300 opacity-0 pointer-events-none hidden">
 <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 border border-custom">
 <h3 class="font-bold text-lg mb-4">Send Feedback 💬</h3>

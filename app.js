@@ -675,16 +675,6 @@ const DEFAULT_APP = {
 		split33: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }
 	},
 	pipMachineIndex: null,
-	// Orientation Intro panel: the first time the person enters landscape/66%/50%/33% and that
-	// bucket has never actually been saved (via this panel or the regular Configure/mini modal),
-	// a full settings panel for that orientation pops up automatically so they can dial
-	// everything in before playing, instead of discovering mid-game that something's off. Each
-	// bucket tracks its own "configured" flag independently - dismissing without saving means it
-	// shows again next time, since the person still hasn't actually set anything up for that
-	// bucket. isOrientationIntroDisabled is the explicit opt-out inside the panel itself; once
-	// set, nothing shows again for any bucket until the person resets their settings.
-	orientationIntroConfigured: { landscape: false, split66: false, split50: false, split33: false },
-	isOrientationIntroDisabled: false,
 	ecoModeConfig: {
 		themeSwitch: false, disableSensors: false, dimBrightness: false, limitWakeLock: false,
 		reduceVideoFps: false, lowerVoiceQuality: false, reduceVolume: false, disableHaptics: false,
@@ -4310,6 +4300,31 @@ class SettingsManager {
 	applyInputBtnScale() {
 		const val = typeof getEffectiveInputBtnSize === 'function' ? getEffectiveInputBtnSize() : (this.appSettings.appInputBtnScale || 100);
 		document.body.style.setProperty('--input-btn-scale', val / 100);
+		// Auto-fit buckets (landscape, 66, 50, 33): input buttons are sized purely from the
+		// real available pane, ignoring the saved Button Size % entirely, so a true 3-column
+		// grid fills the input side exactly - same idea as the sequence card auto-fit sizing,
+		// just measuring the input footer's own space instead of the sequence container's.
+		const bucket = document.body.dataset.viewportBucket;
+		if (typeof isAutoFitBucket === 'function' && isAutoFitBucket(bucket)) {
+			const footer = document.getElementById('input-footer');
+			const pad = document.getElementById('pad-key9') || document.getElementById('pad-key12');
+			if (footer && pad && pad.style.display !== 'none' && !pad.classList.contains('hidden')) {
+				const footerRect = footer.getBoundingClientRect();
+				const padPaddingH = 32; // p-2/p-4 utility on #input-footer, worst case ~2rem total
+				const cols = document.body.dataset.inputMode === 'key12' ? 3 : 3;
+				const rows = document.body.dataset.inputMode === 'key12' ? 4 : 4; // 3 number rows + 1 control row either way
+				const gap = 12; // gap-3 utility on the number grid
+				const availW = Math.max(0, footerRect.width - padPaddingH);
+				const availH = Math.max(0, footerRect.height - padPaddingH);
+				const cellSize = typeof computeAutoFitCellSize === 'function' ? computeAutoFitCellSize(availW, availH, cols, rows, gap) : 0;
+				if (cellSize > 0) document.body.style.setProperty('--auto-fit-btn-size', cellSize + 'px');
+				else document.body.style.removeProperty('--auto-fit-btn-size');
+			} else {
+				document.body.style.removeProperty('--auto-fit-btn-size');
+			}
+		} else {
+			document.body.style.removeProperty('--auto-fit-btn-size');
+		}
 	}
 	applyEcoModeConfig() {
 		const cfg = this.appSettings.ecoModeConfig || {};
@@ -5948,6 +5963,25 @@ function getEffectiveInputAreaPct() {
 	if (vp && vp.inputAreaPct !== undefined && vp.inputAreaPct !== null) return vp.inputAreaPct;
 	return appSettings.landscapeInputWidthPct || 50;
 }
+// The four buckets that get an auto-calculated, non-adjustable default layout: sequence cards
+// and input buttons are sized purely from the real available space (ignoring the saved
+// Sequence Size/Button Size percentages), so a 5-column sequence grid and a 3-column input grid
+// both fill their area exactly, with no leftover gap and no need to wrap/scroll. The existing
+// accordion (General -> Advanced -> Landscape and Split Screen) still lets someone override any
+// of this per-bucket if they want something different.
+function isAutoFitBucket(bucket) {
+	return bucket === 'landscape' || bucket === 'split66' || bucket === 'split50' || bucket === 'split33';
+}
+// Largest square cell size (in px) that fits `cols` columns and `rows` rows, with `gap` px
+// between cells, into a box of `containerW` x `containerH`. Whichever axis is tighter (width
+// per column vs height per row) determines the final size, so the grid never overflows either
+// dimension - it's a true "fill this exact space" calculation, not a fixed size that happens to
+// often fit.
+function computeAutoFitCellSize(containerW, containerH, cols, rows, gap) {
+	const w = containerW <= 0 ? 0 : (containerW - gap * (cols - 1)) / cols;
+	const h = containerH <= 0 ? 0 : (containerH - gap * (rows - 1)) / rows;
+	return Math.max(0, Math.min(w, h));
+}
 function syncPipSequenceOnlyMode() {
 	const bucket = document.body.dataset.viewportBucket;
 	const isSplitSmall = bucket === 'split50' || bucket === 'split33';
@@ -6035,9 +6069,6 @@ function applyViewportProfile() {
 	applyViewportHeaderButtonCuration(bucket);
 	applyLandscapeInputWidth();
 	syncPipSequenceOnlyMode();
-	if (bucket !== prevBucket) {
-		maybeShowOrientationIntro(bucket);
-	}
 	// Always refresh the actual on-screen layout, not just when the bucket itself changes.
 	// This used to be gated behind bucket !== prevBucket, which meant editing a setting for the
 	// bucket you're ALREADY in (the normal case - you open Configure while in landscape to
@@ -6048,6 +6079,7 @@ function applyViewportProfile() {
 	document.documentElement.style.fontSize = `${getEffectiveGlobalUiScale()}%`;
 	renderUI();
 	if (modules.settings && typeof modules.settings.applyRowMax === 'function') modules.settings.applyRowMax();
+	if (modules.settings && typeof modules.settings.applyInputBtnScale === 'function') modules.settings.applyInputBtnScale();
 }
 function updateAllChrome() {
 	applyTheme(appSettings.activeTheme);
@@ -6524,6 +6556,39 @@ function renderUI() {
 				card.appendChild(headerRow);
 			}
 			const numGrid = document.createElement('div');
+			const currentBucket = document.body.dataset.viewportBucket;
+			const useAutoFit = typeof isAutoFitBucket === 'function' && isAutoFitBucket(currentBucket) && settings.machineCount <= 1;
+			if (useAutoFit) {
+				// Auto-fit buckets (landscape, 66, 50, 33): sequence cards are sized purely from
+				// the real available space, ignoring the saved Sequence Size % entirely, so a
+				// true 5-column grid always fills the pane exactly with no leftover gap and no
+				// wrapping to a different column count. Only applies with a single machine -
+				// multiple machines still use the flex-wrap layout above them, since "5 columns
+				// per machine, side by side" isn't a defined layout here.
+				const gap = 8; // matches gap-2
+				const cols = 5;
+				const containerRect = container.getBoundingClientRect();
+				const cardPaddingH = 32; // p-4 = 1rem = 16px each side
+				const availW = Math.max(0, containerRect.width - cardPaddingH);
+				const availH = Math.max(0, containerRect.height - cardPaddingH);
+				const rows = 5;
+				const cellSize = typeof computeAutoFitCellSize === 'function' ? computeAutoFitCellSize(availW, availH, cols, rows, gap) : 40;
+				numGrid.className = "grid gap-2 justify-items-center content-start";
+				numGrid.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
+				(seq || []).forEach(num => {
+						const span = document.createElement('span');
+						span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold";
+						span.style.width = cellSize + 'px';
+						span.style.height = cellSize + 'px';
+						const fontMult = (typeof getEffectiveNumberSize === 'function' ? getEffectiveNumberSize() : 250) / 100;
+						span.style.fontSize = (cellSize * 0.5 * fontMult) + 'px';
+						span.textContent = num;
+						numGrid.appendChild(span);
+				});
+				card.appendChild(numGrid);
+				container.appendChild(card);
+				return;
+			}
 			// Both single- and multi-machine sequences use the same flex-wrap layout, so Row
 			// Max / UI Scale / Sequence Size (including the per-viewport-bucket overrides from
 			// the Landscape/Split Screen configure modal) actually apply to what's on screen.
@@ -8616,6 +8681,7 @@ function initViewportProfilesUI() {
 		});
 		renderPreview();
 	}
+	window.__vpSwitchTabDirect = switchTab;
 	buckets.forEach(b => {
 		if (tabBtns[b]) tabBtns[b].onclick = () => switchTab(b);
 	});
@@ -8840,20 +8906,14 @@ function initViewportProfilesUI() {
 		}
 	}
 
-	function openConfigModal(bucket, isIntro) {
+	function openConfigModal(bucket) {
 		viewportConfigState.configBucket = bucket;
 		viewportConfigState.tempSettings = {};
 		const titleEl = document.getElementById('viewport-config-title');
 		if (titleEl) {
 			const bucketLabels = { landscape: 'Landscape', split66: '66%', split50: '50%', split33: '33%' };
-			titleEl.textContent = (isIntro ? 'Set Up ' : 'Configure ') + (bucketLabels[bucket] || bucket);
+			titleEl.textContent = 'Configure ' + (bucketLabels[bucket] || bucket);
 		}
-		const banner = document.getElementById('viewport-config-intro-banner');
-		if (banner) banner.style.display = isIntro ? 'block' : 'none';
-		const dontShowRow = document.getElementById('viewport-config-dont-show-row');
-		const dontShowCb = document.getElementById('viewport-config-dont-show-checkbox');
-		if (dontShowRow) dontShowRow.style.display = isIntro ? 'flex' : 'none';
-		if (dontShowCb) dontShowCb.checked = false;
 		renderConfigSettings();
 		if (configModal) {
 			configModal.classList.remove('opacity-0', 'pointer-events-none');
@@ -8914,13 +8974,6 @@ function initViewportProfilesUI() {
 				}
 				profile[key] = viewportConfigState.tempSettings[key];
 			});
-			if (appSettings.orientationIntroConfigured) {
-				appSettings.orientationIntroConfigured[viewportConfigState.configBucket] = true;
-			}
-			const dontShowCb = document.getElementById('viewport-config-dont-show-checkbox');
-			if (dontShowCb && dontShowCb.checked) {
-				appSettings.isOrientationIntroDisabled = true;
-			}
 			saveState();
 			if (typeof applyViewportProfile === 'function') applyViewportProfile();
 			renderPreview();
@@ -8940,262 +8993,31 @@ function initViewportProfilesUI() {
 }
 
 // --- Mini viewport modal (split50/split33): compact sizing/layout + header buttons, no live
-// preview - the pane is too narrow at this width to usefully show one at a readable size. ---
-let miniViewportState = { bucket: null, tempSettings: {} };
-
-function renderMiniViewportSettings() {
-	const settingsDiv = document.getElementById('mini-viewport-settings');
-	if (!settingsDiv || !miniViewportState.bucket) return;
-	const bucket = miniViewportState.bucket;
-	const profile = appSettings.viewportProfiles[bucket];
-	settingsDiv.innerHTML = '';
-
-	const sectionLabel = (text) => vpMakeSectionLabel(settingsDiv, text);
-	const createSelect = (label, key, options, defaultVal) =>
-		vpMakeSelect(settingsDiv, miniViewportState.tempSettings, profile, () => {}, label, key, options, defaultVal);
-
-	sectionLabel('Sizing');
-	createSelect('UI Scale', 'uiScale', vpPercentOptions(50, 500, 10), '100');
-	createSelect('Sequence Size', 'seqSize', vpPercentOptions(50, 300, 10), '100');
-	createSelect('Header Size', 'headerScale', vpPercentOptions(70, 150, 10), '100');
-	createSelect('Number Size', 'numberSize', [
-		{ value: '100', text: 'Normal' }, { value: '150', text: 'Large' },
-		{ value: '200', text: 'Huge' }, { value: '250', text: 'Max (Fill)' }
-	], '250');
-	createSelect('Input Font Size', 'inputFontSize', [
-		{ value: '100', text: 'Normal' }, { value: '150', text: 'Large' },
-		{ value: '200', text: 'Huge' }, { value: '250', text: 'Max (Fill)' }
-	], '100');
-	createSelect('Button Size', 'btnSize', [
-		{ value: '70', text: 'Small' }, { value: '85', text: 'Compact' },
-		{ value: '100', text: 'Normal' }, { value: '125', text: 'Large' }, { value: '150', text: 'Huge' }
-	], '100');
-
-	if (bucket === 'split50') {
-		sectionLabel('Layout');
-		createSelect('Alignment', 'alignment', [
-			{ value: 'horizontal', text: 'Horizontal (Normal)' },
-			{ value: 'vertical', text: 'Vertical' }
-		], 'horizontal');
-		createSelect('When Holding Phone Normally', 'portraitSplitLayout', [
-			{ value: 'stacked', text: 'Stacked (like Portrait)' },
-			{ value: 'sideBySide', text: 'Side-by-Side (like Landscape)' }
-		], 'stacked');
-		const portraitLayoutNote = document.createElement('p');
-		portraitLayoutNote.style.cssText = 'color: #666; font-size: 9px; margin: -8px 0 10px;';
-		portraitLayoutNote.textContent = 'Only matters when this 50/50 split happens while holding the phone upright, not sideways.';
-		settingsDiv.appendChild(portraitLayoutNote);
-	}
-
-	sectionLabel('Header Buttons');
-	const note = document.createElement('p');
-	note.style.cssText = 'color: #888; font-size: 10px; margin: -2px 0 8px;';
-	note.textContent = 'Only these buttons can show at this width. Still gated by each button\'s own General toggle.';
-	settingsDiv.appendChild(note);
-	const currentSelected = miniViewportState.tempSettings.headerButtons !== undefined ? miniViewportState.tempSettings.headerButtons : (profile.headerButtons || []);
-	VP_CURATED_HEADER_BUTTONS.forEach(btnDef => {
-		const row = document.createElement('label');
-		row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 8px; margin-bottom: 4px; background: #222; border-radius: 4px; cursor: pointer;';
-		const span = document.createElement('span');
-		span.style.cssText = 'color: #ddd; font-size: 11px;';
-		span.textContent = btnDef.label;
-		const checkbox = document.createElement('input');
-		checkbox.type = 'checkbox';
-		checkbox.checked = currentSelected.includes(btnDef.id);
-		checkbox.style.cssText = 'width: 16px; height: 16px; cursor: pointer;';
-		checkbox.onchange = (e) => {
-			let list = miniViewportState.tempSettings.headerButtons !== undefined ? miniViewportState.tempSettings.headerButtons.slice() : (profile.headerButtons || []).slice();
-			if (e.target.checked) {
-				if (!list.includes(btnDef.id)) list.push(btnDef.id);
-			} else {
-				list = list.filter(id => id !== btnDef.id);
-			}
-			miniViewportState.tempSettings.headerButtons = list;
-		};
-		row.appendChild(span);
-		row.appendChild(checkbox);
-		settingsDiv.appendChild(row);
-	});
-
-	if (bucket === 'split33') {
-		const scrollNote = document.createElement('p');
-		scrollNote.style.cssText = 'color: #888; font-size: 10px; margin: 10px 0 0;';
-		scrollNote.textContent = 'Turn on Infinite Header Scroll (General tab) so scrolling through header buttons works at this width.';
-		settingsDiv.appendChild(scrollNote);
-	}
-}
-
-function openMiniViewportModal(bucket, isIntro) {
-	miniViewportState.bucket = bucket;
-	miniViewportState.tempSettings = {};
-	const titleEl = document.getElementById('mini-viewport-title');
-	if (titleEl) titleEl.textContent = (isIntro ? 'Set Up ' : 'Configure ') + (bucket === 'split50' ? '50%' : '33%');
-	const banner = document.getElementById('mini-viewport-intro-banner');
-	if (banner) banner.style.display = isIntro ? 'block' : 'none';
-	const dontShowRow = document.getElementById('mini-viewport-dont-show-row');
-	const dontShowCb = document.getElementById('mini-viewport-dont-show-checkbox');
-	if (dontShowRow) dontShowRow.style.display = isIntro ? 'flex' : 'none';
-	if (dontShowCb) dontShowCb.checked = false;
-	renderMiniViewportSettings();
-	const modal = document.getElementById('mini-viewport-modal');
-	if (modal) {
-		modal.classList.remove('opacity-0', 'pointer-events-none');
-		modal.style.opacity = '1';
-		modal.style.pointerEvents = 'auto';
-	}
-}
-
-function closeMiniViewportModal() {
-	const modal = document.getElementById('mini-viewport-modal');
-	if (modal) {
-		modal.classList.add('opacity-0', 'pointer-events-none');
-		modal.style.opacity = '0';
-		modal.style.pointerEvents = 'none';
-	}
-	miniViewportState.bucket = null;
-	miniViewportState.tempSettings = {};
-}
-
-function closeMiniViewportModalWithConfirm() {
-	if (Object.keys(miniViewportState.tempSettings).length > 0) {
-		if (!confirm('You have unsaved changes that will be lost. Discard them?')) return;
-	}
-	closeMiniViewportModal();
-}
-
-function saveMiniViewportModal() {
-	if (!miniViewportState.bucket) return;
-	const profile = appSettings.viewportProfiles[miniViewportState.bucket];
-	const NUMERIC_KEYS = ['headerScale', 'numberSize', 'inputFontSize', 'btnSize', 'uiScale', 'seqSize'];
-	Object.keys(miniViewportState.tempSettings).forEach(key => {
-		if (NUMERIC_KEYS.includes(key)) {
-			profile[key] = parseInt(miniViewportState.tempSettings[key], 10);
-			return;
-		}
-		profile[key] = miniViewportState.tempSettings[key];
-	});
-	if (appSettings.orientationIntroConfigured) {
-		appSettings.orientationIntroConfigured[miniViewportState.bucket] = true;
-	}
-	const dontShowCb = document.getElementById('mini-viewport-dont-show-checkbox');
-	if (dontShowCb && dontShowCb.checked) {
-		appSettings.isOrientationIntroDisabled = true;
-	}
-	saveState();
-	if (typeof applyViewportProfile === 'function') applyViewportProfile();
-	closeMiniViewportModal();
-}
-
-function initMiniViewportModal() {
-	if (window.__miniVpWired) return;
-	window.__miniVpWired = true;
-	const cancelBtn = document.getElementById('mini-viewport-cancel-btn');
-	const closeXBtn = document.getElementById('mini-viewport-close-x');
-	const saveBtn = document.getElementById('mini-viewport-save-btn');
-	const fullSettingsBtn = document.getElementById('mini-viewport-full-settings-btn');
-	if (cancelBtn) cancelBtn.onclick = closeMiniViewportModalWithConfirm;
-	if (closeXBtn) closeXBtn.onclick = closeMiniViewportModalWithConfirm;
-	if (saveBtn) saveBtn.onclick = saveMiniViewportModal;
-	if (fullSettingsBtn) fullSettingsBtn.onclick = () => {
-		closeMiniViewportModal();
-		if (modules.settings) modules.settings.openSettings();
-	};
-}
-
-// --- Orientation-aware settings routing: the header Settings gear opens a different experience
-// depending on the current viewport bucket, instead of always opening the full General/Advanced
-// settings modal. Portrait keeps the original full modal (it was never part of this system).
-// Landscape/split66 jump straight into their own full configure-with-live-preview modal.
-// split50/split33 get the compact mini modal. ---
-// Fires on a genuine transition into landscape/66%/50%/33% (see applyViewportProfile). Shows
-// the same Configure/mini modal used for manual setup, but framed as a one-time intro: banner
-// copy explaining why it's here, and a "don't show again" toggle. Reappears every time the
-// person re-enters a bucket they haven't actually saved anything for yet (dismissing via
-// Cancel/X doesn't count as configured - only a real Save does), so it can't be dodged by
-// accident, but never nags once genuinely set up or explicitly turned off.
-function maybeShowOrientationIntro(bucket) {
-	// This runs inside the Landscape/Split Screen configure modal's live preview iframe too,
-	// since that iframe is a real load of this same index.html/app.js with its own
-	// applyViewportProfile() call. Without this guard, entering a bucket for the first time
-	// opens the intro, which contains a live preview iframe, which itself detects the same
-	// first-time entry and opens ITS OWN intro, nesting infinitely (matching the "app inside
-	// the app inside the app" screenshot). vpPreview=1 already gates the welcome screen and
-	// service worker registration the same way for the same reason - this was just missed when
-	// the intro panel was first built.
-	if (location.search.includes('vpPreview=1')) return;
-	if (appSettings.isOrientationIntroDisabled) return;
-	if (!appSettings.orientationIntroConfigured) return;
-	if (appSettings.orientationIntroConfigured[bucket]) return;
-	// A real device rotation or split-screen resize doesn't jump straight to its final ratio -
-	// the OS animates through it, and applyViewportProfile() is deliberately called several
-	// times in quick succession (0/150/400ms) to catch wherever it settles. Each of those calls
-	// can see a different, still-transitional bucket (e.g. briefly reading as landscape, then
-	// settling at split66), and without this check each one would independently pop its own
-	// intro, stacking a second setup panel for a bucket the person was only ever passing
-	// through. If an intro/mini modal is already open for a DIFFERENT bucket, treat this as
-	// "the transition kept going" and swap it to the new bucket in place rather than layering a
-	// second modal on top.
-	const fullModalEl = document.getElementById('viewport-config-modal');
-	const fullModalOpen = fullModalEl && getComputedStyle(fullModalEl).opacity !== '0';
-	const miniModalEl = document.getElementById('mini-viewport-modal');
-	const miniModalOpen = miniModalEl && getComputedStyle(miniModalEl).opacity !== '0';
-	if ((fullModalOpen && viewportConfigState.configBucket && viewportConfigState.configBucket !== bucket) ||
-		(miniModalOpen && miniViewportState.bucket && miniViewportState.bucket !== bucket)) {
-		if (fullModalOpen && typeof window.__vpCloseConfigModalDirect === 'function') window.__vpCloseConfigModalDirect();
-		if (miniModalOpen) closeMiniViewportModal();
-	} else if (fullModalOpen || miniModalOpen) {
-		// Already showing the intro for THIS SAME bucket - a later settle call for the same
-		// final bucket shouldn't re-open/flash it.
-		return;
-	}
-	if (bucket === 'landscape' || bucket === 'split66') {
-		if (typeof initViewportProfilesUI === 'function') initViewportProfilesUI();
-		const openFn = window.__vpOpenConfigModalDirect;
-		if (typeof openFn === 'function') openFn(bucket, true);
-		return;
-	}
-	// split50 doesn't get an intro at all - see openOrientationSettings for why: it's the
-	// universal default every split-screen session starts at, not a destination someone
-	// deliberately navigated to, so there's no "first time you're here on purpose" moment to
-	// walk them through.
-	if (bucket === 'split33') {
-		initMiniViewportModal();
-		openMiniViewportModal(bucket, true);
-	}
-}
-window.maybeShowOrientationIntro = maybeShowOrientationIntro;
 
 function openOrientationSettings() {
 	const bucket = document.body.dataset.viewportBucket;
-	if (bucket === 'landscape' || bucket === 'split66') {
-		if (typeof initViewportProfilesUI === 'function') initViewportProfilesUI();
-		// initViewportProfilesUI() wires the tab/panel UI but doesn't itself open the config
-		// modal - call openConfigModal directly for the bucket we're already in, skipping the
-		// tab-selector step entirely since there's nothing to choose (we know the orientation).
-		const openFn = window.__vpOpenConfigModalDirect;
-		if (typeof openFn === 'function') openFn(bucket);
-		return;
-	}
-	// split50 deliberately does NOT get the mini modal here: every real split-screen session
-	// starts at 50/50 (there's no way to enter split-screen at 33 or 66 directly), so it's the
-	// universal default rather than a distinct destination someone chose to navigate to. Routing
-	// it to the same special setup flow as 66/33 meant the very first split-screen session
-	// always landed in a "special" settings screen the person never asked for, right as they were
-	// just trying to check regular settings. split66 and split33 still get it, since reaching
-	// those requires deliberately dragging the divider away from center.
-	if (bucket === 'split33') {
-		initMiniViewportModal();
-		openMiniViewportModal(bucket);
-		return;
-	}
 	if (modules.settings) modules.settings.openSettings();
+	// Every bucket (landscape, 66, 50, 33) gets the same treatment now: open regular Settings,
+	// jump straight to the Landscape and Split Screen accordion on the Advanced tab, and select
+	// the tab matching wherever you actually are - no separate special modal, no first-time
+	// popup. The accordion/tab UI itself is still exactly how you'd manually reach and adjust
+	// these settings; this just saves the navigation when you're already in that orientation.
+	if (bucket !== 'landscape' && bucket !== 'split66' && bucket !== 'split50' && bucket !== 'split33') return;
+	setTimeout(() => {
+		const advancedTabBtn = document.querySelector('[data-tab="advanced"]');
+		if (advancedTabBtn) advancedTabBtn.click();
+		const accordion = document.getElementById('viewport-accordion');
+		if (accordion) accordion.open = true;
+		if (typeof initViewportProfilesUI === 'function') initViewportProfilesUI();
+		const switchFn = window.__vpSwitchTabDirect;
+		if (typeof switchFn === 'function') switchFn(bucket);
+		const accordionEl = document.getElementById('viewport-accordion');
+		if (accordionEl && accordionEl.scrollIntoView) {
+			accordionEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		}
+	}, 50);
 }
 window.openOrientationSettings = openOrientationSettings;
-window.openMiniViewportModal = openMiniViewportModal;
-window.closeMiniViewportModal = closeMiniViewportModal;
-window.closeMiniViewportModalWithConfirm = closeMiniViewportModalWithConfirm;
-window.saveMiniViewportModal = saveMiniViewportModal;
-window.initMiniViewportModal = initMiniViewportModal;
 
 const startApp = async () => {
 	loadState();

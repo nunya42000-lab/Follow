@@ -675,9 +675,13 @@ const DEFAULT_APP = {
 	},
 	pipMachineIndex: null,
 	ecoModeConfig: {
-		themeSwitch: false, disableSensors: false, dimBrightness: false, limitWakeLock: false,
-		reduceVideoFps: false, lowerVoiceQuality: false, reduceVolume: false, disableHaptics: false,
-		reduceMicSampling: false, restrictMediaDevices: false, wakeLockLimitSeconds: 300
+		themeSwitch: false, ecoTheme: 'night',
+		limitWakeLock: false, wakeLockLimitSeconds: 300,
+		disableAmbientSensor: false, // ambient light sensor polls continuously for Auto Bright/Auto Dark - proximity sensor already has its own independent eco-mode awareness elsewhere and isn't affected by this
+		cameraQuality: 'full', // 'low' | 'medium' | 'full' - caps getUserMedia resolution/frameRate for AR camera, hand tracking, pitch detection mic
+		hapticsLevel: 'normal', // 'off' | 'light' | 'normal' - real navigator.vibrate() duration
+		volumePct: 100, // 10-100, scales the real GainNode output and speech synthesis volume
+		screenDimPct: 0 // 0-60, real CSS overlay dim - the web platform has no API to control actual hardware brightness
 	},
 	savedFullProfiles: {},
 	headerPadding: 0,
@@ -1707,11 +1711,7 @@ class VisionEngine {
 		document.body.appendChild(this.video);
 		try {
 			const stream = await navigator.mediaDevices.getUserMedia({
-					video: {
-						facingMode: "user",
-						width: { ideal: 640 },
-						height: { ideal: 480 }
-					}
+					video: getEcoVideoConstraints({ facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } })
 			});
 			this.video.srcObject = stream;
 			this.video.onloadeddata = () => {
@@ -4290,12 +4290,12 @@ class SettingsManager {
 	applyEcoModeConfig() {
 		const cfg = this.appSettings.ecoModeConfig || {};
 		const active = this.appSettings.isEcoModeEnabled;
-		// Theme switch: remember whatever theme was active, drop to a low-brightness one while
+		// Theme switch: remember whatever theme was active, drop to the chosen eco theme while
 		// eco mode runs, restore it automatically when eco mode turns back off.
 		if (cfg.themeSwitch) {
 			if (active) {
 				if (!this._ecoPrevTheme) this._ecoPrevTheme = this.appSettings.activeTheme;
-				this.appSettings.activeTheme = 'night';
+				this.appSettings.activeTheme = cfg.ecoTheme || 'night';
 			} else if (this._ecoPrevTheme) {
 				this.appSettings.activeTheme = this._ecoPrevTheme;
 				this._ecoPrevTheme = null;
@@ -4316,31 +4316,101 @@ class SettingsManager {
 				}
 			}, seconds * 1000);
 		}
+		// Ambient light sensor: genuinely stops the sensor's continuous polling (real battery
+		// cost) rather than just recording a preference nobody reads. Proximity sensor is left
+		// alone here - it already has its own independent eco-mode awareness in
+		// updateProximitySensorState() for the header auto-show feature.
+		if (typeof window.updateAmbientSensorState === 'function') {
+			const wantAmbient = !(active && cfg.disableAmbientSensor);
+			window.__ecoAmbientOverride = !wantAmbient;
+			window.updateAmbientSensorState(true);
+		}
+		// Camera/mic quality: a shared global that every getUserMedia call site (AR camera,
+		// hand tracking, pitch-detection mic) reads when building its constraints, so a single
+		// eco setting genuinely caps resolution/frameRate/sample rate everywhere at once instead
+		// of needing a separate toggle per camera.
+		window.__ecoCameraQuality = active ? (cfg.cameraQuality || 'full') : 'full';
+		// Screen dim: a real, visible full-screen overlay - the web platform has no API to
+		// control actual hardware display brightness, so this is an honest visual substitute
+		// rather than a setting that silently does nothing.
+		const dimOverlay = document.getElementById('eco-dim-overlay');
+		if (dimOverlay) {
+			const dimPct = active ? Math.min(60, Math.max(0, cfg.screenDimPct || 0)) : 0;
+			dimOverlay.style.opacity = (dimPct / 100).toString();
+		}
 		this.callbacks.onSave();
 	}
 	initEcoModeConfigUI() {
 		const cfg = this.appSettings.ecoModeConfig || {};
-		const map = {
-			'eco-theme-switch-toggle': 'themeSwitch', 'eco-sensors-toggle': 'disableSensors',
-			'eco-brightness-toggle': 'dimBrightness', 'eco-wakelock-toggle': 'limitWakeLock',
-			'eco-videofps-toggle': 'reduceVideoFps', 'eco-voicequality-toggle': 'lowerVoiceQuality',
-			'eco-volume-toggle': 'reduceVolume', 'eco-haptics-toggle': 'disableHaptics',
-			'eco-micsampling-toggle': 'reduceMicSampling', 'eco-restrictmediadevices-toggle': 'restrictMediaDevices'
+		const checkboxMap = {
+			'eco-theme-switch-toggle': 'themeSwitch',
+			'eco-wakelock-toggle': 'limitWakeLock',
+			'eco-ambient-toggle': 'disableAmbientSensor'
 		};
-		Object.keys(map).forEach(elId => {
+		Object.keys(checkboxMap).forEach(elId => {
 			const el = document.getElementById(elId);
 			if (!el) return;
-			el.checked = !!cfg[map[elId]];
+			el.checked = !!cfg[checkboxMap[elId]];
 			el.onchange = (e) => {
-				this.appSettings.ecoModeConfig[map[elId]] = e.target.checked;
+				this.appSettings.ecoModeConfig[checkboxMap[elId]] = e.target.checked;
 				this.applyEcoModeConfig();
 			};
 		});
+		const themeSel = document.getElementById('eco-theme-select');
+		if (themeSel) {
+			themeSel.value = cfg.ecoTheme || 'night';
+			themeSel.onchange = (e) => {
+				this.appSettings.ecoModeConfig.ecoTheme = e.target.value;
+				this.applyEcoModeConfig();
+			};
+		}
 		const wakeLockSel = document.getElementById('eco-wakelock-limit-select');
 		if (wakeLockSel) {
 			wakeLockSel.value = String(cfg.wakeLockLimitSeconds || 300);
 			wakeLockSel.onchange = (e) => {
 				this.appSettings.ecoModeConfig.wakeLockLimitSeconds = parseInt(e.target.value, 10);
+				this.applyEcoModeConfig();
+			};
+		}
+		const cameraSel = document.getElementById('eco-camera-quality-select');
+		if (cameraSel) {
+			cameraSel.value = cfg.cameraQuality || 'full';
+			cameraSel.onchange = (e) => {
+				this.appSettings.ecoModeConfig.cameraQuality = e.target.value;
+				this.applyEcoModeConfig();
+			};
+		}
+		const hapticsSel = document.getElementById('eco-haptics-select');
+		if (hapticsSel) {
+			hapticsSel.value = cfg.hapticsLevel || 'normal';
+			hapticsSel.onchange = (e) => {
+				this.appSettings.ecoModeConfig.hapticsLevel = e.target.value;
+				this.applyEcoModeConfig();
+			};
+		}
+		const volumeSlider = document.getElementById('eco-volume-slider');
+		const volumeVal = document.getElementById('eco-volume-val');
+		if (volumeSlider) {
+			const v = (cfg.volumePct === undefined || cfg.volumePct === null) ? 100 : cfg.volumePct;
+			volumeSlider.value = String(v);
+			if (volumeVal) volumeVal.textContent = v + '%';
+			volumeSlider.oninput = (e) => {
+				const val = parseInt(e.target.value, 10);
+				this.appSettings.ecoModeConfig.volumePct = val;
+				if (volumeVal) volumeVal.textContent = val + '%';
+				this.applyEcoModeConfig();
+			};
+		}
+		const dimSlider = document.getElementById('eco-dim-slider');
+		const dimVal = document.getElementById('eco-dim-val');
+		if (dimSlider) {
+			const d = cfg.screenDimPct || 0;
+			dimSlider.value = String(d);
+			if (dimVal) dimVal.textContent = d + '%';
+			dimSlider.oninput = (e) => {
+				const val = parseInt(e.target.value, 10);
+				this.appSettings.ecoModeConfig.screenDimPct = val;
+				if (dimVal) dimVal.textContent = val + '%';
 				this.applyEcoModeConfig();
 			};
 		}
@@ -4801,11 +4871,11 @@ class ToneEngine {
 			this.analyser = this.audioCtx.createAnalyser();
 			this.analyser.fftSize = 4096;
 			const stream = await navigator.mediaDevices.getUserMedia({
-					audio: {
+					audio: getEcoAudioConstraints({
 						echoCancellation: false,
 						noiseSuppression: false,
 						autoGainControl: false
-					}
+					})
 			});
 			this.micSrc = this.audioCtx.createMediaStreamSource(stream);
 			this.micSrc.connect(this.analyser);
@@ -5578,10 +5648,43 @@ function hapticPulse(pattern) {
 	if (!navigator.vibrate) return;
 	navigator.vibrate(pattern);
 }
+// Real, shared quality cap for every camera/mic stream in the app (AR camera, hand-tracking
+// front/back cameras, pitch-detection mic). window.__ecoCameraQuality is set by
+// applyEcoModeConfig() - 'full' outside eco mode or when this specific eco setting is off, so
+// normal usage is completely unaffected.
+function getEcoVideoConstraints(baseConstraints) {
+	const quality = window.__ecoCameraQuality || 'full';
+	const out = Object.assign({}, baseConstraints || {});
+	if (quality === 'low') {
+		out.width = { ideal: 320 };
+		out.height = { ideal: 240 };
+		out.frameRate = { ideal: 10, max: 15 };
+	} else if (quality === 'medium') {
+		out.width = { ideal: 480 };
+		out.height = { ideal: 360 };
+		out.frameRate = { ideal: 15, max: 24 };
+	}
+	return out;
+}
+function getEcoAudioConstraints(baseConstraints) {
+	const quality = window.__ecoCameraQuality || 'full';
+	const out = Object.assign({}, baseConstraints || {});
+	if (quality === 'low') {
+		out.sampleRate = 16000;
+	} else if (quality === 'medium') {
+		out.sampleRate = 24000;
+	}
+	return out;
+}
+window.getEcoVideoConstraints = getEcoVideoConstraints;
+window.getEcoAudioConstraints = getEcoAudioConstraints;
 function vibrate() {
 	if (appSettings.isDndEnabled) return;
-	if (appSettings.isEcoModeEnabled && appSettings.ecoModeConfig && appSettings.ecoModeConfig.disableHaptics) return;
-	if (appSettings.isHapticsEnabled && navigator.vibrate) navigator.vibrate(10);
+	if (!appSettings.isHapticsEnabled || !navigator.vibrate) return;
+	const ecoActive = appSettings.isEcoModeEnabled && appSettings.ecoModeConfig;
+	const level = ecoActive ? (appSettings.ecoModeConfig.hapticsLevel || 'normal') : 'normal';
+	if (level === 'off') return;
+	navigator.vibrate(level === 'light' ? 4 : 10);
 }
 function vibrateMorse(val) {
 	if (appSettings.isDndEnabled) return;
@@ -5634,7 +5737,9 @@ function speak(text) {
 	}
 	let p = appSettings.runtimeSettings.voicePitch || 1.0;
 	let r = appSettings.runtimeSettings.voiceRate || 1.0;
-	u.volume = appSettings.runtimeSettings.voiceVolume || 1.0;
+	const ecoVoiceActive = appSettings.isEcoModeEnabled && appSettings.ecoModeConfig;
+	const ecoVoiceMult = ecoVoiceActive ? Math.max(0.05, (appSettings.ecoModeConfig.volumePct || 100) / 100) : 1;
+	u.volume = (appSettings.runtimeSettings.voiceVolume || 1.0) * ecoVoiceMult;
 	u.pitch = Math.min(2, Math.max(0.1, p));
 	u.rate = Math.min(10, Math.max(0.1, r));
 	window.speechSynthesis.speak(u);
@@ -5718,7 +5823,7 @@ function applyAmbientThemeOverride(lux) {
 	}
 }
 window.updateAmbientSensorState = function(silent) {
-	const needed = !!(appSettings.isAutoBrightEnabled || appSettings.isAutoDarkEnabled);
+	const needed = !!(appSettings.isAutoBrightEnabled || appSettings.isAutoDarkEnabled) && !window.__ecoAmbientOverride;
 	if (needed && !ambientLightSensor) {
 		if (!('AmbientLightSensor' in window)) {
 			console.warn('Ambient Light Sensor not supported on this browser/device (requires the experimental Generic Sensor flag on most Android Chrome installs).');
@@ -5778,21 +5883,21 @@ window.grantAllPermissions = async function() {
 		console.warn('Grant Permissions - clipboard:', e.name, e.message);
 	}
 	try {
-		const micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+		const micStream = await navigator.mediaDevices.getUserMedia({ audio: getEcoAudioConstraints({ echoCancellation: false, noiseSuppression: false, autoGainControl: false }) });
 		await new Promise(r => setTimeout(r, 1000));
 		micStream.getTracks().forEach(t => t.stop());
 	} catch (e) {
 		console.warn('Grant Permissions - microphone:', e.name, e.message);
 	}
 	try {
-		const frontStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } });
+		const frontStream = await navigator.mediaDevices.getUserMedia({ video: getEcoVideoConstraints({ facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }) });
 		await new Promise(r => setTimeout(r, 500));
 		frontStream.getTracks().forEach(t => t.stop());
 	} catch (e) {
 		console.warn('Grant Permissions - front camera:', e.name, e.message);
 	}
 	try {
-		const backStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+		const backStream = await navigator.mediaDevices.getUserMedia({ video: getEcoVideoConstraints({ facingMode: 'environment' }) });
 		await new Promise(r => setTimeout(r, 500));
 		backStream.getTracks().forEach(t => t.stop());
 	} catch (e) {
@@ -6728,9 +6833,7 @@ function setupARLogic() {
 			}
 			try {
 				const stream = await navigator.mediaDevices.getUserMedia({
-						video: {
-							facingMode: "environment"
-						}
+						video: getEcoVideoConstraints({ facingMode: "environment" })
 				});
 				if (arBackgroundVideo) {
 					arBackgroundVideo.srcObject = stream;
@@ -9182,9 +9285,11 @@ const startApp = async () => {
 			release = 0.01;
 			const durationSec = durationMs / 1000;
 			const now = this.audioCtx.currentTime;
+			const ecoActive = appSettings.isEcoModeEnabled && appSettings.ecoModeConfig;
+			const peakGain = ecoActive ? Math.max(0.05, (appSettings.ecoModeConfig.volumePct || 100) / 100) : 1;
 			gainNode.gain.setValueAtTime(0, now);
-			gainNode.gain.linearRampToValueAtTime(1, now + attack);
-			gainNode.gain.setValueAtTime(1, now + durationSec - release);
+			gainNode.gain.linearRampToValueAtTime(peakGain, now + attack);
+			gainNode.gain.setValueAtTime(peakGain, now + durationSec - release);
 			gainNode.gain.linearRampToValueAtTime(0, now + durationSec);
 			oscillator.connect(gainNode);
 			gainNode.connect(this.audioCtx.destination);

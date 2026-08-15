@@ -26,6 +26,7 @@ alert("Promise Error: " + event.reason);
 <meta property="og:type" content="website">
 </head>
 <body class="min-h-screen flex flex-col font-sans transition-colors duration-200">
+<div id="eco-dim-overlay" style="position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 9999; transition: opacity 400ms;"></div>
 <div id="boss-layer"></div>
 <div id="ar-container" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 z-[-1] pointer-events-none hidden">
 <video id="ar-background-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
@@ -1481,58 +1482,77 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
 </summary>
 <div class="p-3 border-t border-gray-700 space-y-3">
-<p class="text-[10px] text-gray-400">Fine-tune what Eco Mode actually does when it's turned on (via the header button or General Settings toggle). Nothing here takes effect unless Eco Mode itself is active.</p>
-<div class="grid grid-cols-2 gap-3">
+<p class="text-[10px] text-gray-400">Fine-tune what Eco Mode actually does when it's turned on (via the header button or General Settings toggle). Every setting below genuinely changes something real - nothing here is just a label. Nothing here takes effect unless Eco Mode itself is active.</p>
+
 <div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
 <span class="text-xs font-bold">Switch Theme</span>
 <input type="checkbox" id="eco-theme-switch-toggle" class="h-5 w-5 accent-indigo-500">
 </div>
-<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
-<span class="text-xs font-bold">Disable Sensors</span>
-<input type="checkbox" id="eco-sensors-toggle" class="h-5 w-5 accent-indigo-500">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Eco Theme</label>
+<select id="eco-theme-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="night" selected>Night Mode 🌚 (pure black - lowest power on OLED screens)</option>
+<option value="default">Dark</option>
+<option value="matrix">The Matrix</option>
+<option value="forest">Deep Forest</option>
+</select>
+<p class="text-[10px] text-gray-400 mt-1">Only genuinely dark themes are offered here - a bright theme would work against the point of Eco Mode.</p>
 </div>
-<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
-<span class="text-xs font-bold">Dim Brightness</span>
-<input type="checkbox" id="eco-brightness-toggle" class="h-5 w-5 accent-indigo-500">
-</div>
+
 <div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
 <span class="text-xs font-bold">Limit Wake Lock</span>
 <input type="checkbox" id="eco-wakelock-toggle" class="h-5 w-5 accent-indigo-500">
 </div>
-<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
-<span class="text-xs font-bold">Reduce Video FPS</span>
-<input type="checkbox" id="eco-videofps-toggle" class="h-5 w-5 accent-indigo-500">
-</div>
-<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
-<span class="text-xs font-bold">Lower Voice Quality</span>
-<input type="checkbox" id="eco-voicequality-toggle" class="h-5 w-5 accent-indigo-500">
-</div>
-<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
-<span class="text-xs font-bold">Reduce Volume</span>
-<input type="checkbox" id="eco-volume-toggle" class="h-5 w-5 accent-indigo-500">
-</div>
-<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
-<span class="text-xs font-bold">Disable Haptics</span>
-<input type="checkbox" id="eco-haptics-toggle" class="h-5 w-5 accent-indigo-500">
-</div>
-<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
-<span class="text-xs font-bold">Reduce Mic Sampling</span>
-<input type="checkbox" id="eco-micsampling-toggle" class="h-5 w-5 accent-indigo-500">
-</div>
-<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
-<span class="text-xs font-bold">Restrict Mic/Camera</span>
-<input type="checkbox" id="eco-restrictmediadevices-toggle" class="h-5 w-5 accent-indigo-500">
-</div>
-</div>
 <div>
 <label class="block text-xs font-bold mb-1 text-muted-custom">Wake Lock Limit</label>
 <select id="eco-wakelock-limit-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="30">30 seconds</option>
 <option value="60">1 minute</option>
+<option value="120">2 minutes</option>
 <option value="300" selected>5 minutes</option>
 <option value="600">10 minutes</option>
+<option value="900">15 minutes</option>
 <option value="1800">30 minutes</option>
 </select>
 </div>
+
+<div class="flex items-center justify-between p-2 rounded-lg border border-custom settings-input">
+<span class="text-xs font-bold">Disable Ambient Light Sensor</span>
+<input type="checkbox" id="eco-ambient-toggle" class="h-5 w-5 accent-indigo-500">
+</div>
+<p class="text-[10px] text-gray-400 -mt-2">Stops the light sensor's continuous polling (used by Auto Bright/Auto Dark). Real battery savings on devices that support it - it does nothing if your device doesn't have this sensor.</p>
+
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Camera & Mic Quality</label>
+<select id="eco-camera-quality-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="full" selected>Full (no reduction)</option>
+<option value="medium">Medium (lower resolution/sample rate)</option>
+<option value="low">Low (lowest resolution/sample rate)</option>
+</select>
+<p class="text-[10px] text-gray-400 mt-1">Applies to every camera and mic feature at once: AR Camera, Hand Tracking, and Tone/Pitch input. Genuinely reduces processing load, not just a label.</p>
+</div>
+
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Haptics</label>
+<select id="eco-haptics-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="normal" selected>Normal</option>
+<option value="light">Light (shorter vibration)</option>
+<option value="off">Off</option>
+</select>
+</div>
+
+<div class="ctrl-row">
+<label class="block text-xs font-bold mb-1 text-muted-custom">Volume <span id="eco-volume-val" class="text-gray-400 font-normal"></span></label>
+<input type="range" id="eco-volume-slider" min="10" max="100" step="5" value="100" class="w-full accent-indigo-500">
+<p class="text-[10px] text-gray-400 mt-1">Scales tone playback and voice output volume.</p>
+</div>
+
+<div class="ctrl-row">
+<label class="block text-xs font-bold mb-1 text-muted-custom">Screen Dim <span id="eco-dim-val" class="text-gray-400 font-normal"></span></label>
+<input type="range" id="eco-dim-slider" min="0" max="60" step="5" value="0" class="w-full accent-indigo-500">
+<p class="text-[10px] text-gray-400 mt-1">A real on-screen dim overlay - the web platform has no way to control your device's actual hardware brightness, so this is an honest visual substitute.</p>
+</div>
+
 </div>
 </details>
 <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
@@ -1737,8 +1757,8 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📌</span> <strong>Pinned Mode:</strong> Fullscreen plus a back-gesture block, so you can't accidentally swipe out mid-sequence. Always starts off when you open the app, even if it was on last time - turn it back on each session.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔕</span> <strong>Do Not Disturb:</strong> Silences toasts, vibration, and spoken audio. Always starts off when you open the app, even if it was on last time - turn it back on each session.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🙃</span> <strong>Upside Down:</strong> Flip the entire interface 180° (for a partner facing you).</li>
-<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">▶️</span> <strong>Play:</strong> Play back the current sequence. Long-press toggles Autoplay on/off if "AP Shortcut" is enabled in Settings → General.</li>
-<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">⌫</span> <strong>Delete:</strong> Remove the last entry. Press and hold to delete repeatedly if "Quick Erase" is on in Settings → General.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">▶️</span> <strong>Play:</strong> Play back the current sequence. Long-press toggles Autoplay on/off.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">⌫</span> <strong>Delete:</strong> Remove the last entry. Press and hold to delete repeatedly.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">⚙️</span> <strong>Settings:</strong> Quick access to the Settings menu.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📚</span> <strong>Help:</strong> Quick access to this Help menu.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🎮</span> <strong>Mode Switch:</strong> Toggles between Simon Says and Unique mode without opening Settings.</li>
@@ -1824,7 +1844,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div><strong>Upside Down:</strong> Flips the visible UI 180° for a partner facing you - stays flipped correctly even if Portrait Lock is also locking the screen to portrait.</div>
 <div><strong>Portrait Lock 🔒:</strong> The app starts unlocked so landscape mode is available right away. The Settings toggle only shows or hides its header button (🔒), right next to Upside Down - tap that header button to lock the screen to portrait and stop accidental rotation mid-game (button rings, matching every other active feature), tap again to allow free rotation (button goes dim, no ring). This is done by detecting the device's actual physical orientation and visually counter-rotating the interface to compensate, rather than relying on the phone's built-in rotation lock, which is unreliable on installed home-screen apps and often can't be overridden by the app at all once set.</div>
 <div><strong>Full Screen:</strong> Hides browser bars.</div>
-<div><strong>Eco Mode 🔋:</strong> Reduces animations/framerate.</div>
+<div><strong>Eco Mode 🔋:</strong> Master on/off. What it actually does is fully configurable in its own accordion further down in General Settings - theme switching, wake lock limits, ambient light sensor, camera/mic quality, haptics strength, volume, and a real on-screen dim are all independently adjustable there, and every one of them genuinely does something (nothing in that section is just a label).</div>
 <div><strong>Position Swap 🔄:</strong> Adds a header button that moves the input pad from the bottom of the screen to the top.</div>
 <div><strong>Bigger Buttons:</strong> Hides menus and makes each key perfectly square (as tall as it is wide) instead of a fixed height.</div>
 <div><strong>Touch Gesture:</strong> Shows the transparent touch gesture pad (taps/swipes drawn anywhere on screen).</div>
@@ -1835,18 +1855,43 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div><strong>Voice Input 🎤:</strong> Master switch for the microphone/speech recognizer. Required for both spoken numbers and Voice Commands below.</div>
 <div><strong>Voice Commands:</strong> Say your trigger word then "play", "stop", "clear", or "delete" - needs Voice Input on too.</div>
 <div><strong>Tone Cadence Mode 🎵:</strong> Hum or whistle notes (C D E F G A B C D) to enter 1-9. 9-Key input only for now; requires microphone access.</div>
-<div><strong>Quick Erase:</strong> Hold backspace to rapidly delete.</div>
-<div><strong>AP Shortcut:</strong> Long-press Play to toggle Autoplay.</div>
 <div><strong>Vol. Gesture:</strong> 3-finger twist adjusts volume.</div>
 <div><strong>Speed Gesture:</strong> 2-finger twist adjusts speed.</div>
-<div><strong>Delete Gesture:</strong> 1-finger squiggle erases.</div>
-<div><strong>Clear Gesture:</strong> 2-finger squiggle nukes the round.</div>
 <div><strong>Auto Hide Header 👻:</strong> Hides header buttons until you touch the header area, or wave your hand near the top of the phone (proximity sensor, where supported) - they drop in, then float away again after 5 seconds of no activity there.</div>
 <div><strong>Auto Bright ☀️:</strong> Reads your device's ambient light sensor and switches the display to the Sunlight theme in bright light - your actual theme choice underneath is untouched and comes back once light levels drop. Needs a browser with Ambient Light Sensor support, which most stock Android browsers don't ship by default.</div>
 <div><strong>Auto Dark 🌙:</strong> Same idea as Auto Bright, but switches to Night Mode in the dark. Same sensor support caveat applies.</div>
 <div><strong>Infinite Header Scroll:</strong> Keeps the header's icon row looping continuously when dragged, instead of stopping at the first/last icon.</div>
 <div><strong>Input Regulator 🚦:</strong> Simon Says only - enforces a short cooldown per machine so the same slot can't be spammed faster than intended.</div>
 </div>
+</div>
+</details>
+<details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-cyan-400">
+<span>📐 Landscape and Split Screen</span>
+<span class="group-open:rotate-180 transition-transform">▼</span>
+</summary>
+<div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
+<p>Its own accordion in General Settings, with five independent tabs - <strong>Landscape</strong>, <strong>66%</strong>, <strong>50% ↕</strong> (phone held upright), <strong>50% ↔</strong> (phone held sideways), and <strong>33%</strong>. Whichever one you're actually using right now is highlighted automatically.</p>
+<p><strong>Why five separate tabs:</strong> a 50/50 split-screen looks completely different depending on whether you're holding the phone normally or sideways, so each gets its own settings instead of sharing one. 66% and Landscape stack/sit side-by-side the same way portrait always has; 33% and 50% ↔ are always side-by-side (too narrow to stack usefully); 50% ↕ is always stacked (plenty of room, matches normal portrait).</p>
+<p><strong>Per-tab settings:</strong> UI Scale, Sequence Size, Row Max, Header/Number/Input Font/Button Size, and Alignment (landscape/split-screen tabs only) - each tab's values are completely independent of every other tab and of your main Portrait settings.</p>
+<p><strong>⚙️ Configure Viewport:</strong> Opens a bigger version of that same tab's settings with a live preview of the real app alongside it, so you can see exactly what a change looks like before it applies.</p>
+<p class="opacity-70">The gear icon in the header jumps straight to whichever tab matches your current orientation - no need to hunt for it manually.</p>
+</div>
+</details>
+<details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-lime-400">
+<span>🔋 Eco Mode Settings</span>
+<span class="group-open:rotate-180 transition-transform">▼</span>
+</summary>
+<div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
+<p>Its own accordion in General Settings, separate from the master Eco Mode on/off toggle above. Nothing here takes effect unless Eco Mode itself is turned on - and every setting below genuinely does something real once it is.</p>
+<p><strong>Switch Theme + Eco Theme:</strong> Automatically switches to a genuinely dark theme (Night Mode, Dark, The Matrix, or Deep Forest - only real low-power options are offered) while Eco Mode is on, and restores whatever theme you were using the moment it turns back off.</p>
+<p><strong>Limit Wake Lock:</strong> Releases the screen wake lock automatically after the time you pick, instead of holding it indefinitely - so Eco Mode doesn't quietly cancel out your phone's own screen timeout.</p>
+<p><strong>Disable Ambient Light Sensor:</strong> Stops the light sensor's continuous polling (the one Auto Bright/Auto Dark use) to save real battery. Only has an effect on devices whose browser supports that sensor in the first place.</p>
+<p><strong>Camera & Mic Quality:</strong> One dropdown that lowers resolution, frame rate, and microphone sample rate across every camera/mic feature at once - AR Camera, Hand Tracking, and Tone/Pitch input all read this same setting, so you only have to set it in one place.</p>
+<p><strong>Haptics:</strong> Normal, Light (a shorter vibration), or Off - independent of the main Haptics toggle in General, this only changes vibration strength specifically while Eco Mode is active.</p>
+<p><strong>Volume:</strong> Scales tone playback and spoken voice output down together.</p>
+<p><strong>Screen Dim:</strong> A real on-screen dark overlay. Worth being upfront about: no web app can actually control your phone's hardware brightness, so this is an honest visual dim rather than a real hardware brightness change - still genuinely reduces the light coming off your screen, just via a different mechanism.</p>
 </div>
 </details>
 <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">

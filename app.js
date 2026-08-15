@@ -1,5 +1,5 @@
 // Viewport Preview mode: when this file is loaded inside the Landscape/Split Screen configure
-// modal's live iframe, ?vpPreview=1&vpBucket=split50 (etc) forces detectViewportBucket() to
+// modal's live iframe, ?vpPreview=1&vpBucket=split66 (etc) forces detectViewportBucket() to
 // report that bucket regardless of the real device's screen/window ratio, so the preview can
 // show any bucket without physically resizing the browser window.
 (function() {
@@ -5941,21 +5941,28 @@ function isWindowLandscapeShaped() {
 		// preview mode built yet.
 		return window.__vpPreviewForceBucket !== 'portrait';
 	}
-	// The window's OWN aspect ratio can't reliably tell sideways split-screen apart from
-	// portrait split-screen: a narrow enough slice of either one ends up looking similar. A
-	// 33%-height portrait split (e.g. 400x297) is wider than tall by that math, and a
-	// 33%-width sideways split (e.g. 297x400) is taller than wide - each would get
-	// misclassified as the other orientation using window shape alone.
-	// screen.orientation.type looked like the fix (it describes the device's actual physical
-	// rotation, independent of how narrow the current split is) but testing found it can report
-	// a stale/default value that directly contradicts window.screen.width/height themselves -
-	// e.g. "landscape-primary" while screen.width/height are genuinely portrait-shaped. Comparing
-	// screen.width/height directly is more consistent: those are the same values
-	// detectViewportBucket() already uses for its own ratio math, they're standard and
-	// well-supported, and they DO update on a real device's rotation the same way orientation.type
-	// is supposed to.
+	// window.screen.width/height describe the device's fixed PHYSICAL shape - they're correct
+	// for detecting genuine device ROTATION, but they never change during split-screen (the
+	// device doesn't physically rotate just because the window got narrower). Using them here
+	// made every split-screen window on a physically-portrait phone read as "not
+	// landscape-shaped" unconditionally, no matter how wide the actual window was, which then
+	// fed the WRONG dimension into detectViewportBucket()'s ratio math entirely (using
+	// innerHeight when the split was actually happening along width, or vice versa).
+	//
+	// The reliable signal is which of the window's own two dimensions is still "full": in a
+	// sideways split, the window's height stays at ~100% of the device's short edge while its
+	// width shrinks; in an upright split, it's the reverse. Comparing each axis against the
+	// device's short edge and taking whichever is CLOSER to matching tells you which axis is
+	// unconstrained - the split is happening on the other one.
 	if (window.screen && window.screen.width && window.screen.height) {
-		return window.screen.width >= window.screen.height;
+		const shortEdge = Math.min(window.screen.width, window.screen.height);
+		const widthDeficit = Math.abs(window.innerWidth - shortEdge);
+		const heightDeficit = Math.abs(window.innerHeight - shortEdge);
+		// If width is the one close to matching the short edge, width is unconstrained -> the
+		// window is portrait-shaped (split is happening along height). If height is the closer
+		// match, height is unconstrained -> the window is landscape-shaped (split is happening
+		// along width).
+		return heightDeficit < widthDeficit;
 	}
 	if (typeof window.orientation === 'number') {
 		return Math.abs(window.orientation) === 90;
@@ -6054,7 +6061,7 @@ const VP_HEADER_BUTTON_ID_MAP = {
 	pip: 'headerpipbtn', touch: 'headertouchbtn'
 };
 function applyViewportHeaderButtonCuration(bucket) {
-	const isCurated = bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33';
+	const isCurated = bucket === 'split66' || bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33';
 	Object.keys(VP_HEADER_BUTTON_ID_MAP).forEach(curatedId => {
 		const el = document.getElementById(VP_HEADER_BUTTON_ID_MAP[curatedId]);
 		if (!el) return;
@@ -8537,7 +8544,7 @@ let viewportConfigState = { configBucket: null, tempSettings: {}, activeTab: 'la
 
 // Real screen ratio bands, matching detectViewportBucket() exactly, so the iframe's pixel
 // width corresponds to what that bucket actually looks like on this device.
-const VP_BUCKET_RATIO = { landscape: 1.0, split66: 0.66, split50: 0.5, split33: 0.33 };
+const VP_BUCKET_RATIO = { landscape: 1.0, split66: 0.66, split50v: 0.5, split50h: 0.5, split33: 0.33 };
 
 // Curated header buttons available at 50%/33% - matches the memory spec:
 // Timer, Counter, Play, Delete, Bigger Buttons, Swap Position, PiP, Touch Gestures
@@ -8884,8 +8891,8 @@ function initViewportProfilesUI() {
 			settingsDiv.appendChild(note);
 		}
 
-		// --- Header Buttons (split50v/split50h/split33 only - curated set) ---
-		if (bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33') {
+		// --- Header Buttons (split66/split50v/split50h/split33 only - curated set) ---
+		if (bucket === 'split66' || bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33') {
 			sectionLabel('Header Buttons');
 			const note = document.createElement('p');
 			note.style.cssText = 'color: #888; font-size: 10px; margin: -2px 0 8px;';
@@ -8932,7 +8939,7 @@ function initViewportProfilesUI() {
 		viewportConfigState.tempSettings = {};
 		const titleEl = document.getElementById('viewport-config-title');
 		if (titleEl) {
-			const bucketLabels = { landscape: 'Landscape', split66: '66%', split50: '50%', split33: '33%' };
+			const bucketLabels = { landscape: 'Landscape', split66: '66%', split50v: '50% ↕', split50h: '50% ↔', split33: '33%' };
 			titleEl.textContent = 'Configure ' + (bucketLabels[bucket] || bucket);
 		}
 		renderConfigSettings();
@@ -9013,7 +9020,8 @@ function initViewportProfilesUI() {
 	});
 }
 
-// --- Mini viewport modal (split50/split33): compact sizing/layout + header buttons, no live
+// --- (Historical note: there used to be a separate compact "mini" modal for split50v/split33 -
+// it was removed in favor of routing straight to the accordion tab for the current bucket.)
 
 function openOrientationSettings() {
 	const bucket = document.body.dataset.viewportBucket;

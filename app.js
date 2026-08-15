@@ -2,6 +2,7 @@
 // modal's live iframe, ?vpPreview=1&vpBucket=split66 (etc) forces detectViewportBucket() to
 // report that bucket regardless of the real device's screen/window ratio, so the preview can
 // show any bucket without physically resizing the browser window.
+window.__fmBuildMarker = 'v152-nuke-fix-and-diagnostic';
 (function() {
 	try {
 		const params = new URLSearchParams(location.search);
@@ -3522,7 +3523,14 @@ class SettingsManager {
 				if (isHidden) {
 					viewportDiagPanel.classList.remove('hidden');
 					viewportDiagBtn.textContent = 'Hide Live Diagnostic';
-					if (typeof window.renderViewportDiagnostic === 'function') window.renderViewportDiagnostic();
+					if (typeof window.renderViewportDiagnostic === 'function') {
+						window.renderViewportDiagnostic();
+					} else {
+						// This should never happen, but if it does, make it visibly obvious
+						// rather than a panel that silently stays empty and looks like the
+						// button did nothing at all.
+						viewportDiagPanel.textContent = 'Diagnostic function not available - try a hard refresh (Settings → Advanced → Refresh App), this build may be out of date.';
+					}
 					viewportDiagResizeHandler = () => { if (typeof window.renderViewportDiagnostic === 'function') window.renderViewportDiagnostic(); };
 					window.addEventListener('resize', viewportDiagResizeHandler);
 				} else {
@@ -6007,6 +6015,8 @@ function renderViewportDiagnostic() {
 	const mediaQueryLandscape = window.matchMedia('(orientation: landscape)').matches;
 	const orientationApiType = (window.screen && window.screen.orientation) ? window.screen.orientation.type : 'n/a';
 	panel.textContent =
+		`app.js build: ${window.__fmBuildMarker || '(unknown - likely a very old cached version)'}\n` +
+		`\n` +
 		`window.screen.width:  ${screenW}\n` +
 		`window.screen.height: ${screenH}\n` +
 		`window.innerWidth:    ${innerW}\n` +

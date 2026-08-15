@@ -2,7 +2,7 @@
 // modal's live iframe, ?vpPreview=1&vpBucket=split66 (etc) forces detectViewportBucket() to
 // report that bucket regardless of the real device's screen/window ratio, so the preview can
 // show any bucket without physically resizing the browser window.
-window.__fmBuildMarker = 'v152-nuke-fix-and-diagnostic';
+window.__fmBuildMarker = 'v153-orientation-ratio-fix';
 (function() {
 	try {
 		const params = new URLSearchParams(location.search);
@@ -5930,27 +5930,37 @@ function isWindowLandscapeShaped() {
 		// preview mode built yet.
 		return window.__vpPreviewForceBucket !== 'portrait';
 	}
-	// window.screen.width/height describe the device's fixed PHYSICAL shape - they're correct
-	// for detecting genuine device ROTATION, but they never change during split-screen (the
-	// device doesn't physically rotate just because the window got narrower). Using them here
-	// made every split-screen window on a physically-portrait phone read as "not
-	// landscape-shaped" unconditionally, no matter how wide the actual window was, which then
-	// fed the WRONG dimension into detectViewportBucket()'s ratio math entirely (using
-	// innerHeight when the split was actually happening along width, or vice versa).
+	// Real-device testing found BOTH signals below can independently be wrong depending on the
+	// browser/device: screen.orientation.type was confirmed correct on one real phone but
+	// window.screen.width/height looked questionable there; on this sandbox's own headless
+	// browser, orientation.type reports a stale/wrong default even when window.innerWidth/
+	// innerHeight are completely unambiguous. Neither can be trusted blindly first.
 	//
-	// The reliable signal is which of the window's own two dimensions is still "full": in a
-	// sideways split, the window's height stays at ~100% of the device's short edge while its
-	// width shrinks; in an upright split, it's the reverse. Comparing each axis against the
-	// device's short edge and taking whichever is CLOSER to matching tells you which axis is
-	// unconstrained - the split is happening on the other one.
+	// The window's own raw aspect ratio (innerWidth vs innerHeight) is always internally
+	// consistent - it can't lie about its own shape, it's just ambiguous at genuinely narrow
+	// split ratios (a very compressed portrait split and a very compressed sideways split can
+	// end up looking similarly close to square). So: trust the raw aspect ratio directly
+	// whenever it's clearly one shape or the other, and only fall back to orientation.type to
+	// break the tie when the window itself is close to square - which is exactly the situation
+	// where that API is actually needed and raw dimensions alone genuinely can't decide it.
+	const rawRatio = window.innerWidth / window.innerHeight;
+	const CLOSE_TO_SQUARE = 0.4; // wide enough to cover a genuine 33% split's raw ratio (~1.35 or its reciprocal ~0.74) in either direction, which is the narrowest real snap point and therefore the most extreme case raw window ratio alone needs to stay ambiguous for
+	if (Math.abs(rawRatio - 1) > CLOSE_TO_SQUARE) {
+		return rawRatio > 1;
+	}
+	if (window.screen && window.screen.orientation && typeof window.screen.orientation.type === 'string') {
+		const type = window.screen.orientation.type;
+		if (type.indexOf('landscape') === 0) return true;
+		if (type.indexOf('portrait') === 0) return false;
+	}
+	// Last-resort fallback: compare each window dimension against the device's short edge,
+	// taking whichever is closer to "full" as the unconstrained axis. Not fully reliable on its
+	// own (real-device testing found near-coin-flip results on a genuine 50/50 split), but only
+	// reached when both of the above are unavailable or inconclusive.
 	if (window.screen && window.screen.width && window.screen.height) {
 		const shortEdge = Math.min(window.screen.width, window.screen.height);
 		const widthDeficit = Math.abs(window.innerWidth - shortEdge);
 		const heightDeficit = Math.abs(window.innerHeight - shortEdge);
-		// If width is the one close to matching the short edge, width is unconstrained -> the
-		// window is portrait-shaped (split is happening along height). If height is the closer
-		// match, height is unconstrained -> the window is landscape-shaped (split is happening
-		// along width).
 		return heightDeficit < widthDeficit;
 	}
 	if (typeof window.orientation === 'number') {
@@ -5973,16 +5983,32 @@ function detectViewportBucket() {
 	// never be detected at all in that orientation, regardless of what ratio the split was
 	// genuinely at.
 	const windowIsLandscape = isWindowLandscapeShaped();
-	const screenW = (window.screen && window.screen.width) ? window.screen.width : window.innerWidth;
-	const screenH = (window.screen && window.screen.height) ? window.screen.height : window.innerHeight;
-	// The device's full screen dimension along whichever axis the current window is actually
-	// splitting - i.e. if the window is landscape-shaped, compare its width against the
-	// device's own long edge; if portrait-shaped, compare its height against the device's own
-	// long edge (a portrait split-screen divides height, not width).
-	const deviceLongEdge = Math.max(screenW, screenH);
-	const ratio = windowIsLandscape
-		? (deviceLongEdge > 0 ? window.innerWidth / deviceLongEdge : 1)
-		: (deviceLongEdge > 0 ? window.innerHeight / deviceLongEdge : 1);
+	// Real-device testing (see isWindowLandscapeShaped's own comment) found that
+	// window.innerWidth/innerHeight and window.screen.width/height can be reported in
+	// genuinely DIFFERENT scales on the same device - innerWidth was measured larger than
+	// screen.width entirely on one real phone during a genuine split, which is only possible
+	// if they're not comparable numbers at all. Directly dividing one by the other (as this
+	// function used to) silently produces a meaningless ratio on devices where that happens.
+	//
+	// What IS trustworthy: window.screen.width/height's ratio TO EACH OTHER (confirmed against
+	// a real device's actual spec sheet), even when their absolute values are scaled down by
+	// something like devicePixelRatio. So: compute the device's long:short aspect ratio purely
+	// from screen.width/screen.height as a RATIO (never touching innerWidth/innerHeight in that
+	// calculation), then separately compute the window's own self-consistent aspect ratio from
+	// innerWidth/innerHeight alone, and solve for the split fraction by comparing the two
+	// ratios to each other - never dividing a screen number by an inner number directly.
+	const screenW = (window.screen && window.screen.width) ? window.screen.width : 0;
+	const screenH = (window.screen && window.screen.height) ? window.screen.height : 0;
+	const deviceAspect = (screenW > 0 && screenH > 0) ? (Math.max(screenW, screenH) / Math.min(screenW, screenH)) : (Math.max(window.innerWidth, window.innerHeight) / Math.max(1, Math.min(window.innerWidth, window.innerHeight)));
+	const windowRatio = windowIsLandscape
+		? (window.innerWidth / Math.max(1, window.innerHeight))
+		: (window.innerHeight / Math.max(1, window.innerWidth));
+	// windowRatio here is always "long side of the window / short side of the window" for
+	// whichever axis is unconstrained - at full-screen (ratio 100%) this should roughly equal
+	// deviceAspect itself. As the split narrows the unconstrained axis relative to the
+	// constrained one, this ratio shrinks proportionally, which is what lets us solve for the
+	// fraction below.
+	const ratio = deviceAspect > 0 ? (windowRatio / deviceAspect) : 1;
 	if (ratio >= 0.92) return windowIsLandscape ? 'landscape' : 'portrait';
 	// Real split-screen only ever snaps to three ratios (~33%/50%/66%), never anywhere in
 	// between, and once you're sitting at one of them it doesn't drift - a page reload while
@@ -6007,6 +6033,10 @@ function renderViewportDiagnostic() {
 	const screenH = window.screen ? window.screen.height : 'n/a';
 	const innerW = window.innerWidth;
 	const innerH = window.innerHeight;
+	const vvW = window.visualViewport ? window.visualViewport.width : 'n/a';
+	const vvH = window.visualViewport ? window.visualViewport.height : 'n/a';
+	const vvScale = window.visualViewport ? window.visualViewport.scale : 'n/a';
+	const dpr = window.devicePixelRatio || 'n/a';
 	const shortEdge = (window.screen && window.screen.width && window.screen.height) ? Math.min(window.screen.width, window.screen.height) : 'n/a';
 	const widthDeficit = (shortEdge !== 'n/a') ? Math.abs(innerW - shortEdge) : 'n/a';
 	const heightDeficit = (shortEdge !== 'n/a') ? Math.abs(innerH - shortEdge) : 'n/a';
@@ -6021,6 +6051,10 @@ function renderViewportDiagnostic() {
 		`window.screen.height: ${screenH}\n` +
 		`window.innerWidth:    ${innerW}\n` +
 		`window.innerHeight:   ${innerH}\n` +
+		`visualViewport.width:  ${vvW}\n` +
+		`visualViewport.height: ${vvH}\n` +
+		`visualViewport.scale:  ${vvScale}\n` +
+		`devicePixelRatio: ${dpr}\n` +
 		`\n` +
 		`short edge (min of screen w/h): ${shortEdge}\n` +
 		`width deficit from short edge:  ${widthDeficit}\n` +

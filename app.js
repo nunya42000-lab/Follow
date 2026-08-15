@@ -497,9 +497,7 @@ const DEFAULT_GENERAL_TOGGLE_ORDER = [
 'toneToggle', 'touchToggle',
 'handToggle', 'skeletonDebugToggle',
 'handsignalsToggle', 'handednessFlipToggle',
-'speeddeleteToggle', 'apshortcutToggle',
 'volgesToggle', 'speedToggle',
-'deleteToggle', 'clearToggle',
 'headerResetToggle', 'headerNukeToggle'
 ];
 const CONFIG = {
@@ -598,7 +596,7 @@ const DEFAULT_APP = {
 	isHapticsEnabled: false,
 	isFlashEnabled: false,
 	pauseSetting: 200,
-	isSpeedDeletingEnabled: false,
+	isSpeedDeletingEnabled: true,
 	isSpeedTouchGesturesEnabled: false,
 	isVolumeTouchGesturesEnabled: false,
 	isArModeEnabled: false,
@@ -606,8 +604,8 @@ const DEFAULT_APP = {
 	isVoiceInputEnabled: false,
 	arPlaybackSpeed: 1.00,
 	voiceTriggerWord: 'set',
-	isDeleteTouchGestureEnabled: false,
-	isClearTouchGestureEnabled: false,
+	isDeleteTouchGestureEnabled: true,
+	isClearTouchGestureEnabled: true,
 	isAutoTimerEnabled: false,
 	isAutoCounterEnabled: false,
 	isWakeLockEnabled: false,
@@ -617,7 +615,7 @@ const DEFAULT_APP = {
 	showHeaderLandscapeLockBtn: false,
 	lastSequence: null,
 	isEcoModeEnabled: false,
-	isLongPressAutoplayEnabled: false,
+	isLongPressAutoplayEnabled: true,
 	showBiggerBtn: false,
 	activeTheme: 'default',
 	customThemes: {},
@@ -861,9 +859,7 @@ const DEFAULT_APP = {
 'toneToggle', 'touchToggle',
 'handToggle', 'skeletonDebugToggle',
 'handsignalsToggle', 'handednessFlipToggle',
-'speeddeleteToggle', 'apshortcutToggle',
 'volgesToggle', 'speedToggle',
-'deleteToggle', 'clearToggle',
 'headerResetToggle', 'headerNukeToggle'
 	]
 };
@@ -2018,19 +2014,15 @@ class SettingsManager {
 			pause: document.getElementById('pause-select'), audio: document.getElementById('audio-toggle'), hapticMorse: document.getElementById('haptic-morse-toggle'), playbackSpeed: document.getElementById('playback-speed-select'), chunk: document.getElementById('chunk-select'), delay: document.getElementById('delay-select'), haptics: document.getElementById('hapticsToggle'),
 			speedTouchGesturesToggle: document.getElementById('speedToggle'),
 			volumeTouchGesturesToggle: document.getElementById('volgesToggle'),
-			deleteTouchGestureToggle: document.getElementById('deleteToggle'),
-			clearTouchGestureToggle: document.getElementById('clearToggle'),
 			autoTimerToggle: document.getElementById('autotimerToggle'),
 			autoCounterToggle: document.getElementById('autocounterToggle'),
 			arcamToggle: document.getElementById('arcamToggle'),
 			arAutoCloseGeneralToggle: document.getElementById('arAutoCloseGeneralToggle'),
 			arAutoClosePlayback: document.getElementById('ar-autoclose-toggle'),
 			voiceToggle: document.getElementById('voiceToggle'),
-			speedDelete: document.getElementById('speeddeleteToggle'),
 			showWelcome: document.getElementById('hideIntroToggle'),
 			bossToggle: document.getElementById('bossToggle'),
 			biggerToggle: document.getElementById('biggerToggle'),
-			longPressToggle: document.getElementById('apshortcutToggle'),
 			timerToggle: document.getElementById('timerToggle'),
 			headerPlayToggle: document.getElementById('headerPlayToggle'), headerDeleteToggle: document.getElementById('headerDeleteToggle'), headerSettingsToggle: document.getElementById('headerSettingsToggle'), headerRedeemToggle: document.getElementById('headerRedeemToggle'), headerShareToggle: document.getElementById('headerShareToggle'), headerThemeCycleToggle: document.getElementById('headerThemeCycleToggle'), headerAddMachineToggle: document.getElementById('headerAddMachineToggle'), headerUiSizeToggle: document.getElementById('headerUiSizeToggle'), headerSeqSizeToggle: document.getElementById('headerSeqSizeToggle'), headerVolumeToggle: document.getElementById('headerVolumeToggle'), headerSpeedToggle: document.getElementById('headerSpeedToggle'), headerCycleInputToggle: document.getElementById('headerCycleInputToggle'),
 			headerNotepadToggle: document.getElementById('headerNotepadToggle'), headerHelpToggle: document.getElementById('headerHelpToggle'), headerModeSwitchToggle: document.getElementById('headerModeSwitchToggle'), headerResetToggle: document.getElementById('headerResetToggle'), headerNukeToggle: document.getElementById('headerNukeToggle'), headerInfiniteScrollToggle: document.getElementById('headerInfiniteScrollToggle'), inputRegulatorToggle: document.getElementById('inputRegulatorToggle'),
@@ -3210,8 +3202,7 @@ class SettingsManager {
 		bindToggle(this.dom.handednessFlipToggle, 'handednessFlip');
 		bindToggle(this.dom.volumeTouchGesturesToggle, 'isVolumeTouchGesturesEnabled');
 		bindToggle(this.dom.speedTouchGesturesToggle, 'isSpeedTouchGesturesEnabled');
-		bindToggle(this.dom.deleteTouchGestureToggle, 'isDeleteTouchGestureEnabled');
-		bindToggle(this.dom.clearTouchGestureToggle, 'isClearTouchGestureEnabled');
+
 		if (this.dom.targetBtns) {
 			this.dom.targetBtns.forEach(btn => {
 					btn.onclick = () => this.selectThemeTarget(btn.dataset.target);
@@ -3407,7 +3398,6 @@ class SettingsManager {
 		bind(this.dom.machines, 'machineCount', false, true);
 		bind(this.dom.seqLength, 'sequenceLength', false, true);
 		bind(this.dom.autoClear, 'isUniqueRoundsAutoClearEnabled', false);
-		bind(this.dom.longPressToggle, 'isLongPressAutoplayEnabled', true);
 		bind(this.dom.timerToggle, 'showTimer', true);
 		bind(this.dom.counterToggle, 'showCounter', true);
 		if (this.dom.arcamToggle) {
@@ -3443,7 +3433,6 @@ class SettingsManager {
 		if (this.dom.pause) this.dom.pause.onchange = (e) => { this.appSettings.runtimeSettings.pauseSetting = parseFloat(e.target.value) * 1000; this.callbacks.onSave(); this.generatePrompt(); };
 		if (this.dom.delay) this.dom.delay.onchange = (e) => { this.appSettings.runtimeSettings.simonInterSequenceDelay = parseFloat(e.target.value) * 1000; this.callbacks.onSave(); this.generatePrompt(); };
 		bind(this.dom.haptics, 'isHapticsEnabled', true);
-		bind(this.dom.speedDelete, 'isSpeedDeletingEnabled', true);
 		bind(this.dom.biggerToggle, 'showBiggerBtn', true);
 		bind(this.dom.autoTimerToggle, 'isAutoTimerEnabled', true);
 		bind(this.dom.autoCounterToggle, 'isAutoCounterEnabled', true);
@@ -3775,15 +3764,11 @@ class SettingsManager {
 		if (this.dom.biggerToggle) this.dom.biggerToggle.checked = this.appSettings.showBiggerBtn;
 		if (this.dom.arcamToggle) this.dom.arcamToggle.checked = !!this.appSettings.isArModeEnabled;
 		if (this.dom.voiceToggle) this.dom.voiceToggle.checked = !!this.appSettings.isVoiceInputEnabled;
-		if (this.dom.longPressToggle) this.dom.longPressToggle.checked = (typeof this.appSettings.isLongPressAutoplayEnabled === 'undefined') ? true : this.appSettings.isLongPressAutoplayEnabled;
 		if (this.dom.timerToggle) this.dom.timerToggle.checked = !!this.appSettings.showTimer;
 		if (this.dom.counterToggle) this.dom.counterToggle.checked = !!this.appSettings.showCounter;
 		if (this.dom.haptics) this.dom.haptics.checked = (typeof this.appSettings.isHapticsEnabled === 'undefined') ? true : this.appSettings.isHapticsEnabled;
-		if (this.dom.speedDelete) this.dom.speedDelete.checked = (typeof this.appSettings.isSpeedDeletingEnabled === 'undefined') ? true : this.appSettings.isSpeedDeletingEnabled;
 		if (this.dom.speedTouchGesturesToggle) this.dom.speedTouchGesturesToggle.checked = !!this.appSettings.isSpeedTouchGesturesEnabled;
 		if (this.dom.volumeTouchGesturesToggle) this.dom.volumeTouchGesturesToggle.checked = !!this.appSettings.isVolumeTouchGesturesEnabled;
-		if (this.dom.deleteTouchGestureToggle) this.dom.deleteTouchGestureToggle.checked = !!this.appSettings.isDeleteTouchGestureEnabled;
-		if (this.dom.clearTouchGestureToggle) this.dom.clearTouchGestureToggle.checked = !!this.appSettings.isClearTouchGestureEnabled;
 		if (this.dom.autoTimerToggle) this.dom.autoTimerToggle.checked = !!this.appSettings.isAutoTimerEnabled;
 		if (this.dom.autoCounterToggle) this.dom.autoCounterToggle.checked = !!this.appSettings.isAutoCounterEnabled;
 		if (this.dom.uiScale) this.dom.uiScale.value = this.appSettings.globalUiScale || 100;
@@ -4152,7 +4137,7 @@ class SettingsManager {
 		}).filter(Boolean);
 	}
 	_generalToggleLabels() {
-		return { autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙', randomThemeToggle: 'Random Theme 🎲', headerThemeCycleToggle: 'Theme Cycle 🎨', headerCycleInputToggle: 'Cycle Input 🔀', headerModeSwitchToggle: 'Mode Switch 🎮', headerAddMachineToggle: 'Add Machine ➕', bossToggle: 'Boss Mode 🌑', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', autoHideHeaderToggle: 'Auto Hide Header 👻', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️',flickHeaderToggle: 'Flick Header Buttons 💨', restoreHeaderToggle: 'Restore Header Gesture 🪄', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', hideIntroToggle: 'Hide Intro', headerUndoToggle: 'Undo ↩️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', upsidedownToggle: 'Upside Down 🙃', portraitLockToggle: 'Portrait Lock 🔒', landscapeLockToggle: 'Landscape Lock 🔐', fullscreenToggle: 'Full Screen 🔲', biggerToggle: 'Bigger Buttons', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', positionSwapToggle: 'Position Swap 🔄', landscapeInputResizeToggle: 'Adjust Input Area ↔️', pipToggle: 'Picture in Picture 🪟', dndToggle: 'Do Not Disturb 🔕', pinnedModeToggle: 'Pinned Mode 📌', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', speeddeleteToggle: 'Quick Erase', apshortcutToggle: 'AP Shortcut', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', deleteToggle: 'Delete Gesture 🧹', clearToggle: 'Clear Gesture 💥', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️' };
+		return { autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙', randomThemeToggle: 'Random Theme 🎲', headerThemeCycleToggle: 'Theme Cycle 🎨', headerCycleInputToggle: 'Cycle Input 🔀', headerModeSwitchToggle: 'Mode Switch 🎮', headerAddMachineToggle: 'Add Machine ➕', bossToggle: 'Boss Mode 🌑', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', autoHideHeaderToggle: 'Auto Hide Header 👻', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️',flickHeaderToggle: 'Flick Header Buttons 💨', restoreHeaderToggle: 'Restore Header Gesture 🪄', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', hideIntroToggle: 'Hide Intro', headerUndoToggle: 'Undo ↩️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', upsidedownToggle: 'Upside Down 🙃', portraitLockToggle: 'Portrait Lock 🔒', landscapeLockToggle: 'Landscape Lock 🔐', fullscreenToggle: 'Full Screen 🔲', biggerToggle: 'Bigger Buttons', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', positionSwapToggle: 'Position Swap 🔄', landscapeInputResizeToggle: 'Adjust Input Area ↔️', pipToggle: 'Picture in Picture 🪟', dndToggle: 'Do Not Disturb 🔕', pinnedModeToggle: 'Pinned Mode 📌', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️' };
 	}
 	_moveGeneralToggle(id, direction) {
 		const grid = document.getElementById('general-toggle-grid');
@@ -4300,31 +4285,6 @@ class SettingsManager {
 	applyInputBtnScale() {
 		const val = typeof getEffectiveInputBtnSize === 'function' ? getEffectiveInputBtnSize() : (this.appSettings.appInputBtnScale || 100);
 		document.body.style.setProperty('--input-btn-scale', val / 100);
-		// Auto-fit buckets (landscape, 66, 50, 33): input buttons are sized purely from the
-		// real available pane, ignoring the saved Button Size % entirely, so a true 3-column
-		// grid fills the input side exactly - same idea as the sequence card auto-fit sizing,
-		// just measuring the input footer's own space instead of the sequence container's.
-		const bucket = document.body.dataset.viewportBucket;
-		if (typeof isAutoFitBucket === 'function' && isAutoFitBucket(bucket)) {
-			const footer = document.getElementById('input-footer');
-			const pad = document.getElementById('pad-key9') || document.getElementById('pad-key12');
-			if (footer && pad && pad.style.display !== 'none' && !pad.classList.contains('hidden')) {
-				const footerRect = footer.getBoundingClientRect();
-				const padPaddingH = 32; // p-2/p-4 utility on #input-footer, worst case ~2rem total
-				const cols = document.body.dataset.inputMode === 'key12' ? 3 : 3;
-				const rows = document.body.dataset.inputMode === 'key12' ? 4 : 4; // 3 number rows + 1 control row either way
-				const gap = 12; // gap-3 utility on the number grid
-				const availW = Math.max(0, footerRect.width - padPaddingH);
-				const availH = Math.max(0, footerRect.height - padPaddingH);
-				const cellSize = typeof computeAutoFitCellSize === 'function' ? computeAutoFitCellSize(availW, availH, cols, rows, gap) : 0;
-				if (cellSize > 0) document.body.style.setProperty('--auto-fit-btn-size', cellSize + 'px');
-				else document.body.style.removeProperty('--auto-fit-btn-size');
-			} else {
-				document.body.style.removeProperty('--auto-fit-btn-size');
-			}
-		} else {
-			document.body.style.removeProperty('--auto-fit-btn-size');
-		}
 	}
 	applyEcoModeConfig() {
 		const cfg = this.appSettings.ecoModeConfig || {};
@@ -5478,8 +5438,14 @@ function loadState() {
 				}
 			};
 			if (typeof appSettings.isHapticsEnabled === 'undefined') appSettings.isHapticsEnabled = true;
-			if (typeof appSettings.isSpeedDeletingEnabled === 'undefined') appSettings.isSpeedDeletingEnabled = true;
-			if (typeof appSettings.isLongPressAutoplayEnabled === 'undefined') appSettings.isLongPressAutoplayEnabled = true;
+			// AP Shortcut, Quick Erase, Delete Gesture, and Clear Gesture are permanent features
+			// now - their Settings toggles were removed, so force these true unconditionally
+			// (not just when undefined) to correct anyone who had explicitly turned one off
+			// before the toggle existed to remove.
+			appSettings.isSpeedDeletingEnabled = true;
+			appSettings.isLongPressAutoplayEnabled = true;
+			appSettings.isDeleteTouchGestureEnabled = true;
+			appSettings.isClearTouchGestureEnabled = true;
 			if (typeof appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled === 'undefined') appSettings.runtimeSettings.isUniqueRoundsAutoClearEnabled = true;
 			if (typeof appSettings.showTimer === 'undefined') appSettings.showTimer = false;
 			if (typeof appSettings.showCounter === 'undefined') appSettings.showCounter = false;
@@ -5962,25 +5928,6 @@ function getEffectiveInputAreaPct() {
 	const vp = getViewportProfile();
 	if (vp && vp.inputAreaPct !== undefined && vp.inputAreaPct !== null) return vp.inputAreaPct;
 	return appSettings.landscapeInputWidthPct || 50;
-}
-// The four buckets that get an auto-calculated, non-adjustable default layout: sequence cards
-// and input buttons are sized purely from the real available space (ignoring the saved
-// Sequence Size/Button Size percentages), so a 5-column sequence grid and a 3-column input grid
-// both fill their area exactly, with no leftover gap and no need to wrap/scroll. The existing
-// accordion (General -> Advanced -> Landscape and Split Screen) still lets someone override any
-// of this per-bucket if they want something different.
-function isAutoFitBucket(bucket) {
-	return bucket === 'landscape' || bucket === 'split66' || bucket === 'split50' || bucket === 'split33';
-}
-// Largest square cell size (in px) that fits `cols` columns and `rows` rows, with `gap` px
-// between cells, into a box of `containerW` x `containerH`. Whichever axis is tighter (width
-// per column vs height per row) determines the final size, so the grid never overflows either
-// dimension - it's a true "fill this exact space" calculation, not a fixed size that happens to
-// often fit.
-function computeAutoFitCellSize(containerW, containerH, cols, rows, gap) {
-	const w = containerW <= 0 ? 0 : (containerW - gap * (cols - 1)) / cols;
-	const h = containerH <= 0 ? 0 : (containerH - gap * (rows - 1)) / rows;
-	return Math.max(0, Math.min(w, h));
 }
 function syncPipSequenceOnlyMode() {
 	const bucket = document.body.dataset.viewportBucket;
@@ -6556,39 +6503,6 @@ function renderUI() {
 				card.appendChild(headerRow);
 			}
 			const numGrid = document.createElement('div');
-			const currentBucket = document.body.dataset.viewportBucket;
-			const useAutoFit = typeof isAutoFitBucket === 'function' && isAutoFitBucket(currentBucket) && settings.machineCount <= 1;
-			if (useAutoFit) {
-				// Auto-fit buckets (landscape, 66, 50, 33): sequence cards are sized purely from
-				// the real available space, ignoring the saved Sequence Size % entirely, so a
-				// true 5-column grid always fills the pane exactly with no leftover gap and no
-				// wrapping to a different column count. Only applies with a single machine -
-				// multiple machines still use the flex-wrap layout above them, since "5 columns
-				// per machine, side by side" isn't a defined layout here.
-				const gap = 8; // matches gap-2
-				const cols = 5;
-				const containerRect = container.getBoundingClientRect();
-				const cardPaddingH = 32; // p-4 = 1rem = 16px each side
-				const availW = Math.max(0, containerRect.width - cardPaddingH);
-				const availH = Math.max(0, containerRect.height - cardPaddingH);
-				const rows = 5;
-				const cellSize = typeof computeAutoFitCellSize === 'function' ? computeAutoFitCellSize(availW, availH, cols, rows, gap) : 40;
-				numGrid.className = "grid gap-2 justify-items-center content-start";
-				numGrid.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
-				(seq || []).forEach(num => {
-						const span = document.createElement('span');
-						span.className = "number-box rounded-lg shadow-sm flex items-center justify-center font-bold";
-						span.style.width = cellSize + 'px';
-						span.style.height = cellSize + 'px';
-						const fontMult = (typeof getEffectiveNumberSize === 'function' ? getEffectiveNumberSize() : 250) / 100;
-						span.style.fontSize = (cellSize * 0.5 * fontMult) + 'px';
-						span.textContent = num;
-						numGrid.appendChild(span);
-				});
-				card.appendChild(numGrid);
-				container.appendChild(card);
-				return;
-			}
 			// Both single- and multi-machine sequences use the same flex-wrap layout, so Row
 			// Max / UI Scale / Sequence Size (including the per-viewport-bucket overrides from
 			// the Landscape/Split Screen configure modal) actually apply to what's on screen.

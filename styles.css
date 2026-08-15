@@ -90,27 +90,26 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 	body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app, body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
 		padding-right: 0 !important; padding-left: var(--landscape-input-width, 100vh) !important; box-sizing: border-box !important;
 	}
-	/* split50/split33 always get a fixed, exact 50/50 split - not the adjustable divider
-	   landscape/split66 use. Higher specificity than the width/padding rules above (an extra
-	   attribute selector) so this correctly wins for these two buckets. data-portrait-split-layout
-	   is only ever 'stacked' for split66, or the person's real choice for split50, or absent
-	   entirely for a sideways split33/split50 - so :not([data-portrait-split-layout="stacked"])
-	   alone correctly covers both the sideways and portrait-sideBySide cases for split33 without
-	   needing separate selector variants for each. */
-	body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #input-footer,
-	body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #input-footer,
+	/* split50h/split33 always get a fixed, exact 50/50 side-by-side split - split50h always,
+	   since it's landscape-shaped by definition. split33 gets it too unless portraitSplitLayout
+	   says stacked (split33 can still cover both physical orientations under one bucket). split50v
+	   is deliberately absent from this rule set entirely - it's always stacked now, same as
+	   normal portrait, so it falls through to the base rules instead of this fixed-split
+	   treatment, matching how split66 in stacked mode is also absent here. */
+	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #input-footer,
+	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #input-footer,
 	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #input-footer,
 	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #input-footer {
 		width: 50% !important;
 	}
-	body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #app,
-	body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #app,
+	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #app,
+	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #app,
 	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #app,
 	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #app {
 		padding-right: 50% !important;
 	}
-	body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
-	body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app,
+	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
+	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app,
 	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
 	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
 		padding-left: 50% !important; padding-right: 0 !important;
@@ -156,20 +155,20 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 		   the override appearing not to work at all: it only existed for the main rules, so any
 		   genuinely short landscape viewport (a very common real phone height) fell through to
 		   this block instead, where only the old adjustable-width rule was present. */
-		body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #input-footer,
-		body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #input-footer,
+		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #input-footer,
+		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #input-footer,
 		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #input-footer,
 		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #input-footer {
 			width: 50% !important;
 		}
-		body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #app,
-		body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #app,
+		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #app,
+		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #app,
 		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #app,
 		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #app {
 			padding-right: 50% !important;
 		}
-		body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
-		body[data-viewport-bucket="split50"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app,
+		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
+		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app,
 		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
 		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
 			padding-left: 50% !important; padding-right: 0 !important;
@@ -835,18 +834,27 @@ body.theme-is-light .text-yellow-400 { color: #854d0e; }
    These rules hide everything else in #header-btn-row while that bucket is active - visibility
    toggles in Settings still control whether a button is eligible to show at all; this just
    additionally narrows that set down for the cramped split-screen buckets. */
-body[data-viewport-bucket="split50"] #header-btn-row > button,
+body[data-viewport-bucket="split50v"] #header-btn-row > button,
+body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button,
 body[data-viewport-bucket="split33"] #header-btn-row > button {
 	display: none !important;
 }
-body[data-viewport-bucket="split50"] #header-btn-row > button#headertimerbtn,
-body[data-viewport-bucket="split50"] #header-btn-row > button#headercounterbtn,
-body[data-viewport-bucket="split50"] #header-btn-row > button#headerplaybtn,
-body[data-viewport-bucket="split50"] #header-btn-row > button#headerdeletebtn,
-body[data-viewport-bucket="split50"] #header-btn-row > button#headerbiggerbtn,
-body[data-viewport-bucket="split50"] #header-btn-row > button#headerswapbtn,
-body[data-viewport-bucket="split50"] #header-btn-row > button#headerpipbtn,
-body[data-viewport-bucket="split50"] #header-btn-row > button#headertouchbtn,
+body[data-viewport-bucket="split50v"] #header-btn-row > button#headertimerbtn,
+body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headertimerbtn,
+body[data-viewport-bucket="split50v"] #header-btn-row > button#headercounterbtn,
+body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headercounterbtn,
+body[data-viewport-bucket="split50v"] #header-btn-row > button#headerplaybtn,
+body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerplaybtn,
+body[data-viewport-bucket="split50v"] #header-btn-row > button#headerdeletebtn,
+body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerdeletebtn,
+body[data-viewport-bucket="split50v"] #header-btn-row > button#headerbiggerbtn,
+body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerbiggerbtn,
+body[data-viewport-bucket="split50v"] #header-btn-row > button#headerswapbtn,
+body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerswapbtn,
+body[data-viewport-bucket="split50v"] #header-btn-row > button#headerpipbtn,
+body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerpipbtn,
+body[data-viewport-bucket="split50v"] #header-btn-row > button#headertouchbtn,
+body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headertouchbtn,
 body[data-viewport-bucket="split33"] #header-btn-row > button#headertimerbtn,
 body[data-viewport-bucket="split33"] #header-btn-row > button#headercounterbtn,
 body[data-viewport-bucket="split33"] #header-btn-row > button#headerplaybtn,
@@ -863,14 +871,22 @@ body[data-viewport-bucket="split33"] #header-btn-row > button#headertouchbtn {
    curated-set rule above (matching ID selector weight) so source order correctly decides the
    !important tie - a plain .vp-curated-hidden class selector alone has lower specificity than
    the curated set's #id selectors and would silently lose regardless of source order. */
-body[data-viewport-bucket="split50"] #header-btn-row > button#headertimerbtn.vp-curated-hidden,
-body[data-viewport-bucket="split50"] #header-btn-row > button#headercounterbtn.vp-curated-hidden,
-body[data-viewport-bucket="split50"] #header-btn-row > button#headerplaybtn.vp-curated-hidden,
-body[data-viewport-bucket="split50"] #header-btn-row > button#headerdeletebtn.vp-curated-hidden,
-body[data-viewport-bucket="split50"] #header-btn-row > button#headerbiggerbtn.vp-curated-hidden,
-body[data-viewport-bucket="split50"] #header-btn-row > button#headerswapbtn.vp-curated-hidden,
-body[data-viewport-bucket="split50"] #header-btn-row > button#headerpipbtn.vp-curated-hidden,
-body[data-viewport-bucket="split50"] #header-btn-row > button#headertouchbtn.vp-curated-hidden,
+body[data-viewport-bucket="split50v"] #header-btn-row > button#headertimerbtn.vp-curated-hidden,
+body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headertimerbtn.vp-curated-hidden,
+body[data-viewport-bucket="split50v"] #header-btn-row > button#headercounterbtn.vp-curated-hidden,
+body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headercounterbtn.vp-curated-hidden,
+body[data-viewport-bucket="split50v"] #header-btn-row > button#headerplaybtn.vp-curated-hidden,
+body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerplaybtn.vp-curated-hidden,
+body[data-viewport-bucket="split50v"] #header-btn-row > button#headerdeletebtn.vp-curated-hidden,
+body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerdeletebtn.vp-curated-hidden,
+body[data-viewport-bucket="split50v"] #header-btn-row > button#headerbiggerbtn.vp-curated-hidden,
+body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerbiggerbtn.vp-curated-hidden,
+body[data-viewport-bucket="split50v"] #header-btn-row > button#headerswapbtn.vp-curated-hidden,
+body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerswapbtn.vp-curated-hidden,
+body[data-viewport-bucket="split50v"] #header-btn-row > button#headerpipbtn.vp-curated-hidden,
+body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerpipbtn.vp-curated-hidden,
+body[data-viewport-bucket="split50v"] #header-btn-row > button#headertouchbtn.vp-curated-hidden,
+body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headertouchbtn.vp-curated-hidden,
 body[data-viewport-bucket="split33"] #header-btn-row > button#headertimerbtn.vp-curated-hidden,
 body[data-viewport-bucket="split33"] #header-btn-row > button#headercounterbtn.vp-curated-hidden,
 body[data-viewport-bucket="split33"] #header-btn-row > button#headerplaybtn.vp-curated-hidden,
@@ -882,7 +898,8 @@ body[data-viewport-bucket="split33"] #header-btn-row > button#headertouchbtn.vp-
 	display: none !important;
 }
 /* 50% vertical alignment option: stacks input rows vertically instead of the normal horizontal flow. */
-body[data-viewport-bucket="split50"][data-split-alignment="vertical"] #input-footer .grid {
+body[data-viewport-bucket="split50v"][data-split-alignment="vertical"] #input-footer .grid,
+body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-split-alignment="vertical"] #input-footer .grid {
 	grid-template-columns: 1fr !important;
 }
 /* PiP-sequence-only mode: at 50%/33% with PiP active, the sequence is shown ONLY in the PiP

@@ -669,7 +669,8 @@ const DEFAULT_APP = {
 	viewportProfiles: {
 		landscape: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', headerButtons: [] },
 		split66: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', headerButtons: [] },
-		split50: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', alignment: 'horizontal', portraitSplitLayout: 'stacked', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
+		split50v: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
+		split50h: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
 		split33: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }
 	},
 	pipMachineIndex: null,
@@ -5452,6 +5453,23 @@ function loadState() {
 			if (!appSettings.runtimeSettings.voicePresets) appSettings.runtimeSettings.voicePresets = {};
 			if (!appSettings.runtimeSettings.activeVoicePresetId) appSettings.runtimeSettings.activeVoicePresetId = 'standard';
 			if (!appSettings.touchResizeMode) appSettings.touchResizeMode = 'global';
+			// split50 was split into split50v (portrait-held) and split50h (landscape-held) -
+			// migrate any legacy single split50 profile into split50v so existing customizations
+			// aren't silently lost (there's no way to know which physical orientation the old
+			// settings were actually tuned for, so split50v was picked as the more common case;
+			// split50h starts fresh at defaults).
+			if (appSettings.viewportProfiles && appSettings.viewportProfiles.split50 && !appSettings.viewportProfiles.__split50Migrated) {
+				const legacy = appSettings.viewportProfiles.split50;
+				const target = appSettings.viewportProfiles.split50v || {};
+				appSettings.viewportProfiles.split50v = Object.assign({}, target, {
+					uiScale: legacy.uiScale, seqSize: legacy.seqSize, headerScale: legacy.headerScale,
+					numberSize: legacy.numberSize, inputFontSize: legacy.inputFontSize, btnSize: legacy.btnSize,
+					rowMax: legacy.rowMax, alignment: legacy.alignment,
+					headerButtons: legacy.headerButtons
+				});
+				delete appSettings.viewportProfiles.split50;
+				appSettings.viewportProfiles.__split50Migrated = true;
+			}
 			if (!appSettings.toneCalibration || typeof appSettings.toneCalibration !== 'object') appSettings.toneCalibration = { isCalibrated: false, notes: {} };
 			if (!appSettings.toneCalibration.notes) appSettings.toneCalibration.notes = {};
 			if (!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS));
@@ -5865,31 +5883,17 @@ function detectViewportBucket() {
 		? (deviceLongEdge > 0 ? window.innerWidth / deviceLongEdge : 1)
 		: (deviceLongEdge > 0 ? window.innerHeight / deviceLongEdge : 1);
 	if (ratio >= 0.92) return windowIsLandscape ? 'landscape' : 'portrait';
-	// Real split-screen always opens at 50/50 - there's no way to enter split-screen at 33 or
-	// 66 directly, only by manually dragging the divider away from center afterward. A fixed
-	// midpoint threshold between 50 and 66 (or 50 and 33) assumed the real-world 50/50 ratio
-	// would land close to the mathematical 0.5 - but system UI overhead (nav bars, the divider
-	// itself, status bar insets) can easily push a genuine 50/50 split's usable-area ratio well
-	// past that, misclassifying it as 66 on the very first split. Anchoring to whichever bucket
-	// was last detected fixes this: a fresh session (no prior bucket, i.e. just transitioning
-	// out of landscape/portrait into a split) always starts at split50, matching how split-screen
-	// actually behaves, and only moves to split66/split33 once the ratio has clearly crossed
-	// toward one of those two actual snap points - not merely past the old midpoint - which only
-	// happens once someone has deliberately dragged the divider.
-	const lastBucket = window.__vpLastDetectedBucket;
-	const wasAlreadySplit = lastBucket === 'split66' || lastBucket === 'split50' || lastBucket === 'split33';
-	let bucket;
-	if (!wasAlreadySplit) {
-		bucket = 'split50';
-	} else if (ratio >= 0.66) {
-		bucket = 'split66';
-	} else if (ratio <= 0.4) {
-		bucket = 'split33';
-	} else {
-		bucket = 'split50';
-	}
-	window.__vpLastDetectedBucket = bucket;
-	return bucket;
+	// Real split-screen only ever snaps to three ratios (~33%/50%/66%), never anywhere in
+	// between, and once you're sitting at one of them it doesn't drift - a page reload while
+	// genuinely split at 66% should still read as 66%, not silently reset to 50%. Reading the
+	// ratio directly against these bands (instead of requiring a relative "crossing" from an
+	// in-memory anchor that resets on every reload) gets that right. The bands are deliberately
+	// wide - system UI overhead (nav bars, the divider itself, status bar insets) can push a
+	// genuine 50/50 split's usable-area ratio well past the old narrow 0.5-centered midpoint,
+	// which is what caused a real 50/50 split to misread as 66% in the first place.
+	if (ratio >= 0.63) return 'split66';
+	if (ratio >= 0.42) return windowIsLandscape ? 'split50h' : 'split50v';
+	return 'split33';
 }
 function getViewportProfile() {
 	const bucket = document.body.dataset.viewportBucket;
@@ -5931,7 +5935,7 @@ function getEffectiveInputAreaPct() {
 }
 function syncPipSequenceOnlyMode() {
 	const bucket = document.body.dataset.viewportBucket;
-	const isSplitSmall = bucket === 'split50' || bucket === 'split33';
+	const isSplitSmall = bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33';
 	const pipActive = !!document.pictureInPictureElement;
 	document.body.classList.toggle('pip-sequence-only', isSplitSmall && pipActive);
 }
@@ -5945,7 +5949,7 @@ const VP_HEADER_BUTTON_ID_MAP = {
 	pip: 'headerpipbtn', touch: 'headertouchbtn'
 };
 function applyViewportHeaderButtonCuration(bucket) {
-	const isCurated = bucket === 'split50' || bucket === 'split33';
+	const isCurated = bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33';
 	Object.keys(VP_HEADER_BUTTON_ID_MAP).forEach(curatedId => {
 		const el = document.getElementById(VP_HEADER_BUTTON_ID_MAP[curatedId]);
 		if (!el) return;
@@ -5962,7 +5966,7 @@ function applyViewportHeaderButtonCuration(bucket) {
 }
 function applyLandscapeInputWidth() {
 	const bucket = document.body.dataset.viewportBucket;
-	const isLandscapeFamily = bucket === 'landscape' || bucket === 'split66' || bucket === 'split50' || bucket === 'split33';
+	const isLandscapeFamily = bucket === 'landscape' || bucket === 'split66' || bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33';
 	const landscapeEnabled = isLandscapeFamily ? getEffectiveInputAreaEnabled() : !!appSettings.isLandscapeInputResizeEnabled;
 	document.body.classList.toggle('landscape-resize-enabled', !!landscapeEnabled || (bucket === 'portrait' && !!appSettings.isLandscapeInputResizeEnabled));
 	if (isLandscapeFamily) {
@@ -5989,29 +5993,33 @@ function applyViewportProfile() {
 	const bucket = detectViewportBucket();
 	const prevBucket = document.body.dataset.viewportBucket;
 	document.body.dataset.viewportBucket = bucket;
-	if (bucket === 'split50') {
-		const profile = appSettings.viewportProfiles && appSettings.viewportProfiles.split50;
+	if (bucket === 'split50v' || bucket === 'split50h') {
+		const profile = appSettings.viewportProfiles && appSettings.viewportProfiles[bucket];
 		document.body.dataset.splitAlignment = (profile && profile.alignment) || 'horizontal';
 	} else {
 		delete document.body.dataset.splitAlignment;
 	}
-	// Only meaningful for a split bucket while the window is portrait-shaped (holding the phone
-	// normally) - sideways split-screen already has its own established side-by-side layout and
-	// doesn't need this. 66% always stacks (plenty of vertical room, matches normal portrait);
-	// 33% always goes side-by-side (too narrow for a stacked pad to stay usable); 50% is
-	// genuinely ambiguous either way, so it follows whatever the person actually chose.
-	const isSplitBucket = bucket === 'split66' || bucket === 'split50' || bucket === 'split33';
-	if (isSplitBucket && !isWindowLandscapeShaped()) {
-		if (bucket === 'split66') {
-			document.body.dataset.portraitSplitLayout = 'stacked';
-		} else if (bucket === 'split33') {
-			document.body.dataset.portraitSplitLayout = 'sideBySide';
-		} else {
-			const profile = appSettings.viewportProfiles && appSettings.viewportProfiles.split50;
-			document.body.dataset.portraitSplitLayout = (profile && profile.portraitSplitLayout) || 'stacked';
-		}
+	// split66/split33 still cover BOTH physical orientations under one bucket and need runtime
+	// detection to know which one they're currently in. split50v/split50h are separate buckets
+	// whose names already encode the orientation - but split50v STILL needs the 'stacked' marker
+	// set unconditionally (no runtime choice, just always applied), because that marker is what
+	// the ~74 side-by-side CSS rules throughout the stylesheet check via
+	// :not([data-portrait-split-layout="stacked"]) to know to exclude it, the same mechanism
+	// split66 uses. Without it, split50v fell through to the general adjustable-divider
+	// side-by-side rule instead of behaving like normal stacked portrait.
+	if (bucket === 'split50v') {
+		document.body.dataset.portraitSplitLayout = 'stacked';
 	} else {
-		delete document.body.dataset.portraitSplitLayout;
+		const isSplitBucket = bucket === 'split66' || bucket === 'split33';
+		if (isSplitBucket && !isWindowLandscapeShaped()) {
+			if (bucket === 'split66') {
+				document.body.dataset.portraitSplitLayout = 'stacked';
+			} else {
+				document.body.dataset.portraitSplitLayout = 'sideBySide';
+			}
+		} else {
+			delete document.body.dataset.portraitSplitLayout;
+		}
 	}
 	applyViewportHeaderButtonCuration(bucket);
 	applyLandscapeInputWidth();
@@ -6303,7 +6311,7 @@ function applyPositionSwapOffsets(isActive) {
 	// falling back to portrait's "move footer to top with measured padding" math, which breaks
 	// badly against a footer that's much taller than the sliver of height actually available.
 	const viewportBucket = document.body.dataset.viewportBucket;
-	const isSplitBucket = viewportBucket === 'landscape' || viewportBucket === 'split66' || viewportBucket === 'split50' || viewportBucket === 'split33';
+	const isSplitBucket = viewportBucket === 'landscape' || viewportBucket === 'split66' || viewportBucket === 'split50v' || viewportBucket === 'split50h' || viewportBucket === 'split33';
 	const isLandscape = window.matchMedia('(orientation: landscape)').matches || isSplitBucket;
 	const inputMode = document.body.dataset.inputMode;
 	const sideRepositioned = isLandscape && (inputMode === 'key9' || inputMode === 'key12');
@@ -8538,7 +8546,7 @@ if (!window.__vpResizeListenerBound) {
 }
 
 function initViewportProfilesUI() {
-	const buckets = ['landscape', 'split66', 'split50', 'split33'];
+	const buckets = ['landscape', 'split66', 'split50v', 'split50h', 'split33'];
 	const tabBtns = {};
 	const panels = {};
 	buckets.forEach(b => {
@@ -8555,11 +8563,11 @@ function initViewportProfilesUI() {
 		if (!screen || !headerEl || !seqEl || !inputsEl) return;
 		const bucket = viewportConfigState.activeTab;
 		const profile = (appSettings.viewportProfiles && appSettings.viewportProfiles[bucket]) || { uiScale: 100, seqSize: 100 };
-		const widthByBucket = { landscape: 220, split66: 176, split50: 120, split33: 64 };
+		const widthByBucket = { landscape: 220, split66: 176, split50v: 120, split50h: 120, split33: 64 };
 		screen.style.width = (widthByBucket[bucket] || 220) + 'px';
 		screen.style.height = '124px';
 		headerEl.innerHTML = '';
-		const dotCount = (bucket === 'split50' || bucket === 'split33') ? 8 : 12;
+		const dotCount = (bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33') ? 8 : 12;
 		for (let i = 0; i < dotCount; i++) {
 			const dot = document.createElement('div');
 			dot.style.cssText = 'width:6px;height:6px;border-radius:50%;background:#4b5563;flex-shrink:0;';
@@ -8577,8 +8585,8 @@ function initViewportProfilesUI() {
 		const uiScale = (profile.uiScale || 100) / 100;
 		const btnW = Math.max(8, Math.round(14 * uiScale));
 		const btnH = Math.max(6, Math.round(8 * uiScale));
-		const alignSel = document.getElementById('viewport-alignment-split50');
-		const isVertical = bucket === 'split50' && alignSel && alignSel.value === 'vertical';
+		const alignSel = document.getElementById('viewport-alignment-' + bucket);
+		const isVertical = (bucket === 'split50v' || bucket === 'split50h') && alignSel && alignSel.value === 'vertical';
 		inputsEl.style.flexDirection = isVertical ? 'column' : 'row';
 		for (let i = 0; i < 6; i++) {
 			const btn = document.createElement('div');
@@ -8609,8 +8617,10 @@ function initViewportProfilesUI() {
 			if (uiSel) uiSel.value = profile.uiScale || 100;
 			if (seqSel) seqSel.value = profile.seqSize || 100;
 		});
-		const alignSel = document.getElementById('viewport-alignment-split50');
-		if (alignSel) alignSel.value = (appSettings.viewportProfiles.split50 && appSettings.viewportProfiles.split50.alignment) || 'horizontal';
+		['split50v', 'split50h'].forEach(b => {
+			const alignSel = document.getElementById('viewport-alignment-' + b);
+			if (alignSel) alignSel.value = (appSettings.viewportProfiles[b] && appSettings.viewportProfiles[b].alignment) || 'horizontal';
+		});
 	}
 	loadDropdowns();
 
@@ -8630,13 +8640,15 @@ function initViewportProfilesUI() {
 			renderPreview();
 		};
 	});
-	const alignSel = document.getElementById('viewport-alignment-split50');
-	if (alignSel) alignSel.onchange = (e) => {
-		appSettings.viewportProfiles.split50.alignment = e.target.value;
-		saveState();
-		if (typeof applyViewportProfile === 'function') applyViewportProfile();
-		renderPreview();
-	};
+	['split50v', 'split50h'].forEach(b => {
+		const alignSel = document.getElementById('viewport-alignment-' + b);
+		if (alignSel) alignSel.onchange = (e) => {
+			appSettings.viewportProfiles[b].alignment = e.target.value;
+			saveState();
+			if (typeof applyViewportProfile === 'function') applyViewportProfile();
+			renderPreview();
+		};
+	});
 
 	function populatePipMachineDropdowns() {
 		const sels = document.querySelectorAll('.viewport-pip-machine-select');
@@ -8746,25 +8758,17 @@ function initViewportProfilesUI() {
 		inputAreaNote.textContent = 'Also draggable live on the divider line itself in the preview above.';
 		settingsDiv.appendChild(inputAreaNote);
 
-		// --- Layout (split50 only: alignment) ---
-		if (bucket === 'split50') {
+		// --- Layout (split50v/split50h only: alignment) ---
+		if (bucket === 'split50v' || bucket === 'split50h') {
 			sectionLabel('Layout');
 			createSelect('Alignment', 'alignment', [
 				{ value: 'horizontal', text: 'Horizontal (Normal)' },
 				{ value: 'vertical', text: 'Vertical' }
 			], 'horizontal');
-			createSelect('When Holding Phone Normally', 'portraitSplitLayout', [
-				{ value: 'stacked', text: 'Stacked (like Portrait)' },
-				{ value: 'sideBySide', text: 'Side-by-Side (like Landscape)' }
-			], 'stacked');
-			const portraitLayoutNote = document.createElement('p');
-			portraitLayoutNote.style.cssText = 'color: #666; font-size: 9px; margin: -8px 0 10px;';
-			portraitLayoutNote.textContent = 'Only matters when this 50/50 split happens while holding the phone upright, not sideways.';
-			settingsDiv.appendChild(portraitLayoutNote);
 		}
 
-		// --- Picture-in-Picture (split50/split33 only) ---
-		if (bucket === 'split50' || bucket === 'split33') {
+		// --- Picture-in-Picture (split50v/split50h/split33 only) ---
+		if (bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33') {
 			sectionLabel('Picture-in-Picture');
 			const settings = (typeof getProfileSettings === 'function') ? getProfileSettings() : null;
 			const machineCount = (settings && settings.machineCount) || 1;
@@ -8777,8 +8781,8 @@ function initViewportProfilesUI() {
 			settingsDiv.appendChild(note);
 		}
 
-		// --- Header Buttons (split50/split33 only - curated set) ---
-		if (bucket === 'split50' || bucket === 'split33') {
+		// --- Header Buttons (split50v/split50h/split33 only - curated set) ---
+		if (bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33') {
 			sectionLabel('Header Buttons');
 			const note = document.createElement('p');
 			note.style.cssText = 'color: #888; font-size: 10px; margin: -2px 0 8px;';
@@ -8916,7 +8920,7 @@ function openOrientationSettings() {
 	// the tab matching wherever you actually are - no separate special modal, no first-time
 	// popup. The accordion/tab UI itself is still exactly how you'd manually reach and adjust
 	// these settings; this just saves the navigation when you're already in that orientation.
-	if (bucket !== 'landscape' && bucket !== 'split66' && bucket !== 'split50' && bucket !== 'split33') return;
+	if (bucket !== 'landscape' && bucket !== 'split66' && bucket !== 'split50v' && bucket !== 'split50h' && bucket !== 'split33') return;
 	setTimeout(() => {
 		const advancedTabBtn = document.querySelector('[data-tab="advanced"]');
 		if (advancedTabBtn) advancedTabBtn.click();

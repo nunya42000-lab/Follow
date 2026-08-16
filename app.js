@@ -2,7 +2,7 @@
 // modal's live iframe, ?vpPreview=1&vpBucket=split66 (etc) forces detectViewportBucket() to
 // report that bucket regardless of the real device's screen/window ratio, so the preview can
 // show any bucket without physically resizing the browser window.
-window.__fmBuildMarker = 'v153-orientation-ratio-fix';
+window.__fmBuildMarker = 'v153-sizing-diagnostic';
 (function() {
 	try {
 		const params = new URLSearchParams(location.search);
@@ -6066,7 +6066,33 @@ function renderViewportDiagnostic() {
 		`(orientation:landscape) media query: ${mediaQueryLandscape}\n` +
 		`screen.orientation.type:             ${orientationApiType}\n` +
 		`data-viewport-bucket on <body>:      ${document.body.dataset.viewportBucket || '(unset)'}\n` +
-		`data-portrait-split-layout:          ${document.body.dataset.portraitSplitLayout || '(unset)'}`;
+		`data-portrait-split-layout:          ${document.body.dataset.portraitSplitLayout || '(unset)'}\n` +
+		`\n` +
+		(() => {
+			const profile = (bucket && appSettings.viewportProfiles && appSettings.viewportProfiles[bucket]) ? appSettings.viewportProfiles[bucket] : null;
+			if (!profile) return `viewportProfile for "${bucket}": (none - portrait uses global settings, not a per-bucket profile)`;
+			const boxes = document.querySelectorAll('#sequence-container .number-box');
+			const firstBoxWidth = boxes.length ? boxes[0].getBoundingClientRect().width : 'n/a';
+			let perRow = 'n/a';
+			if (boxes.length) {
+				const firstTop = boxes[0].getBoundingClientRect().top;
+				perRow = [...boxes].filter(b => Math.abs(b.getBoundingClientRect().top - firstTop) < 2).length;
+			}
+			return `--- Saved settings for "${bucket}" ---\n` +
+				`uiScale:  ${profile.uiScale}\n` +
+				`seqSize:  ${profile.seqSize}\n` +
+				`rowMax:   ${profile.rowMax}\n` +
+				`headerScale: ${profile.headerScale}\n` +
+				`numberSize:  ${profile.numberSize}\n` +
+				`inputFontSize: ${profile.inputFontSize}\n` +
+				`btnSize: ${profile.btnSize}\n` +
+				`alignment: ${profile.alignment || 'n/a'}\n` +
+				`\n` +
+				`--- Live-measured, on screen right now ---\n` +
+				`Number box width: ${firstBoxWidth}px\n` +
+				`Boxes in first row: ${perRow}\n` +
+				`getEffectiveSeqScaleMultiplier(): ${typeof getEffectiveSeqScaleMultiplier === 'function' ? getEffectiveSeqScaleMultiplier() : 'n/a'}`;
+		})();
 }
 window.renderViewportDiagnostic = renderViewportDiagnostic;
 function getViewportProfile() {

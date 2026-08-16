@@ -2,7 +2,7 @@
 // modal's live iframe, ?vpPreview=1&vpBucket=split66 (etc) forces detectViewportBucket() to
 // report that bucket regardless of the real device's screen/window ratio, so the preview can
 // show any bucket without physically resizing the browser window.
-window.__fmBuildMarker = 'v153-sizing-diagnostic';
+window.__fmBuildMarker = 'v154-portrait-input-stretch';
 (function() {
 	try {
 		const params = new URLSearchParams(location.search);
@@ -6185,7 +6185,7 @@ function applyLandscapeInputWidth() {
 	if (!appSettings.isLandscapeInputResizeEnabled) {
 		document.documentElement.style.removeProperty('--portrait-input-height');
 	} else {
-		const heightPct = Math.min(80, Math.max(20, appSettings.portraitInputHeightPct || 40));
+		const heightPct = Math.min(80, Math.max(33.4, appSettings.portraitInputHeightPct || 40));
 		document.documentElement.style.setProperty('--portrait-input-height', heightPct + 'vh');
 	}
 }
@@ -8538,7 +8538,7 @@ function wireHeaderButtonInteractions() {
 			const rawPct = swapped
 				? (e.clientY / window.innerHeight) * 100
 				: ((window.innerHeight - e.clientY) / window.innerHeight) * 100;
-			const clamped = Math.min(80, Math.max(20, rawPct));
+			const clamped = Math.min(80, Math.max(33.4, rawPct));
 			appSettings.portraitInputHeightPct = Math.round(clamped);
 			document.documentElement.style.setProperty('--portrait-input-height', clamped + 'vh');
 		};

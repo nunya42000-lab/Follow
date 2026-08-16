@@ -100,19 +100,19 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #input-footer,
 	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #input-footer,
 	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #input-footer {
-		width: 50% !important;
+		width: var(--landscape-input-width, 50%) !important;
 	}
 	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #app,
 	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #app,
 	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #app,
 	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #app {
-		padding-right: 50% !important;
+		padding-right: var(--landscape-input-width, 50%) !important;
 	}
 	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
 	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app,
 	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
 	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
-		padding-left: 50% !important; padding-right: 0 !important;
+		padding-left: var(--landscape-input-width, 50%) !important; padding-right: 0 !important;
 	}
 	/* Draggable divider handle - sits on top of the border between the sequence area and the
 	   input panel. Only shown while isLandscapeInputResizeEnabled is on (General settings) so it
@@ -159,19 +159,19 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #input-footer,
 		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #input-footer,
 		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #input-footer {
-			width: 50% !important;
+			width: var(--landscape-input-width, 50%) !important;
 		}
 		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #app,
 		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #app,
 		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #app,
 		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #app {
-			padding-right: 50% !important;
+			padding-right: var(--landscape-input-width, 50%) !important;
 		}
 		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
 		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app,
 		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
 		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
-			padding-left: 50% !important; padding-right: 0 !important;
+			padding-left: var(--landscape-input-width, 50%) !important; padding-right: 0 !important;
 		}
 	}
 
@@ -182,7 +182,14 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 	   fixed height rather than max-height: max-height is only a ceiling, and the number pad's
 	   actual content is almost always shorter than that ceiling, so dragging the handle never
 	   visibly changed anything - a fixed height is what actually makes the panel grow/shrink. */
-	body.landscape-resize-enabled[data-viewport-bucket="portrait"] #input-footer {
+	/* Matches literal portrait AND any bucket currently rendering in stacked layout
+	   (split50v always, split66/split33 when portrait-held) - the JS applies the
+	   --portrait-input-height variable globally for exactly this reason (see
+	   applyLandscapeInputWidth()'s "applies to every orientation" comment), but this
+	   selector previously only matched the literal portrait bucket, so the height clamp
+	   and drag handle silently never activated for split50v/stacked split66/33, letting
+	   #input-footer fall back to the unbounded base max-height:70vh rule instead. */
+	body.landscape-resize-enabled:is([data-viewport-bucket="portrait"], [data-portrait-split-layout="stacked"]) #input-footer {
 		height: var(--portrait-input-height, 70vh) !important;
 		max-height: var(--portrait-input-height, 70vh) !important;
 		box-sizing: border-box !important;
@@ -190,7 +197,7 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 		align-items: center !important;
 		justify-content: center !important;
 	}
-	body.landscape-resize-enabled[data-viewport-bucket="portrait"] #input-footer > div {
+	body.landscape-resize-enabled:is([data-viewport-bucket="portrait"], [data-portrait-split-layout="stacked"]) #input-footer > div {
 		width: 100%;
 	}
 	#portrait-resize-handle {
@@ -202,11 +209,11 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 		cursor: ns-resize;
 		touch-action: none;
 	}
-	body.landscape-resize-enabled[data-viewport-bucket="portrait"] #portrait-resize-handle {
+	body.landscape-resize-enabled:is([data-viewport-bucket="portrait"], [data-portrait-split-layout="stacked"]) #portrait-resize-handle {
 		display: block;
 		bottom: calc(var(--portrait-input-height, 70vh) - 14px);
 	}
-	body.landscape-resize-enabled.layout-swapped[data-viewport-bucket="portrait"] #portrait-resize-handle {
+	body.landscape-resize-enabled.layout-swapped:is([data-viewport-bucket="portrait"], [data-portrait-split-layout="stacked"]) #portrait-resize-handle {
 		bottom: auto;
 		top: calc(var(--portrait-input-height, 70vh) - 14px);
 	}
@@ -221,7 +228,7 @@ body.layout-swapped #input-footer { border-top: none; border-bottom: 4px solid v
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #pad-key9, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #pad-key12 { width: 100% !important; max-width: none !important; display: flex !important; flex-direction: column !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key9 .grid-cols-3, body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key12 .grid-cols-4 { flex-grow: 1 !important; display: grid !important; gap: 0.4rem !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key12 .btn-pad-number { height: calc(2.5rem * var(--input-btn-scale, 1)) !important; aspect-ratio: auto !important; min-height: calc(2.5rem * var(--input-btn-scale, 1)) !important; }
-	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .btn-pad-number { height: calc(3rem * var(--input-btn-scale, 1)) !important; width: calc(3rem * var(--input-btn-scale, 1)) !important; aspect-ratio: 1 / 1 !important; border-radius: 9999px !important; flex-shrink: 0 !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1 !important; border-radius: 9999px !important; flex-shrink: 0 !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"].hide-controls #pad-key9, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"].hide-controls #pad-key12 { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .grid-cols-3, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .grid-cols-4 { display: grid !important; gap: 0.5rem !important; justify-items: center !important; }
 
@@ -296,10 +303,14 @@ body.hide-controls #piano-keys { height: 300px; transition: height 0.3s ease; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; max-height: 15vh; font-size: 2.5rem; width: 100%; margin: 0 auto; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #input-footer { padding: 5px !important;}
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #piano-keys { height: 50vh !important; }
-	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="piano"] #pad-piano { display: flex !important; flex-direction: column !important; max-width: none !important; width: 100% !important; }
-	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano #piano-keys { width: 100% !important; flex-grow: 1 !important; }
-	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano .control-row { width: 100% !important; max-width: 100% !important; display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: 0.5rem !important; padding: 0 !important; }
-	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano .btn-control { height: 3rem !important; width: auto !important; border-radius: 0.5rem !important; }
+	/* Landscape piano: keys on the left, Play/Delete/Settings as a vertical column on the right
+	   (previously a horizontal row stacked below the keys) - #pad-piano switches from a column
+	   flex layout to a row so #piano-keys and .control-row sit side by side, and .control-row's
+	   grid goes from 4 equal columns (horizontal) to a single column (vertical stack). */
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="piano"] #pad-piano { display: flex !important; flex-direction: row !important; align-items: stretch !important; gap: 0.5rem !important; max-width: none !important; width: 100% !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano #piano-keys { width: auto !important; flex-grow: 1 !important; margin-bottom: 0 !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano .control-row { width: auto !important; max-width: none !important; flex-shrink: 0 !important; display: grid !important; grid-template-columns: 1fr !important; grid-auto-rows: 1fr !important; gap: 0.5rem !important; padding: 0 !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano .btn-control { height: auto !important; width: calc(3.5rem * var(--input-btn-scale, 1)) !important; border-radius: 0.5rem !important; }
 
 
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="piano"] #piano-keys { height: 42vh !important; }

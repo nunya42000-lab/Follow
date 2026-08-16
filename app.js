@@ -2,7 +2,7 @@
 // modal's live iframe, ?vpPreview=1&vpBucket=split66 (etc) forces detectViewportBucket() to
 // report that bucket regardless of the real device's screen/window ratio, so the preview can
 // show any bucket without physically resizing the browser window.
-window.__fmBuildMarker = 'v152-nuke-fix-and-diagnostic';
+window.__fmBuildMarker = 'v154-split-viewport-fixes';
 (function() {
 	try {
 		const params = new URLSearchParams(location.search);
@@ -4727,14 +4727,20 @@ class SettingsManager {
 				return a.localeCompare(b);
 		});
 		const labels = ["1", "2", "3", "4", "5", "6 C", "7 D", "8 E", "9 F", "10 G", "11 A", "12 B"];
-		let gridHtml = `<div class="grid grid-cols-4 gap-y-3 gap-x-4 items-center">`;
+		// Two label/dropdown pairs per row. Columns are auto/1fr/auto/1fr (not 4 equal 1fr's) so
+		// each label hugs its OWN dropdown tightly - the gap that separates the two pairs comes
+		// from an explicit left margin on the second pair's label (ml-5) instead of from the
+		// column math, since equal-width columns previously put all the slack on the wrong side
+		// (between a label and its own dropdown) rather than between the two pairs.
+		let gridHtml = `<div class="grid gap-y-3 gap-x-2 items-center" style="grid-template-columns: auto 1fr auto 1fr;">`;
 		labels.forEach((label, index) => {
 				const val = index + 1;
+				const isSecondInRow = index % 2 === 1;
 				let optionsHtml = `<optgroup label="Morse Patterns">`;
 				optionsHtml += morseOptions.map(m => `<option value="${m}">${m}</option>`).join('');
 				optionsHtml += `</optgroup>`;
 				gridHtml += `
-				<div class="text-right text-xs font-bold text-gray-400 pr-1 whitespace-nowrap">${label}</div>
+				<div class="text-left text-xs font-bold text-gray-400 pr-1 whitespace-nowrap${isSecondInRow ? ' ml-5' : ''}">${label}</div>
 				<select class="bg-gray-800 text-white text-xs p-1 rounded border border-gray-600 focus:border-primary-app outline-none h-8 w-full font-mono tracking-widest text-center" data-morse-id="${val}">
 				${optionsHtml}
 				</select>
@@ -6106,9 +6112,17 @@ function applyViewportHeaderButtonCuration(bucket) {
 }
 function applyLandscapeInputWidth() {
 	const bucket = document.body.dataset.viewportBucket;
-	const isLandscapeFamily = bucket === 'landscape' || bucket === 'split66' || bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33';
-	const landscapeEnabled = isLandscapeFamily ? getEffectiveInputAreaEnabled() : !!appSettings.isLandscapeInputResizeEnabled;
-	document.body.classList.toggle('landscape-resize-enabled', !!landscapeEnabled || (bucket === 'portrait' && !!appSettings.isLandscapeInputResizeEnabled));
+	// A bucket is "stacked" (sequence above, input panel below, like normal portrait) either
+	// because it literally IS portrait, or because applyViewportProfile() marked it stacked via
+	// data-portrait-split-layout (split50v always; split66/split33 when portrait-held). Stacked
+	// buckets use the single global height-based "Adjust Input Area" setting, same as portrait -
+	// they must NOT fall into the width-based per-bucket-profile branch below, since that reads
+	// a different (irrelevant) toggle meant for side-by-side layouts.
+	const isStacked = bucket === 'portrait' || document.body.dataset.portraitSplitLayout === 'stacked';
+	const isLandscapeFamily = !isStacked && (bucket === 'landscape' || bucket === 'split66' || bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33');
+	const landscapeEnabled = isLandscapeFamily && getEffectiveInputAreaEnabled();
+	const stackedHeightEnabled = isStacked && !!appSettings.isLandscapeInputResizeEnabled;
+	document.body.classList.toggle('landscape-resize-enabled', !!landscapeEnabled || !!stackedHeightEnabled);
 	if (isLandscapeFamily) {
 		if (!landscapeEnabled) {
 			document.documentElement.style.removeProperty('--landscape-input-width');
@@ -6120,9 +6134,10 @@ function applyLandscapeInputWidth() {
 		document.documentElement.style.removeProperty('--landscape-input-width');
 	}
 	// Portrait height stays a single global setting (Adjust Input Area toggle applies to every
-	// orientation, but portrait isn't part of viewportProfiles/the configure modal - see
-	// getViewportProfile()'s early return for 'portrait').
-	if (!appSettings.isLandscapeInputResizeEnabled) {
+	// stacked orientation - portrait itself plus split50v/stacked split66/split33 - none of
+	// which are part of viewportProfiles/the configure modal - see getViewportProfile()'s early
+	// return for 'portrait').
+	if (!stackedHeightEnabled) {
 		document.documentElement.style.removeProperty('--portrait-input-height');
 	} else {
 		const heightPct = Math.min(80, Math.max(20, appSettings.portraitInputHeightPct || 40));

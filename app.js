@@ -587,7 +587,7 @@ const PREMADE_PROFILES = {
 };
 const DEFAULT_APP = {
 	globalUiScale: 100,
-	uiScaleMultiplier: 1.0,
+	uiScaleMultiplier: 2.4,
 	showWelcomeScreen: true,
 	touchResizeMode: 'global',
 	playbackSpeed: 1.0,
@@ -659,7 +659,7 @@ const DEFAULT_APP = {
 	appFontScale: 100,
 	appInputFontScale: 100,
 	appInputBtnScale: 100,
-	appRowMax: 'none',
+	appRowMax: '5',
 	// Every bucket has fully independent sizing - uiScale, seqSize, headerScale, numberSize,
 	// inputFontSize, btnSize are always present (never fall back to the matching General-tab
 	// global setting). This is deliberate: landscape and each split bucket are meant to be
@@ -668,11 +668,11 @@ const DEFAULT_APP = {
 	// layout. Portrait remains the only context that still uses the General-tab globals directly
 	// (see getViewportProfile()'s early return for 'portrait' - it was never part of this system).
 	viewportProfiles: {
-		landscape: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', headerButtons: [] },
-		split66: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', headerButtons: [] },
-		split50v: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
-		split50h: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
-		split33: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }
+		landscape: { uiScale: 100, seqSize: 240, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] },
+		split66: { uiScale: 100, seqSize: 240, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] },
+		split50v: { uiScale: 100, seqSize: 240, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'vertical', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
+		split50h: { uiScale: 100, seqSize: 200, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
+		split33: { uiScale: 100, seqSize: 160, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 150, rowMax: 'none', inputAreaEnabled: true, inputAreaPct: 65, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }
 	},
 	pipMachineIndex: null,
 	ecoModeConfig: {

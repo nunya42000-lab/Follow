@@ -59,10 +59,11 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 #app { padding-top: 1rem; display: flex; flex-direction: column; }
+body:not(.landscape-resize-enabled)[data-viewport-bucket="portrait"] #app { padding-bottom: 55vh; }
 @media (orientation:landscape) { body[data-rotate="0"] #app {padding-top: 0;} body[data-rotate="0"] #sequence-container { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: .5rem !important; } body[data-rotate="0"] #sequence-container>div { margin: 0 !important; max-width: 100%; } }
 #sequence-container { justify-content: flex-start !important; padding-top: 1rem; width: 100%; max-width: var(--row-max-width, none); margin: 0 auto; }
 #input-footer { background-color: var(--card-bg); border-top: 4px solid var(--seq-bubble); padding-bottom: calc(max(.5rem, env(safe-area-inset-bottom)) + var(--inputs-padding-extra, 0px)); max-height: 70vh; overflow-y: auto; }
-body:not(.landscape-resize-enabled)[data-viewport-bucket="portrait"] #input-footer { min-height: 34vh; display: flex; align-items: center; justify-content: center; }
+body:not(.landscape-resize-enabled)[data-viewport-bucket="portrait"] #input-footer { min-height: 55vh; display: flex; align-items: center; justify-content: center; }
 body:not(.landscape-resize-enabled)[data-viewport-bucket="portrait"] #input-footer > div { width: 100%; }
 
 	body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #input-footer, body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #input-footer {
@@ -195,6 +196,9 @@ body:not(.landscape-resize-enabled)[data-viewport-bucket="portrait"] #input-foot
 	body.landscape-resize-enabled[data-viewport-bucket="portrait"] #input-footer > div {
 		width: 100%;
 	}
+	body.landscape-resize-enabled[data-viewport-bucket="portrait"] #app {
+		padding-bottom: var(--portrait-input-height, 70vh);
+	}
 	#portrait-resize-handle {
 		display: none;
 		position: fixed;
@@ -219,12 +223,12 @@ body.layout-swapped #input-footer { border-top: none; border-bottom: 4px solid v
 .btn-pad-number { background-color: var(--btn-bg); font-size: 1.5rem; border: 1px solid var(--border); border-radius: 9999px; }
 body:not(.landscape-resize-enabled)[data-viewport-bucket="portrait"] #pad-key9,
 body:not(.landscape-resize-enabled)[data-viewport-bucket="portrait"] #pad-key12 {
-	height: 27.2vh !important;
+	height: 44vh !important;
 	box-sizing: border-box !important;
 }
 body:not(.landscape-resize-enabled)[data-viewport-bucket="portrait"].hide-controls #pad-key9,
 body:not(.landscape-resize-enabled)[data-viewport-bucket="portrait"].hide-controls #pad-key12 {
-	height: 32.3vh !important;
+	height: 52.25vh !important;
 }
 body:not(.landscape-resize-enabled)[data-viewport-bucket="portrait"] #pad-key9 > .grid-cols-3,
 body:not(.landscape-resize-enabled)[data-viewport-bucket="portrait"] #pad-key12 > .grid-cols-4:first-child {

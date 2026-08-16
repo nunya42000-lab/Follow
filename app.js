@@ -587,7 +587,7 @@ const PREMADE_PROFILES = {
 };
 const DEFAULT_APP = {
 	globalUiScale: 100,
-	uiScaleMultiplier: 2.2, // Executed: Portrait scaling multiplier
+	uiScaleMultiplier: 1.0,
 	showWelcomeScreen: true,
 	touchResizeMode: 'global',
 	playbackSpeed: 1.0,
@@ -659,7 +659,7 @@ const DEFAULT_APP = {
 	appFontScale: 100,
 	appInputFontScale: 100,
 	appInputBtnScale: 100,
-	appRowMax: '5', // Executed: 5 cards max per row for Portrait
+	appRowMax: 'none',
 	// Every bucket has fully independent sizing - uiScale, seqSize, headerScale, numberSize,
 	// inputFontSize, btnSize are always present (never fall back to the matching General-tab
 	// global setting). This is deliberate: landscape and each split bucket are meant to be
@@ -668,11 +668,11 @@ const DEFAULT_APP = {
 	// layout. Portrait remains the only context that still uses the General-tab globals directly
 	// (see getViewportProfile()'s early return for 'portrait' - it was never part of this system).
 	viewportProfiles: {
-		landscape: { uiScale: 100, seqSize: 240, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] }, // Executed: sequence size & row bounds
-		split66: { uiScale: 100, seqSize: 240, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] },
-		split50v: { uiScale: 100, seqSize: 240, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'vertical', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }, // Executed: flex-direction fixed
-		split50h: { uiScale: 100, seqSize: 200, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
-		split33: { uiScale: 100, seqSize: 160, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 150, rowMax: 'none', inputAreaEnabled: true, inputAreaPct: 65, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] } // Executed: custom piano sizing metrics mapped
+		landscape: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', headerButtons: [] },
+		split66: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', headerButtons: [] },
+		split50v: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
+		split50h: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
+		split33: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: 'none', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }
 	},
 	pipMachineIndex: null,
 	ecoModeConfig: {
@@ -4273,7 +4273,6 @@ class SettingsManager {
 		document.body.style.setProperty('--input-font-scale', val / 100);
 	}
 	applyInputBtnScale() {
-		// Inherently fixed: Relies on getEffectiveInputBtnSize which correctly maps split33's 150
 		const val = typeof getEffectiveInputBtnSize === 'function' ? getEffectiveInputBtnSize() : (this.appSettings.appInputBtnScale || 100);
 		document.body.style.setProperty('--input-btn-scale', val / 100);
 	}
@@ -4476,18 +4475,27 @@ class SettingsManager {
 	applyRowMax() {
 		const seqContainer = document.getElementById('sequence-container');
 		if (!seqContainer) return;
-		// Per-viewport Row Max overrides the global Row Max setting while that bucket is active.
+		// Per-viewport Row Max (set via the Landscape/Split Screen configure modal) overrides the
+		// global Row Max setting while that bucket is active - same precedence pattern as
+		// getEffectiveGlobalUiScale()/getEffectiveSeqScaleMultiplier() use for uiScale/seqSize.
 		const vp = (typeof getViewportProfile === 'function') ? getViewportProfile() : null;
 		const rowMax = (vp && vp.rowMax !== undefined && vp.rowMax !== null) ? String(vp.rowMax) : (this.appSettings.appRowMax || 'none');
-		
 		if (rowMax === 'none') {
 			seqContainer.style.removeProperty('--row-max-width');
 		} else {
+			// Must mirror the exact box-size formula used when rendering each number-box
+			// (40 * scale) - reading a --number-size CSS variable here silently fell back to a
+			// flat 40px every time, since that variable was never actually set anywhere, which
+			// made Row Max wrong for any Sequence Size other than 100%.
 			const scale = (typeof getEffectiveSeqScaleMultiplier === 'function') ? getEffectiveSeqScaleMultiplier() : (this.appSettings.uiScaleMultiplier || 1.0);
 			const cardSize = 40 * scale;
-			const gap = 8;
+			const gap = 8; // matches the number-box row's gap-2 utility class (0.5rem)
 			const count = parseInt(rowMax, 10);
-			
+			// The flex-wrap row isn't a direct child of #sequence-container - it's nested inside
+			// a card wrapper (p-4 padding) that eats into the available width, so a max-width
+			// calculated only from box sizes was consistently one item short per row. Measuring
+			// the actual card's padding live (falling back to a scaled estimate before any card
+			// has rendered yet) keeps this correct regardless of card styling changes.
 			const card = seqContainer.querySelector(':scope > div');
 			let horizontalPadding;
 			if (card) {
@@ -4496,7 +4504,10 @@ class SettingsManager {
 			} else {
 				horizontalPadding = 32 * ((this.appSettings.globalUiScale || 100) / 100);
 			}
-			
+			// +1px buffer: when the row's content width is calculated to exactly equal the
+			// available width, browsers can round down by a fraction of a pixel during layout
+			// and wrap the last item anyway - a small safety margin avoids that edge case
+			// without being large enough to ever let an extra item sneak onto the row.
 			const maxWidth = (cardSize * count) + (gap * (count - 1)) + horizontalPadding + 1;
 			seqContainer.style.setProperty('--row-max-width', maxWidth + 'px');
 		}
@@ -6061,22 +6072,11 @@ function getEffectiveInputBtnSize() {
 }
 function getEffectiveInputAreaEnabled() {
 	const vp = getViewportProfile();
-	// If the profile specifies an override, use it. Otherwise fall back to global.
-	if (vp && vp.inputAreaEnabled !== undefined && vp.inputAreaEnabled !== null) return vp.inputAreaEnabled;
-	return !!appSettings.isLandscapeInputResizeEnabled;
+	return (vp && vp.inputAreaEnabled !== undefined && vp.inputAreaEnabled !== null) ? vp.inputAreaEnabled : !!appSettings.isLandscapeInputResizeEnabled;
 }
 function getEffectiveInputAreaPct() {
 	const vp = getViewportProfile();
-	// 1. Check for a strict bucket profile override (e.g., split33's 65%)
 	if (vp && vp.inputAreaPct !== undefined && vp.inputAreaPct !== null) return vp.inputAreaPct;
-	
-	// 2. If no strict override exists, intelligently fall back based on physical orientation
-	const bucket = document.body.dataset.viewportBucket;
-	const isStacked = bucket === 'portrait' || document.body.dataset.portraitSplitLayout === 'stacked';
-	
-	if (isStacked) {
-		return appSettings.portraitInputHeightPct || 40;
-	}
 	return appSettings.landscapeInputWidthPct || 50;
 }
 function syncPipSequenceOnlyMode() {
@@ -6110,19 +6110,19 @@ function applyViewportHeaderButtonCuration(bucket) {
 		if (el) el.classList.add('vp-curated-hidden');
 	});
 }
-
 function applyLandscapeInputWidth() {
 	const bucket = document.body.dataset.viewportBucket;
+	// A bucket is "stacked" (sequence above, input panel below, like normal portrait) either
+	// because it literally IS portrait, or because applyViewportProfile() marked it stacked via
+	// data-portrait-split-layout (split50v always; split66/split33 when portrait-held). Stacked
+	// buckets use the single global height-based "Adjust Input Area" setting, same as portrait -
+	// they must NOT fall into the width-based per-bucket-profile branch below, since that reads
+	// a different (irrelevant) toggle meant for side-by-side layouts.
 	const isStacked = bucket === 'portrait' || document.body.dataset.portraitSplitLayout === 'stacked';
 	const isLandscapeFamily = !isStacked && (bucket === 'landscape' || bucket === 'split66' || bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33');
-	
-	// FIX: Both layout families now read from getEffectiveInputAreaEnabled()
-	// This ensures split33's custom inputAreaEnabled flag correctly activates even in portrait/stacked
 	const landscapeEnabled = isLandscapeFamily && getEffectiveInputAreaEnabled();
-	const stackedHeightEnabled = isStacked && getEffectiveInputAreaEnabled();
-	
+	const stackedHeightEnabled = isStacked && !!appSettings.isLandscapeInputResizeEnabled;
 	document.body.classList.toggle('landscape-resize-enabled', !!landscapeEnabled || !!stackedHeightEnabled);
-	
 	if (isLandscapeFamily) {
 		if (!landscapeEnabled) {
 			document.documentElement.style.removeProperty('--landscape-input-width');
@@ -6133,12 +6133,14 @@ function applyLandscapeInputWidth() {
 	} else {
 		document.documentElement.style.removeProperty('--landscape-input-width');
 	}
-	
+	// Portrait height stays a single global setting (Adjust Input Area toggle applies to every
+	// stacked orientation - portrait itself plus split50v/stacked split66/split33 - none of
+	// which are part of viewportProfiles/the configure modal - see getViewportProfile()'s early
+	// return for 'portrait').
 	if (!stackedHeightEnabled) {
 		document.documentElement.style.removeProperty('--portrait-input-height');
 	} else {
-		// FIX: Relies on the upgraded getter so stacked split33 uses 65% instead of falling back to 40%
-		const heightPct = Math.min(80, Math.max(20, getEffectiveInputAreaPct()));
+		const heightPct = Math.min(80, Math.max(20, appSettings.portraitInputHeightPct || 40));
 		document.documentElement.style.setProperty('--portrait-input-height', heightPct + 'vh');
 	}
 }
@@ -6146,16 +6148,20 @@ function applyViewportProfile() {
 	const bucket = detectViewportBucket();
 	const prevBucket = document.body.dataset.viewportBucket;
 	document.body.dataset.viewportBucket = bucket;
-
-	const profile = appSettings.viewportProfiles && appSettings.viewportProfiles[bucket];
-
-	// 1. Dynamic splitAlignment processing (resolves split50v horizontal flex bug)
-	if (profile && profile.alignment) {
-		document.body.dataset.splitAlignment = profile.alignment;
+	if (bucket === 'split50v' || bucket === 'split50h') {
+		const profile = appSettings.viewportProfiles && appSettings.viewportProfiles[bucket];
+		document.body.dataset.splitAlignment = (profile && profile.alignment) || 'horizontal';
 	} else {
 		delete document.body.dataset.splitAlignment;
 	}
-
+	// split66/split33 still cover BOTH physical orientations under one bucket and need runtime
+	// detection to know which one they're currently in. split50v/split50h are separate buckets
+	// whose names already encode the orientation - but split50v STILL needs the 'stacked' marker
+	// set unconditionally (no runtime choice, just always applied), because that marker is what
+	// the ~74 side-by-side CSS rules throughout the stylesheet check via
+	// :not([data-portrait-split-layout="stacked"]) to know to exclude it, the same mechanism
+	// split66 uses. Without it, split50v fell through to the general adjustable-divider
+	// side-by-side rule instead of behaving like normal stacked portrait.
 	if (bucket === 'split50v') {
 		document.body.dataset.portraitSplitLayout = 'stacked';
 	} else {
@@ -6170,20 +6176,21 @@ function applyViewportProfile() {
 			delete document.body.dataset.portraitSplitLayout;
 		}
 	}
-
-	// 2. Curated header buttons and Custom Layout Triggers
 	applyViewportHeaderButtonCuration(bucket);
 	applyLandscapeInputWidth();
 	syncPipSequenceOnlyMode();
-
+	// Always refresh the actual on-screen layout, not just when the bucket itself changes.
+	// This used to be gated behind bucket !== prevBucket, which meant editing a setting for the
+	// bucket you're ALREADY in (the normal case - you open Configure while in landscape to
+	// change landscape's own UI Scale/Sequence Size/etc, you don't leave landscape to do it)
+	// never visibly took effect on Save. It would only ever show up once something unrelated
+	// happened to trigger a genuine bucket transition (rotating the device, resizing a
+	// split-screen pane), which made the settings look like they silently didn't work.
 	document.documentElement.style.fontSize = `${getEffectiveGlobalUiScale()}%`;
 	renderUI();
-
-	// 3. Dispatch specific metric applications
 	if (modules.settings && typeof modules.settings.applyRowMax === 'function') modules.settings.applyRowMax();
 	if (modules.settings && typeof modules.settings.applyInputBtnScale === 'function') modules.settings.applyInputBtnScale();
 }
-
 function updateAllChrome() {
 	applyTheme(appSettings.activeTheme);
 	document.documentElement.style.fontSize = `${getEffectiveGlobalUiScale()}%`;

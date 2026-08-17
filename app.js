@@ -7488,8 +7488,50 @@ function initGlobalListeners() {
 					passive: false
 			});
 		}
-        const headerSettingsBtn = document.getElementById('headersettingsbtn');
-    if (headerSettingsBtn) {
+        
+		const headerTimer = document.getElementById('headertimerbtn');
+		const headerCounter = document.getElementById('headercounterbtn');
+		const headerMic = document.getElementById('headervoicebtn');
+		const headerCam = document.getElementById('headerarcambtn');
+		const headerTouchGesture = document.getElementById('headertouchbtn');
+		const headerHand = document.getElementById('headerhandbtn');
+		if (headerHand) {
+			headerHand.onclick = () => {
+				if (!modules.vision) return;
+				const isActive = !modules.vision.isActive;
+				if (isActive) {
+					modules.vision.start();
+					headerHand.classList.add('header-btn-active');
+				} else {
+					modules.vision.stop();
+					headerHand.classList.remove('header-btn-active');
+				}
+			};
+		}
+		const headerBigger = document.getElementById('headerbiggerbtn');
+		if (headerBigger) {
+			headerBigger.onclick = () => {
+				document.body.classList.toggle('hide-controls');
+				const isActive = document.body.classList.contains('hide-controls');
+				headerBigger.classList.toggle('header-btn-active', isActive);
+				showToast(isActive ? "Bigger Buttons Active" : "Controls Visible");
+				setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+			};
+		}
+		const headerSwap = document.getElementById('headerswapbtn');
+		if (headerSwap) {
+			headerSwap.onclick = () => {
+				const isActive = !document.body.classList.contains('layout-swapped');
+				document.body.classList.toggle('layout-swapped', isActive);
+				headerSwap.classList.toggle('header-btn-active', isActive);
+				applyPositionSwapOffsets(isActive);
+				showToast(isActive ? "Inputs Moved to Top 🔄" : "Inputs Back to Bottom 🔄");
+			};
+		}
+		const headerPlay = document.getElementById('headerplaybtn');
+		if (headerPlay) headerPlay.onclick = () => playDemo();
+		const headerSettingsBtn = document.getElementById('headersettingsbtn');
+        if (headerSettingsBtn) {
         let settingsPressTimer;
         let settingsLongPressed = false;
 
@@ -7535,51 +7577,7 @@ function initGlobalListeners() {
         headerSettingsBtn.addEventListener('pointercancel', () => clearTimeout(settingsPressTimer));
         // Remove the old onclick handler to prevent double firing
         headerSettingsBtn.onclick = null; 
-    }
-		const headerTimer = document.getElementById('headertimerbtn');
-		const headerCounter = document.getElementById('headercounterbtn');
-		const headerMic = document.getElementById('headervoicebtn');
-		const headerCam = document.getElementById('headerarcambtn');
-		const headerTouchGesture = document.getElementById('headertouchbtn');
-		const headerHand = document.getElementById('headerhandbtn');
-		if (headerHand) {
-			headerHand.onclick = () => {
-				if (!modules.vision) return;
-				const isActive = !modules.vision.isActive;
-				if (isActive) {
-					modules.vision.start();
-					headerHand.classList.add('header-btn-active');
-				} else {
-					modules.vision.stop();
-					headerHand.classList.remove('header-btn-active');
-				}
-			};
-		}
-		const headerBigger = document.getElementById('headerbiggerbtn');
-		if (headerBigger) {
-			headerBigger.onclick = () => {
-				document.body.classList.toggle('hide-controls');
-				const isActive = document.body.classList.contains('hide-controls');
-				headerBigger.classList.toggle('header-btn-active', isActive);
-				showToast(isActive ? "Bigger Buttons Active" : "Controls Visible");
-				setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
-			};
-		}
-		const headerSwap = document.getElementById('headerswapbtn');
-		if (headerSwap) {
-			headerSwap.onclick = () => {
-				const isActive = !document.body.classList.contains('layout-swapped');
-				document.body.classList.toggle('layout-swapped', isActive);
-				headerSwap.classList.toggle('header-btn-active', isActive);
-				applyPositionSwapOffsets(isActive);
-				showToast(isActive ? "Inputs Moved to Top 🔄" : "Inputs Back to Bottom 🔄");
-			};
-		}
-		const headerPlay = document.getElementById('headerplaybtn');
-		if (headerPlay) headerPlay.onclick = () => playDemo();
-		const headerSettingsBtn = document.getElementById('headersettingsbtn');
-		if (headerSettingsBtn) headerSettingsBtn.onclick = () => { if (typeof openOrientationSettings === 'function') openOrientationSettings(); };
-		const headerRedeem = document.getElementById('headerredeembtn');
+    }	const headerRedeem = document.getElementById('headerredeembtn');
 		if (headerRedeem) headerRedeem.onclick = () => { if (modules.settings) modules.settings.toggleRedeem(true); };
 		const headerShare = document.getElementById('headersharebtn');
 		if (headerShare) headerShare.onclick = () => { if (modules.settings) modules.settings.openShare(); };

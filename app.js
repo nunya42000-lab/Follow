@@ -661,12 +661,12 @@ const DEFAULT_APP = {
 	appInputBtnScale: 100,
 	appRowMax: '5',
 	viewportProfiles: {
-		landscape: { uiScale: 100, seqSize: 210, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] }, // Executed: sequence size & row bounds
-		split66: { uiScale: 100, seqSize: 180, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] },
-		split50v: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }, // Executed: flex-direction fixed
-		split50h: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
-		split33: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: true, inputAreaPct: 65, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] } // Executed: custom piano sizing metrics mapped
-	},
+        landscape: { uiScale: 100, seqSize: 210, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] },
+        split66: { uiScale: 100, seqSize: 210, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] },
+        split50v: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'vertical', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }, 
+        split50h: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
+        split33: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: true, inputAreaPct: 65, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }
+    },
 	pipMachineIndex: null,
 	ecoModeConfig: {
         
@@ -5982,10 +5982,16 @@ function getEffectiveInputBtnSize() {
 	return vp ? vp.btnSize : (appSettings.appInputBtnScale || 100);
 }
 function getEffectiveInputAreaEnabled() {
-	const vp = getViewportProfile();
-	// If the profile specifies an override, use it. Otherwise fall back to global.
-	if (vp && vp.inputAreaEnabled !== undefined && vp.inputAreaEnabled !== null) return vp.inputAreaEnabled;
-	return !!appSettings.isLandscapeInputResizeEnabled;
+    const vp = getViewportProfile();
+    const bucket = document.body.dataset.viewportBucket;
+    
+    // Bucket 33 4-machine touch gesture override
+    if (bucket === 'split33' && appSettings.isTouchGestureInputEnabled) {
+        return true; 
+    }
+
+    if (vp && vp.inputAreaEnabled !== undefined && vp.inputAreaEnabled !== null) return vp.inputAreaEnabled;
+    return !!appSettings.isLandscapeInputResizeEnabled;
 }
 function getEffectiveInputAreaPct() {
 	const vp = getViewportProfile();
@@ -6002,11 +6008,14 @@ function getEffectiveInputAreaPct() {
 	return appSettings.landscapeInputWidthPct || 50;
 }
 function syncPipSequenceOnlyMode() {
-	const bucket = document.body.dataset.viewportBucket;
-	const isSplitSmall = bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33';
-	const pipActive = !!document.pictureInPictureElement;
-	document.body.classList.toggle('pip-sequence-only', isSplitSmall && pipActive);
+    const bucket = document.body.dataset.viewportBucket;
+    const isSplitSmall = ['split50v', 'split50h', 'split33', 'split66'].includes(bucket);
+    const pipActive = !!document.pictureInPictureElement;
+    
+    document.body.classList.toggle('pip-sequence-only', isSplitSmall && pipActive);
+    document.body.classList.toggle('pip-machine-one-isolated', isSplitSmall && pipActive); // New CSS hook for isolating machine 1
 }
+
 // Maps the curated header-button ids used in the Landscape/Split Screen configure modal's
 // checklist to their actual DOM element ids, so the person's per-viewport selection can
 // actually gate visibility (previously the checklist wrote appSettings.viewportProfiles[bucket]
@@ -7479,6 +7488,54 @@ function initGlobalListeners() {
 					passive: false
 			});
 		}
+        const headerSettingsBtn = document.getElementById('headersettingsbtn');
+    if (headerSettingsBtn) {
+        let settingsPressTimer;
+        let settingsLongPressed = false;
+
+        const startSettingsPress = (e) => {
+            if (e && e.cancelable) e.preventDefault();
+            settingsLongPressed = false;
+            
+            settingsPressTimer = setTimeout(() => {
+                settingsLongPressed = true;
+                const bucket = detectViewportBucket();
+                
+                if (bucket !== 'portrait') {
+                    if (window.modules && window.modules.settings) {
+                        window.modules.settings.openSettings();
+                        
+                        // Switch directly to the viewport configuration tab
+                        const vpTabBtn = document.querySelector(`.tab-btn[data-tab="viewport-config"]`);
+                        if (vpTabBtn) vpTabBtn.click();
+
+                        // Switch to the specific sub-tab for the active bucket
+                        setTimeout(() => {
+                            const subTabBtn = document.querySelector(`.vp-subtab-btn[data-bucket="${bucket}"]`);
+                            if (subTabBtn) subTabBtn.click();
+                        }, 50);
+                    }
+                    if (navigator.vibrate) navigator.vibrate(50);
+                }
+            }, 500); 
+        };
+
+        const endSettingsPress = (e) => {
+            clearTimeout(settingsPressTimer);
+            if (!settingsLongPressed) {
+                // Trigger normal click behavior
+                if (typeof openOrientationSettings === 'function') openOrientationSettings();
+                else if (window.modules && window.modules.settings) window.modules.settings.openSettings();
+            }
+        };
+
+        headerSettingsBtn.addEventListener('pointerdown', startSettingsPress);
+        headerSettingsBtn.addEventListener('pointerup', endSettingsPress);
+        headerSettingsBtn.addEventListener('pointerleave', () => clearTimeout(settingsPressTimer));
+        headerSettingsBtn.addEventListener('pointercancel', () => clearTimeout(settingsPressTimer));
+        // Remove the old onclick handler to prevent double firing
+        headerSettingsBtn.onclick = null; 
+    }
 		const headerTimer = document.getElementById('headertimerbtn');
 		const headerCounter = document.getElementById('headercounterbtn');
 		const headerMic = document.getElementById('headervoicebtn');
@@ -8119,16 +8176,30 @@ function readVisibleSequence(machineIndex) {
 	.filter(t => t.length);
 }
 function drawPipFrame() {
-	if (!pipCanvas) return;
-	const ctx = pipCanvas.getContext('2d');
-	const cs = getComputedStyle(document.body);
-	const bg = cs.getPropertyValue('--bg-main').trim() || '#111827';
-	const bubble = cs.getPropertyValue('--seq-bubble').trim() || '#6366f1';
-	const textCol = cs.getPropertyValue('--text-main').trim() || '#ffffff';
-	const W = pipCanvas.width, H = pipCanvas.height;
-	ctx.fillStyle = bg;
-	ctx.fillRect(0, 0, W, H);
-	const vals = readVisibleSequence(typeof appSettings.pipMachineIndex === 'number' ? appSettings.pipMachineIndex : undefined);
+    if (!pipCanvas) return;
+    const ctx = pipCanvas.getContext('2d');
+    const cs = getComputedStyle(document.body);
+    const bg = cs.getPropertyValue('--bg-main').trim() || '#111827';
+    const bubble = cs.getPropertyValue('--seq-bubble').trim() || '#6366f1';
+    const textCol = cs.getPropertyValue('--text-main').trim() || '#ffffff';
+    const W = pipCanvas.width, H = pipCanvas.height;
+    
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Enforce Machine 1 for Split Viewports
+    const bucket = document.body.dataset.viewportBucket;
+    const isSplit = ['split33', 'split50h', 'split50v', 'split66'].includes(bucket);
+    let targetMachine = typeof appSettings.pipMachineIndex === 'number' ? appSettings.pipMachineIndex : undefined;
+    
+    if (isSplit) {
+        targetMachine = 0; // Force Machine 1 (Index 0)
+    }
+
+    const vals = readVisibleSequence(targetMachine);
+    
+    // ... (Keep the rest of the drawing logic unchanged)
+
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'middle';
 	if (!vals.length) {
@@ -8602,10 +8673,14 @@ if (!window.__vpResizeListenerBound) {
 	});
 }
 
+// Map Location: Modal Settings UI Initialization
+// Action: Replace the existing initViewportProfilesUI function in its entirety.
+
 function initViewportProfilesUI() {
 	const buckets = ['landscape', 'split66', 'split50v', 'split50h', 'split33'];
 	const tabBtns = {};
 	const panels = {};
+	
 	buckets.forEach(b => {
 		tabBtns[b] = document.getElementById('viewport-tab-btn-' + b);
 		panels[b] = document.getElementById('viewport-panel-' + b);
@@ -8617,19 +8692,24 @@ function initViewportProfilesUI() {
 		const headerEl = document.getElementById('viewport-preview-header');
 		const seqEl = document.getElementById('viewport-preview-seq');
 		const inputsEl = document.getElementById('viewport-preview-inputs');
+		
 		if (!screen || !headerEl || !seqEl || !inputsEl) return;
+		
 		const bucket = viewportConfigState.activeTab;
 		const profile = (appSettings.viewportProfiles && appSettings.viewportProfiles[bucket]) || { uiScale: 100, seqSize: 100 };
 		const widthByBucket = { landscape: 220, split66: 176, split50v: 120, split50h: 120, split33: 64 };
+		
 		screen.style.width = (widthByBucket[bucket] || 220) + 'px';
 		screen.style.height = '124px';
 		headerEl.innerHTML = '';
-		const dotCount = (bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33') ? 8 : 12;
+		
+		const dotCount = ['split50v', 'split50h', 'split33'].includes(bucket) ? 8 : 12;
 		for (let i = 0; i < dotCount; i++) {
 			const dot = document.createElement('div');
 			dot.style.cssText = 'width:6px;height:6px;border-radius:50%;background:#4b5563;flex-shrink:0;';
 			headerEl.appendChild(dot);
 		}
+		
 		seqEl.innerHTML = '';
 		const seqScale = (profile.seqSize || 100) / 100;
 		const bubbleSize = Math.max(6, Math.round(10 * seqScale));
@@ -8638,13 +8718,16 @@ function initViewportProfilesUI() {
 			bubble.style.cssText = `width:${bubbleSize}px;height:${bubbleSize}px;border-radius:3px;background:#6366f1;flex-shrink:0;`;
 			seqEl.appendChild(bubble);
 		}
+		
 		inputsEl.innerHTML = '';
 		const uiScale = (profile.uiScale || 100) / 100;
 		const btnW = Math.max(8, Math.round(14 * uiScale));
 		const btnH = Math.max(6, Math.round(8 * uiScale));
+		
 		const alignSel = document.getElementById('viewport-alignment-' + bucket);
-		const isVertical = (bucket === 'split50v' || bucket === 'split50h') && alignSel && alignSel.value === 'vertical';
+		const isVertical = ['split50v', 'split50h'].includes(bucket) && alignSel && alignSel.value === 'vertical';
 		inputsEl.style.flexDirection = isVertical ? 'column' : 'row';
+		
 		for (let i = 0; i < 6; i++) {
 			const btn = document.createElement('div');
 			btn.style.cssText = `width:${btnW}px;height:${btnH}px;border-radius:2px;background:#1a1a1a;border:1px solid #444;flex-shrink:0;`;
@@ -8661,6 +8744,7 @@ function initViewportProfilesUI() {
 		renderPreview();
 	}
 	window.__vpSwitchTabDirect = switchTab;
+	
 	buckets.forEach(b => {
 		if (tabBtns[b]) tabBtns[b].onclick = () => switchTab(b);
 	});
@@ -8685,18 +8769,19 @@ function initViewportProfilesUI() {
 		const uiSel = document.getElementById('viewport-uiscale-' + b);
 		const seqSel = document.getElementById('viewport-seqsize-' + b);
 		if (uiSel) uiSel.onchange = (e) => {
-			appSettings.viewportProfiles[b].uiScale = parseInt(e.target.value);
+			appSettings.viewportProfiles[b].uiScale = parseInt(e.target.value, 10);
 			saveState();
 			if (typeof applyViewportProfile === 'function') applyViewportProfile();
 			renderPreview();
 		};
 		if (seqSel) seqSel.onchange = (e) => {
-			appSettings.viewportProfiles[b].seqSize = parseInt(e.target.value);
+			appSettings.viewportProfiles[b].seqSize = parseInt(e.target.value, 10);
 			saveState();
 			if (typeof applyViewportProfile === 'function') applyViewportProfile();
 			renderPreview();
 		};
 	});
+	
 	['split50v', 'split50h'].forEach(b => {
 		const alignSel = document.getElementById('viewport-alignment-' + b);
 		if (alignSel) alignSel.onchange = (e) => {
@@ -8713,6 +8798,7 @@ function initViewportProfilesUI() {
 		const settings = (typeof getProfileSettings === 'function') ? getProfileSettings() : null;
 		const machineCount = (settings && settings.machineCount) || 1;
 		const currentVal = (typeof appSettings.pipMachineIndex === 'number') ? String(appSettings.pipMachineIndex) : 'same';
+		
 		sels.forEach(sel => {
 			sel.innerHTML = '<option value="same">Same as Main Area</option>';
 			for (let i = 0; i < machineCount; i++) {
@@ -8734,7 +8820,6 @@ function initViewportProfilesUI() {
 	const currentBucket = document.body.dataset.viewportBucket;
 	switchTab((currentBucket && buckets.includes(currentBucket)) ? currentBucket : 'landscape');
 
-	// Configure modal
 	const configModal = document.getElementById('viewport-config-modal');
 	const configSaveBtn = document.getElementById('viewport-config-save-btn');
 	const configCancelBtn = document.getElementById('viewport-config-cancel-btn');
@@ -8743,24 +8828,51 @@ function initViewportProfilesUI() {
 	function renderConfigSettings() {
 		const settingsDiv = document.getElementById('viewport-config-settings');
 		if (!settingsDiv || !viewportConfigState.configBucket) return;
+		
 		const bucket = viewportConfigState.configBucket;
 		const profile = appSettings.viewportProfiles[bucket];
 		settingsDiv.innerHTML = '';
 
-		const sectionLabel = (text) => vpMakeSectionLabel(settingsDiv, text);
-		const createSlider = (label, key, min, max, step, suffix, fallback) =>
-			vpMakeSlider(settingsDiv, viewportConfigState.tempSettings, profile, vpRenderConfigScreen, label, key, min, max, step, suffix, fallback);
-		const createSelect = (label, key, options, defaultVal) =>
-			vpMakeSelect(settingsDiv, viewportConfigState.tempSettings, profile, vpRenderConfigScreen, label, key, options, defaultVal);
+		// Architecture: Native Accordion Generator
+		function createAccordionSection(title, defaultOpen = false) {
+			const details = document.createElement('details');
+			details.className = 'group mb-2 border border-gray-700 rounded overflow-hidden';
+			if (defaultOpen) details.open = true;
 
-		// --- Sizing (all tabs) - dropdowns match the real General settings dropdowns exactly
-		// (same option lists, same values) rather than a slider covering the same range, per
-		// explicit request: sliders let you land between the real steps, which never matches
-		// what the actual General-tab dropdown could produce. ---
-		sectionLabel('Sizing');
-		createSelect('UI Scale', 'uiScale', vpPercentOptions(50, 500, 10), '100');
-		createSelect('Sequence Size', 'seqSize', vpPercentOptions(50, 300, 10), '100');
-		createSelect('Row Max', 'rowMax', [
+			const summary = document.createElement('summary');
+			summary.className = 'cursor-pointer px-4 py-3 bg-gray-800 text-gray-200 text-xs font-bold uppercase tracking-wider select-none outline-none flex justify-between items-center transition-colors hover:bg-gray-700';
+			summary.style.listStyle = 'none';
+			
+			const titleSpan = document.createElement('span');
+			titleSpan.textContent = title;
+			
+			const iconSpan = document.createElement('span');
+			iconSpan.textContent = '▼';
+			iconSpan.className = 'transition-transform duration-200 group-open:rotate-180';
+			
+			summary.appendChild(titleSpan);
+			summary.appendChild(iconSpan);
+
+			const content = document.createElement('div');
+			content.className = 'p-3 bg-gray-900 flex flex-col gap-3';
+
+			details.appendChild(summary);
+			details.appendChild(content);
+			settingsDiv.appendChild(details);
+
+			return content;
+		}
+
+		const createSlider = (container, label, key, min, max, step, suffix, fallback) =>
+			vpMakeSlider(container, viewportConfigState.tempSettings, profile, vpRenderConfigScreen, label, key, min, max, step, suffix, fallback);
+		const createSelect = (container, label, key, options, defaultVal) =>
+			vpMakeSelect(container, viewportConfigState.tempSettings, profile, vpRenderConfigScreen, label, key, options, defaultVal);
+
+		// --- Accordion 1: Sizing ---
+		const sizingSection = createAccordionSection('Sizing', true);
+		createSelect(sizingSection, 'UI Scale', 'uiScale', vpPercentOptions(50, 500, 10), '100');
+		createSelect(sizingSection, 'Sequence Size', 'seqSize', vpPercentOptions(50, 300, 10), '100');
+		createSelect(sizingSection, 'Row Max', 'rowMax', [
 			{ value: 'none', text: 'None' },
 			{ value: '4', text: '4 Cards' }, { value: '5', text: '5 Cards' },
 			{ value: '6', text: '6 Cards' }, { value: '7', text: '7 Cards' },
@@ -8768,36 +8880,35 @@ function initViewportProfilesUI() {
 			{ value: '12', text: '12 Cards' }, { value: '15', text: '15 Cards' }
 		], profile.rowMax || 'none');
 
-		// --- Text & Button Sizing (all tabs) - every bucket has its OWN independent value here,
-		// entirely separate from the matching General-tab global setting (landscape and each
-		// split bucket are meant to be configured on their own terms; changing General settings
-		// never moves these). No "inherit" option - there's always a real per-bucket value. ---
-		sectionLabel('Header, Number & Button Sizing');
-		createSelect('Header Size', 'headerScale', vpPercentOptions(70, 150, 10), '100');
-		createSelect('Number Size', 'numberSize', [
+		// --- Accordion 2: Header, Number & Button Sizing ---
+		const textSizingSection = createAccordionSection('Header, Number & Button Sizing');
+		createSelect(textSizingSection, 'Header Size', 'headerScale', vpPercentOptions(70, 150, 10), '100');
+		createSelect(textSizingSection, 'Number Size', 'numberSize', [
 			{ value: '100', text: 'Normal' }, { value: '150', text: 'Large' },
 			{ value: '200', text: 'Huge' }, { value: '250', text: 'Max (Fill)' }
 		], '250');
-		createSelect('Input Font Size', 'inputFontSize', [
+		createSelect(textSizingSection, 'Input Font Size', 'inputFontSize', [
 			{ value: '100', text: 'Normal' }, { value: '150', text: 'Large' },
 			{ value: '200', text: 'Huge' }, { value: '250', text: 'Max (Fill)' }
 		], '100');
-		createSelect('Button Size', 'btnSize', [
+		createSelect(textSizingSection, 'Button Size', 'btnSize', [
 			{ value: '70', text: 'Small' }, { value: '85', text: 'Compact' },
 			{ value: '100', text: 'Normal' }, { value: '125', text: 'Large' }, { value: '150', text: 'Huge' }
 		], '100');
 
-		// --- Adjust Input Area (landscape/split66/50/25 only - portrait has its own separate
-		// global-only version of this feature since it isn't part of viewportProfiles) ---
-		sectionLabel('Adjust Input Area');
+		// --- Accordion 3: Adjust Input Area ---
+		const inputAreaSection = createAccordionSection('Adjust Input Area');
 		const inputAreaToggleWrap = document.createElement('label');
-		inputAreaToggleWrap.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 8px; margin-bottom: 10px; background: #222; border-radius: 4px; cursor: pointer;';
+		inputAreaToggleWrap.className = 'flex items-center justify-between p-2 mb-1 bg-gray-800 rounded cursor-pointer';
+		
 		const inputAreaToggleSpan = document.createElement('span');
-		inputAreaToggleSpan.style.cssText = 'color: #ddd; font-size: 11px;';
+		inputAreaToggleSpan.className = 'text-gray-300 text-[11px]';
 		inputAreaToggleSpan.textContent = 'Enable draggable divider for this size';
+		
 		const inputAreaToggleCb = document.createElement('input');
 		inputAreaToggleCb.type = 'checkbox';
-		inputAreaToggleCb.style.cssText = 'width: 16px; height: 16px; cursor: pointer;';
+		inputAreaToggleCb.className = 'w-4 h-4 cursor-pointer';
+		
 		const curInputAreaEnabled = viewportConfigState.tempSettings.inputAreaEnabled !== undefined
 			? viewportConfigState.tempSettings.inputAreaEnabled
 			: (profile.inputAreaEnabled !== undefined ? profile.inputAreaEnabled : appSettings.isLandscapeInputResizeEnabled);
@@ -8806,58 +8917,69 @@ function initViewportProfilesUI() {
 			viewportConfigState.tempSettings.inputAreaEnabled = e.target.checked;
 			vpRenderConfigScreen();
 		};
+		
 		inputAreaToggleWrap.appendChild(inputAreaToggleSpan);
 		inputAreaToggleWrap.appendChild(inputAreaToggleCb);
-		settingsDiv.appendChild(inputAreaToggleWrap);
-		createSlider('Input Area Width', 'inputAreaPct', 20, 80, 5, '%', appSettings.landscapeInputWidthPct || 50);
+		inputAreaSection.appendChild(inputAreaToggleWrap);
+		
+		createSlider(inputAreaSection, 'Input Area Width', 'inputAreaPct', 20, 80, 5, '%', appSettings.landscapeInputWidthPct || 50);
 		const inputAreaNote = document.createElement('p');
-		inputAreaNote.style.cssText = 'color: #666; font-size: 9px; margin: -8px 0 12px;';
+		inputAreaNote.className = 'text-gray-500 text-[9px] -mt-1 mb-1';
 		inputAreaNote.textContent = 'Also draggable live on the divider line itself in the preview above.';
-		settingsDiv.appendChild(inputAreaNote);
+		inputAreaSection.appendChild(inputAreaNote);
 
-		// --- Layout (split50v/split50h only: alignment) ---
-		if (bucket === 'split50v' || bucket === 'split50h') {
-			sectionLabel('Layout');
-			createSelect('Alignment', 'alignment', [
+		// --- Accordion 4: Layout ---
+		if (['split50v', 'split50h'].includes(bucket)) {
+			const layoutSection = createAccordionSection('Layout');
+			createSelect(layoutSection, 'Alignment', 'alignment', [
 				{ value: 'horizontal', text: 'Horizontal (Normal)' },
 				{ value: 'vertical', text: 'Vertical' }
 			], 'horizontal');
 		}
 
-		// --- Picture-in-Picture (split50v/split50h/split33 only) ---
-		if (bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33') {
-			sectionLabel('Picture-in-Picture');
+		// --- Accordion 5: Picture-in-Picture ---
+		if (['split50v', 'split50h', 'split33'].includes(bucket)) {
+			const pipSection = createAccordionSection('Picture-in-Picture');
 			const settings = (typeof getProfileSettings === 'function') ? getProfileSettings() : null;
 			const machineCount = (settings && settings.machineCount) || 1;
 			const pipOptions = [{ value: 'same', text: 'Same as Main Area' }];
 			for (let i = 0; i < machineCount; i++) pipOptions.push({ value: String(i), text: 'Machine ' + (i + 1) });
-			createSelect('PiP Shows', 'pipMachine', pipOptions, 'same');
+			
+			createSelect(pipSection, 'PiP Shows', 'pipMachine', pipOptions, 'same');
 			const note = document.createElement('p');
-			note.style.cssText = 'color: #888; font-size: 10px; margin: -6px 0 12px;';
+			note.className = 'text-gray-400 text-[10px] -mt-1';
 			note.textContent = 'If PiP is active at this size, the sequence only appears in the popup - the main screen shows inputs only.';
-			settingsDiv.appendChild(note);
+			pipSection.appendChild(note);
 		}
 
-		// --- Header Buttons (split66/split50v/split50h/split33 only - curated set) ---
-		if (bucket === 'split66' || bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33') {
-			sectionLabel('Header Buttons');
+		// --- Accordion 6: Header Buttons ---
+		if (['split66', 'split50v', 'split50h', 'split33'].includes(bucket)) {
+			const headerBtnSection = createAccordionSection('Header Buttons');
 			const note = document.createElement('p');
-			note.style.cssText = 'color: #888; font-size: 10px; margin: -2px 0 8px;';
+			note.className = 'text-gray-400 text-[10px] mb-1';
 			note.textContent = 'Only these buttons can show at this width. Still gated by each button\'s own General toggle.';
-			settingsDiv.appendChild(note);
-			const currentSelected = viewportConfigState.tempSettings.headerButtons !== undefined ? viewportConfigState.tempSettings.headerButtons : (profile.headerButtons || []);
+			headerBtnSection.appendChild(note);
+			
+			const currentSelected = viewportConfigState.tempSettings.headerButtons !== undefined 
+				? viewportConfigState.tempSettings.headerButtons 
+				: (profile.headerButtons || []);
+				
 			VP_CURATED_HEADER_BUTTONS.forEach(btnDef => {
 				const row = document.createElement('label');
-				row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 8px; margin-bottom: 4px; background: #222; border-radius: 4px; cursor: pointer;';
+				row.className = 'flex items-center justify-between p-2 bg-gray-800 rounded cursor-pointer';
+				
 				const span = document.createElement('span');
-				span.style.cssText = 'color: #ddd; font-size: 11px;';
+				span.className = 'text-gray-300 text-[11px]';
 				span.textContent = btnDef.label;
+				
 				const checkbox = document.createElement('input');
 				checkbox.type = 'checkbox';
 				checkbox.checked = currentSelected.includes(btnDef.id);
-				checkbox.style.cssText = 'width: 16px; height: 16px; cursor: pointer;';
+				checkbox.className = 'w-4 h-4 cursor-pointer';
 				checkbox.onchange = (e) => {
-					let list = viewportConfigState.tempSettings.headerButtons !== undefined ? viewportConfigState.tempSettings.headerButtons.slice() : (profile.headerButtons || []).slice();
+					let list = viewportConfigState.tempSettings.headerButtons !== undefined 
+						? viewportConfigState.tempSettings.headerButtons.slice() 
+						: (profile.headerButtons || []).slice();
 					if (e.target.checked) {
 						if (!list.includes(btnDef.id)) list.push(btnDef.id);
 					} else {
@@ -8868,14 +8990,14 @@ function initViewportProfilesUI() {
 				};
 				row.appendChild(span);
 				row.appendChild(checkbox);
-				settingsDiv.appendChild(row);
+				headerBtnSection.appendChild(row);
 			});
 		}
 
-		// --- Infinite scroll reminder (split33 only) ---
+		// --- Infinite Scroll Reminder ---
 		if (bucket === 'split33') {
 			const note = document.createElement('p');
-			note.style.cssText = 'color: #888; font-size: 10px; margin: 10px 0 0;';
+			note.className = 'text-gray-400 text-[10px] mt-2 px-1';
 			note.textContent = 'Turn on Infinite Header Scroll (General tab) so scrolling through header buttons works at this width.';
 			settingsDiv.appendChild(note);
 		}
@@ -8913,11 +9035,6 @@ function initViewportProfilesUI() {
 	window.__vpCloseConfigModalDirect = closeConfigModal;
 
 	function closeConfigModalWithConfirm() {
-		// Adjusting a slider/dropdown updates the live preview immediately, which can make it
-		// look like the change already took effect - but only Save & Exit actually persists it.
-		// Closing any other way (Cancel, this button) silently discards everything typed since
-		// the modal opened, with no prior warning, which is exactly the gap that made real
-		// gameplay end up looking different from what the preview had just shown.
 		if (Object.keys(viewportConfigState.tempSettings).length > 0) {
 			if (!confirm('You have unsaved changes that will be lost. Discard them?')) return;
 		}
@@ -8925,11 +9042,13 @@ function initViewportProfilesUI() {
 	}
 
 	if (configCancelBtn) configCancelBtn.onclick = closeConfigModalWithConfirm;
+	
 	if (configSaveBtn) {
 		configSaveBtn.onclick = () => {
 			if (!viewportConfigState.configBucket) return;
 			const profile = appSettings.viewportProfiles[viewportConfigState.configBucket];
 			const NUMERIC_KEYS = ['headerScale', 'numberSize', 'inputFontSize', 'btnSize', 'uiScale', 'seqSize'];
+			
 			Object.keys(viewportConfigState.tempSettings).forEach(key => {
 				if (key === 'pipMachine') {
 					appSettings.pipMachineIndex = (viewportConfigState.tempSettings.pipMachine === 'same') ? null : parseInt(viewportConfigState.tempSettings.pipMachine, 10);
@@ -8966,6 +9085,7 @@ function initViewportProfilesUI() {
 		};
 	});
 }
+
 
 // --- (Historical note: there used to be a separate compact "mini" modal for split50v/split33 -
 // it was removed in favor of routing straight to the accordion tab for the current bucket.)

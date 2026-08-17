@@ -659,14 +659,7 @@ const DEFAULT_APP = {
 	appFontScale: 100,
 	appInputFontScale: 100,
 	appInputBtnScale: 100,
-	appRowMax: '5', // Executed: 5 cards max per row for Portrait
-	// Every bucket has fully independent sizing - uiScale, seqSize, headerScale, numberSize,
-	// inputFontSize, btnSize are always present (never fall back to the matching General-tab
-	// global setting). This is deliberate: landscape and each split bucket are meant to be
-	// configured entirely on their own terms via their own settings modal, so changing General
-	// settings' UI Scale/Number Size/etc must never silently move landscape's or a split bucket's
-	// layout. Portrait remains the only context that still uses the General-tab globals directly
-	// (see getViewportProfile()'s early return for 'portrait' - it was never part of this system).
+	appRowMax: '5',
 	viewportProfiles: {
 		landscape: { uiScale: 100, seqSize: 210, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] }, // Executed: sequence size & row bounds
 		split66: { uiScale: 100, seqSize: 210, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] },
@@ -688,10 +681,7 @@ const DEFAULT_APP = {
 	savedFullProfiles: {},
 	headerPadding: 0,
 	inputsPadding: 0,
-	toneCalibration: {
-		isCalibrated: false,
-		notes: {}
-	},
+	toneCalibration: {isCalibrated: false,notes: {}},
 	isPositionSwapEnabled: false,
 	isLandscapeInputResizeEnabled: false,
 	landscapeInputWidthPct: 50,
@@ -760,71 +750,11 @@ const DEFAULT_APP = {
 		'piano_4': { gesture: 'swipe_ne_2f' },
 		'piano_5': { gesture: 'swipe_right_2f' }
 	},
-	mappings: {
-		'k9_1': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },
-		'k9_2': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },
-		'k9_3': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },
-		'k9_4': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },
-		'k9_5': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },
-		'k9_6': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },
-		'k9_7': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },
-		'k9_8': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },
-		'k9_9': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },
-		'k12_1': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },
-		'k12_2': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },
-		'k12_3': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },
-		'k12_4': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },
-		'k12_5': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },
-		'k12_6': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },
-		'k12_7': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },
-		'k12_8': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },
-		'k12_9': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },
-		'k12_10': { touch: 'none', handGesture: 12, morse: '', handSide: 'any' },
-		'k12_11': { touch: 'none', handGesture: 20, morse: '', handSide: 'any' },
-		'k12_12': { touch: 'none', handGesture: 36, morse: '', handSide: 'any' },
-		'piano_C': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },
-		'piano_D': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },
-		'piano_E': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },
-		'piano_F': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },
-		'piano_G': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },
-		'piano_A': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },
-		'piano_B': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },
-		'piano_1': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },
-		'piano_2': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },
-		'piano_3': { touch: 'none', handGesture: 12, morse: '', handSide: 'any' },
-		'piano_4': { touch: 'none', handGesture: 20, morse: '', handSide: 'any' },
-		'piano_5': { touch: 'none', handGesture: 36, morse: '', handSide: 'any' }
-	},
-	activeGestureFilters: [
-		'Poses',
-		'Pinches',
-		'Counts',
-		'Shapes',
-		'Motion',
-		'Transitions',
-		'Combos',
-		'Anchors',
-		'Chords',
-		'Taps',
-		'Spatial Taps',
-		'Multi-Finger Taps',
-		'Swipes',
-		'Long Swipes',
-		'Multi-Finger Swipes',
-		'Boomerangs',
-		'Switchbacks',
-		'Zigzags',
-		'Corners & Shapes',
-		'Motion Gestures',
-		'Flicks',
-		'Pausing Curves'
-	],
+	mappings: {'k9_1': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },'k9_2': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },'k9_3': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },'k9_4': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },'k9_5': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },'k9_6': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },'k9_7': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },'k9_8': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },'k9_9': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },'k12_1': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },'k12_2': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },'k12_3': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },'k12_4': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },'k12_5': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },'k12_6': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },'k12_7': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },'k12_8': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },'k12_9': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },'k12_10': { touch: 'none', handGesture: 12, morse: '', handSide: 'any' },'k12_11': { touch: 'none', handGesture: 20, morse: '', handSide: 'any' },'k12_12': { touch: 'none', handGesture: 36, morse: '', handSide: 'any' },'piano_C': { touch: 'none', handGesture: 16, morse: '', handSide: 'any' },'piano_D': { touch: 'none', handGesture: 24, morse: '', handSide: 'any' },'piano_E': { touch: 'none', handGesture: 28, morse: '', handSide: 'any' },'piano_F': { touch: 'none', handGesture: 30, morse: '', handSide: 'any' },'piano_G': { touch: 'none', handGesture: 62, morse: '', handSide: 'any' },'piano_A': { touch: 'none', handGesture: 34, morse: '', handSide: 'any' },'piano_B': { touch: 'none', handGesture: 48, morse: '', handSide: 'any' },'piano_1': { touch: 'none', handGesture: 50, morse: '', handSide: 'any' },'piano_2': { touch: 'none', handGesture: 100, morse: '', handSide: 'any' },'piano_3': { touch: 'none', handGesture: 12, morse: '', handSide: 'any' },'piano_4': { touch: 'none', handGesture: 20, morse: '', handSide: 'any' },'piano_5': { touch: 'none', handGesture: 36, morse: '', handSide: 'any' }},
+	activeGestureFilters: ['Poses','Pinches','Counts','Shapes','Motion','Transitions','Combos','Anchors','Chords','Taps','Spatial Taps','Multi-Finger Taps','Swipes','Long Swipes','Multi-Finger Swipes','Boomerangs','Switchbacks','Zigzags','Corners & Shapes','Motion Gestures','Flicks','Pausing Curves'],
 	customTouchPresets: {},
 	customHandPresets: {},
-	activeMappingPreset: {
-		'touch-preset-key9-select': '9_spatial',
-		'touch-preset-key12-select': '12_taps'
-	},
+	activeMappingPreset: {'touch-preset-key9-select': '9_spatial','touch-preset-key12-select': '12_taps'},
 	headerBtnOrder: [
     'headertimerbtn', 'headercounterbtn','headervoicebtn',
     'headertonebtn', 'headertouchbtn', 'headerhandbtn',
@@ -839,16 +769,7 @@ const DEFAULT_APP = {
     'headerspeeddownbtn', 'headercycleinputbtn',
     'headernotepadbtn', 'headerpipbtn', 'headerresetbtn', 'headernukebtn'
 	],
-	generalToggleOrder: [
-'autoBrightToggle', 'autoDarkToggle',
-'randomThemeToggle', 'headerThemeCycleToggle',
-'headerCycleInputToggle', 'headerModeSwitchToggle',
-'headerAddMachineToggle', 'bossToggle',
-'headerUiSizeToggle', 'headerSeqSizeToggle',
-'headerVolumeToggle', 'headerSpeedToggle',
-'autoHideHeaderToggle', 'headerInfiniteScrollToggle',
-'flickHeaderToggle', 'restoreHeaderToggle',
-'headerPlayToggle', 'headerDeleteToggle', 
+	generalToggleOrder: ['autoBrightToggle', 'autoDarkToggle', 'randomThemeToggle', 'headerThemeCycleToggle','headerCycleInputToggle', 'headerModeSwitchToggle','headerAddMachineToggle', 'bossToggle','headerUiSizeToggle', 'headerSeqSizeToggle','headerVolumeToggle', 'headerSpeedToggle','autoHideHeaderToggle', 'headerInfiniteScrollToggle','flickHeaderToggle', 'restoreHeaderToggle','headerPlayToggle', 'headerDeleteToggle', 
 'headerSettingsToggle', 'headerHelpToggle', 
 'headerRedeemToggle', 'headerShareToggle',
 'hideIntroToggle', 'headerUndoToggle',

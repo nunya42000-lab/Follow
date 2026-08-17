@@ -668,14 +668,15 @@ const DEFAULT_APP = {
 	// layout. Portrait remains the only context that still uses the General-tab globals directly
 	// (see getViewportProfile()'s early return for 'portrait' - it was never part of this system).
 	viewportProfiles: {
-		landscape: { uiScale: 100, seqSize: 240, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] }, // Executed: sequence size & row bounds
-		split66: { uiScale: 100, seqSize: 240, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] },
-		split50v: { uiScale: 100, seqSize: 240, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'vertical', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }, // Executed: flex-direction fixed
-		split50h: { uiScale: 100, seqSize: 200, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
-		split33: { uiScale: 100, seqSize: 160, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 150, rowMax: 'none', inputAreaEnabled: true, inputAreaPct: 65, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] } // Executed: custom piano sizing metrics mapped
+		landscape: { uiScale: 100, seqSize: 210, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] }, // Executed: sequence size & row bounds
+		split66: { uiScale: 100, seqSize: 210, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] },
+		split50v: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }, // Executed: flex-direction fixed
+		split50h: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
+		split33: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: true, inputAreaPct: 65, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] } // Executed: custom piano sizing metrics mapped
 	},
 	pipMachineIndex: null,
 	ecoModeConfig: {
+        
 		themeSwitch: false, ecoTheme: 'night',
 		limitWakeLock: false, wakeLockLimitSeconds: 300,
 		disableAmbientSensor: false, // ambient light sensor polls continuously for Auto Bright/Auto Dark - proximity sensor already has its own independent eco-mode awareness elsewhere and isn't affected by this

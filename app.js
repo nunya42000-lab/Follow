@@ -662,7 +662,7 @@ const DEFAULT_APP = {
 	appRowMax: '5',
 	viewportProfiles: {
 		landscape: { uiScale: 100, seqSize: 210, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] }, // Executed: sequence size & row bounds
-		split66: { uiScale: 100, seqSize: 210, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] },
+		split66: { uiScale: 100, seqSize: 180, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] },
 		split50v: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }, // Executed: flex-direction fixed
 		split50h: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
 		split33: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: true, inputAreaPct: 65, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] } // Executed: custom piano sizing metrics mapped

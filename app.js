@@ -7577,7 +7577,8 @@ function initGlobalListeners() {
         headerSettingsBtn.addEventListener('pointercancel', () => clearTimeout(settingsPressTimer));
         // Remove the old onclick handler to prevent double firing
         headerSettingsBtn.onclick = null; 
-    }	const headerRedeem = document.getElementById('headerredeembtn');
+    }	
+		const headerRedeem = document.getElementById('headerredeembtn');
 		if (headerRedeem) headerRedeem.onclick = () => { if (modules.settings) modules.settings.toggleRedeem(true); };
 		const headerShare = document.getElementById('headersharebtn');
 		if (headerShare) headerShare.onclick = () => { if (modules.settings) modules.settings.openShare(); };

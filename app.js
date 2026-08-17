@@ -6434,12 +6434,14 @@ function renderUI() {
 	try {
 		const gpWrap = document.getElementById('gesture-pad-wrapper');
 		const pad = document.getElementById('gesture-pad');
+		const inputFooter = document.getElementById('input-footer');
 		if (gpWrap) {
 			const isGlobalTouchGestureOn = appSettings.isTouchGestureInputEnabled;
 			const isBossTouchGestureOn = appSettings.isBossModeEnabled && appSettings.isTouchGestureInputEnabled && bossState.isActive;
 			if (isGlobalTouchGestureOn && isTouchGesturePadVisible || isBossTouchGestureOn) {
 				document.body.classList.add('input-gestures-mode');
 				gpWrap.classList.remove('hidden');
+				if (inputFooter) inputFooter.classList.add('hidden');
 				if (isBossTouchGestureOn) {
 					gpWrap.style.zIndex = '10001';
 					if (pad) {
@@ -6457,6 +6459,7 @@ function renderUI() {
 				document.body.classList.remove('input-gestures-mode');
 				gpWrap.classList.add('hidden');
 				gpWrap.style.zIndex = '';
+				if (inputFooter && !document.body.classList.contains('ar-active')) inputFooter.classList.remove('hidden');
 			}
 		}
 	} catch (e) {
@@ -6581,14 +6584,6 @@ function renderUI() {
 				card.appendChild(headerRow);
 			}
 			const numGrid = document.createElement('div');
-			// Both single- and multi-machine sequences use the same flex-wrap layout, so Row
-			// Max / UI Scale / Sequence Size (including the per-viewport-bucket overrides from
-			// the Landscape/Split Screen configure modal) actually apply to what's on screen.
-			// This used to hard-code a 4-column CSS grid whenever more than one machine was
-			// active, which ignored all of those settings outright - the grid packed exactly 4
-			// per row no matter what Row Max said, and no matter how large the boxes were sized
-			// to be, so real gameplay with 2+ machines never matched what the settings preview
-			// (which only ever previews a single machine) showed.
 			numGrid.className = "flex flex-wrap gap-2 justify-center";
 			(seq || []).forEach(num => {
 					const span = document.createElement('span');
@@ -6606,14 +6601,6 @@ function renderUI() {
 			card.appendChild(numGrid);
 			container.appendChild(card);
 	});
-	// Fix: flex-wrap on numGrid wraps based on its own logical (pre-rotation) axis, which
-	// while Portrait Lock is compensating doesn't match the visual space the card actually
-	// renders at after rotation - a rotated element's logical width becomes its visual
-	// height, and vice versa. For row-direction flex-wrap (the default), wrapping is
-	// governed by logical width, but widening that axis actually shrinks the visual width
-	// (the opposite of what's needed). Flipping to column-direction and sizing the logical
-	// height axis instead means each logical "column" (which becomes a visual row after
-	// rotation) holds enough boxes to span the available visual width.
 	requestAnimationFrame(() => {
 		requestAnimationFrame(() => {
 			const isRotating = document.body.dataset.rotate === '90' || document.body.dataset.rotate === '270';
@@ -6647,6 +6634,7 @@ function renderUI() {
 	});
 	if (modules.settings && typeof modules.settings.applyRowMax === 'function') modules.settings.applyRowMax();
 }
+
 function disableInput(disabled) {
 	const footer = document.getElementById('input-footer');
 	if (!footer) return;
@@ -6656,6 +6644,7 @@ function disableInput(disabled) {
 		footer.classList.remove('opacity-50', 'pointer-events-none');
 	}
 }
+
 function playDemo() {
 	if (isDemoPlaying) return;
 	isDemoPlaying = true;

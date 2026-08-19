@@ -671,12 +671,17 @@ const DEFAULT_APP = {
 	// a short, full-width stacked pane so the input pad needs most of the height (80%), while
 	// split33's side-by-side pane is wide-open vertically but very narrow horizontally, so the
 	// input strip only needs a sliver (20%) and the sequence display gets the rest.
+	// headerPadding/inputsPadding: same independence as everything else here - the UI tab's own
+	// Header Padding/Inputs Padding dropdowns (headerPadding/inputsPadding below, outside this
+	// object) are Portrait's values specifically, not a global fallback for every bucket. Each
+	// bucket gets its own copy, defaulting to 0 (matching the prior shared default) so nothing
+	// changes for anyone not using it, adjustable per-bucket from here on via Configure Viewport.
 	viewportProfiles: {
-		landscape: { uiScale: 100, seqSize: 210, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: false, inputAreaPct: 50, headerButtons: [] }, // Executed: sequence size & row bounds
-		split66: { uiScale: 100, seqSize: 180, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: false, inputAreaPct: 50, headerButtons: [] },
-		split50v: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', inputAreaEnabled: true, inputAreaPct: 80, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }, // Executed: flex-direction fixed
-		split50h: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', inputAreaEnabled: false, inputAreaPct: 50, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
-		split33: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: true, inputAreaPct: 20, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] } // Executed: custom piano sizing metrics mapped
+		landscape: { uiScale: 100, seqSize: 210, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: false, inputAreaPct: 50, headerPadding: 0, inputsPadding: 0, headerButtons: [] }, // Executed: sequence size & row bounds
+		split66: { uiScale: 100, seqSize: 180, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: false, inputAreaPct: 50, headerPadding: 0, inputsPadding: 0, headerButtons: [] },
+		split50v: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', inputAreaEnabled: true, inputAreaPct: 80, headerPadding: 0, inputsPadding: 0, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }, // Executed: flex-direction fixed
+		split50h: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', inputAreaEnabled: false, inputAreaPct: 50, headerPadding: 0, inputsPadding: 0, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
+		split33: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: true, inputAreaPct: 20, headerPadding: 0, inputsPadding: 0, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] } // Executed: custom piano sizing metrics mapped
 	},
 	pipMachineIndex: null,
 	ecoModeConfig: {
@@ -4178,7 +4183,7 @@ class SettingsManager {
 						if (isSwapped && !isLandscapeNow) {
 							seq.style.paddingTop = '0px';
 						} else {
-							const userExtra = this.appSettings.headerPadding || 0;
+							const userExtra = (typeof getEffectiveHeaderPadding === 'function') ? getEffectiveHeaderPadding() : (this.appSettings.headerPadding || 0);
 							// The header's live height measurement is unreliable while Portrait Lock's
 							// compensation is active (position:fixed within a rotated ancestor), so its
 							// natural height is measured and cached whenever unlocked - where measurement
@@ -4438,7 +4443,8 @@ class SettingsManager {
 		this.updateSequenceContainerOffset();
 	}
 	applyInputsPadding() {
-		document.body.style.setProperty('--inputs-padding-extra', (this.appSettings.inputsPadding || 0) + 'px');
+		const val = (typeof getEffectiveInputsPadding === 'function') ? getEffectiveInputsPadding() : (this.appSettings.inputsPadding || 0);
+		document.body.style.setProperty('--inputs-padding-extra', val + 'px');
 	}
 	rebuildInfiniteHeaderScroll() {
 		const row = document.getElementById('header-btn-row');
@@ -6018,6 +6024,21 @@ function getEffectiveInputAreaPct() {
 	}
 	return appSettings.landscapeInputWidthPct || 50;
 }
+// Header Padding / Inputs Padding: every non-portrait bucket carries its own copy in its
+// profile (see DEFAULT_APP.viewportProfiles), same independence as every other per-bucket
+// setting. Portrait has no profile (getViewportProfile() returns null for it), so it's the
+// only one that ever falls through to the UI tab's own Header Padding/Inputs Padding value -
+// which is therefore Portrait's setting specifically, not a shared global default.
+function getEffectiveHeaderPadding() {
+	const vp = getViewportProfile();
+	return vp ? (vp.headerPadding || 0) : (appSettings.headerPadding || 0);
+}
+function getEffectiveInputsPadding() {
+	const vp = getViewportProfile();
+	return vp ? (vp.inputsPadding || 0) : (appSettings.inputsPadding || 0);
+}
+window.getEffectiveHeaderPadding = getEffectiveHeaderPadding;
+window.getEffectiveInputsPadding = getEffectiveInputsPadding;
 // PiP is fixed (not user-configurable) at these four bucket sizes: Machine 1's sequence goes in
 // the popup, Machines 2-4 render in the regular sequence area. Landscape and Portrait are left
 // alone - PiP there still shows whatever the (still-supported) pipMachineIndex setting says.
@@ -6128,13 +6149,15 @@ function applyViewportProfile() {
 	document.documentElement.style.fontSize = `${getEffectiveGlobalUiScale()}%`;
 	renderUI();
 
-	// 3. Dispatch specific metric applications - all four, not just Row Max/Button Size, or a
-	// bucket's own Header Size / Input Font Size silently wouldn't take effect until the
-	// person happened to reopen Settings for some unrelated reason.
+	// 3. Dispatch specific metric applications - all six, not just Row Max/Button Size, or a
+	// bucket's own Header Size / Input Font Size / Header Padding / Inputs Padding silently
+	// wouldn't take effect until the person happened to reopen Settings for some unrelated reason.
 	if (modules.settings && typeof modules.settings.applyRowMax === 'function') modules.settings.applyRowMax();
 	if (modules.settings && typeof modules.settings.applyInputBtnScale === 'function') modules.settings.applyInputBtnScale();
 	if (modules.settings && typeof modules.settings.applyHeaderScale === 'function') modules.settings.applyHeaderScale();
 	if (modules.settings && typeof modules.settings.applyInputFontScale === 'function') modules.settings.applyInputFontScale();
+	if (modules.settings && typeof modules.settings.applyHeaderPadding === 'function') modules.settings.applyHeaderPadding();
+	if (modules.settings && typeof modules.settings.applyInputsPadding === 'function') modules.settings.applyInputsPadding();
 }
 
 function updateAllChrome() {
@@ -8800,6 +8823,21 @@ function initViewportProfilesUI() {
 			{ value: '70', text: 'Small' }, { value: '85', text: 'Compact' },
 			{ value: '100', text: 'Normal' }, { value: '125', text: 'Large' }, { value: '150', text: 'Huge' }
 		], '100', true);
+
+		// --- Header & Inputs Padding (all tabs) - the same two options as the UI tab's Header
+		// Padding / Inputs Padding, but this bucket's own independent copy. The UI tab's versions
+		// only ever apply to Portrait now (see getEffectiveHeaderPadding/getEffectiveInputsPadding) -
+		// every other bucket's padding lives here instead, completely separate from Portrait's. ---
+		sectionLabel('Header & Inputs Padding');
+		createSelect('Header Padding', 'headerPadding', [
+			{ value: '0', text: '0px' }, { value: '8', text: '8px' }, { value: '16', text: '16px' },
+			{ value: '24', text: '24px' }, { value: '32', text: '32px' }, { value: '40', text: '40px' }
+		], '0', true);
+		createSelect('Inputs Padding', 'inputsPadding', [
+			{ value: '0', text: '0px' }, { value: '10', text: '10px' }, { value: '20', text: '20px' },
+			{ value: '30', text: '30px' }, { value: '40', text: '40px' }, { value: '50', text: '50px' },
+			{ value: '60', text: '60px' }, { value: '70', text: '70px' }, { value: '80', text: '80px' }
+		], '0', true);
 
 		// --- Adjust Input Area (landscape/split66/50/25 only - portrait has its own separate
 		// global-only version of this feature since it isn't part of viewportProfiles). Every

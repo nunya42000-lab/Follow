@@ -388,6 +388,7 @@ alert("Promise Error: " + event.reason);
 </div>
 <div id="tab-ui" class="tab-content">
 <div class="space-y-4">
+<p class="text-[10px] text-gray-400 -mb-2">Theme and Font apply everywhere, same as always. Every sizing/layout dropdown below Font, though, applies to Portrait view only - Landscape and every split-screen size have their own completely independent settings in the Landscape and Split Screen accordion below (open ⚙️ Configure Viewport for each one).</p>
 <div class="p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
 <div class="flex justify-between items-center mb-2">
 <label class="text-xs font-bold uppercase text-muted-custom">Theme 🎨</label>
@@ -537,7 +538,7 @@ alert("Promise Error: " + event.reason);
 </div>
 <div class="grid grid-cols-2 gap-3 mt-4">
 <div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Header Padding</label>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Header Padding (Portrait)</label>
 <select id="header-padding-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
 <option value="0">0px</option>
 <option value="8">8px</option>
@@ -548,7 +549,7 @@ alert("Promise Error: " + event.reason);
 </select>
 </div>
 <div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Inputs Padding</label>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Inputs Padding (Portrait)</label>
 <select id="inputs-padding-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
 <option value="0">0px</option>
 <option value="10">10px</option>
@@ -733,7 +734,7 @@ alert("Promise Error: " + event.reason);
 <span class="font-bold text-sm">Position Swap 🔄</span>
 <input type="checkbox" id="positionSwapToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Adjust Input Area ↔️</span>
+<span class="font-bold text-sm">Adjust Input Area ↔️ <span class="font-normal opacity-70">(Portrait)</span></span>
 <input type="checkbox" id="landscapeInputResizeToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Picture in Picture 🪟</span>
@@ -1734,6 +1735,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div><strong>Full Screen:</strong> Hides browser bars.</div>
 <div><strong>Eco Mode 🔋:</strong> Master on/off. What it actually does is fully configurable in its own accordion further down in General Settings - theme switching, wake lock limits, ambient light sensor, camera/mic quality, haptics strength, volume, and a real on-screen dim are all independently adjustable there, and every one of them genuinely does something (nothing in that section is just a label).</div>
 <div><strong>Position Swap 🔄:</strong> Adds a header button that moves the input pad from the bottom of the screen to the top.</div>
+<div><strong>Adjust Input Area ↔️ (Portrait):</strong> Turns on a draggable divider between the sequence area and the keypad in Portrait view specifically - drag the handle on the divider line itself to resize live. Landscape and every split-screen size have their own completely independent version of this inside their ⚙️ Configure Viewport modal - this toggle never affects any of them.</div>
 <div><strong>Bigger Buttons:</strong> Hides menus and makes each key perfectly square (as tall as it is wide) instead of a fixed height.</div>
 <div><strong>Touch Gesture:</strong> Shows the transparent touch gesture pad (taps/swipes drawn anywhere on screen).</div>
 <div><strong>Hand Gestures 🖐️:</strong> Master switch for the rear-camera hand tracking engine. Required for both per-key hand mapping and Hand Signals below.</div>
@@ -1761,7 +1763,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
 <p>Its own accordion at the bottom of the <strong>UI</strong> tab in Settings, with five tabs - <strong>Landscape</strong>, <strong>66%</strong>, <strong>50% ↕</strong> (phone held upright), <strong>50% ↔</strong> (phone held sideways), and <strong>33%</strong>. Whichever one you're actually using right now is highlighted automatically.</p>
 <p><strong>Why five separate tabs:</strong> a 50/50 split-screen looks completely different depending on whether you're holding the phone normally or sideways, so each gets its own settings instead of sharing one. 66% and Landscape stack/sit side-by-side the same way portrait always has; 33% and 50% ↔ are always side-by-side (too narrow to stack usefully); 50% ↕ is always stacked (plenty of room, matches normal portrait).</p>
-<p><strong>⚙️ Configure Viewport:</strong> Every real per-tab setting - UI Scale, Sequence Size, Row Max, Header/Number/Input Font/Button Size, Adjust Input Area, and Alignment (50% tabs only) - lives inside this button's modal, alongside a live preview of the real app so you can see exactly what a change looks like. Every change here saves and applies the instant you make it - there's no separate Save step and nothing to lose by closing the modal.</p>
+<p><strong>⚙️ Configure Viewport:</strong> Every real per-tab setting - UI Scale, Sequence Size, Row Max, Header/Number/Input Font/Button Size, Header Padding, Inputs Padding, Adjust Input Area, and Alignment (50% tabs only) - lives inside this button's modal, alongside a live preview of the real app so you can see exactly what a change looks like. Completely independent per tab - nothing here is shared with Portrait's own settings on the UI tab, or with any other tab. Every change here saves and applies the instant you make it - there's no separate Save step and nothing to lose by closing the modal.</p>
 <p><strong>Picture-in-Picture:</strong> Fixed, not configurable, at 66%/50% ↕/50% ↔/33% - the popup always shows Machine 1's sequence, Machines 2-4 use the regular sequence area. 33% supports up to 4 machines this way when Touch Gesture is also on, since that frees the full pane width for the sequence display.</p>
 <p class="opacity-70">The gear icon in the header jumps straight to whichever tab matches your current orientation - no need to hunt for it manually.</p>
 </div>
@@ -1788,7 +1790,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <span class="group-open:rotate-180 transition-transform">▼</span>
 </summary>
 <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
-<p>Theme, Font, and every sizing/layout dropdown live here now, separate from General's toggles - and the Landscape/Split Screen accordion above sits at the bottom of this same tab.</p>
+<p>Theme and Font apply everywhere, same as always. Every sizing/layout dropdown below them, though, is Portrait's own setting specifically - Landscape and every split-screen size have their own completely independent copies inside their ⚙️ Configure Viewport modal (Landscape/Split Screen accordion, bottom of this tab), including Header Padding and Inputs Padding.</p>
 <p><strong>Theme 🎨:</strong> Pick a color scheme or open the Editor to create your own.</p>
 <p><strong>Font 🔤:</strong> Swaps the app's typeface.</p>
 <p><strong>Sequence Size:</strong> Scales the individual cards showing the remembered numbers, from 50% up to 300%.</p>
@@ -1796,8 +1798,8 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <p><strong>Header Size:</strong> Independent scale for just the header's icon row, on top of UI Scale.</p>
 <p><strong>Font Size:</strong> Independent scale for the keypad's number/control buttons and the Settings menu's text, on top of UI Scale.</p>
 <p><strong>Number Size:</strong> Adjusts the font size of the text inside the sequence cards.</p>
-<p><strong>Header Padding:</strong> Extra space between the header and the sequence cards below it, on top of the small built-in gap that always keeps them from touching.</p>
-<p><strong>Inputs Padding:</strong> Extra space at the bottom of the keypad, in case your device's own navigation bar sits close enough to cover part of it.</p>
+<p><strong>Header Padding (Portrait):</strong> Extra space between the header and the sequence cards below it, on top of the small built-in gap that always keeps them from touching.</p>
+<p><strong>Inputs Padding (Portrait):</strong> Extra space at the bottom of the keypad, in case your device's own navigation bar sits close enough to cover part of it.</p>
 <p><strong>AR Playback Speed:</strong> The speed at which your recorded AR background clips play back.</p>
 <p><strong>Resize Gesture:</strong> Maps the pinch-to-zoom gesture to scale the Global UI, the Sequence Cards, or disables it.</p>
 <p><strong>Voice Trigger:</strong> The specific word the app listens for before logging your spoken numbers or a command (e.g., "Set 1 2 3" or "Set Play").</p>

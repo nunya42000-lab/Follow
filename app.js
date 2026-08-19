@@ -4649,28 +4649,27 @@ class SettingsManager {
 				return a.localeCompare(b);
 		});
 		const labels = ["1", "2", "3", "4", "5", "6 C", "7 D", "8 E", "9 F", "10 G", "11 A", "12 B"];
-		// Two label/dropdown pairs per row. Columns are auto/1fr/auto/1fr (not 4 equal 1fr's) so
-		// each label hugs its OWN dropdown tightly - the gap that separates the two pairs comes
-		// from an explicit left margin on the second pair's label (ml-5) instead of from the
-		// column math, since equal-width columns previously put all the slack on the wrong side
-		// (between a label and its own dropdown) rather than between the two pairs.
-		let gridHtml = `<div class="grid gap-y-3 gap-x-2 items-center" style="grid-template-columns: auto 1fr auto 1fr;">`;
+		// Matches the UI tab's own dropdown pattern exactly: label stacked above a themed
+		// .settings-input select, two per row - instead of the old hardcoded dark colors and
+		// compact inline label/select pairing, which didn't match the rest of the app and looked
+		// out of place next to everything else in Settings.
+		let gridHtml = `<div class="grid grid-cols-2 gap-3">`;
 		labels.forEach((label, index) => {
 				const val = index + 1;
-				const isSecondInRow = index % 2 === 1;
 				let optionsHtml = `<optgroup label="Morse Patterns">`;
 				optionsHtml += morseOptions.map(m => `<option value="${m}">${m}</option>`).join('');
 				optionsHtml += `</optgroup>`;
 				gridHtml += `
-				<div class="text-left text-[10px] font-bold text-gray-400 pr-1 whitespace-nowrap${isSecondInRow ? ' ml-5' : ''}">${label}</div>
-				<select class="bg-gray-800 text-white text-[10px] p-0.5 rounded border border-gray-600 focus:border-primary-app outline-none h-6 w-full font-mono tracking-widest text-center" data-morse-id="${val}">
+				<div>
+				<label class="block text-xs font-bold mb-1 text-muted-custom">Value ${label}</label>
+				<select class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm font-mono tracking-widest" data-morse-id="${val}">
 				${optionsHtml}
 				</select>
+				</div>
 				`;
 		});
 		gridHtml += `</div>`;
 		container.innerHTML = `
-		<h3 class="text-sm font-bold uppercase text-gray-400 mb-3">Haptic Output Mapping</h3>
 		${gridHtml}
 		<p class="text-[10px] text-gray-500 mt-3 text-center">Custom dot/dash patterns for playback.</p>
 		`;

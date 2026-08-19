@@ -660,12 +660,23 @@ const DEFAULT_APP = {
 	appInputFontScale: 100,
 	appInputBtnScale: 100,
 	appRowMax: '5',
+	// Every bucket now carries its OWN inputAreaEnabled/inputAreaPct instead of leaving some of
+	// them undefined - an undefined value made getEffectiveInputAreaEnabled()/Pct() silently fall
+	// back to the GLOBAL Adjust Input Area toggle/percentage (General/UI tab) for that bucket,
+	// which is exactly what made per-bucket lists look like they "didn't work" - the bucket's own
+	// saved value existed but was never being read because the fallback got there first only for
+	// the buckets missing this key. landscape/split66/split50h default to off (matching prior
+	// real-world behavior) so nothing changes visually for people already using them; split50v
+	// and split33 are turned on with the percentages that actually make each pane usable - 50v is
+	// a short, full-width stacked pane so the input pad needs most of the height (80%), while
+	// split33's side-by-side pane is wide-open vertically but very narrow horizontally, so the
+	// input strip only needs a sliver (20%) and the sequence display gets the rest.
 	viewportProfiles: {
-		landscape: { uiScale: 100, seqSize: 210, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] }, // Executed: sequence size & row bounds
-		split66: { uiScale: 100, seqSize: 180, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', headerButtons: [] },
-		split50v: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }, // Executed: flex-direction fixed
-		split50h: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
-		split33: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: true, inputAreaPct: 65, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] } // Executed: custom piano sizing metrics mapped
+		landscape: { uiScale: 100, seqSize: 210, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: false, inputAreaPct: 50, headerButtons: [] }, // Executed: sequence size & row bounds
+		split66: { uiScale: 100, seqSize: 180, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: false, inputAreaPct: 50, headerButtons: [] },
+		split50v: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', inputAreaEnabled: true, inputAreaPct: 80, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }, // Executed: flex-direction fixed
+		split50h: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', inputAreaEnabled: false, inputAreaPct: 50, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
+		split33: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: true, inputAreaPct: 20, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] } // Executed: custom piano sizing metrics mapped
 	},
 	pipMachineIndex: null,
 	ecoModeConfig: {
@@ -4651,8 +4662,8 @@ class SettingsManager {
 				optionsHtml += morseOptions.map(m => `<option value="${m}">${m}</option>`).join('');
 				optionsHtml += `</optgroup>`;
 				gridHtml += `
-				<div class="text-left text-xs font-bold text-gray-400 pr-1 whitespace-nowrap${isSecondInRow ? ' ml-5' : ''}">${label}</div>
-				<select class="bg-gray-800 text-white text-xs p-1 rounded border border-gray-600 focus:border-primary-app outline-none h-8 w-full font-mono tracking-widest text-center" data-morse-id="${val}">
+				<div class="text-left text-[10px] font-bold text-gray-400 pr-1 whitespace-nowrap${isSecondInRow ? ' ml-5' : ''}">${label}</div>
+				<select class="bg-gray-800 text-white text-[10px] p-0.5 rounded border border-gray-600 focus:border-primary-app outline-none h-6 w-full font-mono tracking-widest text-center" data-morse-id="${val}">
 				${optionsHtml}
 				</select>
 				`;
@@ -5469,6 +5480,13 @@ function loadState() {
 				}
 				delete appSettings.viewportProfiles.split75;
 				delete appSettings.viewportProfiles.split25;
+				// split33's shipped default input-area width moved from 65% to 20% (65% left almost
+				// no room for the sequence display in an already-narrow pane). Only nudge it forward
+				// for someone still sitting on the old default - if they'd already dialed in their
+				// own number, leave it alone.
+				if (appSettings.viewportProfiles.split33 && appSettings.viewportProfiles.split33.inputAreaPct === 65) {
+					appSettings.viewportProfiles.split33.inputAreaPct = 20;
+				}
 			}
 			const pruneOrphaned = (obj, schema) => {
 				if (!obj || !schema) return;
@@ -6001,11 +6019,21 @@ function getEffectiveInputAreaPct() {
 	}
 	return appSettings.landscapeInputWidthPct || 50;
 }
+// PiP is fixed (not user-configurable) at these four bucket sizes: Machine 1's sequence goes in
+// the popup, Machines 2-4 render in the regular sequence area. Landscape and Portrait are left
+// alone - PiP there still shows whatever the (still-supported) pipMachineIndex setting says.
+function isPipRestrictedBucket(bucket) {
+	return bucket === 'split66' || bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33';
+}
+window.isPipRestrictedBucket = isPipRestrictedBucket;
 function syncPipSequenceOnlyMode() {
 	const bucket = document.body.dataset.viewportBucket;
-	const isSplitSmall = bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33';
 	const pipActive = !!document.pictureInPictureElement;
-	document.body.classList.toggle('pip-sequence-only', isSplitSmall && pipActive);
+	// The body class no longer hides the sequence area outright (see the CSS comment at
+	// .pip-sequence-only) - it's kept as a hook other code can key off of, and to trigger a
+	// re-render so Machine 1 actually drops out of the main area the instant PiP opens/closes.
+	document.body.classList.toggle('pip-sequence-only', isPipRestrictedBucket(bucket) && pipActive);
+	if (typeof renderUI === 'function') renderUI();
 }
 // Maps the curated header-button ids used in the Landscape/Split Screen configure modal's
 // checklist to their actual DOM element ids, so the person's per-viewport selection can
@@ -6101,9 +6129,13 @@ function applyViewportProfile() {
 	document.documentElement.style.fontSize = `${getEffectiveGlobalUiScale()}%`;
 	renderUI();
 
-	// 3. Dispatch specific metric applications
+	// 3. Dispatch specific metric applications - all four, not just Row Max/Button Size, or a
+	// bucket's own Header Size / Input Font Size silently wouldn't take effect until the
+	// person happened to reopen Settings for some unrelated reason.
 	if (modules.settings && typeof modules.settings.applyRowMax === 'function') modules.settings.applyRowMax();
 	if (modules.settings && typeof modules.settings.applyInputBtnScale === 'function') modules.settings.applyInputBtnScale();
+	if (modules.settings && typeof modules.settings.applyHeaderScale === 'function') modules.settings.applyHeaderScale();
+	if (modules.settings && typeof modules.settings.applyInputFontScale === 'function') modules.settings.applyInputFontScale();
 }
 
 function updateAllChrome() {
@@ -6434,14 +6466,12 @@ function renderUI() {
 	try {
 		const gpWrap = document.getElementById('gesture-pad-wrapper');
 		const pad = document.getElementById('gesture-pad');
-		const inputFooter = document.getElementById('input-footer');
 		if (gpWrap) {
 			const isGlobalTouchGestureOn = appSettings.isTouchGestureInputEnabled;
 			const isBossTouchGestureOn = appSettings.isBossModeEnabled && appSettings.isTouchGestureInputEnabled && bossState.isActive;
 			if (isGlobalTouchGestureOn && isTouchGesturePadVisible || isBossTouchGestureOn) {
 				document.body.classList.add('input-gestures-mode');
 				gpWrap.classList.remove('hidden');
-				if (inputFooter) inputFooter.classList.add('hidden');
 				if (isBossTouchGestureOn) {
 					gpWrap.style.zIndex = '10001';
 					if (pad) {
@@ -6459,7 +6489,6 @@ function renderUI() {
 				document.body.classList.remove('input-gestures-mode');
 				gpWrap.classList.add('hidden');
 				gpWrap.style.zIndex = '';
-				if (inputFooter && !document.body.classList.contains('ar-active')) inputFooter.classList.remove('hidden');
 			}
 		}
 	} catch (e) {
@@ -6519,7 +6548,19 @@ function renderUI() {
 		}
 		return;
 	}
-	const activeSeqs = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? [state.sequences[0]] : state.sequences.slice(0, settings.machineCount);
+	// PiP fixed-machine mode (33%/50h/50v/66%, popup open): Machine 1 lives exclusively in the
+	// PiP popup (see drawPipFrame) - the main sequence area shows Machines 2-4 instead of hiding
+	// outright, so multi-machine games stay fully visible and playable around the popup.
+	const pipRestricted = isPipRestrictedBucket(document.body.dataset.viewportBucket) && !!document.pictureInPictureElement;
+	let activeSeqs, activeIndices;
+	if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
+		activeSeqs = [state.sequences[0]];
+		activeIndices = [0];
+	} else {
+		activeIndices = Array.from({ length: settings.machineCount }, (_, i) => i);
+		if (pipRestricted) activeIndices = activeIndices.filter(i => i !== 0);
+		activeSeqs = activeIndices.map(i => state.sequences[i]);
+	}
 	if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
 		const roundNum = parseInt(state.currentRound) || 1;
 		const header = document.createElement('h2');
@@ -6528,11 +6569,18 @@ function renderUI() {
 		header.innerHTML = `Unique Mode: <span class=\"text-primary-app\">Round ${roundNum}</span>`;
 		container.appendChild(header);
 	}
-	let gridCols = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? 1 : Math.min(settings.machineCount, 4);
+	// Narrow side-by-side panes (33%/50h) get at most 2 machine columns instead of up to 4 - a
+	// rigid 4-across grid squeezed into an already-narrow pane is what made multi-machine games
+	// there effectively unusable regardless of how much the touch-gesture pad freed up.
+	const bucketForGrid = document.body.dataset.viewportBucket;
+	const narrowBucket = bucketForGrid === 'split33' || bucketForGrid === 'split50h';
+	const maxCols = narrowBucket ? 2 : 4;
+	let gridCols = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? 1 : Math.max(1, Math.min(activeSeqs.length, maxCols));
 	container.className = `flex-grow grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
 	container.style.gridAutoRows = '1fr';
 	container.style.minHeight = '0';
-	activeSeqs.forEach((seq, idx) => {
+	activeSeqs.forEach((seq, arrIdx) => {
+			const idx = activeIndices[arrIdx];
 			const card = document.createElement('div');
 			card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)] relative group";
 			if (settings.machineCount > 1) {
@@ -6584,6 +6632,14 @@ function renderUI() {
 				card.appendChild(headerRow);
 			}
 			const numGrid = document.createElement('div');
+			// Both single- and multi-machine sequences use the same flex-wrap layout, so Row
+			// Max / UI Scale / Sequence Size (including the per-viewport-bucket overrides from
+			// the Landscape/Split Screen configure modal) actually apply to what's on screen.
+			// This used to hard-code a 4-column CSS grid whenever more than one machine was
+			// active, which ignored all of those settings outright - the grid packed exactly 4
+			// per row no matter what Row Max said, and no matter how large the boxes were sized
+			// to be, so real gameplay with 2+ machines never matched what the settings preview
+			// (which only ever previews a single machine) showed.
 			numGrid.className = "flex flex-wrap gap-2 justify-center";
 			(seq || []).forEach(num => {
 					const span = document.createElement('span');
@@ -6601,6 +6657,14 @@ function renderUI() {
 			card.appendChild(numGrid);
 			container.appendChild(card);
 	});
+	// Fix: flex-wrap on numGrid wraps based on its own logical (pre-rotation) axis, which
+	// while Portrait Lock is compensating doesn't match the visual space the card actually
+	// renders at after rotation - a rotated element's logical width becomes its visual
+	// height, and vice versa. For row-direction flex-wrap (the default), wrapping is
+	// governed by logical width, but widening that axis actually shrinks the visual width
+	// (the opposite of what's needed). Flipping to column-direction and sizing the logical
+	// height axis instead means each logical "column" (which becomes a visual row after
+	// rotation) holds enough boxes to span the available visual width.
 	requestAnimationFrame(() => {
 		requestAnimationFrame(() => {
 			const isRotating = document.body.dataset.rotate === '90' || document.body.dataset.rotate === '270';
@@ -6634,7 +6698,6 @@ function renderUI() {
 	});
 	if (modules.settings && typeof modules.settings.applyRowMax === 'function') modules.settings.applyRowMax();
 }
-
 function disableInput(disabled) {
 	const footer = document.getElementById('input-footer');
 	if (!footer) return;
@@ -6644,7 +6707,6 @@ function disableInput(disabled) {
 		footer.classList.remove('opacity-50', 'pointer-events-none');
 	}
 }
-
 function playDemo() {
 	if (isDemoPlaying) return;
 	isDemoPlaying = true;
@@ -8128,7 +8190,11 @@ function drawPipFrame() {
 	const W = pipCanvas.width, H = pipCanvas.height;
 	ctx.fillStyle = bg;
 	ctx.fillRect(0, 0, W, H);
-	const vals = readVisibleSequence(typeof appSettings.pipMachineIndex === 'number' ? appSettings.pipMachineIndex : undefined);
+	// Fixed behavior at 33%/50h/50v/66%: the popup always shows Machine 1 (index 0), full stop -
+	// not the configurable pipMachineIndex, which only still applies in Landscape/Portrait.
+	const restrictedBucket = isPipRestrictedBucket(document.body.dataset.viewportBucket);
+	const pipMachineToShow = restrictedBucket ? 0 : (typeof appSettings.pipMachineIndex === 'number' ? appSettings.pipMachineIndex : undefined);
+	const vals = readVisibleSequence(pipMachineToShow);
 	ctx.textAlign = 'center';
 	ctx.textBaseline = 'middle';
 	if (!vals.length) {
@@ -8420,16 +8486,18 @@ function wireHeaderButtonInteractions() {
 		});
 	}
 }
-// Shared UI-builder helpers for both the full (landscape/split66) and mini (split50/split33)
-// viewport configure modals - parameterized by target container div and a state object so
-// each modal's own tempSettings/profile stay isolated while reusing the same rendering logic.
+// Shared UI-builder helpers for the Landscape/Split Screen viewport configure modal - each one
+// is parameterized by the target container div and the real per-bucket profile object.
 function vpMakeSectionLabel(container, text) {
 	const el = document.createElement('div');
 	el.style.cssText = 'color: #6366f1; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin: 14px 0 8px; border-top: 1px solid #333; padding-top: 12px;';
 	el.textContent = text;
 	container.appendChild(el);
 }
-function vpMakeSlider(container, tempSettings, profile, onChange, label, key, min, max, step, suffix, fallback) {
+// Both helpers now write straight into the real profile object (and fire onCommit immediately)
+// instead of buffering into a tempSettings object that only got merged in on an explicit Save -
+// per-bucket viewport settings save the instant they change, same as everywhere else in Settings.
+function vpMakeSlider(container, profile, onCommit, label, key, min, max, step, suffix, fallback) {
 	const div = document.createElement('div');
 	div.style.cssText = 'margin-bottom: 12px;';
 	const labelEl = document.createElement('label');
@@ -8440,7 +8508,7 @@ function vpMakeSlider(container, tempSettings, profile, onChange, label, key, mi
 	input.min = min;
 	input.max = max;
 	input.step = step;
-	const curVal = tempSettings[key] !== undefined ? tempSettings[key] : (profile[key] !== undefined ? profile[key] : (fallback !== undefined ? fallback : min));
+	const curVal = profile[key] !== undefined ? profile[key] : (fallback !== undefined ? fallback : min);
 	input.value = curVal;
 	input.style.cssText = 'width: 100%; cursor: pointer;';
 	const valueSpan = document.createElement('span');
@@ -8448,16 +8516,16 @@ function vpMakeSlider(container, tempSettings, profile, onChange, label, key, mi
 	valueSpan.textContent = curVal + suffix;
 	labelEl.appendChild(valueSpan);
 	input.onchange = input.oninput = (e) => {
-		tempSettings[key] = parseInt(e.target.value);
+		profile[key] = parseInt(e.target.value, 10);
 		valueSpan.textContent = e.target.value + suffix;
-		onChange();
+		onCommit();
 	};
 	div.appendChild(labelEl);
 	div.appendChild(input);
 	container.appendChild(div);
 	return input;
 }
-function vpMakeSelect(container, tempSettings, profile, onChange, label, key, options, defaultVal) {
+function vpMakeSelect(container, profile, onCommit, label, key, options, defaultVal, isNumeric) {
 	const div = document.createElement('div');
 	div.style.cssText = 'margin-bottom: 12px;';
 	const labelEl = document.createElement('label');
@@ -8471,11 +8539,11 @@ function vpMakeSelect(container, tempSettings, profile, onChange, label, key, op
 		o.textContent = opt.text;
 		select.appendChild(o);
 	});
-	const curVal = tempSettings[key] !== undefined ? tempSettings[key] : (profile[key] !== undefined ? profile[key] : defaultVal);
+	const curVal = profile[key] !== undefined ? profile[key] : defaultVal;
 	select.value = curVal;
 	select.onchange = (e) => {
-		tempSettings[key] = e.target.value;
-		onChange();
+		profile[key] = isNumeric ? parseInt(e.target.value, 10) : e.target.value;
+		onCommit();
 	};
 	div.appendChild(labelEl);
 	div.appendChild(select);
@@ -8487,7 +8555,7 @@ function vpPercentOptions(min, max, step) {
 	for (let v = min; v <= max; v += step) opts.push({ value: String(v), text: v + '%' });
 	return opts;
 }
-let viewportConfigState = { configBucket: null, tempSettings: {}, activeTab: 'landscape' };
+let viewportConfigState = { configBucket: null, activeTab: 'landscape' };
 
 // Real screen ratio bands, matching detectViewportBucket() exactly, so the iframe's pixel
 // width corresponds to what that bucket actually looks like on this device.
@@ -8542,8 +8610,10 @@ function vpLoadPreviewIframe(bucket) {
 	iframe.src = './index.html?vpPreview=1&vpBucket=' + encodeURIComponent(bucket);
 }
 
-// Pushes the currently-being-edited (unsaved) profile values into the live iframe so the
-// preview updates immediately as sliders/selects/checkboxes change, without a full reload.
+// Pushes the real, already-saved profile into the live iframe so the preview updates
+// immediately as sliders/selects/checkboxes change, without a full reload. Settings commit
+// straight to appSettings.viewportProfiles[bucket] now (see vpMakeSlider/vpMakeSelect), so this
+// just mirrors that same object into the iframe's separate copy instead of replaying a diff.
 function vpPushLiveEditsToPreview() {
 	const iframe = document.getElementById('viewport-config-iframe');
 	if (!iframe || !iframe.contentWindow || !viewportConfigState.configBucket) return;
@@ -8551,28 +8621,9 @@ function vpPushLiveEditsToPreview() {
 	try {
 		if (!win.appSettings || !win.appSettings.viewportProfiles) return;
 		const bucket = viewportConfigState.configBucket;
-		const liveProfile = win.appSettings.viewportProfiles[bucket];
-		if (!liveProfile) return;
-		const NUMERIC_KEYS = ['headerScale', 'numberSize', 'inputFontSize', 'btnSize', 'uiScale', 'seqSize'];
-		Object.keys(viewportConfigState.tempSettings).forEach(key => {
-			if (key === 'pipMachine') {
-				win.appSettings.pipMachineIndex = (viewportConfigState.tempSettings.pipMachine === 'same') ? null : parseInt(viewportConfigState.tempSettings.pipMachine, 10);
-				return;
-			}
-			if (NUMERIC_KEYS.includes(key)) {
-				liveProfile[key] = parseInt(viewportConfigState.tempSettings[key], 10);
-				return;
-			}
-			if (key === 'inputAreaEnabled') {
-				liveProfile.inputAreaEnabled = !!viewportConfigState.tempSettings.inputAreaEnabled;
-				return;
-			}
-			if (key === 'inputAreaPct') {
-				liveProfile.inputAreaPct = parseInt(viewportConfigState.tempSettings.inputAreaPct, 10);
-				return;
-			}
-			liveProfile[key] = viewportConfigState.tempSettings[key];
-		});
+		const realProfile = appSettings.viewportProfiles[bucket];
+		if (!realProfile) return;
+		win.appSettings.viewportProfiles[bucket] = JSON.parse(JSON.stringify(realProfile));
 		if (typeof win.applyViewportProfile === 'function') win.applyViewportProfile();
 		if (typeof win.renderUI === 'function') win.renderUI();
 		if (win.document && win.document.documentElement) {
@@ -8620,9 +8671,22 @@ function initViewportProfilesUI() {
 		if (!screen || !headerEl || !seqEl || !inputsEl) return;
 		const bucket = viewportConfigState.activeTab;
 		const profile = (appSettings.viewportProfiles && appSettings.viewportProfiles[bucket]) || { uiScale: 100, seqSize: 100 };
-		const widthByBucket = { landscape: 220, split66: 176, split50v: 120, split50h: 120, split33: 64 };
-		screen.style.width = (widthByBucket[bucket] || 220) + 'px';
-		screen.style.height = '124px';
+		// Shape the mockup screen to actually match how this bucket really renders: split50v is
+		// always a stacked, taller-than-wide pane (full width, short height) - drawing it as the
+		// same short/wide rectangle as the side-by-side buckets is exactly what made this preview
+		// look "way off" for that tab. Side-by-side buckets (landscape/66/50h/33) keep the
+		// wide/short shape, sized off the same VP_BUCKET_RATIO used by the real Configure modal
+		// preview instead of a hand-tuned, inconsistent pixel table.
+		const isStackedShape = (bucket === 'split50v');
+		const baseLong = 220, baseShort = 124;
+		if (isStackedShape) {
+			screen.style.width = baseShort + 'px';
+			screen.style.height = baseLong + 'px';
+		} else {
+			const ratio = VP_BUCKET_RATIO[bucket] || 1.0;
+			screen.style.width = Math.max(64, Math.round(baseLong * ratio)) + 'px';
+			screen.style.height = baseShort + 'px';
+		}
 		headerEl.innerHTML = '';
 		const dotCount = (bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33') ? 8 : 12;
 		for (let i = 0; i < dotCount; i++) {
@@ -8642,8 +8706,10 @@ function initViewportProfilesUI() {
 		const uiScale = (profile.uiScale || 100) / 100;
 		const btnW = Math.max(8, Math.round(14 * uiScale));
 		const btnH = Math.max(6, Math.round(8 * uiScale));
-		const alignSel = document.getElementById('viewport-alignment-' + bucket);
-		const isVertical = (bucket === 'split50v' || bucket === 'split50h') && alignSel && alignSel.value === 'vertical';
+		// Alignment now lives only on the real profile (the inline per-tab selects were removed) -
+		// reading it straight from appSettings keeps this preview honest even though there's no
+		// longer a DOM select to check.
+		const isVertical = (bucket === 'split50v' || bucket === 'split50h') && profile.alignment === 'vertical';
 		inputsEl.style.flexDirection = isVertical ? 'column' : 'row';
 		for (let i = 0; i < 6; i++) {
 			const btn = document.createElement('div');
@@ -8655,7 +8721,7 @@ function initViewportProfilesUI() {
 	function switchTab(bucket) {
 		viewportConfigState.activeTab = bucket;
 		buckets.forEach(b => {
-			if (tabBtns[b]) tabBtns[b].className = 'viewport-tab-btn py-2 rounded-lg text-[10px] font-bold ' + (b === bucket ? 'bg-emerald-600 text-white' : 'bg-gray-700 text-gray-300');
+			if (tabBtns[b]) tabBtns[b].classList.toggle('active', b === bucket);
 			if (panels[b]) panels[b].classList.toggle('hidden', b !== bucket);
 		});
 		renderPreview();
@@ -8665,79 +8731,18 @@ function initViewportProfilesUI() {
 		if (tabBtns[b]) tabBtns[b].onclick = () => switchTab(b);
 	});
 
-	function loadDropdowns() {
-		buckets.forEach(b => {
-			const profile = appSettings.viewportProfiles[b];
-			if (!profile) return;
-			const uiSel = document.getElementById('viewport-uiscale-' + b);
-			const seqSel = document.getElementById('viewport-seqsize-' + b);
-			if (uiSel) uiSel.value = profile.uiScale || 100;
-			if (seqSel) seqSel.value = profile.seqSize || 100;
-		});
-		['split50v', 'split50h'].forEach(b => {
-			const alignSel = document.getElementById('viewport-alignment-' + b);
-			if (alignSel) alignSel.value = (appSettings.viewportProfiles[b] && appSettings.viewportProfiles[b].alignment) || 'horizontal';
-		});
-	}
-	loadDropdowns();
-
-	buckets.forEach(b => {
-		const uiSel = document.getElementById('viewport-uiscale-' + b);
-		const seqSel = document.getElementById('viewport-seqsize-' + b);
-		if (uiSel) uiSel.onchange = (e) => {
-			appSettings.viewportProfiles[b].uiScale = parseInt(e.target.value);
-			saveState();
-			if (typeof applyViewportProfile === 'function') applyViewportProfile();
-			renderPreview();
-		};
-		if (seqSel) seqSel.onchange = (e) => {
-			appSettings.viewportProfiles[b].seqSize = parseInt(e.target.value);
-			saveState();
-			if (typeof applyViewportProfile === 'function') applyViewportProfile();
-			renderPreview();
-		};
-	});
-	['split50v', 'split50h'].forEach(b => {
-		const alignSel = document.getElementById('viewport-alignment-' + b);
-		if (alignSel) alignSel.onchange = (e) => {
-			appSettings.viewportProfiles[b].alignment = e.target.value;
-			saveState();
-			if (typeof applyViewportProfile === 'function') applyViewportProfile();
-			renderPreview();
-		};
-	});
-
-	function populatePipMachineDropdowns() {
-		const sels = document.querySelectorAll('.viewport-pip-machine-select');
-		if (!sels.length) return;
-		const settings = (typeof getProfileSettings === 'function') ? getProfileSettings() : null;
-		const machineCount = (settings && settings.machineCount) || 1;
-		const currentVal = (typeof appSettings.pipMachineIndex === 'number') ? String(appSettings.pipMachineIndex) : 'same';
-		sels.forEach(sel => {
-			sel.innerHTML = '<option value="same">Same as Main Area</option>';
-			for (let i = 0; i < machineCount; i++) {
-				const opt = document.createElement('option');
-				opt.value = String(i);
-				opt.textContent = 'Machine ' + (i + 1);
-				sel.appendChild(opt);
-			}
-			sel.value = currentVal;
-			sel.onchange = (e) => {
-				appSettings.pipMachineIndex = (e.target.value === 'same') ? null : parseInt(e.target.value, 10);
-				saveState();
-				sels.forEach(other => { if (other !== e.target) other.value = e.target.value; });
-			};
-		});
-	}
-	populatePipMachineDropdowns();
+	// The old inline per-tab UI Scale/Sequence Size/Alignment/PiP-Shows dropdowns (and their
+	// loadDropdowns()/onchange wiring, and the PiP machine-select populator) lived directly in
+	// each panel, above the Configure Viewport button. They've been removed - every real bucket
+	// setting now lives only in the Configure Viewport modal below, and PiP machine selection is
+	// fixed (not configurable) for these four buckets - see isPipRestrictedBucket().
 
 	const currentBucket = document.body.dataset.viewportBucket;
 	switchTab((currentBucket && buckets.includes(currentBucket)) ? currentBucket : 'landscape');
 
 	// Configure modal
 	const configModal = document.getElementById('viewport-config-modal');
-	const configSaveBtn = document.getElementById('viewport-config-save-btn');
-	const configCancelBtn = document.getElementById('viewport-config-cancel-btn');
+	const configDoneBtn = document.getElementById('viewport-config-done-btn');
 	const configureBtns = document.querySelectorAll('.viewport-configure-btn');
 
 	function renderConfigSettings() {
@@ -8747,48 +8752,60 @@ function initViewportProfilesUI() {
 		const profile = appSettings.viewportProfiles[bucket];
 		settingsDiv.innerHTML = '';
 
+		// Every control below writes straight to appSettings.viewportProfiles[bucket] and commits
+		// immediately - saveState() + a live reapply on the real app + a push into the iframe
+		// preview, all in one go. Nothing here is buffered or discardable any more.
+		const commit = () => {
+			saveState();
+			if (typeof applyViewportProfile === 'function') applyViewportProfile();
+			renderPreview();
+			vpRenderConfigScreen();
+		};
+
 		const sectionLabel = (text) => vpMakeSectionLabel(settingsDiv, text);
 		const createSlider = (label, key, min, max, step, suffix, fallback) =>
-			vpMakeSlider(settingsDiv, viewportConfigState.tempSettings, profile, vpRenderConfigScreen, label, key, min, max, step, suffix, fallback);
-		const createSelect = (label, key, options, defaultVal) =>
-			vpMakeSelect(settingsDiv, viewportConfigState.tempSettings, profile, vpRenderConfigScreen, label, key, options, defaultVal);
+			vpMakeSlider(settingsDiv, profile, commit, label, key, min, max, step, suffix, fallback);
+		const createSelect = (label, key, options, defaultVal, isNumeric) =>
+			vpMakeSelect(settingsDiv, profile, commit, label, key, options, defaultVal, isNumeric);
 
 		// --- Sizing (all tabs) - dropdowns match the real General settings dropdowns exactly
 		// (same option lists, same values) rather than a slider covering the same range, per
 		// explicit request: sliders let you land between the real steps, which never matches
 		// what the actual General-tab dropdown could produce. ---
 		sectionLabel('Sizing');
-		createSelect('UI Scale', 'uiScale', vpPercentOptions(50, 500, 10), '100');
-		createSelect('Sequence Size', 'seqSize', vpPercentOptions(50, 300, 10), '100');
+		createSelect('UI Scale', 'uiScale', vpPercentOptions(50, 500, 10), '100', true);
+		createSelect('Sequence Size', 'seqSize', vpPercentOptions(50, 300, 10), '100', true);
 		createSelect('Row Max', 'rowMax', [
 			{ value: 'none', text: 'None' },
 			{ value: '4', text: '4 Cards' }, { value: '5', text: '5 Cards' },
 			{ value: '6', text: '6 Cards' }, { value: '7', text: '7 Cards' },
 			{ value: '8', text: '8 Cards' }, { value: '10', text: '10 Cards' },
 			{ value: '12', text: '12 Cards' }, { value: '15', text: '15 Cards' }
-		], profile.rowMax || 'none');
+		], profile.rowMax || 'none', false);
 
 		// --- Text & Button Sizing (all tabs) - every bucket has its OWN independent value here,
 		// entirely separate from the matching General-tab global setting (landscape and each
 		// split bucket are meant to be configured on their own terms; changing General settings
 		// never moves these). No "inherit" option - there's always a real per-bucket value. ---
 		sectionLabel('Header, Number & Button Sizing');
-		createSelect('Header Size', 'headerScale', vpPercentOptions(70, 150, 10), '100');
+		createSelect('Header Size', 'headerScale', vpPercentOptions(70, 150, 10), '100', true);
 		createSelect('Number Size', 'numberSize', [
 			{ value: '100', text: 'Normal' }, { value: '150', text: 'Large' },
 			{ value: '200', text: 'Huge' }, { value: '250', text: 'Max (Fill)' }
-		], '250');
+		], '250', true);
 		createSelect('Input Font Size', 'inputFontSize', [
 			{ value: '100', text: 'Normal' }, { value: '150', text: 'Large' },
 			{ value: '200', text: 'Huge' }, { value: '250', text: 'Max (Fill)' }
-		], '100');
+		], '100', true);
 		createSelect('Button Size', 'btnSize', [
 			{ value: '70', text: 'Small' }, { value: '85', text: 'Compact' },
 			{ value: '100', text: 'Normal' }, { value: '125', text: 'Large' }, { value: '150', text: 'Huge' }
-		], '100');
+		], '100', true);
 
 		// --- Adjust Input Area (landscape/split66/50/25 only - portrait has its own separate
-		// global-only version of this feature since it isn't part of viewportProfiles) ---
+		// global-only version of this feature since it isn't part of viewportProfiles). Every
+		// bucket now always carries its own inputAreaEnabled/inputAreaPct (see DEFAULT_APP), so
+		// this never silently falls back to the global General/UI toggle any more. ---
 		sectionLabel('Adjust Input Area');
 		const inputAreaToggleWrap = document.createElement('label');
 		inputAreaToggleWrap.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 8px; margin-bottom: 10px; background: #222; border-radius: 4px; cursor: pointer;';
@@ -8798,18 +8815,15 @@ function initViewportProfilesUI() {
 		const inputAreaToggleCb = document.createElement('input');
 		inputAreaToggleCb.type = 'checkbox';
 		inputAreaToggleCb.style.cssText = 'width: 16px; height: 16px; cursor: pointer;';
-		const curInputAreaEnabled = viewportConfigState.tempSettings.inputAreaEnabled !== undefined
-			? viewportConfigState.tempSettings.inputAreaEnabled
-			: (profile.inputAreaEnabled !== undefined ? profile.inputAreaEnabled : appSettings.isLandscapeInputResizeEnabled);
-		inputAreaToggleCb.checked = !!curInputAreaEnabled;
+		inputAreaToggleCb.checked = !!profile.inputAreaEnabled;
 		inputAreaToggleCb.onchange = (e) => {
-			viewportConfigState.tempSettings.inputAreaEnabled = e.target.checked;
-			vpRenderConfigScreen();
+			profile.inputAreaEnabled = e.target.checked;
+			commit();
 		};
 		inputAreaToggleWrap.appendChild(inputAreaToggleSpan);
 		inputAreaToggleWrap.appendChild(inputAreaToggleCb);
 		settingsDiv.appendChild(inputAreaToggleWrap);
-		createSlider('Input Area Width', 'inputAreaPct', 20, 80, 5, '%', appSettings.landscapeInputWidthPct || 50);
+		createSlider('Input Area Width', 'inputAreaPct', 20, 80, 5, '%', profile.inputAreaPct !== undefined ? profile.inputAreaPct : 50);
 		const inputAreaNote = document.createElement('p');
 		inputAreaNote.style.cssText = 'color: #666; font-size: 9px; margin: -8px 0 12px;';
 		inputAreaNote.textContent = 'Also draggable live on the divider line itself in the preview above.';
@@ -8821,20 +8835,17 @@ function initViewportProfilesUI() {
 			createSelect('Alignment', 'alignment', [
 				{ value: 'horizontal', text: 'Horizontal (Normal)' },
 				{ value: 'vertical', text: 'Vertical' }
-			], 'horizontal');
+			], 'horizontal', false);
 		}
 
-		// --- Picture-in-Picture (split50v/split50h/split33 only) ---
-		if (bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33') {
+		// --- Picture-in-Picture (split66/split50v/split50h/split33 only) - fixed behavior, not
+		// configurable: Machine 1 always goes in the popup, Machines 2-4 stay in the regular
+		// sequence area. Nothing to pick here any more, just an explanation. ---
+		if (bucket === 'split66' || bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33') {
 			sectionLabel('Picture-in-Picture');
-			const settings = (typeof getProfileSettings === 'function') ? getProfileSettings() : null;
-			const machineCount = (settings && settings.machineCount) || 1;
-			const pipOptions = [{ value: 'same', text: 'Same as Main Area' }];
-			for (let i = 0; i < machineCount; i++) pipOptions.push({ value: String(i), text: 'Machine ' + (i + 1) });
-			createSelect('PiP Shows', 'pipMachine', pipOptions, 'same');
 			const note = document.createElement('p');
-			note.style.cssText = 'color: #888; font-size: 10px; margin: -6px 0 12px;';
-			note.textContent = 'If PiP is active at this size, the sequence only appears in the popup - the main screen shows inputs only.';
+			note.style.cssText = 'color: #888; font-size: 10px; margin: -2px 0 12px;';
+			note.textContent = "Fixed at this size: Machine 1's sequence shows in the PiP popup, Machines 2-4 stay in the regular sequence area.";
 			settingsDiv.appendChild(note);
 		}
 
@@ -8845,7 +8856,7 @@ function initViewportProfilesUI() {
 			note.style.cssText = 'color: #888; font-size: 10px; margin: -2px 0 8px;';
 			note.textContent = 'Only these buttons can show at this width. Still gated by each button\'s own General toggle.';
 			settingsDiv.appendChild(note);
-			const currentSelected = viewportConfigState.tempSettings.headerButtons !== undefined ? viewportConfigState.tempSettings.headerButtons : (profile.headerButtons || []);
+			const currentSelected = profile.headerButtons || [];
 			VP_CURATED_HEADER_BUTTONS.forEach(btnDef => {
 				const row = document.createElement('label');
 				row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 8px; margin-bottom: 4px; background: #222; border-radius: 4px; cursor: pointer;';
@@ -8857,14 +8868,14 @@ function initViewportProfilesUI() {
 				checkbox.checked = currentSelected.includes(btnDef.id);
 				checkbox.style.cssText = 'width: 16px; height: 16px; cursor: pointer;';
 				checkbox.onchange = (e) => {
-					let list = viewportConfigState.tempSettings.headerButtons !== undefined ? viewportConfigState.tempSettings.headerButtons.slice() : (profile.headerButtons || []).slice();
+					let list = (profile.headerButtons || []).slice();
 					if (e.target.checked) {
 						if (!list.includes(btnDef.id)) list.push(btnDef.id);
 					} else {
 						list = list.filter(id => id !== btnDef.id);
 					}
-					viewportConfigState.tempSettings.headerButtons = list;
-					vpRenderConfigScreen();
+					profile.headerButtons = list;
+					commit();
 				};
 				row.appendChild(span);
 				row.appendChild(checkbox);
@@ -8883,7 +8894,6 @@ function initViewportProfilesUI() {
 
 	function openConfigModal(bucket) {
 		viewportConfigState.configBucket = bucket;
-		viewportConfigState.tempSettings = {};
 		const titleEl = document.getElementById('viewport-config-title');
 		if (titleEl) {
 			const bucketLabels = { landscape: 'Landscape', split66: '66%', split50v: '50% ↕', split50h: '50% ↔', split33: '33%' };
@@ -8899,6 +8909,8 @@ function initViewportProfilesUI() {
 	}
 	window.__vpOpenConfigModalDirect = openConfigModal;
 
+	// Every control commits the instant it changes (see renderConfigSettings' commit()), so
+	// closing this modal - by any route - never discards anything. No confirm dialog needed.
 	function closeConfigModal() {
 		if (configModal) {
 			configModal.classList.add('opacity-0', 'pointer-events-none');
@@ -8908,55 +8920,10 @@ function initViewportProfilesUI() {
 		const iframe = document.getElementById('viewport-config-iframe');
 		if (iframe) iframe.src = 'about:blank';
 		viewportConfigState.configBucket = null;
-		viewportConfigState.tempSettings = {};
 	}
 	window.__vpCloseConfigModalDirect = closeConfigModal;
 
-	function closeConfigModalWithConfirm() {
-		// Adjusting a slider/dropdown updates the live preview immediately, which can make it
-		// look like the change already took effect - but only Save & Exit actually persists it.
-		// Closing any other way (Cancel, this button) silently discards everything typed since
-		// the modal opened, with no prior warning, which is exactly the gap that made real
-		// gameplay end up looking different from what the preview had just shown.
-		if (Object.keys(viewportConfigState.tempSettings).length > 0) {
-			if (!confirm('You have unsaved changes that will be lost. Discard them?')) return;
-		}
-		closeConfigModal();
-	}
-
-	if (configCancelBtn) configCancelBtn.onclick = closeConfigModalWithConfirm;
-	if (configSaveBtn) {
-		configSaveBtn.onclick = () => {
-			if (!viewportConfigState.configBucket) return;
-			const profile = appSettings.viewportProfiles[viewportConfigState.configBucket];
-			const NUMERIC_KEYS = ['headerScale', 'numberSize', 'inputFontSize', 'btnSize', 'uiScale', 'seqSize'];
-			Object.keys(viewportConfigState.tempSettings).forEach(key => {
-				if (key === 'pipMachine') {
-					appSettings.pipMachineIndex = (viewportConfigState.tempSettings.pipMachine === 'same') ? null : parseInt(viewportConfigState.tempSettings.pipMachine, 10);
-					return;
-				}
-				if (NUMERIC_KEYS.includes(key)) {
-					profile[key] = parseInt(viewportConfigState.tempSettings[key], 10);
-					return;
-				}
-				if (key === 'inputAreaEnabled') {
-					profile.inputAreaEnabled = !!viewportConfigState.tempSettings.inputAreaEnabled;
-					return;
-				}
-				if (key === 'inputAreaPct') {
-					profile.inputAreaPct = parseInt(viewportConfigState.tempSettings.inputAreaPct, 10);
-					return;
-				}
-				profile[key] = viewportConfigState.tempSettings[key];
-			});
-			saveState();
-			if (typeof applyViewportProfile === 'function') applyViewportProfile();
-			renderPreview();
-			loadDropdowns();
-			populatePipMachineDropdowns();
-			closeConfigModal();
-		};
-	}
+	if (configDoneBtn) configDoneBtn.onclick = closeConfigModal;
 
 	configureBtns.forEach(btn => {
 		if (!btn) return;
@@ -8974,14 +8941,14 @@ function openOrientationSettings() {
 	const bucket = document.body.dataset.viewportBucket;
 	if (modules.settings) modules.settings.openSettings();
 	// Every bucket (landscape, 66, 50, 33) gets the same treatment now: open regular Settings,
-	// jump straight to the Landscape and Split Screen accordion on the Advanced tab, and select
+	// jump straight to the Landscape and Split Screen accordion on the UI tab, and select
 	// the tab matching wherever you actually are - no separate special modal, no first-time
 	// popup. The accordion/tab UI itself is still exactly how you'd manually reach and adjust
 	// these settings; this just saves the navigation when you're already in that orientation.
 	if (bucket !== 'landscape' && bucket !== 'split66' && bucket !== 'split50v' && bucket !== 'split50h' && bucket !== 'split33') return;
 	setTimeout(() => {
-		const advancedTabBtn = document.querySelector('[data-tab="advanced"]');
-		if (advancedTabBtn) advancedTabBtn.click();
+		const uiTabBtn = document.querySelector('[data-tab="ui"]');
+		if (uiTabBtn) uiTabBtn.click();
 		const accordion = document.getElementById('viewport-accordion');
 		if (accordion) accordion.open = true;
 		if (typeof initViewportProfilesUI === 'function') initViewportProfilesUI();

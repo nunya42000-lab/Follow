@@ -265,6 +265,7 @@ alert("Promise Error: " + event.reason);
 </div>
 <div class="settings-tab-bar flex border-b border-custom bg-black bg-opacity-20">
 <div class="tab-btn active" data-tab="mode">Game</div>
+<div class="tab-btn" data-tab="ui">UI</div>
 <div class="tab-btn" data-tab="general">General</div>
 <div class="tab-btn" data-tab="mapping">Mapping</div>
 <div class="tab-btn" data-tab="advanced">Advanced</div>
@@ -385,7 +386,7 @@ alert("Promise Error: " + event.reason);
 </div>
 </div>
 </div>
-<div id="tab-general" class="tab-content">
+<div id="tab-ui" class="tab-content">
 <div class="space-y-4">
 <div class="p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
 <div class="flex justify-between items-center mb-2">
@@ -411,6 +412,204 @@ alert("Promise Error: " + event.reason);
 </select>
 </div>
 </div>
+<div id="general-scale-dropdowns">
+<div class="grid grid-cols-2 gap-3 pt-2">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
+<select id="seq-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+<option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option>
+<option value="210">210%</option><option value="220">220%</option><option value="230">230%</option><option value="240">240%</option><option value="250">250%</option>
+<option value="260">260%</option><option value="270">270%</option><option value="280">280%</option><option value="290">290%</option><option value="300">300%</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
+<select id="ui-scale-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+<option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option>
+</select>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Header Size</label>
+<select id="header-scale-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Font Size</label>
+<select id="font-scale-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+<option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option>
+</select>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Number Size</label>
+<select id="seq-font-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="100">Normal</option>
+<option value="150">Large</option>
+<option value="200">Huge</option>
+<option value="250">Max (Fill)</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Input Font Size</label>
+<select id="input-font-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="100">Normal</option>
+<option value="150">Large</option>
+<option value="200">Huge</option>
+<option value="250">Max (Fill)</option>
+</select>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Button Size</label>
+<select id="input-btn-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="70">Small</option>
+<option value="85">Compact</option>
+<option value="100">Normal</option>
+<option value="125">Large</option>
+<option value="150">Huge</option>
+</select>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Row Max</label>
+<select id="row-max-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="none" selected>None</option>
+<option value="4">4 Cards</option>
+<option value="5">5 Cards</option>
+<option value="6">6 Cards</option>
+<option value="7">7 Cards</option>
+<option value="8">8 Cards</option>
+<option value="10">10 Cards</option>
+<option value="12">12 Cards</option>
+<option value="15">15 Cards</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">AR Playback Speed</label>
+<select id="ar-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="0.5">50%</option>
+<option value="0.75">75%</option>
+<option value="1.0" selected>100%</option>
+<option value="1.25">125%</option>
+<option value="1.5">150%</option>
+</select>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3 mt-4">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Resize Gesture</label>
+<select id="gesture-mode-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="global">Global UI</option>
+<option value="sequence">Cards Only</option>
+<option value="none">Disabled</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Voice Trigger</label>
+<select id="voice-trigger-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="add">ADD</option>
+<option value="plus">PLUS</option>
+<option value="press">PRESS</option>
+<option value="input">INPUT</option>
+<option value="enter">ENTER</option>
+<option value="set">SET</option>
+<option value="nexus">NEXUS</option>
+<option value="track">TRACK</option>
+</select>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3 mt-4">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Header Padding</label>
+<select id="header-padding-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="0">0px</option>
+<option value="8">8px</option>
+<option value="16">16px</option>
+<option value="24">24px</option>
+<option value="32">32px</option>
+<option value="40">40px</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Inputs Padding</label>
+<select id="inputs-padding-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="0">0px</option>
+<option value="10">10px</option>
+<option value="20">20px</option>
+<option value="30">30px</option>
+<option value="40">40px</option>
+<option value="50">50px</option>
+<option value="60">60px</option>
+<option value="70">70px</option>
+<option value="80">80px</option>
+</select>
+</div>
+</div>
+</div>
+<details id="viewport-accordion" class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
+<span>Landscape and Split Screen 📐</span>
+<span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+</summary>
+<div class="p-3 border-t border-gray-700">
+<p class="text-[10px] text-gray-400 mb-3">Fine-tune UI and sequence sizing separately for each viewport width, so switching to split-screen or multitasking never means readjusting your normal settings.</p>
+<div class="flex border-b border-gray-700 mb-3">
+<button type="button" id="viewport-tab-btn-landscape" class="viewport-tab-btn active">Landscape</button>
+<button type="button" id="viewport-tab-btn-split66" class="viewport-tab-btn">66%</button>
+<button type="button" id="viewport-tab-btn-split50v" class="viewport-tab-btn">50% ↕</button>
+<button type="button" id="viewport-tab-btn-split50h" class="viewport-tab-btn">50% ↔</button>
+<button type="button" id="viewport-tab-btn-split33" class="viewport-tab-btn">33%</button>
+</div>
+<div class="p-3 rounded-lg bg-gray-950 border border-gray-700 mb-3 flex items-center justify-center" style="min-height: 140px;">
+<div id="viewport-preview-screen" class="relative bg-black rounded border border-gray-600 overflow-hidden" style="width: 220px; height: 124px;">
+<div id="viewport-preview-header" class="absolute top-0 left-0 right-0 flex items-center gap-1 px-1" style="height: 14px;"></div>
+<div id="viewport-preview-seq" class="absolute flex flex-wrap items-center justify-center gap-1 content-center" style="top: 16px; left: 4px; right: 4px; bottom: 34px;"></div>
+<div id="viewport-preview-inputs" class="absolute bottom-1 left-1 right-1 flex flex-wrap gap-1 justify-center"></div>
+</div>
+</div>
+<div id="viewport-panel-landscape" class="viewport-panel">
+<p class="text-[10px] text-gray-400 mb-3">Full-width landscape orientation - device physically rotated sideways, no split-screen involved.</p>
+<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="landscape">⚙️ Configure Viewport</button>
+</div>
+<div id="viewport-panel-split66" class="viewport-panel hidden">
+<p class="text-[10px] text-gray-400 mb-3">A 66% split - roughly two-thirds of the screen. Stacks like Portrait when the window itself is still portrait-shaped, sits side-by-side when it's landscape-shaped.</p>
+<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split66">⚙️ Configure Viewport</button>
+</div>
+<div id="viewport-panel-split50v" class="viewport-panel hidden">
+<p class="text-[10px] text-gray-400 mb-3">This is a 50/50 split while holding the phone upright (portrait-shaped) - always stacked, like Portrait. Picture-in-Picture at this size shows Machine 1's sequence only; Machines 2-4 use the regular sequence area.</p>
+<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split50v">⚙️ Configure Viewport</button>
+</div>
+<div id="viewport-panel-split50h" class="viewport-panel hidden">
+<p class="text-[10px] text-gray-400 mb-3">This is a 50/50 split while holding the phone sideways (landscape-shaped) - always side-by-side, like Landscape. Picture-in-Picture at this size shows Machine 1's sequence only; Machines 2-4 use the regular sequence area.</p>
+<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split50h">⚙️ Configure Viewport</button>
+</div>
+<div id="viewport-panel-split33" class="viewport-panel hidden">
+<p class="text-[10px] text-gray-400 mb-3">Same header button set as 50% and the same Picture-in-Picture behavior (Machine 1 in the popup, Machines 2-4 in the regular sequence area). Supports up to 4 machines when Touch Gesture is on. Turn on Infinite Header Scroll (General) so scrolling through header buttons works at this width.</p>
+<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split33">⚙️ Configure Viewport</button>
+</div>
+</div>
+</details>
+</div>
+</div>
+<div id="tab-general" class="tab-content">
+<div class="space-y-4">
 <div class="grid grid-cols-2 gap-3" id="general-toggle-grid">
 <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Auto Bright ☀️</span>
@@ -587,157 +786,6 @@ alert("Promise Error: " + event.reason);
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Nuke ☢️</span>
 <input type="checkbox" id="headerNukeToggle" class="h-6 w-6 accent-indigo-500"></div>
-</div>
-<div id="general-scale-dropdowns">
-<div class="grid grid-cols-2 gap-3 pt-2">
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
-<select id="seq-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-<option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option>
-<option value="210">210%</option><option value="220">220%</option><option value="230">230%</option><option value="240">240%</option><option value="250">250%</option>
-<option value="260">260%</option><option value="270">270%</option><option value="280">280%</option><option value="290">290%</option><option value="300">300%</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
-<select id="ui-scale-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-<option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option>
-</select>
-</div>
-</div>
-<div class="grid grid-cols-2 gap-3">
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Header Size</label>
-<select id="header-scale-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Font Size</label>
-<select id="font-scale-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-<option value="160">160%</option><option value="170">170%</option><option value="180">180%</option><option value="190">190%</option><option value="200">200%</option>
-</select>
-</div>
-</div>
-<div class="grid grid-cols-2 gap-3">
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Number Size</label>
-<select id="seq-font-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="100">Normal</option>
-<option value="150">Large</option>
-<option value="200">Huge</option>
-<option value="250">Max (Fill)</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Input Font Size</label>
-<select id="input-font-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="100">Normal</option>
-<option value="150">Large</option>
-<option value="200">Huge</option>
-<option value="250">Max (Fill)</option>
-</select>
-</div>
-</div>
-<div class="grid grid-cols-2 gap-3">
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Button Size</label>
-<select id="input-btn-size-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="70">Small</option>
-<option value="85">Compact</option>
-<option value="100">Normal</option>
-<option value="125">Large</option>
-<option value="150">Huge</option>
-</select>
-</div>
-</div>
-<div class="grid grid-cols-2 gap-3">
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Row Max</label>
-<select id="row-max-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="none" selected>None</option>
-<option value="4">4 Cards</option>
-<option value="5">5 Cards</option>
-<option value="6">6 Cards</option>
-<option value="7">7 Cards</option>
-<option value="8">8 Cards</option>
-<option value="10">10 Cards</option>
-<option value="12">12 Cards</option>
-<option value="15">15 Cards</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">AR Playback Speed</label>
-<select id="ar-speed-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="0.5">50%</option>
-<option value="0.75">75%</option>
-<option value="1.0" selected>100%</option>
-<option value="1.25">125%</option>
-<option value="1.5">150%</option>
-</select>
-</div>
-</div>
-<div class="grid grid-cols-2 gap-3 mt-4">
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Resize Gesture</label>
-<select id="gesture-mode-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="global">Global UI</option>
-<option value="sequence">Cards Only</option>
-<option value="none">Disabled</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Voice Trigger</label>
-<select id="voice-trigger-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="add">ADD</option>
-<option value="plus">PLUS</option>
-<option value="press">PRESS</option>
-<option value="input">INPUT</option>
-<option value="enter">ENTER</option>
-<option value="set">SET</option>
-<option value="nexus">NEXUS</option>
-<option value="track">TRACK</option>
-</select>
-</div>
-</div>
-<div class="grid grid-cols-2 gap-3 mt-4">
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Header Padding</label>
-<select id="header-padding-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="0">0px</option>
-<option value="8">8px</option>
-<option value="16">16px</option>
-<option value="24">24px</option>
-<option value="32">32px</option>
-<option value="40">40px</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Inputs Padding</label>
-<select id="inputs-padding-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="0">0px</option>
-<option value="10">10px</option>
-<option value="20">20px</option>
-<option value="30">30px</option>
-<option value="40">40px</option>
-<option value="50">50px</option>
-<option value="60">60px</option>
-<option value="70">70px</option>
-<option value="80">80px</option>
-</select>
-</div>
-</div>
 </div>
 </div>
 </div>
@@ -948,6 +996,15 @@ alert("Promise Error: " + event.reason);
 </div>
 </details>
 </div>
+<details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
+<span>Haptic Output Mapping 📳</span>
+<span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+</summary>
+<div class="p-3 border-t border-gray-700">
+<div id="morse-container-target"></div>
+</div>
+</details>
 </div>
 <div id="tab-advanced" class="tab-content space-y-4">
 <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
@@ -1049,171 +1106,6 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 <div id="tone-test-progress" class="text-[10px] font-mono text-purple-300 text-center">Not playing</div>
 </div>
-</div>
-</div>
-</details>
-<details id="viewport-accordion" class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
-<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
-<span>Landscape and Split Screen 📐</span>
-<span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
-</summary>
-<div class="p-3 border-t border-gray-700">
-<p class="text-[10px] text-gray-400 mb-3">Fine-tune UI and sequence sizing separately for each viewport width, so switching to split-screen or multitasking never means readjusting your normal settings.</p>
-<div class="grid grid-cols-5 gap-1 mb-3">
-<button type="button" id="viewport-tab-btn-landscape" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-emerald-600 text-white">Landscape</button>
-<button type="button" id="viewport-tab-btn-split66" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300">66%</button>
-<button type="button" id="viewport-tab-btn-split50v" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300">50% ↕</button>
-<button type="button" id="viewport-tab-btn-split50h" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300">50% ↔</button>
-<button type="button" id="viewport-tab-btn-split33" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300">33%</button>
-</div>
-<div class="p-3 rounded-lg bg-gray-950 border border-gray-700 mb-3 flex items-center justify-center" style="min-height: 140px;">
-<div id="viewport-preview-screen" class="relative bg-black rounded border border-gray-600 overflow-hidden" style="width: 220px; height: 124px;">
-<div id="viewport-preview-header" class="absolute top-0 left-0 right-0 flex items-center gap-1 px-1" style="height: 14px;"></div>
-<div id="viewport-preview-seq" class="absolute flex flex-wrap items-center justify-center gap-1 content-center" style="top: 16px; left: 4px; right: 4px; bottom: 34px;"></div>
-<div id="viewport-preview-inputs" class="absolute bottom-1 left-1 right-1 flex flex-wrap gap-1 justify-center"></div>
-</div>
-</div>
-<div id="viewport-panel-landscape" class="viewport-panel">
-<div class="grid grid-cols-2 gap-3 mb-3">
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
-<select id="viewport-uiscale-landscape" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
-<select id="viewport-seqsize-landscape" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-</div>
-<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="landscape">⚙️ Configure Viewport</button>
-</div>
-<div id="viewport-panel-split66" class="viewport-panel hidden">
-<div class="grid grid-cols-2 gap-3 mb-3">
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
-<select id="viewport-uiscale-split66" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
-<select id="viewport-seqsize-split66" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-</div>
-<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split66">⚙️ Configure Viewport</button>
-</div>
-<div id="viewport-panel-split50v" class="viewport-panel hidden">
-<div class="grid grid-cols-2 gap-3 mb-3">
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
-<select id="viewport-uiscale-split50v" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
-<select id="viewport-seqsize-split50v" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-</div>
-<div class="mb-3">
-<label class="block text-xs font-bold mb-1 text-muted-custom">Alignment</label>
-<select id="viewport-alignment-split50v" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="horizontal" selected>Horizontal (Normal)</option>
-<option value="vertical">Vertical</option>
-</select>
-</div>
-<div class="mb-3">
-<label class="block text-xs font-bold mb-1 text-muted-custom">Picture-in-Picture Shows</label>
-<select id="viewport-pip-machine-50v" class="viewport-pip-machine-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="same" selected>Same as Main Area</option>
-</select>
-<p class="text-[10px] text-gray-400 mt-1">If Picture-in-Picture is active at this size, the sequence only appears in the popup - the main screen shows inputs only.</p>
-</div>
-<p class="text-[10px] text-gray-400 mb-2">This is a 50/50 split while holding the phone upright (portrait-shaped) - always stacked, like Portrait.</p>
-<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split50v">⚙️ Configure Viewport</button>
-</div>
-<div id="viewport-panel-split50h" class="viewport-panel hidden">
-<div class="grid grid-cols-2 gap-3 mb-3">
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
-<select id="viewport-uiscale-split50h" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
-<select id="viewport-seqsize-split50h" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-</div>
-<div class="mb-3">
-<label class="block text-xs font-bold mb-1 text-muted-custom">Alignment</label>
-<select id="viewport-alignment-split50h" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="horizontal" selected>Horizontal (Normal)</option>
-<option value="vertical">Vertical</option>
-</select>
-</div>
-<div class="mb-3">
-<label class="block text-xs font-bold mb-1 text-muted-custom">Picture-in-Picture Shows</label>
-<select id="viewport-pip-machine-50h" class="viewport-pip-machine-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="same" selected>Same as Main Area</option>
-</select>
-<p class="text-[10px] text-gray-400 mt-1">If Picture-in-Picture is active at this size, the sequence only appears in the popup - the main screen shows inputs only.</p>
-</div>
-<p class="text-[10px] text-gray-400 mb-2">This is a 50/50 split while holding the phone sideways (landscape-shaped) - always side-by-side, like Landscape.</p>
-<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split50h">⚙️ Configure Viewport</button>
-</div>
-<div id="viewport-panel-split33" class="viewport-panel hidden">
-<div class="grid grid-cols-2 gap-3 mb-3">
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
-<select id="viewport-uiscale-split33" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
-<select id="viewport-seqsize-split33" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-</div>
-<p class="text-[10px] text-gray-400 mb-3">Same header button set as 50% and the same Picture-in-Picture behavior. Turn on Infinite Header Scroll (General) so scrolling through header buttons works at this width.</p>
-<div class="mb-3">
-<label class="block text-xs font-bold mb-1 text-muted-custom">Picture-in-Picture Shows</label>
-<select id="viewport-pip-machine-33" class="viewport-pip-machine-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="same" selected>Same as Main Area</option>
-</select>
-</div>
-<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split33">⚙️ Configure Viewport</button>
 </div>
 </div>
 </details>
@@ -1465,15 +1357,6 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div><label class="block text-xs font-bold mb-1">Volume</label><input type="range" id="voice-volume" min="0" max="1" step="0.1" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"></div>
 </div>
 <button id="test-voice-btn" class="w-full py-2 bg-gray-700 text-white rounded font-bold text-xs mt-3">Test Voice 🔊</button>
-</div>
-</details>
-<details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
-<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
-<span>Haptic Output Mapping 📳</span>
-<span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
-</summary>
-<div class="p-3 border-t border-gray-700">
-<div id="morse-container-target"></div>
 </div>
 </details>
 <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
@@ -1832,7 +1715,6 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <span class="group-open:rotate-180 transition-transform">▼</span>
 </summary>
 <div class="p-3 text-[11px] opacity-90 space-y-2 border-t border-gray-700 mt-2 pt-2">
-<p><strong>Theme 🎨:</strong> Pick a color scheme or open the Editor to create your own.</p>
 <div class="grid grid-cols-2 gap-2 mt-2">
 <div><strong>Timer ⏱️:</strong> Shows header stopwatch.</div>
 <div><strong>Auto Timer:</strong> Starts stopwatch on input.</div>
@@ -1845,7 +1727,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div><strong>BM Gestures:</strong> Automatic when Touch Gesture and Boss Mode are both on - no separate toggle needed.</div>
 <div><strong>Wake Lock 💡:</strong> Prevents screen sleeping.</div>
 <div><strong>Do Not Disturb 🔕:</strong> Silences every interruption the app makes - toast popups, all vibration/haptics (including morse buzzes), and spoken audio. The Settings toggle only shows or hides its header button (🔕), right next to Full Screen - tap that header button to actually turn Do Not Disturb on and off. Off by default. Doesn't touch your phone's own system Do Not Disturb, which no web app can control.</div>
-<div><strong>Picture in Picture 🪟:</strong> Opens a small always-on-top window showing your current sequence, so you can read it while using another app. View-only - you can't tap the sequence in the floating window. The Settings toggle only shows or hides its header button (🪟), placed last in the row - tap that header button to actually open or close Picture in Picture.</div>
+<div><strong>Picture in Picture 🪟:</strong> Opens a small always-on-top window showing your current sequence, so you can read it while using another app. View-only - you can't tap the sequence in the floating window. The Settings toggle only shows or hides its header button (🪟), placed last in the row - tap that header button to actually open or close Picture in Picture. At 33%/50% ↔/50% ↕/66% split-screen sizes specifically, this is fixed rather than configurable: the popup always shows Machine 1's sequence, and Machines 2-4 (if active) show in the regular sequence area instead. In Landscape and Portrait it shows whatever's on screen as normal.</div>
 <div><strong>Pinned Mode 📌:</strong> Goes fullscreen and blocks the back gesture so you can't accidentally swipe out mid-sequence. The Settings toggle only shows or hides its header button (📌), right next to Full Screen - tap that header button to actually turn Pinned Mode on and off, or to leave once it's on. This is the app's own lock - it can't trigger Android's system screen pinning, which has no web API.</div>
 <div><strong>Upside Down:</strong> Flips the visible UI 180° for a partner facing you - stays flipped correctly even if Portrait Lock is also locking the screen to portrait.</div>
 <div><strong>Portrait Lock 🔒:</strong> The app starts unlocked so landscape mode is available right away. The Settings toggle only shows or hides its header button (🔒), right next to Upside Down - tap that header button to lock the screen to portrait and stop accidental rotation mid-game (button rings, matching every other active feature), tap again to allow free rotation (button goes dim, no ring). This is done by detecting the device's actual physical orientation and visually counter-rotating the interface to compensate, rather than relying on the phone's built-in rotation lock, which is unreliable on installed home-screen apps and often can't be overridden by the app at all once set.</div>
@@ -1877,10 +1759,10 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <span class="group-open:rotate-180 transition-transform">▼</span>
 </summary>
 <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
-<p>Its own accordion in General Settings, with five independent tabs - <strong>Landscape</strong>, <strong>66%</strong>, <strong>50% ↕</strong> (phone held upright), <strong>50% ↔</strong> (phone held sideways), and <strong>33%</strong>. Whichever one you're actually using right now is highlighted automatically.</p>
+<p>Its own accordion at the bottom of the <strong>UI</strong> tab in Settings, with five tabs - <strong>Landscape</strong>, <strong>66%</strong>, <strong>50% ↕</strong> (phone held upright), <strong>50% ↔</strong> (phone held sideways), and <strong>33%</strong>. Whichever one you're actually using right now is highlighted automatically.</p>
 <p><strong>Why five separate tabs:</strong> a 50/50 split-screen looks completely different depending on whether you're holding the phone normally or sideways, so each gets its own settings instead of sharing one. 66% and Landscape stack/sit side-by-side the same way portrait always has; 33% and 50% ↔ are always side-by-side (too narrow to stack usefully); 50% ↕ is always stacked (plenty of room, matches normal portrait).</p>
-<p><strong>Per-tab settings:</strong> UI Scale, Sequence Size, Row Max, Header/Number/Input Font/Button Size, and Alignment (landscape/split-screen tabs only) - each tab's values are completely independent of every other tab and of your main Portrait settings.</p>
-<p><strong>⚙️ Configure Viewport:</strong> Opens a bigger version of that same tab's settings with a live preview of the real app alongside it, so you can see exactly what a change looks like before it applies.</p>
+<p><strong>⚙️ Configure Viewport:</strong> Every real per-tab setting - UI Scale, Sequence Size, Row Max, Header/Number/Input Font/Button Size, Adjust Input Area, and Alignment (50% tabs only) - lives inside this button's modal, alongside a live preview of the real app so you can see exactly what a change looks like. Every change here saves and applies the instant you make it - there's no separate Save step and nothing to lose by closing the modal.</p>
+<p><strong>Picture-in-Picture:</strong> Fixed, not configurable, at 66%/50% ↕/50% ↔/33% - the popup always shows Machine 1's sequence, Machines 2-4 use the regular sequence area. 33% supports up to 4 machines this way when Touch Gesture is also on, since that frees the full pane width for the sequence display.</p>
 <p class="opacity-70">The gear icon in the header jumps straight to whichever tab matches your current orientation - no need to hunt for it manually.</p>
 </div>
 </details>
@@ -1902,10 +1784,13 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </details>
 <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
 <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-yellow-400">
-<span>🔍 General Tab (Layout)</span>
+<span>🔍 UI Tab (Layout)</span>
 <span class="group-open:rotate-180 transition-transform">▼</span>
 </summary>
 <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
+<p>Theme, Font, and every sizing/layout dropdown live here now, separate from General's toggles - and the Landscape/Split Screen accordion above sits at the bottom of this same tab.</p>
+<p><strong>Theme 🎨:</strong> Pick a color scheme or open the Editor to create your own.</p>
+<p><strong>Font 🔤:</strong> Swaps the app's typeface.</p>
 <p><strong>Sequence Size:</strong> Scales the individual cards showing the remembered numbers, from 50% up to 300%.</p>
 <p><strong>UI Scale:</strong> Zooms the entire interface in or out.</p>
 <p><strong>Header Size:</strong> Independent scale for just the header's icon row, on top of UI Scale.</p>
@@ -1928,6 +1813,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <p><strong>9-Key / 12-Key / Piano accordions:</strong> Each tab has one accordion per layout. Open one to see that layout's Quick Preset picker plus every key's individual dropdown.</p>
 <p><strong>Quick Presets ⚡:</strong> Bulk-assigns every key in that specific layout at once (e.g. "Finger Counts" for hand, "Taps" for touch) - individual keys can still be fine-tuned afterward. Every key is pre-assigned a sensible default the first time you open this tab.</p>
 <p><strong>Key Mappings:</strong> Assign a specific touch-screen gesture or hand gesture to each individual keypad value.</p>
+<p><strong>Haptic Output Mapping 📳:</strong> Its own accordion at the bottom of this tab, below the 9-Key/12-Key/Piano accordions - customize the dot/dash vibration pattern for each of the 12 possible values, used when the Playback section's Morse toggle is on.</p>
 <p class="opacity-70">Tap Speed, Swipe Distance, and the gesture category filters moved to 🛠️ Advanced below.</p>
 </div>
 </details>
@@ -1937,14 +1823,13 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <span class="group-open:rotate-180 transition-transform">▼</span>
 </summary>
 <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
-<p>Opens as its own tab in Settings, alongside Game/General/Mapping. Holds the more technical, fine-tuning controls:</p>
+<p>Opens as its own tab in Settings, alongside Game/UI/General/Mapping. Holds the more technical, fine-tuning controls:</p>
 <p><strong>Test &amp; Practice 🎯:</strong> One-tap tests for the Hand, Touch, Voice, and Tone engines - fully independent of your real settings, so trying one never affects actual gameplay.</p>
 <p><strong>Header 🔀:</strong> Sets the left-to-right order of header buttons using ▲/▼ next to each one. Only reorders - whether a button shows at all is still its own toggle in General.</p>
 <p><strong>General Toggle Order 🔀:</strong> Sets the order every toggle appears in on the General tab, and can hide ones you never touch using the 👁️/🚫 button - a hidden toggle's setting stays exactly as it was, it's just not shown until you un-hide it here.</p>
 <p><strong>Voice Settings 🗣️:</strong> Text-to-speech voice, Pitch/Speed/Volume, and saved voice profiles - moved here from General.</p>
 <p><strong>Sensitivity 🎛️:</strong> Every timing/distance threshold the Touch, Hand, Voice, and Tone Cadence engines use, grouped by input method - each slider explains itself underneath. "Restore Defaults" resets all of them at once (locks out while sliders are locked).</p>
 <p><strong>Populate Hand/Touch Gesture Menus:</strong> Two separate filter groups. Hand controls which pose/motion categories (Static Poses, Pinches, Finger Counts, Combos, Advanced Vision Shapes, Directional Swipes, Motion Transitions) show up in the Hand tab's dropdowns; Touch controls which touch categories (Taps, Swipes, Boomerangs, Chords, etc.) show up in the Touch tab's dropdowns.</p>
-<p><strong>Haptic Output Mapping:</strong> Customize the dot/dash vibration pattern for each of the 12 possible values, used when the Playback section's Morse toggle is on.</p>
 <p><strong>Backup / Restore 💾:</strong> Export your entire configuration (including custom presets and profiles) as a short text code, and paste one back in to restore it.</p>
 <p><strong>Settings Presets 🎯:</strong> A dropdown of ready-made configurations, right below Backup / Restore. Pick one and tap Copy, then paste the code into the Backup / Restore box above and tap Import to actually apply it - the preset box itself only ever shows you the code, it doesn't apply anything on its own.</p>
 </div>
@@ -2142,12 +2027,11 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <iframe id="viewport-config-iframe" style="border: none; display: block; background: #000;" title="Live viewport preview"></iframe>
 </div>
 </div>
-<p style="color: #666; font-size: 10px; margin: 0 0 16px; text-align: center;">This is the actual app, live - tap and scroll it like normal. Changes below update it instantly.</p>
+<p style="color: #666; font-size: 10px; margin: 0 0 16px; text-align: center;">This is the actual app, live - tap and scroll it like normal. Every change below saves and applies instantly.</p>
 <div style="background: #1a1a1a; border: 1px solid #666; border-radius: 8px; padding: 16px; width: 100%; max-width: 500px; margin-bottom: 20px;">
 <div id="viewport-config-settings"></div>
 <div style="display: flex; gap: 8px; margin-top: 16px;">
-<button id="viewport-config-cancel-btn" type="button" style="flex: 1; padding: 10px; background: #666; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">Cancel</button>
-<button id="viewport-config-save-btn" type="button" style="flex: 1; padding: 10px; background: #4f46e5; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">Save & Exit</button>
+<button id="viewport-config-done-btn" type="button" style="flex: 1; padding: 10px; background: #4f46e5; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">Done</button>
 </div>
 </div>
 </div>

@@ -51,6 +51,9 @@ input, textarea { -webkit-user-select: text !important; user-select: text !impor
 .tab-btn:hover { opacity: .8; }
 .tab-btn.active { border-bottom-color: var(--seq-bubble); opacity: 1; color: var(--seq-bubble); }
 body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff; }
+.viewport-tab-btn { flex: 1; padding: 8px 2px; text-align: center; font-size: 10px; font-weight: 700; color: #9ca3af; background: transparent; border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: all .2s; }
+.viewport-tab-btn:hover { color: #d1d5db; }
+.viewport-tab-btn.active { color: #10b981; border-bottom-color: #10b981; }
 .settings-tab-bar { display: flex !important; }
 .settings-locked .settings-tab-bar,
 .settings-locked .overflow-y-auto.flex-grow { pointer-events: none !important; opacity: 0.45; filter: grayscale(0.3); }
@@ -63,7 +66,13 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 #sequence-container { justify-content: flex-start !important; padding-top: 1rem; width: 100%; max-width: var(--row-max-width, none); margin: 0 auto; }
 #input-footer { background-color: var(--card-bg); border-top: 4px solid var(--seq-bubble); padding-bottom: calc(max(.5rem, env(safe-area-inset-bottom)) + var(--inputs-padding-extra, 0px)); max-height: 70vh; overflow-y: auto; }
 
-	body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #input-footer, body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #input-footer {
+	/* :not(.input-gestures-mode) below matters: this rule's selector is MORE specific than
+	   `body.input-gestures-mode #input-footer { display: none !important; }`, so without this
+	   guard it kept forcing display:flex here even while the touch-gesture pad was active -
+	   important-vs-important still resolves by specificity, and this one was winning. That's why
+	   the on-screen keypad never actually disappeared behind the gesture pad on any side-by-side
+	   layout (Landscape, split50h, side-by-side split33/66). */
+	body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"]):not(.input-gestures-mode)[data-rotate="0"][data-input-mode="key9"] #input-footer, body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"]):not(.input-gestures-mode)[data-rotate="0"][data-input-mode="key12"] #input-footer {
 		position: fixed !important;
 		top: 0 !important; right: 0 !important; bottom: 0 !important; left: auto !important;
 		width: var(--landscape-input-width, 100vh) !important; max-width: none !important; max-height: none !important;
@@ -189,7 +198,10 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 	   selector previously only matched the literal portrait bucket, so the height clamp
 	   and drag handle silently never activated for split50v/stacked split66/33, letting
 	   #input-footer fall back to the unbounded base max-height:70vh rule instead. */
-	body.landscape-resize-enabled:is([data-viewport-bucket="portrait"], [data-portrait-split-layout="stacked"]) #input-footer {
+	/* :not(.input-gestures-mode) here for the same reason as the side-by-side version above -
+	   without it, this rule's display:flex!important (specificity-wise) beats the gesture-pad
+	   hide rule whenever Adjust Input Area is also on for a stacked/portrait layout. */
+	body.landscape-resize-enabled:not(.input-gestures-mode):is([data-viewport-bucket="portrait"], [data-portrait-split-layout="stacked"]) #input-footer {
 		height: var(--portrait-input-height, 70vh) !important;
 		max-height: var(--portrait-input-height, 70vh) !important;
 		box-sizing: border-box !important;
@@ -228,14 +240,27 @@ body.layout-swapped #input-footer { border-top: none; border-bottom: 4px solid v
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #pad-key9, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #pad-key12 { width: 100% !important; max-width: none !important; display: flex !important; flex-direction: column !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key9 .grid-cols-3, body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key12 .grid-cols-4 { flex-grow: 1 !important; display: grid !important; gap: 0.4rem !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key12 .btn-pad-number { height: calc(2.5rem * var(--input-btn-scale, 1)) !important; aspect-ratio: auto !important; min-height: calc(2.5rem * var(--input-btn-scale, 1)) !important; }
-	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1 !important; border-radius: 9999px !important; flex-shrink: 0 !important; }
+	/* Bigger Buttons (hide-controls) outside portrait/66-stacked: the normal-state rule just above
+	   locks button height to a small fixed calc(2.5rem * scale) with !important - since !important
+	   always wins over a non-important declaration regardless of specificity, the later "make it
+	   bigger" rule's plain `height: auto` (below, ~line 306) could never actually override it, so
+	   buttons stayed pinned at their small default height while width alone grew to 100%, i.e.
+	   short wide rectangles instead of bigger buttons. Setting height/min-height !important here,
+	   on this MORE specific (.hide-controls-qualified) selector, is what actually lets them grow.
+	   No max-height cap: aspect-ratio needs BOTH dimensions free to actually produce a true
+	   square/circle from the full column width - a height cap (there used to be one, 15vh) beats
+	   aspect-ratio's own sizing once the column is wider than that cap, flattening the "circular"
+	   buttons back into short rectangles again. #input-footer's own overflow-y:auto is the safety
+	   net on short/cramped panes instead. */
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1 !important; border-radius: 9999px !important; flex-shrink: 0 !important; height: auto !important; min-height: 0 !important; width: 100% !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"].hide-controls #pad-key9, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"].hide-controls #pad-key12 { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; }
-	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .grid-cols-3, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .grid-cols-4 { display: grid !important; gap: 0.5rem !important; justify-items: center !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .grid-cols-3, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .grid-cols-4 { display: grid !important; gap: 0.5rem !important; justify-items: center !important; align-self: stretch !important; width: 100% !important; }
 
 
 .btn-control { background-color: var(--btn-bg); font-size: 1.5rem; height: calc(60px * var(--input-btn-scale, 1)); border-radius: 9999px; color: var(--text-main); border: 1px solid var(--border); }
 .btn-control:active { filter: brightness(1.3); transform: scale(.96); }
 .number-box { height: 40px; width: 40px; line-height: 40px; font-size: 1.2rem; font-weight: 800; transition: all .2s; background-color: var(--seq-bubble); color: var(--seq-bubble-text, var(--text-main)); display: flex; align-items: center; justify-content: center; border-radius: .5rem; box-shadow: 0 2px 4px rgba(0, 0, 0, .2); }
+
 #piano-keys { position: relative; display: flex; width: 100%; }
 .key-container { width: calc(100% / 7); position: relative; height: 100%; }
 .piano-key-white { width: 100%; height: 100%; border: 1px solid #000; border-top: none; background: #fff; color: #000; font-weight: 700; font-size: 1.5rem; position: absolute; bottom: 0; left: 0; z-index: 1; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 10px; border-radius: 0 0 2px 2px; }
@@ -251,7 +276,6 @@ body.layout-swapped #input-footer { border-top: none; border-bottom: 4px solid v
 body.boss-active #boss-layer { display: block; }
 .share-sheet { background-color: #1e1e1e !important; border-radius: 1.5rem 1.5rem 0 0 !important; bottom: 0; position: absolute; width: 100%; border-top: 1px solid #333; padding-bottom: 2rem; z-index: 100; transform: translateY(100%); transition: transform .3s ease-out; }
 .share-sheet.active { transform: translateY(0); }
-body.hide-controls .control-row { display: none !important; }
 .control-row { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
 .control-row.reset-visible { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
 #aux-control-header { padding-top: max(0.5rem, env(safe-area-inset-top)); padding-bottom: 0.25rem; background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%); pointer-events: none; }
@@ -300,7 +324,7 @@ body.hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: aut
 body.hide-controls #piano-keys { height: 300px; transition: height 0.3s ease; }
 
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #input-footer .max-w-md, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #input-footer .max-w-lg, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #input-footer .max-w-2xl { max-width: 95vw !important; }
-	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; max-height: 15vh; font-size: 2.5rem; width: 100%; margin: 0 auto; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .btn-pad-number { font-size: 2.5rem; margin: 0 auto; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #input-footer { padding: 5px !important;}
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #piano-keys { height: 50vh !important; }
 	/* Landscape piano: keys on the left, Play/Delete/Settings as a vertical column on the right
@@ -913,12 +937,12 @@ body[data-viewport-bucket="split50v"][data-split-alignment="vertical"] #input-fo
 body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-split-alignment="vertical"] #input-footer .grid {
 	grid-template-columns: 1fr !important;
 }
-/* PiP-sequence-only mode: at 50%/33% with PiP active, the sequence is shown ONLY in the PiP
-   popup (which renders independently via canvas in drawPipFrame) - the main screen keeps just
-   the inputs, freeing up the cramped split-screen space entirely for interaction. */
-body.pip-sequence-only #sequence-container {
-	display: none !important;
-}
+/* PiP fixed-machine mode: at 33%/50h/50v/66% with PiP active, Machine 1's sequence renders only
+   in the PiP popup (canvas, via drawPipFrame) - app.js's renderUI() already excludes Machine 1
+   from #sequence-container's own children in this mode, so Machines 2-4 stay visible in the
+   main area instead of the whole sequence area being blanked out. No CSS override needed here
+   any more; .pip-sequence-only itself is still set (see syncPipSequenceOnlyMode) purely as a
+   hook for anything else that wants to key off "PiP is showing a fixed machine right now". */
 
 /* Header/General toggle order lists: drag-to-reorder */
 .reorder-row.reorder-dragging {
@@ -929,44 +953,3 @@ body.pip-sequence-only #sequence-container {
 }
 .reorder-handle { touch-action: none; }
 #header-order-list, #general-order-list { user-select: none; -webkit-user-select: none; }
-/* 1. Split-Screen Dynamic Alignment Execution */
-/* Listens for the dataset.splitAlignment updated dynamically in app.js */
-body[data-split-alignment="vertical"] #app {
-    flex-direction: column !important;
-}
-body[data-split-alignment="horizontal"] #app {
-    flex-direction: row !important;
-}
-
-/* 2. Custom Input Footprint Allocation (Fixes split33 footprint sizing) */
-/* Executes the dataset toggle injected via applyViewportProfile() */
-body[data-custom-input-area="true"] #input-footer {
-    flex-basis: var(--vp-input-area-pct) !important;
-    height: var(--vp-input-area-pct) !important;
-    max-height: var(--vp-input-area-pct) !important;
-}
-.layout-vertical { 
-    flex-direction: column !important; 
-}
-.layout-horizontal { 
-    flex-direction: row !important; 
-}
-
-/* 2. Row Constraints (Portrait / 5 Cards per Row) */
-.row-max-5 {
-    display: flex;
-    flex-wrap: wrap;
-    /* Adjust justification based on your piano/input alignment */
-    justify-content: center; 
-}
-
-/* Targets the immediate children (your sequence cards) */
-.row-max-5 > * { 
-    /* Force exactly 5 per row: 100% / 5 = 20% */
-    flex: 0 0 20%; 
-    box-sizing: border-box;
-}
-
-body[data-custom-input-area="true"] .piano-input-area {
-    flex-basis: var(--vp-input-area-pct) !important;
-}

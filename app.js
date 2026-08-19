@@ -6087,9 +6087,19 @@ function applyLandscapeInputWidth() {
 	const isStacked = bucket === 'portrait' || document.body.dataset.portraitSplitLayout === 'stacked';
 	const isLandscapeFamily = !isStacked && (bucket === 'landscape' || bucket === 'split66' || bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33');
 	
+	// Landscape (the literal full-rotation bucket, "Configure Landscape") is permanently locked to
+	// its own intrinsic ratio - the same 45vh (short screens) / 100vh (tall screens) sizing it's
+	// always had - regardless of what Adjust Input Area says. This was an explicit request: the
+	// wider, Adjust-Input-Area-driven ratio left real empty margin around the keypad instead of
+	// the buttons actually growing to fill it, so Landscape opts out of that toggle entirely
+	// rather than needing it to stay unchecked forever by convention. split66/50v/50h/33 keep
+	// their own fully independent, fully functional versions of this - only literal Landscape is
+	// excluded here.
+	const isLandscapeBucketLocked = bucket === 'landscape';
+	
 	// FIX: Both layout families now read from getEffectiveInputAreaEnabled()
 	// This ensures split33's custom inputAreaEnabled flag correctly activates even in portrait/stacked
-	const landscapeEnabled = isLandscapeFamily && getEffectiveInputAreaEnabled();
+	const landscapeEnabled = isLandscapeFamily && !isLandscapeBucketLocked && getEffectiveInputAreaEnabled();
 	const stackedHeightEnabled = isStacked && getEffectiveInputAreaEnabled();
 	
 	document.body.classList.toggle('landscape-resize-enabled', !!landscapeEnabled || !!stackedHeightEnabled);
@@ -8840,32 +8850,37 @@ function initViewportProfilesUI() {
 			{ value: '60', text: '60px' }, { value: '70', text: '70px' }, { value: '80', text: '80px' }
 		], '0', true);
 
-		// --- Adjust Input Area (landscape/split66/50/25 only - portrait has its own separate
-		// global-only version of this feature since it isn't part of viewportProfiles). Every
-		// bucket now always carries its own inputAreaEnabled/inputAreaPct (see DEFAULT_APP), so
-		// this never silently falls back to the global General/UI toggle any more. ---
-		sectionLabel('Adjust Input Area');
-		const inputAreaToggleWrap = document.createElement('label');
-		inputAreaToggleWrap.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 8px; margin-bottom: 10px; background: #222; border-radius: 4px; cursor: pointer;';
-		const inputAreaToggleSpan = document.createElement('span');
-		inputAreaToggleSpan.style.cssText = 'color: #ddd; font-size: 11px;';
-		inputAreaToggleSpan.textContent = 'Enable draggable divider for this size';
-		const inputAreaToggleCb = document.createElement('input');
-		inputAreaToggleCb.type = 'checkbox';
-		inputAreaToggleCb.style.cssText = 'width: 16px; height: 16px; cursor: pointer;';
-		inputAreaToggleCb.checked = !!profile.inputAreaEnabled;
-		inputAreaToggleCb.onchange = (e) => {
-			profile.inputAreaEnabled = e.target.checked;
-			commit();
-		};
-		inputAreaToggleWrap.appendChild(inputAreaToggleSpan);
-		inputAreaToggleWrap.appendChild(inputAreaToggleCb);
-		settingsDiv.appendChild(inputAreaToggleWrap);
-		createSlider('Input Area Width', 'inputAreaPct', 20, 80, 5, '%', profile.inputAreaPct !== undefined ? profile.inputAreaPct : 50);
-		const inputAreaNote = document.createElement('p');
-		inputAreaNote.style.cssText = 'color: #666; font-size: 9px; margin: -8px 0 12px;';
-		inputAreaNote.textContent = 'Also draggable live on the divider line itself in the preview above.';
-		settingsDiv.appendChild(inputAreaNote);
+		// --- Adjust Input Area (split66/50v/50h/33 only now - Landscape is permanently locked to
+		// its own intrinsic ratio instead, see applyLandscapeInputWidth(), so this section is
+		// skipped there entirely rather than showing a checkbox/slider that no longer does
+		// anything. Portrait has its own separate global-only version of this feature since it
+		// isn't part of viewportProfiles. Every bucket here still always carries its own
+		// inputAreaEnabled/inputAreaPct (see DEFAULT_APP), so this never silently falls back to
+		// the global General/UI toggle. ---
+		if (bucket !== 'landscape') {
+			sectionLabel('Adjust Input Area');
+			const inputAreaToggleWrap = document.createElement('label');
+			inputAreaToggleWrap.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 8px; margin-bottom: 10px; background: #222; border-radius: 4px; cursor: pointer;';
+			const inputAreaToggleSpan = document.createElement('span');
+			inputAreaToggleSpan.style.cssText = 'color: #ddd; font-size: 11px;';
+			inputAreaToggleSpan.textContent = 'Enable draggable divider for this size';
+			const inputAreaToggleCb = document.createElement('input');
+			inputAreaToggleCb.type = 'checkbox';
+			inputAreaToggleCb.style.cssText = 'width: 16px; height: 16px; cursor: pointer;';
+			inputAreaToggleCb.checked = !!profile.inputAreaEnabled;
+			inputAreaToggleCb.onchange = (e) => {
+				profile.inputAreaEnabled = e.target.checked;
+				commit();
+			};
+			inputAreaToggleWrap.appendChild(inputAreaToggleSpan);
+			inputAreaToggleWrap.appendChild(inputAreaToggleCb);
+			settingsDiv.appendChild(inputAreaToggleWrap);
+			createSlider('Input Area Width', 'inputAreaPct', 20, 80, 5, '%', profile.inputAreaPct !== undefined ? profile.inputAreaPct : 50);
+			const inputAreaNote = document.createElement('p');
+			inputAreaNote.style.cssText = 'color: #666; font-size: 9px; margin: -8px 0 12px;';
+			inputAreaNote.textContent = 'Also draggable live on the divider line itself in the preview above.';
+			settingsDiv.appendChild(inputAreaNote);
+		}
 
 		// --- Layout (split50v/split50h only: alignment) ---
 		if (bucket === 'split50v' || bucket === 'split50h') {

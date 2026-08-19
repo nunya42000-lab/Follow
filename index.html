@@ -253,6 +253,7 @@ alert("Promise Error: " + event.reason);
 <button id="close-donate-btn" class="mt-6 w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold">Close</button>
 </div>
 </div>
+
 <div id="settings-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding-top: max(100px, env(safe-area-inset-top));" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
 <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col overflow-hidden border border-custom m-4" style="max-height: calc(100vh - max(100px, env(safe-area-inset-top)) - 2rem);">
 <div class="no-swipe-zone p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
@@ -265,6 +266,7 @@ alert("Promise Error: " + event.reason);
 </div>
 <div class="settings-tab-bar flex border-b border-custom bg-black bg-opacity-20">
 <div class="tab-btn active" data-tab="mode">Game</div>
+<div class="tab-btn" data-tab="general">UI</div>
 <div class="tab-btn" data-tab="general">General</div>
 <div class="tab-btn" data-tab="mapping">Mapping</div>
 <div class="tab-btn" data-tab="advanced">Advanced</div>
@@ -385,7 +387,8 @@ alert("Promise Error: " + event.reason);
 </div>
 </div>
 </div>
-<div id="tab-general" class="tab-content">
+
+<div id="tab-UI" class="tab-content">
 <div class="space-y-4">
 <div class="p-3 rounded-lg border border-custom bg-opacity-50 settings-input">
 <div class="flex justify-between items-center mb-2">
@@ -410,183 +413,6 @@ alert("Promise Error: " + event.reason);
 <option value="Georgia, serif">Georgia (Serif)</option>
 </select>
 </div>
-</div>
-<div class="grid grid-cols-2 gap-3" id="general-toggle-grid">
-<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Auto Bright ☀️</span>
-<input type="checkbox" id="autoBrightToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Auto Dark 🌙</span>
-<input type="checkbox" id="autoDarkToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Random Theme 🎲</span>
-<input type="checkbox" id="randomThemeToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Theme Cycle 🎨</span>
-<input type="checkbox" id="headerThemeCycleToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Cycle Input 🔀</span>
-<input type="checkbox" id="headerCycleInputToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Mode Switch 🎮</span>
-<input type="checkbox" id="headerModeSwitchToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Add Machine ➕</span>
-<input type="checkbox" id="headerAddMachineToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Boss Mode 🌑</span>
-<input type="checkbox" id="bossToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">UI Size 🔍±</span>
-<input type="checkbox" id="headerUiSizeToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Sequence Size 🔢±</span>
-<input type="checkbox" id="headerSeqSizeToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Volume 🔊±</span>
-<input type="checkbox" id="headerVolumeToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Speed 🐇±</span>
-<input type="checkbox" id="headerSpeedToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Auto Hide Header 👻</span>
-<input type="checkbox" id="autoHideHeaderToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Infinite Header Scroll ♾️</span>
-<input type="checkbox" id="headerInfiniteScrollToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-    <span class="font-bold text-sm">Flick Header Buttons 💨</span>
-    <input type="checkbox" id="flickHeaderToggle" class="h-6 w-6 accent-indigo-500">
-</div>
-
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-    <span class="font-bold text-sm">Restore Header Gesture 🪄</span>
-    <input type="checkbox" id="restoreHeaderToggle" class="h-6 w-6 accent-indigo-500">
-</div>
-
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Play ▶️</span>
-<input type="checkbox" id="headerPlayToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Delete ⌫</span>
-<input type="checkbox" id="headerDeleteToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Settings ⚙️</span>
-<input type="checkbox" id="headerSettingsToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Help 📚</span>
-<input type="checkbox" id="headerHelpToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Redeem 🆔</span>
-<input type="checkbox" id="headerRedeemToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Share 📤</span>
-<input type="checkbox" id="headerShareToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Hide Intro</span>
-<input type="checkbox" id="hideIntroToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Undo ↩️</span>
-<input type="checkbox" id="headerUndoToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Timer ⏱️</span>
-<input type="checkbox" id="timerToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Auto Timer 🚀</span>
-<input type="checkbox" id="autotimerToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Counter #</span>
-<input type="checkbox" id="counterToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Auto Counter ➕</span>
-<input type="checkbox" id="autocounterToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Notepad 📝</span>
-<input type="checkbox" id="headerNotepadToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Input Regulator 🚦 <span class="font-normal opacity-70">(Simon Says only)</span></span>
-<input type="checkbox" id="inputRegulatorToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Haptics 📳</span>
-<input type="checkbox" id="hapticsToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Upside Down 🙃</span>
-<input type="checkbox" id="upsidedownToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Portrait Lock 🔒</span>
-<input type="checkbox" id="portraitLockToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Landscape Lock 🔐</span>
-<input type="checkbox" id="landscapeLockToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Full Screen 🔲</span>
-<input type="checkbox" id="fullscreenToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Bigger Buttons </span>
-<input type="checkbox" id="biggerToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Eco Mode 🔋</span>
-<input type="checkbox" id="ecoToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Wake Lock 💡</span>
-<input type="checkbox" id="wakelockToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Position Swap 🔄</span>
-<input type="checkbox" id="positionSwapToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Adjust Input Area ↔️</span>
-<input type="checkbox" id="landscapeInputResizeToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Picture in Picture 🪟</span>
-<input type="checkbox" id="pipToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Do Not Disturb 🔕</span>
-<input type="checkbox" id="dndToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Pinned Mode 📌</span>
-<input type="checkbox" id="pinnedModeToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">AR Mode 📸</span>
-<input type="checkbox" id="arcamToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">AR Auto Close 🚪</span>
-<input type="checkbox" id="arAutoCloseGeneralToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Voice Input 🎤</span>
-<input type="checkbox" id="voiceToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Voice Commands</span>
-<input type="checkbox" id="voicecommandsToggle" class="h-6 w-6 rounded accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Tone Cadence Mode 🎵</span>
-<input type="checkbox" id="toneToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Touch Gesture</span>
-<input type="checkbox" id="touchToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Hand Gestures🖐️</span>
-<input type="checkbox" id="handToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Hand Skeleton Overlay 🦴</span>
-<input type="checkbox" id="skeletonDebugToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Hand Signals🖐️</span>
-<input type="checkbox" id="handsignalsToggle" class="h-6 w-6 rounded accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Swap Left/Right Hands 🔄</span>
-<input type="checkbox" id="handednessFlipToggle" class="h-6 w-6 rounded accent-indigo-500"></div>
-<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Vol. Gesture 🔊</span>
-<input type="checkbox" id="volgesToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Speed Gesture ⚡</span>
-<input type="checkbox" id="speedToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Reset ♻️</span>
-<input type="checkbox" id="headerResetToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Nuke ☢️</span>
-<input type="checkbox" id="headerNukeToggle" class="h-6 w-6 accent-indigo-500"></div>
 </div>
 <div id="general-scale-dropdowns">
 <div class="grid grid-cols-2 gap-3 pt-2">
@@ -737,10 +563,352 @@ alert("Promise Error: " + event.reason);
 <option value="80">80px</option>
 </select>
 </div>
+<details id="viewport-accordion" class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
+<span>Landscape and Split Screen 📐</span>
+<span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+</summary>
+<div class="p-3 border-t border-gray-700">
+<p class="text-[10px] text-gray-400 mb-3">Fine-tune UI and sequence sizing separately for each viewport width, so switching to split-screen or multitasking never means readjusting your normal settings.</p>
+<div class="grid grid-cols-5 gap-1 mb-3">
+<button type="button" id="viewport-tab-btn-landscape" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-emerald-600 text-white">Landscape</button>
+<button type="button" id="viewport-tab-btn-split66" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300">66%</button>
+<button type="button" id="viewport-tab-btn-split50v" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300">50% ↕</button>
+<button type="button" id="viewport-tab-btn-split50h" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300">50% ↔</button>
+<button type="button" id="viewport-tab-btn-split33" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300">33%</button>
+</div>
+<div class="p-3 rounded-lg bg-gray-950 border border-gray-700 mb-3 flex items-center justify-center" style="min-height: 140px;">
+<div id="viewport-preview-screen" class="relative bg-black rounded border border-gray-600 overflow-hidden" style="width: 220px; height: 124px;">
+<div id="viewport-preview-header" class="absolute top-0 left-0 right-0 flex items-center gap-1 px-1" style="height: 14px;"></div>
+<div id="viewport-preview-seq" class="absolute flex flex-wrap items-center justify-center gap-1 content-center" style="top: 16px; left: 4px; right: 4px; bottom: 34px;"></div>
+<div id="viewport-preview-inputs" class="absolute bottom-1 left-1 right-1 flex flex-wrap gap-1 justify-center"></div>
+</div>
+</div>
+<div id="viewport-panel-landscape" class="viewport-panel">
+<div class="grid grid-cols-2 gap-3 mb-3">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
+<select id="viewport-uiscale-landscape" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
+<select id="viewport-seqsize-landscape" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+</div>
+<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="landscape">⚙️ Configure Viewport</button>
+</div>
+<div id="viewport-panel-split66" class="viewport-panel hidden">
+<div class="grid grid-cols-2 gap-3 mb-3">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
+<select id="viewport-uiscale-split66" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
+<select id="viewport-seqsize-split66" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+</div>
+<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split66">⚙️ Configure Viewport</button>
+</div>
+<div id="viewport-panel-split50v" class="viewport-panel hidden">
+<div class="grid grid-cols-2 gap-3 mb-3">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
+<select id="viewport-uiscale-split50v" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
+<select id="viewport-seqsize-split50v" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+</div>
+<div class="mb-3">
+<label class="block text-xs font-bold mb-1 text-muted-custom">Alignment</label>
+<select id="viewport-alignment-split50v" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="horizontal" selected>Horizontal (Normal)</option>
+<option value="vertical">Vertical</option>
+</select>
+</div>
+<div class="mb-3">
+<label class="block text-xs font-bold mb-1 text-muted-custom">Picture-in-Picture Shows</label>
+<select id="viewport-pip-machine-50v" class="viewport-pip-machine-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="same" selected>Same as Main Area</option>
+</select>
+<p class="text-[10px] text-gray-400 mt-1">If Picture-in-Picture is active at this size, the sequence only appears in the popup - the main screen shows inputs only.</p>
+</div>
+<p class="text-[10px] text-gray-400 mb-2">This is a 50/50 split while holding the phone upright (portrait-shaped) - always stacked, like Portrait.</p>
+<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split50v">⚙️ Configure Viewport</button>
+</div>
+<div id="viewport-panel-split50h" class="viewport-panel hidden">
+<div class="grid grid-cols-2 gap-3 mb-3">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
+<select id="viewport-uiscale-split50h" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
+<select id="viewport-seqsize-split50h" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+</div>
+<div class="mb-3">
+<label class="block text-xs font-bold mb-1 text-muted-custom">Alignment</label>
+<select id="viewport-alignment-split50h" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="horizontal" selected>Horizontal (Normal)</option>
+<option value="vertical">Vertical</option>
+</select>
+</div>
+<div class="mb-3">
+<label class="block text-xs font-bold mb-1 text-muted-custom">Picture-in-Picture Shows</label>
+<select id="viewport-pip-machine-50h" class="viewport-pip-machine-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="same" selected>Same as Main Area</option>
+</select>
+<p class="text-[10px] text-gray-400 mt-1">If Picture-in-Picture is active at this size, the sequence only appears in the popup - the main screen shows inputs only.</p>
+</div>
+<p class="text-[10px] text-gray-400 mb-2">This is a 50/50 split while holding the phone sideways (landscape-shaped) - always side-by-side, like Landscape.</p>
+<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split50h">⚙️ Configure Viewport</button>
+</div>
+<div id="viewport-panel-split33" class="viewport-panel hidden">
+<div class="grid grid-cols-2 gap-3 mb-3">
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
+<select id="viewport-uiscale-split33" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
+<select id="viewport-seqsize-split33" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
+<option value="100" selected>100%</option>
+<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
+</select>
+</div>
+</div>
+<p class="text-[10px] text-gray-400 mb-3">Same header button set as 50% and the same Picture-in-Picture behavior. Turn on Infinite Header Scroll (General) so scrolling through header buttons works at this width.</p>
+<div class="mb-3">
+<label class="block text-xs font-bold mb-1 text-muted-custom">Picture-in-Picture Shows</label>
+<select id="viewport-pip-machine-33" class="viewport-pip-machine-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="same" selected>Same as Main Area</option>
+</select>
+</div>
+<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split33">⚙️ Configure Viewport</button>
+</div>
+</div>
+</details>
 </div>
 </div>
 </div>
 </div>
+
+<div id="tab-general" class="tab-content">
+<div class="grid grid-cols-2 gap-3" id="general-toggle-grid">
+<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Auto Bright ☀️</span>
+<input type="checkbox" id="autoBrightToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Auto Dark 🌙</span>
+<input type="checkbox" id="autoDarkToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Random Theme 🎲</span>
+<input type="checkbox" id="randomThemeToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Theme Cycle 🎨</span>
+<input type="checkbox" id="headerThemeCycleToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Cycle Input 🔀</span>
+<input type="checkbox" id="headerCycleInputToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Mode Switch 🎮</span>
+<input type="checkbox" id="headerModeSwitchToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Add Machine ➕</span>
+<input type="checkbox" id="headerAddMachineToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Boss Mode 🌑</span>
+<input type="checkbox" id="bossToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">UI Size 🔍±</span>
+<input type="checkbox" id="headerUiSizeToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Sequence Size 🔢±</span>
+<input type="checkbox" id="headerSeqSizeToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Volume 🔊±</span>
+<input type="checkbox" id="headerVolumeToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Speed 🐇±</span>
+<input type="checkbox" id="headerSpeedToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Auto Hide Header 👻</span>
+<input type="checkbox" id="autoHideHeaderToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Infinite Header Scroll ♾️</span>
+<input type="checkbox" id="headerInfiniteScrollToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Flick Header Buttons 💨</span>
+<input type="checkbox" id="flickHeaderToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Restore Header Gesture 🪄</span>
+<input type="checkbox" id="restoreHeaderToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Play ▶️</span>
+<input type="checkbox" id="headerPlayToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Delete ⌫</span>
+<input type="checkbox" id="headerDeleteToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Settings ⚙️</span>
+<input type="checkbox" id="headerSettingsToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Help 📚</span>
+<input type="checkbox" id="headerHelpToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Redeem 🆔</span>
+<input type="checkbox" id="headerRedeemToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Share 📤</span>
+<input type="checkbox" id="headerShareToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Hide Intro</span>
+<input type="checkbox" id="hideIntroToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Undo ↩️</span>
+<input type="checkbox" id="headerUndoToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Timer ⏱️</span>
+<input type="checkbox" id="timerToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Auto Timer 🚀</span>
+<input type="checkbox" id="autotimerToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Counter #</span>
+<input type="checkbox" id="counterToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Auto Counter ➕</span>
+<input type="checkbox" id="autocounterToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Notepad 📝</span>
+<input type="checkbox" id="headerNotepadToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Input Regulator 🚦 <span class="font-normal opacity-70">(Simon Says only)</span></span>
+<input type="checkbox" id="inputRegulatorToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Haptics 📳</span>
+<input type="checkbox" id="hapticsToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Upside Down 🙃</span>
+<input type="checkbox" id="upsidedownToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Portrait Lock 🔒</span>
+<input type="checkbox" id="portraitLockToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Landscape Lock 🔐</span>
+<input type="checkbox" id="landscapeLockToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Full Screen 🔲</span>
+<input type="checkbox" id="fullscreenToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Bigger Buttons </span>
+<input type="checkbox" id="biggerToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Eco Mode 🔋</span>
+<input type="checkbox" id="ecoToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Wake Lock 💡</span>
+<input type="checkbox" id="wakelockToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Position Swap 🔄</span>
+<input type="checkbox" id="positionSwapToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Adjust Input Area ↔️</span>
+<input type="checkbox" id="landscapeInputResizeToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Picture in Picture 🪟</span>
+<input type="checkbox" id="pipToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Do Not Disturb 🔕</span>
+<input type="checkbox" id="dndToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Pinned Mode 📌</span>
+<input type="checkbox" id="pinnedModeToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">AR Mode 📸</span>
+<input type="checkbox" id="arcamToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">AR Auto Close 🚪</span>
+<input type="checkbox" id="arAutoCloseGeneralToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Voice Input 🎤</span>
+<input type="checkbox" id="voiceToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Voice Commands</span>
+<input type="checkbox" id="voicecommandsToggle" class="h-6 w-6 rounded accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Tone Cadence Mode 🎵</span>
+<input type="checkbox" id="toneToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Touch Gesture</span>
+<input type="checkbox" id="touchToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Hand Gestures🖐️</span>
+<input type="checkbox" id="handToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Hand Skeleton Overlay 🦴</span>
+<input type="checkbox" id="skeletonDebugToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Hand Signals🖐️</span>
+<input type="checkbox" id="handsignalsToggle" class="h-6 w-6 rounded accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Swap Left/Right Hands 🔄</span>
+<input type="checkbox" id="handednessFlipToggle" class="h-6 w-6 rounded accent-indigo-500"></div>
+<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Vol. Gesture 🔊</span>
+<input type="checkbox" id="volgesToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Speed Gesture ⚡</span>
+<input type="checkbox" id="speedToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Reset ♻️</span>
+<input type="checkbox" id="headerResetToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Nuke ☢️</span>
+<input type="checkbox" id="headerNukeToggle" class="h-6 w-6 accent-indigo-500"></div>
+</div>
+</div>
+
 <div id="tab-mapping" class="tab-content">
 <div class="flex border-b border-gray-700 mb-4 bg-black/40 rounded-t-lg">
 <button type="button" id="btn-map-touch" class="flex-1 py-3 text-sm font-bold text-blue-400 border-b-2 border-blue-400 transition-colors">👆 Touch Mapping</button>
@@ -1052,171 +1220,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 </div>
 </details>
-<details id="viewport-accordion" class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
-<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
-<span>Landscape and Split Screen 📐</span>
-<span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
-</summary>
-<div class="p-3 border-t border-gray-700">
-<p class="text-[10px] text-gray-400 mb-3">Fine-tune UI and sequence sizing separately for each viewport width, so switching to split-screen or multitasking never means readjusting your normal settings.</p>
-<div class="grid grid-cols-5 gap-1 mb-3">
-<button type="button" id="viewport-tab-btn-landscape" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-emerald-600 text-white">Landscape</button>
-<button type="button" id="viewport-tab-btn-split66" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300">66%</button>
-<button type="button" id="viewport-tab-btn-split50v" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300">50% ↕</button>
-<button type="button" id="viewport-tab-btn-split50h" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300">50% ↔</button>
-<button type="button" id="viewport-tab-btn-split33" class="viewport-tab-btn py-2 rounded-lg text-[10px] font-bold bg-gray-700 text-gray-300">33%</button>
-</div>
-<div class="p-3 rounded-lg bg-gray-950 border border-gray-700 mb-3 flex items-center justify-center" style="min-height: 140px;">
-<div id="viewport-preview-screen" class="relative bg-black rounded border border-gray-600 overflow-hidden" style="width: 220px; height: 124px;">
-<div id="viewport-preview-header" class="absolute top-0 left-0 right-0 flex items-center gap-1 px-1" style="height: 14px;"></div>
-<div id="viewport-preview-seq" class="absolute flex flex-wrap items-center justify-center gap-1 content-center" style="top: 16px; left: 4px; right: 4px; bottom: 34px;"></div>
-<div id="viewport-preview-inputs" class="absolute bottom-1 left-1 right-1 flex flex-wrap gap-1 justify-center"></div>
-</div>
-</div>
-<div id="viewport-panel-landscape" class="viewport-panel">
-<div class="grid grid-cols-2 gap-3 mb-3">
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
-<select id="viewport-uiscale-landscape" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
-<select id="viewport-seqsize-landscape" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-</div>
-<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="landscape">⚙️ Configure Viewport</button>
-</div>
-<div id="viewport-panel-split66" class="viewport-panel hidden">
-<div class="grid grid-cols-2 gap-3 mb-3">
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
-<select id="viewport-uiscale-split66" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
-<select id="viewport-seqsize-split66" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-</div>
-<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split66">⚙️ Configure Viewport</button>
-</div>
-<div id="viewport-panel-split50v" class="viewport-panel hidden">
-<div class="grid grid-cols-2 gap-3 mb-3">
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
-<select id="viewport-uiscale-split50v" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
-<select id="viewport-seqsize-split50v" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-</div>
-<div class="mb-3">
-<label class="block text-xs font-bold mb-1 text-muted-custom">Alignment</label>
-<select id="viewport-alignment-split50v" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="horizontal" selected>Horizontal (Normal)</option>
-<option value="vertical">Vertical</option>
-</select>
-</div>
-<div class="mb-3">
-<label class="block text-xs font-bold mb-1 text-muted-custom">Picture-in-Picture Shows</label>
-<select id="viewport-pip-machine-50v" class="viewport-pip-machine-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="same" selected>Same as Main Area</option>
-</select>
-<p class="text-[10px] text-gray-400 mt-1">If Picture-in-Picture is active at this size, the sequence only appears in the popup - the main screen shows inputs only.</p>
-</div>
-<p class="text-[10px] text-gray-400 mb-2">This is a 50/50 split while holding the phone upright (portrait-shaped) - always stacked, like Portrait.</p>
-<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split50v">⚙️ Configure Viewport</button>
-</div>
-<div id="viewport-panel-split50h" class="viewport-panel hidden">
-<div class="grid grid-cols-2 gap-3 mb-3">
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
-<select id="viewport-uiscale-split50h" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
-<select id="viewport-seqsize-split50h" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-</div>
-<div class="mb-3">
-<label class="block text-xs font-bold mb-1 text-muted-custom">Alignment</label>
-<select id="viewport-alignment-split50h" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="horizontal" selected>Horizontal (Normal)</option>
-<option value="vertical">Vertical</option>
-</select>
-</div>
-<div class="mb-3">
-<label class="block text-xs font-bold mb-1 text-muted-custom">Picture-in-Picture Shows</label>
-<select id="viewport-pip-machine-50h" class="viewport-pip-machine-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="same" selected>Same as Main Area</option>
-</select>
-<p class="text-[10px] text-gray-400 mt-1">If Picture-in-Picture is active at this size, the sequence only appears in the popup - the main screen shows inputs only.</p>
-</div>
-<p class="text-[10px] text-gray-400 mb-2">This is a 50/50 split while holding the phone sideways (landscape-shaped) - always side-by-side, like Landscape.</p>
-<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split50h">⚙️ Configure Viewport</button>
-</div>
-<div id="viewport-panel-split33" class="viewport-panel hidden">
-<div class="grid grid-cols-2 gap-3 mb-3">
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">UI Scale</label>
-<select id="viewport-uiscale-split33" class="viewport-uiscale-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-bold mb-1 text-muted-custom">Sequence Size</label>
-<select id="viewport-seqsize-split33" class="viewport-seqsize-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option>
-<option value="100" selected>100%</option>
-<option value="110">110%</option><option value="120">120%</option><option value="130">130%</option><option value="140">140%</option><option value="150">150%</option>
-</select>
-</div>
-</div>
-<p class="text-[10px] text-gray-400 mb-3">Same header button set as 50% and the same Picture-in-Picture behavior. Turn on Infinite Header Scroll (General) so scrolling through header buttons works at this width.</p>
-<div class="mb-3">
-<label class="block text-xs font-bold mb-1 text-muted-custom">Picture-in-Picture Shows</label>
-<select id="viewport-pip-machine-33" class="viewport-pip-machine-select settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="same" selected>Same as Main Area</option>
-</select>
-</div>
-<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split33">⚙️ Configure Viewport</button>
-</div>
-</div>
-</details>
+
 <details class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
 <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
 <span>Header 🔀</span>

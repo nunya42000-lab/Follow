@@ -677,7 +677,7 @@ const DEFAULT_APP = {
 	// bucket gets its own copy, defaulting to 0 (matching the prior shared default) so nothing
 	// changes for anyone not using it, adjustable per-bucket from here on via Configure Viewport.
 	viewportProfiles: {
-		landscape: { uiScale: 100, seqSize: 210, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: false, inputAreaPct: 50, headerPadding: 0, inputsPadding: 0, headerButtons: [] }, // Executed: sequence size & row bounds
+		landscape: { uiScale: 100, seqSize: 210, headerScale: 100, numberSize: 250, inputFontSize: 200, btnSize: 150, rowMax: '5', inputAreaEnabled: false, inputAreaPct: 35, headerPadding: 0, inputsPadding: 0, headerButtons: [] }, // Executed: sequence size & row bounds
 		split66: { uiScale: 100, seqSize: 180, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: false, inputAreaPct: 50, headerPadding: 0, inputsPadding: 0, headerButtons: [] },
 		split50v: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', inputAreaEnabled: true, inputAreaPct: 80, headerPadding: 0, inputsPadding: 0, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }, // Executed: flex-direction fixed
 		split50h: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', inputAreaEnabled: false, inputAreaPct: 50, headerPadding: 0, inputsPadding: 0, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },

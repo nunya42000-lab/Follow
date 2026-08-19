@@ -233,9 +233,20 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 	   the sequence area to the remaining space above the footer, scrolling internally if the
 	   sequence itself is longer than that - which is what actually stops it from rendering
 	   underneath the footer's opaque background. Falls back to the same ~128px (pb-32) the base
-	   utility class already assumed when no custom height is set (Adjust Input Area off). */
+	   utility class already assumed when no custom height is set (Adjust Input Area off).
+	   Deliberately plain 100vh here, NOT --real-vh: the footer's own height (two rules up) is
+	   itself plain vh-based, and mixing --real-vh's actual measured pixels with the footer's raw
+	   vh figure meant the two didn't necessarily add up to the same total on a real device (any
+	   gap between the visualViewport measurement and the layout viewport - which split-screen
+	   multitasking can easily introduce) - staying on the same 100vh basis as the footer
+	   guarantees they always sum correctly, no matter what. min(...) below is a hard floor: if
+	   this ever computed to zero or negative (a stale/late CSS var during the first paint, or
+	   any other transient mismatch), #app would render at zero height and the sequence would be
+	   completely invisible - "can only see input buttons" - rather than just cramped. Floors it
+	   to at least 15vh so numbers are always genuinely there, worst case scrollable. */
 	body:is([data-viewport-bucket="portrait"], [data-portrait-split-layout="stacked"]) #app {
-		max-height: calc(var(--real-vh, 100vh) - var(--portrait-input-height, 128px)) !important;
+		max-height: max(15vh, calc(100vh - var(--portrait-input-height, 128px))) !important;
+		box-sizing: border-box !important;
 		overflow-y: auto !important;
 		padding-bottom: 0 !important;
 	}

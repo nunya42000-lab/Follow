@@ -589,7 +589,7 @@ const DEFAULT_APP = {
 	globalUiScale: 100,
 	uiScaleMultiplier: 2.2, // Executed: Portrait scaling multiplier
 	showWelcomeScreen: true,
-	touchResizeMode: 'global',
+	touchResizeMode: 'none',
 	playbackSpeed: 1.0,
 	isAutoplayEnabled: false,
 	isUniqueRoundsAutoClearEnabled: true,
@@ -657,7 +657,7 @@ const DEFAULT_APP = {
 	isAutoDarkEnabled: false,
 	headerIconScale: 100,
 	appFontScale: 100,
-	appInputFontScale: 100,
+	appInputFontScale: 200,
 	appInputBtnScale: 100,
 	appRowMax: '5',
 	// Every bucket now carries its OWN inputAreaEnabled/inputAreaPct instead of leaving some of
@@ -3706,6 +3706,7 @@ class SettingsManager {
 		if (this.dom.seqFontSize) this.dom.seqFontSize.value = Math.round((this.appSettings.uiFontSizeMultiplier || 1.0) * 100);
 		if (this.dom.inputFontSize) this.dom.inputFontSize.value = this.appSettings.appInputFontScale || 100;
 		if (this.dom.rowMax) this.dom.rowMax.value = this.appSettings.appRowMax || 'none';
+		if (this.dom.inputBtnSize) this.dom.inputBtnSize.value = this.appSettings.appInputBtnScale || 100;
 		if (this.dom.touchGestureTapSlider) {
 			const tapVal = this.appSettings.touchGestureTapDelay || 300;
 			this.dom.touchGestureTapSlider.value = tapVal;
@@ -3723,7 +3724,7 @@ class SettingsManager {
             document.getElementById('restoreHeaderToggle').checked = !!this.appSettings.isRestoreHeaderGestureEnabled;
         }
 
-		if (this.dom.touchResizeModeSelect) this.dom.touchResizeModeSelect.value = this.appSettings.touchResizeMode || 'global';
+		if (this.dom.touchResizeModeSelect) this.dom.touchResizeModeSelect.value = this.appSettings.touchResizeMode || 'none';
 		if (this.dom.headerPaddingSelect) this.dom.headerPaddingSelect.value = this.appSettings.headerPadding || 0;
 		if (this.dom.inputsPaddingSelect) this.dom.inputsPaddingSelect.value = this.appSettings.inputsPadding || 0;
 		this.applyHeaderPadding();
@@ -7129,7 +7130,7 @@ function initTouchGestureEngine() {
 					showToast(`Speed: ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
 				}
 				if (data.type === 'pinch') {
-					const mode = appSettings.touchResizeMode || 'global';
+					const mode = appSettings.touchResizeMode || 'none';
 					if (mode === 'none') return;
 					if (!touchGestureState.isPinching) {
 						touchGestureState.isPinching = true;

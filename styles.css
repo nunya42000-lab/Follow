@@ -66,13 +66,15 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 #sequence-container { justify-content: flex-start !important; padding-top: 1rem; width: 100%; max-width: var(--row-max-width, none); margin: 0 auto; }
 #input-footer { background-color: var(--card-bg); border-top: 4px solid var(--seq-bubble); padding-bottom: calc(max(.5rem, env(safe-area-inset-bottom)) + var(--inputs-padding-extra, 0px)); max-height: 70vh; overflow-y: auto; }
 
-	/* :not(.input-gestures-mode) below matters: this rule's selector is MORE specific than
-	   `body.input-gestures-mode #input-footer { display: none !important; }`, so without this
-	   guard it kept forcing display:flex here even while the touch-gesture pad was active -
-	   important-vs-important still resolves by specificity, and this one was winning. That's why
-	   the on-screen keypad never actually disappeared behind the gesture pad on any side-by-side
-	   layout (Landscape, split50h, side-by-side split33/66). */
-	body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"]):not(.input-gestures-mode)[data-rotate="0"][data-input-mode="key9"] #input-footer, body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"]):not(.input-gestures-mode)[data-rotate="0"][data-input-mode="key12"] #input-footer {
+	/* NOTE: the touch-gesture-mode "hide the footer" override lives in its OWN separate rule
+	   further down (search .input-gestures-mode below), not folded into this selector. Adding
+	   :not(.input-gestures-mode) directly here once before bumped this rule's specificity just
+	   enough to outrank the split50h/33-specific width-fallback override two rules down (which
+	   sits at the same specificity as this one and depends on winning via source order) -
+	   silently breaking the 50%/20% width fallback for split50h/33 whenever Adjust Input Area
+	   was off. Keeping this selector untouched preserves that ordering; the separate rule below
+	   still wins on display specifically because IT has the higher specificity, not this one. */
+	body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #input-footer, body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #input-footer {
 		position: fixed !important;
 		top: 0 !important; right: 0 !important; bottom: 0 !important; left: auto !important;
 		width: var(--landscape-input-width, 100vh) !important; max-width: none !important; max-height: none !important;
@@ -198,10 +200,11 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 	   selector previously only matched the literal portrait bucket, so the height clamp
 	   and drag handle silently never activated for split50v/stacked split66/33, letting
 	   #input-footer fall back to the unbounded base max-height:70vh rule instead. */
-	/* :not(.input-gestures-mode) here for the same reason as the side-by-side version above -
-	   without it, this rule's display:flex!important (specificity-wise) beats the gesture-pad
-	   hide rule whenever Adjust Input Area is also on for a stacked/portrait layout. */
-	body.landscape-resize-enabled:not(.input-gestures-mode):is([data-viewport-bucket="portrait"], [data-portrait-split-layout="stacked"]) #input-footer {
+	/* NOTE: same as the side-by-side version above - the touch-gesture-mode hide override lives
+	   in its own separate, higher-specificity rule instead of being folded in here, so this
+	   selector's specificity relationship with any other rule targeting #input-footer stays
+	   exactly as it was. */
+	body.landscape-resize-enabled:is([data-viewport-bucket="portrait"], [data-portrait-split-layout="stacked"]) #input-footer {
 		height: var(--portrait-input-height, 70vh) !important;
 		max-height: var(--portrait-input-height, 70vh) !important;
 		box-sizing: border-box !important;
@@ -211,6 +214,30 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 	}
 	body.landscape-resize-enabled:is([data-viewport-bucket="portrait"], [data-portrait-split-layout="stacked"]) #input-footer > div {
 		width: 100%;
+	}
+	/* #app's own bottom padding must actually track the footer's real height here, or the
+	   sequence-container above it isn't reserved enough room and ends up rendered UNDER the
+	   fixed-position footer instead of above it - invisible/cut off behind the footer's opaque
+	   background, only a sliver peeking above its top edge. #app's base rule only ever had a
+	   static ~128px (pb-32) buffer, a rough guess that happened to be in the right ballpark for
+	   a normal-height footer but falls apart completely once a bucket's own Adjust Input Area
+	   percentage pushes the footer to something like 80vh - this ties the two together exactly
+	   so the sequence area is always the genuine remaining space, at any percentage. Falls back
+	   to the same 128px default the base pb-32 utility class already provided when no custom
+	   height is set (Adjust Input Area off), so nothing changes for anyone not using it. */
+	/* #app must be explicitly capped to the space ABOVE the fixed-position footer, not just given
+	   extra padding - padding-bottom on a flex-grow child inside an overflow:hidden body doesn't
+	   reposition anything already inside it away from a sibling that's position:fixed, it just
+	   makes the box taller (and past body's own overflow:hidden, invisible/clipped) instead of
+	   actually freeing up visible room. max-height + its own overflow-y:auto directly confines
+	   the sequence area to the remaining space above the footer, scrolling internally if the
+	   sequence itself is longer than that - which is what actually stops it from rendering
+	   underneath the footer's opaque background. Falls back to the same ~128px (pb-32) the base
+	   utility class already assumed when no custom height is set (Adjust Input Area off). */
+	body:is([data-viewport-bucket="portrait"], [data-portrait-split-layout="stacked"]) #app {
+		max-height: calc(var(--real-vh, 100vh) - var(--portrait-input-height, 128px)) !important;
+		overflow-y: auto !important;
+		padding-bottom: 0 !important;
 	}
 	#portrait-resize-handle {
 		display: none;
@@ -308,7 +335,17 @@ header#aux-control-header.auto-hide-header-enabled.auto-hide-inactive #header-bt
 .header-btn-active { background-color: var(--seq-bubble) !important; border-color: var(--text-main) !important; box-shadow: 0 0 10px var(--seq-bubble) !important; }
 body.input-gestures-mode #input-footer { display: none !important; }
 
-	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].input-gestures-mode #input-footer { display: none !important; }
+/* Higher-specificity than the positioning rules that also set display:flex!important at equal
+   or higher specificity (the side-by-side and stacked/Adjust-Input-Area rules above) - these
+   two exist purely so the touch-gesture pad's hide actually wins there too, without needing to
+   touch (and change the specificity of) those other rules' own selectors. */
+body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"].input-gestures-mode #input-footer,
+body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"].input-gestures-mode #input-footer {
+	display: none !important;
+}
+body.landscape-resize-enabled.input-gestures-mode:is([data-viewport-bucket="portrait"], [data-portrait-split-layout="stacked"]) #input-footer {
+	display: none !important;
+}
 
 body.input-gestures-mode #gesture-pad-wrapper { display: block !important; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 30; background: rgba(0, 0, 0, 0.05); }
 body.input-gestures-mode #gesture-pad { width: 100% !important; height: 100% !important; margin: 0 !important; border: none !important; border-radius: 0 !important; background: transparent !important;}
@@ -935,6 +972,14 @@ body[data-viewport-bucket="split33"] #header-btn-row > button#headertouchbtn.vp-
 /* 50% vertical alignment option: stacks input rows vertically instead of the normal horizontal flow. */
 body[data-viewport-bucket="split50v"][data-split-alignment="vertical"] #input-footer .grid,
 body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-split-alignment="vertical"] #input-footer .grid {
+	grid-template-columns: 1fr !important;
+}
+/* 33% side-by-side always stacks input rows vertically, unconditionally - unlike 50h/50v there's
+   no horizontal option here at all, because the pane is narrow enough (20-33% of the screen)
+   that a 3-wide button grid has no real width to divide up: each column collapses toward the
+   width of a single digit and the numbers visually run together into an unreadable blob. A
+   single column gives each button the pane's full (still narrow, but usable) width instead. */
+body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"]) #input-footer .grid {
 	grid-template-columns: 1fr !important;
 }
 /* PiP fixed-machine mode: at 33%/50h/50v/66% with PiP active, Machine 1's sequence renders only

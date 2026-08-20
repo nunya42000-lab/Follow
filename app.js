@@ -2,7 +2,7 @@
 // modal's live iframe, ?vpPreview=1&vpBucket=split66 (etc) forces detectViewportBucket() to
 // report that bucket regardless of the real device's screen/window ratio, so the preview can
 // show any bucket without physically resizing the browser window.
-window.__fmBuildMarker = 'v162-zoom-guard-fix';
+window.__fmBuildMarker = 'v163-ratio-cancellation-verified';
 (function() {
 	try {
 		const params = new URLSearchParams(location.search);
@@ -5999,6 +5999,7 @@ function isWindowLandscapeShaped() {
 	}
 	return window.innerWidth >= window.innerHeight;
 }
+window.isWindowLandscapeShaped = isWindowLandscapeShaped;
 function detectViewportBucket() {
 	// Viewport Preview mode (Landscape and Split Screen configure modal): the iframe is asked
 	// to pretend to be a specific bucket regardless of the real device's screen/window ratio,
@@ -6071,10 +6072,17 @@ function renderViewportDiagnostic() {
 	const orientationApiType = (window.screen && window.screen.orientation) ? window.screen.orientation.type : 'n/a';
 	const vvScale = (window.visualViewport && typeof window.visualViewport.scale === 'number') ? window.visualViewport.scale.toFixed(3) : 'n/a';
 	const isZoomed = window.visualViewport && typeof window.visualViewport.scale === 'number' && Math.abs(window.visualViewport.scale - 1) > 0.03;
+	const dpr = window.devicePixelRatio || 'n/a';
+	const cssPxRatio = (typeof screenW === 'number' && screenW > 0) ? (innerW / screenW).toFixed(3) : 'n/a';
 	panel.textContent =
 		`app.js build: ${window.__fmBuildMarker || '(unknown - likely a very old cached version)'}\n` +
 		`\n` +
 		`window.visualViewport.scale: ${vvScale}  ${isZoomed ? '<-- PAGE IS CURRENTLY ZOOMED (detection frozen at last good value until this returns to ~1.0)' : '(not zoomed)'}\n` +
+		`window.devicePixelRatio: ${dpr}\n` +
+		`innerWidth / window.screen.width: ${cssPxRatio}  (if this isn't ~1.0 even while genuinely\n` +
+		`full-screen and unzoomed, this browser/device reports CSS pixels at a different scale than\n` +
+		`window.screen - harmless to detection as long as it's CONSISTENT, since every ratio below\n` +
+		`is self-relative and cancels a constant scale factor out automatically)\n` +
 		`\n` +
 		`window.screen.width (LIVE, used only as a fallback signal):  ${screenW}\n` +
 		`window.screen.height (LIVE, used only as a fallback signal): ${screenH}\n` +

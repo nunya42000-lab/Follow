@@ -1955,7 +1955,7 @@ class SettingsManager {
 			voicePresetDelete: document.getElementById('voice-preset-delete'),
 			voicePitch: document.getElementById('voice-pitch'), voiceRate: document.getElementById('voice-rate'), voiceVolume: document.getElementById('voice-volume'), voiceTestBtn: document.getElementById('test-voice-btn'), voiceNameSelect: document.getElementById('voice-name-select'),
 			settingsModal: document.getElementById('settings-modal'), themeSelect: document.getElementById('theme-select'), themeAdd: document.getElementById('theme-add'), themeRename: document.getElementById('theme-rename'), themeDelete: document.getElementById('theme-delete'), themeSave: document.getElementById('theme-save'), randomThemeToggle: document.getElementById('randomThemeToggle'), autoHideHeaderToggle: document.getElementById('autoHideHeaderToggle'), skeletonDebugToggle: document.getElementById('skeletonDebugToggle'), fontSelect: document.getElementById('font-select'),
-			configSelect: document.getElementById('config-select'), quickConfigSelect: document.getElementById('quick-config-select'), configAdd: document.getElementById('config-add'), configRename: document.getElementById('config-rename'), configDelete: document.getElementById('config-delete'), configSave: document.getElementById('config-save'),
+			configSelect: document.getElementById('config-select'), quickConfigSelect: document.getElementById('quick-config-select'), quickOrientationSelect: document.getElementById('quick-orientation-select'), configAdd: document.getElementById('config-add'), configRename: document.getElementById('config-rename'), configDelete: document.getElementById('config-delete'), configSave: document.getElementById('config-save'),
 			input: document.getElementById('input-select'), mode: document.getElementById('mode-select'), practiceMode: document.getElementById('practice-mode-toggle'), machines: document.getElementById('machines-select'), seqLength: document.getElementById('seq-length-select'),
 			autoClear: document.getElementById('autoclear-toggle'), autoplay: document.getElementById('autoplay-toggle'), flash: document.getElementById('flash-toggle'),
 			pause: document.getElementById('pause-select'), audio: document.getElementById('audio-toggle'), hapticMorse: document.getElementById('haptic-morse-toggle'), playbackSpeed: document.getElementById('playback-speed-select'), chunk: document.getElementById('chunk-select'), delay: document.getElementById('delay-select'), haptics: document.getElementById('hapticsToggle'),
@@ -3320,6 +3320,16 @@ class SettingsManager {
 		const handleProfileSwitch = (val) => { this.callbacks.onProfileSwitch(val); this.openSettings(); };
 		if (this.dom.configSelect) this.dom.configSelect.onchange = (e) => handleProfileSwitch(e.target.value);
 		if (this.dom.quickConfigSelect) this.dom.quickConfigSelect.onchange = (e) => handleProfileSwitch(e.target.value);
+		if (this.dom.quickOrientationSelect) this.dom.quickOrientationSelect.onchange = (e) => {
+			this.appSettings.manualViewportBucket = e.target.value || null;
+			this.callbacks.onSave();
+			if (typeof applyViewportProfile === 'function') applyViewportProfile();
+			// The UI tab's own override select (Settings -> UI -> Landscape and Split Screen)
+			// controls the exact same setting - keep it in sync so either place always shows the
+			// truth, whichever one was used most recently.
+			const settingsSelect = document.getElementById('viewport-manual-override-select');
+			if (settingsSelect) settingsSelect.value = e.target.value;
+		};
 		const bind = (el, prop, isGlobal, isInt = false, isFloat = false) => {
 			if (!el) return;
 			el.onchange = () => {
@@ -3613,7 +3623,7 @@ class SettingsManager {
 	populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
 	populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
 	openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.initEcoModeConfigUI(); this.renderFullProfileList(); if (typeof initViewportProfilesUI === 'function') initViewportProfilesUI(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
-	openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); this.updateWelcomeSample(); }
+	openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); if (this.dom.quickOrientationSelect) this.dom.quickOrientationSelect.value = this.appSettings.manualViewportBucket || ''; this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); this.updateWelcomeSample(); }
 	applySettingsLockState() {
 		if (!this.dom.settingsLockBtn) return;
 		const locked = !!this.appSettings.isSettingsLockEnabled;
@@ -5918,6 +5928,11 @@ window.grantAllPermissions = async function() {
 // value with no better information to fall back on in the meantime.
 const VP_EXTENTS_KEY = 'fm_device_extents';
 function vpUpdateObservedExtents() {
+	// Same reasoning as the startup grace period in detectViewportBucket(): don't record an
+	// observation before the viewport has necessarily settled (mobile browser chrome collapsing,
+	// etc.) - a premature reading here gets permanently locked in as a "maximum ever seen" and
+	// poisons every future detection, exactly like the zoom case below already does.
+	if (window.__vpStartupGraceActive) return;
 	// Guard against page-zoom pollution: if the page is actively zoomed (native OS/browser zoom,
 	// or any other mechanism outside the app's own CSS-based UI Scale, which never touches
 	// window.innerWidth/innerHeight in the first place), window.innerWidth/innerHeight briefly
@@ -6007,6 +6022,10 @@ function isWindowLandscapeShaped() {
 	}
 	const manual = vpParseManualOverride();
 	if (manual) return manual.isLandscape;
+	// Matches the startup grace period in detectViewportBucket() - portrait is never
+	// landscape-shaped, so this must agree during that same window or the two would contradict
+	// each other (bucket says portrait, shape says landscape) and produce a broken hybrid layout.
+	if (window.__vpStartupGraceActive) return false;
 	vpUpdateObservedExtents();
 	// The reliable signal is which of the window's own two dimensions is still "full": in a
 	// sideways split, the window's height stays at ~100% of the device's short edge while its
@@ -6042,6 +6061,20 @@ function detectViewportBucket() {
 	if (manual) {
 		window.__vpLastDetectedBucket = manual.bucket;
 		return manual.bucket;
+	}
+	// Startup grace period: the very first detection on a fresh launch runs before the browser's
+	// viewport has necessarily settled - mobile browser chrome (address bar, etc.) can still be
+	// visible and collapse a moment later, and on top of that, window.screen has already proven
+	// unreliable enough on some devices to misjudge even a completely normal, non-split launch.
+	// The overwhelmingly common case opening the app is full-screen portrait, never split - so
+	// rather than trust a ratio computed before things have settled, assume portrait for this
+	// first brief window and let a delayed, now-settled real detection correct it a moment later
+	// (see the vpEndStartupGracePeriod call in startApp) if the person genuinely did open the app
+	// already mid-split. That's a rare edge case worth a brief correction over the common case
+	// being wrong on every single launch.
+	if (window.__vpStartupGraceActive) {
+		window.__vpLastDetectedBucket = 'portrait';
+		return 'portrait';
 	}
 	// If the page is CURRENTLY zoomed (mid-gesture or otherwise), window.innerWidth/innerHeight
 	// themselves are momentarily unreliable as the ratio's numerator too, not just as a baseline
@@ -9301,11 +9334,18 @@ window.performForceRefresh = performForceRefresh;
 const startApp = async () => {
 	loadState();
 	window.appSettings = appSettings;
-	// Record this launch's dimensions as an observation immediately - every call to
-	// detectViewportBucket() records one too (see vpUpdateObservedExtents), but seeding here
-	// means the very first render already has a real observation to work with, not just the
-	// last-resort same-session fallback inside vpGetDeviceExtents().
-	if (typeof vpUpdateObservedExtents === 'function') vpUpdateObservedExtents();
+	// Startup grace period: force 'portrait' for the first brief window after launch instead of
+	// trusting a ratio computed before the viewport has necessarily settled (see the comment in
+	// detectViewportBucket() for the full reasoning). 600ms comfortably covers mobile browser
+	// chrome collapsing after load; applyViewportProfile() re-runs detection for real once this
+	// ends, correcting to a genuine split-screen bucket in the rare case the app was actually
+	// opened already mid-split, or simply confirming portrait (no visible change) in the
+	// overwhelmingly common case.
+	window.__vpStartupGraceActive = true;
+	setTimeout(() => {
+		window.__vpStartupGraceActive = false;
+		if (typeof applyViewportProfile === 'function') applyViewportProfile();
+	}, 600);
 	if (new URLSearchParams(window.location.search).has('nuke')) {
 		history.replaceState(null, '', window.location.pathname);
 		if (confirm('☢️ NUKE APP? This will wipe all saved data (settings, sequences, comments), clear browser caches, unregister Service Workers, and force a fresh update from the server. This is the same as the in-app Nuke button, just reachable even if the app won\'t load. Continue?')) {

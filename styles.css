@@ -304,7 +304,8 @@ body.layout-swapped #input-footer { border-top: none; border-bottom: 4px solid v
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .grid-cols-3, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .grid-cols-4 { display: grid !important; gap: 0.5rem !important; justify-items: center !important; align-self: stretch !important; width: 100% !important; }
 
 
-.btn-control { background-color: var(--btn-bg); font-size: 1.5rem; height: calc(60px * var(--input-btn-scale, 1)); border-radius: 9999px; color: var(--text-main); border: 1px solid var(--border); }
+.btn-control { background-color: var(--btn-bg); font-size: 1.5rem; height: calc(60px * var(--input-btn-scale, 1)); border-radius: 9999px; color: var(--text-main); border: 1px solid var(--border); aspect-ratio: 1 / 1; width: auto; flex-shrink: 0; }
+.control-row { justify-items: center; }
 .btn-control:active { filter: brightness(1.3); transform: scale(.96); }
 .number-box { height: 40px; width: 40px; line-height: 40px; font-size: 1.2rem; font-weight: 800; transition: all .2s; background-color: var(--seq-bubble); color: var(--seq-bubble-text, var(--text-main)); display: flex; align-items: center; justify-content: center; border-radius: .5rem; box-shadow: 0 2px 4px rgba(0, 0, 0, .2); }
 
@@ -391,7 +392,7 @@ body.hide-controls #piano-keys { height: 300px; transition: height 0.3s ease; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="piano"] #pad-piano { display: flex !important; flex-direction: row !important; align-items: stretch !important; gap: 0.5rem !important; max-width: none !important; width: 100% !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano #piano-keys { width: auto !important; flex-grow: 1 !important; margin-bottom: 0 !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano .control-row { width: auto !important; max-width: none !important; flex-shrink: 0 !important; display: grid !important; grid-template-columns: 1fr !important; grid-auto-rows: 1fr !important; gap: 0.5rem !important; padding: 0 !important; }
-	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano .btn-control { height: auto !important; width: calc(3.5rem * var(--input-btn-scale, 1)) !important; border-radius: 0.5rem !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano .btn-control { height: auto !important; width: calc(3.5rem * var(--input-btn-scale, 1)) !important; border-radius: 0.5rem !important; aspect-ratio: auto !important; }
 
 
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="piano"] #piano-keys { height: 42vh !important; }

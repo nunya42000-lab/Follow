@@ -98,6 +98,21 @@ alert("Promise Error: " + event.reason);
 <label class="block text-sm font-semibold mb-2 text-muted-custom">Select Profile</label>
 <select id="quick-config-select" class="settings-input w-full h-12 px-4 py-2 text-lg font-semibold shadow-sm rounded"></select>
 </div>
+<div class="mb-6">
+<label class="block text-sm font-semibold mb-2 text-muted-custom">Screen Size 📍</label>
+<select id="quick-orientation-select" class="settings-input w-full h-12 px-4 py-2 text-lg font-semibold shadow-sm rounded">
+<option value="">Auto-Detect (Default)</option>
+<option value="portrait">Portrait (full screen, upright)</option>
+<option value="landscape">Landscape (full screen, sideways)</option>
+<option value="split66-stacked">66% - stacked (held upright)</option>
+<option value="split66-sidebyside">66% - side-by-side (held sideways)</option>
+<option value="split50v">50% ↕ (held upright, always stacked)</option>
+<option value="split50h">50% ↔ (held sideways, always side-by-side)</option>
+<option value="split33-stacked">33% - stacked (held upright)</option>
+<option value="split33-sidebyside">33% - side-by-side (held sideways)</option>
+</select>
+<p class="text-[10px] text-muted-custom mt-1.5">If Landscape/Split Screen detection is ever wrong, pick your real size here instead of leaving it to guess.</p>
+</div>
 <div class="grid grid-cols-2 gap-4 mb-6">
 <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
 <label class="font-semibold">Autoplay</label>

@@ -6395,15 +6395,19 @@ function applyPositionSwapOffsets(isActive) {
 	const app = document.getElementById('app');
 	const header = document.getElementById('aux-control-header');
 	if (!footer || !app) return;
-	// A narrow split-screen pane can end up taller than it is wide, which flips the CSS
-	// orientation media query to "portrait" even though the device itself is physically in
-	// landscape/split-screen - checking the already-detected viewport bucket alongside the
-	// live media query keeps split-screen panes on the landscape-style layout path instead of
-	// falling back to portrait's "move footer to top with measured padding" math, which breaks
-	// badly against a footer that's much taller than the sliver of height actually available.
+	// Which layout this needs depends entirely on the already-detected viewport bucket now, not
+	// the raw CSS orientation media query. That query matches purely on the window's own current
+	// width vs height, with no idea whether this is a genuine full-screen rotation or a short,
+	// wide STACKED pane (a real 33%-style split-screen strip, for instance) - exactly the
+	// distinction detectViewportBucket() now exists to get right. Unioning the two together (the
+	// original reasoning here) meant the media query could still force this into the
+	// "CSS handles it, landscape-family" branch purely because a cramped portrait pane happened
+	// to be wider than tall, even though the bucket correctly said 'portrait' - and since that
+	// branch's CSS is explicitly scoped to exclude the portrait bucket, NEITHER path actually
+	// applied: inline styles got cleared for a landscape treatment that never matched anything,
+	// and swap silently did nothing at all. Bucket alone doesn't have that blind spot.
 	const viewportBucket = document.body.dataset.viewportBucket;
-	const isSplitBucket = viewportBucket === 'landscape' || viewportBucket === 'split50h';
-	const isLandscape = window.matchMedia('(orientation: landscape)').matches || isSplitBucket;
+	const isLandscape = viewportBucket === 'landscape' || viewportBucket === 'split50h';
 	const inputMode = document.body.dataset.inputMode;
 	const sideRepositioned = isLandscape && (inputMode === 'key9' || inputMode === 'key12');
 	if (sideRepositioned) {
@@ -6438,13 +6442,81 @@ function applyPositionSwapOffsets(isActive) {
 		const headerH = headerVisible ? header.offsetHeight : 0;
 		footer.style.top = headerH + 'px';
 		footer.style.bottom = 'auto';
-		app.style.paddingTop = footer.offsetHeight + headerH + 16 + 'px';
+		// The footer's own NATURAL height (however tall its content genuinely needs, e.g. a full
+		// 3x3 grid + control row) is fine to use directly on a normal full-height portrait screen -
+		// there's always room. It stops being fine the moment the available pane is short (a real
+		// stacked split-screen strip, for instance) - the footer's natural height can easily
+		// exceed the ENTIRE available space on its own, and #app's own max-height cap (added
+		// separately for exactly this kind of pane) then collides with a padding-top computed from
+		// that oversized, unconstrained number: the padding alone consumes more room than #app is
+		// even allowed to have, producing overlapping, glitched-looking content instead of a clean
+		// "not much room, but genuinely fits" layout. Capping the footer to a safe fraction of
+		// whatever's actually available - and, critically, applying that SAME cap to the footer's
+		// own rendered height (not just to the padding math) - keeps the two in agreement no
+		// matter how short the pane is, with the footer scrolling internally if its content
+		// still doesn't fit even at that reduced height.
+		const availableHeight = window.innerHeight - headerH;
+		// Clear any cap from a PREVIOUS call before measuring - offsetHeight reflects whatever
+		// max-height is currently applied, so measuring without first clearing a stale cap from
+		// an earlier render would read the already-capped (artificially small) height back as if
+		// it were the footer's true natural size, silently removing the cap it still needs.
+		footer.style.maxHeight = '';
+		footer.style.boxSizing = '';
+		const naturalFooterHeight = footer.offsetHeight;
+		const safeFooterHeight = Math.min(naturalFooterHeight, Math.max(60, availableHeight * 0.75));
+		if (naturalFooterHeight > safeFooterHeight) {
+			// border-box here specifically: #input-footer's default content-box model means
+			// max-height only ever constrains its CONTENT, with its own padding/border then
+			// added on top for the real rendered size - so a max-height set to exactly
+			// safeFooterHeight was still rendering ~20px taller than that target once padding
+			// was included, which was consuming more of the "safe" margin than intended and
+			// compounding into the very overlap this is supposed to prevent. border-box makes
+			// max-height mean the total rendered size directly, matching the target exactly
+			// rather than needing to guess at (or re-measure around) an unknown padding amount.
+			footer.style.boxSizing = 'border-box';
+			footer.style.setProperty('max-height', safeFooterHeight + 'px', 'important');
+			footer.style.overflowY = 'auto';
+		} else {
+			footer.style.maxHeight = '';
+			footer.style.overflowY = '';
+			footer.style.boxSizing = '';
+		}
+		// Re-measure AFTER applying the cap rather than trusting safeFooterHeight directly -
+		// #input-footer uses the default content-box model, so max-height only constrains its
+		// CONTENT, with its own padding/border added on top of that for the actual rendered
+		// size. Using the pre-render estimate here (instead of what it actually rendered at)
+		// under-counted the real footer height by exactly that padding/border amount, which
+		// then fed a too-small number into #app's own height budget below and left it fighting
+		// its OWN box-sizing:border-box max-height for space that had already been spoken for
+		// twice. Reading offsetHeight back after the cap takes hold sidesteps needing to know
+		// or care what that padding/border amount actually is.
+		const renderedFooterHeight = footer.offsetHeight;
+		app.style.paddingTop = renderedFooterHeight + headerH + 16 + 'px';
 		app.style.paddingBottom = '2rem';
+		// #app's own max-height (set in CSS, separately, for the non-swapped stacked case) is
+		// computed from this SAME --portrait-input-height variable - normally only ever written
+		// by the Adjust Input Area drag handle, as a vh percentage. Position Swap has never
+		// written to it before, so whenever Adjust Input Area itself was off, that CSS rule fell
+		// back to a static ~128px guess that had no idea the padding-top above had just claimed a
+		// completely different, dynamically-computed amount of space - the two disagreeing is
+		// exactly what let sequence content spill out past the space padding-top had supposedly
+		// reserved for it. Pointing this at the SAME rendered footer height used just above (pixels
+		// are a perfectly valid unit for this variable, same as the vh the drag handle normally
+		// writes) keeps #app's own height ceiling honest about how much room the footer actually
+		// occupies right now, however that number was arrived at.
+		document.documentElement.style.setProperty('--portrait-input-height', (renderedFooterHeight + headerH + 16) + 'px');
 	} else {
 		footer.style.top = '';
 		footer.style.bottom = '';
+		footer.style.maxHeight = '';
+		footer.style.overflowY = '';
+		footer.style.boxSizing = '';
 		app.style.paddingTop = '';
 		app.style.paddingBottom = '';
+		// Hand --portrait-input-height back to its rightful owner (the Adjust Input Area drag
+		// handle, via applyLandscapeInputWidth) instead of leaving whatever value swap last wrote
+		// there lingering behind after being turned off.
+		if (typeof applyLandscapeInputWidth === 'function') applyLandscapeInputWidth();
 	}
 	if (window.modules && window.modules.settings) window.modules.settings.updateSequenceContainerOffset();
 }

@@ -6304,11 +6304,19 @@ function applyViewportProfile() {
 	} else {
 		const isSplitBucket = bucket === 'split66' || bucket === 'split33';
 		if (isSplitBucket && !isWindowLandscapeShaped()) {
-			if (bucket === 'split66') {
-				document.body.dataset.portraitSplitLayout = 'stacked';
-			} else {
-				document.body.dataset.portraitSplitLayout = 'sideBySide';
-			}
+			// A portrait-shaped window at either ratio band is a real phone stacking another app
+			// above or below Follow Me (full width, short height) - phones don't split left/right
+			// while held upright, that's a tablet/foldable behavior. split33 was previously
+			// special-cased to 'sideBySide' here on the assumption that a narrow ratio always
+			// meant a narrow vertical sliver, but real-device evidence showed a portrait-shaped
+			// 33% is the SAME kind of full-width stacked strip split66 already handles correctly -
+			// just shorter. Treating it as 'sideBySide' forced the single-column input layout
+			// meant for a genuinely narrow strip onto a pane that actually had its full device
+			// width to work with, which is what made the normal multi-column grid look wrong here.
+			// (A manual "33% - side-by-side" override still exists for whatever device genuinely
+			// does support that shape - see vpParseManualOverride - this only changes the
+			// automatic default.)
+			document.body.dataset.portraitSplitLayout = 'stacked';
 		} else {
 			delete document.body.dataset.portraitSplitLayout;
 		}

@@ -271,13 +271,22 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 body.pinned-mode #input-footer { padding-bottom: calc(max(.5rem, env(safe-area-inset-bottom)) + var(--inputs-padding-extra, 0px) + 60px); }
 body.layout-swapped #input-footer { border-top: none; border-bottom: 4px solid var(--seq-bubble); padding-top: max(.5rem, env(safe-area-inset-top)); padding-bottom: .5rem; }
 .btn-input { transition: all .1s ease-in-out; position: relative; font-weight: 700; border-radius: .75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .3); height: calc(60px * var(--input-btn-scale, 1)); color: var(--text-main); -webkit-user-select: none; user-select: none; }
-.btn-pad-number { background-color: var(--btn-bg); font-size: 1.5rem; border: 1px solid var(--border); border-radius: 9999px; }
+/* Round, phone-dialpad-style number buttons by default (not just under Bigger Buttons) - a true
+   circle needs aspect-ratio AND a width that's free to follow it; the grid's own default
+   justify-items:stretch would otherwise force width to fill the whole column regardless of
+   aspect-ratio, producing the wide pill/stadium shape instead of a circle (aspect-ratio has no
+   effect once both dimensions are already determined, and a stretched width counts as
+   "determined"). flex-shrink:0 keeps it from being squashed if the row ever runs tight instead
+   of shrinking away from circular. Button Size (--input-btn-scale) now drives an actual visible
+   diameter change in both dimensions at once instead of just a taller/shorter pill. */
+.btn-pad-number { background-color: var(--btn-bg); font-size: 1.5rem; border: 1px solid var(--border); border-radius: 9999px; aspect-ratio: 1 / 1; width: auto; flex-shrink: 0; }
+#pad-key9 .grid-cols-3, #pad-key12 .grid-cols-4 { justify-items: center; }
 .btn-pad-number:active { filter: brightness(1.3); transform: scale(.96); }
 .btn-pad-number.flash-active { background-color: var(--text-main) !important; color: var(--bg-main) !important; box-shadow: 0 0 15px var(--seq-bubble); transform: scale(1.05); z-index: 10; }
 
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #pad-key9, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #pad-key12 { width: 100% !important; max-width: none !important; display: flex !important; flex-direction: column !important; }
-	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key9 .grid-cols-3, body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key12 .grid-cols-4 { flex-grow: 1 !important; display: grid !important; gap: 0.4rem !important; }
-	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key12 .btn-pad-number { height: calc(2.5rem * var(--input-btn-scale, 1)) !important; aspect-ratio: auto !important; min-height: calc(2.5rem * var(--input-btn-scale, 1)) !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key9 .grid-cols-3, body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key12 .grid-cols-4 { flex-grow: 1 !important; display: grid !important; gap: 0.4rem !important; justify-items: center !important; align-content: center !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key12 .btn-pad-number { height: calc(2.5rem * var(--input-btn-scale, 1)) !important; aspect-ratio: 1 / 1 !important; width: auto !important; min-height: calc(2.5rem * var(--input-btn-scale, 1)) !important; }
 	/* Bigger Buttons (hide-controls) outside portrait/66-stacked: the normal-state rule just above
 	   locks button height to a small fixed calc(2.5rem * scale) with !important - since !important
 	   always wins over a non-important declaration regardless of specificity, the later "make it

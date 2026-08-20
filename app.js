@@ -657,7 +657,7 @@ const DEFAULT_APP = {
 	isHeaderInfiniteScrollEnabled: false,
 	isAutoBrightEnabled: false,
 	isAutoDarkEnabled: false,
-	headerIconScale: 100,
+	headerIconScale: 120,
 	appFontScale: 100,
 	appInputFontScale: 200,
 	appInputBtnScale: 100,
@@ -667,8 +667,8 @@ const DEFAULT_APP = {
 	// between; now the only one, activated by the header button rather than auto-detected, so it
 	// keeps its own settings independent of Portrait's regardless of which is currently showing).
 	viewportProfiles: {
-		landscape: { uiScale: 100, seqSize: 210, headerScale: 100, numberSize: 250, inputFontSize: 200, btnSize: 150, rowMax: '5', inputAreaEnabled: true, inputAreaPct: 35, headerPadding: 0, inputsPadding: 0, headerButtons: [] },
-		split50h: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: false, inputAreaPct: 50, headerPadding: 0, inputsPadding: 0, headerButtons: [] }
+		landscape: { uiScale: 100, seqSize: 210, headerScale: 120, numberSize: 250, inputFontSize: 200, btnSize: 150, rowMax: '5', inputAreaEnabled: true, inputAreaPct: 35, headerPadding: 0, inputsPadding: 0, headerButtons: [] },
+		split50h: { uiScale: 100, seqSize: 150, headerScale: 120, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: false, inputAreaPct: 50, headerPadding: 0, inputsPadding: 0, headerButtons: [] }
 	},
 	pipMachineIndex: null,
 	ecoModeConfig: {
@@ -796,7 +796,19 @@ const DEFAULT_APP = {
 };
 const SETTINGS_PRESETS = [
 	{ id: 'default', name: 'Default', code: 'm.xmhNj`V-16N$xovQJJ^`qG9_Wn:' },
-	{ id: 'preset1', name: 'Average', code: '5n.2^vd*4{b#^B^6m4$:r(B84$J;7%7;*g/NM0q?Ee1%%Ix$=-HWxjF5kl2p?5LClV:jeQqI2.cJ`YpZ)7o^!UEQeaJjq9Yc8])9ZYq13oTmx=^d%LI2wP{@goa@RQaMmg3J`^qsc)0xF*LSyv`%?9hM}8chT2{H?R?9E{09+tR+-5M8@@_u-ZtitI$[QJ)XB0uMIM8V$MJRtZ}wJtd1g=j7!Dp}x-pvoQ((}AKP$],1dg2PvX7hQd=`ts_1(b:m' }
+	{ id: 'preset1', name: 'Average', code: '5n.2^vd*4{b#^B^6m4$:r(B84$J;7%7;*g/NM0q?Ee1%%Ix$=-HWxjF5kl2p?5LClV:jeQqI2.cJ`YpZ)7o^!UEQeaJjq9Yc8])9ZYq13oTmx=^d%LI2wP{@goa@RQaMmg3J`^qsc)0xF*LSyv`%?9hM}8chT2{H?R?9E{09+tR+-5M8@@_u-ZtitI$[QJ)XB0uMIM8V$MJRtZ}wJtd1g=j7!Dp}x-pvoQ((}AKP$],1dg2PvX7hQd=`ts_1(b:m' },
+	// Default settings + these General-tab header buttons on: Delete, Settings, Counter, Auto
+	// Counter, Bigger Buttons, Wake Lock, Split Screen. Everything else stays at default.
+	{ id: 'multitasker', name: 'The Multi-Tasker', code: '3g.sI=#]=,scL@$a#hdUC,Rvx:@?TLw8;ct0T7HIkS.:bk.r:4dZW)pw/Y0!/@d5=;#rEa}P??ZJV^qPb(4aG:BuTON2_yY/?SVD6/S1%eJf#{4qz{eSn%ZqSeLIiE[{A(cQW*O/H,p4+WBxJ9m[X=+kIK.p!' },
+	// Default settings + these on: Infinite Header Scroll, Settings, Help, Redeem, Share, Undo,
+	// Timer, Auto Timer, Counter, Auto Counter, Notepad, Upside Down, Portrait Lock, Landscape
+	// Lock, Full Screen, Bigger Buttons, Wake Lock, Position Swap, Split Screen, Picture in
+	// Picture, Do Not Disturb, Pinned Mode, AR Mode, AR Auto Close, Voice Input, Voice Commands,
+	// Tone Cadence Mode, Touch Gesture, Hand Gestures, Hand Signals. Everything else stays default.
+	{ id: 'tester', name: 'The Tester', code: '7y.Cpj];VHoprgqc#0[KcBly/QF$0S28$On@L(A%V(R:]JzA7iCTn:nG+gU-ew.c2q3itY]LCV(a`2x7Uzh=roY8y;_F(xM0}/F-nmN;Aw5KJ}61SXT2=Lol+rA$(wvqJx;,0ie.1c4mEauiI07]mh5w!._[qcX7KU2hB[$$9zm:!%-e$3/7$1FrIL}E4Hf@cm.peE0HW+oz?/[+NcB_+Y^B4SOwacliz.9pzs;-M=uz``s[%D+gybd+Ttg4(16;c9-XsmVR9g@+oUojZZW_!`t3!n!tx1DO#7L-YG@x!=FDnE6vqwRZl{usJ_7Q$@(C{,?4V/=J]4N0S0ry}(v3bo7L0SoXZuhV%nqbFya' },
+	// Default settings + these on: Delete, Timer, Auto Timer, Counter, Auto Counter, Input
+	// Regulator, Portrait Lock, Bigger Buttons, Wake Lock. Everything else stays default.
+	{ id: 'speedster', name: 'The Speedster', code: '3r.D:9k;=ic@{wEeqF?v`Xs!o-73ZI1[?Mki[{PcPUti=qsco$l!5+EdA%Q4uSgU;T0`a-as{*Ags.KK/%G^Mb_+B$ZD,,]dQ3S57hbk1Hxyn13BY{O!)s/dS`:NM:,+-$;rUGJW`UrjZQWMR4*xq5{^y7Mr02Y^,#z-orgP(oK' }
 ];
 const DEFAULT_MAPPINGS = {
 	'k9_1': 'tap',
@@ -1935,7 +1947,7 @@ class SettingsManager {
 			voicePresetDelete: document.getElementById('voice-preset-delete'),
 			voicePitch: document.getElementById('voice-pitch'), voiceRate: document.getElementById('voice-rate'), voiceVolume: document.getElementById('voice-volume'), voiceTestBtn: document.getElementById('test-voice-btn'), voiceNameSelect: document.getElementById('voice-name-select'),
 			settingsModal: document.getElementById('settings-modal'), themeSelect: document.getElementById('theme-select'), themeAdd: document.getElementById('theme-add'), themeRename: document.getElementById('theme-rename'), themeDelete: document.getElementById('theme-delete'), themeSave: document.getElementById('theme-save'), randomThemeToggle: document.getElementById('randomThemeToggle'), autoHideHeaderToggle: document.getElementById('autoHideHeaderToggle'), skeletonDebugToggle: document.getElementById('skeletonDebugToggle'), fontSelect: document.getElementById('font-select'),
-			configSelect: document.getElementById('config-select'), quickConfigSelect: document.getElementById('quick-config-select'), configAdd: document.getElementById('config-add'), configRename: document.getElementById('config-rename'), configDelete: document.getElementById('config-delete'), configSave: document.getElementById('config-save'),
+			configSelect: document.getElementById('config-select'), quickConfigSelect: document.getElementById('quick-config-select'), quickPresetSelect: document.getElementById('quick-preset-select'), configAdd: document.getElementById('config-add'), configRename: document.getElementById('config-rename'), configDelete: document.getElementById('config-delete'), configSave: document.getElementById('config-save'),
 			input: document.getElementById('input-select'), mode: document.getElementById('mode-select'), practiceMode: document.getElementById('practice-mode-toggle'), machines: document.getElementById('machines-select'), seqLength: document.getElementById('seq-length-select'),
 			autoClear: document.getElementById('autoclear-toggle'), autoplay: document.getElementById('autoplay-toggle'), flash: document.getElementById('flash-toggle'),
 			pause: document.getElementById('pause-select'), audio: document.getElementById('audio-toggle'), hapticMorse: document.getElementById('haptic-morse-toggle'), playbackSpeed: document.getElementById('playback-speed-select'), chunk: document.getElementById('chunk-select'), delay: document.getElementById('delay-select'), haptics: document.getElementById('hapticsToggle'),
@@ -3005,6 +3017,42 @@ class SettingsManager {
 			console.error('Settings presets wiring failed:', e);
 		}
 		try {
+			// Welcome screen's direct-load version: skips the copy/paste dance entirely - picking
+			// a preset here immediately imports it (same underlying importSettingsFromBackupCode()
+			// the Backup/Restore box uses), after the same confirmation, since this is just as
+			// destructive to current settings as that import already is.
+			if (this.dom.quickPresetSelect) {
+				this.dom.quickPresetSelect.innerHTML = '<option value="">Choose a preset...</option>' +
+					SETTINGS_PRESETS.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+				this.dom.quickPresetSelect.onchange = async (e) => {
+					const id = e.target.value;
+					if (!id) return;
+					const chosen = SETTINGS_PRESETS.find(p => p.id === id);
+					if (!chosen) return;
+					if (!confirm(`Load "${chosen.name}"? This will replace ALL current settings. Continue?`)) {
+						this.dom.quickPresetSelect.value = '';
+						return;
+					}
+					try {
+						if (typeof window.importSettingsFromBackupCode === 'function') {
+							await window.importSettingsFromBackupCode(chosen.code);
+							this.updateUIFromSettings();
+							this.populateConfigDropdown();
+							this.updateWelcomeSample();
+							if (typeof showToast === 'function') showToast(`"${chosen.name}" loaded ✅`);
+						}
+					} catch (err) {
+						alert('Loading that preset failed - please try again.');
+						console.error(err);
+					} finally {
+						this.dom.quickPresetSelect.value = '';
+					}
+				};
+			}
+		} catch (e) {
+			console.error('Welcome screen preset dropdown wiring failed:', e);
+		}
+		try {
 			const resetOrderBtn = document.getElementById('header-order-reset-btn');
 			if (resetOrderBtn) {
 				resetOrderBtn.onclick = () => {
@@ -3691,6 +3739,13 @@ class SettingsManager {
 		if (this.dom.arAutoClosePlayback) this.dom.arAutoClosePlayback.checked = this.appSettings.isArAutoCloseEnabled ?? false;
 		if (this.dom.touchGestureToggle) this.dom.touchGestureToggle.checked = !!this.appSettings.isTouchGestureInputEnabled;
 		if (this.dom.handToggle) this.dom.handToggle.checked = !!this.appSettings.isHandGesturesEnabled;
+		// toneCadenceToggle was originally only ever synced once, at initial setup alongside where
+		// its change listener gets attached - not here, where every other toggle gets re-synced
+		// on every Settings open. That meant its checkbox could silently show unchecked even while
+		// isToneCadenceEnabled was genuinely true underneath (e.g. right after a backup/preset
+		// import), since nothing ever told the checkbox to catch up with a value that changed
+		// through any path other than someone directly clicking it.
+		if (this.dom.toneCadenceToggle) this.dom.toneCadenceToggle.checked = !!this.appSettings.isToneCadenceEnabled;
 		if (this.dom.handsignalsToggle) this.dom.handsignalsToggle.checked = !!this.appSettings.isHandSignalsEnabled;
 		if (this.dom.handednessFlipToggle) this.dom.handednessFlipToggle.checked = !!this.appSettings.handednessFlip;
 		if (this.dom.voicecommandsToggle) this.dom.voicecommandsToggle.checked = !!this.appSettings.isVoiceCommandsEnabled;

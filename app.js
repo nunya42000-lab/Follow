@@ -796,7 +796,6 @@ const DEFAULT_APP = {
 };
 const SETTINGS_PRESETS = [
 	{ id: 'default', name: 'Default', code: 'm.xmhNj`V-16N$xovQJJ^`qG9_Wn:' },
-	{ id: 'preset1', name: 'Average', code: '5n.2^vd*4{b#^B^6m4$:r(B84$J;7%7;*g/NM0q?Ee1%%Ix$=-HWxjF5kl2p?5LClV:jeQqI2.cJ`YpZ)7o^!UEQeaJjq9Yc8])9ZYq13oTmx=^d%LI2wP{@goa@RQaMmg3J`^qsc)0xF*LSyv`%?9hM}8chT2{H?R?9E{09+tR+-5M8@@_u-ZtitI$[QJ)XB0uMIM8V$MJRtZ}wJtd1g=j7!Dp}x-pvoQ((}AKP$],1dg2PvX7hQd=`ts_1(b:m' },
 	// Default settings + these General-tab header buttons on: Delete, Settings, Counter, Auto
 	// Counter, Bigger Buttons, Wake Lock, Split Screen. Everything else stays at default.
 	{ id: 'multitasker', name: 'The Multi-Tasker', code: '3g.sI=#]=,scL@$a#hdUC,Rvx:@?TLw8;ct0T7HIkS.:bk.r:4dZW)pw/Y0!/@d5=;#rEa}P??ZJV^qPb(4aG:BuTON2_yY/?SVD6/S1%eJf#{4qz{eSn%ZqSeLIiE[{A(cQW*O/H,p4+WBxJ9m[X=+kIK.p!' },

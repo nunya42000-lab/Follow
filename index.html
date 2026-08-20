@@ -1627,6 +1627,8 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <p class="text-xs opacity-90">If Landscape/Split Screen detection ever looks wrong (stuck on the wrong percentage, or a setting applying to the wrong size), this shows exactly what your device is actually reporting - screen size, window size, and which orientation the app thinks you're in. Screenshot it and send it over if something's off; it's the fastest way to actually pin down what's happening on your specific device.</p>
 <button type="button" id="viewport-diag-toggle-btn" class="w-full py-2 text-xs font-bold bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition">Show Live Diagnostic</button>
 <div id="viewport-diag-panel" class="hidden mt-2 p-3 rounded-lg bg-black border border-gray-700 font-mono text-[10px] leading-5 text-green-400 whitespace-pre-wrap"></div>
+<p class="text-xs opacity-90 mt-3">Detection learns your device's true full-screen size the first time it ever sees the app that way, then remembers it. If it was ever wrong on that very first read (e.g. the app happened to first open already split), tap this <strong>while the app is genuinely full-screen, not split</strong> to reset that memory and let it re-learn from scratch.</p>
+<button type="button" id="viewport-recalibrate-btn" class="w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition">🔄 Recalibrate Screen Size</button>
 </div>
 </div>
 <div id="tab-help-buttons" class="tab-content space-y-4">

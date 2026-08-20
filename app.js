@@ -5266,6 +5266,7 @@ function saveState() {
 	localStorage.setItem(CONFIG.STORAGE_KEY_SETTINGS, JSON.stringify(appSettings));
 	localStorage.setItem(CONFIG.STORAGE_KEY_STATE, JSON.stringify(appState));
 }
+window.saveState = saveState;
 function bytesToBackupCode(bytes) {
 	const base = BACKUP_ALPHABET.length;
 	let big = 0n;
@@ -6720,6 +6721,18 @@ function renderUI() {
 			b.closest('.control-row')?.classList.toggle('reset-visible', showReset);
 	});
 	if (modules.settings && typeof modules.settings.applyRowMax === 'function') modules.settings.applyRowMax();
+	// Stacked buckets (Portrait, split50v, and split66 when stacked) can leave #app genuinely
+	// short on room once Adjust Input Area eats most of the height - #app scrolls internally
+	// rather than clipping content outright (see the max-height rule in styles.css), but a fresh
+	// scrollTop of 0 shows the OLDEST entries first and cuts off wherever space runs out, not
+	// necessarily the most recently played numbers. Auto-scrolling #app to the bottom means
+	// whatever's visible is always the latest activity - the part that actually matters mid-game -
+	// with the rest still reachable by scrolling up. No-op wherever #app isn't scrollable (most
+	// buckets, most of the time), so this changes nothing outside that specific tight scenario.
+	const appEl = document.getElementById('app');
+	if (appEl && appEl.scrollHeight > appEl.clientHeight) {
+		appEl.scrollTop = appEl.scrollHeight;
+	}
 }
 function disableInput(disabled) {
 	const footer = document.getElementById('input-footer');
@@ -8605,6 +8618,19 @@ function vpGetIframeTargetSize(bucket) {
 	const fullW = Math.max(screenW, screenH);
 	const fullH = Math.min(screenW, screenH);
 	const ratio = VP_BUCKET_RATIO[bucket] || 1.0;
+	// split50v is the one bucket that's ALWAYS stacked/portrait-shaped, never side-by-side (see
+	// applyViewportProfile() forcing portraitSplitLayout='stacked' unconditionally for it) - every
+	// other ratio-based bucket here (landscape/66/50h/33) is a landscape-shaped, side-by-side pane
+	// where the ratio should shrink WIDTH off the long edge, height staying full short-edge. Using
+	// that same formula for split50v gave it a wide-and-short landscape-shaped iframe (e.g.
+	// 458x412) instead of the tall-and-narrow portrait-shaped one it actually renders as on a real
+	// device (e.g. 412x458) - full device width, HEIGHT cut to the ratio instead of width. Since
+	// the preview iframe's own physical dimensions are what "vh"/"vw" resolve against inside it,
+	// that swapped aspect ratio was silently feeding every height-based calculation (Adjust Input
+	// Area's own height math among them) the wrong basis, on top of just looking visibly wrong.
+	if (bucket === 'split50v') {
+		return { width: fullH, height: Math.round(fullW * ratio) };
+	}
 	return { width: Math.round(fullW * ratio), height: fullH };
 }
 

@@ -570,6 +570,23 @@ alert("Promise Error: " + event.reason);
 </summary>
 <div class="p-3 border-t border-gray-700">
 <p class="text-[10px] text-gray-400 mb-3">Fine-tune UI and sequence sizing separately for each viewport width, so switching to split-screen or multitasking never means readjusting your normal settings.</p>
+<div class="p-3 rounded-lg bg-indigo-950 bg-opacity-40 border border-indigo-700 mb-3">
+<div class="flex justify-between items-center mb-1">
+<label class="text-xs font-bold text-white">Which size are you actually in? 📍</label>
+</div>
+<p class="text-[10px] text-gray-400 mb-2">Automatic detection has to guess from your window's size, and some browsers report that inconsistently. Pick your real current arrangement here instead and it's used directly - no guessing - until you change it again, whether or not you resize.</p>
+<select id="viewport-manual-override-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
+<option value="">Auto-Detect (Default)</option>
+<option value="portrait">Portrait (full screen, upright)</option>
+<option value="landscape">Landscape (full screen, sideways)</option>
+<option value="split66-stacked">66% - stacked (held upright)</option>
+<option value="split66-sidebyside">66% - side-by-side (held sideways)</option>
+<option value="split50v">50% ↕ (held upright, always stacked)</option>
+<option value="split50h">50% ↔ (held sideways, always side-by-side)</option>
+<option value="split33-stacked">33% - stacked (held upright)</option>
+<option value="split33-sidebyside">33% - side-by-side (held sideways)</option>
+</select>
+</div>
 <div class="flex border-b border-gray-700 mb-3">
 <button type="button" id="viewport-tab-btn-landscape" class="viewport-tab-btn active">Landscape</button>
 <button type="button" id="viewport-tab-btn-split66" class="viewport-tab-btn">66%</button>
@@ -1763,6 +1780,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </summary>
 <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
 <p>Its own accordion at the bottom of the <strong>UI</strong> tab in Settings, with five tabs - <strong>Landscape</strong>, <strong>66%</strong>, <strong>50% ↕</strong> (phone held upright), <strong>50% ↔</strong> (phone held sideways), and <strong>33%</strong>. Whichever one you're actually using right now is highlighted automatically.</p>
+<p><strong>📍 Which size are you actually in?</strong> Automatic detection has to guess your real size from your window's dimensions, and some browsers report those inconsistently. This dropdown at the top of the accordion lets you skip the guessing entirely - pick your real current arrangement and it's used directly, exactly as picked, until you change it back to Auto-Detect or pick a different one. It doesn't re-detect on resize while an override is set, so if you switch arrangements, come back and update it. 66% and 33% each have a stacked and a side-by-side option since either is genuinely possible at those sizes depending on how you're holding the phone - pick whichever matches what you're actually doing.</p>
 <p><strong>Why five separate tabs:</strong> a 50/50 split-screen looks completely different depending on whether you're holding the phone normally or sideways, so each gets its own settings instead of sharing one. 66% and Landscape stack/sit side-by-side the same way portrait always has; 33% and 50% ↔ are always side-by-side (too narrow to stack usefully); 50% ↕ is always stacked (plenty of room, matches normal portrait).</p>
 <p><strong>⚙️ Configure Viewport:</strong> Every real per-tab setting - UI Scale, Sequence Size, Row Max, Header/Number/Input Font/Button Size, Header Padding, Inputs Padding, Adjust Input Area, and Alignment (50% tabs only) - lives inside this button's modal, alongside a live preview of the real app so you can see exactly what a change looks like. Completely independent per tab - nothing here is shared with Portrait's own settings on the UI tab, or with any other tab. Every change here saves and applies the instant you make it - there's no separate Save step and nothing to lose by closing the modal.</p>
 <p><strong>Picture-in-Picture:</strong> Fixed, not configurable, at 66%/50% ↕/50% ↔/33% - the popup always shows Machine 1's sequence, Machines 2-4 use the regular sequence area. 33% supports up to 4 machines this way when Touch Gesture is also on, since that frees the full pane width for the sequence display.</p>

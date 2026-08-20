@@ -590,6 +590,13 @@ const DEFAULT_APP = {
 	uiScaleMultiplier: 2.2, // Executed: Portrait scaling multiplier
 	showWelcomeScreen: true,
 	touchResizeMode: 'none',
+	// null = automatic detection (the ratio/extents-based system). Any bucket name here
+	// bypasses detection entirely - a direct, explicit "this is what I'm in right now" that
+	// sidesteps every browser/device quirk automatic detection has to guess around (CSS pixel
+	// scaling differences between browsers, window.screen reliability during split, zoom
+	// contamination, etc.). Set once per real arrangement, switched manually whenever that
+	// arrangement changes - not re-detected on every resize.
+	manualViewportBucket: null,
 	playbackSpeed: 1.0,
 	isAutoplayEnabled: false,
 	isUniqueRoundsAutoClearEnabled: true,
@@ -5970,6 +5977,27 @@ function vpGetDeviceExtents() {
 }
 window.vpUpdateObservedExtents = vpUpdateObservedExtents;
 window.vpGetDeviceExtents = vpGetDeviceExtents;
+// Manual viewport override: a direct "this is what I'm actually in right now" that bypasses
+// every automatic detection heuristic entirely (ratio thresholds, learned extents, zoom
+// guarding, window.screen quirks, all of it) - see DEFAULT_APP.manualViewportBucket. Split66 and
+// split33 can each genuinely be either stacked (phone held upright) OR side-by-side (phone
+// turned sideways) - the bucket NAME alone doesn't capture that, so the override value itself
+// encodes shape too where it's ambiguous (e.g. "split66-stacked" vs "split66-sidebyside"), and
+// this helper is the one place that gets parsed apart, so isWindowLandscapeShaped() and
+// detectViewportBucket() can't ever disagree with each other about what a given override means.
+function vpParseManualOverride() {
+	const raw = appSettings && appSettings.manualViewportBucket;
+	if (!raw) return null;
+	if (raw === 'split66-stacked') return { bucket: 'split66', isLandscape: false };
+	if (raw === 'split66-sidebyside') return { bucket: 'split66', isLandscape: true };
+	if (raw === 'split33-stacked') return { bucket: 'split33', isLandscape: false };
+	if (raw === 'split33-sidebyside') return { bucket: 'split33', isLandscape: true };
+	if (raw === 'split50v') return { bucket: 'split50v', isLandscape: false };
+	if (raw === 'split50h') return { bucket: 'split50h', isLandscape: true };
+	if (raw === 'landscape') return { bucket: 'landscape', isLandscape: true };
+	if (raw === 'portrait') return { bucket: 'portrait', isLandscape: false };
+	return null;
+}
 function isWindowLandscapeShaped() {
 	if (window.__vpPreviewForceBucket) {
 		// Preview mode always simulates a sideways split, matching how the configure modal's
@@ -5977,6 +6005,8 @@ function isWindowLandscapeShaped() {
 		// preview mode built yet.
 		return window.__vpPreviewForceBucket !== 'portrait';
 	}
+	const manual = vpParseManualOverride();
+	if (manual) return manual.isLandscape;
 	vpUpdateObservedExtents();
 	// The reliable signal is which of the window's own two dimensions is still "full": in a
 	// sideways split, the window's height stays at ~100% of the device's short edge while its
@@ -6004,7 +6034,15 @@ function detectViewportBucket() {
 	// Viewport Preview mode (Landscape and Split Screen configure modal): the iframe is asked
 	// to pretend to be a specific bucket regardless of the real device's screen/window ratio,
 	// so the person can preview split50/split33 etc without physically resizing their window.
+	// This always wins even over a manual override below - the preview's whole point is to show
+	// a DIFFERENT bucket than whatever's actually active, which a manual override would otherwise
+	// block.
 	if (window.__vpPreviewForceBucket) return window.__vpPreviewForceBucket;
+	const manual = vpParseManualOverride();
+	if (manual) {
+		window.__vpLastDetectedBucket = manual.bucket;
+		return manual.bucket;
+	}
 	// If the page is CURRENTLY zoomed (mid-gesture or otherwise), window.innerWidth/innerHeight
 	// themselves are momentarily unreliable as the ratio's numerator too, not just as a baseline
 	// observation to persist (see vpUpdateObservedExtents/vpGetDeviceExtents) - keep reporting
@@ -6072,10 +6110,13 @@ function renderViewportDiagnostic() {
 	const orientationApiType = (window.screen && window.screen.orientation) ? window.screen.orientation.type : 'n/a';
 	const vvScale = (window.visualViewport && typeof window.visualViewport.scale === 'number') ? window.visualViewport.scale.toFixed(3) : 'n/a';
 	const isZoomed = window.visualViewport && typeof window.visualViewport.scale === 'number' && Math.abs(window.visualViewport.scale - 1) > 0.03;
+	const manualOverride = appSettings.manualViewportBucket || null;
 	const dpr = window.devicePixelRatio || 'n/a';
 	const cssPxRatio = (typeof screenW === 'number' && screenW > 0) ? (innerW / screenW).toFixed(3) : 'n/a';
 	panel.textContent =
 		`app.js build: ${window.__fmBuildMarker || '(unknown - likely a very old cached version)'}\n` +
+		`\n` +
+		`MANUAL OVERRIDE: ${manualOverride ? manualOverride + '  <-- everything below is bypassed, this is used directly' : '(off - using automatic detection)'}\n` +
 		`\n` +
 		`window.visualViewport.scale: ${vvScale}  ${isZoomed ? '<-- PAGE IS CURRENTLY ZOOMED (detection frozen at last good value until this returns to ~1.0)' : '(not zoomed)'}\n` +
 		`window.devicePixelRatio: ${dpr}\n` +
@@ -8841,6 +8882,19 @@ function initViewportProfilesUI() {
 		panels[b] = document.getElementById('viewport-panel-' + b);
 	});
 	viewportConfigState.activeTab = 'landscape';
+
+	const manualOverrideSelect = document.getElementById('viewport-manual-override-select');
+	if (manualOverrideSelect) {
+		manualOverrideSelect.value = appSettings.manualViewportBucket || '';
+		manualOverrideSelect.onchange = (e) => {
+			appSettings.manualViewportBucket = e.target.value || null;
+			saveState();
+			if (typeof applyViewportProfile === 'function') applyViewportProfile();
+			if (typeof showToast === 'function') {
+				showToast(e.target.value ? '📍 Locked to this size until you change it' : '🔄 Back to Auto-Detect');
+			}
+		};
+	}
 
 	function renderPreview() {
 		const screen = document.getElementById('viewport-preview-screen');

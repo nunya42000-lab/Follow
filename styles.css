@@ -230,6 +230,22 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 		overflow-y: auto !important;
 		padding-bottom: 0 !important;
 	}
+	/* Same problem, opposite layout: side-by-side panes (Landscape, Split Screen) reserve WIDTH
+	   for the footer instead of height, so #app was never given any height constraint at all
+	   here - it just relied on the page naturally being tall enough for however many sequence
+	   numbers there were. That's fine at full Landscape height, but a genuinely short pane (a
+	   real 33%-style split-screen strip, for instance, even though that's not an auto-detected
+	   bucket anymore) can be shorter than a single row of number boxes needs, and with nothing
+	   capping #app's height, the excess just overflowed the page and got silently clipped by
+	   body's own overflow:hidden - numbers most people would've sworn were just "cut off for no
+	   reason". max-height + overflow-y:auto here makes that scrollable instead of clipped, and
+	   the existing scroll-to-bottom logic in renderUI() means whatever's cut off is always the
+	   OLDEST entries, not the most recent ones actually being played right now. */
+	body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"]) #app {
+		max-height: 100vh !important;
+		box-sizing: border-box !important;
+		overflow-y: auto !important;
+	}
 	#portrait-resize-handle {
 		display: none;
 		position: fixed;

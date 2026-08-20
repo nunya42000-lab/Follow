@@ -5846,25 +5846,80 @@ window.grantAllPermissions = async function() {
 	}
 	if (typeof showToast === 'function') showToast('Permission check complete ✅');
 };
-// Landscape and Split-Screen viewport detection: automatic detection only ever needs to tell
-// portrait from landscape - a direct comparison of the window's own two dimensions, no device
-// reference needed. Earlier versions of this tried to also auto-detect finer split percentages
-// (33%/50%/66%) by comparing against the device's true screen size, which turned out to be
-// unreliable in exactly the moments that mattered (window.screen inconsistent across browsers,
-// page zoom, browser chrome not yet settled on launch). Real split-screen use is now a
-// deliberate, explicit action instead (the "Split Screen" header button, General tab toggle to
-// show it) rather than a guess.
-// "Split Screen" header button (General tab toggle to show it): a single, deliberately simple
-// escape hatch - tapping it just forces the Split Screen profile's settings/behavior directly,
-// regardless of whatever automatic detection thinks is going on. This replaced first a full
-// manual-override dropdown (8 options - too many choices for what it needed to do), and now
-// replaces the whole idea of trying to automatically distinguish 33%/50%/66% splits by ratio at
-// all - that ratio math depended on knowing the device's true screen size, which turned out to
-// be unreliable in exactly the moments it mattered most (window.screen inconsistent across
-// browsers, page zoom, browser chrome not yet settled on launch). Automatic detection now only
-// ever needs to tell portrait from landscape - a simple, self-contained comparison of the
-// window's own two dimensions against each other, no device reference needed at all - and any
-// actual split-screen use is a deliberate, explicit action (this button), not a guess.
+// Landscape and Split-Screen viewport detection: automatic detection needs to tell genuine
+// full-screen rotation (Landscape vs Portrait) apart from ANY reduced/split window, regardless
+// of that window's shape - a naive "wider than tall = landscape" check turns out to be wrong in
+// a real, common case: a genuine 33%-style stacked split (another app on top, Follow Me in a
+// short strip below) is a window that's wider than it is tall purely because there's more width
+// left than height, with the phone still held perfectly upright - not because the device is
+// rotated at all. That misread it as Landscape (bigger everything, side-by-side layout) even
+// though nobody touched Split Screen and the phone never turned sideways.
+//
+// The fix doesn't reach for window.screen or any external reference (that's exactly what proved
+// unreliable before). It's still entirely self-referential: track the largest width and largest
+// height this window has ever genuinely reported (persisted, same zoom/startup guards as
+// before), and only trust the width-vs-height comparison once the CURRENT window's two
+// dimensions, as a pair, actually match the device's own historically-observed extremes (in
+// either order, to allow for genuine rotation swapping which axis is "long"). If the window is
+// currently smaller than both of those in some dimension - which a stacked split always is -
+// that's the signal that SOME kind of reduced/split state is happening, real orientation is
+// irrelevant, and the safe default (Portrait, single-column) applies unless Split Screen is
+// explicitly forced. This is a coarser, purely-binary version of what device-extents tracking
+// used to do for fine-grained 33%/50%/66% bands - kept only for the one judgment call that
+// actually needs it (is this genuinely full screen at all), not for guessing a percentage.
+const VP_MAX_DIMS_KEY = 'fm_max_observed_dims';
+function vpIsMeasurementTrustworthy() {
+	if (window.__vpStartupGraceActive) return false;
+	if (window.visualViewport && typeof window.visualViewport.scale === 'number' && Math.abs(window.visualViewport.scale - 1) > 0.03) return false;
+	return true;
+}
+// Tracked as short-edge/long-edge, NOT width/height directly - a genuine device rotation swaps
+// which physical dimension the DOM calls "width" vs "height", so tracking those two labels as
+// separate running maximums breaks the moment BOTH a portrait and a landscape observation have
+// ever been seen: rotating in either direction would just push whichever of maxW/maxH is smaller
+// up to match the larger one, and the device's real short edge is lost forever - which is
+// exactly what silently turned a genuine landscape rotation back into a false "not full screen"
+// portrait reading. The device's actual short/long edge pair doesn't change with rotation, only
+// which axis they're currently mapped to - tracking THAT pair instead is naturally invariant to
+// however many times the device gets rotated back and forth.
+function vpUpdateMaxObservedDims() {
+	if (!vpIsMeasurementTrustworthy()) return;
+	const shortEdge = Math.min(window.innerWidth, window.innerHeight);
+	const longEdge = Math.max(window.innerWidth, window.innerHeight);
+	if (!shortEdge || !longEdge) return;
+	let stored = null;
+	try {
+		const raw = localStorage.getItem(VP_MAX_DIMS_KEY);
+		if (raw) stored = JSON.parse(raw);
+	} catch (e) { /* corrupt/unavailable storage - treat as no prior observation */ }
+	const nextMaxShort = stored && stored.maxShort ? Math.max(stored.maxShort, shortEdge) : shortEdge;
+	const nextMaxLong = stored && stored.maxLong ? Math.max(stored.maxLong, longEdge) : longEdge;
+	if (!stored || nextMaxShort !== stored.maxShort || nextMaxLong !== stored.maxLong) {
+		try {
+			localStorage.setItem(VP_MAX_DIMS_KEY, JSON.stringify({ maxShort: nextMaxShort, maxLong: nextMaxLong }));
+		} catch (e) { /* storage unavailable - still works for this session from the in-memory computation below */ }
+	}
+}
+function vpGetMaxObservedDims() {
+	try {
+		const raw = localStorage.getItem(VP_MAX_DIMS_KEY);
+		if (raw) {
+			const parsed = JSON.parse(raw);
+			if (parsed && parsed.maxShort && parsed.maxLong) return parsed;
+		}
+	} catch (e) { /* fall through */ }
+	return { maxShort: Math.min(window.innerWidth, window.innerHeight), maxLong: Math.max(window.innerWidth, window.innerHeight) };
+}
+function vpIsGenuinelyFullScreen() {
+	vpUpdateMaxObservedDims();
+	const { maxShort, maxLong } = vpGetMaxObservedDims();
+	const curShort = Math.min(window.innerWidth, window.innerHeight);
+	const curLong = Math.max(window.innerWidth, window.innerHeight);
+	const closeEnough = (a, b) => Math.abs(a - b) <= Math.max(8, b * 0.03);
+	return closeEnough(curShort, maxShort) && closeEnough(curLong, maxLong);
+}
+window.vpIsGenuinelyFullScreen = vpIsGenuinelyFullScreen;
+window.vpGetMaxObservedDims = vpGetMaxObservedDims;
 function isWindowLandscapeShaped() {
 	if (window.__vpPreviewForceBucket) {
 		// Preview mode always simulates a sideways split, matching how the configure modal's
@@ -5874,6 +5929,7 @@ function isWindowLandscapeShaped() {
 	}
 	if (window.__vpSplitScreenForced) return true;
 	if (window.__vpStartupGraceActive) return false;
+	if (!vpIsGenuinelyFullScreen()) return false;
 	return window.innerWidth >= window.innerHeight;
 }
 window.isWindowLandscapeShaped = isWindowLandscapeShaped;
@@ -5896,11 +5952,12 @@ function detectViewportBucket() {
 		window.__vpLastDetectedBucket = 'portrait';
 		return 'portrait';
 	}
-	// Portrait vs landscape - purely the window's own current shape, nothing else. No ratio, no
-	// device-size reference, no split-percentage bands: those all depended on knowing the true
-	// screen size, which is exactly what turned out to be unreliable. This can't be "wrong" in
-	// that same way - it's just comparing the window to itself.
-	const result = window.innerWidth >= window.innerHeight ? 'landscape' : 'portrait';
+	// Portrait vs Landscape - but only ever call it Landscape when the window's dimensions
+	// genuinely match the device's own known full-screen size (see vpIsGenuinelyFullScreen).
+	// Any window that's currently smaller than that in some dimension - which every kind of
+	// reduced/split window is, whatever its shape - falls back to Portrait, the safe default,
+	// rather than risk misreading a short, wide STACKED strip as a sideways rotation.
+	const result = vpIsGenuinelyFullScreen() && window.innerWidth >= window.innerHeight ? 'landscape' : 'portrait';
 	window.__vpLastDetectedBucket = result;
 	return result;
 }

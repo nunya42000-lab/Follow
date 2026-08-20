@@ -2,7 +2,7 @@
 // modal's live iframe, ?vpPreview=1&vpBucket=split66 (etc) forces detectViewportBucket() to
 // report that bucket regardless of the real device's screen/window ratio, so the preview can
 // show any bucket without physically resizing the browser window.
-window.__fmBuildMarker = 'v154-split-viewport-fixes';
+window.__fmBuildMarker = 'v162-zoom-guard-fix';
 (function() {
 	try {
 		const params = new URLSearchParams(location.search);
@@ -5911,6 +5911,20 @@ window.grantAllPermissions = async function() {
 // value with no better information to fall back on in the meantime.
 const VP_EXTENTS_KEY = 'fm_device_extents';
 function vpUpdateObservedExtents() {
+	// Guard against page-zoom pollution: if the page is actively zoomed (native OS/browser zoom,
+	// or any other mechanism outside the app's own CSS-based UI Scale, which never touches
+	// window.innerWidth/innerHeight in the first place), window.innerWidth/innerHeight briefly
+	// report a scaled, not-really-the-device-size value - e.g. a real observed case where BOTH
+	// dimensions came back multiplied by the same ~1.54x factor relative to the device's actual
+	// screen. Because this tracker takes a running MAXIMUM that can only ever grow, a single
+	// zoomed reading like that gets permanently locked in and poisons every future detection,
+	// even after the zoom ends - this is what actually caused "stuck on portrait no matter what."
+	// window.visualViewport.scale reports exactly this: skip recording anything captured while
+	// it's not ~1 (i.e., the page isn't currently zoomed), so a zoom event can't corrupt the
+	// baseline in the first place, rather than trying to detect and undo it after the fact.
+	if (window.visualViewport && typeof window.visualViewport.scale === 'number') {
+		if (Math.abs(window.visualViewport.scale - 1) > 0.03) return;
+	}
 	const curShort = Math.min(window.innerWidth, window.innerHeight);
 	const curLong = Math.max(window.innerWidth, window.innerHeight);
 	if (!curShort || !curLong) return;
@@ -5936,8 +5950,13 @@ function vpGetDeviceExtents() {
 			if (parsed && parsed.shortEdge && parsed.longEdge) observed = parsed;
 		}
 	} catch (e) { /* fall through */ }
-	const curShort = Math.min(window.innerWidth, window.innerHeight);
-	const curLong = Math.max(window.innerWidth, window.innerHeight);
+	// Same zoom guard as vpUpdateObservedExtents() - if the page is currently zoomed, don't let
+	// this moment's window.innerWidth/innerHeight feed into the live comparison either, even
+	// transiently. Falls back to window.screen alone (or, failing that, whatever the persisted
+	// observed value already is) rather than a reading that's known to be unreliable right now.
+	const isZoomed = window.visualViewport && typeof window.visualViewport.scale === 'number' && Math.abs(window.visualViewport.scale - 1) > 0.03;
+	const curShort = isZoomed ? 0 : Math.min(window.innerWidth, window.innerHeight);
+	const curLong = isZoomed ? 0 : Math.max(window.innerWidth, window.innerHeight);
 	let liveShort = curShort, liveLong = curLong;
 	if (window.screen && window.screen.width && window.screen.height) {
 		liveShort = Math.max(curShort, Math.min(window.screen.width, window.screen.height));
@@ -5985,6 +6004,15 @@ function detectViewportBucket() {
 	// to pretend to be a specific bucket regardless of the real device's screen/window ratio,
 	// so the person can preview split50/split33 etc without physically resizing their window.
 	if (window.__vpPreviewForceBucket) return window.__vpPreviewForceBucket;
+	// If the page is CURRENTLY zoomed (mid-gesture or otherwise), window.innerWidth/innerHeight
+	// themselves are momentarily unreliable as the ratio's numerator too, not just as a baseline
+	// observation to persist (see vpUpdateObservedExtents/vpGetDeviceExtents) - keep reporting
+	// whatever bucket was last genuinely detected instead of computing a fresh, skewed answer
+	// from a transient state. This self-corrects the instant the zoom ends and a real resize/
+	// layout event fires detection again.
+	if (window.visualViewport && typeof window.visualViewport.scale === 'number' && Math.abs(window.visualViewport.scale - 1) > 0.03) {
+		if (window.__vpLastDetectedBucket) return window.__vpLastDetectedBucket;
+	}
 	// Whether the CURRENT WINDOW is landscape-shaped or portrait-shaped - not the device's own
 	// physical shape. A phone is always physically taller than wide, but split-screen while
 	// holding it normally still produces a landscape-shaped pane if you're in a landscape app
@@ -6005,7 +6033,8 @@ function detectViewportBucket() {
 	const ratio = windowIsLandscape
 		? (deviceLongEdge > 0 ? window.innerWidth / deviceLongEdge : 1)
 		: (deviceLongEdge > 0 ? window.innerHeight / deviceLongEdge : 1);
-	if (ratio >= 0.92) return windowIsLandscape ? 'landscape' : 'portrait';
+	let result;
+	if (ratio >= 0.92) { result = windowIsLandscape ? 'landscape' : 'portrait'; window.__vpLastDetectedBucket = result; return result; }
 	// Real split-screen only ever snaps to three ratios (~33%/50%/66%), never anywhere in
 	// between, and once you're sitting at one of them it doesn't drift - a page reload while
 	// genuinely split at 66% should still read as 66%, not silently reset to 50%. Reading the
@@ -6014,9 +6043,11 @@ function detectViewportBucket() {
 	// wide - system UI overhead (nav bars, the divider itself, status bar insets) can push a
 	// genuine 50/50 split's usable-area ratio well past the old narrow 0.5-centered midpoint,
 	// which is what caused a real 50/50 split to misread as 66% in the first place.
-	if (ratio >= 0.63) return 'split66';
-	if (ratio >= 0.42) return windowIsLandscape ? 'split50h' : 'split50v';
-	return 'split33';
+	if (ratio >= 0.63) { result = 'split66'; window.__vpLastDetectedBucket = result; return result; }
+	if (ratio >= 0.42) { result = windowIsLandscape ? 'split50h' : 'split50v'; window.__vpLastDetectedBucket = result; return result; }
+	result = 'split33';
+	window.__vpLastDetectedBucket = result;
+	return result;
 }
 // Live diagnostic for the viewport/orientation detection above - shows exactly what THIS
 // device is really reporting at every step, since synthetic tests can pass while genuine
@@ -6038,19 +6069,23 @@ function renderViewportDiagnostic() {
 	const bucket = detectViewportBucket();
 	const mediaQueryLandscape = window.matchMedia('(orientation: landscape)').matches;
 	const orientationApiType = (window.screen && window.screen.orientation) ? window.screen.orientation.type : 'n/a';
+	const vvScale = (window.visualViewport && typeof window.visualViewport.scale === 'number') ? window.visualViewport.scale.toFixed(3) : 'n/a';
+	const isZoomed = window.visualViewport && typeof window.visualViewport.scale === 'number' && Math.abs(window.visualViewport.scale - 1) > 0.03;
 	panel.textContent =
 		`app.js build: ${window.__fmBuildMarker || '(unknown - likely a very old cached version)'}\n` +
 		`\n` +
-		`window.screen.width (LIVE, NOT trusted for detection):  ${screenW}\n` +
-		`window.screen.height (LIVE, NOT trusted for detection): ${screenH}\n` +
-		`observed short edge (used for detection): ${shortEdge}\n` +
-		`observed long edge (used for detection):  ${longEdge}\n` +
+		`window.visualViewport.scale: ${vvScale}  ${isZoomed ? '<-- PAGE IS CURRENTLY ZOOMED (detection frozen at last good value until this returns to ~1.0)' : '(not zoomed)'}\n` +
+		`\n` +
+		`window.screen.width (LIVE, used only as a fallback signal):  ${screenW}\n` +
+		`window.screen.height (LIVE, used only as a fallback signal): ${screenH}\n` +
+		`observed short edge (learned baseline, used for detection): ${shortEdge}\n` +
+		`observed long edge (learned baseline, used for detection):  ${longEdge}\n` +
 		`window.innerWidth:    ${innerW}\n` +
 		`window.innerHeight:   ${innerH}\n` +
 		`\n` +
-		`Detection no longer reads window.screen at all - the two "observed" values above are the\n` +
-		`largest window.innerWidth/innerHeight this device has EVER actually reported (persisted\n` +
-		`across sessions), which is what every ratio calculation below is measured against.\n` +
+		`Detection is measured against the "observed" pair above - the largest window.innerWidth/\n` +
+		`innerHeight this device has ever genuinely reported while NOT zoomed (persisted across\n` +
+		`sessions), falling back to window.screen only until a real observation exists.\n` +
 		`\n` +
 		`short edge deficit: ${widthDeficit}\n` +
 		`height deficit:     ${heightDeficit}\n` +

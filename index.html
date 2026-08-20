@@ -50,6 +50,7 @@ alert("Promise Error: " + event.reason);
 <button id="headerlandscapelockbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Landscape Lock">🔐</button>
 <button id="headerundobtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Undo Delete">↩️</button>
 <button id="headerswapbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform">🔄</button>
+<button id="headersplitscreenbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Split Screen">🖥️</button>
 <button id="headerplaybtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Play">▶️</button>
 <button id="headerdeletebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Delete">⌫</button>
 <button id="headersettingsbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Settings">⚙️</button>
@@ -68,8 +69,6 @@ alert("Promise Error: " + event.reason);
 <button id="headerspeedupbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Speed Up">🐇+</button>
 <button id="headerspeeddownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Speed Down">🐇-</button>
 <button id="headercycleinputbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Cycle Input">🔀</button>
-<button id="headerresetbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Factory Reset">♻️</button>
-<button id="headernukebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Nuke App">☢️</button>
 <button id="headernotepadbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Notepad">📝</button>
 <button id="headerpipbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Picture in Picture">🪟</button>
 </div>
@@ -97,21 +96,6 @@ alert("Promise Error: " + event.reason);
 <div class="mb-6">
 <label class="block text-sm font-semibold mb-2 text-muted-custom">Select Profile</label>
 <select id="quick-config-select" class="settings-input w-full h-12 px-4 py-2 text-lg font-semibold shadow-sm rounded"></select>
-</div>
-<div class="mb-6">
-<label class="block text-sm font-semibold mb-2 text-muted-custom">Screen Size 📍</label>
-<select id="quick-orientation-select" class="settings-input w-full h-12 px-4 py-2 text-lg font-semibold shadow-sm rounded">
-<option value="">Auto-Detect (Default)</option>
-<option value="portrait">Portrait (full screen, upright)</option>
-<option value="landscape">Landscape (full screen, sideways)</option>
-<option value="split66-stacked">66% - stacked (held upright)</option>
-<option value="split66-sidebyside">66% - side-by-side (held sideways)</option>
-<option value="split50v">50% ↕ (held upright, always stacked)</option>
-<option value="split50h">50% ↔ (held sideways, always side-by-side)</option>
-<option value="split33-stacked">33% - stacked (held upright)</option>
-<option value="split33-sidebyside">33% - side-by-side (held sideways)</option>
-</select>
-<p class="text-[10px] text-muted-custom mt-1.5">If Landscape/Split Screen detection is ever wrong, pick your real size here instead of leaving it to guess.</p>
 </div>
 <div class="grid grid-cols-2 gap-4 mb-6">
 <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
@@ -584,30 +568,10 @@ alert("Promise Error: " + event.reason);
 <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
 </summary>
 <div class="p-3 border-t border-gray-700">
-<p class="text-[10px] text-gray-400 mb-3">Fine-tune UI and sequence sizing separately for each viewport width, so switching to split-screen or multitasking never means readjusting your normal settings.</p>
-<div class="p-3 rounded-lg bg-indigo-950 bg-opacity-40 border border-indigo-700 mb-3">
-<div class="flex justify-between items-center mb-1">
-<label class="text-xs font-bold text-white">Which size are you actually in? 📍</label>
-</div>
-<p class="text-[10px] text-gray-400 mb-2">Automatic detection has to guess from your window's size, and some browsers report that inconsistently. Pick your real current arrangement here instead and it's used directly - no guessing - until you change it again, whether or not you resize.</p>
-<select id="viewport-manual-override-select" class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm">
-<option value="">Auto-Detect (Default)</option>
-<option value="portrait">Portrait (full screen, upright)</option>
-<option value="landscape">Landscape (full screen, sideways)</option>
-<option value="split66-stacked">66% - stacked (held upright)</option>
-<option value="split66-sidebyside">66% - side-by-side (held sideways)</option>
-<option value="split50v">50% ↕ (held upright, always stacked)</option>
-<option value="split50h">50% ↔ (held sideways, always side-by-side)</option>
-<option value="split33-stacked">33% - stacked (held upright)</option>
-<option value="split33-sidebyside">33% - side-by-side (held sideways)</option>
-</select>
-</div>
+<p class="text-[10px] text-gray-400 mb-3">Landscape switches automatically when you physically rotate the device. Split Screen is a separate, deliberate mode - turn on its header button (General tab) whenever you're actually in a split-screen or multi-window arrangement, and tap it off again when you're not.</p>
 <div class="flex border-b border-gray-700 mb-3">
 <button type="button" id="viewport-tab-btn-landscape" class="viewport-tab-btn active">Landscape</button>
-<button type="button" id="viewport-tab-btn-split66" class="viewport-tab-btn">66%</button>
-<button type="button" id="viewport-tab-btn-split50v" class="viewport-tab-btn">50% ↕</button>
-<button type="button" id="viewport-tab-btn-split50h" class="viewport-tab-btn">50% ↔</button>
-<button type="button" id="viewport-tab-btn-split33" class="viewport-tab-btn">33%</button>
+<button type="button" id="viewport-tab-btn-split50h" class="viewport-tab-btn">Split Screen</button>
 </div>
 <div class="p-3 rounded-lg bg-gray-950 border border-gray-700 mb-3 flex items-center justify-center" style="min-height: 140px;">
 <div id="viewport-preview-screen" class="relative bg-black rounded border border-gray-600 overflow-hidden" style="width: 220px; height: 124px;">
@@ -620,21 +584,9 @@ alert("Promise Error: " + event.reason);
 <p class="text-[10px] text-gray-400 mb-3">Full-width landscape orientation - device physically rotated sideways, no split-screen involved.</p>
 <button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="landscape">⚙️ Configure Viewport</button>
 </div>
-<div id="viewport-panel-split66" class="viewport-panel hidden">
-<p class="text-[10px] text-gray-400 mb-3">A 66% split - roughly two-thirds of the screen. Stacks like Portrait when the window itself is still portrait-shaped, sits side-by-side when it's landscape-shaped.</p>
-<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split66">⚙️ Configure Viewport</button>
-</div>
-<div id="viewport-panel-split50v" class="viewport-panel hidden">
-<p class="text-[10px] text-gray-400 mb-3">This is a 50/50 split while holding the phone upright (portrait-shaped) - always stacked, like Portrait. Picture-in-Picture at this size shows Machine 1's sequence only; Machines 2-4 use the regular sequence area.</p>
-<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split50v">⚙️ Configure Viewport</button>
-</div>
 <div id="viewport-panel-split50h" class="viewport-panel hidden">
-<p class="text-[10px] text-gray-400 mb-3">This is a 50/50 split while holding the phone sideways (landscape-shaped) - always side-by-side, like Landscape. Picture-in-Picture at this size shows Machine 1's sequence only; Machines 2-4 use the regular sequence area.</p>
+<p class="text-[10px] text-gray-400 mb-3">Applies the instant you tap the 🖥️ Split Screen header button (General tab toggle to show it) - not auto-detected, since split-screen ratios turned out too unreliable to guess automatically. Picture-in-Picture at this size shows Machine 1's sequence only; Machines 2-4 use the regular sequence area.</p>
 <button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split50h">⚙️ Configure Viewport</button>
-</div>
-<div id="viewport-panel-split33" class="viewport-panel hidden">
-<p class="text-[10px] text-gray-400 mb-3">Same header button set as 50% and the same Picture-in-Picture behavior (Machine 1 in the popup, Machines 2-4 in the regular sequence area). Supports up to 4 machines when Touch Gesture is on. Turn on Infinite Header Scroll (General) so scrolling through header buttons works at this width.</p>
-<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split33">⚙️ Configure Viewport</button>
 </div>
 </div>
 </details>
@@ -765,6 +717,9 @@ alert("Promise Error: " + event.reason);
 <span class="font-bold text-sm">Position Swap 🔄</span>
 <input type="checkbox" id="positionSwapToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Split Screen 🖥️</span>
+<input type="checkbox" id="splitScreenToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Adjust Input Area ↔️ <span class="font-normal opacity-70">(Portrait)</span></span>
 <input type="checkbox" id="landscapeInputResizeToggle" class="h-5 w-5 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
@@ -812,12 +767,6 @@ alert("Promise Error: " + event.reason);
 <div class="flex justify-between items-center p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Speed Gesture ⚡</span>
 <input type="checkbox" id="speedToggle" class="h-5 w-5 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Reset ♻️</span>
-<input type="checkbox" id="headerResetToggle" class="h-6 w-6 accent-indigo-500"></div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
-<span class="font-bold text-sm">Nuke ☢️</span>
-<input type="checkbox" id="headerNukeToggle" class="h-6 w-6 accent-indigo-500"></div>
 </div>
 </div>
 </div>
@@ -1654,14 +1603,6 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Lock Settings 🔒</strong>
 <p class="text-xs opacity-90">The welcome screen (and the lock icon inside Settings) both toggle the same Settings Lock - turn it on to stop someone else from changing your setup mid-game. Either one unlocks it again just as easily.</p>
 </div>
-<div class="space-y-3">
-<strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Viewport Diagnostic 🔬</strong>
-<p class="text-xs opacity-90">If Landscape/Split Screen detection ever looks wrong (stuck on the wrong percentage, or a setting applying to the wrong size), this shows exactly what your device is actually reporting - screen size, window size, and which orientation the app thinks you're in. Screenshot it and send it over if something's off; it's the fastest way to actually pin down what's happening on your specific device.</p>
-<button type="button" id="viewport-diag-toggle-btn" class="w-full py-2 text-xs font-bold bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition">Show Live Diagnostic</button>
-<div id="viewport-diag-panel" class="hidden mt-2 p-3 rounded-lg bg-black border border-gray-700 font-mono text-[10px] leading-5 text-green-400 whitespace-pre-wrap"></div>
-<p class="text-xs opacity-90 mt-3">Detection learns your device's true full-screen size the first time it ever sees the app that way, then remembers it. If it was ever wrong on that very first read (e.g. the app happened to first open already split, or was zoomed at that moment), tap this <strong>while the app is genuinely full-screen, not split, and not zoomed in/out</strong> to reset that memory and let it re-learn from scratch.</p>
-<button type="button" id="viewport-recalibrate-btn" class="w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition">🔄 Recalibrate Screen Size</button>
-</div>
 </div>
 <div id="tab-help-buttons" class="tab-content space-y-4">
 <div class="space-y-3">
@@ -1761,13 +1702,14 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div><strong>BM Gestures:</strong> Automatic when Touch Gesture and Boss Mode are both on - no separate toggle needed.</div>
 <div><strong>Wake Lock 💡:</strong> Prevents screen sleeping.</div>
 <div><strong>Do Not Disturb 🔕:</strong> Silences every interruption the app makes - toast popups, all vibration/haptics (including morse buzzes), and spoken audio. The Settings toggle only shows or hides its header button (🔕), right next to Full Screen - tap that header button to actually turn Do Not Disturb on and off. Off by default. Doesn't touch your phone's own system Do Not Disturb, which no web app can control.</div>
-<div><strong>Picture in Picture 🪟:</strong> Opens a small always-on-top window showing your current sequence, so you can read it while using another app. View-only - you can't tap the sequence in the floating window. The Settings toggle only shows or hides its header button (🪟), placed last in the row - tap that header button to actually open or close Picture in Picture. At 33%/50% ↔/50% ↕/66% split-screen sizes specifically, this is fixed rather than configurable: the popup always shows Machine 1's sequence, and Machines 2-4 (if active) show in the regular sequence area instead. In Landscape and Portrait it shows whatever's on screen as normal.</div>
+<div><strong>Picture in Picture 🪟:</strong> Opens a small always-on-top window showing your current sequence, so you can read it while using another app. View-only - you can't tap the sequence in the floating window. The Settings toggle only shows or hides its header button (🪟), placed last in the row - tap that header button to actually open or close Picture in Picture. While Split Screen is active specifically, this is fixed rather than configurable: the popup always shows Machine 1's sequence, and Machines 2-4 (if active) show in the regular sequence area instead. In Landscape and Portrait it shows whatever's on screen as normal.</div>
 <div><strong>Pinned Mode 📌:</strong> Goes fullscreen and blocks the back gesture so you can't accidentally swipe out mid-sequence. The Settings toggle only shows or hides its header button (📌), right next to Full Screen - tap that header button to actually turn Pinned Mode on and off, or to leave once it's on. This is the app's own lock - it can't trigger Android's system screen pinning, which has no web API.</div>
 <div><strong>Upside Down:</strong> Flips the visible UI 180° for a partner facing you - stays flipped correctly even if Portrait Lock is also locking the screen to portrait.</div>
 <div><strong>Portrait Lock 🔒:</strong> The app starts unlocked so landscape mode is available right away. The Settings toggle only shows or hides its header button (🔒), right next to Upside Down - tap that header button to lock the screen to portrait and stop accidental rotation mid-game (button rings, matching every other active feature), tap again to allow free rotation (button goes dim, no ring). This is done by detecting the device's actual physical orientation and visually counter-rotating the interface to compensate, rather than relying on the phone's built-in rotation lock, which is unreliable on installed home-screen apps and often can't be overridden by the app at all once set.</div>
 <div><strong>Full Screen:</strong> Hides browser bars.</div>
 <div><strong>Eco Mode 🔋:</strong> Master on/off. What it actually does is fully configurable in its own accordion further down in General Settings - theme switching, wake lock limits, ambient light sensor, camera/mic quality, haptics strength, volume, and a real on-screen dim are all independently adjustable there, and every one of them genuinely does something (nothing in that section is just a label).</div>
 <div><strong>Position Swap 🔄:</strong> Adds a header button that moves the input pad from the bottom of the screen to the top.</div>
+<div><strong>Split Screen 🖥️:</strong> Adds a header button that turns Split Screen's own settings on or off (see the Landscape and Split Screen section further down) - a deliberate switch instead of trying to auto-detect a split percentage.</div>
 <div><strong>Adjust Input Area ↔️ (Portrait):</strong> Turns on a draggable divider between the sequence area and the keypad in Portrait view specifically - drag the handle on the divider line itself to resize live. Landscape and every split-screen size have their own completely independent version of this inside their ⚙️ Configure Viewport modal - this toggle never affects any of them.</div>
 <div><strong>Bigger Buttons:</strong> Hides menus and makes each key perfectly square (as tall as it is wide) instead of a fixed height.</div>
 <div><strong>Touch Gesture:</strong> Shows the transparent touch gesture pad (taps/swipes drawn anywhere on screen).</div>
@@ -1794,12 +1736,11 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <span class="group-open:rotate-180 transition-transform">▼</span>
 </summary>
 <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
-<p>Its own accordion at the bottom of the <strong>UI</strong> tab in Settings, with five tabs - <strong>Landscape</strong>, <strong>66%</strong>, <strong>50% ↕</strong> (phone held upright), <strong>50% ↔</strong> (phone held sideways), and <strong>33%</strong>. Whichever one you're actually using right now is highlighted automatically.</p>
-<p><strong>📍 Which size are you actually in?</strong> Automatic detection has to guess your real size from your window's dimensions, and some browsers report those inconsistently. This dropdown at the top of the accordion lets you skip the guessing entirely - pick your real current arrangement and it's used directly, exactly as picked, until you change it back to Auto-Detect or pick a different one. It doesn't re-detect on resize while an override is set, so if you switch arrangements, come back and update it. 66% and 33% each have a stacked and a side-by-side option since either is genuinely possible at those sizes depending on how you're holding the phone - pick whichever matches what you're actually doing.</p>
-<p><strong>Why five separate tabs:</strong> a 50/50 split-screen looks completely different depending on whether you're holding the phone normally or sideways, so each gets its own settings instead of sharing one. 66% and Landscape stack/sit side-by-side the same way portrait always has; 33% and 50% ↔ are always side-by-side (too narrow to stack usefully); 50% ↕ is always stacked (plenty of room, matches normal portrait).</p>
-<p><strong>⚙️ Configure Viewport:</strong> Every real per-tab setting - UI Scale, Sequence Size, Row Max, Header/Number/Input Font/Button Size, Header Padding, Inputs Padding, Adjust Input Area, and Alignment (50% tabs only) - lives inside this button's modal, alongside a live preview of the real app so you can see exactly what a change looks like. Completely independent per tab - nothing here is shared with Portrait's own settings on the UI tab, or with any other tab. Every change here saves and applies the instant you make it - there's no separate Save step and nothing to lose by closing the modal.</p>
-<p><strong>Picture-in-Picture:</strong> Fixed, not configurable, at 66%/50% ↕/50% ↔/33% - the popup always shows Machine 1's sequence, Machines 2-4 use the regular sequence area. 33% supports up to 4 machines this way when Touch Gesture is also on, since that frees the full pane width for the sequence display.</p>
-<p class="opacity-70">The gear icon in the header jumps straight to whichever tab matches your current orientation - no need to hunt for it manually.</p>
+<p>Its own accordion at the bottom of the <strong>UI</strong> tab in Settings, with two tabs - <strong>Landscape</strong> and <strong>Split Screen</strong>. Landscape switches automatically when you physically rotate the device, same as it always has. Split Screen doesn't auto-detect - it turns on when you tap its header button (General tab toggle to show it) and off again when you tap it a second time.</p>
+<p><strong>🖥️ Split Screen button:</strong> Trying to automatically guess a real split-screen percentage (33%/50%/66%) turned out to be unreliable across browsers and devices - it depended on knowing the true screen size, which isn't always reported consistently. Rather than keep guessing, Split Screen is now a deliberate, explicit switch: turn it on whenever you're actually in a split-screen or multi-window arrangement, and its own settings apply immediately - independent from both Portrait's and Landscape's. Turn it off to go back to normal.</p>
+<p><strong>⚙️ Configure Viewport:</strong> Every real per-tab setting - UI Scale, Sequence Size, Row Max, Header/Number/Input Font/Button Size, Header Padding, Inputs Padding, Adjust Input Area, and Alignment (Split Screen only) - lives inside this button's modal, alongside a live preview of the real app so you can see exactly what a change looks like. Completely independent per tab - nothing here is shared with Portrait's own settings on the UI tab, or with the other tab. Every change here saves and applies the instant you make it - there's no separate Save step and nothing to lose by closing the modal.</p>
+<p><strong>Picture-in-Picture:</strong> Fixed, not configurable, while Split Screen is active - the popup always shows Machine 1's sequence, Machines 2-4 use the regular sequence area.</p>
+<p class="opacity-70">The gear icon in the header jumps straight to whichever tab matches what's currently active.</p>
 </div>
 </details>
 <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">

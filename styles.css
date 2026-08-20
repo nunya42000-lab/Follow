@@ -101,28 +101,19 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 	body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app, body:not([data-viewport-bucket="portrait"]):not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
 		padding-right: 0 !important; padding-left: var(--landscape-input-width, 100vh) !important; box-sizing: border-box !important;
 	}
-	/* split50h/split33 always get a fixed, exact 50/50 side-by-side split - split50h always,
-	   since it's landscape-shaped by definition. split33 gets it too unless portraitSplitLayout
-	   says stacked (split33 can still cover both physical orientations under one bucket). split50v
-	   is deliberately absent from this rule set entirely - it's always stacked now, same as
-	   normal portrait, so it falls through to the base rules instead of this fixed-split
-	   treatment, matching how split66 in stacked mode is also absent here. */
+	/* Split Screen (split50h internally) always gets a fixed, exact 50/50 side-by-side split -
+	   it's always landscape-shaped by definition (see isWindowLandscapeShaped, which returns
+	   true whenever it's forced active). */
 	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #input-footer,
-	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #input-footer,
-	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #input-footer,
-	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #input-footer {
+	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #input-footer {
 		width: var(--landscape-input-width, 50%) !important;
 	}
 	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #app,
-	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #app,
-	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #app,
-	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #app {
+	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #app {
 		padding-right: var(--landscape-input-width, 50%) !important;
 	}
 	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
-	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app,
-	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
-	body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
+	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
 		padding-left: var(--landscape-input-width, 50%) !important; padding-right: 0 !important;
 	}
 	/* Draggable divider handle - sits on top of the border between the sequence area and the
@@ -167,21 +158,15 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 		   genuinely short landscape viewport (a very common real phone height) fell through to
 		   this block instead, where only the old adjustable-width rule was present. */
 		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #input-footer,
-		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #input-footer,
-		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #input-footer,
-		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #input-footer {
+		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #input-footer {
 			width: var(--landscape-input-width, 50%) !important;
 		}
 		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #app,
-		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #app,
-		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key9"] #app,
-		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"])[data-rotate="0"][data-input-mode="key12"] #app {
+		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #app {
 			padding-right: var(--landscape-input-width, 50%) !important;
 		}
 		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
-		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app,
-		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
-		body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
+		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
 			padding-left: var(--landscape-input-width, 50%) !important; padding-right: 0 !important;
 		}
 	}
@@ -193,18 +178,13 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 	   fixed height rather than max-height: max-height is only a ceiling, and the number pad's
 	   actual content is almost always shorter than that ceiling, so dragging the handle never
 	   visibly changed anything - a fixed height is what actually makes the panel grow/shrink. */
-	/* Matches literal portrait AND any bucket currently rendering in stacked layout
-	   (split50v always, split66/split33 when portrait-held) - the JS applies the
-	   --portrait-input-height variable globally for exactly this reason (see
-	   applyLandscapeInputWidth()'s "applies to every orientation" comment), but this
-	   selector previously only matched the literal portrait bucket, so the height clamp
-	   and drag handle silently never activated for split50v/stacked split66/33, letting
-	   #input-footer fall back to the unbounded base max-height:70vh rule instead. */
+	/* Matches literal portrait only now - Split Screen is always landscape-shaped, so it never
+	   hits this stacked path at all. */
 	/* NOTE: same as the side-by-side version above - the touch-gesture-mode hide override lives
 	   in its own separate, higher-specificity rule instead of being folded in here, so this
 	   selector's specificity relationship with any other rule targeting #input-footer stays
 	   exactly as it was. */
-	body.landscape-resize-enabled:is([data-viewport-bucket="portrait"], [data-portrait-split-layout="stacked"]) #input-footer {
+	body.landscape-resize-enabled[data-viewport-bucket="portrait"] #input-footer {
 		height: var(--portrait-input-height, 70vh) !important;
 		max-height: var(--portrait-input-height, 70vh) !important;
 		box-sizing: border-box !important;
@@ -923,87 +903,8 @@ body.theme-is-light .text-yellow-400 { color: #854d0e; }
 		box-sizing: border-box !important;
 	}
 
-/* At 50%/33% split-screen widths, only a curated subset of header buttons fit/matter.
-   These rules hide everything else in #header-btn-row while that bucket is active - visibility
-   toggles in Settings still control whether a button is eligible to show at all; this just
-   additionally narrows that set down for the cramped split-screen buckets. */
-body[data-viewport-bucket="split50v"] #header-btn-row > button,
-body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button,
-body[data-viewport-bucket="split33"] #header-btn-row > button {
-	display: none !important;
-}
-body[data-viewport-bucket="split50v"] #header-btn-row > button#headertimerbtn,
-body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headertimerbtn,
-body[data-viewport-bucket="split50v"] #header-btn-row > button#headercounterbtn,
-body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headercounterbtn,
-body[data-viewport-bucket="split50v"] #header-btn-row > button#headerplaybtn,
-body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerplaybtn,
-body[data-viewport-bucket="split50v"] #header-btn-row > button#headerdeletebtn,
-body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerdeletebtn,
-body[data-viewport-bucket="split50v"] #header-btn-row > button#headerbiggerbtn,
-body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerbiggerbtn,
-body[data-viewport-bucket="split50v"] #header-btn-row > button#headerswapbtn,
-body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerswapbtn,
-body[data-viewport-bucket="split50v"] #header-btn-row > button#headerpipbtn,
-body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerpipbtn,
-body[data-viewport-bucket="split50v"] #header-btn-row > button#headertouchbtn,
-body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headertouchbtn,
-body[data-viewport-bucket="split33"] #header-btn-row > button#headertimerbtn,
-body[data-viewport-bucket="split33"] #header-btn-row > button#headercounterbtn,
-body[data-viewport-bucket="split33"] #header-btn-row > button#headerplaybtn,
-body[data-viewport-bucket="split33"] #header-btn-row > button#headerdeletebtn,
-body[data-viewport-bucket="split33"] #header-btn-row > button#headerbiggerbtn,
-body[data-viewport-bucket="split33"] #header-btn-row > button#headerswapbtn,
-body[data-viewport-bucket="split33"] #header-btn-row > button#headerpipbtn,
-body[data-viewport-bucket="split33"] #header-btn-row > button#headertouchbtn {
-	display: flex !important;
-}
-/* Per-viewport header button selection (Landscape/Split Screen configure modal checklist):
-   within the curated set above, the person can further narrow which of those specific buttons
-   actually show for that bucket. Uses the same #id + .vp-curated-hidden specificity as the
-   curated-set rule above (matching ID selector weight) so source order correctly decides the
-   !important tie - a plain .vp-curated-hidden class selector alone has lower specificity than
-   the curated set's #id selectors and would silently lose regardless of source order. */
-body[data-viewport-bucket="split50v"] #header-btn-row > button#headertimerbtn.vp-curated-hidden,
-body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headertimerbtn.vp-curated-hidden,
-body[data-viewport-bucket="split50v"] #header-btn-row > button#headercounterbtn.vp-curated-hidden,
-body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headercounterbtn.vp-curated-hidden,
-body[data-viewport-bucket="split50v"] #header-btn-row > button#headerplaybtn.vp-curated-hidden,
-body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerplaybtn.vp-curated-hidden,
-body[data-viewport-bucket="split50v"] #header-btn-row > button#headerdeletebtn.vp-curated-hidden,
-body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerdeletebtn.vp-curated-hidden,
-body[data-viewport-bucket="split50v"] #header-btn-row > button#headerbiggerbtn.vp-curated-hidden,
-body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerbiggerbtn.vp-curated-hidden,
-body[data-viewport-bucket="split50v"] #header-btn-row > button#headerswapbtn.vp-curated-hidden,
-body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerswapbtn.vp-curated-hidden,
-body[data-viewport-bucket="split50v"] #header-btn-row > button#headerpipbtn.vp-curated-hidden,
-body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headerpipbtn.vp-curated-hidden,
-body[data-viewport-bucket="split50v"] #header-btn-row > button#headertouchbtn.vp-curated-hidden,
-body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]) #header-btn-row > button#headertouchbtn.vp-curated-hidden,
-body[data-viewport-bucket="split33"] #header-btn-row > button#headertimerbtn.vp-curated-hidden,
-body[data-viewport-bucket="split33"] #header-btn-row > button#headercounterbtn.vp-curated-hidden,
-body[data-viewport-bucket="split33"] #header-btn-row > button#headerplaybtn.vp-curated-hidden,
-body[data-viewport-bucket="split33"] #header-btn-row > button#headerdeletebtn.vp-curated-hidden,
-body[data-viewport-bucket="split33"] #header-btn-row > button#headerbiggerbtn.vp-curated-hidden,
-body[data-viewport-bucket="split33"] #header-btn-row > button#headerswapbtn.vp-curated-hidden,
-body[data-viewport-bucket="split33"] #header-btn-row > button#headerpipbtn.vp-curated-hidden,
-body[data-viewport-bucket="split33"] #header-btn-row > button#headertouchbtn.vp-curated-hidden {
-	display: none !important;
-}
-/* 50% vertical alignment option: stacks input rows vertically instead of the normal horizontal flow. */
-body[data-viewport-bucket="split50v"][data-split-alignment="vertical"] #input-footer .grid,
-body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"])[data-split-alignment="vertical"] #input-footer .grid {
-	grid-template-columns: 1fr !important;
-}
-/* 33% side-by-side always stacks input rows vertically, unconditionally - unlike 50h/50v there's
-   no horizontal option here at all, because the pane is narrow enough (20-33% of the screen)
-   that a 3-wide button grid has no real width to divide up: each column collapses toward the
-   width of a single digit and the numbers visually run together into an unreadable blob. A
-   single column gives each button the pane's full (still narrow, but usable) width instead. */
-body[data-viewport-bucket="split33"]:not([data-portrait-split-layout="stacked"]) #input-footer .grid {
-	grid-template-columns: 1fr !important;
-}
-/* PiP fixed-machine mode: at 33%/50h/50v/66% with PiP active, Machine 1's sequence renders only
+
+/* PiP fixed-machine mode: at Split Screen with PiP active, Machine 1's sequence renders only
    in the PiP popup (canvas, via drawPipFrame) - app.js's renderUI() already excludes Machine 1
    from #sequence-container's own children in this mode, so Machines 2-4 stay visible in the
    main area instead of the whole sequence area being blanked out. No CSS override needed here

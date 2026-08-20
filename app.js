@@ -469,7 +469,7 @@ const DEFAULT_HEADER_BTN_ORDER = [
     'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn',
     'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn',
     'headerspeeddownbtn', 'headercycleinputbtn',
-    'headernotepadbtn', 'headerpipbtn', 'headerresetbtn', 'headernukebtn'
+    'headernotepadbtn', 'headerpipbtn'
 ];
 const DEFAULT_GENERAL_TOGGLE_ORDER = [
 'autoBrightToggle', 'autoDarkToggle',
@@ -491,7 +491,7 @@ const DEFAULT_GENERAL_TOGGLE_ORDER = [
 'upsidedownToggle', 'portraitLockToggle', 'landscapeLockToggle',
 'fullscreenToggle', 'biggerToggle',
 'ecoToggle', 'wakelockToggle',
-'positionSwapToggle', 'landscapeInputResizeToggle', 'pipToggle',
+'positionSwapToggle', 'splitScreenToggle', 'landscapeInputResizeToggle', 'pipToggle',
 'dndToggle', 'pinnedModeToggle',
 'arcamToggle', 'arAutoCloseGeneralToggle',
 'voiceToggle', 'voicecommandsToggle',
@@ -499,7 +499,7 @@ const DEFAULT_GENERAL_TOGGLE_ORDER = [
 'handToggle', 'skeletonDebugToggle',
 'handsignalsToggle', 'handednessFlipToggle',
 'volgesToggle', 'speedToggle',
-'headerResetToggle', 'headerNukeToggle'
+''
 ];
 const CONFIG = {
 	MAX_MACHINES: 4,
@@ -590,13 +590,10 @@ const DEFAULT_APP = {
 	uiScaleMultiplier: 2.2, // Executed: Portrait scaling multiplier
 	showWelcomeScreen: true,
 	touchResizeMode: 'none',
-	// null = automatic detection (the ratio/extents-based system). Any bucket name here
-	// bypasses detection entirely - a direct, explicit "this is what I'm in right now" that
-	// sidesteps every browser/device quirk automatic detection has to guess around (CSS pixel
-	// scaling differences between browsers, window.screen reliability during split, zoom
-	// contamination, etc.). Set once per real arrangement, switched manually whenever that
-	// arrangement changes - not re-detected on every resize.
-	manualViewportBucket: null,
+	// Whether the "Split Screen" header button is shown (General tab toggle). Tapping the button
+	// itself just toggles a runtime body class (like Bigger Buttons/Position Swap) - nothing to
+	// persist here for that part.
+	isSplitScreenButtonEnabled: false,
 	playbackSpeed: 1.0,
 	isAutoplayEnabled: false,
 	isUniqueRoundsAutoClearEnabled: true,
@@ -652,8 +649,6 @@ const DEFAULT_APP = {
 	showHeaderNotepadBtn: false,
 	showHeaderHelpBtn: false,
 	showHeaderModeSwitchBtn: false,
-	showHeaderResetBtn: false,
-	showHeaderNukeBtn: false,
 	notepadText: '',
 	isVoiceCommandsEnabled: false,
 	isToneCadenceEnabled: false,
@@ -667,28 +662,13 @@ const DEFAULT_APP = {
 	appInputFontScale: 200,
 	appInputBtnScale: 100,
 	appRowMax: '5',
-	// Every bucket now carries its OWN inputAreaEnabled/inputAreaPct instead of leaving some of
-	// them undefined - an undefined value made getEffectiveInputAreaEnabled()/Pct() silently fall
-	// back to the GLOBAL Adjust Input Area toggle/percentage (General/UI tab) for that bucket,
-	// which is exactly what made per-bucket lists look like they "didn't work" - the bucket's own
-	// saved value existed but was never being read because the fallback got there first only for
-	// the buckets missing this key. landscape/split66/split50h default to off (matching prior
-	// real-world behavior) so nothing changes visually for people already using them; split50v
-	// and split33 are turned on with the percentages that actually make each pane usable - 50v is
-	// a short, full-width stacked pane so the input pad needs most of the height (80%), while
-	// split33's side-by-side pane is wide-open vertically but very narrow horizontally, so the
-	// input strip only needs a sliver (20%) and the sequence display gets the rest.
-	// headerPadding/inputsPadding: same independence as everything else here - the UI tab's own
-	// Header Padding/Inputs Padding dropdowns (headerPadding/inputsPadding below, outside this
-	// object) are Portrait's values specifically, not a global fallback for every bucket. Each
-	// bucket gets its own copy, defaulting to 0 (matching the prior shared default) so nothing
-	// changes for anyone not using it, adjustable per-bucket from here on via Configure Viewport.
+	// Only two buckets remain: Landscape (still auto-detected on physical rotation) and Split
+	// Screen (split50h internally - was "50% ↔" back when there were five buckets to choose
+	// between; now the only one, activated by the header button rather than auto-detected, so it
+	// keeps its own settings independent of Portrait's regardless of which is currently showing).
 	viewportProfiles: {
-		landscape: { uiScale: 100, seqSize: 210, headerScale: 100, numberSize: 250, inputFontSize: 200, btnSize: 150, rowMax: '5', inputAreaEnabled: true, inputAreaPct: 35, headerPadding: 0, inputsPadding: 0, headerButtons: [] }, // Executed: sequence size & row bounds
-		split66: { uiScale: 100, seqSize: 180, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: false, inputAreaPct: 50, headerPadding: 0, inputsPadding: 0, headerButtons: [] },
-		split50v: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', inputAreaEnabled: true, inputAreaPct: 80, headerPadding: 0, inputsPadding: 0, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }, // Executed: flex-direction fixed
-		split50h: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', inputAreaEnabled: false, inputAreaPct: 50, headerPadding: 0, inputsPadding: 0, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
-		split33: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: true, inputAreaPct: 50, headerPadding: 0, inputsPadding: 0, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] } // Executed: custom piano sizing metrics mapped
+		landscape: { uiScale: 100, seqSize: 210, headerScale: 100, numberSize: 250, inputFontSize: 200, btnSize: 150, rowMax: '5', inputAreaEnabled: true, inputAreaPct: 35, headerPadding: 0, inputsPadding: 0, headerButtons: [] },
+		split50h: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: false, inputAreaPct: 50, headerPadding: 0, inputsPadding: 0, headerButtons: [] }
 	},
 	pipMachineIndex: null,
 	ecoModeConfig: {
@@ -790,7 +770,7 @@ const DEFAULT_APP = {
     'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn',
     'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn',
     'headerspeeddownbtn', 'headercycleinputbtn',
-    'headernotepadbtn', 'headerpipbtn', 'headerresetbtn', 'headernukebtn'
+    'headernotepadbtn', 'headerpipbtn'
 	],
 	generalToggleOrder: ['autoBrightToggle', 'autoDarkToggle', 'randomThemeToggle', 'headerThemeCycleToggle','headerCycleInputToggle', 'headerModeSwitchToggle','headerAddMachineToggle', 'bossToggle','headerUiSizeToggle', 'headerSeqSizeToggle','headerVolumeToggle', 'headerSpeedToggle','autoHideHeaderToggle', 'headerInfiniteScrollToggle','flickHeaderToggle', 'restoreHeaderToggle','headerPlayToggle', 'headerDeleteToggle', 
 'headerSettingsToggle', 'headerHelpToggle', 
@@ -803,7 +783,7 @@ const DEFAULT_APP = {
 'upsidedownToggle', 'portraitLockToggle', 'landscapeLockToggle',
 'fullscreenToggle', 'biggerToggle',
 'ecoToggle', 'wakelockToggle',
-'positionSwapToggle', 'landscapeInputResizeToggle', 'pipToggle',
+'positionSwapToggle', 'splitScreenToggle', 'landscapeInputResizeToggle', 'pipToggle',
 'dndToggle', 'pinnedModeToggle',
 'arcamToggle', 'arAutoCloseGeneralToggle',
 'voiceToggle', 'voicecommandsToggle',
@@ -811,7 +791,7 @@ const DEFAULT_APP = {
 'handToggle', 'skeletonDebugToggle',
 'handsignalsToggle', 'handednessFlipToggle',
 'volgesToggle', 'speedToggle',
-'headerResetToggle', 'headerNukeToggle'
+''
 	]
 };
 const SETTINGS_PRESETS = [
@@ -1955,7 +1935,7 @@ class SettingsManager {
 			voicePresetDelete: document.getElementById('voice-preset-delete'),
 			voicePitch: document.getElementById('voice-pitch'), voiceRate: document.getElementById('voice-rate'), voiceVolume: document.getElementById('voice-volume'), voiceTestBtn: document.getElementById('test-voice-btn'), voiceNameSelect: document.getElementById('voice-name-select'),
 			settingsModal: document.getElementById('settings-modal'), themeSelect: document.getElementById('theme-select'), themeAdd: document.getElementById('theme-add'), themeRename: document.getElementById('theme-rename'), themeDelete: document.getElementById('theme-delete'), themeSave: document.getElementById('theme-save'), randomThemeToggle: document.getElementById('randomThemeToggle'), autoHideHeaderToggle: document.getElementById('autoHideHeaderToggle'), skeletonDebugToggle: document.getElementById('skeletonDebugToggle'), fontSelect: document.getElementById('font-select'),
-			configSelect: document.getElementById('config-select'), quickConfigSelect: document.getElementById('quick-config-select'), quickOrientationSelect: document.getElementById('quick-orientation-select'), configAdd: document.getElementById('config-add'), configRename: document.getElementById('config-rename'), configDelete: document.getElementById('config-delete'), configSave: document.getElementById('config-save'),
+			configSelect: document.getElementById('config-select'), quickConfigSelect: document.getElementById('quick-config-select'), configAdd: document.getElementById('config-add'), configRename: document.getElementById('config-rename'), configDelete: document.getElementById('config-delete'), configSave: document.getElementById('config-save'),
 			input: document.getElementById('input-select'), mode: document.getElementById('mode-select'), practiceMode: document.getElementById('practice-mode-toggle'), machines: document.getElementById('machines-select'), seqLength: document.getElementById('seq-length-select'),
 			autoClear: document.getElementById('autoclear-toggle'), autoplay: document.getElementById('autoplay-toggle'), flash: document.getElementById('flash-toggle'),
 			pause: document.getElementById('pause-select'), audio: document.getElementById('audio-toggle'), hapticMorse: document.getElementById('haptic-morse-toggle'), playbackSpeed: document.getElementById('playback-speed-select'), chunk: document.getElementById('chunk-select'), delay: document.getElementById('delay-select'), haptics: document.getElementById('hapticsToggle'),
@@ -1972,7 +1952,7 @@ class SettingsManager {
 			biggerToggle: document.getElementById('biggerToggle'),
 			timerToggle: document.getElementById('timerToggle'),
 			headerPlayToggle: document.getElementById('headerPlayToggle'), headerDeleteToggle: document.getElementById('headerDeleteToggle'), headerSettingsToggle: document.getElementById('headerSettingsToggle'), headerRedeemToggle: document.getElementById('headerRedeemToggle'), headerShareToggle: document.getElementById('headerShareToggle'), headerThemeCycleToggle: document.getElementById('headerThemeCycleToggle'), headerAddMachineToggle: document.getElementById('headerAddMachineToggle'), headerUiSizeToggle: document.getElementById('headerUiSizeToggle'), headerSeqSizeToggle: document.getElementById('headerSeqSizeToggle'), headerVolumeToggle: document.getElementById('headerVolumeToggle'), headerSpeedToggle: document.getElementById('headerSpeedToggle'), headerCycleInputToggle: document.getElementById('headerCycleInputToggle'),
-			headerNotepadToggle: document.getElementById('headerNotepadToggle'), headerHelpToggle: document.getElementById('headerHelpToggle'), headerModeSwitchToggle: document.getElementById('headerModeSwitchToggle'), headerResetToggle: document.getElementById('headerResetToggle'), headerNukeToggle: document.getElementById('headerNukeToggle'), headerInfiniteScrollToggle: document.getElementById('headerInfiniteScrollToggle'), inputRegulatorToggle: document.getElementById('inputRegulatorToggle'),
+			headerNotepadToggle: document.getElementById('headerNotepadToggle'), headerHelpToggle: document.getElementById('headerHelpToggle'), headerModeSwitchToggle: document.getElementById('headerModeSwitchToggle'), headerInfiniteScrollToggle: document.getElementById('headerInfiniteScrollToggle'), inputRegulatorToggle: document.getElementById('inputRegulatorToggle'),
 			counterToggle: document.getElementById('counterToggle'),
 			touchGestureToggle: document.getElementById('touchToggle'),
 			handToggle: document.getElementById('handToggle'),
@@ -1980,11 +1960,11 @@ class SettingsManager {
 			handednessFlipToggle: document.getElementById('handednessFlipToggle'),
 			voicecommandsToggle: document.getElementById('voicecommandsToggle'),
 			wakelockToggle: document.getElementById('wakelockToggle'), dndToggle: document.getElementById('dndToggle'), pipToggle: document.getElementById('pipToggle'), pinnedModeToggle: document.getElementById('pinnedModeToggle'), settingsLockBtn: document.getElementById('settings-lock-toggle'),
-			positionSwapToggle: document.getElementById('positionSwapToggle'),
+			positionSwapToggle: document.getElementById('positionSwapToggle'), splitScreenToggle: document.getElementById('splitScreenToggle'),
 			landscapeInputResizeToggle: document.getElementById('landscapeInputResizeToggle'),
-			headerswapbtn: document.getElementById('headerswapbtn'),
+			headerswapbtn: document.getElementById('headerswapbtn'), headersplitscreenbtn: document.getElementById('headersplitscreenbtn'),
 			headerplaybtn: document.getElementById('headerplaybtn'), headerdeletebtn: document.getElementById('headerdeletebtn'), headersettingsbtn: document.getElementById('headersettingsbtn'), headerredeembtn: document.getElementById('headerredeembtn'), headersharebtn: document.getElementById('headersharebtn'), headerthemecyclebtn: document.getElementById('headerthemecyclebtn'), headeraddmachinebtn: document.getElementById('headeraddmachinebtn'), headeruiupbtn: document.getElementById('headeruiupbtn'), headeruidownbtn: document.getElementById('headeruidownbtn'), headersequpbtn: document.getElementById('headersequpbtn'), headerseqdownbtn: document.getElementById('headerseqdownbtn'), headervolupbtn: document.getElementById('headervolupbtn'), headervoldownbtn: document.getElementById('headervoldownbtn'), headerspeedupbtn: document.getElementById('headerspeedupbtn'), headerspeeddownbtn: document.getElementById('headerspeeddownbtn'), headercycleinputbtn: document.getElementById('headercycleinputbtn'),
-			headernotepadbtn: document.getElementById('headernotepadbtn'), headerhelpbtn: document.getElementById('headerhelpbtn'), headermodeswitchbtn: document.getElementById('headermodeswitchbtn'), headerresetbtn: document.getElementById('headerresetbtn'), headernukebtn: document.getElementById('headernukebtn'),
+			headernotepadbtn: document.getElementById('headernotepadbtn'), headerhelpbtn: document.getElementById('headerhelpbtn'), headermodeswitchbtn: document.getElementById('headermodeswitchbtn'),
 			uiScale: document.getElementById('ui-scale-select'),
 			headerScale: document.getElementById('header-scale-select'),
 			fontScale: document.getElementById('font-scale-select'),
@@ -3080,6 +3060,7 @@ class SettingsManager {
 			};
 		};
 		bindToggle(this.dom.positionSwapToggle, 'isPositionSwapEnabled', true);
+		bindToggle(this.dom.splitScreenToggle, 'isSplitScreenButtonEnabled', true);
 		if (this.dom.landscapeInputResizeToggle) this.dom.landscapeInputResizeToggle.onchange = (e) => {
 			this.appSettings.isLandscapeInputResizeEnabled = e.target.checked;
 			document.body.classList.toggle('landscape-resize-enabled', e.target.checked);
@@ -3126,8 +3107,6 @@ class SettingsManager {
 		bindToggle(this.dom.inputRegulatorToggle, 'isInputRegulatorEnabled');
 		bindToggle(this.dom.headerHelpToggle, 'showHeaderHelpBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerModeSwitchToggle, 'showHeaderModeSwitchBtn', () => this.updateHeaderVisibility());
-		bindToggle(this.dom.headerResetToggle, 'showHeaderResetBtn', () => this.updateHeaderVisibility());
-		bindToggle(this.dom.headerNukeToggle, 'showHeaderNukeBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerUndoToggle, 'showHeaderUndoBtn', () => this.updateHeaderVisibility());
 		if (this.dom.skeletonDebugToggle) {
 			this.dom.skeletonDebugToggle.checked = !!this.appSettings.isSkeletonDebugEnabled;
@@ -3320,16 +3299,6 @@ class SettingsManager {
 		const handleProfileSwitch = (val) => { this.callbacks.onProfileSwitch(val); this.openSettings(); };
 		if (this.dom.configSelect) this.dom.configSelect.onchange = (e) => handleProfileSwitch(e.target.value);
 		if (this.dom.quickConfigSelect) this.dom.quickConfigSelect.onchange = (e) => handleProfileSwitch(e.target.value);
-		if (this.dom.quickOrientationSelect) this.dom.quickOrientationSelect.onchange = (e) => {
-			this.appSettings.manualViewportBucket = e.target.value || null;
-			this.callbacks.onSave();
-			if (typeof applyViewportProfile === 'function') applyViewportProfile();
-			// The UI tab's own override select (Settings -> UI -> Landscape and Split Screen)
-			// controls the exact same setting - keep it in sync so either place always shows the
-			// truth, whichever one was used most recently.
-			const settingsSelect = document.getElementById('viewport-manual-override-select');
-			if (settingsSelect) settingsSelect.value = e.target.value;
-		};
 		const bind = (el, prop, isGlobal, isInt = false, isFloat = false) => {
 			if (!el) return;
 			el.onchange = () => {
@@ -3469,49 +3438,6 @@ class SettingsManager {
 		if (this.dom.quickHelp) this.dom.quickHelp.onclick = () => { this.closeSetup(); this.generatePrompt(); if (this.dom.helpModal) this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); if (window.lockBodyScroll) window.lockBodyScroll(); };
 		if (this.dom.grantPermissionsBtn) this.dom.grantPermissionsBtn.onclick = () => { if (typeof window.grantAllPermissions === 'function') window.grantAllPermissions(); };
 		if (this.dom.closeHelpBtn) this.dom.closeHelpBtn.onclick = () => { if (this.dom.helpModal) this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none'); if (window.unlockBodyScroll) window.unlockBodyScroll(); };
-		const viewportDiagBtn = document.getElementById('viewport-diag-toggle-btn');
-		const viewportDiagPanel = document.getElementById('viewport-diag-panel');
-		let viewportDiagResizeHandler = null;
-		if (viewportDiagBtn && viewportDiagPanel) {
-			viewportDiagBtn.onclick = () => {
-				const isHidden = viewportDiagPanel.classList.contains('hidden');
-				if (isHidden) {
-					viewportDiagPanel.classList.remove('hidden');
-					viewportDiagBtn.textContent = 'Hide Live Diagnostic';
-					if (typeof window.renderViewportDiagnostic === 'function') {
-						window.renderViewportDiagnostic();
-					} else {
-						// This should never happen, but if it does, make it visibly obvious
-						// rather than a panel that silently stays empty and looks like the
-						// button did nothing at all.
-						viewportDiagPanel.textContent = 'Diagnostic function not available - try a hard refresh (Settings → Advanced → Refresh App), this build may be out of date.';
-					}
-					viewportDiagResizeHandler = () => { if (typeof window.renderViewportDiagnostic === 'function') window.renderViewportDiagnostic(); };
-					window.addEventListener('resize', viewportDiagResizeHandler);
-				} else {
-					viewportDiagPanel.classList.add('hidden');
-					viewportDiagBtn.textContent = 'Show Live Diagnostic';
-					if (viewportDiagResizeHandler) {
-						window.removeEventListener('resize', viewportDiagResizeHandler);
-						viewportDiagResizeHandler = null;
-					}
-				}
-			};
-		}
-		const viewportRecalibrateBtn = document.getElementById('viewport-recalibrate-btn');
-		if (viewportRecalibrateBtn) {
-			viewportRecalibrateBtn.onclick = () => {
-				try {
-					localStorage.removeItem('fm_device_extents');
-				} catch (e) { /* nothing to clear if storage is unavailable */ }
-				if (typeof window.vpUpdateObservedExtents === 'function') window.vpUpdateObservedExtents();
-				if (typeof applyViewportProfile === 'function') applyViewportProfile();
-				if (typeof window.renderViewportDiagnostic === 'function' && viewportDiagPanel && !viewportDiagPanel.classList.contains('hidden')) {
-					window.renderViewportDiagnostic();
-				}
-				if (typeof showToast === 'function') showToast('🔄 Screen size recalibrated from the current view ✅');
-			};
-		}
 		if (this.dom.closeHelpBtnBottom) this.dom.closeHelpBtnBottom.onclick = () => { if (this.dom.helpModal) this.dom.helpModal.classList.add('opacity-0', 'pointer-events-none'); if (window.unlockBodyScroll) window.unlockBodyScroll(); };
 		if (this.dom.openHelpBtn) this.dom.openHelpBtn.onclick = () => { this.generatePrompt(); if (this.dom.helpModal) this.dom.helpModal.classList.remove('opacity-0', 'pointer-events-none'); if (window.lockBodyScroll) window.lockBodyScroll(); };
 		if (this.dom.closeSettingsBtn) this.dom.closeSettingsBtn.onclick = () => { if (window.__stopAllAdvancedTests) window.__stopAllAdvancedTests(); this.callbacks.onSave(); if (this.dom.settingsModal) { this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.add('scale-90'); } if (window.unlockBodyScroll) window.unlockBodyScroll(); };
@@ -3623,7 +3549,7 @@ class SettingsManager {
 	populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
 	populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
 	openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.initEcoModeConfigUI(); this.renderFullProfileList(); if (typeof initViewportProfilesUI === 'function') initViewportProfilesUI(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
-	openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); if (this.dom.quickOrientationSelect) this.dom.quickOrientationSelect.value = this.appSettings.manualViewportBucket || ''; this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); this.updateWelcomeSample(); }
+	openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); this.updateWelcomeSample(); }
 	applySettingsLockState() {
 		if (!this.dom.settingsLockBtn) return;
 		const locked = !!this.appSettings.isSettingsLockEnabled;
@@ -3779,6 +3705,7 @@ class SettingsManager {
 		if (this.dom.skeletonDebugToggle) this.dom.skeletonDebugToggle.checked = !!this.appSettings.isSkeletonDebugEnabled;
 		if (this.dom.fontSelect) this.dom.fontSelect.value = this.appSettings.activeFontFamily || "'Inter', sans-serif";
 		if (this.dom.positionSwapToggle) this.dom.positionSwapToggle.checked = !!this.appSettings.isPositionSwapEnabled;
+		if (this.dom.splitScreenToggle) this.dom.splitScreenToggle.checked = !!this.appSettings.isSplitScreenButtonEnabled;
 		if (this.dom.landscapeInputResizeToggle) this.dom.landscapeInputResizeToggle.checked = !!this.appSettings.isLandscapeInputResizeEnabled;
 		if (this.dom.fullscreenToggle) {
 			this.dom.fullscreenToggle.checked = !!this.appSettings.showFullscreenBtn;
@@ -3810,8 +3737,6 @@ class SettingsManager {
 		if (this.dom.inputRegulatorToggle) this.dom.inputRegulatorToggle.checked = this.appSettings.isInputRegulatorEnabled !== false;
 		if (this.dom.headerHelpToggle) this.dom.headerHelpToggle.checked = !!this.appSettings.showHeaderHelpBtn;
 		if (this.dom.headerModeSwitchToggle) this.dom.headerModeSwitchToggle.checked = !!this.appSettings.showHeaderModeSwitchBtn;
-		if (this.dom.headerResetToggle) this.dom.headerResetToggle.checked = !!this.appSettings.showHeaderResetBtn;
-		if (this.dom.headerNukeToggle) this.dom.headerNukeToggle.checked = !!this.appSettings.showHeaderNukeBtn;
 		this.applySettingsLockState();
 		if (this.dom.arSpeedSelect) {
 			const speedVal = this.appSettings.arPlaybackSpeed || 1.0;
@@ -3863,6 +3788,7 @@ class SettingsManager {
 		if (this.dom.headerdndbtn) this.dom.headerdndbtn.classList.toggle('hidden', !this.appSettings.showDndBtn);
 		if (this.dom.headerpipbtn) this.dom.headerpipbtn.classList.toggle('hidden', !this.appSettings.showPipBtn);
 		const showSwap = !!this.appSettings.isPositionSwapEnabled;
+		const showSplitScreen = !!this.appSettings.isSplitScreenButtonEnabled;
 		if(timerBtn) timerBtn.classList.toggle('hidden', !showTimer);
 		if(counterBtn) counterBtn.classList.toggle('hidden', !showCounter);
 		if(micBtn) micBtn.classList.toggle('hidden', !showMic);
@@ -3871,6 +3797,7 @@ class SettingsManager {
 		if(biggerBtn) biggerBtn.classList.toggle('hidden', !showBigger);
 		if(handBtn) handBtn.classList.toggle('hidden', !showHand);
 		if(this.dom.headerswapbtn) this.dom.headerswapbtn.classList.toggle('hidden', !showSwap);
+		if(this.dom.headersplitscreenbtn) this.dom.headersplitscreenbtn.classList.toggle('hidden', !showSplitScreen);
 		if (this.dom.headerplaybtn) this.dom.headerplaybtn.classList.toggle('hidden', !this.appSettings.showHeaderPlayBtn);
 		if (this.dom.headerdeletebtn) this.dom.headerdeletebtn.classList.toggle('hidden', !this.appSettings.showHeaderDeleteBtn);
 		if (this.dom.headerundobtn) this.dom.headerundobtn.classList.toggle('hidden', !this.appSettings.showHeaderUndoBtn);
@@ -3891,13 +3818,11 @@ class SettingsManager {
 		if (this.dom.headernotepadbtn) this.dom.headernotepadbtn.classList.toggle('hidden', !this.appSettings.showHeaderNotepadBtn);
 		if (this.dom.headerhelpbtn) this.dom.headerhelpbtn.classList.toggle('hidden', !this.appSettings.showHeaderHelpBtn);
 		if (this.dom.headermodeswitchbtn) this.dom.headermodeswitchbtn.classList.toggle('hidden', !this.appSettings.showHeaderModeSwitchBtn);
-		if (this.dom.headerresetbtn) this.dom.headerresetbtn.classList.toggle('hidden', !this.appSettings.showHeaderResetBtn);
-		if (this.dom.headernukebtn) this.dom.headernukebtn.classList.toggle('hidden', !this.appSettings.showHeaderNukeBtn);
 		if (this.dom.headertonebtn) {
 			this.dom.headertonebtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
 		}
-		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderUndoBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderVolumeBtns || this.appSettings.showHeaderSpeedBtns || this.appSettings.showHeaderCycleInputBtn || this.appSettings.showHeaderNotepadBtn || this.appSettings.showHeaderHelpBtn || this.appSettings.showHeaderModeSwitchBtn || this.appSettings.showHeaderResetBtn || this.appSettings.showHeaderNukeBtn || this.appSettings.showFullscreenBtn || this.appSettings.showUpsideDownBtn || this.appSettings.showPortraitLockBtn || this.appSettings.showHeaderLandscapeLockBtn || this.appSettings.showPinnedBtn || this.appSettings.showDndBtn || this.appSettings.showPipBtn;
-		if (!showTimer && !showCounter && !showMic && !showCam && !showTouchGesture && !showBigger && !showHand && !showSwap && !this.appSettings.isToneCadenceEnabled && !anyNewBtnShown) {
+		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderUndoBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderVolumeBtns || this.appSettings.showHeaderSpeedBtns || this.appSettings.showHeaderCycleInputBtn || this.appSettings.showHeaderNotepadBtn || this.appSettings.showHeaderHelpBtn || this.appSettings.showHeaderModeSwitchBtn || this.appSettings.showFullscreenBtn || this.appSettings.showUpsideDownBtn || this.appSettings.showPortraitLockBtn || this.appSettings.showHeaderLandscapeLockBtn || this.appSettings.showPinnedBtn || this.appSettings.showDndBtn || this.appSettings.showPipBtn;
+		if (!showTimer && !showCounter && !showMic && !showCam && !showTouchGesture && !showBigger && !showHand && !showSwap && !showSplitScreen && !this.appSettings.isToneCadenceEnabled && !anyNewBtnShown) {
 			header.classList.add('header-hidden');
 		} else {
 			header.classList.remove('header-hidden');
@@ -3925,7 +3850,7 @@ class SettingsManager {
 		return [...row.children].filter(el => el.id && !el.dataset.cloneId).map(el => el.id);
 	}
 	_headerBtnLabels() {
-		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerpinnedbtn: '📌 Pinned Mode', headerdndbtn: '🔕 Do Not Disturb', headerpipbtn: '🪟 Picture in Picture', headerupsidedownbtn: '🙃 Upside Down', headerportraitlockbtn: '🔒 Portrait Lock', headerlandscapelockbtn: '🔐 Landscape Lock', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headerundobtn: '↩️ Undo', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headerresetbtn: '♻️ Reset', headernukebtn: '☢️ Nuke', headernotepadbtn: '📝 Notepad' };
+		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerpinnedbtn: '📌 Pinned Mode', headerdndbtn: '🔕 Do Not Disturb', headerpipbtn: '🪟 Picture in Picture', headerupsidedownbtn: '🙃 Upside Down', headerportraitlockbtn: '🔒 Portrait Lock', headerlandscapelockbtn: '🔐 Landscape Lock', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headerundobtn: '↩️ Undo', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headernotepadbtn: '📝 Notepad' };
 	}
 	_moveHeaderBtn(id, direction) {
 		const row = document.getElementById('header-btn-row');
@@ -4097,7 +4022,7 @@ class SettingsManager {
 		}).filter(Boolean);
 	}
 	_generalToggleLabels() {
-		return { autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙', randomThemeToggle: 'Random Theme 🎲', headerThemeCycleToggle: 'Theme Cycle 🎨', headerCycleInputToggle: 'Cycle Input 🔀', headerModeSwitchToggle: 'Mode Switch 🎮', headerAddMachineToggle: 'Add Machine ➕', bossToggle: 'Boss Mode 🌑', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', autoHideHeaderToggle: 'Auto Hide Header 👻', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️',flickHeaderToggle: 'Flick Header Buttons 💨', restoreHeaderToggle: 'Restore Header Gesture 🪄', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', hideIntroToggle: 'Hide Intro', headerUndoToggle: 'Undo ↩️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', upsidedownToggle: 'Upside Down 🙃', portraitLockToggle: 'Portrait Lock 🔒', landscapeLockToggle: 'Landscape Lock 🔐', fullscreenToggle: 'Full Screen 🔲', biggerToggle: 'Bigger Buttons', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', positionSwapToggle: 'Position Swap 🔄', landscapeInputResizeToggle: 'Adjust Input Area ↔️', pipToggle: 'Picture in Picture 🪟', dndToggle: 'Do Not Disturb 🔕', pinnedModeToggle: 'Pinned Mode 📌', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', headerResetToggle: 'Reset ♻️', headerNukeToggle: 'Nuke ☢️' };
+		return { autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙', randomThemeToggle: 'Random Theme 🎲', headerThemeCycleToggle: 'Theme Cycle 🎨', headerCycleInputToggle: 'Cycle Input 🔀', headerModeSwitchToggle: 'Mode Switch 🎮', headerAddMachineToggle: 'Add Machine ➕', bossToggle: 'Boss Mode 🌑', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', autoHideHeaderToggle: 'Auto Hide Header 👻', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️',flickHeaderToggle: 'Flick Header Buttons 💨', restoreHeaderToggle: 'Restore Header Gesture 🪄', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', hideIntroToggle: 'Hide Intro', headerUndoToggle: 'Undo ↩️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', upsidedownToggle: 'Upside Down 🙃', portraitLockToggle: 'Portrait Lock 🔒', landscapeLockToggle: 'Landscape Lock 🔐', fullscreenToggle: 'Full Screen 🔲', biggerToggle: 'Bigger Buttons', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', positionSwapToggle: 'Position Swap 🔄', splitScreenToggle: 'Split Screen 🖥️', landscapeInputResizeToggle: 'Adjust Input Area ↔️', pipToggle: 'Picture in Picture 🪟', dndToggle: 'Do Not Disturb 🔕', pinnedModeToggle: 'Pinned Mode 📌', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', };
 	}
 	_moveGeneralToggle(id, direction) {
 		const grid = document.getElementById('general-toggle-grid');
@@ -5478,23 +5403,6 @@ function loadState() {
 			if (!appSettings.runtimeSettings.voicePresets) appSettings.runtimeSettings.voicePresets = {};
 			if (!appSettings.runtimeSettings.activeVoicePresetId) appSettings.runtimeSettings.activeVoicePresetId = 'standard';
 			if (!appSettings.touchResizeMode) appSettings.touchResizeMode = 'global';
-			// split50 was split into split50v (portrait-held) and split50h (landscape-held) -
-			// migrate any legacy single split50 profile into split50v so existing customizations
-			// aren't silently lost (there's no way to know which physical orientation the old
-			// settings were actually tuned for, so split50v was picked as the more common case;
-			// split50h starts fresh at defaults).
-			if (appSettings.viewportProfiles && appSettings.viewportProfiles.split50 && !appSettings.viewportProfiles.__split50Migrated) {
-				const legacy = appSettings.viewportProfiles.split50;
-				const target = appSettings.viewportProfiles.split50v || {};
-				appSettings.viewportProfiles.split50v = Object.assign({}, target, {
-					uiScale: legacy.uiScale, seqSize: legacy.seqSize, headerScale: legacy.headerScale,
-					numberSize: legacy.numberSize, inputFontSize: legacy.inputFontSize, btnSize: legacy.btnSize,
-					rowMax: legacy.rowMax, alignment: legacy.alignment,
-					headerButtons: legacy.headerButtons
-				});
-				delete appSettings.viewportProfiles.split50;
-				appSettings.viewportProfiles.__split50Migrated = true;
-			}
 			if (!appSettings.toneCalibration || typeof appSettings.toneCalibration !== 'object') appSettings.toneCalibration = { isCalibrated: false, notes: {} };
 			if (!appSettings.toneCalibration.notes) appSettings.toneCalibration.notes = {};
 			if (!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS));
@@ -5504,37 +5412,24 @@ function loadState() {
 			Object.values(appSettings.profiles || {}).forEach(p => {
 					if (p && p.settings) p.settings.pauseSetting = migratePause(p.settings.pauseSetting);
 			});
-			// The split-screen buckets were originally (incorrectly) modeled as 75%/50%/25% of
-			// the screen; real split-screen (Android and most OSes) only ever snaps to
-			// 66%/50%/33%, so the buckets were renamed split75->split66 and split25->split33 to
-			// match reality. Carry forward any customization saved under the old names rather
-			// than letting the orphan-pruning below silently discard it.
+			// The split-screen system used to auto-detect five buckets (Landscape, 66%, 50% ↕,
+			// 50% ↔, 33%) by comparing the window against the device's screen size - that ratio
+			// math turned out to be unreliable in exactly the moments it mattered (window.screen
+			// inconsistent across browsers, page zoom, browser chrome not settled on launch).
+			// It's been replaced with a single explicit "Split Screen" header button (was 50% ↔'s
+			// profile, kept under its old internal key split50h) plus Landscape, which still
+			// auto-detects fine since portrait-vs-landscape is a simple, reliable shape check.
+			// 66%/50% ↕/33% (and their older 75%/25% names, from even further back) are gone -
+			// clean up whatever's left of them in existing saved settings rather than leaving
+			// orphaned profile data around.
 			if (appSettings.viewportProfiles) {
-				if (appSettings.viewportProfiles.split75 && !appSettings.viewportProfiles.split66) {
-					appSettings.viewportProfiles.split66 = appSettings.viewportProfiles.split75;
-				}
-				if (appSettings.viewportProfiles.split25 && !appSettings.viewportProfiles.split33) {
-					appSettings.viewportProfiles.split33 = appSettings.viewportProfiles.split25;
-				}
 				delete appSettings.viewportProfiles.split75;
 				delete appSettings.viewportProfiles.split25;
-				// split33's shipped default input-area width moved from 65% to 20% (65% left almost
-				// no room for the sequence display in an already-narrow pane). Only nudge it forward
-				// for someone still sitting on the old default - if they'd already dialed in their
-				// own number, leave it alone.
-				if (appSettings.viewportProfiles.split33 && appSettings.viewportProfiles.split33.inputAreaPct === 65) {
-					appSettings.viewportProfiles.split33.inputAreaPct = 20;
-				}
-				// ...and then from 20% to 50% - confirmed against real-device testing (forcing the
-				// bucket to read as split50h, whose own default falls back to a 50%-of-viewport
-				// width, produced the actually-desired result with Bigger Buttons). 20% was real
-				// data too (it fixed a genuinely illegible 65%-wide 3-column grid at the time), but
-				// 50% is what's now confirmed to look right, especially now that the number/button
-				// grid is circular by default and benefits from the extra room. Same rule: only
-				// nudge it forward for someone still on that specific old default.
-				if (appSettings.viewportProfiles.split33 && appSettings.viewportProfiles.split33.inputAreaPct === 20) {
-					appSettings.viewportProfiles.split33.inputAreaPct = 50;
-				}
+				delete appSettings.viewportProfiles.split50;
+				delete appSettings.viewportProfiles.split66;
+				delete appSettings.viewportProfiles.split50v;
+				delete appSettings.viewportProfiles.split33;
+				delete appSettings.viewportProfiles.__split50Migrated;
 			}
 			const pruneOrphaned = (obj, schema) => {
 				if (!obj || !schema) return;
@@ -5897,132 +5792,25 @@ window.grantAllPermissions = async function() {
 	}
 	if (typeof showToast === 'function') showToast('Permission check complete ✅');
 };
-// Landscape and Split-Screen viewport detection: there's no official API for split-screen
-// ratio, so this compares the app's actual width against the device's full screen width while
-// in landscape orientation - a full-width app is "landscape", and progressively narrower panes
-// bucket into the 75/50/25 split-screen presets. Portrait is untouched by any of this.
-// Whether the CURRENT WINDOW is landscape-shaped or portrait-shaped right now - used both by
-// detectViewportBucket() (below) and by applyViewportProfile() to decide, independent of which
-// split-ratio bucket you're in, whether this is a sideways split (wide short window) or an
-// upright split (narrow tall window, from holding the phone normally). The same bucket name
-// (e.g. split50) can happen in either window shape, and the two need different layouts.
-//
-// window.screen.width/height are supposed to be the device's fixed physical dimensions, but
-// they turned out not to be a reliable anchor at all on real Android WebViews - not just
-// unreliable specifically during a split (an earlier fix tried caching a "confirmed" value the
-// moment window.screen matched window.inner*, but if window.screen never reliably matches
-// window.inner* on a given device even at genuine full screen, that confirmation moment simply
-// never arrives, and detection is right back to trusting a live value that was never
-// trustworthy to begin with - which is exactly why buckets kept collapsing toward one or two
-// "attractor" sizes no matter what was actually on screen).
-//
-// This doesn't drop window.screen entirely - a single-signal "trust window.screen" approach was
-// the original bug, and a single-signal "only trust observed history" approach turned out to
-// have its own failure mode: it has nothing to go on until the app has genuinely been seen at
-// full screen at least once, and if the very first observation this device ever records happens
-// to be mid-split (a real possibility - testing this exact feature means spending most of your
-// time IN split-screen, not out of it), that undersized reading gets locked in as the "device
-// size" and every ratio computed against it is wrong in the OPPOSITE direction until a real
-// full-screen moment happens to occur.
-//
-// Instead: track the largest window.innerWidth/innerHeight ever observed (persisted, same as
-// before), AND on every read also compare that against the CURRENT LIVE window.screen reading,
-// taking whichever of the two is larger for each axis. A device's true screen size can't
-// actually shrink, so if either signal - the live one or the historical one - reports something
-// bigger, that's real information the other one is currently missing, and the bigger number is
-// closer to the truth than the smaller one. This means: the very first time the app is EVER
-// full screen (virtually guaranteed to happen eventually, launch icon or otherwise), the true
-// size gets locked in permanently via the observed-history side; but even before that happens,
-// window.screen's live value - even if imperfect - still contributes whenever it's larger than
-// whatever's been observed so far, instead of leaving detection stuck on a too-small bootstrap
-// value with no better information to fall back on in the meantime.
-const VP_EXTENTS_KEY = 'fm_device_extents';
-function vpUpdateObservedExtents() {
-	// Same reasoning as the startup grace period in detectViewportBucket(): don't record an
-	// observation before the viewport has necessarily settled (mobile browser chrome collapsing,
-	// etc.) - a premature reading here gets permanently locked in as a "maximum ever seen" and
-	// poisons every future detection, exactly like the zoom case below already does.
-	if (window.__vpStartupGraceActive) return;
-	// Guard against page-zoom pollution: if the page is actively zoomed (native OS/browser zoom,
-	// or any other mechanism outside the app's own CSS-based UI Scale, which never touches
-	// window.innerWidth/innerHeight in the first place), window.innerWidth/innerHeight briefly
-	// report a scaled, not-really-the-device-size value - e.g. a real observed case where BOTH
-	// dimensions came back multiplied by the same ~1.54x factor relative to the device's actual
-	// screen. Because this tracker takes a running MAXIMUM that can only ever grow, a single
-	// zoomed reading like that gets permanently locked in and poisons every future detection,
-	// even after the zoom ends - this is what actually caused "stuck on portrait no matter what."
-	// window.visualViewport.scale reports exactly this: skip recording anything captured while
-	// it's not ~1 (i.e., the page isn't currently zoomed), so a zoom event can't corrupt the
-	// baseline in the first place, rather than trying to detect and undo it after the fact.
-	if (window.visualViewport && typeof window.visualViewport.scale === 'number') {
-		if (Math.abs(window.visualViewport.scale - 1) > 0.03) return;
-	}
-	const curShort = Math.min(window.innerWidth, window.innerHeight);
-	const curLong = Math.max(window.innerWidth, window.innerHeight);
-	if (!curShort || !curLong) return;
-	let stored = null;
-	try {
-		const raw = localStorage.getItem(VP_EXTENTS_KEY);
-		if (raw) stored = JSON.parse(raw);
-	} catch (e) { /* corrupt/unavailable storage - treat as no prior observation */ }
-	const nextShort = stored && stored.shortEdge ? Math.max(stored.shortEdge, curShort) : curShort;
-	const nextLong = stored && stored.longEdge ? Math.max(stored.longEdge, curLong) : curLong;
-	if (!stored || nextShort !== stored.shortEdge || nextLong !== stored.longEdge) {
-		try {
-			localStorage.setItem(VP_EXTENTS_KEY, JSON.stringify({ shortEdge: nextShort, longEdge: nextLong }));
-		} catch (e) { /* storage unavailable - detection still works this session from the in-memory value below */ }
-	}
-}
-function vpGetDeviceExtents() {
-	let observed = null;
-	try {
-		const raw = localStorage.getItem(VP_EXTENTS_KEY);
-		if (raw) {
-			const parsed = JSON.parse(raw);
-			if (parsed && parsed.shortEdge && parsed.longEdge) observed = parsed;
-		}
-	} catch (e) { /* fall through */ }
-	// Same zoom guard as vpUpdateObservedExtents() - if the page is currently zoomed, don't let
-	// this moment's window.innerWidth/innerHeight feed into the live comparison either, even
-	// transiently. Falls back to window.screen alone (or, failing that, whatever the persisted
-	// observed value already is) rather than a reading that's known to be unreliable right now.
-	const isZoomed = window.visualViewport && typeof window.visualViewport.scale === 'number' && Math.abs(window.visualViewport.scale - 1) > 0.03;
-	const curShort = isZoomed ? 0 : Math.min(window.innerWidth, window.innerHeight);
-	const curLong = isZoomed ? 0 : Math.max(window.innerWidth, window.innerHeight);
-	let liveShort = curShort, liveLong = curLong;
-	if (window.screen && window.screen.width && window.screen.height) {
-		liveShort = Math.max(curShort, Math.min(window.screen.width, window.screen.height));
-		liveLong = Math.max(curLong, Math.max(window.screen.width, window.screen.height));
-	}
-	if (!observed) return { shortEdge: liveShort, longEdge: liveLong };
-	return {
-		shortEdge: Math.max(observed.shortEdge, liveShort),
-		longEdge: Math.max(observed.longEdge, liveLong)
-	};
-}
-window.vpUpdateObservedExtents = vpUpdateObservedExtents;
-window.vpGetDeviceExtents = vpGetDeviceExtents;
-// Manual viewport override: a direct "this is what I'm actually in right now" that bypasses
-// every automatic detection heuristic entirely (ratio thresholds, learned extents, zoom
-// guarding, window.screen quirks, all of it) - see DEFAULT_APP.manualViewportBucket. Split66 and
-// split33 can each genuinely be either stacked (phone held upright) OR side-by-side (phone
-// turned sideways) - the bucket NAME alone doesn't capture that, so the override value itself
-// encodes shape too where it's ambiguous (e.g. "split66-stacked" vs "split66-sidebyside"), and
-// this helper is the one place that gets parsed apart, so isWindowLandscapeShaped() and
-// detectViewportBucket() can't ever disagree with each other about what a given override means.
-function vpParseManualOverride() {
-	const raw = appSettings && appSettings.manualViewportBucket;
-	if (!raw) return null;
-	if (raw === 'split66-stacked') return { bucket: 'split66', isLandscape: false };
-	if (raw === 'split66-sidebyside') return { bucket: 'split66', isLandscape: true };
-	if (raw === 'split33-stacked') return { bucket: 'split33', isLandscape: false };
-	if (raw === 'split33-sidebyside') return { bucket: 'split33', isLandscape: true };
-	if (raw === 'split50v') return { bucket: 'split50v', isLandscape: false };
-	if (raw === 'split50h') return { bucket: 'split50h', isLandscape: true };
-	if (raw === 'landscape') return { bucket: 'landscape', isLandscape: true };
-	if (raw === 'portrait') return { bucket: 'portrait', isLandscape: false };
-	return null;
-}
+// Landscape and Split-Screen viewport detection: automatic detection only ever needs to tell
+// portrait from landscape - a direct comparison of the window's own two dimensions, no device
+// reference needed. Earlier versions of this tried to also auto-detect finer split percentages
+// (33%/50%/66%) by comparing against the device's true screen size, which turned out to be
+// unreliable in exactly the moments that mattered (window.screen inconsistent across browsers,
+// page zoom, browser chrome not yet settled on launch). Real split-screen use is now a
+// deliberate, explicit action instead (the "Split Screen" header button, General tab toggle to
+// show it) rather than a guess.
+// "Split Screen" header button (General tab toggle to show it): a single, deliberately simple
+// escape hatch - tapping it just forces the Split Screen profile's settings/behavior directly,
+// regardless of whatever automatic detection thinks is going on. This replaced first a full
+// manual-override dropdown (8 options - too many choices for what it needed to do), and now
+// replaces the whole idea of trying to automatically distinguish 33%/50%/66% splits by ratio at
+// all - that ratio math depended on knowing the device's true screen size, which turned out to
+// be unreliable in exactly the moments it mattered most (window.screen inconsistent across
+// browsers, page zoom, browser chrome not yet settled on launch). Automatic detection now only
+// ever needs to tell portrait from landscape - a simple, self-contained comparison of the
+// window's own two dimensions against each other, no device reference needed at all - and any
+// actual split-screen use is a deliberate, explicit action (this button), not a guess.
 function isWindowLandscapeShaped() {
 	if (window.__vpPreviewForceBucket) {
 		// Preview mode always simulates a sideways split, matching how the configure modal's
@@ -6030,167 +5818,38 @@ function isWindowLandscapeShaped() {
 		// preview mode built yet.
 		return window.__vpPreviewForceBucket !== 'portrait';
 	}
-	const manual = vpParseManualOverride();
-	if (manual) return manual.isLandscape;
-	// Matches the startup grace period in detectViewportBucket() - portrait is never
-	// landscape-shaped, so this must agree during that same window or the two would contradict
-	// each other (bucket says portrait, shape says landscape) and produce a broken hybrid layout.
+	if (window.__vpSplitScreenForced) return true;
 	if (window.__vpStartupGraceActive) return false;
-	vpUpdateObservedExtents();
-	// The reliable signal is which of the window's own two dimensions is still "full": in a
-	// sideways split, the window's height stays at ~100% of the device's short edge while its
-	// width shrinks; in an upright split, it's the reverse. Comparing each axis against the
-	// device's short edge (from observed extents, not window.screen) and taking whichever is
-	// CLOSER to matching tells you which axis is unconstrained - the split is happening on the
-	// other one.
-	const extents = vpGetDeviceExtents();
-	if (extents.shortEdge) {
-		const widthDeficit = Math.abs(window.innerWidth - extents.shortEdge);
-		const heightDeficit = Math.abs(window.innerHeight - extents.shortEdge);
-		// If width is the one close to matching the short edge, width is unconstrained -> the
-		// window is portrait-shaped (split is happening along height). If height is the closer
-		// match, height is unconstrained -> the window is landscape-shaped (split is happening
-		// along width).
-		return heightDeficit < widthDeficit;
-	}
-	if (typeof window.orientation === 'number') {
-		return Math.abs(window.orientation) === 90;
-	}
 	return window.innerWidth >= window.innerHeight;
 }
 window.isWindowLandscapeShaped = isWindowLandscapeShaped;
 function detectViewportBucket() {
 	// Viewport Preview mode (Landscape and Split Screen configure modal): the iframe is asked
 	// to pretend to be a specific bucket regardless of the real device's screen/window ratio,
-	// so the person can preview split50/split33 etc without physically resizing their window.
-	// This always wins even over a manual override below - the preview's whole point is to show
-	// a DIFFERENT bucket than whatever's actually active, which a manual override would otherwise
-	// block.
+	// so the person can preview Split Screen without physically resizing their window. This
+	// always wins even over the Split Screen force below - the preview's whole point is to show
+	// a DIFFERENT bucket than whatever's actually active, which forcing would otherwise block.
 	if (window.__vpPreviewForceBucket) return window.__vpPreviewForceBucket;
-	const manual = vpParseManualOverride();
-	if (manual) {
-		window.__vpLastDetectedBucket = manual.bucket;
-		return manual.bucket;
+	if (window.__vpSplitScreenForced) {
+		window.__vpLastDetectedBucket = 'split50h';
+		return 'split50h';
 	}
 	// Startup grace period: the very first detection on a fresh launch runs before the browser's
-	// viewport has necessarily settled - mobile browser chrome (address bar, etc.) can still be
-	// visible and collapse a moment later, and on top of that, window.screen has already proven
-	// unreliable enough on some devices to misjudge even a completely normal, non-split launch.
-	// The overwhelmingly common case opening the app is full-screen portrait, never split - so
-	// rather than trust a ratio computed before things have settled, assume portrait for this
-	// first brief window and let a delayed, now-settled real detection correct it a moment later
-	// (see the vpEndStartupGracePeriod call in startApp) if the person genuinely did open the app
-	// already mid-split. That's a rare edge case worth a brief correction over the common case
-	// being wrong on every single launch.
+	// viewport has necessarily settled (mobile browser chrome collapsing a moment after load) -
+	// assume portrait for this first brief window rather than trust a premature reading. See the
+	// setTimeout in startApp() that ends this and re-runs detection for real.
 	if (window.__vpStartupGraceActive) {
 		window.__vpLastDetectedBucket = 'portrait';
 		return 'portrait';
 	}
-	// If the page is CURRENTLY zoomed (mid-gesture or otherwise), window.innerWidth/innerHeight
-	// themselves are momentarily unreliable as the ratio's numerator too, not just as a baseline
-	// observation to persist (see vpUpdateObservedExtents/vpGetDeviceExtents) - keep reporting
-	// whatever bucket was last genuinely detected instead of computing a fresh, skewed answer
-	// from a transient state. This self-corrects the instant the zoom ends and a real resize/
-	// layout event fires detection again.
-	if (window.visualViewport && typeof window.visualViewport.scale === 'number' && Math.abs(window.visualViewport.scale - 1) > 0.03) {
-		if (window.__vpLastDetectedBucket) return window.__vpLastDetectedBucket;
-	}
-	// Whether the CURRENT WINDOW is landscape-shaped or portrait-shaped - not the device's own
-	// physical shape. A phone is always physically taller than wide, but split-screen while
-	// holding it normally still produces a landscape-shaped pane if you're in a landscape app
-	// and a portrait-shaped one if you're in a portrait app; the device's own shape was
-	// previously used as a shortcut ("deviceIsLandscape"), which meant split-screen while
-	// holding the phone normally (the actual common case) always short-circuited straight to
-	// 'portrait' before ever checking the real window ratio - the split-screen buckets could
-	// never be detected at all in that orientation, regardless of what ratio the split was
-	// genuinely at.
-	const windowIsLandscape = isWindowLandscapeShaped();
-	vpUpdateObservedExtents();
-	const extents = vpGetDeviceExtents();
-	// The device's full screen dimension along whichever axis the current window is actually
-	// splitting - i.e. if the window is landscape-shaped, compare its width against the
-	// device's own long edge; if portrait-shaped, compare its height against the device's own
-	// long edge (a portrait split-screen divides height, not width).
-	const deviceLongEdge = extents.longEdge || Math.max(window.innerWidth, window.innerHeight);
-	const ratio = windowIsLandscape
-		? (deviceLongEdge > 0 ? window.innerWidth / deviceLongEdge : 1)
-		: (deviceLongEdge > 0 ? window.innerHeight / deviceLongEdge : 1);
-	let result;
-	if (ratio >= 0.92) { result = windowIsLandscape ? 'landscape' : 'portrait'; window.__vpLastDetectedBucket = result; return result; }
-	// Real split-screen only ever snaps to three ratios (~33%/50%/66%), never anywhere in
-	// between, and once you're sitting at one of them it doesn't drift - a page reload while
-	// genuinely split at 66% should still read as 66%, not silently reset to 50%. Reading the
-	// ratio directly against these bands (instead of requiring a relative "crossing" from an
-	// in-memory anchor that resets on every reload) gets that right. The bands are deliberately
-	// wide - system UI overhead (nav bars, the divider itself, status bar insets) can push a
-	// genuine 50/50 split's usable-area ratio well past the old narrow 0.5-centered midpoint,
-	// which is what caused a real 50/50 split to misread as 66% in the first place.
-	if (ratio >= 0.63) { result = 'split66'; window.__vpLastDetectedBucket = result; return result; }
-	if (ratio >= 0.42) { result = windowIsLandscape ? 'split50h' : 'split50v'; window.__vpLastDetectedBucket = result; return result; }
-	result = 'split33';
+	// Portrait vs landscape - purely the window's own current shape, nothing else. No ratio, no
+	// device-size reference, no split-percentage bands: those all depended on knowing the true
+	// screen size, which is exactly what turned out to be unreliable. This can't be "wrong" in
+	// that same way - it's just comparing the window to itself.
+	const result = window.innerWidth >= window.innerHeight ? 'landscape' : 'portrait';
 	window.__vpLastDetectedBucket = result;
 	return result;
 }
-// Live diagnostic for the viewport/orientation detection above - shows exactly what THIS
-// device is really reporting at every step, since synthetic tests can pass while genuine
-// Android WebView behavior (which varies by manufacturer/browser) still differs from what's
-// assumed. Rendered into the Help modal's Basics tab, toggled on demand rather than always-on.
-function renderViewportDiagnostic() {
-	const panel = document.getElementById('viewport-diag-panel');
-	if (!panel) return;
-	const screenW = window.screen ? window.screen.width : 'n/a';
-	const screenH = window.screen ? window.screen.height : 'n/a';
-	const innerW = window.innerWidth;
-	const innerH = window.innerHeight;
-	const extents = (typeof vpGetDeviceExtents === 'function') ? vpGetDeviceExtents() : null;
-	const shortEdge = extents ? extents.shortEdge : 'n/a';
-	const longEdge = extents ? extents.longEdge : 'n/a';
-	const widthDeficit = (shortEdge !== 'n/a') ? Math.abs(innerW - shortEdge) : 'n/a';
-	const heightDeficit = (shortEdge !== 'n/a') ? Math.abs(innerH - shortEdge) : 'n/a';
-	const windowIsLandscape = isWindowLandscapeShaped();
-	const bucket = detectViewportBucket();
-	const mediaQueryLandscape = window.matchMedia('(orientation: landscape)').matches;
-	const orientationApiType = (window.screen && window.screen.orientation) ? window.screen.orientation.type : 'n/a';
-	const vvScale = (window.visualViewport && typeof window.visualViewport.scale === 'number') ? window.visualViewport.scale.toFixed(3) : 'n/a';
-	const isZoomed = window.visualViewport && typeof window.visualViewport.scale === 'number' && Math.abs(window.visualViewport.scale - 1) > 0.03;
-	const manualOverride = appSettings.manualViewportBucket || null;
-	const dpr = window.devicePixelRatio || 'n/a';
-	const cssPxRatio = (typeof screenW === 'number' && screenW > 0) ? (innerW / screenW).toFixed(3) : 'n/a';
-	panel.textContent =
-		`app.js build: ${window.__fmBuildMarker || '(unknown - likely a very old cached version)'}\n` +
-		`\n` +
-		`MANUAL OVERRIDE: ${manualOverride ? manualOverride + '  <-- everything below is bypassed, this is used directly' : '(off - using automatic detection)'}\n` +
-		`\n` +
-		`window.visualViewport.scale: ${vvScale}  ${isZoomed ? '<-- PAGE IS CURRENTLY ZOOMED (detection frozen at last good value until this returns to ~1.0)' : '(not zoomed)'}\n` +
-		`window.devicePixelRatio: ${dpr}\n` +
-		`innerWidth / window.screen.width: ${cssPxRatio}  (if this isn't ~1.0 even while genuinely\n` +
-		`full-screen and unzoomed, this browser/device reports CSS pixels at a different scale than\n` +
-		`window.screen - harmless to detection as long as it's CONSISTENT, since every ratio below\n` +
-		`is self-relative and cancels a constant scale factor out automatically)\n` +
-		`\n` +
-		`window.screen.width (LIVE, used only as a fallback signal):  ${screenW}\n` +
-		`window.screen.height (LIVE, used only as a fallback signal): ${screenH}\n` +
-		`observed short edge (learned baseline, used for detection): ${shortEdge}\n` +
-		`observed long edge (learned baseline, used for detection):  ${longEdge}\n` +
-		`window.innerWidth:    ${innerW}\n` +
-		`window.innerHeight:   ${innerH}\n` +
-		`\n` +
-		`Detection is measured against the "observed" pair above - the largest window.innerWidth/\n` +
-		`innerHeight this device has ever genuinely reported while NOT zoomed (persisted across\n` +
-		`sessions), falling back to window.screen only until a real observation exists.\n` +
-		`\n` +
-		`short edge deficit: ${widthDeficit}\n` +
-		`height deficit:     ${heightDeficit}\n` +
-		`\n` +
-		`isWindowLandscapeShaped(): ${windowIsLandscape}\n` +
-		`detectViewportBucket():    ${bucket}\n` +
-		`\n` +
-		`(orientation:landscape) media query: ${mediaQueryLandscape}\n` +
-		`screen.orientation.type:             ${orientationApiType}\n` +
-		`data-viewport-bucket on <body>:      ${document.body.dataset.viewportBucket || '(unset)'}\n` +
-		`data-portrait-split-layout:          ${document.body.dataset.portraitSplitLayout || '(unset)'}`;
-}
-window.renderViewportDiagnostic = renderViewportDiagnostic;
 function getViewportProfile() {
 	const bucket = document.body.dataset.viewportBucket;
 	if (!bucket || bucket === 'portrait') return null;
@@ -6255,11 +5914,11 @@ function getEffectiveInputsPadding() {
 }
 window.getEffectiveHeaderPadding = getEffectiveHeaderPadding;
 window.getEffectiveInputsPadding = getEffectiveInputsPadding;
-// PiP is fixed (not user-configurable) at these four bucket sizes: Machine 1's sequence goes in
-// the popup, Machines 2-4 render in the regular sequence area. Landscape and Portrait are left
-// alone - PiP there still shows whatever the (still-supported) pipMachineIndex setting says.
+// PiP is fixed (not user-configurable) at Split Screen: Machine 1's sequence goes in the popup,
+// Machines 2-4 render in the regular sequence area. Landscape and Portrait are left alone - PiP
+// there still shows whatever the (still-supported) pipMachineIndex setting says.
 function isPipRestrictedBucket(bucket) {
-	return bucket === 'split66' || bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33';
+	return bucket === 'split50h';
 }
 window.isPipRestrictedBucket = isPipRestrictedBucket;
 function syncPipSequenceOnlyMode() {
@@ -6280,27 +5939,23 @@ const VP_HEADER_BUTTON_ID_MAP = {
 	delete: 'headerdeletebtn', bigger: 'headerbiggerbtn', swap: 'headerswapbtn',
 	pip: 'headerpipbtn', touch: 'headertouchbtn'
 };
+// Every bucket can now show every header button it's individually toggled on in General - the
+// per-bucket curated allowlist this used to enforce (only a specific handful of buttons allowed
+// at 66%/50%/33%) added a second layer of "why isn't this button showing" on top of each
+// button's own General toggle, for a restriction that wasn't worth the confusion. Kept as a
+// real function (rather than deleting every call site) so it's a one-line no-op if this ever
+// needs to come back, but it no longer hides anything.
 function applyViewportHeaderButtonCuration(bucket) {
-	const isCurated = bucket === 'split66' || bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33';
 	Object.keys(VP_HEADER_BUTTON_ID_MAP).forEach(curatedId => {
 		const el = document.getElementById(VP_HEADER_BUTTON_ID_MAP[curatedId]);
-		if (!el) return;
-		el.classList.remove('vp-curated-hidden');
-	});
-	if (!isCurated) return;
-	const profile = appSettings.viewportProfiles && appSettings.viewportProfiles[bucket];
-	const selected = (profile && Array.isArray(profile.headerButtons)) ? profile.headerButtons : [];
-	Object.keys(VP_HEADER_BUTTON_ID_MAP).forEach(curatedId => {
-		if (selected.includes(curatedId)) return;
-		const el = document.getElementById(VP_HEADER_BUTTON_ID_MAP[curatedId]);
-		if (el) el.classList.add('vp-curated-hidden');
+		if (el) el.classList.remove('vp-curated-hidden');
 	});
 }
 
 function applyLandscapeInputWidth() {
 	const bucket = document.body.dataset.viewportBucket;
 	const isStacked = bucket === 'portrait' || document.body.dataset.portraitSplitLayout === 'stacked';
-	const isLandscapeFamily = !isStacked && (bucket === 'landscape' || bucket === 'split66' || bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33');
+	const isLandscapeFamily = !isStacked && (bucket === 'landscape' || bucket === 'split50h');
 	
 	// FIX: Both layout families now read from getEffectiveInputAreaEnabled()
 	// This ensures split33's custom inputAreaEnabled flag correctly activates even in portrait/stacked
@@ -6332,38 +5987,15 @@ function applyViewportProfile() {
 	const bucket = detectViewportBucket();
 	const prevBucket = document.body.dataset.viewportBucket;
 	document.body.dataset.viewportBucket = bucket;
-
 	const profile = appSettings.viewportProfiles && appSettings.viewportProfiles[bucket];
 
-	// 1. Dynamic splitAlignment processing (resolves split50v horizontal flex bug)
-	if (profile && profile.alignment) {
-		document.body.dataset.splitAlignment = profile.alignment;
-	} else {
-		delete document.body.dataset.splitAlignment;
-	}
-
-	if (bucket === 'split50v') {
-		document.body.dataset.portraitSplitLayout = 'stacked';
-	} else {
-		const isSplitBucket = bucket === 'split66' || bucket === 'split33';
-		if (isSplitBucket && !isWindowLandscapeShaped()) {
-			// A portrait-shaped window at either ratio band is a real phone stacking another app
-			// above or below Follow Me (full width, short height) - phones don't split left/right
-			// while held upright, that's a tablet/foldable behavior. split33 was previously
-			// special-cased to 'sideBySide' here on the assumption that a narrow ratio always
-			// meant a narrow vertical sliver, but real-device evidence showed a portrait-shaped
-			// 33% is the SAME kind of full-width stacked strip split66 already handles correctly -
-			// just shorter. Treating it as 'sideBySide' forced the single-column input layout
-			// meant for a genuinely narrow strip onto a pane that actually had its full device
-			// width to work with, which is what made the normal multi-column grid look wrong here.
-			// (A manual "33% - side-by-side" override still exists for whatever device genuinely
-			// does support that shape - see vpParseManualOverride - this only changes the
-			// automatic default.)
-			document.body.dataset.portraitSplitLayout = 'stacked';
-		} else {
-			delete document.body.dataset.portraitSplitLayout;
-		}
-	}
+	// portraitSplitLayout ('stacked' vs side-by-side) no longer has anything left to compute -
+	// split50v (always stacked) and the portrait-shaped variants of split66/split33 that used to
+	// need it are gone; Landscape is never stacked, and Split Screen (split50h) is only ever
+	// active via the header button, which forces landscape-shaped, so it's never stacked either.
+	// Only literal 'portrait' still uses the stacked layout rules, and that's handled by matching
+	// [data-viewport-bucket="portrait"] directly in CSS, not this attribute.
+	delete document.body.dataset.portraitSplitLayout;
 
 	// 2. Curated header buttons and Custom Layout Triggers
 	applyViewportHeaderButtonCuration(bucket);
@@ -6659,7 +6291,7 @@ function applyPositionSwapOffsets(isActive) {
 	// falling back to portrait's "move footer to top with measured padding" math, which breaks
 	// badly against a footer that's much taller than the sliver of height actually available.
 	const viewportBucket = document.body.dataset.viewportBucket;
-	const isSplitBucket = viewportBucket === 'landscape' || viewportBucket === 'split66' || viewportBucket === 'split50v' || viewportBucket === 'split50h' || viewportBucket === 'split33';
+	const isSplitBucket = viewportBucket === 'landscape' || viewportBucket === 'split50h';
 	const isLandscape = window.matchMedia('(orientation: landscape)').matches || isSplitBucket;
 	const inputMode = document.body.dataset.inputMode;
 	const sideRepositioned = isLandscape && (inputMode === 'key9' || inputMode === 'key12');
@@ -6815,11 +6447,11 @@ function renderUI() {
 		header.innerHTML = `Unique Mode: <span class=\"text-primary-app\">Round ${roundNum}</span>`;
 		container.appendChild(header);
 	}
-	// Narrow side-by-side panes (33%/50h) get at most 2 machine columns instead of up to 4 - a
-	// rigid 4-across grid squeezed into an already-narrow pane is what made multi-machine games
+	// Narrow side-by-side panes (Split Screen) get at most 2 machine columns instead of up to 4 -
+	// a rigid 4-across grid squeezed into an already-narrow pane is what made multi-machine games
 	// there effectively unusable regardless of how much the touch-gesture pad freed up.
 	const bucketForGrid = document.body.dataset.viewportBucket;
-	const narrowBucket = bucketForGrid === 'split33' || bucketForGrid === 'split50h';
+	const narrowBucket = bucketForGrid === 'split50h';
 	const maxCols = narrowBucket ? 2 : 4;
 	let gridCols = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? 1 : Math.max(1, Math.min(activeSeqs.length, maxCols));
 	container.className = `flex-grow grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
@@ -7838,6 +7470,16 @@ function initGlobalListeners() {
 				showToast(isActive ? "Inputs Moved to Top 🔄" : "Inputs Back to Bottom 🔄");
 			};
 		}
+		const headerSplitScreen = document.getElementById('headersplitscreenbtn');
+		if (headerSplitScreen) {
+			headerSplitScreen.onclick = () => {
+				const isActive = !window.__vpSplitScreenForced;
+				window.__vpSplitScreenForced = isActive;
+				headerSplitScreen.classList.toggle('header-btn-active', isActive);
+				if (typeof applyViewportProfile === 'function') applyViewportProfile();
+				showToast(isActive ? "🖥️ Split Screen settings active" : "🖥️ Back to normal");
+			};
+		}
 		const headerPlay = document.getElementById('headerplaybtn');
 		if (headerPlay) headerPlay.onclick = () => playDemo();
 		const headerSettingsBtn = document.getElementById('headersettingsbtn');
@@ -8102,10 +7744,6 @@ function initGlobalListeners() {
 			saveState();
 			showToast(`Mode: ${settings.currentMode === CONFIG.MODES.SIMON ? 'Simon Says' : 'Unique'} 🎮`);
 		};
-		const headerReset = document.getElementById('headerresetbtn');
-		if (headerReset) headerReset.onclick = () => { document.querySelector('button[data-action="restore-defaults"]')?.click(); };
-		const headerNuke = document.getElementById('headernukebtn');
-		if (headerNuke) headerNuke.onclick = () => { document.querySelector('button[data-action="nuke-app"]')?.click(); };
 		if (headerTimer) {
 			headerTimer.textContent = "00:00";
 			headerTimer.style.fontSize = "0.75rem";
@@ -8819,40 +8457,17 @@ let viewportConfigState = { configBucket: null, activeTab: 'landscape' };
 // width corresponds to what that bucket actually looks like on this device.
 const VP_BUCKET_RATIO = { landscape: 1.0, split66: 0.66, split50v: 0.5, split50h: 0.5, split33: 0.33 };
 
-// Curated header buttons available at 50%/33% - matches the memory spec:
-// Timer, Counter, Play, Delete, Bigger Buttons, Swap Position, PiP, Touch Gestures
-const VP_CURATED_HEADER_BUTTONS = [
-	{ id: 'timer', label: '⏱️ Timer' },
-	{ id: 'counter', label: '🔢 Counter' },
-	{ id: 'play', label: '▶️ Play' },
-	{ id: 'delete', label: '⌫ Delete' },
-	{ id: 'bigger', label: '🔲 Bigger Buttons' },
-	{ id: 'swap', label: '🔄 Swap Position' },
-	{ id: 'pip', label: '🪟 Picture-in-Picture' },
-	{ id: 'touch', label: '👆 Touch Gestures' }
-];
 
 function vpGetIframeTargetSize(bucket) {
 	const screenW = (window.screen && window.screen.width) ? window.screen.width : window.innerWidth;
 	const screenH = (window.screen && window.screen.height) ? window.screen.height : window.innerHeight;
-	// The device's own landscape dimensions: width is the long edge, height the short edge,
-	// matching what detectViewportBucket() assumes when it says "deviceIsLandscape".
+	// The device's own landscape dimensions: width is the long edge, height the short edge.
 	const fullW = Math.max(screenW, screenH);
 	const fullH = Math.min(screenW, screenH);
+	// Both remaining buckets (landscape, and Split Screen since it's only ever forced
+	// landscape-shaped) are side-by-side panes where the ratio shrinks WIDTH off the long edge,
+	// height staying full short-edge.
 	const ratio = VP_BUCKET_RATIO[bucket] || 1.0;
-	// split50v is the one bucket that's ALWAYS stacked/portrait-shaped, never side-by-side (see
-	// applyViewportProfile() forcing portraitSplitLayout='stacked' unconditionally for it) - every
-	// other ratio-based bucket here (landscape/66/50h/33) is a landscape-shaped, side-by-side pane
-	// where the ratio should shrink WIDTH off the long edge, height staying full short-edge. Using
-	// that same formula for split50v gave it a wide-and-short landscape-shaped iframe (e.g.
-	// 458x412) instead of the tall-and-narrow portrait-shaped one it actually renders as on a real
-	// device (e.g. 412x458) - full device width, HEIGHT cut to the ratio instead of width. Since
-	// the preview iframe's own physical dimensions are what "vh"/"vw" resolve against inside it,
-	// that swapped aspect ratio was silently feeding every height-based calculation (Adjust Input
-	// Area's own height math among them) the wrong basis, on top of just looking visibly wrong.
-	if (bucket === 'split50v') {
-		return { width: fullH, height: Math.round(fullW * ratio) };
-	}
 	return { width: Math.round(fullW * ratio), height: fullH };
 }
 
@@ -8925,7 +8540,7 @@ if (!window.__vpResizeListenerBound) {
 }
 
 function initViewportProfilesUI() {
-	const buckets = ['landscape', 'split66', 'split50v', 'split50h', 'split33'];
+	const buckets = ['landscape', 'split50h'];
 	const tabBtns = {};
 	const panels = {};
 	buckets.forEach(b => {
@@ -8933,19 +8548,6 @@ function initViewportProfilesUI() {
 		panels[b] = document.getElementById('viewport-panel-' + b);
 	});
 	viewportConfigState.activeTab = 'landscape';
-
-	const manualOverrideSelect = document.getElementById('viewport-manual-override-select');
-	if (manualOverrideSelect) {
-		manualOverrideSelect.value = appSettings.manualViewportBucket || '';
-		manualOverrideSelect.onchange = (e) => {
-			appSettings.manualViewportBucket = e.target.value || null;
-			saveState();
-			if (typeof applyViewportProfile === 'function') applyViewportProfile();
-			if (typeof showToast === 'function') {
-				showToast(e.target.value ? '📍 Locked to this size until you change it' : '🔄 Back to Auto-Detect');
-			}
-		};
-	}
 
 	function renderPreview() {
 		const screen = document.getElementById('viewport-preview-screen');
@@ -8955,24 +8557,14 @@ function initViewportProfilesUI() {
 		if (!screen || !headerEl || !seqEl || !inputsEl) return;
 		const bucket = viewportConfigState.activeTab;
 		const profile = (appSettings.viewportProfiles && appSettings.viewportProfiles[bucket]) || { uiScale: 100, seqSize: 100 };
-		// Shape the mockup screen to actually match how this bucket really renders: split50v is
-		// always a stacked, taller-than-wide pane (full width, short height) - drawing it as the
-		// same short/wide rectangle as the side-by-side buckets is exactly what made this preview
-		// look "way off" for that tab. Side-by-side buckets (landscape/66/50h/33) keep the
-		// wide/short shape, sized off the same VP_BUCKET_RATIO used by the real Configure modal
-		// preview instead of a hand-tuned, inconsistent pixel table.
-		const isStackedShape = (bucket === 'split50v');
+		// Both remaining tabs (Landscape, Split Screen) are side-by-side, wide/short panes - sized
+		// off the same VP_BUCKET_RATIO used by the real Configure modal preview.
 		const baseLong = 220, baseShort = 124;
-		if (isStackedShape) {
-			screen.style.width = baseShort + 'px';
-			screen.style.height = baseLong + 'px';
-		} else {
-			const ratio = VP_BUCKET_RATIO[bucket] || 1.0;
-			screen.style.width = Math.max(64, Math.round(baseLong * ratio)) + 'px';
-			screen.style.height = baseShort + 'px';
-		}
+		const ratio = VP_BUCKET_RATIO[bucket] || 1.0;
+		screen.style.width = Math.max(64, Math.round(baseLong * ratio)) + 'px';
+		screen.style.height = baseShort + 'px';
 		headerEl.innerHTML = '';
-		const dotCount = (bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33') ? 8 : 12;
+		const dotCount = (bucket === 'split50h') ? 8 : 12;
 		for (let i = 0; i < dotCount; i++) {
 			const dot = document.createElement('div');
 			dot.style.cssText = 'width:6px;height:6px;border-radius:50%;background:#4b5563;flex-shrink:0;';
@@ -8990,11 +8582,7 @@ function initViewportProfilesUI() {
 		const uiScale = (profile.uiScale || 100) / 100;
 		const btnW = Math.max(8, Math.round(14 * uiScale));
 		const btnH = Math.max(6, Math.round(8 * uiScale));
-		// Alignment now lives only on the real profile (the inline per-tab selects were removed) -
-		// reading it straight from appSettings keeps this preview honest even though there's no
-		// longer a DOM select to check.
-		const isVertical = (bucket === 'split50v' || bucket === 'split50h') && profile.alignment === 'vertical';
-		inputsEl.style.flexDirection = isVertical ? 'column' : 'row';
+		inputsEl.style.flexDirection = 'row';
 		for (let i = 0; i < 6; i++) {
 			const btn = document.createElement('div');
 			btn.style.cssText = `width:${btnW}px;height:${btnH}px;border-radius:2px;background:#1a1a1a;border:1px solid #444;flex-shrink:0;`;
@@ -9131,65 +8719,14 @@ function initViewportProfilesUI() {
 		inputAreaNote.textContent = 'Also draggable live on the divider line itself in the preview above.';
 		settingsDiv.appendChild(inputAreaNote);
 
-		// --- Layout (split50v/split50h only: alignment) ---
-		if (bucket === 'split50v' || bucket === 'split50h') {
-			sectionLabel('Layout');
-			createSelect('Alignment', 'alignment', [
-				{ value: 'horizontal', text: 'Horizontal (Normal)' },
-				{ value: 'vertical', text: 'Vertical' }
-			], 'horizontal', false);
-		}
-
-		// --- Picture-in-Picture (split66/split50v/split50h/split33 only) - fixed behavior, not
-		// configurable: Machine 1 always goes in the popup, Machines 2-4 stay in the regular
-		// sequence area. Nothing to pick here any more, just an explanation. ---
-		if (bucket === 'split66' || bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33') {
+		// --- Picture-in-Picture (Split Screen only) - fixed behavior, not configurable: Machine 1
+		// always goes in the popup, Machines 2-4 stay in the regular sequence area. Nothing to
+		// pick here any more, just an explanation. ---
+		if (bucket === 'split50h') {
 			sectionLabel('Picture-in-Picture');
 			const note = document.createElement('p');
 			note.style.cssText = 'color: #888; font-size: 10px; margin: -2px 0 12px;';
 			note.textContent = "Fixed at this size: Machine 1's sequence shows in the PiP popup, Machines 2-4 stay in the regular sequence area.";
-			settingsDiv.appendChild(note);
-		}
-
-		// --- Header Buttons (split66/split50v/split50h/split33 only - curated set) ---
-		if (bucket === 'split66' || bucket === 'split50v' || bucket === 'split50h' || bucket === 'split33') {
-			sectionLabel('Header Buttons');
-			const note = document.createElement('p');
-			note.style.cssText = 'color: #888; font-size: 10px; margin: -2px 0 8px;';
-			note.textContent = 'Only these buttons can show at this width. Still gated by each button\'s own General toggle.';
-			settingsDiv.appendChild(note);
-			const currentSelected = profile.headerButtons || [];
-			VP_CURATED_HEADER_BUTTONS.forEach(btnDef => {
-				const row = document.createElement('label');
-				row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 8px; margin-bottom: 4px; background: #222; border-radius: 4px; cursor: pointer;';
-				const span = document.createElement('span');
-				span.style.cssText = 'color: #ddd; font-size: 11px;';
-				span.textContent = btnDef.label;
-				const checkbox = document.createElement('input');
-				checkbox.type = 'checkbox';
-				checkbox.checked = currentSelected.includes(btnDef.id);
-				checkbox.style.cssText = 'width: 16px; height: 16px; cursor: pointer;';
-				checkbox.onchange = (e) => {
-					let list = (profile.headerButtons || []).slice();
-					if (e.target.checked) {
-						if (!list.includes(btnDef.id)) list.push(btnDef.id);
-					} else {
-						list = list.filter(id => id !== btnDef.id);
-					}
-					profile.headerButtons = list;
-					commit();
-				};
-				row.appendChild(span);
-				row.appendChild(checkbox);
-				settingsDiv.appendChild(row);
-			});
-		}
-
-		// --- Infinite scroll reminder (split33 only) ---
-		if (bucket === 'split33') {
-			const note = document.createElement('p');
-			note.style.cssText = 'color: #888; font-size: 10px; margin: 10px 0 0;';
-			note.textContent = 'Turn on Infinite Header Scroll (General tab) so scrolling through header buttons works at this width.';
 			settingsDiv.appendChild(note);
 		}
 	}
@@ -9198,7 +8735,7 @@ function initViewportProfilesUI() {
 		viewportConfigState.configBucket = bucket;
 		const titleEl = document.getElementById('viewport-config-title');
 		if (titleEl) {
-			const bucketLabels = { landscape: 'Landscape', split66: '66%', split50v: '50% ↕', split50h: '50% ↔', split33: '33%' };
+			const bucketLabels = { landscape: 'Landscape', split50h: 'Split Screen' };
 			titleEl.textContent = 'Configure ' + (bucketLabels[bucket] || bucket);
 		}
 		renderConfigSettings();
@@ -9237,17 +8774,16 @@ function initViewportProfilesUI() {
 }
 
 // --- (Historical note: there used to be a separate compact "mini" modal for split50v/split33 -
-// it was removed in favor of routing straight to the accordion tab for the current bucket.)
+// it was removed in favor of routing straight to the accordion tab for the current bucket, back
+// when there were still five buckets to route between.)
 
 function openOrientationSettings() {
 	const bucket = document.body.dataset.viewportBucket;
 	if (modules.settings) modules.settings.openSettings();
-	// Every bucket (landscape, 66, 50, 33) gets the same treatment now: open regular Settings,
-	// jump straight to the Landscape and Split Screen accordion on the UI tab, and select
-	// the tab matching wherever you actually are - no separate special modal, no first-time
-	// popup. The accordion/tab UI itself is still exactly how you'd manually reach and adjust
-	// these settings; this just saves the navigation when you're already in that orientation.
-	if (bucket !== 'landscape' && bucket !== 'split66' && bucket !== 'split50v' && bucket !== 'split50h' && bucket !== 'split33') return;
+	// Landscape and Split Screen both get the same treatment: open regular Settings, jump
+	// straight to the Landscape and Split Screen accordion on the UI tab, and select the tab
+	// matching wherever you actually are - no separate special modal, no first-time popup.
+	if (bucket !== 'landscape' && bucket !== 'split50h') return;
 	setTimeout(() => {
 		const uiTabBtn = document.querySelector('[data-tab="ui"]');
 		if (uiTabBtn) uiTabBtn.click();

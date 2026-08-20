@@ -688,7 +688,7 @@ const DEFAULT_APP = {
 		split66: { uiScale: 100, seqSize: 180, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: false, inputAreaPct: 50, headerPadding: 0, inputsPadding: 0, headerButtons: [] },
 		split50v: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', inputAreaEnabled: true, inputAreaPct: 80, headerPadding: 0, inputsPadding: 0, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] }, // Executed: flex-direction fixed
 		split50h: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', alignment: 'horizontal', inputAreaEnabled: false, inputAreaPct: 50, headerPadding: 0, inputsPadding: 0, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] },
-		split33: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: true, inputAreaPct: 20, headerPadding: 0, inputsPadding: 0, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] } // Executed: custom piano sizing metrics mapped
+		split33: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: true, inputAreaPct: 50, headerPadding: 0, inputsPadding: 0, headerButtons: ['timer', 'counter', 'play', 'delete', 'bigger', 'swap', 'pip', 'touch'] } // Executed: custom piano sizing metrics mapped
 	},
 	pipMachineIndex: null,
 	ecoModeConfig: {
@@ -5524,6 +5524,16 @@ function loadState() {
 				// own number, leave it alone.
 				if (appSettings.viewportProfiles.split33 && appSettings.viewportProfiles.split33.inputAreaPct === 65) {
 					appSettings.viewportProfiles.split33.inputAreaPct = 20;
+				}
+				// ...and then from 20% to 50% - confirmed against real-device testing (forcing the
+				// bucket to read as split50h, whose own default falls back to a 50%-of-viewport
+				// width, produced the actually-desired result with Bigger Buttons). 20% was real
+				// data too (it fixed a genuinely illegible 65%-wide 3-column grid at the time), but
+				// 50% is what's now confirmed to look right, especially now that the number/button
+				// grid is circular by default and benefits from the extra room. Same rule: only
+				// nudge it forward for someone still on that specific old default.
+				if (appSettings.viewportProfiles.split33 && appSettings.viewportProfiles.split33.inputAreaPct === 20) {
+					appSettings.viewportProfiles.split33.inputAreaPct = 50;
 				}
 			}
 			const pruneOrphaned = (obj, schema) => {

@@ -5865,6 +5865,55 @@ window.grantAllPermissions = async function() {
 // split-ratio bucket you're in, whether this is a sideways split (wide short window) or an
 // upright split (narrow tall window, from holding the phone normally). The same bucket name
 // (e.g. split50) can happen in either window shape, and the two need different layouts.
+// window.screen.width/height are supposed to be the device's fixed physical dimensions, but on
+// real Android WebViews they aren't always trustworthy WHILE the window is actually split -
+// some manufacturers/browsers report something other than the true full-device size once a
+// multi-window split is active, instead of the one constant value they're supposed to always
+// report. Since every ratio below is computed AGAINST that value, an unreliable reading during
+// split-screen silently inflates every real split ratio by the same proportion - which is
+// exactly what turns a genuine 33% split into a detected 66%, a genuine 50% into a detected
+// 66%, and a genuine 66% into detected full-landscape: each real bucket reads as the next band
+// up, cascading everyone else's Configure Viewport settings onto the wrong actual pane.
+//
+// The fix doesn't try to correct the live reading - it stops depending on it being live at all.
+// Whenever the window's own inner dimensions currently MATCH what window.screen reports (which
+// can only genuinely happen when the app isn't split - a split window is, by definition,
+// smaller than the full screen along at least one axis), that's a self-verifying moment: the
+// value is confirmed correct AT THAT INSTANT, so it gets cached. Every ratio calculation below
+// then prefers that cached, once-confirmed value over whatever window.screen says live, since a
+// value confirmed correct 30 seconds ago while full-screen is far more trustworthy than a live
+// reading taken while something is actively making it unreliable. The cache also persists across
+// reloads, so a reload while already mid-split still has a good baseline to check against.
+const VP_CONFIRMED_DIMS_KEY = 'fm_confirmed_screen_dims';
+function vpMaybeUpdateConfirmedScreenDims() {
+	if (!window.screen || !window.screen.width || !window.screen.height) return;
+	const sw = window.screen.width, sh = window.screen.height;
+	const iw = window.innerWidth, ih = window.innerHeight;
+	// Tolerant match (a few px slack for scrollbars/rounding) in either orientation.
+	const closeEnough = (a, b) => Math.abs(a - b) <= Math.max(8, a * 0.02);
+	const matchesUnrotated = closeEnough(iw, sw) && closeEnough(ih, sh);
+	const matchesRotated = closeEnough(iw, sh) && closeEnough(ih, sw);
+	if (matchesUnrotated || matchesRotated) {
+		try {
+			localStorage.setItem(VP_CONFIRMED_DIMS_KEY, JSON.stringify({ width: sw, height: sh }));
+		} catch (e) { /* storage unavailable - just skip caching, live value still used as fallback */ }
+	}
+}
+function vpGetConfirmedScreenDims() {
+	try {
+		const raw = localStorage.getItem(VP_CONFIRMED_DIMS_KEY);
+		if (raw) {
+			const parsed = JSON.parse(raw);
+			if (parsed && parsed.width && parsed.height) return parsed;
+		}
+	} catch (e) { /* fall through to live reading */ }
+	if (window.screen && window.screen.width && window.screen.height) {
+		return { width: window.screen.width, height: window.screen.height };
+	}
+	return { width: window.innerWidth, height: window.innerHeight };
+}
+window.vpMaybeUpdateConfirmedScreenDims = vpMaybeUpdateConfirmedScreenDims;
+window.vpGetConfirmedScreenDims = vpGetConfirmedScreenDims;
 function isWindowLandscapeShaped() {
 	if (window.__vpPreviewForceBucket) {
 		// Preview mode always simulates a sideways split, matching how the configure modal's
@@ -5872,6 +5921,7 @@ function isWindowLandscapeShaped() {
 		// preview mode built yet.
 		return window.__vpPreviewForceBucket !== 'portrait';
 	}
+	vpMaybeUpdateConfirmedScreenDims();
 	// window.screen.width/height describe the device's fixed PHYSICAL shape - they're correct
 	// for detecting genuine device ROTATION, but they never change during split-screen (the
 	// device doesn't physically rotate just because the window got narrower). Using them here
@@ -5885,8 +5935,9 @@ function isWindowLandscapeShaped() {
 	// width shrinks; in an upright split, it's the reverse. Comparing each axis against the
 	// device's short edge and taking whichever is CLOSER to matching tells you which axis is
 	// unconstrained - the split is happening on the other one.
-	if (window.screen && window.screen.width && window.screen.height) {
-		const shortEdge = Math.min(window.screen.width, window.screen.height);
+	const dims = vpGetConfirmedScreenDims();
+	if (dims.width && dims.height) {
+		const shortEdge = Math.min(dims.width, dims.height);
 		const widthDeficit = Math.abs(window.innerWidth - shortEdge);
 		const heightDeficit = Math.abs(window.innerHeight - shortEdge);
 		// If width is the one close to matching the short edge, width is unconstrained -> the
@@ -5915,8 +5966,10 @@ function detectViewportBucket() {
 	// never be detected at all in that orientation, regardless of what ratio the split was
 	// genuinely at.
 	const windowIsLandscape = isWindowLandscapeShaped();
-	const screenW = (window.screen && window.screen.width) ? window.screen.width : window.innerWidth;
-	const screenH = (window.screen && window.screen.height) ? window.screen.height : window.innerHeight;
+	vpMaybeUpdateConfirmedScreenDims();
+	const confirmedDims = vpGetConfirmedScreenDims();
+	const screenW = confirmedDims.width || window.innerWidth;
+	const screenH = confirmedDims.height || window.innerHeight;
 	// The device's full screen dimension along whichever axis the current window is actually
 	// splitting - i.e. if the window is landscape-shaped, compare its width against the
 	// device's own long edge; if portrait-shaped, compare its height against the device's own
@@ -5949,7 +6002,8 @@ function renderViewportDiagnostic() {
 	const screenH = window.screen ? window.screen.height : 'n/a';
 	const innerW = window.innerWidth;
 	const innerH = window.innerHeight;
-	const shortEdge = (window.screen && window.screen.width && window.screen.height) ? Math.min(window.screen.width, window.screen.height) : 'n/a';
+	const confirmedDims = (typeof vpGetConfirmedScreenDims === 'function') ? vpGetConfirmedScreenDims() : null;
+	const shortEdge = confirmedDims ? Math.min(confirmedDims.width, confirmedDims.height) : 'n/a';
 	const widthDeficit = (shortEdge !== 'n/a') ? Math.abs(innerW - shortEdge) : 'n/a';
 	const heightDeficit = (shortEdge !== 'n/a') ? Math.abs(innerH - shortEdge) : 'n/a';
 	const windowIsLandscape = isWindowLandscapeShaped();
@@ -5959,12 +6013,18 @@ function renderViewportDiagnostic() {
 	panel.textContent =
 		`app.js build: ${window.__fmBuildMarker || '(unknown - likely a very old cached version)'}\n` +
 		`\n` +
-		`window.screen.width:  ${screenW}\n` +
-		`window.screen.height: ${screenH}\n` +
+		`window.screen.width (LIVE):  ${screenW}\n` +
+		`window.screen.height (LIVE): ${screenH}\n` +
+		`confirmed width (CACHED, used for detection): ${confirmedDims ? confirmedDims.width : 'n/a'}\n` +
+		`confirmed height (CACHED, used for detection): ${confirmedDims ? confirmedDims.height : 'n/a'}\n` +
 		`window.innerWidth:    ${innerW}\n` +
 		`window.innerHeight:   ${innerH}\n` +
 		`\n` +
-		`short edge (min of screen w/h): ${shortEdge}\n` +
+		`If the two LIVE screen values above differ from the two CONFIRMED values, this device's\n` +
+		`window.screen is unreliable while split - detection now uses the confirmed pair instead,\n` +
+		`last captured the most recent time the app was genuinely full-screen.\n` +
+		`\n` +
+		`short edge (min of confirmed w/h): ${shortEdge}\n` +
 		`width deficit from short edge:  ${widthDeficit}\n` +
 		`height deficit from short edge: ${heightDeficit}\n` +
 		`\n` +
@@ -9109,6 +9169,11 @@ window.performForceRefresh = performForceRefresh;
 const startApp = async () => {
 	loadState();
 	window.appSettings = appSettings;
+	// Seed the confirmed-screen-dims cache as early as possible - app launch is virtually always
+	// a genuine full-screen moment (before any split-screen interaction), so this gives
+	// detectViewportBucket() a trustworthy baseline from the very first frame instead of waiting
+	// for the first resize event to establish one.
+	if (typeof vpMaybeUpdateConfirmedScreenDims === 'function') vpMaybeUpdateConfirmedScreenDims();
 	if (new URLSearchParams(window.location.search).has('nuke')) {
 		history.replaceState(null, '', window.location.pathname);
 		if (confirm('☢️ NUKE APP? This will wipe all saved data (settings, sequences, comments), clear browser caches, unregister Service Workers, and force a fresh update from the server. This is the same as the in-app Nuke button, just reachable even if the app won\'t load. Continue?')) {

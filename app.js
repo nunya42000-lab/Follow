@@ -119,7 +119,7 @@ const HAND_GESTURE_GROUPS = [
 			{ id: "403", name: "🤏 Snatch (Open → Pinch)" },
 			{ id: "404", name: "☝️ Point Out (Fist → 1 Finger)" }
 		]
-	},]
+	},];
 const TRANSITION_GESTURES = {
 	'0->62':   { id: 400, label: '🗑️ Throw (Fist → Open)' },
 	'62->0':   { id: 401, label: '✊ Grab (Open → Fist)' },

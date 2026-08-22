@@ -3365,6 +3365,29 @@ class SettingsManager {
 		};
 		bind(this.dom.input, 'currentInput', false);
 		bind(this.dom.machines, 'machineCount', false, true);
+		// bind() alone doesn't call renderUI() for machineCount (unlike currentInput, which it
+		// special-cases), and doesn't touch Row Max - both needed here for the same reason the
+		// header ➕ button needs them: once more than one machine is on screen, Row Max fights
+		// the multi-machine grid's own column/row sizing instead of the single-machine case it
+		// was actually designed for. Layered on top of bind()'s own onchange rather than folded
+		// into bind() itself, since bind() is shared by many unrelated settings.
+		if (this.dom.machines) {
+			const existingOnchange = this.dom.machines.onchange;
+			this.dom.machines.onchange = (e) => {
+				if (existingOnchange) existingOnchange(e);
+				const newCount = parseInt(e.target.value);
+				if (newCount > 1) {
+					const vpForRowMax = getViewportProfile();
+					if (vpForRowMax) {
+						vpForRowMax.rowMax = 'none';
+					} else {
+						this.appSettings.appRowMax = 'none';
+					}
+					if (this.dom.rowMax) this.dom.rowMax.value = 'none';
+				}
+				renderUI();
+			};
+		}
 		bind(this.dom.seqLength, 'sequenceLength', false, true);
 		bind(this.dom.autoClear, 'isUniqueRoundsAutoClearEnabled', false);
 		bind(this.dom.timerToggle, 'showTimer', true);
@@ -4221,6 +4244,19 @@ class SettingsManager {
 							const total = headerHeight + targetGapPx + userExtra - appPaddingTop;
 							seq.style.paddingTop = Math.max(0, total) + 'px';
 						}
+						// The multi-machine grid's row heights are computed synchronously
+						// inside renderUI(), which runs BEFORE this padding-top correction
+						// lands (it's two requestAnimationFrame callbacks deep, specifically
+						// so the header's real height can be measured reliably once it's
+						// settled). If renderUI() ran while the container's effective height
+						// was still mid-transition - e.g. right as Split Screen toggles on
+						// and the header's actual rendered height changes - the grid could
+						// have measured and laid out against a stale height, leaving rows
+						// uneven even though the container itself is correct by the time
+						// anything reads it afterward. Re-running just the grid sizing (not
+						// a full re-render, which would pointlessly recreate every card)
+						// once the padding genuinely settles closes that race.
+						if (typeof window.reapplyMachineGridSizing === 'function') window.reapplyMachineGridSizing();
 				});
 		});
 	}
@@ -6598,6 +6634,72 @@ function applyPositionSwapOffsets(isActive) {
 	}
 	if (window.modules && window.modules.settings) window.modules.settings.updateSequenceContainerOffset();
 }
+// The right grid shape for N machines depends on the actual available space's real shape, not
+// which named bucket we're in - the same "split50h" bucket can be a wide, short pane (landscape
+// device, ~50/50 split) or an extremely tall, narrow one (portrait device, small split), and a
+// single fixed column cap looks wrong in one of those two cases no matter which cap you pick.
+// This measures the container's actual current width/height and picks whichever rows x cols
+// arrangement gives the closest to square cells - narrow tall spaces naturally end up stacked in
+// a single column, wide short spaces naturally spread out horizontally, and it adapts
+// automatically to whatever ratio a real device/split actually produces instead of guessing from
+// a bucket name. Returns the chosen column count (renderUI needs it to lay out the cards).
+function applyMachineGridSizing(container, n) {
+	let gridCols;
+	if (n <= 1) {
+		gridCols = 1;
+	} else {
+		// #sequence-container's own width is capped by --row-max-width (see styles.css) -
+		// exactly the same trap that caused Auto Fit's original "container measuring its own
+		// artifact" bug earlier: that cap reflects how wide a single machine's row of number
+		// cards is allowed to grow, which has nothing to do with how much real horizontal
+		// space is actually available for arranging multiple machines side by side. Measuring
+		// #app's content box (its own width minus its own padding) instead gives the real,
+		// uncapped available space, the same fix Auto Fit already needed.
+		const appElForGrid = document.getElementById('app');
+		const containerRectForGrid = container.getBoundingClientRect();
+		let gridWidth = containerRectForGrid.width || 1;
+		if (appElForGrid) {
+			const appCSForGrid = getComputedStyle(appElForGrid);
+			gridWidth = appElForGrid.clientWidth
+				- (parseFloat(appCSForGrid.paddingLeft) || 0)
+				- (parseFloat(appCSForGrid.paddingRight) || 0);
+		}
+		const containerRatio = (gridWidth || 1) / (containerRectForGrid.height || 1);
+		let bestCols = 1;
+		let bestScore = Infinity;
+		for (let cols = 1; cols <= n; cols++) {
+			const rows = Math.ceil(n / cols);
+			// Skip arrangements whose last row would be entirely empty (e.g. 3 machines as
+			// 4 cols x 1 row when 3 cols x 1 row already fits with no gap) - never worth an
+			// extra unused column.
+			if ((rows - 1) * cols >= n) continue;
+			const cellRatio = (containerRatio / cols) / (1 / rows);
+			const score = Math.abs(cellRatio - 1.0);
+			if (score < bestScore) { bestScore = score; bestCols = cols; }
+		}
+		gridCols = bestCols;
+	}
+	container.className = `flex-grow grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
+	container.style.gridAutoRows = '1fr';
+	container.style.minHeight = '0';
+	return gridCols;
+}
+// Re-runs just the sizing (column count + grid-auto-rows), not a full renderUI(), specifically
+// for updateSequenceContainerOffset() to call once its own delayed header-padding correction
+// actually lands - closing the race where renderUI() (and this same sizing logic) could have
+// run one frame before the container's real height settled, leaving grid rows uneven even
+// though nothing about the sizing math itself was wrong.
+function reapplyMachineGridSizing() {
+	const container = document.getElementById('sequence-container');
+	if (!container || !container.children.length) return;
+	// currentMode isn't available in this scope the way renderUI's local `settings` is, but
+	// Unique Rounds mode only ever renders a single child anyway, so re-deriving "how many
+	// machines are actually on screen" from the real DOM (rather than re-reading settings) is
+	// both simpler and exactly correct for every mode, including the PiP-excludes-a-machine
+	// case, without needing to duplicate renderUI's own activeIndices/pipRestricted logic here.
+	applyMachineGridSizing(container, container.children.length);
+}
+window.reapplyMachineGridSizing = reapplyMachineGridSizing;
 function renderUI() {
 	const container = document.getElementById('sequence-container');
 	if (!container) return;
@@ -6708,54 +6810,12 @@ function renderUI() {
 		header.innerHTML = `Unique Mode: <span class=\"text-primary-app\">Round ${roundNum}</span>`;
 		container.appendChild(header);
 	}
-	// The right grid shape for N machines depends on the actual available space's real shape,
-	// not which named bucket we're in - the same "split50h" bucket can be a wide, short pane
-	// (landscape device, ~50/50 split) or an extremely tall, narrow one (portrait device, small
-	// split), and a single fixed column cap looks wrong in one of those two cases no matter
-	// which cap you pick. This measures the container's actual current width/height and picks
-	// whichever rows x cols arrangement gives the closest to square cells - narrow tall spaces
-	// naturally end up stacked in a single column, wide short spaces naturally spread out
-	// horizontally, and it adapts automatically to whatever ratio a real device/split actually
-	// produces instead of guessing from a bucket name.
-	let gridCols;
-	if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
-		gridCols = 1;
-	} else {
-		const n = Math.max(1, activeSeqs.length);
-		// #sequence-container's own width is capped by --row-max-width (see styles.css) -
-		// exactly the same trap that caused Auto Fit's original "container measuring its own
-		// artifact" bug earlier: that cap reflects how wide a single machine's row of number
-		// cards is allowed to grow, which has nothing to do with how much real horizontal
-		// space is actually available for arranging multiple machines side by side. Measuring
-		// #app's content box (its own width minus its own padding) instead gives the real,
-		// uncapped available space, the same fix Auto Fit already needed.
-		const appElForGrid = document.getElementById('app');
-		const containerRectForGrid = container.getBoundingClientRect();
-		let gridWidth = containerRectForGrid.width || 1;
-		if (appElForGrid) {
-			const appCSForGrid = getComputedStyle(appElForGrid);
-			gridWidth = appElForGrid.clientWidth
-				- (parseFloat(appCSForGrid.paddingLeft) || 0)
-				- (parseFloat(appCSForGrid.paddingRight) || 0);
-		}
-		const containerRatio = (gridWidth || 1) / (containerRectForGrid.height || 1);
-		let bestCols = 1;
-		let bestScore = Infinity;
-		for (let cols = 1; cols <= n; cols++) {
-			const rows = Math.ceil(n / cols);
-			// Skip arrangements whose last row would be entirely empty (e.g. 3 machines as
-			// 4 cols x 1 row when 3 cols x 1 row already fits with no gap) - never worth an
-			// extra unused column.
-			if ((rows - 1) * cols >= n) continue;
-			const cellRatio = (containerRatio / cols) / (1 / rows);
-			const score = Math.abs(cellRatio - 1.0);
-			if (score < bestScore) { bestScore = score; bestCols = cols; }
-		}
-		gridCols = bestCols;
-	}
-	container.className = `flex-grow grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
-	container.style.gridAutoRows = '1fr';
-	container.style.minHeight = '0';
+	// The right grid shape for N machines depends on the actual available space's real shape -
+	// see applyMachineGridSizing() below for the full reasoning. Kept as a separate function
+	// (not inlined here) specifically so updateSequenceContainerOffset() can re-run just this
+	// part after its own delayed header-padding correction settles, without needing a full
+	// renderUI() (which would pointlessly recreate every card).
+	const gridCols = applyMachineGridSizing(container, settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? 1 : activeSeqs.length);
 	activeSeqs.forEach((seq, arrIdx) => {
 			const idx = activeIndices[arrIdx];
 			const card = document.createElement('div');
@@ -7812,6 +7872,23 @@ function initGlobalListeners() {
 			const settings = getProfileSettings();
 			if (settings.machineCount >= CONFIG.MAX_MACHINES) { showToast(`Max ${CONFIG.MAX_MACHINES} machines 🛑`); return; }
 			settings.machineCount++;
+			// Row Max caps how many cards fit on one row PER MACHINE'S OWN sequence - once
+			// there's more than one machine on screen, the grid's own column/row layout
+			// (applyMachineGridSizing) is already deciding how space gets split, and a
+			// leftover Row Max fights that by also trying to wrap each individual machine's
+			// numbers early, often producing exactly the cramped, uneven-looking layouts
+			// this whole multi-machine feature was built to avoid. Turning it off (in
+			// whichever context is actually active - the live viewport profile in
+			// landscape/split, portrait's own setting otherwise) hands full control to the
+			// grid sizing instead.
+			const vpForRowMax = getViewportProfile();
+			if (vpForRowMax) {
+				vpForRowMax.rowMax = 'none';
+			} else {
+				appSettings.appRowMax = 'none';
+			}
+			const rowMaxSel = document.getElementById('row-max-select');
+			if (rowMaxSel) rowMaxSel.value = 'none';
 			const sel = document.getElementById('machines-select');
 			if (sel) sel.value = settings.machineCount;
 			renderUI();

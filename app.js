@@ -6708,13 +6708,51 @@ function renderUI() {
 		header.innerHTML = `Unique Mode: <span class=\"text-primary-app\">Round ${roundNum}</span>`;
 		container.appendChild(header);
 	}
-	// Narrow side-by-side panes (Split Screen) get at most 2 machine columns instead of up to 4 -
-	// a rigid 4-across grid squeezed into an already-narrow pane is what made multi-machine games
-	// there effectively unusable regardless of how much the touch-gesture pad freed up.
-	const bucketForGrid = document.body.dataset.viewportBucket;
-	const narrowBucket = bucketForGrid === 'split50h';
-	const maxCols = narrowBucket ? 2 : 4;
-	let gridCols = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? 1 : Math.max(1, Math.min(activeSeqs.length, maxCols));
+	// The right grid shape for N machines depends on the actual available space's real shape,
+	// not which named bucket we're in - the same "split50h" bucket can be a wide, short pane
+	// (landscape device, ~50/50 split) or an extremely tall, narrow one (portrait device, small
+	// split), and a single fixed column cap looks wrong in one of those two cases no matter
+	// which cap you pick. This measures the container's actual current width/height and picks
+	// whichever rows x cols arrangement gives the closest to square cells - narrow tall spaces
+	// naturally end up stacked in a single column, wide short spaces naturally spread out
+	// horizontally, and it adapts automatically to whatever ratio a real device/split actually
+	// produces instead of guessing from a bucket name.
+	let gridCols;
+	if (settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS) {
+		gridCols = 1;
+	} else {
+		const n = Math.max(1, activeSeqs.length);
+		// #sequence-container's own width is capped by --row-max-width (see styles.css) -
+		// exactly the same trap that caused Auto Fit's original "container measuring its own
+		// artifact" bug earlier: that cap reflects how wide a single machine's row of number
+		// cards is allowed to grow, which has nothing to do with how much real horizontal
+		// space is actually available for arranging multiple machines side by side. Measuring
+		// #app's content box (its own width minus its own padding) instead gives the real,
+		// uncapped available space, the same fix Auto Fit already needed.
+		const appElForGrid = document.getElementById('app');
+		const containerRectForGrid = container.getBoundingClientRect();
+		let gridWidth = containerRectForGrid.width || 1;
+		if (appElForGrid) {
+			const appCSForGrid = getComputedStyle(appElForGrid);
+			gridWidth = appElForGrid.clientWidth
+				- (parseFloat(appCSForGrid.paddingLeft) || 0)
+				- (parseFloat(appCSForGrid.paddingRight) || 0);
+		}
+		const containerRatio = (gridWidth || 1) / (containerRectForGrid.height || 1);
+		let bestCols = 1;
+		let bestScore = Infinity;
+		for (let cols = 1; cols <= n; cols++) {
+			const rows = Math.ceil(n / cols);
+			// Skip arrangements whose last row would be entirely empty (e.g. 3 machines as
+			// 4 cols x 1 row when 3 cols x 1 row already fits with no gap) - never worth an
+			// extra unused column.
+			if ((rows - 1) * cols >= n) continue;
+			const cellRatio = (containerRatio / cols) / (1 / rows);
+			const score = Math.abs(cellRatio - 1.0);
+			if (score < bestScore) { bestScore = score; bestCols = cols; }
+		}
+		gridCols = bestCols;
+	}
 	container.className = `flex-grow grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
 	container.style.gridAutoRows = '1fr';
 	container.style.minHeight = '0';
@@ -6724,12 +6762,19 @@ function renderUI() {
 			card.className = "p-4 rounded-xl shadow-md transition-all duration-200 min-h-[100px] bg-[var(--card-bg)] relative group";
 			if (settings.machineCount > 1) {
 				const headerRow = document.createElement('div');
-				headerRow.className = "flex justify-between items-center mb-2 pb-2 border-b border-custom border-opacity-20";
+				// flex-wrap plus min-width:0 on the title (below) is what actually fixes this -
+				// justify-between alone has no fallback when title+controls genuinely don't fit
+				// side by side (narrow cards, 4-column layouts): both elements were rendering at
+				// their natural width regardless of the card's real width, silently overflowing
+				// past the card's right edge into whatever sat next to it. Wrapping lets controls
+				// drop to their own line instead of forcing an overlap that has nowhere to go.
+				headerRow.className = "flex flex-wrap justify-between items-center gap-x-1 mb-2 pb-2 border-b border-custom border-opacity-20";
 				const title = document.createElement('span');
-				title.className = "text-[10px] font-bold uppercase text-muted-custom tracking-wider";
+				title.className = "text-[10px] font-bold uppercase text-muted-custom tracking-wider truncate";
+				title.style.minWidth = '0';
 				title.textContent = settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? "SEQUENCE" : `MACHINE ${idx + 1}`;
 				const controls = document.createElement('div');
-				controls.className = "flex space-x-3 opacity-60 hover:opacity-100 transition-opacity";
+				controls.className = "flex space-x-1 opacity-60 hover:opacity-100 transition-opacity shrink-0";
 				const btnBack = document.createElement('button');
 				btnBack.innerHTML = "⌫";
 				btnBack.className = "hover:text-red-400 text-sm font-bold";

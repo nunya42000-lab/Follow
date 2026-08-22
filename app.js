@@ -119,7 +119,7 @@ const HAND_GESTURE_GROUPS = [
 			{ id: "403", name: "🤏 Snatch (Open → Pinch)" },
 			{ id: "404", name: "☝️ Point Out (Fist → 1 Finger)" }
 		]
-	},];
+	},]
 const TRANSITION_GESTURES = {
 	'0->62':   { id: 400, label: '🗑️ Throw (Fist → Open)' },
 	'62->0':   { id: 401, label: '✊ Grab (Open → Fist)' },
@@ -9081,16 +9081,33 @@ window.openOrientationSettings = openOrientationSettings;
 // re-ran a SEPARATE, correct copy of this same logic - which required confirming a second,
 // easy-to-miss dialog after the page had already reloaded. Missing that second prompt meant
 // nothing actually got cleaned up, which is the likely reason this needed repeated attempts.
+function withTimeout(promise, ms, label) {
+	return Promise.race([
+		promise,
+		new Promise((resolve) => setTimeout(() => {
+			console.warn(`Nuke - ${label} timed out after ${ms}ms, continuing anyway`);
+			resolve();
+		}, ms))
+	]);
+}
 async function performNuke() {
+	// Every step below is individually try/caught, which protects against a call that
+	// throws or rejects - but it does NOT protect against a call that simply never
+	// resolves at all (a true hang, not an error). That's a real, known failure mode for
+	// service worker APIs on some Android WebView/WebAPK builds, especially since Nuke's
+	// whole purpose is recovering from an app that's already in a broken state - exactly
+	// when a flaky, hung service worker is most likely. Wrapping each step in a timeout
+	// guarantees performNuke() always eventually resolves, so the button can never get
+	// stuck on the hourglass forever even if a browser API genuinely never responds.
 	try {
-		const regs = await navigator.serviceWorker.getRegistrations();
-		await Promise.all(regs.map(r => r.unregister()));
+		const regs = await withTimeout(navigator.serviceWorker.getRegistrations(), 3000, 'service worker getRegistrations');
+		if (regs) await withTimeout(Promise.all(regs.map(r => r.unregister())), 3000, 'service worker unregister');
 	} catch (e) {
 		console.warn('Nuke - service worker unregister failed:', e);
 	}
 	try {
-		const names = await caches.keys();
-		await Promise.all(names.map(n => caches.delete(n)));
+		const names = await withTimeout(caches.keys(), 3000, 'caches.keys');
+		if (names) await withTimeout(Promise.all(names.map(n => caches.delete(n))), 3000, 'caches.delete');
 	} catch (e) {
 		console.warn('Nuke - cache clear failed:', e);
 	}
@@ -9100,14 +9117,14 @@ async function performNuke() {
 			// than guessing specific names - this app doesn't open any IndexedDB database
 			// itself today, but a hardcoded guess-list would silently miss anything a future
 			// feature (or a browser/PWA implementation detail) creates.
-			const dbs = await indexedDB.databases();
-			await Promise.all(dbs.map(db => new Promise((resolve) => {
+			const dbs = await withTimeout(indexedDB.databases(), 3000, 'indexedDB.databases');
+			if (dbs) await withTimeout(Promise.all(dbs.map(db => new Promise((resolve) => {
 				if (!db.name) { resolve(); return; }
 				const req = indexedDB.deleteDatabase(db.name);
 				req.onsuccess = () => resolve();
 				req.onerror = () => resolve();
 				req.onblocked = () => resolve();
-			})));
+			}))), 3000, 'indexedDB delete');
 		}
 	} catch (e) {
 		console.warn('Nuke - IndexedDB clear failed:', e);
@@ -9137,14 +9154,14 @@ window.performNuke = performNuke;
 // actually finished, so on a slower device the reload could beat the real cleanup to the punch.
 async function performForceRefresh() {
 	try {
-		const regs = await navigator.serviceWorker.getRegistrations();
-		await Promise.all(regs.map(r => r.unregister()));
+		const regs = await withTimeout(navigator.serviceWorker.getRegistrations(), 3000, 'refresh service worker getRegistrations');
+		if (regs) await withTimeout(Promise.all(regs.map(r => r.unregister())), 3000, 'refresh service worker unregister');
 	} catch (e) {
 		console.warn('Refresh - service worker unregister failed:', e);
 	}
 	try {
-		const names = await caches.keys();
-		await Promise.all(names.map(n => caches.delete(n)));
+		const names = await withTimeout(caches.keys(), 3000, 'refresh caches.keys');
+		if (names) await withTimeout(Promise.all(names.map(n => caches.delete(n))), 3000, 'refresh caches.delete');
 	} catch (e) {
 		console.warn('Refresh - cache clear failed:', e);
 	}

@@ -76,21 +76,21 @@ alert("Promise Error: " + event.reason);
 </header>
 <div id="game-setup-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
 <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
-<div class="flex items-center justify-between border-b border-custom pb-3 mb-4 relative">
+<div class="flex items-center justify-center gap-2 flex-wrap border-b border-custom pb-3 mb-4 relative">
 <div class="flex items-center gap-2">
 <span class="text-xs font-bold text-muted-custom uppercase tracking-wide">UI</span>
 <button id="quick-resize-down" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">-</button>
 <button id="quick-resize-up" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">+</button>
 </div>
-<select id="welcome-target-bucket-select" class="settings-input text-xs font-semibold px-2 py-2 rounded border border-custom" title="Which layout the +/- buttons above adjust">
-<option value="portrait">Portrait</option>
-<option value="landscape">Landscape</option>
-<option value="split50h">Split Screen</option>
+<select id="welcome-target-mode-select" class="settings-input text-xs font-semibold px-2 py-2 rounded border border-custom" title="What the +/- buttons on the right adjust">
+<option value="sequence">Sequence</option>
+<option value="buttons">Buttons</option>
+<option value="header">Header</option>
 </select>
+<button id="welcome-autofit-btn" class="px-2 py-2 rounded-lg text-xs font-bold bg-indigo-700 hover:bg-indigo-600 text-white transition shadow border border-indigo-500 whitespace-nowrap" title="Automatically scale the sequence cards to fit exactly Row Max per row">Auto-Fit</button>
 <div class="flex items-center gap-2">
 <button id="quick-cardsize-down" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">-</button>
 <button id="quick-cardsize-up" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">+</button>
-<span class="text-xs font-bold text-muted-custom uppercase tracking-wide">Cards</span>
 </div>
 </div>
 <div class="mb-5">

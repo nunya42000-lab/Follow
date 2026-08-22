@@ -1989,7 +1989,7 @@ class SettingsManager {
 			tabs: document.querySelectorAll('.tab-btn'),
 			contents: document.querySelectorAll('.tab-content'),
 			helpModal: document.getElementById('help-modal'), setupModal: document.getElementById('game-setup-modal'), shareModal: document.getElementById('share-modal'), closeSetupBtn: document.getElementById('close-game-setup-modal'), quickSettings: document.getElementById('quick-open-settings'), quickHelp: document.getElementById('quick-open-help'), grantPermissionsBtn: document.getElementById('grant-permissions-btn'),
-			quickAutoplay: document.getElementById('quick-autoplay-toggle'), quickAudio: document.getElementById('quick-audio-toggle'), dontShowWelcome: document.getElementById('dont-introToggle'), welcomeSettingsLockToggle: document.getElementById('welcome-settings-lock-toggle'), welcomeTargetBucketSelect: document.getElementById('welcome-target-bucket-select'),
+			quickAutoplay: document.getElementById('quick-autoplay-toggle'), quickAudio: document.getElementById('quick-audio-toggle'), dontShowWelcome: document.getElementById('dont-introToggle'), welcomeSettingsLockToggle: document.getElementById('welcome-settings-lock-toggle'), welcomeTargetModeSelect: document.getElementById('welcome-target-mode-select'), welcomeAutofitBtn: document.getElementById('welcome-autofit-btn'),
 			quickResizeUp: document.getElementById('quick-resize-up'), quickResizeDown: document.getElementById('quick-resize-down'),
 			quickCardSizeUp: document.getElementById('quick-cardsize-up'), quickCardSizeDown: document.getElementById('quick-cardsize-down'),
 			openShareInside: document.getElementById('open-share-button'), closeShareBtn: document.getElementById('close-share'), closeHelpBtn: document.getElementById('close-help'), closeHelpBtnBottom: document.getElementById('close-help-btn-bottom'), openHelpBtn: document.getElementById('open-help-button'), promptDisplay: document.getElementById('prompt-display'), copyPromptBtn: document.getElementById('copy-prompt-btn'), generatePromptBtn: document.getElementById('generate-prompt-btn'),
@@ -3557,57 +3557,78 @@ class SettingsManager {
 				window.location.reload();
 			};
 		}
-		if (this.dom.welcomeTargetBucketSelect) {
-			this.dom.welcomeTargetBucketSelect.onchange = () => this.updateWelcomeSample();
+		if (this.dom.welcomeTargetModeSelect) {
+			this.dom.welcomeTargetModeSelect.onchange = () => this.updateWelcomeSample();
 		}
-		const getWelcomeTargetBucket = () => (this.dom.welcomeTargetBucketSelect && this.dom.welcomeTargetBucketSelect.value) || 'portrait';
+		// UI +/- always scales the whole app's root font-size (globalUiScale) - unlike the
+		// second pair below, this one never depended on the old Portrait/Landscape/Split
+		// Screen picker, so it doesn't depend on the new Sequence/Buttons/Header one either.
 		this.dom.quickResizeUp && (this.dom.quickResizeUp.onclick = () => {
-			const bucket = getWelcomeTargetBucket();
-			if (bucket === 'portrait') {
-				this.appSettings.globalUiScale = Math.min(200, this.appSettings.globalUiScale + 10);
-			} else {
-				const p = this.appSettings.viewportProfiles[bucket];
-				p.uiScale = Math.min(200, (p.uiScale || 100) + 10);
-			}
+			this.appSettings.globalUiScale = Math.min(200, this.appSettings.globalUiScale + 10);
 			this.callbacks.onSave(); this.callbacks.onUpdate(); this.updateWelcomeSample();
 		});
 		this.dom.quickResizeDown && (this.dom.quickResizeDown.onclick = () => {
-			const bucket = getWelcomeTargetBucket();
-			if (bucket === 'portrait') {
-				this.appSettings.globalUiScale = Math.max(50, this.appSettings.globalUiScale - 10);
-			} else {
-				const p = this.appSettings.viewportProfiles[bucket];
-				p.uiScale = Math.max(50, (p.uiScale || 100) - 10);
-			}
+			this.appSettings.globalUiScale = Math.max(50, this.appSettings.globalUiScale - 10);
 			this.callbacks.onSave(); this.callbacks.onUpdate(); this.updateWelcomeSample();
 		});
+		const getWelcomeTargetMode = () => (this.dom.welcomeTargetModeSelect && this.dom.welcomeTargetModeSelect.value) || 'sequence';
 		if (this.dom.quickCardSizeUp) this.dom.quickCardSizeUp.onclick = () => {
-			const bucket = getWelcomeTargetBucket();
-			if (bucket === 'portrait') {
+			const mode = getWelcomeTargetMode();
+			if (mode === 'buttons') {
+				this.appSettings.appInputBtnScale = Math.min(300, (this.appSettings.appInputBtnScale || 100) + 10);
+			} else if (mode === 'header') {
+				this.appSettings.headerIconScale = Math.min(300, (this.appSettings.headerIconScale || 100) + 10);
+				if (this.dom.headerScale) this.dom.headerScale.value = this.appSettings.headerIconScale;
+			} else {
 				this.appSettings.uiScaleMultiplier = Math.min(3.0, (this.appSettings.uiScaleMultiplier || 1.0) + 0.1);
 				const sel = document.getElementById('seq-size-select');
 				if (sel) sel.value = Math.round(this.appSettings.uiScaleMultiplier * 100);
-			} else {
-				const p = this.appSettings.viewportProfiles[bucket];
-				p.seqSize = Math.min(300, (p.seqSize || 100) + 10);
 			}
 			this.callbacks.onSave();
 			this.callbacks.onUpdate();
 			this.updateWelcomeSample();
 		};
 		if (this.dom.quickCardSizeDown) this.dom.quickCardSizeDown.onclick = () => {
-			const bucket = getWelcomeTargetBucket();
-			if (bucket === 'portrait') {
+			const mode = getWelcomeTargetMode();
+			if (mode === 'buttons') {
+				this.appSettings.appInputBtnScale = Math.max(50, (this.appSettings.appInputBtnScale || 100) - 10);
+			} else if (mode === 'header') {
+				this.appSettings.headerIconScale = Math.max(50, (this.appSettings.headerIconScale || 100) - 10);
+				if (this.dom.headerScale) this.dom.headerScale.value = this.appSettings.headerIconScale;
+			} else {
 				this.appSettings.uiScaleMultiplier = Math.max(0.5, (this.appSettings.uiScaleMultiplier || 1.0) - 0.1);
 				const sel = document.getElementById('seq-size-select');
 				if (sel) sel.value = Math.round(this.appSettings.uiScaleMultiplier * 100);
-			} else {
-				const p = this.appSettings.viewportProfiles[bucket];
-				p.seqSize = Math.max(50, (p.seqSize || 100) - 10);
 			}
 			this.callbacks.onSave();
 			this.callbacks.onUpdate();
 			this.updateWelcomeSample();
+		};
+		if (this.dom.welcomeAutofitBtn) this.dom.welcomeAutofitBtn.onclick = () => {
+			// Auto-Fit is a one-press snap, not a continuous mode: measure the actual sample
+			// box width right now, work out the card size (gap included) that lands exactly
+			// Row Max cards on one row, and set uiScaleMultiplier to match - after this the
+			// +/- buttons continue to work exactly as they always have, adjusting further
+			// from whatever Auto-Fit landed on.
+			const holder = document.getElementById('welcome-sample-sequence');
+			if (!holder) return;
+			const containerWidth = holder.clientWidth
+				- (parseFloat(getComputedStyle(holder).paddingLeft) || 0)
+				- (parseFloat(getComputedStyle(holder).paddingRight) || 0);
+			const rowMaxSetting = this.appSettings.appRowMax;
+			const count = (rowMaxSetting && rowMaxSetting !== 'none') ? parseInt(rowMaxSetting, 10) : 5;
+			const gap = 8;
+			// containerWidth = (40 * scale * count) + (gap * (count - 1)), solved for scale.
+			const rawCardSize = (containerWidth - gap * (count - 1)) / count;
+			const scale = Math.max(0.5, Math.min(3.0, rawCardSize / 40));
+			this.appSettings.uiScaleMultiplier = scale;
+			const sel = document.getElementById('seq-size-select');
+			if (sel) sel.value = Math.round(scale * 100);
+			if (this.dom.welcomeTargetModeSelect) this.dom.welcomeTargetModeSelect.value = 'sequence';
+			this.callbacks.onSave();
+			this.callbacks.onUpdate();
+			this.updateWelcomeSample();
+			if (typeof showToast === 'function') showToast(`Auto-Fit: ${count} per row ✅`);
 		};
 		if (this.dom.touchGestureTapSlider) {
 			this.dom.touchGestureTapSlider.oninput = (e) => {
@@ -3629,7 +3650,7 @@ class SettingsManager {
 	populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
 	populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
 	openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.initEcoModeConfigUI(); this.renderFullProfileList(); if (typeof initViewportProfilesUI === 'function') initViewportProfilesUI(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
-	openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); if (this.dom.welcomeTargetBucketSelect) this.dom.welcomeTargetBucketSelect.value = 'portrait'; this.updateWelcomeSample(); }
+	openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); if (this.dom.welcomeTargetModeSelect) this.dom.welcomeTargetModeSelect.value = 'sequence'; this.updateWelcomeSample(); }
 	applySettingsLockState() {
 		const locked = !!this.appSettings.isSettingsLockEnabled;
 		if (this.dom.welcomeSettingsLockToggle) this.dom.welcomeSettingsLockToggle.checked = locked;
@@ -3642,16 +3663,36 @@ class SettingsManager {
 		const holder = document.getElementById('welcome-sample-sequence');
 		if (!holder) return;
 		holder.innerHTML = '';
-		const bucket = (this.dom.welcomeTargetBucketSelect && this.dom.welcomeTargetBucketSelect.value) || 'portrait';
-		let scale, fontMult;
-		if (bucket === 'portrait') {
-			scale = this.appSettings.uiScaleMultiplier || 1.0;
-			fontMult = this.appSettings.uiFontSizeMultiplier || 1.0;
-		} else {
-			const p = this.appSettings.viewportProfiles[bucket] || {};
-			scale = (p.seqSize || 100) / 100;
-			fontMult = (p.numberSize || 250) / 100;
+		const mode = (this.dom.welcomeTargetModeSelect && this.dom.welcomeTargetModeSelect.value) || 'sequence';
+		if (mode === 'buttons') {
+			const scale = (this.appSettings.appInputBtnScale || 100) / 100;
+			const boxSize = 40 * scale;
+			const fontSizePx = boxSize * 0.5;
+			[1, 2, 3].forEach(num => {
+				const btn = document.createElement('button');
+				btn.className = "btn-input btn-pad-number";
+				btn.style.cssText = `width:${boxSize}px;height:${boxSize}px;font-size:${fontSizePx}px;aspect-ratio:1/1;`;
+				btn.textContent = num;
+				holder.appendChild(btn);
+			});
+			return;
 		}
+		if (mode === 'header') {
+			const scale = (this.appSettings.headerIconScale || 100) / 100;
+			const circleSize = 48 * scale;
+			const fontSizePx = 20 * scale;
+			['⚙️', '▶️', '⌫'].forEach(icon => {
+				const btn = document.createElement('button');
+				btn.className = "rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg";
+				btn.style.cssText = `width:${circleSize}px;height:${circleSize}px;font-size:${fontSizePx}px;`;
+				btn.textContent = icon;
+				holder.appendChild(btn);
+			});
+			return;
+		}
+		// Sequence (default)
+		const scale = this.appSettings.uiScaleMultiplier || 1.0;
+		const fontMult = this.appSettings.uiFontSizeMultiplier || 1.0;
 		const boxSize = 40 * scale;
 		const fontSizePx = boxSize * 0.5 * fontMult;
 		[1, 2, 3, 4, 5].forEach(num => {

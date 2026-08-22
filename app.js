@@ -7797,11 +7797,26 @@ function initGlobalListeners() {
 			// instead gives a stable answer that one press gets right and repeat presses
 			// don't disturb.
 			const appCS = getComputedStyle(appEl);
+			// Card padding: each machine's number grid sits inside a .card wrapper with its
+			// own padding (p-4, 16px each side) - a THIRD layer of horizontal space beyond
+			// #app's and #sequence-container's own padding that this calculation was missing
+			// entirely, which is exactly why Auto Fit was landing one card short: it thought
+			// ~32px more width was available for cards than genuinely was. Measuring the
+			// real card element directly (same approach applyRowMax already uses) means this
+			// stays correct even if that padding value ever changes, rather than hardcoding
+			// a guess that could drift out of sync with the CSS again.
+			const existingCard = container.querySelector(':scope > div');
+			let cardPadding = 32;
+			if (existingCard) {
+				const cardCS = getComputedStyle(existingCard);
+				cardPadding = (parseFloat(cardCS.paddingLeft) || 0) + (parseFloat(cardCS.paddingRight) || 0);
+			}
 			const containerWidth = appEl.clientWidth
 				- (parseFloat(appCS.paddingLeft) || 0)
 				- (parseFloat(appCS.paddingRight) || 0)
 				- (parseFloat(getComputedStyle(container).paddingLeft) || 0)
-				- (parseFloat(getComputedStyle(container).paddingRight) || 0);
+				- (parseFloat(getComputedStyle(container).paddingRight) || 0)
+				- cardPadding;
 			const vp = getViewportProfile();
 			const rowMaxSetting = vp ? vp.rowMax : appSettings.appRowMax;
 			const count = (rowMaxSetting && rowMaxSetting !== 'none') ? parseInt(rowMaxSetting, 10) : 5;
@@ -7915,11 +7930,20 @@ function initGlobalListeners() {
 				// clientWidth, which is capped by --row-max-width - a value THIS calculation
 				// would otherwise be feeding back into on every press.
 				const appCS = getComputedStyle(appElForSeq);
+				// Also same fix as Auto Fit: account for the .card wrapper's own padding,
+				// a third layer this calculation was missing entirely.
+				const existingCard = container.querySelector(':scope > div');
+				let cardPadding = 32;
+				if (existingCard) {
+					const cardCS = getComputedStyle(existingCard);
+					cardPadding = (parseFloat(cardCS.paddingLeft) || 0) + (parseFloat(cardCS.paddingRight) || 0);
+				}
 				const containerWidth = appElForSeq.clientWidth
 					- (parseFloat(appCS.paddingLeft) || 0)
 					- (parseFloat(appCS.paddingRight) || 0)
 					- (parseFloat(getComputedStyle(container).paddingLeft) || 0)
-					- (parseFloat(getComputedStyle(container).paddingRight) || 0);
+					- (parseFloat(getComputedStyle(container).paddingRight) || 0)
+					- cardPadding;
 				const rowMaxSetting = vp ? vp.rowMax : appSettings.appRowMax;
 				const count = (rowMaxSetting && rowMaxSetting !== 'none') ? parseInt(rowMaxSetting, 10) : 5;
 				const gap = 8;

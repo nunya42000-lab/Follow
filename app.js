@@ -7794,7 +7794,12 @@ function initGlobalListeners() {
 			const gap = 8;
 			const rawCardSize = (containerWidth - gap * (count - 1)) / count;
 			const rawScale = rawCardSize / 40;
-			const roundedPct = Math.max(50, Math.min(300, Math.round(rawScale * 10) * 10));
+			// Floor, not round-to-nearest: rounding to the nearest 10% can round UP past
+			// the true fit (e.g. an exact fit of 127% rounding to 130%), which is exactly
+			// how "Auto Fit" ends up producing cards that don't actually fit. Flooring
+			// guarantees the result is always the largest size that still fits, never
+			// larger than what the math actually supports.
+			const roundedPct = Math.max(50, Math.min(300, Math.floor(rawScale * 10) * 10));
 			if (vp) {
 				vp.seqSize = roundedPct;
 			} else {
@@ -7823,6 +7828,7 @@ function initGlobalListeners() {
 				const padId = inputMode === 'key9' ? 'pad-key9' : 'pad-key12';
 				const pad = document.getElementById(padId);
 				const grid = pad ? pad.querySelector(inputMode === 'key9' ? '.grid-cols-3' : '.grid-cols-4:not(.control-row)') : null;
+				const controlRow = pad ? pad.querySelector('.control-row') : null;
 				const footer = document.getElementById('input-footer');
 				if (pad && grid && footer) {
 					const cols = inputMode === 'key9' ? 3 : 4;
@@ -7832,7 +7838,16 @@ function initGlobalListeners() {
 					const footerCS = getComputedStyle(footer);
 					const padTop = parseFloat(footerCS.paddingTop) || 0;
 					const padBottom = parseFloat(footerCS.paddingBottom) || 0;
-					const availableHeight = (footerRect.height - padTop - padBottom) - (gap * (rows - 1));
+					// The number grid isn't the only thing inside #input-footer - the
+					// Play/Delete/Settings control row sits right below it, in normal
+					// (non-Bigger-Buttons) view, and competes for the exact same footer
+					// height. Not accounting for it here was exactly why Zoom could push
+					// buttons taller than the space actually left for them once the
+					// control row's own height was subtracted out - the grid math alone
+					// looked like it fit, but the real page had less room than that.
+					const controlRowRect = controlRow ? controlRow.getBoundingClientRect() : null;
+					const controlRowSpace = controlRowRect ? controlRowRect.height + gap : 0;
+					const availableHeight = (footerRect.height - padTop - padBottom - controlRowSpace) - (gap * (rows - 1));
 					const perRowHeight = availableHeight / rows;
 					const gridRect = grid.getBoundingClientRect();
 					const colGap = parseFloat(getComputedStyle(grid).columnGap) || 8;
@@ -7848,8 +7863,21 @@ function initGlobalListeners() {
 					// small set of discrete real values (not a smooth range) and its own
 					// maximum - snapping to the nearest actual option on each keeps both
 					// dropdowns showing a real, selected value instead of going blank.
-					newBtnPct = snapToNearestOption(rawPct, [70, 85, 100, 125, 150]);
-					newFontPct = snapToNearestOption(rawPct, [100, 150, 200, 250]);
+					newBtnPct = snapToLargestFittingOption(rawPct, [70, 85, 100, 125, 150]);
+					// Font size must be derived from the ACTUAL (possibly capped) button
+					// size, not from the raw uncapped fit percentage - the two CSS custom
+					// properties they drive (--input-btn-scale, --input-font-scale) are
+					// otherwise completely independent, so if newBtnPct got capped down
+					// (e.g. a huge screen wants 400% but Button Size tops out at 150%)
+					// while font kept using the uncapped raw value, the digits would end
+					// up visibly bigger than their own button. The app's own 100%/100%
+					// default renders a font that's 60% of the button's pixel size and
+					// already looks right, so that ratio is the ceiling here too.
+					const finalBtnPx = baseBtnPx * (newBtnPct / 100);
+					const maxFontPx = finalBtnPx * 0.6;
+					const baseFontPx = 1.5 * rootPx;
+					const maxFontPct = (maxFontPx / baseFontPx) * 100;
+					newFontPct = snapToNearestOption(Math.min(rawPct, maxFontPct), [100, 150, 200, 250]);
 				}
 			}
 			if (newBtnPct !== null) {
@@ -7878,10 +7906,11 @@ function initGlobalListeners() {
 				const rawScale = rawCardSize / 40;
 				const rawPct = rawScale * 100;
 				// Sequence Size (seq-size-select) is a genuine smooth 10%-step range from
-				// 50-300, so round-to-nearest-10 always lands on a real option there. Number
-				// Size (seq-font-size-select) only offers four discrete values, so it needs
-				// the same nearest-option snap as Button/Input Font Size above.
-				const seqPct = Math.max(50, Math.min(300, Math.round(rawPct / 10) * 10));
+				// 50-300 - floor (not round-to-nearest) so the result is never larger than
+				// what actually fits the row, same reasoning as Auto Fit. Number Size
+				// (seq-font-size-select) only offers four discrete values, so it needs the
+				// nearest-option snap instead, same as Button/Input Font Size above.
+				const seqPct = Math.max(50, Math.min(300, Math.floor(rawPct / 10) * 10));
 				const numPct = snapToNearestOption(rawPct, [100, 150, 200, 250]);
 				if (vp) {
 					vp.seqSize = seqPct;
@@ -9229,6 +9258,16 @@ function snapToNearestOption(rawPct, options) {
 		if (diff < bestDiff) { best = opt; bestDiff = diff; }
 	}
 	return best;
+}
+function snapToLargestFittingOption(rawPct, options) {
+	// Same discrete-option constraint as snapToNearestOption, but for callers where rawPct is
+	// itself the actual fit ceiling (e.g. Auto Fit/Zoom sizing buttons to available space) -
+	// nearest-by-distance can round UP past that ceiling and reintroduce the exact overflow
+	// these features exist to prevent. This picks the largest option that's still <= rawPct,
+	// falling back to the smallest available option if even that doesn't fit.
+	const fitting = options.filter(opt => opt <= rawPct);
+	if (fitting.length) return Math.max(...fitting);
+	return Math.min(...options);
 }
 function withTimeout(promise, ms, label) {
 	return Promise.race([

@@ -51,9 +51,7 @@ input, textarea { -webkit-user-select: text !important; user-select: text !impor
 .tab-btn:hover { opacity: .8; }
 .tab-btn.active { border-bottom-color: var(--seq-bubble); opacity: 1; color: var(--seq-bubble); }
 body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff; }
-.viewport-tab-btn { flex: 1; padding: 8px 2px; text-align: center; font-size: 10px; font-weight: 700; color: #9ca3af; background: transparent; border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: all .2s; }
-.viewport-tab-btn:hover { color: #d1d5db; }
-.viewport-tab-btn.active { color: #10b981; border-bottom-color: #10b981; }
+
 .settings-tab-bar { display: flex !important; }
 .settings-locked .settings-tab-bar,
 .settings-locked .overflow-y-auto.flex-grow { pointer-events: none !important; opacity: 0.45; filter: grayscale(0.3); }

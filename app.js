@@ -2929,16 +2929,25 @@ class SettingsManager {
 		try {
 			const exportBtn = document.getElementById('hex-export-btn');
 			const importBtn = document.getElementById('hex-import-btn');
-			const copyBtn = document.getElementById('hex-copy-btn');
-			const pasteBtn = document.getElementById('hex-paste-btn');
 			const hexOutput = document.getElementById('hex-output');
+			const hexImportInput = document.getElementById('hex-import-input');
 			if (exportBtn && hexOutput) {
 				exportBtn.onclick = async () => {
 					if (typeof window.settingsToBackupCode !== 'function') return;
 					try {
 						exportBtn.disabled = true;
-						hexOutput.value = await window.settingsToBackupCode();
-						if (typeof showToast === 'function') showToast('Settings exported ⬇️');
+						const code = await window.settingsToBackupCode();
+						hexOutput.value = code;
+						// Shows the code AND copies it in the same tap - no separate Copy
+						// button needed, since exporting only to look at a code you still
+						// have to select-and-copy yourself was the whole reason this
+						// section needed condensing in the first place.
+						try {
+							await navigator.clipboard.writeText(code);
+							if (typeof showToast === 'function') showToast('Exported & copied 📋');
+						} catch (clipErr) {
+							if (typeof showToast === 'function') showToast('Exported ⬇️ (copy manually - clipboard blocked)');
+						}
 					} catch (e) {
 						console.error('Export failed:', e);
 						alert('Export failed - this browser may not support the compression this needs.');
@@ -2947,31 +2956,9 @@ class SettingsManager {
 					}
 				};
 			}
-			if (copyBtn && hexOutput) {
-				copyBtn.onclick = () => {
-					if (!hexOutput.value) { alert('Nothing to copy - export first.'); return; }
-					hexOutput.select();
-					navigator.clipboard?.writeText(hexOutput.value).then(() => {
-							if (typeof showToast === 'function') showToast('Copied to clipboard 📋');
-					}).catch(() => document.execCommand('copy'));
-				};
-			}
-			if (pasteBtn && hexOutput) {
-				pasteBtn.onclick = async () => {
-					try {
-						const text = await navigator.clipboard.readText();
-						if (!text.trim()) { alert('Clipboard is empty.'); return; }
-						hexOutput.value = text.trim();
-						if (typeof showToast === 'function') showToast('Pasted from clipboard 📋');
-					} catch (e) {
-						alert("Couldn't read the clipboard - your browser may need permission, or paste manually into the box instead.");
-						console.warn('Clipboard read failed:', e);
-					}
-				};
-			}
-			if (importBtn && hexOutput) {
+			if (importBtn && hexImportInput) {
 				importBtn.onclick = async () => {
-					const code = hexOutput.value.trim();
+					const code = hexImportInput.value.trim();
 					if (!code) { alert('Paste a backup code first.'); return; }
 					if (!confirm('This will replace ALL current settings with the imported ones. Continue?')) return;
 					try {
@@ -2993,24 +2980,30 @@ class SettingsManager {
 		}
 		try {
 			const presetSelect = document.getElementById('preset-select');
-			const presetOutput = document.getElementById('preset-output');
-			const presetCopyBtn = document.getElementById('preset-copy-btn');
-			if (presetSelect && presetOutput) {
+			const presetLoadBtn = document.getElementById('preset-load-btn');
+			if (presetSelect) {
 				presetSelect.innerHTML = SETTINGS_PRESETS.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-				const showSelected = () => {
-					const chosen = SETTINGS_PRESETS.find(p => p.id === presetSelect.value) || SETTINGS_PRESETS[0];
-					presetOutput.value = chosen ? chosen.code : '';
-				};
-				presetSelect.onchange = showSelected;
-				showSelected();
 			}
-			if (presetCopyBtn && presetOutput) {
-				presetCopyBtn.onclick = () => {
-					if (!presetOutput.value) return;
-					presetOutput.select();
-					navigator.clipboard?.writeText(presetOutput.value).then(() => {
-							if (typeof showToast === 'function') showToast('Copied to clipboard 📋');
-					}).catch(() => document.execCommand('copy'));
+			if (presetLoadBtn && presetSelect) {
+				// Same direct-load mechanism the welcome screen's preset dropdown already
+				// uses - pick one, confirm, import immediately. No more copying a code out
+				// of this section only to paste it into the Import box further up.
+				presetLoadBtn.onclick = async () => {
+					const chosen = SETTINGS_PRESETS.find(p => p.id === presetSelect.value);
+					if (!chosen) return;
+					if (!confirm(`Load "${chosen.name}"? This will replace ALL current settings. Continue?`)) return;
+					try {
+						presetLoadBtn.disabled = true;
+						if (typeof window.importSettingsFromBackupCode === 'function') {
+							await window.importSettingsFromBackupCode(chosen.code);
+							if (typeof showToast === 'function') showToast(`Loaded: ${chosen.name} ⚡`);
+						}
+					} catch (e) {
+						alert('Load failed - this preset code may be corrupted.');
+						console.error(e);
+					} finally {
+						presetLoadBtn.disabled = false;
+					}
 				};
 			}
 		} catch (e) {
@@ -4742,16 +4735,21 @@ class SettingsManager {
 		// .settings-input select, two per row - instead of the old hardcoded dark colors and
 		// compact inline label/select pairing, which didn't match the rest of the app and looked
 		// out of place next to everything else in Settings.
-		let gridHtml = `<div class="grid grid-cols-2 gap-3">`;
+		// Matches the other Mapping tab accordions' actual row style exactly: a fixed-width
+		// boxed label (bg-gray-700, bordered, monospace) beside a full-width dark select, one
+		// mapping per row - not the earlier two-column grid with a floating text label above
+		// a narrower select, which was a different, once-off pattern that didn't match
+		// anything else in this tab.
+		let gridHtml = `<div class="space-y-2">`;
 		labels.forEach((label, index) => {
 				const val = index + 1;
 				let optionsHtml = `<optgroup label="Morse Patterns">`;
 				optionsHtml += morseOptions.map(m => `<option value="${m}">${m}</option>`).join('');
 				optionsHtml += `</optgroup>`;
 				gridHtml += `
-				<div>
-				<label class="block text-xs font-bold mb-1 text-muted-custom">Value ${label}</label>
-				<select class="settings-input w-full p-2 rounded text-sm font-semibold shadow-sm font-mono tracking-widest" data-morse-id="${val}">
+				<div class="flex items-center gap-2">
+				<span class="bg-gray-700 w-16 h-9 flex items-center justify-center rounded text-xs text-blue-400 font-mono border border-gray-600 shrink-0">${label}</span>
+				<select class="settings-input w-full p-2 rounded text-xs font-semibold border border-gray-600 bg-gray-950 outline-none font-mono tracking-widest" data-morse-id="${val}">
 				${optionsHtml}
 				</select>
 				</div>
@@ -7747,7 +7745,7 @@ function initGlobalListeners() {
 		const headerPlay = document.getElementById('headerplaybtn');
 		if (headerPlay) headerPlay.onclick = () => playDemo();
 		const headerSettingsBtn = document.getElementById('headersettingsbtn');
-		if (headerSettingsBtn) headerSettingsBtn.onclick = () => { if (typeof openOrientationSettings === 'function') openOrientationSettings(); };
+		if (headerSettingsBtn) headerSettingsBtn.onclick = () => { if (modules.settings) modules.settings.openSettings(); };
 		const headerRedeem = document.getElementById('headerredeembtn');
 		if (headerRedeem) headerRedeem.onclick = () => { if (modules.settings) modules.settings.toggleRedeem(true); };
 		const headerShare = document.getElementById('headersharebtn');
@@ -7776,73 +7774,105 @@ function initGlobalListeners() {
 			showToast(`Machines: ${settings.machineCount} ➕`);
 		};
 		const headerAutoFit = document.getElementById('headerautofitbtn');
-		if (headerAutoFit) headerAutoFit.onclick = () => {
-			// Real, live-view version of the welcome modal's Auto-Fit: measure the actual
-			// #sequence-container right now, work out the card size that lands exactly Row
-			// Max cards on one row in whatever bucket is currently active, and write it to
-			// that bucket's own setting - portrait's uiScaleMultiplier, or the active
-			// viewport profile's seqSize otherwise. Same 10% rounding as the welcome modal
-			// so the result always matches a value the Settings dropdown can display.
-			const container = document.getElementById('sequence-container');
-			const appEl = document.getElementById('app');
-			if (!container || !appEl) return;
-			// Measuring #sequence-container's OWN clientWidth is exactly what caused this to
-			// compound on repeated presses: its CSS max-width is --row-max-width, which
-			// applyRowMax() computes FROM the current seqSize - so raising seqSize widens the
-			// cap, the container grows into that wider cap, and the next press reads that
-			// larger width as if it were newly-available screen space, producing a feedback
-			// loop where each press "fits" a wider container than the last. #app's width is
-			// the actual, scale-independent available space (constrained only by the input
-			// footer's padding in landscape/split, untouched by seqSize), so measuring that
-			// instead gives a stable answer that one press gets right and repeat presses
-			// don't disturb.
-			const appCS = getComputedStyle(appEl);
-			// Card padding: each machine's number grid sits inside a .card wrapper with its
-			// own padding (p-4, 16px each side) - a THIRD layer of horizontal space beyond
-			// #app's and #sequence-container's own padding that this calculation was missing
-			// entirely, which is exactly why Auto Fit was landing one card short: it thought
-			// ~32px more width was available for cards than genuinely was. Measuring the
-			// real card element directly (same approach applyRowMax already uses) means this
-			// stays correct even if that padding value ever changes, rather than hardcoding
-			// a guess that could drift out of sync with the CSS again.
-			const existingCard = container.querySelector(':scope > div');
-			let cardPadding = 32;
-			if (existingCard) {
-				const cardCS = getComputedStyle(existingCard);
-				cardPadding = (parseFloat(cardCS.paddingLeft) || 0) + (parseFloat(cardCS.paddingRight) || 0);
-			}
-			const containerWidth = appEl.clientWidth
-				- (parseFloat(appCS.paddingLeft) || 0)
-				- (parseFloat(appCS.paddingRight) || 0)
-				- (parseFloat(getComputedStyle(container).paddingLeft) || 0)
-				- (parseFloat(getComputedStyle(container).paddingRight) || 0)
-				- cardPadding;
-			const vp = getViewportProfile();
-			const rowMaxSetting = vp ? vp.rowMax : appSettings.appRowMax;
-			const count = (rowMaxSetting && rowMaxSetting !== 'none') ? parseInt(rowMaxSetting, 10) : 5;
-			const gap = 8;
-			const rawCardSize = (containerWidth - gap * (count - 1)) / count;
-			const rawScale = rawCardSize / 40;
-			// Floor, not round-to-nearest: rounding to the nearest 10% can round UP past
-			// the true fit (e.g. an exact fit of 127% rounding to 130%), which is exactly
-			// how "Auto Fit" ends up producing cards that don't actually fit. Flooring
-			// guarantees the result is always the largest size that still fits, never
-			// larger than what the math actually supports.
-			const roundedPct = Math.max(50, Math.min(300, Math.floor(rawScale * 10) * 10));
-			if (vp) {
-				vp.seqSize = roundedPct;
-			} else {
-				appSettings.uiScaleMultiplier = roundedPct / 100;
-				const sel = document.getElementById('seq-size-select');
-				if (sel) sel.value = roundedPct;
-			}
-			if (modules.settings) { modules.settings.applyRowMax(); modules.settings.applyBiggerButtonSize(); }
-			renderUI();
-			saveState();
-			showToast(`Auto Fit: ${count} per row ✅`);
-		};
+		if (headerAutoFit) {
+			const runAutoFit = () => {
+				// Real, live-view version of the welcome modal's Auto-Fit: measure the actual
+				// #sequence-container right now, work out the card size that lands exactly Row
+				// Max cards on one row in whatever bucket is currently active, and write it to
+				// that bucket's own setting - portrait's uiScaleMultiplier, or the active
+				// viewport profile's seqSize otherwise. Same 10% rounding as the welcome modal
+				// so the result always matches a value the Settings dropdown can display.
+				const container = document.getElementById('sequence-container');
+				const appEl = document.getElementById('app');
+				if (!container || !appEl) return;
+				// Measuring #sequence-container's OWN clientWidth is exactly what caused this to
+				// compound on repeated presses: its CSS max-width is --row-max-width, which
+				// applyRowMax() computes FROM the current seqSize - so raising seqSize widens the
+				// cap, the container grows into that wider cap, and the next press reads that
+				// larger width as if it were newly-available screen space, producing a feedback
+				// loop where each press "fits" a wider container than the last. #app's width is
+				// the actual, scale-independent available space (constrained only by the input
+				// footer's padding in landscape/split, untouched by seqSize), so measuring that
+				// instead gives a stable answer that one press gets right and repeat presses
+				// don't disturb.
+				const appCS = getComputedStyle(appEl);
+				// Card padding: each machine's number grid sits inside a .card wrapper with its
+				// own padding (p-4, 16px each side) - a THIRD layer of horizontal space beyond
+				// #app's and #sequence-container's own padding that this calculation was missing
+				// entirely, which is exactly why Auto Fit was landing one card short: it thought
+				// ~32px more width was available for cards than genuinely was. Measuring the
+				// real card element directly (same approach applyRowMax already uses) means this
+				// stays correct even if that padding value ever changes, rather than hardcoding
+				// a guess that could drift out of sync with the CSS again.
+				const existingCard = container.querySelector(':scope > div');
+				let cardPadding = 32;
+				if (existingCard) {
+					const cardCS = getComputedStyle(existingCard);
+					cardPadding = (parseFloat(cardCS.paddingLeft) || 0) + (parseFloat(cardCS.paddingRight) || 0);
+				}
+				const containerWidth = appEl.clientWidth
+					- (parseFloat(appCS.paddingLeft) || 0)
+					- (parseFloat(appCS.paddingRight) || 0)
+					- (parseFloat(getComputedStyle(container).paddingLeft) || 0)
+					- (parseFloat(getComputedStyle(container).paddingRight) || 0)
+					- cardPadding;
+				const vp = getViewportProfile();
+				const rowMaxSetting = vp ? vp.rowMax : appSettings.appRowMax;
+				const count = (rowMaxSetting && rowMaxSetting !== 'none') ? parseInt(rowMaxSetting, 10) : 5;
+				const gap = 8;
+				const rawCardSize = (containerWidth - gap * (count - 1)) / count;
+				const rawScale = rawCardSize / 40;
+				// Floor, not round-to-nearest: rounding to the nearest 10% can round UP past
+				// the true fit (e.g. an exact fit of 127% rounding to 130%), which is exactly
+				// how "Auto Fit" ends up producing cards that don't actually fit. Flooring
+				// guarantees the result is always the largest size that still fits, never
+				// larger than what the math actually supports.
+				const roundedPct = Math.max(50, Math.min(300, Math.floor(rawScale * 10) * 10));
+				if (vp) {
+					vp.seqSize = roundedPct;
+				} else {
+					appSettings.uiScaleMultiplier = roundedPct / 100;
+					const sel = document.getElementById('seq-size-select');
+					if (sel) sel.value = roundedPct;
+				}
+				if (modules.settings) { modules.settings.applyRowMax(); modules.settings.applyBiggerButtonSize(); }
+				renderUI();
+				saveState();
+				showToast(`Auto Fit: ${count} per row ✅`);
+			};
+			// Long press (600ms, matching Timer's own long-press) turns the toggle off and
+			// hides the button - a quick, discoverable way to get rid of a header button
+			// without having to dig back into Settings > General to find its checkbox again.
+			let autoFitTimer;
+			let autoFitWasLong = false;
+			const startAutoFit = e => {
+				if (e.type === 'mousedown' && e.button !== 0) return;
+				autoFitWasLong = false;
+				autoFitTimer = setTimeout(() => {
+					autoFitWasLong = true;
+					appSettings.showHeaderAutoFitBtn = false;
+					if (modules.settings) modules.settings.updateHeaderVisibility();
+					if (modules.settings && modules.settings.dom.headerAutoFitToggle) modules.settings.dom.headerAutoFitToggle.checked = false;
+					if (modules.settings && modules.settings.dom.quickAutofit) modules.settings.dom.quickAutofit.checked = false;
+					saveState();
+					showToast('Auto Fit button hidden');
+					vibrate();
+				}, 600);
+			};
+			const endAutoFit = dedupeTouchMouseHandler(e => {
+				if (e) e.preventDefault();
+				clearTimeout(autoFitTimer);
+				if (!autoFitWasLong) runAutoFit();
+			});
+			headerAutoFit.addEventListener('mousedown', startAutoFit);
+			headerAutoFit.addEventListener('touchstart', startAutoFit, { passive: true });
+			headerAutoFit.addEventListener('mouseup', endAutoFit);
+			headerAutoFit.addEventListener('touchend', endAutoFit);
+			headerAutoFit.addEventListener('mouseleave', () => clearTimeout(autoFitTimer));
+		}
 		const headerZoom = document.getElementById('headerzoombtn');
-		if (headerZoom) headerZoom.onclick = () => {
+		if (headerZoom) {
+			const runZoom = () => {
 			// Zoom is Auto Fit's counterpart for the INPUT side: instead of fitting the
 			// sequence cards, it fits the number-pad buttons (width AND height, same
 			// min(share) logic as applyBiggerButtonSize), then scales the input font and
@@ -7853,6 +7883,8 @@ function initGlobalListeners() {
 			const inputMode = document.body.dataset.inputMode;
 			let newBtnPct = null;
 			let newFontPct = null;
+			let rawPct = null;
+			let fontCeilingPct = null;
 			if (inputMode === 'key9' || inputMode === 'key12') {
 				const padId = inputMode === 'key9' ? 'pad-key9' : 'pad-key12';
 				const pad = document.getElementById(padId);
@@ -7886,30 +7918,40 @@ function initGlobalListeners() {
 					const rootPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
 					const baseBtnPx = 2.5 * rootPx;
 					const rawSize = Math.min(perColWidth, perRowHeight);
-					const rawPct = (rawSize / baseBtnPx) * 100;
+					rawPct = (rawSize / baseBtnPx) * 100;
 					// Button Size and Input Font Size are driven by the same raw fit
 					// calculation, but they're two separate dropdowns, each with its own
 					// small set of discrete real values (not a smooth range) and its own
 					// maximum - snapping to the nearest actual option on each keeps both
 					// dropdowns showing a real, selected value instead of going blank.
 					newBtnPct = snapToLargestFittingOption(rawPct, [70, 85, 100, 125, 150]);
-					// Font size must be derived from the ACTUAL (possibly capped) button
-					// size, not from the raw uncapped fit percentage - the two CSS custom
-					// properties they drive (--input-btn-scale, --input-font-scale) are
-					// otherwise completely independent, so if newBtnPct got capped down
-					// (e.g. a huge screen wants 400% but Button Size tops out at 150%)
-					// while font kept using the uncapped raw value, the digits would end
-					// up visibly bigger than their own button. The app's own 100%/100%
-					// default renders a font that's 60% of the button's pixel size and
-					// already looks right, so that ratio is the ceiling here too.
+					// Input Font Size ceiling is derived from the ACTUAL button size, not
+					// the raw fit percentage - but the ratio calibration matters: the app's
+					// own shipped landscape/split-screen defaults (150% button, 200% font)
+					// render at a genuine, correct-looking 0.8 font-to-button ratio, not the
+					// 0.6 portrait's 100%/100% default uses. Using portrait's ratio here was
+					// exactly why Zoom shrank an already-correct 200% font down to 150% -
+					// the ceiling was calibrated against the wrong bucket's proportions.
 					const finalBtnPx = baseBtnPx * (newBtnPct / 100);
-					const maxFontPx = finalBtnPx * 0.6;
+					const maxFontPx = finalBtnPx * 0.8;
 					const baseFontPx = 1.5 * rootPx;
-					const maxFontPct = (maxFontPx / baseFontPx) * 100;
-					newFontPct = snapToNearestOption(Math.min(rawPct, maxFontPct), [100, 150, 200, 250]);
+					fontCeilingPct = (maxFontPx / baseFontPx) * 100;
+					newFontPct = snapToNearestOption(Math.min(rawPct, fontCeilingPct), [100, 150, 200, 250]);
 				}
 			}
 			if (newBtnPct !== null) {
+				// Zoom is a "maximize" action and shouldn't make things smaller just
+				// because the fit math landed on a lower number than before - BUT only
+				// when the previous value still genuinely fits the CURRENT screen. If the
+				// screen has actually gotten smaller since that value was set (rotation,
+				// a resized split), keeping the old larger number would just reintroduce
+				// the exact overflow this whole calculation exists to prevent. So: only
+				// use the previous value as a floor when it's still <= what the fit
+				// calculation says is available right now.
+				const currentBtnPct = vp ? (vp.btnSize || 100) : (appSettings.appInputBtnScale || 100);
+				const currentFontPct = vp ? (vp.inputFontSize || 100) : (appSettings.appInputFontScale || 100);
+				if (currentBtnPct <= rawPct) newBtnPct = Math.max(newBtnPct, currentBtnPct);
+				if (currentFontPct <= fontCeilingPct) newFontPct = Math.max(newFontPct, currentFontPct);
 				if (vp) { vp.btnSize = newBtnPct; vp.inputFontSize = newFontPct; }
 				else {
 					appSettings.appInputBtnScale = newBtnPct;
@@ -7978,7 +8020,34 @@ function initGlobalListeners() {
 			renderUI();
 			saveState();
 			showToast(`Zoom ✅`);
-		};
+			};
+			let zoomTimer;
+			let zoomWasLong = false;
+			const startZoom = e => {
+				if (e.type === 'mousedown' && e.button !== 0) return;
+				zoomWasLong = false;
+				zoomTimer = setTimeout(() => {
+					zoomWasLong = true;
+					appSettings.showHeaderZoomBtn = false;
+					if (modules.settings) modules.settings.updateHeaderVisibility();
+					if (modules.settings && modules.settings.dom.headerZoomToggle) modules.settings.dom.headerZoomToggle.checked = false;
+					if (modules.settings && modules.settings.dom.quickZoom) modules.settings.dom.quickZoom.checked = false;
+					saveState();
+					showToast('Zoom button hidden');
+					vibrate();
+				}, 600);
+			};
+			const endZoom = dedupeTouchMouseHandler(e => {
+				if (e) e.preventDefault();
+				clearTimeout(zoomTimer);
+				if (!zoomWasLong) runZoom();
+			});
+			headerZoom.addEventListener('mousedown', startZoom);
+			headerZoom.addEventListener('touchstart', startZoom, { passive: true });
+			headerZoom.addEventListener('mouseup', endZoom);
+			headerZoom.addEventListener('touchend', endZoom);
+			headerZoom.addEventListener('mouseleave', () => clearTimeout(zoomTimer));
+		}
 		const headerUiUp = document.getElementById('headeruiupbtn');
 		if (headerUiUp) headerUiUp.onclick = () => {
 			// These four buttons used to write straight to portrait's own settings
@@ -8976,7 +9045,7 @@ function vpPercentOptions(min, max, step) {
 	for (let v = min; v <= max; v += step) opts.push({ value: String(v), text: v + '%' });
 	return opts;
 }
-let viewportConfigState = { configBucket: null, activeTab: 'landscape' };
+
 
 // Real screen ratio bands, matching detectViewportBucket() exactly, so the iframe's pixel
 // width corresponds to what that bucket actually looks like on this device.
@@ -8996,12 +9065,15 @@ function vpGetIframeTargetSize(bucket) {
 	return { width: Math.round(fullW * ratio), height: fullH };
 }
 
-function vpFitIframeToWrapper() {
-	const wrap = document.getElementById('viewport-config-frame-wrap');
-	const scaler = document.getElementById('viewport-config-frame-scaler');
-	const iframe = document.getElementById('viewport-config-iframe');
-	if (!wrap || !scaler || !iframe || !viewportConfigState.configBucket) return;
-	const target = vpGetIframeTargetSize(viewportConfigState.configBucket);
+const VP_ACCORDION_PREFIX = { landscape: 'landscape', split50h: 'split' };
+function vpFitIframeToWrapper(bucket) {
+	const prefix = VP_ACCORDION_PREFIX[bucket];
+	if (!prefix) return;
+	const wrap = document.getElementById(prefix + '-config-frame-wrap');
+	const scaler = document.getElementById(prefix + '-config-frame-scaler');
+	const iframe = document.getElementById(prefix + '-config-iframe');
+	if (!wrap || !scaler || !iframe) return;
+	const target = vpGetIframeTargetSize(bucket);
 	iframe.style.width = target.width + 'px';
 	iframe.style.height = target.height + 'px';
 	scaler.style.width = target.width + 'px';
@@ -9010,14 +9082,16 @@ function vpFitIframeToWrapper() {
 	const scale = Math.min(1, wrapW / target.width);
 	scaler.style.transform = `scale(${scale})`;
 	wrap.style.height = (target.height * scale) + 'px';
-	const dimsEl = document.getElementById('viewport-config-dims');
+	const dimsEl = document.getElementById(prefix + '-config-dims');
 	if (dimsEl) dimsEl.textContent = `${target.width}×${target.height}px real size, shown at ${Math.round(scale * 100)}% zoom to fit`;
 }
 
 function vpLoadPreviewIframe(bucket) {
-	const iframe = document.getElementById('viewport-config-iframe');
+	const prefix = VP_ACCORDION_PREFIX[bucket];
+	if (!prefix) return;
+	const iframe = document.getElementById(prefix + '-config-iframe');
 	if (!iframe) return;
-	vpFitIframeToWrapper();
+	vpFitIframeToWrapper(bucket);
 	iframe.src = './index.html?vpPreview=1&vpBucket=' + encodeURIComponent(bucket);
 }
 
@@ -9025,13 +9099,14 @@ function vpLoadPreviewIframe(bucket) {
 // immediately as sliders/selects/checkboxes change, without a full reload. Settings commit
 // straight to appSettings.viewportProfiles[bucket] now (see vpMakeSlider/vpMakeSelect), so this
 // just mirrors that same object into the iframe's separate copy instead of replaying a diff.
-function vpPushLiveEditsToPreview() {
-	const iframe = document.getElementById('viewport-config-iframe');
-	if (!iframe || !iframe.contentWindow || !viewportConfigState.configBucket) return;
+function vpPushLiveEditsToPreview(bucket) {
+	const prefix = VP_ACCORDION_PREFIX[bucket];
+	if (!prefix) return;
+	const iframe = document.getElementById(prefix + '-config-iframe');
+	if (!iframe || !iframe.contentWindow) return;
 	const win = iframe.contentWindow;
 	try {
 		if (!win.appSettings || !win.appSettings.viewportProfiles) return;
-		const bucket = viewportConfigState.configBucket;
 		const realProfile = appSettings.viewportProfiles[bucket];
 		if (!realProfile) return;
 		win.appSettings.viewportProfiles[bucket] = JSON.parse(JSON.stringify(realProfile));
@@ -9053,111 +9128,41 @@ function vpPushLiveEditsToPreview() {
 	}
 }
 
-function vpRenderConfigScreen() {
-	vpFitIframeToWrapper();
-	vpPushLiveEditsToPreview();
+function vpRenderConfigScreen(bucket) {
+	vpFitIframeToWrapper(bucket);
+	vpPushLiveEditsToPreview(bucket);
 }
 
 if (!window.__vpResizeListenerBound) {
 	window.__vpResizeListenerBound = true;
 	window.addEventListener('resize', () => {
-		if (viewportConfigState.configBucket) vpFitIframeToWrapper();
+		// Both accordions' iframes exist simultaneously now (no shared "currently open"
+		// state to check), so refit whichever ones are actually present on resize.
+		Object.keys(VP_ACCORDION_PREFIX).forEach(bucket => {
+			const prefix = VP_ACCORDION_PREFIX[bucket];
+			if (document.getElementById(prefix + '-config-iframe')) vpFitIframeToWrapper(bucket);
+		});
 	});
 }
 
+
 function initViewportProfilesUI() {
 	const buckets = ['landscape', 'split50h'];
-	const tabBtns = {};
-	const panels = {};
-	buckets.forEach(b => {
-		tabBtns[b] = document.getElementById('viewport-tab-btn-' + b);
-		panels[b] = document.getElementById('viewport-panel-' + b);
-	});
-	viewportConfigState.activeTab = 'landscape';
 
-	function renderPreview() {
-		const screen = document.getElementById('viewport-preview-screen');
-		const headerEl = document.getElementById('viewport-preview-header');
-		const seqEl = document.getElementById('viewport-preview-seq');
-		const inputsEl = document.getElementById('viewport-preview-inputs');
-		if (!screen || !headerEl || !seqEl || !inputsEl) return;
-		const bucket = viewportConfigState.activeTab;
-		const profile = (appSettings.viewportProfiles && appSettings.viewportProfiles[bucket]) || { uiScale: 100, seqSize: 100 };
-		// Both remaining tabs (Landscape, Split Screen) are side-by-side, wide/short panes - sized
-		// off the same VP_BUCKET_RATIO used by the real Configure modal preview.
-		const baseLong = 220, baseShort = 124;
-		const ratio = VP_BUCKET_RATIO[bucket] || 1.0;
-		screen.style.width = Math.max(64, Math.round(baseLong * ratio)) + 'px';
-		screen.style.height = baseShort + 'px';
-		headerEl.innerHTML = '';
-		const dotCount = (bucket === 'split50h') ? 8 : 12;
-		for (let i = 0; i < dotCount; i++) {
-			const dot = document.createElement('div');
-			dot.style.cssText = 'width:6px;height:6px;border-radius:50%;background:#4b5563;flex-shrink:0;';
-			headerEl.appendChild(dot);
-		}
-		seqEl.innerHTML = '';
-		const seqScale = (profile.seqSize || 100) / 100;
-		const bubbleSize = Math.max(6, Math.round(10 * seqScale));
-		for (let i = 0; i < 5; i++) {
-			const bubble = document.createElement('div');
-			bubble.style.cssText = `width:${bubbleSize}px;height:${bubbleSize}px;border-radius:3px;background:#6366f1;flex-shrink:0;`;
-			seqEl.appendChild(bubble);
-		}
-		inputsEl.innerHTML = '';
-		const uiScale = (profile.uiScale || 100) / 100;
-		const btnW = Math.max(8, Math.round(14 * uiScale));
-		const btnH = Math.max(6, Math.round(8 * uiScale));
-		inputsEl.style.flexDirection = 'row';
-		for (let i = 0; i < 6; i++) {
-			const btn = document.createElement('div');
-			btn.style.cssText = `width:${btnW}px;height:${btnH}px;border-radius:2px;background:#1a1a1a;border:1px solid #444;flex-shrink:0;`;
-			inputsEl.appendChild(btn);
-		}
-	}
-
-	function switchTab(bucket) {
-		viewportConfigState.activeTab = bucket;
-		buckets.forEach(b => {
-			if (tabBtns[b]) tabBtns[b].classList.toggle('active', b === bucket);
-			if (panels[b]) panels[b].classList.toggle('hidden', b !== bucket);
-		});
-		renderPreview();
-	}
-	window.__vpSwitchTabDirect = switchTab;
-	buckets.forEach(b => {
-		if (tabBtns[b]) tabBtns[b].onclick = () => switchTab(b);
-	});
-
-	// The old inline per-tab UI Scale/Sequence Size/Alignment/PiP-Shows dropdowns (and their
-	// loadDropdowns()/onchange wiring, and the PiP machine-select populator) lived directly in
-	// each panel, above the Configure Viewport button. They've been removed - every real bucket
-	// setting now lives only in the Configure Viewport modal below, and PiP machine selection is
-	// fixed (not configurable) for these four buckets - see isPipRestrictedBucket().
-
-	const currentBucket = document.body.dataset.viewportBucket;
-	switchTab((currentBucket && buckets.includes(currentBucket)) ? currentBucket : 'landscape');
-
-	// Configure modal
-	const configModal = document.getElementById('viewport-config-modal');
-	const configDoneBtn = document.getElementById('viewport-config-done-btn');
-	const configureBtns = document.querySelectorAll('.viewport-configure-btn');
-
-	function renderConfigSettings() {
-		const settingsDiv = document.getElementById('viewport-config-settings');
-		if (!settingsDiv || !viewportConfigState.configBucket) return;
-		const bucket = viewportConfigState.configBucket;
+	// Every control commits the instant it changes (profile[key] = ...; then onCommit()),
+	// straight into appSettings.viewportProfiles[bucket] - no buffering, no Save button, no
+	// discard-on-close, matching how every other Settings control in this app already works.
+	function renderConfigSettings(bucket) {
+		const prefix = VP_ACCORDION_PREFIX[bucket];
+		const settingsDiv = document.getElementById(prefix + '-config-settings');
+		if (!settingsDiv) return;
 		const profile = appSettings.viewportProfiles[bucket];
 		settingsDiv.innerHTML = '';
 
-		// Every control below writes straight to appSettings.viewportProfiles[bucket] and commits
-		// immediately - saveState() + a live reapply on the real app + a push into the iframe
-		// preview, all in one go. Nothing here is buffered or discardable any more.
 		const commit = () => {
 			saveState();
 			if (typeof applyViewportProfile === 'function') applyViewportProfile();
-			renderPreview();
-			vpRenderConfigScreen();
+			vpRenderConfigScreen(bucket);
 		};
 
 		const sectionLabel = (text) => vpMakeSectionLabel(settingsDiv, text);
@@ -9166,10 +9171,6 @@ function initViewportProfilesUI() {
 		const createSelect = (label, key, options, defaultVal, isNumeric) =>
 			vpMakeSelect(settingsDiv, profile, commit, label, key, options, defaultVal, isNumeric);
 
-		// --- Sizing (all tabs) - dropdowns match the real General settings dropdowns exactly
-		// (same option lists, same values) rather than a slider covering the same range, per
-		// explicit request: sliders let you land between the real steps, which never matches
-		// what the actual General-tab dropdown could produce. ---
 		sectionLabel('Sizing');
 		createSelect('UI Scale', 'uiScale', vpPercentOptions(50, 500, 10), '100', true);
 		createSelect('Sequence Size', 'seqSize', vpPercentOptions(50, 300, 10), '100', true);
@@ -9181,10 +9182,6 @@ function initViewportProfilesUI() {
 			{ value: '12', text: '12 Cards' }, { value: '15', text: '15 Cards' }
 		], profile.rowMax || 'none', false);
 
-		// --- Text & Button Sizing (all tabs) - every bucket has its OWN independent value here,
-		// entirely separate from the matching General-tab global setting (landscape and each
-		// split bucket are meant to be configured on their own terms; changing General settings
-		// never moves these). No "inherit" option - there's always a real per-bucket value. ---
 		sectionLabel('Header, Number & Button Sizing');
 		createSelect('Header Size', 'headerScale', vpPercentOptions(70, 150, 10), '100', true);
 		createSelect('Number Size', 'numberSize', [
@@ -9200,10 +9197,6 @@ function initViewportProfilesUI() {
 			{ value: '100', text: 'Normal' }, { value: '125', text: 'Large' }, { value: '150', text: 'Huge' }
 		], '100', true);
 
-		// --- Header & Inputs Padding (all tabs) - the same two options as the UI tab's Header
-		// Padding / Inputs Padding, but this bucket's own independent copy. The UI tab's versions
-		// only ever apply to Portrait now (see getEffectiveHeaderPadding/getEffectiveInputsPadding) -
-		// every other bucket's padding lives here instead, completely separate from Portrait's. ---
 		sectionLabel('Header & Inputs Padding');
 		createSelect('Header Padding', 'headerPadding', [
 			{ value: '0', text: '0px' }, { value: '8', text: '8px' }, { value: '16', text: '16px' },
@@ -9215,13 +9208,6 @@ function initViewportProfilesUI() {
 			{ value: '60', text: '60px' }, { value: '70', text: '70px' }, { value: '80', text: '80px' }
 		], '0', true);
 
-		// --- Adjust Input Area (all tabs, including Landscape - this is the only way to get the
-		// correct/usable ratio in Landscape specifically; without it, the input strip falls back
-		// to a narrower auto-sizing that leaves buttons too cramped to reliably tap. Portrait has
-		// its own separate global-only version of this feature since it isn't part of
-		// viewportProfiles. Every bucket here always carries its own
-		// inputAreaEnabled/inputAreaPct (see DEFAULT_APP), so this never silently falls back to
-		// the global General/UI toggle. ---
 		sectionLabel('Adjust Input Area');
 		const inputAreaToggleWrap = document.createElement('label');
 		inputAreaToggleWrap.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 8px; margin-bottom: 10px; background: #222; border-radius: 4px; cursor: pointer;';
@@ -9245,9 +9231,6 @@ function initViewportProfilesUI() {
 		inputAreaNote.textContent = 'Also draggable live on the divider line itself in the preview above.';
 		settingsDiv.appendChild(inputAreaNote);
 
-		// --- Picture-in-Picture (Split Screen only) - fixed behavior, not configurable: Machine 1
-		// always goes in the popup, Machines 2-4 stay in the regular sequence area. Nothing to
-		// pick here any more, just an explanation. ---
 		if (bucket === 'split50h') {
 			sectionLabel('Picture-in-Picture');
 			const note = document.createElement('p');
@@ -9257,74 +9240,41 @@ function initViewportProfilesUI() {
 		}
 	}
 
-	function openConfigModal(bucket) {
-		viewportConfigState.configBucket = bucket;
-		const titleEl = document.getElementById('viewport-config-title');
-		if (titleEl) {
-			const bucketLabels = { landscape: 'Landscape', split50h: 'Split Screen' };
-			titleEl.textContent = 'Configure ' + (bucketLabels[bucket] || bucket);
-		}
-		renderConfigSettings();
-		if (configModal) {
-			configModal.classList.remove('opacity-0', 'pointer-events-none');
-			configModal.style.opacity = '1';
-			configModal.style.pointerEvents = 'auto';
-		}
-		vpLoadPreviewIframe(bucket);
-	}
-	window.__vpOpenConfigModalDirect = openConfigModal;
-
-	// Every control commits the instant it changes (see renderConfigSettings' commit()), so
-	// closing this modal - by any route - never discards anything. No confirm dialog needed.
-	function closeConfigModal() {
-		if (configModal) {
-			configModal.classList.add('opacity-0', 'pointer-events-none');
-			configModal.style.opacity = '0';
-			configModal.style.pointerEvents = 'none';
-		}
-		const iframe = document.getElementById('viewport-config-iframe');
-		if (iframe) iframe.src = 'about:blank';
-		viewportConfigState.configBucket = null;
-	}
-	window.__vpCloseConfigModalDirect = closeConfigModal;
-
-	if (configDoneBtn) configDoneBtn.onclick = closeConfigModal;
-
-	configureBtns.forEach(btn => {
-		if (!btn) return;
-		btn.onclick = () => {
-			const bucket = btn.dataset.bucket;
-			if (bucket && configModal) openConfigModal(bucket);
-		};
+	// Each accordion's iframe only loads once it's actually opened - two permanently-live
+	// iframes running the full app a second time, all the time, whether or not either
+	// accordion is even expanded, would be wasteful for no benefit (nobody can see a preview
+	// inside a collapsed accordion anyway). <details>'s native toggle event covers open AND
+	// close, generic across both accordions.
+	const accordionConfig = [
+		{ bucket: 'landscape', accordionId: 'landscape-accordion' },
+		{ bucket: 'split50h', accordionId: 'split-accordion' }
+	];
+	accordionConfig.forEach(({ bucket, accordionId }) => {
+		const accordion = document.getElementById(accordionId);
+		if (!accordion || accordion.dataset.vpToggleBound) return;
+		accordion.dataset.vpToggleBound = '1';
+		let loaded = false;
+		accordion.addEventListener('toggle', () => {
+			if (accordion.open && !loaded) {
+				loaded = true;
+				renderConfigSettings(bucket);
+				vpLoadPreviewIframe(bucket);
+			} else if (accordion.open && loaded) {
+				// Re-opened after already having been loaded once this Settings session -
+				// refit/refresh in case the viewport itself changed size in the meantime.
+				vpRenderConfigScreen(bucket);
+			} else if (!accordion.open) {
+				const iframe = document.getElementById(VP_ACCORDION_PREFIX[bucket] + '-config-iframe');
+				if (iframe) iframe.src = 'about:blank';
+				loaded = false;
+			}
+		});
 	});
 }
 
 // --- (Historical note: there used to be a separate compact "mini" modal for split50v/split33 -
 // it was removed in favor of routing straight to the accordion tab for the current bucket, back
 // when there were still five buckets to route between.)
-
-function openOrientationSettings() {
-	const bucket = document.body.dataset.viewportBucket;
-	if (modules.settings) modules.settings.openSettings();
-	// Landscape and Split Screen both get the same treatment: open regular Settings, jump
-	// straight to the Landscape and Split Screen accordion on the UI tab, and select the tab
-	// matching wherever you actually are - no separate special modal, no first-time popup.
-	if (bucket !== 'landscape' && bucket !== 'split50h') return;
-	setTimeout(() => {
-		const uiTabBtn = document.querySelector('[data-tab="ui"]');
-		if (uiTabBtn) uiTabBtn.click();
-		const accordion = document.getElementById('viewport-accordion');
-		if (accordion) accordion.open = true;
-		if (typeof initViewportProfilesUI === 'function') initViewportProfilesUI();
-		const switchFn = window.__vpSwitchTabDirect;
-		if (typeof switchFn === 'function') switchFn(bucket);
-		const accordionEl = document.getElementById('viewport-accordion');
-		if (accordionEl && accordionEl.scrollIntoView) {
-			accordionEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-		}
-	}, 50);
-}
-window.openOrientationSettings = openOrientationSettings;
 
 // The actual, reliable cleanup sequence for Nuke - every step genuinely awaited in order, each
 // wrapped in its own try/catch so one failure (e.g. no service worker registered) doesn't skip

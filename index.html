@@ -77,8 +77,8 @@ alert("Promise Error: " + event.reason);
 </div>
 </header>
 <div id="game-setup-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
-<div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
-<div class="flex items-center justify-between gap-2 flex-wrap border-b border-custom pb-3 mb-4 relative">
+<div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom overflow-hidden" style="max-height: calc(100vh - 2rem);">
+<div class="flex items-center justify-between gap-2 flex-wrap border-b border-custom pb-3 mb-4 relative shrink-0">
 <div class="flex items-center gap-2">
 <span class="text-xs font-bold text-muted-custom uppercase tracking-wide">UI</span>
 <button id="quick-resize-down" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">-</button>
@@ -90,11 +90,11 @@ alert("Promise Error: " + event.reason);
 <span class="text-xs font-bold text-muted-custom uppercase tracking-wide">Cards</span>
 </div>
 </div>
-<div class="mb-5">
+<div class="mb-5 shrink-0">
 <div id="welcome-sample-sequence" class="flex flex-wrap gap-2 justify-center p-3 rounded-lg bg-[var(--card-bg)] border border-custom min-h-[64px] items-center"></div>
 <p class="text-[10px] text-center text-muted-custom mt-1.5">Adjust UI and Cards above until 5 numbers fit neatly on one row</p>
 </div>
-<div class="overflow-y-auto py-2 px-1">
+<div class="overflow-y-auto flex-grow py-2 px-1">
 <div class="grid grid-cols-2 gap-4 mb-1">
 <div>
 <label class="block text-sm font-semibold mb-2 text-muted-custom">Select Profile</label>
@@ -136,7 +136,7 @@ alert("Promise Error: " + event.reason);
 <button id="quick-open-settings" class="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-bold transition">Settings</button>
 </div>
 </div>
-<div class="flex justify-between items-center pt-4 border-t border-custom mt-2">
+<div class="flex justify-between items-center pt-4 border-t border-custom mt-2 shrink-0">
 <label class="flex items-center text-sm text-muted-custom">
 <input type="checkbox" id="dont-introToggle" class="mr-2 rounded">
 <span>Don't show again</span>
@@ -581,32 +581,36 @@ alert("Promise Error: " + event.reason);
 </div>
 </div>
 </div>
-<details id="viewport-accordion" class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+<details id="landscape-accordion" class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
 <summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
-<span>Landscape and Split Screen 📐</span>
+<span>Landscape 📐</span>
 <span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
 </summary>
 <div class="p-3 border-t border-gray-700">
-<p class="text-[10px] text-gray-400 mb-3">Landscape switches automatically when you physically rotate the device. Split Screen is a separate, deliberate mode - turn on its header button (General tab) whenever you're actually in a split-screen or multi-window arrangement, and tap it off again when you're not.</p>
-<div class="flex border-b border-gray-700 mb-3">
-<button type="button" id="viewport-tab-btn-landscape" class="viewport-tab-btn active">Landscape</button>
-<button type="button" id="viewport-tab-btn-split50h" class="viewport-tab-btn">Split Screen</button>
-</div>
-<div class="p-3 rounded-lg bg-gray-950 border border-gray-700 mb-3 flex items-center justify-center" style="min-height: 140px;">
-<div id="viewport-preview-screen" class="relative bg-black rounded border border-gray-600 overflow-hidden" style="width: 220px; height: 124px;">
-<div id="viewport-preview-header" class="absolute top-0 left-0 right-0 flex items-center gap-1 px-1" style="height: 14px;"></div>
-<div id="viewport-preview-seq" class="absolute flex flex-wrap items-center justify-center gap-1 content-center" style="top: 16px; left: 4px; right: 4px; bottom: 34px;"></div>
-<div id="viewport-preview-inputs" class="absolute bottom-1 left-1 right-1 flex flex-wrap gap-1 justify-center"></div>
+<p class="text-[10px] text-gray-400 mb-3">Full-width landscape orientation - device physically rotated sideways, no split-screen involved. Switches automatically when you physically rotate the device. Every control below saves the instant you change it.</p>
+<div id="landscape-config-frame-wrap" style="width: 100%; max-width: 500px; border: 2px solid #666; border-radius: 8px; overflow: hidden; margin-bottom: 8px; background: #000; position: relative;">
+<div id="landscape-config-frame-scaler" style="transform-origin: top left; position: relative;">
+<iframe id="landscape-config-iframe" style="border: none; display: block; background: #000;" title="Live Landscape preview"></iframe>
 </div>
 </div>
-<div id="viewport-panel-landscape" class="viewport-panel">
-<p class="text-[10px] text-gray-400 mb-3">Full-width landscape orientation - device physically rotated sideways, no split-screen involved.</p>
-<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="landscape">⚙️ Configure Viewport</button>
+<span id="landscape-config-dims" style="color: #888; font-size: 10px; font-family: monospace; display: block; margin-bottom: 8px;"></span>
+<div id="landscape-config-settings"></div>
 </div>
-<div id="viewport-panel-split50h" class="viewport-panel hidden">
-<p class="text-[10px] text-gray-400 mb-3">Applies the instant you tap the 🖥️ Split Screen header button (General tab toggle to show it) - not auto-detected, since split-screen ratios turned out too unreliable to guess automatically. Picture-in-Picture at this size shows Machine 1's sequence only; Machines 2-4 use the regular sequence area.</p>
-<button type="button" class="viewport-configure-btn w-full py-2 text-xs font-bold bg-indigo-700 hover:bg-indigo-600 rounded-lg text-white transition" data-bucket="split50h">⚙️ Configure Viewport</button>
+</details>
+<details id="split-accordion" class="group rounded-lg border border-custom bg-black bg-opacity-30 open:bg-opacity-50">
+<summary class="cursor-pointer p-3 font-bold select-none flex justify-between items-center text-primary-app">
+<span>Split Screen 🖥️</span>
+<span class="group-open:rotate-180 transition-transform text-gray-500">▼</span>
+</summary>
+<div class="p-3 border-t border-gray-700">
+<p class="text-[10px] text-gray-400 mb-3">Applies the instant you tap the 🖥️ Split Screen header button (General tab toggle to show it) - not auto-detected, since split-screen ratios turned out too unreliable to guess automatically. Picture-in-Picture at this size shows Machine 1's sequence only; Machines 2-4 use the regular sequence area. Every control below saves the instant you change it.</p>
+<div id="split-config-frame-wrap" style="width: 100%; max-width: 500px; border: 2px solid #666; border-radius: 8px; overflow: hidden; margin-bottom: 8px; background: #000; position: relative;">
+<div id="split-config-frame-scaler" style="transform-origin: top left; position: relative;">
+<iframe id="split-config-iframe" style="border: none; display: block; background: #000;" title="Live Split Screen preview"></iframe>
 </div>
+</div>
+<span id="split-config-dims" style="color: #888; font-size: 10px; font-family: monospace; display: block; margin-bottom: 8px;"></span>
+<div id="split-config-settings"></div>
 </div>
 </details>
 </div>
@@ -1460,24 +1464,18 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 </div>
 <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
-<h4 class="font-bold text-sm mb-2 text-primary-app">Export / Import 📤</h4>
-<p class="text-[10px] text-gray-400 mb-2">For sharing your setup with another device or another person - export a code, send it, and they paste it in and tap Import.</p>
-<div class="grid grid-cols-2 gap-2 mb-2">
-<button id="hex-export-btn" type="button" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">Export Backup Code</button>
-<button id="hex-copy-btn" type="button" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">Copy</button>
-</div>
-<textarea id="hex-output" class="w-full h-20 bg-gray-950 border border-gray-600 rounded p-2 text-[10px] font-mono text-green-400 resize-none mb-2" placeholder="Paste a backup code here to import, or export above..."></textarea>
-<div class="grid grid-cols-2 gap-2">
-<button id="hex-paste-btn" type="button" class="py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">Paste</button>
-<button id="hex-import-btn" type="button" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">Import</button>
-</div>
+<h4 class="font-bold text-sm mb-2 text-primary-app">Share Your Setup 📤</h4>
+<p class="text-[10px] text-gray-400 mb-2">Export copies a code to your clipboard - send it to another device or person. They paste it below and tap Import.</p>
+<button id="hex-export-btn" type="button" class="w-full py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold mb-2">Export &amp; Copy Backup Code</button>
+<textarea id="hex-output" readonly class="w-full h-16 bg-gray-950 border border-gray-600 rounded p-2 text-[10px] font-mono text-green-400 resize-none mb-3" placeholder="Tap Export above to generate your code..."></textarea>
+<textarea id="hex-import-input" class="w-full h-16 bg-gray-950 border border-gray-600 rounded p-2 text-[10px] font-mono text-green-400 resize-none mb-2" placeholder="Paste someone else's backup code here..."></textarea>
+<button id="hex-import-btn" type="button" class="w-full py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">Import</button>
 </div>
 <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
 <h4 class="font-bold text-sm mb-2 text-primary-app">Settings Presets 🎯</h4>
-<p class="text-[10px] text-gray-400 mb-2">Pick a preset, copy its code below, then paste it into the Export/Import box above and tap Import.</p>
+<p class="text-[10px] text-gray-400 mb-2">Pick a preset and load it - replaces every current setting instantly.</p>
 <select id="preset-select" class="w-full p-2 mb-2 bg-gray-800 border border-gray-600 rounded text-white text-xs"></select>
-<textarea id="preset-output" readonly class="w-full h-20 bg-gray-950 border border-gray-600 rounded p-2 text-[10px] font-mono text-green-400 resize-none mb-2"></textarea>
-<button id="preset-copy-btn" type="button" class="w-full py-2 text-xs bg-gray-600 hover:bg-gray-500 rounded text-white font-bold">Copy</button>
+<button id="preset-load-btn" type="button" class="w-full py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">Load Preset</button>
 </div>
 </div>
 </details>
@@ -1622,11 +1620,11 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 <div class="space-y-3">
 <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Settings Presets 🎯</strong>
-<p class="text-xs opacity-90">Settings → Advanced → Settings Presets, right below Backup / Restore, has a dropdown of ready-made configurations. Pick one, tap Copy, then paste that code into the Backup / Restore box above it and tap Import to apply it.</p>
+<p class="text-xs opacity-90">Settings → Advanced → Settings Presets, right below Backup / Restore, has a dropdown of ready-made configurations. Pick one and tap Load to apply it immediately.</p>
 </div>
 <div class="space-y-3">
 <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Lock Settings 🔒</strong>
-<p class="text-xs opacity-90">The welcome screen (and the lock icon inside Settings) both toggle the same Settings Lock - turn it on to stop someone else from changing your setup mid-game. Either one unlocks it again just as easily.</p>
+<p class="text-xs opacity-90">A checkbox on the welcome screen - turn it on to stop someone else from changing your setup mid-game. The 🏠 icon inside Settings takes you back to the welcome screen to turn it off again (Settings itself has no separate lock control any more - the welcome screen is the only place this lives).</p>
 </div>
 </div>
 <div id="tab-help-buttons" class="tab-content space-y-4">
@@ -1655,6 +1653,8 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📤</span> <strong>Share:</strong> Quick access to sharing the app.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🎨</span> <strong>Theme Cycle:</strong> Step through every saved theme, one tap at a time.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">➕</span> <strong>Add Machine:</strong> Add another independent sequence (Simon mode), up to 4.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📐</span> <strong>Auto Fit:</strong> One tap sizes the sequence cards to the largest they can be while still fitting Row Max cards on a single row, in whichever view (Portrait, Landscape, Split Screen) you're actually in. Long-press to hide this button (turns its Settings toggle off).</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔬</span> <strong>Zoom:</strong> One tap maximizes input button size, input font size, and sequence number size all at once, fit to whatever space is actually available right now. Long-press to hide this button (turns its Settings toggle off).</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔍±</span> <strong>UI Size:</strong> Two buttons that grow/shrink the whole interface.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔢±</span> <strong>Sequence Size:</strong> Two buttons that grow/shrink just the number cards.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔊±</span> <strong>Volume:</strong> Two buttons that raise/lower the text-to-speech volume, same value the twist-gesture and voice "louder"/"quieter" commands adjust.</li>
@@ -1725,6 +1725,8 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div><strong>Random Theme 🎲:</strong> Picks a random built-in or custom theme each time the app opens.</div>
 <div><strong>Boss Mode 🌑:</strong> Shake to black out screen.</div>
 <div><strong>BM Gestures:</strong> Automatic when Touch Gesture and Boss Mode are both on - no separate toggle needed.</div>
+<div><strong>Auto Fit 📐:</strong> The Settings toggle only shows or hides its header button - tap that header button to size the sequence cards to the largest that still fits Row Max cards on one row, wherever you currently are (Portrait, Landscape, or Split Screen). Long-press the header button to hide it again (turns this toggle off) without coming back to Settings.</div>
+<div><strong>Zoom 🔬:</strong> The Settings toggle only shows or hides its header button - tap that header button to maximize input button size, input font size, and sequence number size together, fit to whatever space is actually available right now. Long-press the header button to hide it again (turns this toggle off) without coming back to Settings.</div>
 <div><strong>Wake Lock 💡:</strong> Prevents screen sleeping.</div>
 <div><strong>Do Not Disturb 🔕:</strong> Silences every interruption the app makes - toast popups, all vibration/haptics (including morse buzzes), and spoken audio. The Settings toggle only shows or hides its header button (🔕), right next to Full Screen - tap that header button to actually turn Do Not Disturb on and off. Off by default. Doesn't touch your phone's own system Do Not Disturb, which no web app can control.</div>
 <div><strong>Picture in Picture 🪟:</strong> Opens a small always-on-top window showing your current sequence, so you can read it while using another app. View-only - you can't tap the sequence in the floating window. The Settings toggle only shows or hides its header button (🪟), placed last in the row - tap that header button to actually open or close Picture in Picture. While Split Screen is active specifically, this is fixed rather than configurable: the popup always shows Machine 1's sequence, and Machines 2-4 (if active) show in the regular sequence area instead. In Landscape and Portrait it shows whatever's on screen as normal.</div>
@@ -1735,7 +1737,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div><strong>Eco Mode 🔋:</strong> Master on/off. What it actually does is fully configurable in its own accordion further down in General Settings - theme switching, wake lock limits, ambient light sensor, camera/mic quality, haptics strength, volume, and a real on-screen dim are all independently adjustable there, and every one of them genuinely does something (nothing in that section is just a label).</div>
 <div><strong>Position Swap 🔄:</strong> Adds a header button that moves the input pad from the bottom of the screen to the top.</div>
 <div><strong>Split Screen 🖥️:</strong> Adds a header button that turns Split Screen's own settings on or off (see the Landscape and Split Screen section further down) - a deliberate switch instead of trying to auto-detect a split percentage.</div>
-<div><strong>Adjust Input Area ↔️ (Portrait):</strong> Turns on a draggable divider between the sequence area and the keypad in Portrait view specifically - drag the handle on the divider line itself to resize live. Landscape and every split-screen size have their own completely independent version of this inside their ⚙️ Configure Viewport modal - this toggle never affects any of them.</div>
+<div><strong>Adjust Input Area ↔️ (Portrait):</strong> Turns on a draggable divider between the sequence area and the keypad in Portrait view specifically - drag the handle on the divider line itself to resize live. Landscape and Split Screen each have their own completely independent version of this inside their own accordion on the UI tab - this toggle never affects either of them.</div>
 <div><strong>Bigger Buttons:</strong> Hides menus and makes each key perfectly square (as tall as it is wide) instead of a fixed height.</div>
 <div><strong>Touch Gesture:</strong> Shows the transparent touch gesture pad (taps/swipes drawn anywhere on screen).</div>
 <div><strong>Hand Gestures 🖐️:</strong> Master switch for the rear-camera hand tracking engine. Required for both per-key hand mapping and Hand Signals below.</div>
@@ -1761,11 +1763,10 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <span class="group-open:rotate-180 transition-transform">▼</span>
 </summary>
 <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
-<p>Its own accordion at the bottom of the <strong>UI</strong> tab in Settings, with two tabs - <strong>Landscape</strong> and <strong>Split Screen</strong>. Landscape switches automatically when you physically rotate the device, same as it always has. Split Screen doesn't auto-detect - it turns on when you tap its header button (General tab toggle to show it) and off again when you tap it a second time.</p>
-<p><strong>🖥️ Split Screen button:</strong> Trying to automatically guess a real split-screen percentage (33%/50%/66%) turned out to be unreliable across browsers and devices - it depended on knowing the true screen size, which isn't always reported consistently. Rather than keep guessing, Split Screen is now a deliberate, explicit switch: turn it on whenever you're actually in a split-screen or multi-window arrangement, and its own settings apply immediately - independent from both Portrait's and Landscape's. Turn it off to go back to normal.</p>
-<p><strong>⚙️ Configure Viewport:</strong> Every real per-tab setting - UI Scale, Sequence Size, Row Max, Header/Number/Input Font/Button Size, Header Padding, Inputs Padding, Adjust Input Area, and Alignment (Split Screen only) - lives inside this button's modal, alongside a live preview of the real app so you can see exactly what a change looks like. Completely independent per tab - nothing here is shared with Portrait's own settings on the UI tab, or with the other tab. Every change here saves and applies the instant you make it - there's no separate Save step and nothing to lose by closing the modal.</p>
+<p>Two separate accordions near the bottom of the <strong>UI</strong> tab in Settings - <strong>Landscape</strong> and <strong>Split Screen</strong>. Landscape switches automatically when you physically rotate the device, same as it always has. Split Screen doesn't auto-detect - it turns on when you tap its header button (General tab toggle to show it) and off again when you tap it a second time.</p>
+<p><strong>🖥️ Split Screen button:</strong> Trying to automatically guess a real split-screen percentage turned out to be unreliable across browsers and devices - it depended on knowing the true screen size, which isn't always reported consistently. Rather than keep guessing, Split Screen is a deliberate, explicit switch: turn it on whenever you're actually in a split-screen or multi-window arrangement, and its own settings apply immediately - independent from both Portrait's and Landscape's. Turn it off to go back to normal.</p>
+<p>Every real setting - UI Scale, Sequence Size, Row Max, Header/Number/Input Font/Button Size, Header Padding, Inputs Padding, and Adjust Input Area - lives directly inside its accordion now, alongside a live preview of the real app so you can see exactly what a change looks like. Completely independent per accordion - nothing here is shared with Portrait's own settings on the UI tab, or with the other accordion. Every change saves and applies the instant you make it - there's no separate Save step and nothing to lose by closing the accordion.</p>
 <p><strong>Picture-in-Picture:</strong> Fixed, not configurable, while Split Screen is active - the popup always shows Machine 1's sequence, Machines 2-4 use the regular sequence area.</p>
-<p class="opacity-70">The gear icon in the header jumps straight to whichever tab matches what's currently active.</p>
 </div>
 </details>
 <details class="group bg-white/5 rounded-lg border border-gray-700 open:bg-white/10 transition-colors">
@@ -1790,7 +1791,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <span class="group-open:rotate-180 transition-transform">▼</span>
 </summary>
 <div class="p-3 text-xs opacity-90 space-y-3 border-t border-gray-700 mt-2 pt-2">
-<p>Theme and Font apply everywhere, same as always. Every sizing/layout dropdown below them, though, is Portrait's own setting specifically - Landscape and every split-screen size have their own completely independent copies inside their ⚙️ Configure Viewport modal (Landscape/Split Screen accordion, bottom of this tab), including Header Padding and Inputs Padding.</p>
+<p>Theme and Font apply everywhere, same as always. Every sizing/layout dropdown below them, though, is Portrait's own setting specifically - Landscape and Split Screen each have their own completely independent copies inside their own accordion (bottom of this tab), including Header Padding and Inputs Padding.</p>
 <p><strong>Theme 🎨:</strong> Pick a color scheme or open the Editor to create your own.</p>
 <p><strong>Font 🔤:</strong> Swaps the app's typeface.</p>
 <p><strong>Sequence Size:</strong> Scales the individual cards showing the remembered numbers, from 50% up to 300%.</p>
@@ -1832,8 +1833,8 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <p><strong>Voice Settings 🗣️:</strong> Text-to-speech voice, Pitch/Speed/Volume, and saved voice profiles - moved here from General.</p>
 <p><strong>Sensitivity 🎛️:</strong> Every timing/distance threshold the Touch, Hand, Voice, and Tone Cadence engines use, grouped by input method - each slider explains itself underneath. "Restore Defaults" resets all of them at once (locks out while sliders are locked).</p>
 <p><strong>Populate Hand/Touch Gesture Menus:</strong> Two separate filter groups. Hand controls which pose/motion categories (Static Poses, Pinches, Finger Counts, Combos, Advanced Vision Shapes, Directional Swipes, Motion Transitions) show up in the Hand tab's dropdowns; Touch controls which touch categories (Taps, Swipes, Boomerangs, Chords, etc.) show up in the Touch tab's dropdowns.</p>
-<p><strong>Backup / Restore 💾:</strong> Export your entire configuration (including custom presets and profiles) as a short text code, and paste one back in to restore it.</p>
-<p><strong>Settings Presets 🎯:</strong> A dropdown of ready-made configurations, right below Backup / Restore. Pick one and tap Copy, then paste the code into the Backup / Restore box above and tap Import to actually apply it - the preset box itself only ever shows you the code, it doesn't apply anything on its own.</p>
+<p><strong>Backup / Restore 💾:</strong> Export your entire configuration (including custom presets and profiles) as a short text code - Export copies it to your clipboard right away - and paste one back into the Import box to restore it.</p>
+<p><strong>Settings Presets 🎯:</strong> A dropdown of ready-made configurations, right below Backup / Restore. Pick one and tap Load to apply it immediately - no copying or pasting needed.</p>
 </div>
 </details>
 </div>
@@ -2017,23 +2018,6 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <button id="close-help-btn-bottom" class="px-6 py-2 bg-primary-app text-white rounded-lg font-bold hover:bg-secondary-app transition shadow-lg">Close Manual</button>
 </div>
 </div>
-</div>
-<div id="viewport-config-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000000; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 300ms; overflow-y: auto;" class="opacity-0 pointer-events-none">
-<div class="w-full flex flex-col items-center p-4" style="min-height: 100%;">
-<div style="display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 500px; margin-bottom: 8px;">
-<h3 style="color: #fff; font-weight: bold; font-size: 14px;" id="viewport-config-title">Configure Landscape</h3>
-<span id="viewport-config-dims" style="color: #888; font-size: 10px; font-family: monospace;"></span>
-</div>
-<div id="viewport-config-frame-wrap" style="width: 100%; max-width: 500px; border: 2px solid #666; border-radius: 8px; overflow: hidden; margin-bottom: 8px; background: #000; position: relative;">
-<div id="viewport-config-frame-scaler" style="transform-origin: top left; position: relative;">
-<iframe id="viewport-config-iframe" style="border: none; display: block; background: #000;" title="Live viewport preview"></iframe>
-</div>
-</div>
-<p style="color: #666; font-size: 10px; margin: 0 0 16px; text-align: center;">This is the actual app, live - tap and scroll it like normal. Every change below saves and applies instantly.</p>
-<div style="background: #1a1a1a; border: 1px solid #666; border-radius: 8px; padding: 16px; width: 100%; max-width: 500px; margin-bottom: 20px;">
-<div id="viewport-config-settings"></div>
-<div style="display: flex; gap: 8px; margin-top: 16px;">
-<button id="viewport-config-done-btn" type="button" style="flex: 1; padding: 10px; background: #4f46e5; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;">Done</button>
 </div>
 </div>
 </div>

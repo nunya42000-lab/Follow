@@ -60,6 +60,8 @@ alert("Promise Error: " + event.reason);
 <button id="headersharebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Share">📤</button>
 <button id="headerthemecyclebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Cycle Theme">🎨</button>
 <button id="headeraddmachinebtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Add Machine">➕</button>
+<button id="headerautofitbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Auto Fit Sequence">📐</button>
+<button id="headerzoombtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Zoom">🔬</button>
 <button id="headeruiupbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="UI Size Up">🔍+</button>
 <button id="headeruidownbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="UI Size Down">🔍-</button>
 <button id="headersequpbtn" class="hidden w-12 h-12 rounded-full bg-gray-800 border border-gray-600 text-white font-bold flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Sequence Size Up">🔢+</button>
@@ -76,13 +78,12 @@ alert("Promise Error: " + event.reason);
 </header>
 <div id="game-setup-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
 <div class="settings-modal-bg p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 flex flex-col relative border border-custom">
-<div class="flex items-center justify-center gap-2 flex-wrap border-b border-custom pb-3 mb-4 relative">
+<div class="flex items-center justify-between gap-2 flex-wrap border-b border-custom pb-3 mb-4 relative">
 <div class="flex items-center gap-2">
 <span class="text-xs font-bold text-muted-custom uppercase tracking-wide">UI</span>
 <button id="quick-resize-down" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">-</button>
 <button id="quick-resize-up" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">+</button>
 </div>
-<button id="welcome-autofit-btn" class="px-2 py-2 rounded-lg text-xs font-bold bg-indigo-700 hover:bg-indigo-600 text-white transition shadow border border-indigo-500 whitespace-nowrap" title="Automatically scale the sequence cards to fit exactly Row Max per row">Auto-Fit</button>
 <div class="flex items-center gap-2">
 <button id="quick-cardsize-down" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">-</button>
 <button id="quick-cardsize-up" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">+</button>
@@ -115,6 +116,14 @@ alert("Promise Error: " + event.reason);
 <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
 <label class="font-semibold">Audio</label>
 <input type="checkbox" id="quick-audio-toggle" class="h-6 w-6 rounded accent-indigo-500">
+</div>
+<div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
+<label class="font-semibold">Auto Fit 📐</label>
+<input type="checkbox" id="quick-autofit-toggle" class="h-6 w-6 rounded accent-indigo-500">
+</div>
+<div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
+<label class="font-semibold">Zoom 🔬</label>
+<input type="checkbox" id="quick-zoom-toggle" class="h-6 w-6 rounded accent-indigo-500">
 </div>
 <div class="flex items-center justify-between settings-input p-3 rounded-lg border border-custom">
 <label class="font-semibold">Lock Settings 🔒</label>
@@ -629,6 +638,12 @@ alert("Promise Error: " + event.reason);
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">Boss Mode 🌑</span>
 <input type="checkbox" id="bossToggle" class="h-5 w-5 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Auto Fit 📐</span>
+<input type="checkbox" id="headerAutoFitToggle" class="h-6 w-6 accent-indigo-500"></div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
+<span class="font-bold text-sm">Zoom 🔬</span>
+<input type="checkbox" id="headerZoomToggle" class="h-6 w-6 accent-indigo-500"></div>
 <div class="flex items-center justify-between p-3 rounded-lg border border-custom settings-input">
 <span class="font-bold text-sm">UI Size 🔍±</span>
 <input type="checkbox" id="headerUiSizeToggle" class="h-6 w-6 accent-indigo-500"></div>

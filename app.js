@@ -465,7 +465,7 @@ const DEFAULT_HEADER_BTN_ORDER = [
     'headerportraitlockbtn', 'headerlandscapelockbtn', 'headerswapbtn', 'headerplaybtn',
     'headerdeletebtn', 'headerundobtn', 'headersettingsbtn', 'headerhelpbtn',
     'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn',
-    'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn',
+    'headerthemecyclebtn', 'headeraddmachinebtn', 'headerautofitbtn', 'headerzoombtn', 'headeruiupbtn',
     'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn',
     'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn',
     'headerspeeddownbtn', 'headercycleinputbtn',
@@ -641,6 +641,8 @@ const DEFAULT_APP = {
 	showHeaderShareBtn: false,
 	showHeaderThemeCycleBtn: false,
 	showHeaderAddMachineBtn: false,
+	showHeaderAutoFitBtn: false,
+	showHeaderZoomBtn: false,
 	showHeaderUiSizeBtns: false,
 	showHeaderSeqSizeBtns: false,
 	showHeaderVolumeBtns: false,
@@ -766,13 +768,13 @@ const DEFAULT_APP = {
     'headerportraitlockbtn', 'headerlandscapelockbtn', 'headerswapbtn', 'headerplaybtn',
     'headerdeletebtn', 'headerundobtn', 'headersettingsbtn', 'headerhelpbtn',
     'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn',
-    'headerthemecyclebtn', 'headeraddmachinebtn', 'headeruiupbtn',
+    'headerthemecyclebtn', 'headeraddmachinebtn', 'headerautofitbtn', 'headerzoombtn', 'headeruiupbtn',
     'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn',
     'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn',
     'headerspeeddownbtn', 'headercycleinputbtn',
     'headernotepadbtn', 'headerpipbtn'
 	],
-	generalToggleOrder: ['autoBrightToggle', 'autoDarkToggle', 'randomThemeToggle', 'headerThemeCycleToggle','headerCycleInputToggle', 'headerModeSwitchToggle','headerAddMachineToggle', 'bossToggle','headerUiSizeToggle', 'headerSeqSizeToggle','headerVolumeToggle', 'headerSpeedToggle','autoHideHeaderToggle', 'headerInfiniteScrollToggle','flickHeaderToggle', 'restoreHeaderToggle','headerPlayToggle', 'headerDeleteToggle', 
+	generalToggleOrder: ['autoBrightToggle', 'autoDarkToggle', 'randomThemeToggle', 'headerThemeCycleToggle','headerCycleInputToggle', 'headerModeSwitchToggle','headerAddMachineToggle', 'bossToggle','headerAutoFitToggle', 'headerZoomToggle','headerUiSizeToggle', 'headerSeqSizeToggle','headerVolumeToggle', 'headerSpeedToggle','autoHideHeaderToggle', 'headerInfiniteScrollToggle','flickHeaderToggle', 'restoreHeaderToggle','headerPlayToggle', 'headerDeleteToggle', 
 'headerSettingsToggle', 'headerHelpToggle', 
 'headerRedeemToggle', 'headerShareToggle',
 'hideIntroToggle', 'headerUndoToggle',
@@ -1962,7 +1964,7 @@ class SettingsManager {
 			bossToggle: document.getElementById('bossToggle'),
 			biggerToggle: document.getElementById('biggerToggle'),
 			timerToggle: document.getElementById('timerToggle'),
-			headerPlayToggle: document.getElementById('headerPlayToggle'), headerDeleteToggle: document.getElementById('headerDeleteToggle'), headerSettingsToggle: document.getElementById('headerSettingsToggle'), headerRedeemToggle: document.getElementById('headerRedeemToggle'), headerShareToggle: document.getElementById('headerShareToggle'), headerThemeCycleToggle: document.getElementById('headerThemeCycleToggle'), headerAddMachineToggle: document.getElementById('headerAddMachineToggle'), headerUiSizeToggle: document.getElementById('headerUiSizeToggle'), headerSeqSizeToggle: document.getElementById('headerSeqSizeToggle'), headerVolumeToggle: document.getElementById('headerVolumeToggle'), headerSpeedToggle: document.getElementById('headerSpeedToggle'), headerCycleInputToggle: document.getElementById('headerCycleInputToggle'),
+			headerPlayToggle: document.getElementById('headerPlayToggle'), headerDeleteToggle: document.getElementById('headerDeleteToggle'), headerSettingsToggle: document.getElementById('headerSettingsToggle'), headerRedeemToggle: document.getElementById('headerRedeemToggle'), headerShareToggle: document.getElementById('headerShareToggle'), headerThemeCycleToggle: document.getElementById('headerThemeCycleToggle'), headerAddMachineToggle: document.getElementById('headerAddMachineToggle'), headerAutoFitToggle: document.getElementById('headerAutoFitToggle'), headerZoomToggle: document.getElementById('headerZoomToggle'), headerUiSizeToggle: document.getElementById('headerUiSizeToggle'), headerSeqSizeToggle: document.getElementById('headerSeqSizeToggle'), headerVolumeToggle: document.getElementById('headerVolumeToggle'), headerSpeedToggle: document.getElementById('headerSpeedToggle'), headerCycleInputToggle: document.getElementById('headerCycleInputToggle'),
 			headerNotepadToggle: document.getElementById('headerNotepadToggle'), headerHelpToggle: document.getElementById('headerHelpToggle'), headerModeSwitchToggle: document.getElementById('headerModeSwitchToggle'), headerInfiniteScrollToggle: document.getElementById('headerInfiniteScrollToggle'), inputRegulatorToggle: document.getElementById('inputRegulatorToggle'),
 			counterToggle: document.getElementById('counterToggle'),
 			touchGestureToggle: document.getElementById('touchToggle'),
@@ -1974,7 +1976,7 @@ class SettingsManager {
 			positionSwapToggle: document.getElementById('positionSwapToggle'), splitScreenToggle: document.getElementById('splitScreenToggle'),
 			landscapeInputResizeToggle: document.getElementById('landscapeInputResizeToggle'),
 			headerswapbtn: document.getElementById('headerswapbtn'), headersplitscreenbtn: document.getElementById('headersplitscreenbtn'),
-			headerplaybtn: document.getElementById('headerplaybtn'), headerdeletebtn: document.getElementById('headerdeletebtn'), headersettingsbtn: document.getElementById('headersettingsbtn'), headerredeembtn: document.getElementById('headerredeembtn'), headersharebtn: document.getElementById('headersharebtn'), headerthemecyclebtn: document.getElementById('headerthemecyclebtn'), headeraddmachinebtn: document.getElementById('headeraddmachinebtn'), headeruiupbtn: document.getElementById('headeruiupbtn'), headeruidownbtn: document.getElementById('headeruidownbtn'), headersequpbtn: document.getElementById('headersequpbtn'), headerseqdownbtn: document.getElementById('headerseqdownbtn'), headervolupbtn: document.getElementById('headervolupbtn'), headervoldownbtn: document.getElementById('headervoldownbtn'), headerspeedupbtn: document.getElementById('headerspeedupbtn'), headerspeeddownbtn: document.getElementById('headerspeeddownbtn'), headercycleinputbtn: document.getElementById('headercycleinputbtn'),
+			headerplaybtn: document.getElementById('headerplaybtn'), headerdeletebtn: document.getElementById('headerdeletebtn'), headersettingsbtn: document.getElementById('headersettingsbtn'), headerredeembtn: document.getElementById('headerredeembtn'), headersharebtn: document.getElementById('headersharebtn'), headerthemecyclebtn: document.getElementById('headerthemecyclebtn'), headeraddmachinebtn: document.getElementById('headeraddmachinebtn'), headerautofitbtn: document.getElementById('headerautofitbtn'), headerzoombtn: document.getElementById('headerzoombtn'), headeruiupbtn: document.getElementById('headeruiupbtn'), headeruidownbtn: document.getElementById('headeruidownbtn'), headersequpbtn: document.getElementById('headersequpbtn'), headerseqdownbtn: document.getElementById('headerseqdownbtn'), headervolupbtn: document.getElementById('headervolupbtn'), headervoldownbtn: document.getElementById('headervoldownbtn'), headerspeedupbtn: document.getElementById('headerspeedupbtn'), headerspeeddownbtn: document.getElementById('headerspeeddownbtn'), headercycleinputbtn: document.getElementById('headercycleinputbtn'),
 			headernotepadbtn: document.getElementById('headernotepadbtn'), headerhelpbtn: document.getElementById('headerhelpbtn'), headermodeswitchbtn: document.getElementById('headermodeswitchbtn'),
 			uiScale: document.getElementById('ui-scale-select'),
 			headerScale: document.getElementById('header-scale-select'),
@@ -1989,7 +1991,7 @@ class SettingsManager {
 			tabs: document.querySelectorAll('.tab-btn'),
 			contents: document.querySelectorAll('.tab-content'),
 			helpModal: document.getElementById('help-modal'), setupModal: document.getElementById('game-setup-modal'), shareModal: document.getElementById('share-modal'), closeSetupBtn: document.getElementById('close-game-setup-modal'), quickSettings: document.getElementById('quick-open-settings'), quickHelp: document.getElementById('quick-open-help'), grantPermissionsBtn: document.getElementById('grant-permissions-btn'),
-			quickAutoplay: document.getElementById('quick-autoplay-toggle'), quickAudio: document.getElementById('quick-audio-toggle'), dontShowWelcome: document.getElementById('dont-introToggle'), welcomeSettingsLockToggle: document.getElementById('welcome-settings-lock-toggle'), welcomeAutofitBtn: document.getElementById('welcome-autofit-btn'),
+			quickAutoplay: document.getElementById('quick-autoplay-toggle'), quickAudio: document.getElementById('quick-audio-toggle'), quickAutofit: document.getElementById('quick-autofit-toggle'), quickZoom: document.getElementById('quick-zoom-toggle'), dontShowWelcome: document.getElementById('dont-introToggle'), welcomeSettingsLockToggle: document.getElementById('welcome-settings-lock-toggle'),
 			quickResizeUp: document.getElementById('quick-resize-up'), quickResizeDown: document.getElementById('quick-resize-down'),
 			quickCardSizeUp: document.getElementById('quick-cardsize-up'), quickCardSizeDown: document.getElementById('quick-cardsize-down'),
 			openShareInside: document.getElementById('open-share-button'), closeShareBtn: document.getElementById('close-share'), closeHelpBtn: document.getElementById('close-help'), closeHelpBtnBottom: document.getElementById('close-help-btn-bottom'), openHelpBtn: document.getElementById('open-help-button'), promptDisplay: document.getElementById('prompt-display'), copyPromptBtn: document.getElementById('copy-prompt-btn'), generatePromptBtn: document.getElementById('generate-prompt-btn'),
@@ -3143,6 +3145,8 @@ class SettingsManager {
 		bindToggle(this.dom.headerShareToggle, 'showHeaderShareBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerThemeCycleToggle, 'showHeaderThemeCycleBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerAddMachineToggle, 'showHeaderAddMachineBtn', () => this.updateHeaderVisibility());
+		bindToggle(this.dom.headerAutoFitToggle, 'showHeaderAutoFitBtn', () => this.updateHeaderVisibility());
+		bindToggle(this.dom.headerZoomToggle, 'showHeaderZoomBtn', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerUiSizeToggle, 'showHeaderUiSizeBtns', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerSeqSizeToggle, 'showHeaderSeqSizeBtns', () => this.updateHeaderVisibility());
 		bindToggle(this.dom.headerVolumeToggle, 'showHeaderVolumeBtns', () => this.updateHeaderVisibility());
@@ -3395,6 +3399,10 @@ class SettingsManager {
 		if (this.dom.audio) this.dom.audio.onchange = (e) => { this.appSettings.runtimeSettings.isAudioEnabled = e.target.checked; if (this.dom.quickAudio) this.dom.quickAudio.checked = e.target.checked; this.callbacks.onSave(); };
 		if (this.dom.quickAutoplay) this.dom.quickAutoplay.onchange = (e) => { this.appSettings.runtimeSettings.isAutoplayEnabled = e.target.checked; if (this.dom.autoplay) this.dom.autoplay.checked = e.target.checked; this.callbacks.onSave(); };
 		if (this.dom.quickAudio) this.dom.quickAudio.onchange = (e) => { this.appSettings.runtimeSettings.isAudioEnabled = e.target.checked; if (this.dom.audio) this.dom.audio.checked = e.target.checked; this.callbacks.onSave(); };
+		if (this.dom.quickAutofit) this.dom.quickAutofit.onchange = (e) => { this.appSettings.showHeaderAutoFitBtn = e.target.checked; if (this.dom.headerAutoFitToggle) this.dom.headerAutoFitToggle.checked = e.target.checked; this.updateHeaderVisibility(); this.callbacks.onSave(); };
+		if (this.dom.quickZoom) this.dom.quickZoom.onchange = (e) => { this.appSettings.showHeaderZoomBtn = e.target.checked; if (this.dom.headerZoomToggle) this.dom.headerZoomToggle.checked = e.target.checked; this.updateHeaderVisibility(); this.callbacks.onSave(); };
+		if (this.dom.headerAutoFitToggle) this.dom.headerAutoFitToggle.addEventListener('change', (e) => { if (this.dom.quickAutofit) this.dom.quickAutofit.checked = e.target.checked; });
+		if (this.dom.headerZoomToggle) this.dom.headerZoomToggle.addEventListener('change', (e) => { if (this.dom.quickZoom) this.dom.quickZoom.checked = e.target.checked; });
 		if (this.dom.welcomeSettingsLockToggle) this.dom.welcomeSettingsLockToggle.onchange = (e) => { this.appSettings.isSettingsLockEnabled = e.target.checked; this.applySettingsLockState(); this.callbacks.onSave(); };
 		if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = !e.target.checked; if (this.dom.showWelcome) this.dom.showWelcome.checked = e.target.checked; this.callbacks.onSave(); };
 		if (this.dom.showWelcome) this.dom.showWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = !e.target.checked; if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = e.target.checked; this.callbacks.onSave(); };
@@ -3582,34 +3590,6 @@ class SettingsManager {
 			this.callbacks.onUpdate();
 			this.updateWelcomeSample();
 		};
-		if (this.dom.welcomeAutofitBtn) this.dom.welcomeAutofitBtn.onclick = () => {
-			// Auto-Fit is a one-press snap, not a continuous mode: measure the actual sample
-			// box width right now, work out the card size (gap included) that lands exactly
-			// Row Max cards on one row, then round to the nearest 10% - the same increment
-			// the Settings tab's Sequence Size dropdown uses - so the result always lands on
-			// a value that dropdown can actually display and the +/- buttons (which also
-			// move in whole tenths) can cleanly continue adjusting from.
-			const holder = document.getElementById('welcome-sample-sequence');
-			if (!holder) return;
-			const containerWidth = holder.clientWidth
-				- (parseFloat(getComputedStyle(holder).paddingLeft) || 0)
-				- (parseFloat(getComputedStyle(holder).paddingRight) || 0);
-			const rowMaxSetting = this.appSettings.appRowMax;
-			const count = (rowMaxSetting && rowMaxSetting !== 'none') ? parseInt(rowMaxSetting, 10) : 5;
-			const gap = 8;
-			// containerWidth = (40 * scale * count) + (gap * (count - 1)), solved for scale.
-			const rawCardSize = (containerWidth - gap * (count - 1)) / count;
-			const rawScale = rawCardSize / 40;
-			const roundedPct = Math.max(50, Math.min(300, Math.round(rawScale * 10) * 10));
-			const scale = roundedPct / 100;
-			this.appSettings.uiScaleMultiplier = scale;
-			const sel = document.getElementById('seq-size-select');
-			if (sel) sel.value = roundedPct;
-			this.callbacks.onSave();
-			this.callbacks.onUpdate();
-			this.updateWelcomeSample();
-			if (typeof showToast === 'function') showToast(`Auto-Fit: ${count} per row ✅`);
-		};
 		if (this.dom.touchGestureTapSlider) {
 			this.dom.touchGestureTapSlider.oninput = (e) => {
 				const val = parseInt(e.target.value);
@@ -3702,6 +3682,8 @@ class SettingsManager {
 		if (this.dom.audio) this.dom.audio.checked = this.appSettings.runtimeSettings.isAudioEnabled;
 		if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = this.appSettings.runtimeSettings.isAutoplayEnabled;
 		if (this.dom.quickAudio) this.dom.quickAudio.checked = this.appSettings.runtimeSettings.isAudioEnabled;
+		if (this.dom.quickAutofit) this.dom.quickAutofit.checked = !!this.appSettings.showHeaderAutoFitBtn;
+		if (this.dom.quickZoom) this.dom.quickZoom.checked = !!this.appSettings.showHeaderZoomBtn;
 		if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !this.appSettings.showWelcomeScreen;
 		if (this.dom.showWelcome) this.dom.showWelcome.checked = !this.appSettings.showWelcomeScreen;
 		if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.runtimeSettings.isHapticMorseEnabled;
@@ -3812,6 +3794,8 @@ class SettingsManager {
 		if (this.dom.headerShareToggle) this.dom.headerShareToggle.checked = !!this.appSettings.showHeaderShareBtn;
 		if (this.dom.headerThemeCycleToggle) this.dom.headerThemeCycleToggle.checked = !!this.appSettings.showHeaderThemeCycleBtn;
 		if (this.dom.headerAddMachineToggle) this.dom.headerAddMachineToggle.checked = !!this.appSettings.showHeaderAddMachineBtn;
+		if (this.dom.headerAutoFitToggle) this.dom.headerAutoFitToggle.checked = !!this.appSettings.showHeaderAutoFitBtn;
+		if (this.dom.headerZoomToggle) this.dom.headerZoomToggle.checked = !!this.appSettings.showHeaderZoomBtn;
 		if (this.dom.headerUiSizeToggle) this.dom.headerUiSizeToggle.checked = !!this.appSettings.showHeaderUiSizeBtns;
 		if (this.dom.headerSeqSizeToggle) this.dom.headerSeqSizeToggle.checked = !!this.appSettings.showHeaderSeqSizeBtns;
 		if (this.dom.headerVolumeToggle) this.dom.headerVolumeToggle.checked = !!this.appSettings.showHeaderVolumeBtns;
@@ -3891,6 +3875,8 @@ class SettingsManager {
 		if (this.dom.headersharebtn) this.dom.headersharebtn.classList.toggle('hidden', !this.appSettings.showHeaderShareBtn);
 		if (this.dom.headerthemecyclebtn) this.dom.headerthemecyclebtn.classList.toggle('hidden', !this.appSettings.showHeaderThemeCycleBtn);
 		if (this.dom.headeraddmachinebtn) this.dom.headeraddmachinebtn.classList.toggle('hidden', !this.appSettings.showHeaderAddMachineBtn);
+		if (this.dom.headerautofitbtn) this.dom.headerautofitbtn.classList.toggle('hidden', !this.appSettings.showHeaderAutoFitBtn);
+		if (this.dom.headerzoombtn) this.dom.headerzoombtn.classList.toggle('hidden', !this.appSettings.showHeaderZoomBtn);
 		if (this.dom.headeruiupbtn) this.dom.headeruiupbtn.classList.toggle('hidden', !this.appSettings.showHeaderUiSizeBtns);
 		if (this.dom.headeruidownbtn) this.dom.headeruidownbtn.classList.toggle('hidden', !this.appSettings.showHeaderUiSizeBtns);
 		if (this.dom.headersequpbtn) this.dom.headersequpbtn.classList.toggle('hidden', !this.appSettings.showHeaderSeqSizeBtns);
@@ -3906,7 +3892,7 @@ class SettingsManager {
 		if (this.dom.headertonebtn) {
 			this.dom.headertonebtn.classList.toggle('hidden', !this.appSettings.isToneCadenceEnabled);
 		}
-		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderUndoBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderVolumeBtns || this.appSettings.showHeaderSpeedBtns || this.appSettings.showHeaderCycleInputBtn || this.appSettings.showHeaderNotepadBtn || this.appSettings.showHeaderHelpBtn || this.appSettings.showHeaderModeSwitchBtn || this.appSettings.showFullscreenBtn || this.appSettings.showUpsideDownBtn || this.appSettings.showPortraitLockBtn || this.appSettings.showHeaderLandscapeLockBtn || this.appSettings.showPinnedBtn || this.appSettings.showDndBtn || this.appSettings.showPipBtn;
+		const anyNewBtnShown = this.appSettings.showHeaderPlayBtn || this.appSettings.showHeaderDeleteBtn || this.appSettings.showHeaderUndoBtn || this.appSettings.showHeaderSettingsBtn || this.appSettings.showHeaderRedeemBtn || this.appSettings.showHeaderShareBtn || this.appSettings.showHeaderThemeCycleBtn || this.appSettings.showHeaderAddMachineBtn || this.appSettings.showHeaderAutoFitBtn || this.appSettings.showHeaderZoomBtn || this.appSettings.showHeaderUiSizeBtns || this.appSettings.showHeaderSeqSizeBtns || this.appSettings.showHeaderVolumeBtns || this.appSettings.showHeaderSpeedBtns || this.appSettings.showHeaderCycleInputBtn || this.appSettings.showHeaderNotepadBtn || this.appSettings.showHeaderHelpBtn || this.appSettings.showHeaderModeSwitchBtn || this.appSettings.showFullscreenBtn || this.appSettings.showUpsideDownBtn || this.appSettings.showPortraitLockBtn || this.appSettings.showHeaderLandscapeLockBtn || this.appSettings.showPinnedBtn || this.appSettings.showDndBtn || this.appSettings.showPipBtn;
 		if (!showTimer && !showCounter && !showMic && !showCam && !showTouchGesture && !showBigger && !showHand && !showSwap && !showSplitScreen && !this.appSettings.isToneCadenceEnabled && !anyNewBtnShown) {
 			header.classList.add('header-hidden');
 		} else {
@@ -3935,7 +3921,7 @@ class SettingsManager {
 		return [...row.children].filter(el => el.id && !el.dataset.cloneId).map(el => el.id);
 	}
 	_headerBtnLabels() {
-		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerpinnedbtn: '📌 Pinned Mode', headerdndbtn: '🔕 Do Not Disturb', headerpipbtn: '🪟 Picture in Picture', headerupsidedownbtn: '🙃 Upside Down', headerportraitlockbtn: '🔒 Portrait Lock', headerlandscapelockbtn: '🔐 Landscape Lock', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headerundobtn: '↩️ Undo', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headernotepadbtn: '📝 Notepad' };
+		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerpinnedbtn: '📌 Pinned Mode', headerdndbtn: '🔕 Do Not Disturb', headerpipbtn: '🪟 Picture in Picture', headerupsidedownbtn: '🙃 Upside Down', headerportraitlockbtn: '🔒 Portrait Lock', headerlandscapelockbtn: '🔐 Landscape Lock', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headerundobtn: '↩️ Undo', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headerautofitbtn: '📐 Auto Fit', headerzoombtn: '🔬 Zoom', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headernotepadbtn: '📝 Notepad' };
 	}
 	_moveHeaderBtn(id, direction) {
 		const row = document.getElementById('header-btn-row');
@@ -4107,7 +4093,7 @@ class SettingsManager {
 		}).filter(Boolean);
 	}
 	_generalToggleLabels() {
-		return { autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙', randomThemeToggle: 'Random Theme 🎲', headerThemeCycleToggle: 'Theme Cycle 🎨', headerCycleInputToggle: 'Cycle Input 🔀', headerModeSwitchToggle: 'Mode Switch 🎮', headerAddMachineToggle: 'Add Machine ➕', bossToggle: 'Boss Mode 🌑', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', autoHideHeaderToggle: 'Auto Hide Header 👻', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️',flickHeaderToggle: 'Flick Header Buttons 💨', restoreHeaderToggle: 'Restore Header Gesture 🪄', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', hideIntroToggle: 'Hide Intro', headerUndoToggle: 'Undo ↩️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', upsidedownToggle: 'Upside Down 🙃', portraitLockToggle: 'Portrait Lock 🔒', landscapeLockToggle: 'Landscape Lock 🔐', fullscreenToggle: 'Full Screen 🔲', biggerToggle: 'Bigger Buttons', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', positionSwapToggle: 'Position Swap 🔄', splitScreenToggle: 'Split Screen 🖥️', landscapeInputResizeToggle: 'Adjust Input Area ↔️', pipToggle: 'Picture in Picture 🪟', dndToggle: 'Do Not Disturb 🔕', pinnedModeToggle: 'Pinned Mode 📌', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', };
+		return { autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙', randomThemeToggle: 'Random Theme 🎲', headerThemeCycleToggle: 'Theme Cycle 🎨', headerCycleInputToggle: 'Cycle Input 🔀', headerModeSwitchToggle: 'Mode Switch 🎮', headerAddMachineToggle: 'Add Machine ➕', bossToggle: 'Boss Mode 🌑', headerAutoFitToggle: 'Auto Fit 📐', headerZoomToggle: 'Zoom 🔬', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', autoHideHeaderToggle: 'Auto Hide Header 👻', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️',flickHeaderToggle: 'Flick Header Buttons 💨', restoreHeaderToggle: 'Restore Header Gesture 🪄', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', hideIntroToggle: 'Hide Intro', headerUndoToggle: 'Undo ↩️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', upsidedownToggle: 'Upside Down 🙃', portraitLockToggle: 'Portrait Lock 🔒', landscapeLockToggle: 'Landscape Lock 🔐', fullscreenToggle: 'Full Screen 🔲', biggerToggle: 'Bigger Buttons', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', positionSwapToggle: 'Position Swap 🔄', splitScreenToggle: 'Split Screen 🖥️', landscapeInputResizeToggle: 'Adjust Input Area ↔️', pipToggle: 'Picture in Picture 🪟', dndToggle: 'Do Not Disturb 🔕', pinnedModeToggle: 'Pinned Mode 📌', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', };
 	}
 	_moveGeneralToggle(id, direction) {
 		const grid = document.getElementById('general-toggle-grid');
@@ -7789,7 +7775,114 @@ function initGlobalListeners() {
 			saveState();
 			showToast(`Machines: ${settings.machineCount} ➕`);
 		};
-		const headerUiUp = document.getElementById('headeruiupbtn');
+		const headerAutoFit = document.getElementById('headerautofitbtn');
+		if (headerAutoFit) headerAutoFit.onclick = () => {
+			// Real, live-view version of the welcome modal's Auto-Fit: measure the actual
+			// #sequence-container right now, work out the card size that lands exactly Row
+			// Max cards on one row in whatever bucket is currently active, and write it to
+			// that bucket's own setting - portrait's uiScaleMultiplier, or the active
+			// viewport profile's seqSize otherwise. Same 10% rounding as the welcome modal
+			// so the result always matches a value the Settings dropdown can display.
+			const container = document.getElementById('sequence-container');
+			if (!container) return;
+			const containerWidth = container.clientWidth
+				- (parseFloat(getComputedStyle(container).paddingLeft) || 0)
+				- (parseFloat(getComputedStyle(container).paddingRight) || 0);
+			const vp = getViewportProfile();
+			const rowMaxSetting = vp ? vp.rowMax : appSettings.appRowMax;
+			const count = (rowMaxSetting && rowMaxSetting !== 'none') ? parseInt(rowMaxSetting, 10) : 5;
+			const gap = 8;
+			const rawCardSize = (containerWidth - gap * (count - 1)) / count;
+			const rawScale = rawCardSize / 40;
+			const roundedPct = Math.max(50, Math.min(300, Math.round(rawScale * 10) * 10));
+			if (vp) {
+				vp.seqSize = roundedPct;
+			} else {
+				appSettings.uiScaleMultiplier = roundedPct / 100;
+				const sel = document.getElementById('seq-size-select');
+				if (sel) sel.value = roundedPct;
+			}
+			if (modules.settings) { modules.settings.applyRowMax(); modules.settings.applyBiggerButtonSize(); }
+			renderUI();
+			saveState();
+			showToast(`Auto Fit: ${count} per row ✅`);
+		};
+		const headerZoom = document.getElementById('headerzoombtn');
+		if (headerZoom) headerZoom.onclick = () => {
+			// Zoom is Auto Fit's counterpart for the INPUT side: instead of fitting the
+			// sequence cards, it fits the number-pad buttons (width AND height, same
+			// min(share) logic as applyBiggerButtonSize), then scales the input font and
+			// the sequence number font to track proportionally, since a font bigger than
+			// its own button is pointless and a sequence font wildly mismatched from the
+			// button font looks broken even though the two are independently configurable.
+			const vp = getViewportProfile();
+			const inputMode = document.body.dataset.inputMode;
+			let newBtnPct = null;
+			if (inputMode === 'key9' || inputMode === 'key12') {
+				const padId = inputMode === 'key9' ? 'pad-key9' : 'pad-key12';
+				const pad = document.getElementById(padId);
+				const grid = pad ? pad.querySelector(inputMode === 'key9' ? '.grid-cols-3' : '.grid-cols-4:not(.control-row)') : null;
+				const footer = document.getElementById('input-footer');
+				if (pad && grid && footer) {
+					const cols = inputMode === 'key9' ? 3 : 4;
+					const rows = Math.ceil(grid.children.length / cols);
+					const gap = parseFloat(getComputedStyle(grid).rowGap) || 8;
+					const footerRect = footer.getBoundingClientRect();
+					const footerCS = getComputedStyle(footer);
+					const padTop = parseFloat(footerCS.paddingTop) || 0;
+					const padBottom = parseFloat(footerCS.paddingBottom) || 0;
+					const availableHeight = (footerRect.height - padTop - padBottom) - (gap * (rows - 1));
+					const perRowHeight = availableHeight / rows;
+					const gridRect = grid.getBoundingClientRect();
+					const colGap = parseFloat(getComputedStyle(grid).columnGap) || 8;
+					const perColWidth = (gridRect.width - colGap * (cols - 1)) / cols;
+					// Base button size is 2.5rem (40px at default root font-size) at 100%,
+					// same reference unit applyInputBtnScale already uses.
+					const rootPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+					const baseBtnPx = 2.5 * rootPx;
+					const rawSize = Math.min(perColWidth, perRowHeight);
+					const rawPct = (rawSize / baseBtnPx) * 100;
+					newBtnPct = Math.max(50, Math.min(300, Math.round(rawPct / 10) * 10));
+				}
+			}
+			if (newBtnPct !== null) {
+				if (vp) { vp.btnSize = newBtnPct; vp.inputFontSize = newBtnPct; }
+				else { appSettings.appInputBtnScale = newBtnPct; appSettings.appInputFontScale = newBtnPct; }
+			}
+			// Sequence number size tracks the same fit-to-row-width computation Auto Fit uses,
+			// since "maximize number size" means the same thing whether triggered from the
+			// header or from Auto Fit - no reason to duplicate a second formula for it.
+			const container = document.getElementById('sequence-container');
+			if (container) {
+				const containerWidth = container.clientWidth
+					- (parseFloat(getComputedStyle(container).paddingLeft) || 0)
+					- (parseFloat(getComputedStyle(container).paddingRight) || 0);
+				const rowMaxSetting = vp ? vp.rowMax : appSettings.appRowMax;
+				const count = (rowMaxSetting && rowMaxSetting !== 'none') ? parseInt(rowMaxSetting, 10) : 5;
+				const gap = 8;
+				const rawCardSize = (containerWidth - gap * (count - 1)) / count;
+				const rawScale = rawCardSize / 40;
+				const roundedPct = Math.max(50, Math.min(300, Math.round(rawScale * 10) * 10));
+				if (vp) {
+					vp.seqSize = roundedPct;
+					vp.numberSize = roundedPct;
+				} else {
+					appSettings.uiScaleMultiplier = roundedPct / 100;
+					appSettings.uiFontSizeMultiplier = roundedPct / 100;
+					const sel = document.getElementById('seq-size-select');
+					if (sel) sel.value = roundedPct;
+				}
+			}
+			if (modules.settings) {
+				modules.settings.applyRowMax();
+				modules.settings.applyBiggerButtonSize();
+				modules.settings.applyInputBtnScale();
+				modules.settings.applyInputFontScale();
+			}
+			renderUI();
+			saveState();
+			showToast(`Zoom ✅`);
+		};
 		if (headerUiUp) headerUiUp.onclick = () => {
 			appSettings.globalUiScale = Math.min(200, (appSettings.globalUiScale || 100) + 10);
 			document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;

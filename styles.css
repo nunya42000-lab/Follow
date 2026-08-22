@@ -415,8 +415,9 @@ body.hide-controls #piano-keys { height: 300px; transition: height 0.3s ease; }
 
 
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #settings-modal { padding-top: max(.5rem, env(safe-area-inset-top)) !important; }
-	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #settings-modal .settings-modal-bg { max-width: 90vw !important; max-height: calc(100vh - max(.5rem, env(safe-area-inset-top)) - 1rem) !important; }
-	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #settings-modal #general-toggle-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+	#settings-modal .settings-modal-bg { max-width: 90vw !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #settings-modal .settings-modal-bg { max-height: calc(100vh - max(.5rem, env(safe-area-inset-top)) - 1rem) !important; }
+	#settings-modal #general-toggle-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #help-modal .settings-modal-bg { max-width: 90vw !important; max-height: 90vh !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #help-modal .help-tab-bar { grid-template-columns: repeat(7, minmax(0, 1fr)) !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #share-modal { display: flex !important; align-items: center !important; justify-content: center !important; }

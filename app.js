@@ -7818,6 +7818,7 @@ function initGlobalListeners() {
 			const vp = getViewportProfile();
 			const inputMode = document.body.dataset.inputMode;
 			let newBtnPct = null;
+			let newFontPct = null;
 			if (inputMode === 'key9' || inputMode === 'key12') {
 				const padId = inputMode === 'key9' ? 'pad-key9' : 'pad-key12';
 				const pad = document.getElementById(padId);
@@ -7842,12 +7843,25 @@ function initGlobalListeners() {
 					const baseBtnPx = 2.5 * rootPx;
 					const rawSize = Math.min(perColWidth, perRowHeight);
 					const rawPct = (rawSize / baseBtnPx) * 100;
-					newBtnPct = Math.max(50, Math.min(300, Math.round(rawPct / 10) * 10));
+					// Button Size and Input Font Size are driven by the same raw fit
+					// calculation, but they're two separate dropdowns, each with its own
+					// small set of discrete real values (not a smooth range) and its own
+					// maximum - snapping to the nearest actual option on each keeps both
+					// dropdowns showing a real, selected value instead of going blank.
+					newBtnPct = snapToNearestOption(rawPct, [70, 85, 100, 125, 150]);
+					newFontPct = snapToNearestOption(rawPct, [100, 150, 200, 250]);
 				}
 			}
 			if (newBtnPct !== null) {
-				if (vp) { vp.btnSize = newBtnPct; vp.inputFontSize = newBtnPct; }
-				else { appSettings.appInputBtnScale = newBtnPct; appSettings.appInputFontScale = newBtnPct; }
+				if (vp) { vp.btnSize = newBtnPct; vp.inputFontSize = newFontPct; }
+				else {
+					appSettings.appInputBtnScale = newBtnPct;
+					appSettings.appInputFontScale = newFontPct;
+					const btnSel = document.getElementById('input-btn-size-select');
+					if (btnSel) btnSel.value = newBtnPct;
+					const fontSel = document.getElementById('input-font-size-select');
+					if (fontSel) fontSel.value = newFontPct;
+				}
 			}
 			// Sequence number size tracks the same fit-to-row-width computation Auto Fit uses,
 			// since "maximize number size" means the same thing whether triggered from the
@@ -7862,15 +7876,23 @@ function initGlobalListeners() {
 				const gap = 8;
 				const rawCardSize = (containerWidth - gap * (count - 1)) / count;
 				const rawScale = rawCardSize / 40;
-				const roundedPct = Math.max(50, Math.min(300, Math.round(rawScale * 10) * 10));
+				const rawPct = rawScale * 100;
+				// Sequence Size (seq-size-select) is a genuine smooth 10%-step range from
+				// 50-300, so round-to-nearest-10 always lands on a real option there. Number
+				// Size (seq-font-size-select) only offers four discrete values, so it needs
+				// the same nearest-option snap as Button/Input Font Size above.
+				const seqPct = Math.max(50, Math.min(300, Math.round(rawPct / 10) * 10));
+				const numPct = snapToNearestOption(rawPct, [100, 150, 200, 250]);
 				if (vp) {
-					vp.seqSize = roundedPct;
-					vp.numberSize = roundedPct;
+					vp.seqSize = seqPct;
+					vp.numberSize = numPct;
 				} else {
-					appSettings.uiScaleMultiplier = roundedPct / 100;
-					appSettings.uiFontSizeMultiplier = roundedPct / 100;
+					appSettings.uiScaleMultiplier = seqPct / 100;
+					appSettings.uiFontSizeMultiplier = numPct / 100;
 					const sel = document.getElementById('seq-size-select');
-					if (sel) sel.value = roundedPct;
+					if (sel) sel.value = seqPct;
+					const numSel = document.getElementById('seq-font-size-select');
+					if (numSel) numSel.value = numPct;
 				}
 			}
 			if (modules.settings) {
@@ -9194,6 +9216,20 @@ window.openOrientationSettings = openOrientationSettings;
 // re-ran a SEPARATE, correct copy of this same logic - which required confirming a second,
 // easy-to-miss dialog after the page had already reloaded. Missing that second prompt meant
 // nothing actually got cleaned up, which is the likely reason this needed repeated attempts.
+function snapToNearestOption(rawPct, options) {
+	// Several of the size dropdowns (Number Size, Input Font Size, Button Size) only offer a
+	// handful of discrete values, not a smooth range - setting a <select>'s value to anything
+	// that isn't one of its actual <option> values silently blanks the dropdown rather than
+	// erroring, so a plain round-to-nearest-10 isn't safe for these. This picks whichever real
+	// option is numerically closest to the raw computed value instead.
+	let best = options[0];
+	let bestDiff = Math.abs(rawPct - best);
+	for (const opt of options) {
+		const diff = Math.abs(rawPct - opt);
+		if (diff < bestDiff) { best = opt; bestDiff = diff; }
+	}
+	return best;
+}
 function withTimeout(promise, ms, label) {
 	return Promise.race([
 		promise,

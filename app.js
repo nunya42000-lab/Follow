@@ -587,7 +587,7 @@ const PREMADE_PROFILES = {
 };
 const DEFAULT_APP = {
 	globalUiScale: 100,
-	uiScaleMultiplier: 2.2, // Executed: Portrait scaling multiplier
+	uiScaleMultiplier: 1.0, // Executed: Portrait scaling multiplier
 	showWelcomeScreen: true,
 	touchResizeMode: 'none',
 	// Whether the "Split Screen" header button is shown (General tab toggle). Tapping the button
@@ -657,7 +657,7 @@ const DEFAULT_APP = {
 	isHeaderInfiniteScrollEnabled: false,
 	isAutoBrightEnabled: false,
 	isAutoDarkEnabled: false,
-	headerIconScale: 120,
+	headerIconScale: 100,
 	appFontScale: 100,
 	appInputFontScale: 200,
 	appInputBtnScale: 100,
@@ -667,8 +667,8 @@ const DEFAULT_APP = {
 	// between; now the only one, activated by the header button rather than auto-detected, so it
 	// keeps its own settings independent of Portrait's regardless of which is currently showing).
 	viewportProfiles: {
-		landscape: { uiScale: 100, seqSize: 210, headerScale: 120, numberSize: 250, inputFontSize: 200, btnSize: 150, rowMax: '5', inputAreaEnabled: true, inputAreaPct: 35, headerPadding: 0, inputsPadding: 0, headerButtons: [] },
-		split50h: { uiScale: 100, seqSize: 150, headerScale: 120, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: false, inputAreaPct: 50, headerPadding: 0, inputsPadding: 0, headerButtons: [] }
+		landscape: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 200, btnSize: 150, rowMax: '5', inputAreaEnabled: true, inputAreaPct: 35, headerPadding: 0, inputsPadding: 0, headerButtons: [] },
+		split50h: { uiScale: 100, seqSize: 100, headerScale: 100, numberSize: 250, inputFontSize: 100, btnSize: 100, rowMax: '5', inputAreaEnabled: false, inputAreaPct: 50, headerPadding: 0, inputsPadding: 0, headerButtons: [] }
 	},
 	pipMachineIndex: null,
 	ecoModeConfig: {
@@ -795,7 +795,7 @@ const DEFAULT_APP = {
 	]
 };
 const SETTINGS_PRESETS = [
-	{ id: 'default', name: 'Default', code: 'm.xmhNj`V-16N$xovQJJ^`qG9_Wn:' },
+	{ id: 'default', name: 'The Minimalist', code: 'm.xmhNj`V-16N$xovQJJ^`qG9_Wn:' },
 	// Default settings + these General-tab header buttons on: Delete, Settings, Counter, Auto
 	// Counter, Bigger Buttons, Wake Lock, Split Screen. Everything else stays at default.
 	{ id: 'multitasker', name: 'The Multi-Tasker', code: '3g.sI=#]=,scL@$a#hdUC,Rvx:@?TLw8;ct0T7HIkS.:bk.r:4dZW)pw/Y0!/@d5=;#rEa}P??ZJV^qPb(4aG:BuTON2_yY/?SVD6/S1%eJf#{4qz{eSn%ZqSeLIiE[{A(cQW*O/H,p4+WBxJ9m[X=+kIK.p!' },
@@ -1970,7 +1970,7 @@ class SettingsManager {
 			handsignalsToggle: document.getElementById('handsignalsToggle'),
 			handednessFlipToggle: document.getElementById('handednessFlipToggle'),
 			voicecommandsToggle: document.getElementById('voicecommandsToggle'),
-			wakelockToggle: document.getElementById('wakelockToggle'), dndToggle: document.getElementById('dndToggle'), pipToggle: document.getElementById('pipToggle'), pinnedModeToggle: document.getElementById('pinnedModeToggle'), settingsLockBtn: document.getElementById('settings-lock-toggle'),
+			wakelockToggle: document.getElementById('wakelockToggle'), dndToggle: document.getElementById('dndToggle'), pipToggle: document.getElementById('pipToggle'), pinnedModeToggle: document.getElementById('pinnedModeToggle'), openWelcomeBtn: document.getElementById('open-welcome-btn'),
 			positionSwapToggle: document.getElementById('positionSwapToggle'), splitScreenToggle: document.getElementById('splitScreenToggle'),
 			landscapeInputResizeToggle: document.getElementById('landscapeInputResizeToggle'),
 			headerswapbtn: document.getElementById('headerswapbtn'), headersplitscreenbtn: document.getElementById('headersplitscreenbtn'),
@@ -1989,7 +1989,7 @@ class SettingsManager {
 			tabs: document.querySelectorAll('.tab-btn'),
 			contents: document.querySelectorAll('.tab-content'),
 			helpModal: document.getElementById('help-modal'), setupModal: document.getElementById('game-setup-modal'), shareModal: document.getElementById('share-modal'), closeSetupBtn: document.getElementById('close-game-setup-modal'), quickSettings: document.getElementById('quick-open-settings'), quickHelp: document.getElementById('quick-open-help'), grantPermissionsBtn: document.getElementById('grant-permissions-btn'),
-			quickAutoplay: document.getElementById('quick-autoplay-toggle'), quickAudio: document.getElementById('quick-audio-toggle'), dontShowWelcome: document.getElementById('dont-introToggle'), welcomeSettingsLockToggle: document.getElementById('welcome-settings-lock-toggle'),
+			quickAutoplay: document.getElementById('quick-autoplay-toggle'), quickAudio: document.getElementById('quick-audio-toggle'), dontShowWelcome: document.getElementById('dont-introToggle'), welcomeSettingsLockToggle: document.getElementById('welcome-settings-lock-toggle'), welcomeTargetBucketSelect: document.getElementById('welcome-target-bucket-select'),
 			quickResizeUp: document.getElementById('quick-resize-up'), quickResizeDown: document.getElementById('quick-resize-down'),
 			quickCardSizeUp: document.getElementById('quick-cardsize-up'), quickCardSizeDown: document.getElementById('quick-cardsize-down'),
 			openShareInside: document.getElementById('open-share-button'), closeShareBtn: document.getElementById('close-share'), closeHelpBtn: document.getElementById('close-help'), closeHelpBtnBottom: document.getElementById('close-help-btn-bottom'), openHelpBtn: document.getElementById('open-help-button'), promptDisplay: document.getElementById('prompt-display'), copyPromptBtn: document.getElementById('copy-prompt-btn'), generatePromptBtn: document.getElementById('generate-prompt-btn'),
@@ -2068,13 +2068,12 @@ class SettingsManager {
 					window.wakelockToggle(this.appSettings.isWakeLockEnabled);
 				}
 		});
-		if (this.dom.settingsLockBtn) {
-			this.dom.settingsLockBtn.onclick = () => {
-				this.appSettings.isSettingsLockEnabled = !this.appSettings.isSettingsLockEnabled;
-				this.callbacks.onSave();
-				this.applySettingsLockState();
+		if (this.dom.openWelcomeBtn) {
+			this.dom.openWelcomeBtn.onclick = () => {
+				this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none');
+				this.dom.settingsModal.querySelector('div').classList.add('scale-90');
+				this.openSetup();
 			};
-			this.applySettingsLockState();
 		}
 		if (this.dom.fullscreenToggle) {
 			this.dom.fullscreenToggle.onchange = (e) => {
@@ -3558,20 +3557,54 @@ class SettingsManager {
 				window.location.reload();
 			};
 		}
-		if (this.dom.quickResizeUp) this.dom.quickResizeUp.onclick = () => { this.appSettings.globalUiScale = Math.min(200, this.appSettings.globalUiScale + 10); this.callbacks.onSave(); this.callbacks.onUpdate(); this.updateWelcomeSample(); };
-		if (this.dom.quickResizeDown) this.dom.quickResizeDown.onclick = () => { this.appSettings.globalUiScale = Math.max(50, this.appSettings.globalUiScale - 10); this.callbacks.onSave(); this.callbacks.onUpdate(); this.updateWelcomeSample(); };
+		if (this.dom.welcomeTargetBucketSelect) {
+			this.dom.welcomeTargetBucketSelect.onchange = () => this.updateWelcomeSample();
+		}
+		const getWelcomeTargetBucket = () => (this.dom.welcomeTargetBucketSelect && this.dom.welcomeTargetBucketSelect.value) || 'portrait';
+		this.dom.quickResizeUp && (this.dom.quickResizeUp.onclick = () => {
+			const bucket = getWelcomeTargetBucket();
+			if (bucket === 'portrait') {
+				this.appSettings.globalUiScale = Math.min(200, this.appSettings.globalUiScale + 10);
+			} else {
+				const p = this.appSettings.viewportProfiles[bucket];
+				p.uiScale = Math.min(200, (p.uiScale || 100) + 10);
+			}
+			this.callbacks.onSave(); this.callbacks.onUpdate(); this.updateWelcomeSample();
+		});
+		this.dom.quickResizeDown && (this.dom.quickResizeDown.onclick = () => {
+			const bucket = getWelcomeTargetBucket();
+			if (bucket === 'portrait') {
+				this.appSettings.globalUiScale = Math.max(50, this.appSettings.globalUiScale - 10);
+			} else {
+				const p = this.appSettings.viewportProfiles[bucket];
+				p.uiScale = Math.max(50, (p.uiScale || 100) - 10);
+			}
+			this.callbacks.onSave(); this.callbacks.onUpdate(); this.updateWelcomeSample();
+		});
 		if (this.dom.quickCardSizeUp) this.dom.quickCardSizeUp.onclick = () => {
-			this.appSettings.uiScaleMultiplier = Math.min(3.0, (this.appSettings.uiScaleMultiplier || 1.0) + 0.1);
-			const sel = document.getElementById('seq-size-select');
-			if (sel) sel.value = Math.round(this.appSettings.uiScaleMultiplier * 100);
+			const bucket = getWelcomeTargetBucket();
+			if (bucket === 'portrait') {
+				this.appSettings.uiScaleMultiplier = Math.min(3.0, (this.appSettings.uiScaleMultiplier || 1.0) + 0.1);
+				const sel = document.getElementById('seq-size-select');
+				if (sel) sel.value = Math.round(this.appSettings.uiScaleMultiplier * 100);
+			} else {
+				const p = this.appSettings.viewportProfiles[bucket];
+				p.seqSize = Math.min(300, (p.seqSize || 100) + 10);
+			}
 			this.callbacks.onSave();
 			this.callbacks.onUpdate();
 			this.updateWelcomeSample();
 		};
 		if (this.dom.quickCardSizeDown) this.dom.quickCardSizeDown.onclick = () => {
-			this.appSettings.uiScaleMultiplier = Math.max(0.5, (this.appSettings.uiScaleMultiplier || 1.0) - 0.1);
-			const sel = document.getElementById('seq-size-select');
-			if (sel) sel.value = Math.round(this.appSettings.uiScaleMultiplier * 100);
+			const bucket = getWelcomeTargetBucket();
+			if (bucket === 'portrait') {
+				this.appSettings.uiScaleMultiplier = Math.max(0.5, (this.appSettings.uiScaleMultiplier || 1.0) - 0.1);
+				const sel = document.getElementById('seq-size-select');
+				if (sel) sel.value = Math.round(this.appSettings.uiScaleMultiplier * 100);
+			} else {
+				const p = this.appSettings.viewportProfiles[bucket];
+				p.seqSize = Math.max(50, (p.seqSize || 100) - 10);
+			}
 			this.callbacks.onSave();
 			this.callbacks.onUpdate();
 			this.updateWelcomeSample();
@@ -3596,12 +3629,9 @@ class SettingsManager {
 	populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
 	populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
 	openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.initEcoModeConfigUI(); this.renderFullProfileList(); if (typeof initViewportProfilesUI === 'function') initViewportProfilesUI(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
-	openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); this.updateWelcomeSample(); }
+	openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); if (this.dom.welcomeTargetBucketSelect) this.dom.welcomeTargetBucketSelect.value = 'portrait'; this.updateWelcomeSample(); }
 	applySettingsLockState() {
-		if (!this.dom.settingsLockBtn) return;
 		const locked = !!this.appSettings.isSettingsLockEnabled;
-		this.dom.settingsLockBtn.textContent = locked ? '🔒' : '🔓';
-		this.dom.settingsLockBtn.title = locked ? 'Settings Locked - tap to unlock' : 'Lock Settings';
 		if (this.dom.welcomeSettingsLockToggle) this.dom.welcomeSettingsLockToggle.checked = locked;
 		if (this.dom.settingsModal) {
 			const card = this.dom.settingsModal.querySelector('.settings-modal-bg');
@@ -3612,9 +3642,17 @@ class SettingsManager {
 		const holder = document.getElementById('welcome-sample-sequence');
 		if (!holder) return;
 		holder.innerHTML = '';
-		const scale = this.appSettings.uiScaleMultiplier || 1.0;
+		const bucket = (this.dom.welcomeTargetBucketSelect && this.dom.welcomeTargetBucketSelect.value) || 'portrait';
+		let scale, fontMult;
+		if (bucket === 'portrait') {
+			scale = this.appSettings.uiScaleMultiplier || 1.0;
+			fontMult = this.appSettings.uiFontSizeMultiplier || 1.0;
+		} else {
+			const p = this.appSettings.viewportProfiles[bucket] || {};
+			scale = (p.seqSize || 100) / 100;
+			fontMult = (p.numberSize || 250) / 100;
+		}
 		const boxSize = 40 * scale;
-		const fontMult = this.appSettings.uiFontSizeMultiplier || 1.0;
 		const fontSizePx = boxSize * 0.5 * fontMult;
 		[1, 2, 3, 4, 5].forEach(num => {
 				const span = document.createElement('span');
@@ -3886,7 +3924,7 @@ class SettingsManager {
 		this.applyInputFontScale();
 		this.applyInputBtnScale();
 		this.applyRowMax();
-		this.rebuildInfiniteHeaderScroll();
+		this.applyBiggerButtonSize();
 		this.renderHeaderOrderList();
 		const autoHideOn = !!this.appSettings.isAutoHideHeaderEnabled;
 		const wasAlreadyOn = header.classList.contains('auto-hide-header-enabled');
@@ -4449,6 +4487,56 @@ class SettingsManager {
 			const maxWidth = (cardSize * count) + (gap * (count - 1)) + horizontalPadding + 1;
 			seqContainer.style.setProperty('--row-max-width', maxWidth + 'px');
 		}
+	}
+	applyBiggerButtonSize() {
+		// Bigger Buttons (.hide-controls) sizes each number key at 100% of its grid column
+		// width with aspect-ratio:1/1 driving height - correct when the pad has plenty of
+		// vertical room, but in any short container (Split Screen, a low landscape input
+		// panel, a short physical screen) the resulting square is taller than the row of
+		// space actually available, so the grid overflows and rows get clipped top/bottom.
+		// This measures the real available height per row and caps the button size at
+		// whichever is smaller: an equal share of width, or an equal share of height.
+		if (!document.body.classList.contains('hide-controls')) {
+			document.documentElement.style.removeProperty('--bigger-btn-size');
+			return;
+		}
+		const bucket = document.body.dataset.viewportBucket;
+		const isStacked = bucket === 'portrait';
+		const inputMode = document.body.dataset.inputMode;
+		if (inputMode !== 'key9' && inputMode !== 'key12') {
+			document.documentElement.style.removeProperty('--bigger-btn-size');
+			return;
+		}
+		const padId = inputMode === 'key9' ? 'pad-key9' : 'pad-key12';
+		const pad = document.getElementById(padId);
+		const grid = pad ? pad.querySelector(inputMode === 'key9' ? '.grid-cols-3' : '.grid-cols-4') : null;
+		const footer = document.getElementById('input-footer');
+		if (!pad || !grid || !footer) { document.documentElement.style.removeProperty('--bigger-btn-size'); return; }
+		const cols = inputMode === 'key9' ? 3 : 4;
+		const rows = Math.ceil(grid.children.length / cols);
+		if (rows < 1) { document.documentElement.style.removeProperty('--bigger-btn-size'); return; }
+		const gap = parseFloat(getComputedStyle(grid).rowGap) || 8;
+		// The pad element itself is a flex child that grows to fit its (potentially oversized)
+		// content, so its own clientHeight can't be trusted as "available space" - it's already
+		// stretched past the real limit. #input-footer is the actual fixed-size ancestor in both
+		// portrait (height driven by --portrait-input-height) and landscape/split (height is the
+		// full viewport height via position:fixed), so measure against its padding-box instead,
+		// minus whatever vertical chrome sits above/beside the grid within the pad (e.g. a
+		// centered-icon reset button row, if present) by using the grid's own offsetTop within pad.
+		const footerRect = footer.getBoundingClientRect();
+		const gridRectNow = grid.getBoundingClientRect();
+		const footerCS = getComputedStyle(footer);
+		const footerPadTop = parseFloat(footerCS.paddingTop) || 0;
+		const footerPadBottom = parseFloat(footerCS.paddingBottom) || 0;
+		const availableHeight = (footerRect.height - footerPadTop - footerPadBottom) - (gap * (rows - 1));
+		const perRowHeight = availableHeight / rows;
+		if (!isFinite(perRowHeight) || perRowHeight <= 0) { document.documentElement.style.removeProperty('--bigger-btn-size'); return; }
+		// Width share comes from the grid's own box, which is authoritative for column count.
+		const gridWidth = gridRectNow.width;
+		const colGap = parseFloat(getComputedStyle(grid).columnGap) || 8;
+		const perColWidth = (gridWidth - (colGap * (cols - 1))) / cols;
+		const size = Math.max(24, Math.min(perColWidth, perRowHeight));
+		document.documentElement.style.setProperty('--bigger-btn-size', size + 'px');
 	}
 	applyHeaderPadding() {
 		this.updateSequenceContainerOffset();
@@ -6120,6 +6208,7 @@ function applyViewportProfile() {
 	// bucket's own Header Size / Input Font Size / Header Padding / Inputs Padding silently
 	// wouldn't take effect until the person happened to reopen Settings for some unrelated reason.
 	if (modules.settings && typeof modules.settings.applyRowMax === 'function') modules.settings.applyRowMax();
+	if (modules.settings && typeof modules.settings.applyBiggerButtonSize === 'function') modules.settings.applyBiggerButtonSize();
 	if (modules.settings && typeof modules.settings.applyInputBtnScale === 'function') modules.settings.applyInputBtnScale();
 	if (modules.settings && typeof modules.settings.applyHeaderScale === 'function') modules.settings.applyHeaderScale();
 	if (modules.settings && typeof modules.settings.applyInputFontScale === 'function') modules.settings.applyInputFontScale();
@@ -6758,6 +6847,7 @@ function renderUI() {
 			b.closest('.control-row')?.classList.toggle('reset-visible', showReset);
 	});
 	if (modules.settings && typeof modules.settings.applyRowMax === 'function') modules.settings.applyRowMax();
+	if (modules.settings && typeof modules.settings.applyBiggerButtonSize === 'function') modules.settings.applyBiggerButtonSize();
 	// Stacked buckets (Portrait, split50v, and split66 when stacked) can leave #app genuinely
 	// short on room once Adjust Input Area eats most of the height - #app scrolls internally
 	// rather than clipping content outright (see the max-height rule in styles.css), but a fresh
@@ -8700,6 +8790,7 @@ function vpPushLiveEditsToPreview() {
 		}
 		if (win.modules && win.modules.settings) {
 			if (typeof win.modules.settings.applyRowMax === 'function') win.modules.settings.applyRowMax();
+			if (typeof win.modules.settings.applyBiggerButtonSize === 'function') win.modules.settings.applyBiggerButtonSize();
 			if (typeof win.modules.settings.applyHeaderScale === 'function') win.modules.settings.applyHeaderScale();
 			if (typeof win.modules.settings.applyInputFontScale === 'function') win.modules.settings.applyInputFontScale();
 			if (typeof win.modules.settings.applyInputBtnScale === 'function') win.modules.settings.applyInputBtnScale();

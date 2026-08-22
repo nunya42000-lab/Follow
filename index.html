@@ -82,6 +82,11 @@ alert("Promise Error: " + event.reason);
 <button id="quick-resize-down" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">-</button>
 <button id="quick-resize-up" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">+</button>
 </div>
+<select id="welcome-target-bucket-select" class="settings-input text-xs font-semibold px-2 py-2 rounded border border-custom" title="Which layout the +/- buttons above adjust">
+<option value="portrait">Portrait</option>
+<option value="landscape">Landscape</option>
+<option value="split50h">Split Screen</option>
+</select>
 <div class="flex items-center gap-2">
 <button id="quick-cardsize-down" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">-</button>
 <button id="quick-cardsize-up" class="w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white transition shadow border border-gray-600 text-xl">+</button>
@@ -264,7 +269,7 @@ alert("Promise Error: " + event.reason);
 <div id="settings-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding-top: max(100px, env(safe-area-inset-top));" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
 <div class="settings-modal-bg w-full max-w-md rounded-xl shadow-2xl transform scale-90 transition-transform duration-300 flex flex-col overflow-hidden border border-custom m-4" style="max-height: calc(100vh - max(100px, env(safe-area-inset-top)) - 2rem);">
 <div class="no-swipe-zone p-4 border-b border-custom flex justify-between items-center bg-[var(--card-bg)] z-10 relative">
-<button id="settings-lock-toggle" class="text-xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="Lock Settings">🔓</button>
+<button id="open-welcome-btn" class="text-xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="Open Welcome Screen">🏠</button>
 <button id="open-donate-btn" class="text-2xl hover:scale-110 transition-transform p-3 active:opacity-50" title="Donate">☕</button>
 <button id="open-redeem-btn-settings" class="text-2xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="ID">🆔</button>
 <button id="open-share-button" class="text-xl opacity-70 hover:opacity-100 p-3 hover:scale-110 transition-all" title="Share">📤</button>
@@ -2121,7 +2126,7 @@ Auto-close after playback
 </label>
 </div>
 <button id="ar-record-btn" class="fixed bottom-10 left-1/2 ar-record-btn-pos w-20 h-20 bg-red-600 rounded-full border-4 border-white ar-record-glow z-50 hidden transition-transform items-center justify-center text-white font-bold text-lg pointer-events-auto">REC</button>
-<div id="toast-notification" class="fixed top-20 left-1/2 -translate-x-1/2 bg-primary-app text-white px-6 py-3 rounded-xl shadow-lg z-[99] transition-all duration-300 opacity-0 transform -translate-y-10"><span id="toast-message"></span></div>
+<div id="toast-notification" class="fixed top-20 left-1/2 -translate-x-1/2 bg-primary-app text-white px-6 py-3 rounded-xl shadow-lg z-[99] transition-all duration-300 opacity-0 transform -translate-y-10 pointer-events-none"><span id="toast-message"></span></div>
 <div id="tone-debug-indicator" class="hidden fixed top-32 left-1/2 -translate-x-1/2 bg-black bg-opacity-80 text-indigo-300 px-4 py-2 rounded-lg shadow-lg z-[99] font-mono text-xs pointer-events-none">🎵 listening...</div>
 <script type="module" src="app.js"></script>
 </body>

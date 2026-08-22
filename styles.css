@@ -116,6 +116,13 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
 		padding-left: var(--landscape-input-width, 50%) !important; padding-right: 0 !important;
 	}
+	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #input-footer,
+	body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #input-footer {
+		width: var(--landscape-input-width, 50%) !important;
+		right: auto !important; left: 0 !important;
+		border-left: none !important; border-right: 4px solid var(--seq-bubble);
+		padding-left: max(.5rem, env(safe-area-inset-left)) !important; padding-right: max(.5rem, env(safe-area-inset-bottom)) !important;
+	}
 	/* Draggable divider handle - sits on top of the border between the sequence area and the
 	   input panel. Only shown while isLandscapeInputResizeEnabled is on (General settings) so it
 	   doesn't add an unexpected extra control for people who never touch this. */
@@ -168,6 +175,13 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #app,
 		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #app {
 			padding-left: var(--landscape-input-width, 50%) !important; padding-right: 0 !important;
+		}
+		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key9"] #input-footer,
+		body[data-viewport-bucket="split50h"]:not([data-viewport-bucket="portrait"]).layout-swapped[data-rotate="0"][data-input-mode="key12"] #input-footer {
+			width: var(--landscape-input-width, 50%) !important;
+			right: auto !important; left: 0 !important;
+			border-left: none !important; border-right: 4px solid var(--seq-bubble);
+			padding-left: max(.5rem, env(safe-area-inset-left)) !important; padding-right: max(.5rem, env(safe-area-inset-bottom)) !important;
 		}
 	}
 
@@ -276,12 +290,12 @@ body.layout-swapped #input-footer { border-top: none; border-bottom: 4px solid v
    of shrinking away from circular. Button Size (--input-btn-scale) now drives an actual visible
    diameter change in both dimensions at once instead of just a taller/shorter pill. */
 .btn-pad-number { background-color: var(--btn-bg); font-size: 1.5rem; border: 1px solid var(--border); border-radius: 9999px; aspect-ratio: 1 / 1; width: auto; flex-shrink: 0; }
-#pad-key9 .grid-cols-3, #pad-key12 .grid-cols-4 { justify-items: center; }
+#pad-key9 .grid-cols-3, #pad-key12 .grid-cols-4:not(.control-row) { justify-items: center; }
 .btn-pad-number:active { filter: brightness(1.3); transform: scale(.96); }
 .btn-pad-number.flash-active { background-color: var(--text-main) !important; color: var(--bg-main) !important; box-shadow: 0 0 15px var(--seq-bubble); transform: scale(1.05); z-index: 10; }
 
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"] #pad-key9, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"] #pad-key12 { width: 100% !important; max-width: none !important; display: flex !important; flex-direction: column !important; }
-	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key9 .grid-cols-3, body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key12 .grid-cols-4 { flex-grow: 1 !important; display: grid !important; gap: 0.4rem !important; justify-items: center !important; align-content: center !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key9 .grid-cols-3, body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key12 .grid-cols-4:not(.control-row) { flex-grow: 1 !important; display: grid !important; gap: 0.4rem !important; justify-items: center !important; align-content: center !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-key12 .btn-pad-number { height: calc(2.5rem * var(--input-btn-scale, 1)) !important; aspect-ratio: 1 / 1 !important; width: auto !important; min-height: calc(2.5rem * var(--input-btn-scale, 1)) !important; }
 	/* Bigger Buttons (hide-controls) outside portrait/66-stacked: the normal-state rule just above
 	   locks button height to a small fixed calc(2.5rem * scale) with !important - since !important
@@ -295,9 +309,9 @@ body.layout-swapped #input-footer { border-top: none; border-bottom: 4px solid v
 	   aspect-ratio's own sizing once the column is wider than that cap, flattening the "circular"
 	   buttons back into short rectangles again. #input-footer's own overflow-y:auto is the safety
 	   net on short/cramped panes instead. */
-	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1 !important; border-radius: 9999px !important; flex-shrink: 0 !important; height: auto !important; min-height: 0 !important; width: 100% !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .btn-pad-number, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1 !important; border-radius: 9999px !important; flex-shrink: 0 !important; height: auto !important; min-height: 0 !important; width: min(100%, var(--bigger-btn-size, 999px)) !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key9"].hide-controls #pad-key9, body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="key12"].hide-controls #pad-key12 { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; }
-	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .grid-cols-3, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .grid-cols-4 { display: grid !important; gap: 0.5rem !important; justify-items: center !important; align-self: stretch !important; width: 100% !important; }
+	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key9 .grid-cols-3, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #pad-key12 .grid-cols-4:not(.control-row) { display: grid !important; gap: 0.5rem !important; justify-items: center !important; align-self: stretch !important; width: 100% !important; }
 
 
 .btn-control { background-color: var(--btn-bg); font-size: 1.5rem; height: calc(60px * var(--input-btn-scale, 1)); border-radius: 9999px; color: var(--text-main); border: 1px solid var(--border); aspect-ratio: 1 / 1; width: auto; flex-shrink: 0; }
@@ -374,7 +388,7 @@ body.ar-active .settings-modal-bg { background-color: rgba(18, 18, 18, 0.75) !im
 body.ar-active header { background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 100%); }
 body.hide-controls .control-row { display: none !important; }
 body.hide-controls #pad-key9 .btn-pad-number,
-body.hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; width: 100%; font-size: 2.2rem; transition: all 0.3s ease; box-shadow: 0 8px 15px rgba(0,0,0,0.4); }
+body.hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; width: min(100%, var(--bigger-btn-size, 999px)); font-size: 2.2rem; transition: all 0.3s ease; box-shadow: 0 8px 15px rgba(0,0,0,0.4); }
 body.hide-controls #piano-keys { height: 300px; transition: height 0.3s ease; }
 
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #input-footer .max-w-md, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #input-footer .max-w-lg, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #input-footer .max-w-2xl { max-width: 95vw !important; }
@@ -386,6 +400,12 @@ body.hide-controls #piano-keys { height: 300px; transition: height 0.3s ease; }
 	   flex layout to a row so #piano-keys and .control-row sit side by side, and .control-row's
 	   grid goes from 4 equal columns (horizontal) to a single column (vertical stack). */
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="piano"] #pad-piano { display: flex !important; flex-direction: row !important; align-items: stretch !important; gap: 0.5rem !important; max-width: none !important; width: 100% !important; }
+	/* Position Swap for piano: the keys stay full-width (splitting them narrower would make
+	   individual keys unplayable), but the Play/Delete/Settings control column can and should
+	   still flip sides on swap, matching the left/right mirroring users get in key9/key12 -
+	   without this, toggling swap while in piano mode visibly did nothing except flip an
+	   easy-to-miss accent border. */
+	body.layout-swapped:not([data-viewport-bucket="portrait"])[data-rotate="0"][data-input-mode="piano"] #pad-piano { flex-direction: row-reverse !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano #piano-keys { width: auto !important; flex-grow: 1 !important; margin-bottom: 0 !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano .control-row { width: auto !important; max-width: none !important; flex-shrink: 0 !important; display: grid !important; grid-template-columns: 1fr !important; grid-auto-rows: 1fr !important; gap: 0.5rem !important; padding: 0 !important; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #pad-piano .btn-control { height: auto !important; width: calc(3.5rem * var(--input-btn-scale, 1)) !important; border-radius: 0.5rem !important; aspect-ratio: auto !important; }
@@ -411,7 +431,7 @@ body.hide-controls #piano-keys { height: 300px; transition: height 0.3s ease; }
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #redeem-modal > div.relative.w-full {
 		max-width: none !important; width: 78vh !important; height: 95vw !important; max-height: none !important;
 		width: calc(var(--real-vh, 100vh) * 0.78) !important; height: calc(var(--real-vw, 100vw) * 0.95) !important;
-		transform: rotate(90deg);
+		transform: rotate(-90deg);
 	}
 
 body[data-rotate="90"] #redeem-controls,

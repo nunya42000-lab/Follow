@@ -7979,40 +7979,83 @@ function initGlobalListeners() {
 			saveState();
 			showToast(`Zoom ✅`);
 		};
+		const headerUiUp = document.getElementById('headeruiupbtn');
 		if (headerUiUp) headerUiUp.onclick = () => {
-			appSettings.globalUiScale = Math.min(200, (appSettings.globalUiScale || 100) + 10);
-			document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
-			const sel = document.getElementById('ui-scale-select');
-			if (sel) sel.value = appSettings.globalUiScale;
-			saveState();
-			showToast(`UI: ${appSettings.globalUiScale}% 🔍`);
+			// These four buttons used to write straight to portrait's own settings
+			// (globalUiScale, uiScaleMultiplier) no matter which bucket was actually on
+			// screen - correct while in Portrait, but silently editing a value the current
+			// landscape/split-screen view doesn't even read from otherwise. Same
+			// getViewportProfile() branch Auto Fit and Zoom already use. renderUI() alone
+			// doesn't push a new uiScale to the page's actual font-size - that only happens
+			// inside applyViewportProfile() - so this sets it directly here too, the same
+			// way the portrait branch always has.
+			const vp = getViewportProfile();
+			if (vp) {
+				vp.uiScale = Math.min(200, (vp.uiScale || 100) + 10);
+				document.documentElement.style.fontSize = `${vp.uiScale}%`;
+				renderUI();
+				saveState();
+				showToast(`UI: ${vp.uiScale}% 🔍`);
+			} else {
+				appSettings.globalUiScale = Math.min(200, (appSettings.globalUiScale || 100) + 10);
+				document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
+				const sel = document.getElementById('ui-scale-select');
+				if (sel) sel.value = appSettings.globalUiScale;
+				saveState();
+				showToast(`UI: ${appSettings.globalUiScale}% 🔍`);
+			}
 		};
 		const headerUiDown = document.getElementById('headeruidownbtn');
 		if (headerUiDown) headerUiDown.onclick = () => {
-			appSettings.globalUiScale = Math.max(50, (appSettings.globalUiScale || 100) - 10);
-			document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
-			const sel = document.getElementById('ui-scale-select');
-			if (sel) sel.value = appSettings.globalUiScale;
-			saveState();
-			showToast(`UI: ${appSettings.globalUiScale}% 🔍`);
+			const vp = getViewportProfile();
+			if (vp) {
+				vp.uiScale = Math.max(50, (vp.uiScale || 100) - 10);
+				document.documentElement.style.fontSize = `${vp.uiScale}%`;
+				renderUI();
+				saveState();
+				showToast(`UI: ${vp.uiScale}% 🔍`);
+			} else {
+				appSettings.globalUiScale = Math.max(50, (appSettings.globalUiScale || 100) - 10);
+				document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
+				const sel = document.getElementById('ui-scale-select');
+				if (sel) sel.value = appSettings.globalUiScale;
+				saveState();
+				showToast(`UI: ${appSettings.globalUiScale}% 🔍`);
+			}
 		};
 		const headerSeqUp = document.getElementById('headersequpbtn');
 		if (headerSeqUp) headerSeqUp.onclick = () => {
-			appSettings.uiScaleMultiplier = Math.min(3.0, (appSettings.uiScaleMultiplier || 1.0) + 0.1);
-			const sel = document.getElementById('seq-size-select');
-			if (sel) sel.value = Math.round(appSettings.uiScaleMultiplier * 100);
-			renderUI();
-			saveState();
-			showToast(`Cards: ${Math.round(appSettings.uiScaleMultiplier * 100)}% 🔢`);
+			const vp = getViewportProfile();
+			if (vp) {
+				vp.seqSize = Math.min(300, (vp.seqSize || 100) + 10);
+				renderUI();
+				saveState();
+				showToast(`Cards: ${vp.seqSize}% 🔢`);
+			} else {
+				appSettings.uiScaleMultiplier = Math.min(3.0, (appSettings.uiScaleMultiplier || 1.0) + 0.1);
+				const sel = document.getElementById('seq-size-select');
+				if (sel) sel.value = Math.round(appSettings.uiScaleMultiplier * 100);
+				renderUI();
+				saveState();
+				showToast(`Cards: ${Math.round(appSettings.uiScaleMultiplier * 100)}% 🔢`);
+			}
 		};
 		const headerSeqDown = document.getElementById('headerseqdownbtn');
 		if (headerSeqDown) headerSeqDown.onclick = () => {
-			appSettings.uiScaleMultiplier = Math.max(0.5, (appSettings.uiScaleMultiplier || 1.0) - 0.1);
-			const sel = document.getElementById('seq-size-select');
-			if (sel) sel.value = Math.round(appSettings.uiScaleMultiplier * 100);
-			renderUI();
-			saveState();
-			showToast(`Cards: ${Math.round(appSettings.uiScaleMultiplier * 100)}% 🔢`);
+			const vp = getViewportProfile();
+			if (vp) {
+				vp.seqSize = Math.max(50, (vp.seqSize || 100) - 10);
+				renderUI();
+				saveState();
+				showToast(`Cards: ${vp.seqSize}% 🔢`);
+			} else {
+				appSettings.uiScaleMultiplier = Math.max(0.5, (appSettings.uiScaleMultiplier || 1.0) - 0.1);
+				const sel = document.getElementById('seq-size-select');
+				if (sel) sel.value = Math.round(appSettings.uiScaleMultiplier * 100);
+				renderUI();
+				saveState();
+				showToast(`Cards: ${Math.round(appSettings.uiScaleMultiplier * 100)}% 🔢`);
+			}
 		};
 		const headerVolUp = document.getElementById('headervolupbtn');
 		if (headerVolUp) headerVolUp.onclick = () => {

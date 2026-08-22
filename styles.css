@@ -62,7 +62,7 @@ body.theme-night .tab-btn.active { border-bottom-color: #ffffff; color: #ffffff;
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 #app { padding-top: 1rem; display: flex; flex-direction: column; }
-@media (orientation:landscape) { body[data-rotate="0"] #app {padding-top: 0;} body[data-rotate="0"] #sequence-container { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: .5rem !important; } body[data-rotate="0"] #sequence-container>div { margin: 0 !important; max-width: 100%; } }
+body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #app {padding-top: 0;} body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #sequence-container { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: .5rem !important; } body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #sequence-container>div { margin: 0 !important; max-width: 100%; }
 #sequence-container { justify-content: flex-start !important; padding-top: 1rem; width: 100%; max-width: var(--row-max-width, none); margin: 0 auto; }
 #input-footer { background-color: var(--card-bg); border-top: 4px solid var(--seq-bubble); padding-bottom: calc(max(.5rem, env(safe-area-inset-bottom)) + var(--inputs-padding-extra, 0px)); max-height: 70vh; overflow-y: auto; }
 

@@ -2541,7 +2541,7 @@ class SettingsManager {
 			window.unlockBodyScroll();
 		}
 	}
-	toggleRedeem(show) { if (show) { const isPhysicallyLandscape = window.matchMedia('(orientation: landscape)').matches; this.rScale = isPhysicallyLandscape ? 100 : 70; if (this.dom.redeemImg) this.dom.redeemImg.style.transform = getRedeemImageTransform(this.rScale); if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.add('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'auto'; } if (document.body.classList.contains('eco-mode')) { document.body.classList.remove('eco-mode'); this._ecoModeSuspendedForRedeem = true; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.remove('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'none'; } if (this._ecoModeSuspendedForRedeem && this.appSettings.isEcoModeEnabled) { document.body.classList.add('eco-mode'); } this._ecoModeSuspendedForRedeem = false; if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
+	toggleRedeem(show) { if (show) { this.rScale = 100; if (this.dom.redeemImg) this.dom.redeemImg.style.transform = getRedeemImageTransform(this.rScale); if (this.dom.redeemModal) { this.dom.redeemModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.add('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'auto'; } if (document.body.classList.contains('eco-mode')) { document.body.classList.remove('eco-mode'); this._ecoModeSuspendedForRedeem = true; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.redeemModal) { this.dom.redeemModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.redeemModal.classList.remove('redeem-bright'); this.dom.redeemModal.style.pointerEvents = 'none'; } if (this._ecoModeSuspendedForRedeem && this.appSettings.isEcoModeEnabled) { document.body.classList.add('eco-mode'); } this._ecoModeSuspendedForRedeem = false; if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
 	toggleDonate(show) { if (show) { if (this.dom.donateModal) { this.dom.donateModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'auto'; } if (window.lockBodyScroll) window.lockBodyScroll(); } else { if (this.dom.donateModal) { this.dom.donateModal.classList.add('opacity-0', 'pointer-events-none'); this.dom.donateModal.style.pointerEvents = 'none'; } if (window.unlockBodyScroll) window.unlockBodyScroll(); } }
 	setupTabSwipe(modal) {
 		const content = modal.querySelector('.settings-modal-bg');
@@ -3507,7 +3507,7 @@ class SettingsManager {
 		if (this.dom.helpModal) this.setupTabSwipe(this.dom.helpModal);
 		if (this.dom.openShareInside) this.dom.openShareInside.onclick = () => this.openShare();
 		if (this.dom.closeShareBtn) this.dom.closeShareBtn.onclick = () => { this.closeShare(); };
-		this.rScale = 70;
+		this.rScale = 100;
 		const updateRedeem = () => { if(this.dom.redeemImg) this.dom.redeemImg.style.transform = getRedeemImageTransform(this.rScale); };
 		if (this.dom.closeRedeemBtn) this.dom.closeRedeemBtn.onclick = () => this.toggleRedeem(false);
 		if (this.dom.openRedeemSettingsBtn) this.dom.openRedeemSettingsBtn.onclick = () => this.toggleRedeem(true);
@@ -4221,7 +4221,7 @@ class SettingsManager {
 		const appPaddingTop = parseFloat(getComputedStyle(app).paddingTop) || 0;
 		requestAnimationFrame(() => {
 				requestAnimationFrame(() => {
-						const isLandscapeNow = window.matchMedia('(orientation: landscape)').matches;
+						const isLandscapeNow = document.body.dataset.viewportBucket !== 'portrait';
 						const isSwapped = document.body.classList.contains('layout-swapped');
 						// Portrait swap moves the input footer to the top, and #app's own padding-top
 						// (set in applyPositionSwapOffsets) already accounts for header+footer height there,
@@ -4535,7 +4535,12 @@ class SettingsManager {
 		const gridWidth = gridRectNow.width;
 		const colGap = parseFloat(getComputedStyle(grid).columnGap) || 8;
 		const perColWidth = (gridWidth - (colGap * (cols - 1))) / cols;
-		const size = Math.max(24, Math.min(perColWidth, perRowHeight));
+		// Bigger Buttons exists to make keys easier to see and tap, which "min(width share,
+		// height share)" achieves whenever space is tight - but a roomy desktop-sized Split
+		// Screen window has plenty of both, so that same formula happily grows buttons past
+		// what's actually useful (200px+ circles). 140px comfortably beats every normal-sized
+		// button configuration while stopping short of visually absurd.
+		const size = Math.max(24, Math.min(perColWidth, perRowHeight, 140));
 		document.documentElement.style.setProperty('--bigger-btn-size', size + 'px');
 	}
 	applyHeaderPadding() {
@@ -6042,9 +6047,16 @@ function detectViewportBucket() {
 	}
 	// Portrait vs Landscape - but only ever call it Landscape when the window's dimensions
 	// genuinely match the device's own known full-screen size (see vpIsGenuinelyFullScreen).
-	// Any window that's currently smaller than that in some dimension - which every kind of
-	// reduced/split window is, whatever its shape - falls back to Portrait, the safe default,
-	// rather than risk misreading a short, wide STACKED strip as a sideways rotation.
+	// A reduced window that's still wider than it is tall is real OS-level split-screen in
+	// landscape orientation (this is the scenario the Split Screen button exists to force
+	// manually - detecting it automatically here means the person doesn't have to remember to
+	// press it every time). A reduced window that's taller than wide is either split-screen in
+	// portrait orientation or a device that's just genuinely narrow right now - both correctly
+	// fall back to Portrait, the safe default, same as before.
+	if (!vpIsGenuinelyFullScreen() && window.innerWidth > window.innerHeight) {
+		window.__vpLastDetectedBucket = 'split50h';
+		return 'split50h';
+	}
 	const result = vpIsGenuinelyFullScreen() && window.innerWidth >= window.innerHeight ? 'landscape' : 'portrait';
 	window.__vpLastDetectedBucket = result;
 	return result;
@@ -8357,6 +8369,19 @@ function drawPipFrame() {
 	const bubble = cs.getPropertyValue('--seq-bubble').trim() || '#6366f1';
 	const textCol = cs.getPropertyValue('--text-main').trim() || '#ffffff';
 	const W = pipCanvas.width, H = pipCanvas.height;
+	ctx.save();
+	// The PiP popup is a real separate browser window painted frame-by-frame onto a <canvas> -
+	// it has no CSS of its own to inherit the main page's rotate() transform from, so Upside
+	// Down mode (which works by rotating the main page's DOM) had no effect on it at all: the
+	// popup kept showing right-side-up even while everything else was flipped. Rotating the
+	// canvas's own drawing context 180deg around its center makes the popup match, the same
+	// way the main page's own upside-down rendering works.
+	const upsideDown = document.body.dataset.upsideDown === '1';
+	if (upsideDown) {
+		ctx.translate(W / 2, H / 2);
+		ctx.rotate(Math.PI);
+		ctx.translate(-W / 2, -H / 2);
+	}
 	ctx.fillStyle = bg;
 	ctx.fillRect(0, 0, W, H);
 	// Fixed behavior at 33%/50h/50v/66%: the popup always shows Machine 1 (index 0), full stop -
@@ -8370,6 +8395,7 @@ function drawPipFrame() {
 		ctx.fillStyle = textCol;
 		ctx.font = '600 26px system-ui, sans-serif';
 		ctx.fillText('No sequence yet', W / 2, H / 2);
+		ctx.restore();
 		return;
 	}
 	const n = vals.length;
@@ -8398,6 +8424,7 @@ function drawPipFrame() {
 		ctx.fillStyle = pickReadableInk(bubble);
 		ctx.fillText(vals[i], x + size / 2, y + size / 2);
 	}
+	ctx.restore();
 }
 function pickReadableInk(bgColor) {
 	const probe = document.createElement('div');

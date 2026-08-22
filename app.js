@@ -7784,8 +7784,22 @@ function initGlobalListeners() {
 			// viewport profile's seqSize otherwise. Same 10% rounding as the welcome modal
 			// so the result always matches a value the Settings dropdown can display.
 			const container = document.getElementById('sequence-container');
-			if (!container) return;
-			const containerWidth = container.clientWidth
+			const appEl = document.getElementById('app');
+			if (!container || !appEl) return;
+			// Measuring #sequence-container's OWN clientWidth is exactly what caused this to
+			// compound on repeated presses: its CSS max-width is --row-max-width, which
+			// applyRowMax() computes FROM the current seqSize - so raising seqSize widens the
+			// cap, the container grows into that wider cap, and the next press reads that
+			// larger width as if it were newly-available screen space, producing a feedback
+			// loop where each press "fits" a wider container than the last. #app's width is
+			// the actual, scale-independent available space (constrained only by the input
+			// footer's padding in landscape/split, untouched by seqSize), so measuring that
+			// instead gives a stable answer that one press gets right and repeat presses
+			// don't disturb.
+			const appCS = getComputedStyle(appEl);
+			const containerWidth = appEl.clientWidth
+				- (parseFloat(appCS.paddingLeft) || 0)
+				- (parseFloat(appCS.paddingRight) || 0)
 				- (parseFloat(getComputedStyle(container).paddingLeft) || 0)
 				- (parseFloat(getComputedStyle(container).paddingRight) || 0);
 			const vp = getViewportProfile();
@@ -7895,8 +7909,15 @@ function initGlobalListeners() {
 			// since "maximize number size" means the same thing whether triggered from the
 			// header or from Auto Fit - no reason to duplicate a second formula for it.
 			const container = document.getElementById('sequence-container');
-			if (container) {
-				const containerWidth = container.clientWidth
+			const appElForSeq = document.getElementById('app');
+			if (container && appElForSeq) {
+				// Same fix as Auto Fit: measure #app, not #sequence-container's own
+				// clientWidth, which is capped by --row-max-width - a value THIS calculation
+				// would otherwise be feeding back into on every press.
+				const appCS = getComputedStyle(appElForSeq);
+				const containerWidth = appElForSeq.clientWidth
+					- (parseFloat(appCS.paddingLeft) || 0)
+					- (parseFloat(appCS.paddingRight) || 0)
 					- (parseFloat(getComputedStyle(container).paddingLeft) || 0)
 					- (parseFloat(getComputedStyle(container).paddingRight) || 0);
 				const rowMaxSetting = vp ? vp.rowMax : appSettings.appRowMax;

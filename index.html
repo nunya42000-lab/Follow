@@ -1463,25 +1463,17 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </summary>
 <div class="p-3 border-t border-gray-700 space-y-3">
 <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
-<h4 class="font-bold text-sm mb-2 text-primary-app">Saved Profiles 📁</h4>
-<p class="text-[10px] text-gray-400 mb-2">Save your entire current configuration under a name, and load it back any time with one tap - no more copy-pasting a code just to switch setups.</p>
-<div id="full-profile-list" class="space-y-1 mb-2"></div>
+<h4 class="font-bold text-sm mb-2 text-primary-app">Backup Code 💾</h4>
+<p class="text-[10px] text-gray-400 mb-2">Export copies your entire current setup as a code, right here and to your clipboard. Paste someone else's code in and tap Import to load it - replaces every current setting.</p>
+<textarea id="hex-code-area" class="w-full h-24 bg-gray-950 border border-gray-600 rounded p-2 text-[10px] font-mono text-green-400 resize-none mb-2" placeholder="Tap Export to generate your code, or paste one here to import..."></textarea>
 <div class="grid grid-cols-2 gap-2">
-<input id="full-profile-name-input" type="text" placeholder="Profile name..." class="col-span-2 p-2 bg-gray-800 border border-gray-600 rounded text-white text-xs mb-1">
-<button id="full-profile-save-btn" type="button" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold col-span-2">💾 Save Current Settings As New Profile</button>
+<button id="hex-export-btn" type="button" class="py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">Export</button>
+<button id="hex-import-btn" type="button" class="py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">Import</button>
 </div>
-</div>
-<div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
-<h4 class="font-bold text-sm mb-2 text-primary-app">Share Your Setup 📤</h4>
-<p class="text-[10px] text-gray-400 mb-2">Export copies a code to your clipboard - send it to another device or person. They paste it below and tap Import.</p>
-<button id="hex-export-btn" type="button" class="w-full py-2 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold mb-2">Export &amp; Copy Backup Code</button>
-<textarea id="hex-output" readonly class="w-full h-16 bg-gray-950 border border-gray-600 rounded p-2 text-[10px] font-mono text-green-400 resize-none mb-3" placeholder="Tap Export above to generate your code..."></textarea>
-<textarea id="hex-import-input" class="w-full h-16 bg-gray-950 border border-gray-600 rounded p-2 text-[10px] font-mono text-green-400 resize-none mb-2" placeholder="Paste someone else's backup code here..."></textarea>
-<button id="hex-import-btn" type="button" class="w-full py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">Import</button>
 </div>
 <div class="p-3 rounded-lg border border-custom bg-black bg-opacity-30">
 <h4 class="font-bold text-sm mb-2 text-primary-app">Settings Presets 🎯</h4>
-<p class="text-[10px] text-gray-400 mb-2">Pick a preset and load it - replaces every current setting instantly.</p>
+<p class="text-[10px] text-gray-400 mb-2">Pick a preset and load it - replaces every current setting instantly. Want to save your own as one of these? Export your code above, then ask to have it added as a new preset.</p>
 <select id="preset-select" class="w-full p-2 mb-2 bg-gray-800 border border-gray-600 rounded text-white text-xs"></select>
 <button id="preset-load-btn" type="button" class="w-full py-2 text-xs bg-green-600 hover:bg-green-500 rounded text-white font-bold">Load Preset</button>
 </div>
@@ -1624,7 +1616,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 <div class="space-y-3">
 <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Backup & Restore</strong>
-<p class="text-xs opacity-90">Settings → Advanced → Backup / Restore lets you export your entire configuration (including custom presets and profiles) as a short text code, and paste one back in to restore it - handy before resetting, switching devices, or just keeping a safety copy.</p>
+<p class="text-xs opacity-90">Settings → Advanced → Backup / Restore lets you export your entire configuration as a short text code, and paste one back into the same box to restore it - handy before resetting, switching devices, or just keeping a safety copy.</p>
 </div>
 <div class="space-y-3">
 <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Settings Presets 🎯</strong>
@@ -1845,7 +1837,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <p><strong>Voice Settings 🗣️:</strong> Text-to-speech voice, Pitch/Speed/Volume, and saved voice profiles - moved here from General.</p>
 <p><strong>Sensitivity 🎛️:</strong> Every timing/distance threshold the Touch, Hand, Voice, and Tone Cadence engines use, grouped by input method - each slider explains itself underneath. "Restore Defaults" resets all of them at once (locks out while sliders are locked).</p>
 <p><strong>Populate Hand/Touch Gesture Menus:</strong> Two separate filter groups. Hand controls which pose/motion categories (Static Poses, Pinches, Finger Counts, Combos, Advanced Vision Shapes, Directional Swipes, Motion Transitions) show up in the Hand tab's dropdowns; Touch controls which touch categories (Taps, Swipes, Boomerangs, Chords, etc.) show up in the Touch tab's dropdowns.</p>
-<p><strong>Backup / Restore 💾:</strong> Export your entire configuration (including custom presets and profiles) as a short text code - Export copies it to your clipboard right away - and paste one back into the Import box to restore it.</p>
+<p><strong>Backup / Restore 💾:</strong> One shared code box - Export fills it with your entire current configuration and copies it to your clipboard right away; paste someone else's code into the same box and tap Import to load it instead.</p>
 <p><strong>Settings Presets 🎯:</strong> A dropdown of ready-made configurations, right below Backup / Restore. Pick one and tap Load to apply it immediately - no copying or pasting needed.</p>
 </div>
 </details>

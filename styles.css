@@ -379,6 +379,15 @@ body.landscape-resize-enabled.input-gestures-mode:is([data-viewport-bucket="port
 body.input-gestures-mode #gesture-pad-wrapper { display: block !important; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 30; background: rgba(0, 0, 0, 0.05); }
 body.input-gestures-mode #gesture-pad { width: 100% !important; height: 100% !important; margin: 0 !important; border: none !important; border-radius: 0 !important; background: transparent !important;}
 body.input-gestures-mode #gesture-indicator { font-size: 1.2rem; font-weight: bold; opacity: 0.3; pointer-events: none; color: var(--text-main); }
+/* #input-footer is display:none in gesture mode (see above), but every one of the many
+   bucket/swap-specific rules above that reserve #app's padding-right (or padding-left, when
+   swapped) for the footer's width has no idea gestures are active - they keep reserving that
+   space for a footer nobody can see, so the sequence area - and anything that measures #app's
+   real content width off of it, like the multi-machine Cycle Layout grid - never actually gets
+   to use it. One unconditional override, after all of those more specific rules, wins by
+   source order + !important without needing an .input-gestures-mode variant bolted onto each
+   individual bucket rule above (easy to add five of and still miss the sixth). */
+
 .ar-background-video { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: -1;  opacity: 1; }
 body.ar-active { background-color: rgba(0, 0, 0, 0.2) !important; }
 body.ar-active .card, body.ar-active .btn-input, body.ar-active .number-box,

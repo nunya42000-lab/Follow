@@ -685,7 +685,7 @@ const DEFAULT_APP = {
 		volumePct: 100, // 10-100, scales the real GainNode output and speech synthesis volume
 		screenDimPct: 0 // 0-60, real CSS overlay dim - the web platform has no API to control actual hardware brightness
 	},
-	savedFullProfiles: {},
+
 	headerPadding: 0,
 	inputsPadding: 0,
 	toneCalibration: {isCalibrated: false,notes: {}},
@@ -811,7 +811,14 @@ const SETTINGS_PRESETS = [
 	{ id: 'tester', name: 'The Tester', code: '7y.Cpj];VHoprgqc#0[KcBly/QF$0S28$On@L(A%V(R:]JzA7iCTn:nG+gU-ew.c2q3itY]LCV(a`2x7Uzh=roY8y;_F(xM0}/F-nmN;Aw5KJ}61SXT2=Lol+rA$(wvqJx;,0ie.1c4mEauiI07]mh5w!._[qcX7KU2hB[$$9zm:!%-e$3/7$1FrIL}E4Hf@cm.peE0HW+oz?/[+NcB_+Y^B4SOwacliz.9pzs;-M=uz``s[%D+gybd+Ttg4(16;c9-XsmVR9g@+oUojZZW_!`t3!n!tx1DO#7L-YG@x!=FDnE6vqwRZl{usJ_7Q$@(C{,?4V/=J]4N0S0ry}(v3bo7L0SoXZuhV%nqbFya' },
 	// Default settings + these on: Delete, Timer, Auto Timer, Counter, Auto Counter, Input
 	// Regulator, Portrait Lock, Bigger Buttons, Wake Lock. Everything else stays default.
-	{ id: 'speedster', name: 'The Speedster', code: '3r.D:9k;=ic@{wEeqF?v`Xs!o-73ZI1[?Mki[{PcPUti=qsco$l!5+EdA%Q4uSgU;T0`a-as{*Ags.KK/%G^Mb_+B$ZD,,]dQ3S57hbk1Hxyn13BY{O!)s/dS`:NM:,+-$;rUGJW`UrjZQWMR4*xq5{^y7Mr02Y^,#z-orgP(oK' }
+	{ id: 'speedster', name: 'The Speedster', code: '3r.D:9k;=ic@{wEeqF?v`Xs!o-73ZI1[?Mki[{PcPUti=qsco$l!5+EdA%Q4uSgU;T0`a-as{*Ags.KK/%G^Mb_+B$ZD,,]dQ3S57hbk1Hxyn13BY{O!)s/dS`:NM:,+-$;rUGJW`UrjZQWMR4*xq5{^y7Mr02Y^,#z-orgP(oK' },
+	// Default settings + Row Max off everywhere (portrait, landscape, split50h) so multiple
+	// machines aren't fighting a fixed per-row cap, plus: Split Screen, Delete, Settings, Add
+	// Machine, Cycle Layout, UI Size, Sequence Size header buttons, Auto Counter, Wake Lock,
+	// Landscape Lock, Portrait Lock, Bigger Buttons, Picture in Picture, Infinite Header
+	// Scroll, and Touch Gesture input. Header/UI scale nudged up slightly, sequence/number/
+	// input sizing tuned per bucket for readability with several machines on screen at once.
+	{ id: 'multimachinist', name: 'The Multi Machinist', code: 'no.2HTy?)2jT#M`F6i6v?srmb,Yo2]P4g)jxa1GP24fq_/]?ASM)O:;gk}vXroDX;5EX2!3BP#p}n8S_Uuyxr+ep}5qYD(.gQVTDCeVzIQrnsF?A.ZM5m4+O{:sgBYO6}q+nmhlCvZ/pT=yz44eSG]F?ixu91$`sa2Dpn=_j+;)g2tS+lcDbHh!X(@-;3E.CJdUmIh3gjvW{/-pg1KTgmz3+O=(0S;%}d0kIZPyxQONR]oJUSZC%7*={y6:yzUMt/ZJR.3tP]QI=iH^bKHhn)[8cip3dgOlo$8G/E=]sbthLP]SKpb:C10{6Dn;Jki!N[ALqq(#oj::QAmV_H@sa%I#+$k.5lDbF`tV@-=!+:,CNnmI2,$=58@XIo]1q.%[F=]FC-U`*D9m,%_NT#,Avn?`Ncuw5cmw]igdCD2trzo@pV6-:!8Z3}ii`aZ/sX{vy1G@!mXkL5fXsN},{fc#cnRWxL5LMB;/KdkwE%gG_P?:b,Mmi[fR./H[{P$2HP%/(+Iv5(nUIrT_/^K3y*{LK9*=_GgxzANeG57AeBw*:jxy^bc=*pm%Eqk,s=VLH,Sx79=xu}ebQIYkUIV)`No,-cwP3,@57HONik;U`Xrm+Kg*Iks+xy^{wgu3_{=Srz`86l6yItAM1F5K8+1EhqCu_Nt4RylD;wKW4ihtp)$bB3BuQJdu6kw+^S.]%5*t+6Y?!m*o)QAFno!u7/oseHd6pxzWq[iFXd%)(@S$XO%dfCIMzgmXuO#Kq=}hkT4=Z_4G??gP##-Gn-Wi4if}NR35am..2nB{r#//ENNz=M}L2yO=g4-m;euOLQgaCO,%$J%mT3%.@?$)@*wZY5VeO4@?FSVp!.sv1O`eBJS$5{+)86bEs;uh8q2Xe+sGf#fd=9XocojF[@-OEbtW?U;H]6m#R:`s03q_9yw;M%j;`a^Y]Qn,9=16vpcD3EX][`RuMKQ?uu#]gxB!vEPf(#8-{JZP-5o^l#4))6/@TO/P+-2Tv%aXPI1Qj9y4i{F2uvNM8,Ut0om9WP2lh-Xnh2PyEO04NmiZq,bgAMqpSxjaoes=$' }
 ];
 const DEFAULT_MAPPINGS = {
 	'k9_1': 'tap',
@@ -926,17 +933,28 @@ function wireStepperLongPress(element, shortPressFn, longPressFn) {
 	const start = e => {
 		if (e.type === 'mousedown' && e.button !== 0) return;
 		wasLong = false;
+		clearTimeout(timer);
 		timer = setTimeout(() => {
 			wasLong = true;
 			longPressFn();
 			vibrate();
 		}, 600);
 	};
-	const end = dedupeTouchMouseHandler(e => {
+	const dedupedShortPress = dedupeTouchMouseHandler(() => shortPressFn(), 60);
+	const end = e => {
 		if (e) e.preventDefault();
+		// Clearing the timer has to happen on every single release, never gated behind the
+		// dedupe check below - dedupeTouchMouseHandler exists to stop a rapid tap's paired
+		// touchend+mouseup (real touchscreens fire both) from calling shortPressFn() twice,
+		// not to decide whether cleanup runs. Wiring the whole end handler through dedupe
+		// (the previous version) meant a rapid-fire tap sequence could have a release event
+		// swallowed by the dedupe window while ITS OWN pending long-press timer kept running
+		// in the background - it would then fire on its own moments later, misattributed to
+		// whatever button state existed by then. That's exactly what rapid pressing looked
+		// like: occasional presses silently behaving like a long-press for no visible reason.
 		clearTimeout(timer);
-		if (!wasLong) shortPressFn();
-	});
+		if (!wasLong) dedupedShortPress();
+	};
 	element.addEventListener('mousedown', start);
 	element.addEventListener('touchstart', start, { passive: true });
 	element.addEventListener('mouseup', end);
@@ -2142,14 +2160,6 @@ class SettingsManager {
 				if (typeof window.updateProximitySensorState === 'function') window.updateProximitySensorState();
 				this.applyEcoModeConfig();
 		});
-		const fullProfileSaveBtn = document.getElementById('full-profile-save-btn');
-		const fullProfileNameInput = document.getElementById('full-profile-name-input');
-		if (fullProfileSaveBtn && fullProfileNameInput) {
-			fullProfileSaveBtn.onclick = () => {
-				this.saveFullProfile(fullProfileNameInput.value);
-				fullProfileNameInput.value = '';
-			};
-		}
 		if (this.dom.arSpeedSelect) {
 			this.dom.arSpeedSelect.value = this.appSettings.arPlaybackSpeed || 1.0;
 			this.dom.arSpeedSelect.onchange = (e) => {
@@ -2961,19 +2971,22 @@ class SettingsManager {
 		try {
 			const exportBtn = document.getElementById('hex-export-btn');
 			const importBtn = document.getElementById('hex-import-btn');
-			const hexOutput = document.getElementById('hex-output');
-			const hexImportInput = document.getElementById('hex-import-input');
-			if (exportBtn && hexOutput) {
+			const codeArea = document.getElementById('hex-code-area');
+			if (exportBtn && codeArea) {
 				exportBtn.onclick = async () => {
 					if (typeof window.settingsToBackupCode !== 'function') return;
 					try {
 						exportBtn.disabled = true;
 						const code = await window.settingsToBackupCode();
-						hexOutput.value = code;
+						codeArea.value = code;
 						// Shows the code AND copies it in the same tap - no separate Copy
 						// button needed, since exporting only to look at a code you still
 						// have to select-and-copy yourself was the whole reason this
-						// section needed condensing in the first place.
+						// section needed condensing in the first place. One shared textarea
+						// for both directions now, per explicit request - Export overwrites
+						// whatever was in it (including a code someone was about to paste
+						// in to Import), which is the expected trade-off of one box doing
+						// both jobs instead of two separate ones.
 						try {
 							await navigator.clipboard.writeText(code);
 							if (typeof showToast === 'function') showToast('Exported & copied 📋');
@@ -2988,9 +3001,9 @@ class SettingsManager {
 					}
 				};
 			}
-			if (importBtn && hexImportInput) {
+			if (importBtn && codeArea) {
 				importBtn.onclick = async () => {
-					const code = hexImportInput.value.trim();
+					const code = codeArea.value.trim();
 					if (!code) { alert('Paste a backup code first.'); return; }
 					if (!confirm('This will replace ALL current settings with the imported ones. Continue?')) return;
 					try {
@@ -3659,7 +3672,7 @@ class SettingsManager {
 	}
 	populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
 	populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
-	openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.initEcoModeConfigUI(); this.renderFullProfileList(); if (typeof initViewportProfilesUI === 'function') initViewportProfilesUI(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
+	openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.initEcoModeConfigUI(); if (typeof initViewportProfilesUI === 'function') initViewportProfilesUI(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
 	openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); this.updateWelcomeSample(); }
 	applySettingsLockState() {
 		const locked = !!this.appSettings.isSettingsLockEnabled;
@@ -3975,7 +3988,7 @@ class SettingsManager {
 		return [...row.children].filter(el => el.id && !el.dataset.cloneId).map(el => el.id);
 	}
 	_headerBtnLabels() {
-		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerpinnedbtn: '📌 Pinned Mode', headerdndbtn: '🔕 Do Not Disturb', headerpipbtn: '🪟 Picture in Picture', headerupsidedownbtn: '🙃 Upside Down', headerportraitlockbtn: '🔒 Portrait Lock', headerlandscapelockbtn: '🔐 Landscape Lock', headerswapbtn: '🔄 Position Swap', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headerundobtn: '↩️ Undo', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headerautofitbtn: '📐 Auto Fit', headerzoombtn: '🔬 Zoom', headershrinkbtn: '🤏 Shrink', headercyclelayoutbtn: '🔲 Cycle Layout', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headernotepadbtn: '📝 Notepad' };
+		return { headertimerbtn: '⏱️ Timer', headercounterbtn: '# Counter', headervoicebtn: '🎤 Mic', headertonebtn: '🎵 Tone Cadence', headertouchbtn: '🗒️ Gesture Pad', headerhandbtn: '🖐️ Hand Tracking', headerarcambtn: '📷 AR Mode', headerbiggerbtn: '⌨️ Bigger Buttons', headerfullscreenbtn: '🔲 Full Screen', headerpinnedbtn: '📌 Pinned Mode', headerdndbtn: '🔕 Do Not Disturb', headerpipbtn: '🪟 Picture in Picture', headerupsidedownbtn: '🙃 Upside Down', headerportraitlockbtn: '🔒 Portrait Lock', headerlandscapelockbtn: '🔐 Landscape Lock', headerswapbtn: '🔄 Position Swap', headersplitscreenbtn: '🖥️ Split Screen', headerplaybtn: '▶️ Play', headerdeletebtn: '⌫ Delete', headerundobtn: '↩️ Undo', headersettingsbtn: '⚙️ Settings', headerhelpbtn: '📚 Help', headermodeswitchbtn: '🎮 Mode Switch', headerredeembtn: '🆔 Redeem', headersharebtn: '📤 Share', headerthemecyclebtn: '🎨 Theme Cycle', headeraddmachinebtn: '➕ Add Machine', headerautofitbtn: '📐 Auto Fit', headerzoombtn: '🔬 Zoom', headershrinkbtn: '🤏 Shrink', headercyclelayoutbtn: '🔲 Cycle Layout', headeruiupbtn: '🔍+ UI Size Up', headeruidownbtn: '🔍- UI Size Down', headersequpbtn: '🔢+ Sequence Size Up', headerseqdownbtn: '🔢- Sequence Size Down', headervolupbtn: '🔊+ Volume Up', headervoldownbtn: '🔊- Volume Down', headerspeedupbtn: '🐇+ Speed Up', headerspeeddownbtn: '🐇- Speed Down', headercycleinputbtn: '🔀 Cycle Input', headernotepadbtn: '📝 Notepad' };
 	}
 	_moveHeaderBtn(id, direction) {
 		const row = document.getElementById('header-btn-row');
@@ -4438,74 +4451,6 @@ class SettingsManager {
 			};
 		}
 	}
-	renderFullProfileList() {
-		const container = document.getElementById('full-profile-list');
-		if (!container) return;
-		const profiles = this.appSettings.savedFullProfiles || {};
-		container.innerHTML = '';
-		const ids = Object.keys(profiles);
-		if (ids.length === 0) {
-			const empty = document.createElement('p');
-			empty.className = 'text-[10px] text-gray-500 italic';
-			empty.textContent = 'No saved profiles yet.';
-			container.appendChild(empty);
-			return;
-		}
-		ids.forEach(id => {
-			const p = profiles[id];
-			const row = document.createElement('div');
-			row.className = 'flex items-center gap-2 p-2 rounded bg-gray-950 border border-gray-700';
-			const label = document.createElement('span');
-			label.className = 'text-xs font-bold flex-grow truncate';
-			label.textContent = p.name || id;
-			const loadBtn = document.createElement('button');
-			loadBtn.type = 'button';
-			loadBtn.className = 'px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-500 rounded text-white font-bold shrink-0';
-			loadBtn.textContent = 'Load';
-			loadBtn.onclick = () => this.loadFullProfile(id);
-			const delBtn = document.createElement('button');
-			delBtn.type = 'button';
-			delBtn.className = 'px-3 py-1.5 text-xs bg-red-700 hover:bg-red-600 rounded text-white font-bold shrink-0';
-			delBtn.textContent = '🗑️';
-			delBtn.onclick = () => this.deleteFullProfile(id);
-			row.appendChild(label);
-			row.appendChild(loadBtn);
-			row.appendChild(delBtn);
-			container.appendChild(row);
-		});
-	}
-	saveFullProfile(name) {
-		if (!name || !name.trim()) return;
-		if (!this.appSettings.savedFullProfiles) this.appSettings.savedFullProfiles = {};
-		const id = 'p_' + Date.now();
-		const snapshot = (typeof diffAgainstDefaults === 'function') ? diffAgainstDefaults(this.appSettings, DEFAULT_APP) : {};
-		this.appSettings.savedFullProfiles[id] = { name: name.trim(), snapshot, timestamp: Date.now() };
-		this.callbacks.onSave();
-		this.renderFullProfileList();
-		if (typeof showToast === 'function') showToast(`Saved profile "${name.trim()}" 💾`);
-	}
-	loadFullProfile(id) {
-		const profile = this.appSettings.savedFullProfiles && this.appSettings.savedFullProfiles[id];
-		if (!profile || typeof mergeWithDefaults !== 'function') return;
-		const preservedProfiles = this.appSettings.savedFullProfiles;
-		const merged = mergeWithDefaults(profile.snapshot, DEFAULT_APP);
-		Object.keys(this.appSettings).forEach(k => delete this.appSettings[k]);
-		Object.assign(this.appSettings, merged);
-		this.appSettings.savedFullProfiles = preservedProfiles;
-		this.callbacks.onSave();
-		if (typeof updateAllChrome === 'function') updateAllChrome();
-		this.updateUIFromSettings();
-		this.updateHeaderVisibility();
-		this.renderFullProfileList();
-		if (typeof showToast === 'function') showToast(`Loaded profile "${profile.name}" ✅`);
-	}
-	deleteFullProfile(id) {
-		if (!this.appSettings.savedFullProfiles || !this.appSettings.savedFullProfiles[id]) return;
-		if (!confirm(`Delete profile "${this.appSettings.savedFullProfiles[id].name}"?`)) return;
-		delete this.appSettings.savedFullProfiles[id];
-		this.callbacks.onSave();
-		this.renderFullProfileList();
-	}
 	applyRowMax() {
 		const seqContainer = document.getElementById('sequence-container');
 		if (!seqContainer) return;
@@ -4623,8 +4568,30 @@ class SettingsManager {
 			return frag;
 		};
 		const firstReal = document.getElementById(visibleIds[0]);
-		row.insertBefore(buildCloneSet(), firstReal);
-		row.appendChild(buildCloneSet());
+		// One clone set on each side used to be enough on the assumption that a set is always
+		// wider than the row itself - true with few header buttons enabled, but false the
+		// moment enough are on at once (several multi-machine-related toggles turned on
+		// together is exactly this case) that the row's own visible width exceeds one set's
+		// width. When that happens, hitting the browser's real scroll limit lands short of the
+        // "one full set past the start" position the wrap math expects, so the wrap condition
+        // can never fire - scrolling just dead-stops at the real edge, with visible content
+        // still sitting past it. Cloning enough full sets to comfortably exceed the row's own
+        // clientWidth on each side guarantees there's always at least one setWidth of genuine
+        // extra scroll room beyond the wrap point, however many buttons happen to be visible.
+		const rowWidthForClonePadding = row.clientWidth || 0;
+		let approxSetWidth = 0;
+		visibleIds.forEach(id => {
+			const el = document.getElementById(id);
+			if (el) approxSetWidth += el.getBoundingClientRect().width + 8;
+		});
+		// Needs enough total padding on each side that, even scrolled all the way to the
+		// browser's real limit, there's still a full setWidth of room beyond realStart (the
+		// offset of the first real button, itself already >= one set's width in from the true
+		// start once the leading clones are in place). Rounding up generously here costs a
+		// little extra cloned DOM, which is inexpensive compared to the wrap silently failing.
+		const setsNeededPerSide = approxSetWidth > 0 ? Math.max(2, Math.ceil((rowWidthForClonePadding * 2) / approxSetWidth) + 2) : 2;
+		for (let i = 0; i < setsNeededPerSide; i++) row.insertBefore(buildCloneSet(), firstReal);
+		for (let i = 0; i < setsNeededPerSide; i++) row.appendChild(buildCloneSet());
 		if (!row._cloneForwardingBound) {
 			row._cloneForwardingBound = true;
 			['click', 'mousedown', 'mouseup', 'mouseleave', 'touchstart', 'touchend'].forEach(type => {
@@ -6565,13 +6532,21 @@ function applyPositionSwapOffsets(isActive) {
 	if (sideRepositioned) {
 		// Landscape key9/key12: left/right positioning is handled entirely by CSS via
 		// the layout-swapped class - clear any leftover portrait inline styles so they
-		// don't conflict with it.
-		footer.style.top = '';
-		footer.style.bottom = '';
-		app.style.paddingTop = '';
-		app.style.paddingBottom = '';
-		app.style.paddingLeft = '';
-		app.style.paddingRight = '';
+		// don't conflict with it. Skipped entirely when gesture mode is active: the
+		// physical footer this logic is about repositioning is display:none in that mode
+		// (gestures replace it), and renderUI()'s own gesture-mode block sets #app's
+		// padding to 0 with !important specifically so the sequence area can use the
+		// reclaimed space - clearing padding back to '' here would silently win that
+		// race whenever this function happened to run after renderUI() did, since an
+        // empty inline value still overrides one set moments earlier on the same property.
+		if (!document.body.classList.contains('input-gestures-mode')) {
+			footer.style.top = '';
+			footer.style.bottom = '';
+			app.style.paddingTop = '';
+			app.style.paddingBottom = '';
+			app.style.paddingLeft = '';
+			app.style.paddingRight = '';
+		}
 		if (window.modules && window.modules.settings) window.modules.settings.updateSequenceContainerOffset();
 		return;
 	}
@@ -6792,12 +6767,23 @@ function renderUI() {
 	try {
 		const gpWrap = document.getElementById('gesture-pad-wrapper');
 		const pad = document.getElementById('gesture-pad');
+		const appEl = document.getElementById('app');
 		if (gpWrap) {
 			const isGlobalTouchGestureOn = appSettings.isTouchGestureInputEnabled;
 			const isBossTouchGestureOn = appSettings.isBossModeEnabled && appSettings.isTouchGestureInputEnabled && bossState.isActive;
 			if (isGlobalTouchGestureOn && isTouchGesturePadVisible || isBossTouchGestureOn) {
 				document.body.classList.add('input-gestures-mode');
 				gpWrap.classList.remove('hidden');
+				// #input-footer is hidden in gesture mode, but every bucket/swap-specific CSS
+				// rule that reserves #app's padding for the footer's width has no idea - they
+				// keep reserving that space regardless, so the sequence area (and anything
+				// that measures #app's real content width, like the multi-machine Cycle
+				// Layout grid) never gets to use it. Setting this via inline style rather than
+				// a stylesheet rule sidesteps needing to out-specificity every current AND
+				// future bucket/swap CSS combination that reserves this padding - inline
+				// always wins regardless of what that selector looks like.
+				appEl.style.setProperty('padding-left', '0', 'important');
+				appEl.style.setProperty('padding-right', '0', 'important');
 				if (isBossTouchGestureOn) {
 					gpWrap.style.zIndex = '10001';
 					if (pad) {
@@ -6815,6 +6801,8 @@ function renderUI() {
 				document.body.classList.remove('input-gestures-mode');
 				gpWrap.classList.add('hidden');
 				gpWrap.style.zIndex = '';
+				appEl.style.paddingLeft = '';
+				appEl.style.paddingRight = '';
 			}
 		}
 	} catch (e) {

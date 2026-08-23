@@ -913,6 +913,36 @@ function dedupeTouchMouseHandler(fn, windowMs = 400) {
 		return fn.apply(this, arguments);
 	};
 }
+// Shared long-press wiring for the header +/- stepper buttons (UI Size, Sequence Size, Volume,
+// Speed): short press keeps doing exactly what it always did (one step), a genuine long press
+// instead jumps straight to that direction's real max/min in one go - e.g. long-pressing Speed
+// Up sets speed to its actual maximum rather than requiring repeated taps. Centralized here
+// instead of repeated 8 times so the 600ms threshold and mouseup/touchend/mouseleave handling
+// stay identical across all of them rather than risking one drifting out of sync from the rest.
+function wireStepperLongPress(element, shortPressFn, longPressFn) {
+	if (!element) return;
+	let timer;
+	let wasLong = false;
+	const start = e => {
+		if (e.type === 'mousedown' && e.button !== 0) return;
+		wasLong = false;
+		timer = setTimeout(() => {
+			wasLong = true;
+			longPressFn();
+			vibrate();
+		}, 600);
+	};
+	const end = dedupeTouchMouseHandler(e => {
+		if (e) e.preventDefault();
+		clearTimeout(timer);
+		if (!wasLong) shortPressFn();
+	});
+	element.addEventListener('mousedown', start);
+	element.addEventListener('touchstart', start, { passive: true });
+	element.addEventListener('mouseup', end);
+	element.addEventListener('touchend', end);
+	element.addEventListener('mouseleave', () => clearTimeout(timer));
+}
 let simpleTimer = {
 	interval: null,
 	startTime: 0,
@@ -8327,7 +8357,7 @@ function initGlobalListeners() {
 			headerShrink.addEventListener('mouseleave', () => clearTimeout(shrinkTimer));
 		}
 		const headerUiUp = document.getElementById('headeruiupbtn');
-		if (headerUiUp) headerUiUp.onclick = () => {
+		wireStepperLongPress(headerUiUp, () => {
 			// These four buttons used to write straight to portrait's own settings
 			// (globalUiScale, uiScaleMultiplier) no matter which bucket was actually on
 			// screen - correct while in Portrait, but silently editing a value the current
@@ -8351,9 +8381,23 @@ function initGlobalListeners() {
 				saveState();
 				showToast(`UI: ${appSettings.globalUiScale}% 🔍`);
 			}
-		};
+		}, () => {
+			const vp = getViewportProfile();
+			if (vp) {
+				vp.uiScale = 200;
+				document.documentElement.style.fontSize = `${vp.uiScale}%`;
+				renderUI();
+			} else {
+				appSettings.globalUiScale = 200;
+				document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
+				const sel = document.getElementById('ui-scale-select');
+				if (sel) sel.value = appSettings.globalUiScale;
+			}
+			saveState();
+			showToast(`UI: Max 🔍`);
+		});
 		const headerUiDown = document.getElementById('headeruidownbtn');
-		if (headerUiDown) headerUiDown.onclick = () => {
+		wireStepperLongPress(headerUiDown, () => {
 			const vp = getViewportProfile();
 			if (vp) {
 				vp.uiScale = Math.max(50, (vp.uiScale || 100) - 10);
@@ -8369,9 +8413,23 @@ function initGlobalListeners() {
 				saveState();
 				showToast(`UI: ${appSettings.globalUiScale}% 🔍`);
 			}
-		};
+		}, () => {
+			const vp = getViewportProfile();
+			if (vp) {
+				vp.uiScale = 50;
+				document.documentElement.style.fontSize = `${vp.uiScale}%`;
+				renderUI();
+			} else {
+				appSettings.globalUiScale = 50;
+				document.documentElement.style.fontSize = `${appSettings.globalUiScale}%`;
+				const sel = document.getElementById('ui-scale-select');
+				if (sel) sel.value = appSettings.globalUiScale;
+			}
+			saveState();
+			showToast(`UI: Min 🔍`);
+		});
 		const headerSeqUp = document.getElementById('headersequpbtn');
-		if (headerSeqUp) headerSeqUp.onclick = () => {
+		wireStepperLongPress(headerSeqUp, () => {
 			const vp = getViewportProfile();
 			if (vp) {
 				vp.seqSize = Math.min(300, (vp.seqSize || 100) + 10);
@@ -8386,9 +8444,21 @@ function initGlobalListeners() {
 				saveState();
 				showToast(`Cards: ${Math.round(appSettings.uiScaleMultiplier * 100)}% 🔢`);
 			}
-		};
+		}, () => {
+			const vp = getViewportProfile();
+			if (vp) {
+				vp.seqSize = 300;
+			} else {
+				appSettings.uiScaleMultiplier = 3.0;
+				const sel = document.getElementById('seq-size-select');
+				if (sel) sel.value = 300;
+			}
+			renderUI();
+			saveState();
+			showToast(`Cards: Max 🔢`);
+		});
 		const headerSeqDown = document.getElementById('headerseqdownbtn');
-		if (headerSeqDown) headerSeqDown.onclick = () => {
+		wireStepperLongPress(headerSeqDown, () => {
 			const vp = getViewportProfile();
 			if (vp) {
 				vp.seqSize = Math.max(50, (vp.seqSize || 100) - 10);
@@ -8403,39 +8473,75 @@ function initGlobalListeners() {
 				saveState();
 				showToast(`Cards: ${Math.round(appSettings.uiScaleMultiplier * 100)}% 🔢`);
 			}
-		};
+		}, () => {
+			const vp = getViewportProfile();
+			if (vp) {
+				vp.seqSize = 50;
+			} else {
+				appSettings.uiScaleMultiplier = 0.5;
+				const sel = document.getElementById('seq-size-select');
+				if (sel) sel.value = 50;
+			}
+			renderUI();
+			saveState();
+			showToast(`Cards: Min 🔢`);
+		});
 		const headerVolUp = document.getElementById('headervolupbtn');
-		if (headerVolUp) headerVolUp.onclick = () => {
+		wireStepperLongPress(headerVolUp, () => {
 			appSettings.runtimeSettings.voiceVolume = Math.min(1.0, (appSettings.runtimeSettings.voiceVolume || 1.0) + 0.05);
 			const sel = document.getElementById('voice-volume');
 			if (sel) sel.value = appSettings.runtimeSettings.voiceVolume;
 			saveState();
 			showToast(`Volume: ${(appSettings.runtimeSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
-		};
+		}, () => {
+			appSettings.runtimeSettings.voiceVolume = 1.0;
+			const sel = document.getElementById('voice-volume');
+			if (sel) sel.value = 1.0;
+			saveState();
+			showToast(`Volume: Max 🔊`);
+		});
 		const headerVolDown = document.getElementById('headervoldownbtn');
-		if (headerVolDown) headerVolDown.onclick = () => {
+		wireStepperLongPress(headerVolDown, () => {
 			appSettings.runtimeSettings.voiceVolume = Math.max(0.0, (appSettings.runtimeSettings.voiceVolume || 1.0) - 0.05);
 			const sel = document.getElementById('voice-volume');
 			if (sel) sel.value = appSettings.runtimeSettings.voiceVolume;
 			saveState();
 			showToast(`Volume: ${(appSettings.runtimeSettings.voiceVolume * 100).toFixed(0)}% 🔊`);
-		};
+		}, () => {
+			appSettings.runtimeSettings.voiceVolume = 0.0;
+			const sel = document.getElementById('voice-volume');
+			if (sel) sel.value = 0.0;
+			saveState();
+			showToast(`Volume: Min 🔊`);
+		});
 		const headerSpeedUp = document.getElementById('headerspeedupbtn');
-		if (headerSpeedUp) headerSpeedUp.onclick = () => {
+		wireStepperLongPress(headerSpeedUp, () => {
 			appSettings.runtimeSettings.playbackSpeed = Math.min(2.0, (appSettings.runtimeSettings.playbackSpeed || 1.0) + 0.1);
 			const sel = document.getElementById('playback-speed-select');
 			if (sel) sel.value = appSettings.runtimeSettings.playbackSpeed.toFixed(2);
 			saveState();
 			showToast(`Speed: ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
-		};
+		}, () => {
+			appSettings.runtimeSettings.playbackSpeed = 2.0;
+			const sel = document.getElementById('playback-speed-select');
+			if (sel) sel.value = (2.0).toFixed(2);
+			saveState();
+			showToast(`Speed: Max 🐇`);
+		});
 		const headerSpeedDown = document.getElementById('headerspeeddownbtn');
-		if (headerSpeedDown) headerSpeedDown.onclick = () => {
+		wireStepperLongPress(headerSpeedDown, () => {
 			appSettings.runtimeSettings.playbackSpeed = Math.max(0.5, (appSettings.runtimeSettings.playbackSpeed || 1.0) - 0.1);
 			const sel = document.getElementById('playback-speed-select');
 			if (sel) sel.value = appSettings.runtimeSettings.playbackSpeed.toFixed(2);
 			saveState();
 			showToast(`Speed: ${(appSettings.runtimeSettings.playbackSpeed * 100).toFixed(0)}% 🐇`);
-		};
+		}, () => {
+			appSettings.runtimeSettings.playbackSpeed = 0.5;
+			const sel = document.getElementById('playback-speed-select');
+			if (sel) sel.value = (0.5).toFixed(2);
+			saveState();
+			showToast(`Speed: Min 🐇`);
+		});
 		const headerPlayBtnEl = document.getElementById('headerplaybtn');
 		if (headerPlayBtnEl) {
 			let hpWasPlaying = false;

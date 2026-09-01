@@ -2019,14 +2019,17 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 </div>  
 </div>
-    <div id="tab-help-gallery" class="tab-content space-y-4">
-    <div class="bg-blue-900/30 p-3 rounded-lg border border-blue-500/30 mb-4">
+<div id="tab-help-gallery" class="tab-content space-y-4">
+    <div class="bg-blue-900/30 p-3 rounded-lg border border-blue-500/30 mb-4 shrink-0">
         <strong class="text-blue-300 block mb-1">🖼️ App Gallery</strong>
         <p class="text-xs opacity-90">Tap any screenshot to view it full size.</p>
     </div>
     
-    <div class="grid grid-cols-2 gap-3 pb-4">
-        <!-- 01 -->
+    <!-- FORCED SCROLL WRAPPER -->
+    <div class="overflow-y-auto border-t border-b border-gray-700/50 py-3" style="max-height: 55vh; touch-action: pan-y !important; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;">
+        
+        <div class="grid grid-cols-2 gap-3">
+           <!-- 01 -->
         <div class="flex flex-col items-center bg-black/20 p-2 rounded-lg border border-gray-700 cursor-pointer hover:bg-black/40 transition" onclick="openLightbox('01.png', '🚫')">
             <img src="01.png" alt="Screenshot 1" class="w-full h-auto rounded shadow-sm border border-gray-600 pointer-events-none<div id="tab-help-gallery" class="tab-content space-y-4">
             <span class="text-[10px] text-gray-400 mt-2 text-center">🚫</span>

@@ -1573,6 +1573,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <div class="tab-btn" data-tab="help-gestures">Touch</div>
 <div class="tab-btn" data-tab="help-voice">Voice</div>
 <div class="tab-btn" data-tab="help-tone">Tone</div>
+<div class="tab-btn" data-tab="help-gallery">Gallery</div>
 </div>
 <div class="p-5 overflow-y-auto leading-relaxed space-y-4 text-sm flex-grow">
 <div id="tab-help-about" class="tab-content active space-y-4">
@@ -2018,6 +2019,66 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 </div>
 </div>
+    <div id="tab-help-gallery" class="tab-content space-y-4 hidden">
+    <div class="bg-blue-900/30 p-3 rounded-lg border border-blue-500/30 mb-4">
+        <strong class="text-blue-300 block mb-1">🖼️ App Gallery</strong>
+        <p class="text-xs opacity-90">Tap any screenshot to view it full size.</p>
+    </div>
+    
+    <div class="grid grid-cols-2 gap-3 pb-4">
+        <!-- 01 -->
+        <div class="flex flex-col items-center bg-black/20 p-2 rounded-lg border border-gray-700 cursor-pointer hover:bg-black/40 transition" onclick="openLightbox('01.png', '🚫')">
+            <img src="01.png" alt="Screenshot 1" class="w-full h-auto rounded shadow-sm border border-gray-600">
+            <span class="text-[10px] text-gray-400 mt-2 text-center">🚫</span>
+        </div>
+        <!-- 02 -->
+        <div class="flex flex-col items-center bg-black/20 p-2 rounded-lg border border-gray-700 cursor-pointer hover:bg-black/40 transition" onclick="openLightbox('02.png', '🚫')">
+            <img src="02.png" alt="Screenshot 2" class="w-full h-auto rounded shadow-sm border border-gray-600">
+            <span class="text-[10px] text-gray-400 mt-2 text-center">🚫</span>
+        </div>
+        <!-- 03 -->
+        <div class="flex flex-col items-center bg-black/20 p-2 rounded-lg border border-gray-700 cursor-pointer hover:bg-black/40 transition" onclick="openLightbox('03.png', '🚫')">
+            <img src="03.png" alt="Screenshot 3" class="w-full h-auto rounded shadow-sm border border-gray-600">
+            <span class="text-[10px] text-gray-400 mt-2 text-center">🚫</span>
+        </div>
+        <!-- 04 -->
+        <div class="flex flex-col items-center bg-black/20 p-2 rounded-lg border border-gray-700 cursor-pointer hover:bg-black/40 transition" onclick="openLightbox('04.png', '🚫')">
+            <img src="04.png" alt="Screenshot 4" class="w-full h-auto rounded shadow-sm border border-gray-600">
+            <span class="text-[10px] text-gray-400 mt-2 text-center">🚫</span>
+        </div>
+        <!-- 05 -->
+        <div class="flex flex-col items-center bg-black/20 p-2 rounded-lg border border-gray-700 cursor-pointer hover:bg-black/40 transition" onclick="openLightbox('05.png', '🚫')">
+            <img src="05.png" alt="Screenshot 5" class="w-full h-auto rounded shadow-sm border border-gray-600">
+            <span class="text-[10px] text-gray-400 mt-2 text-center">🚫</span>
+        </div>
+        <!-- 06 -->
+        <div class="flex flex-col items-center bg-black/20 p-2 rounded-lg border border-gray-700 cursor-pointer hover:bg-black/40 transition" onclick="openLightbox('06.png', '🚫')">
+            <img src="06.png" alt="Screenshot 6" class="w-full h-auto rounded shadow-sm border border-gray-600">
+            <span class="text-[10px] text-gray-400 mt-2 text-center">🚫</span>
+        </div>
+        <!-- 07 -->
+        <div class="flex flex-col items-center bg-black/20 p-2 rounded-lg border border-gray-700 cursor-pointer hover:bg-black/40 transition" onclick="openLightbox('07.png', '🚫')">
+            <img src="07.png" alt="Screenshot 7" class="w-full h-auto rounded shadow-sm border border-gray-600">
+            <span class="text-[10px] text-gray-400 mt-2 text-center">🚫</span>
+        </div>
+        <!-- 08 -->
+        <div class="flex flex-col items-center bg-black/20 p-2 rounded-lg border border-gray-700 cursor-pointer hover:bg-black/40 transition" onclick="openLightbox('08.png', '🚫')">
+            <img src="08.png" alt="Screenshot 8" class="w-full h-auto rounded shadow-sm border border-gray-600">
+            <span class="text-[10px] text-gray-400 mt-2 text-center">🚫</span>
+        </div>
+        <!-- 09 -->
+        <div class="flex flex-col items-center bg-black/20 p-2 rounded-lg border border-gray-700 cursor-pointer hover:bg-black/40 transition" onclick="openLightbox('09.png', '🚫')">
+            <img src="09.png" alt="Screenshot 9" class="w-full h-auto rounded shadow-sm border border-gray-600">
+            <span class="text-[10px] text-gray-400 mt-2 text-center">🚫</span>
+        </div>
+        <!-- 10 -->
+        <div class="flex flex-col items-center bg-black/20 p-2 rounded-lg border border-gray-700 cursor-pointer hover:bg-black/40 transition" onclick="openLightbox('10.png', '🚫')">
+            <img src="10.png" alt="Screenshot 10" class="w-full h-auto rounded shadow-sm border border-gray-600">
+            <span class="text-[10px] text-gray-400 mt-2 text-center">🚫</span>
+        </div>
+    </div>
+    </div>
+    
 <div class="p-4 border-t border-custom flex justify-end bg-black bg-opacity-20">
 <button id="close-help-btn-bottom" class="px-6 py-2 bg-primary-app text-white rounded-lg font-bold hover:bg-secondary-app transition shadow-lg">Close Manual</button>
 </div>
@@ -2124,6 +2185,15 @@ Auto-close after playback
 <button id="ar-record-btn" class="fixed bottom-10 left-1/2 ar-record-btn-pos w-20 h-20 bg-red-600 rounded-full border-4 border-white ar-record-glow z-50 hidden transition-transform items-center justify-center text-white font-bold text-lg pointer-events-auto">REC</button>
 <div id="toast-notification" class="fixed top-20 left-1/2 -translate-x-1/2 bg-primary-app text-white px-6 py-3 rounded-xl shadow-lg z-[99] transition-all duration-300 opacity-0 transform -translate-y-10 pointer-events-none"><span id="toast-message"></span></div>
 <div id="tone-debug-indicator" class="hidden fixed top-32 left-1/2 -translate-x-1/2 bg-black bg-opacity-80 text-indigo-300 px-4 py-2 rounded-lg shadow-lg z-[99] font-mono text-xs pointer-events-none">🎵 listening...</div>
-<script type="module" src="app.js"></script>
+<div id="lightbox-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;" class="fixed inset-0 bg-black bg-opacity-95 flex flex-col items-center justify-center z-[150] transition-opacity duration-300 opacity-0 pointer-events-none">
+    <button id="close-lightbox-btn" onclick="closeLightbox()" class="absolute top-4 right-4 bg-gray-800 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-2xl shadow-lg border border-gray-600 active:bg-gray-700 z-50">✕</button>
+    
+    <div class="relative w-full max-w-5xl h-[85vh] flex flex-col items-center justify-center p-4">
+        <img id="lightbox-img" src="" alt="Full size screenshot" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl transition-transform duration-200">
+        <div id="lightbox-caption" class="text-white text-sm font-bold bg-gray-900 bg-opacity-80 px-6 py-2 rounded-full border border-gray-700 mt-4 text-center shadow-lg"></div>
+    </div>
+</div>
+    
+    <script type="module" src="app.js"></script>
 </body>
 </html>

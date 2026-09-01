@@ -10273,4 +10273,34 @@ if ('serviceWorker' in navigator && !location.search.includes('vpPreview=1')) {
 			});
 	});
 }
+window.openLightbox = function(src, caption) {
+    const modal = document.getElementById('lightbox-modal');
+    const img = document.getElementById('lightbox-img');
+    const cap = document.getElementById('lightbox-caption');
+    
+    img.src = src;
+    cap.textContent = caption;
+    
+    // Remove the hiding classes to fade in
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+};
 
+window.closeLightbox = function() {
+    const modal = document.getElementById('lightbox-modal');
+    const img = document.getElementById('lightbox-img');
+    
+    // Add the hiding classes back to fade out
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    
+    // Clear the image source after the 300ms fade transition completes
+    setTimeout(() => {
+        img.src = '';
+    }, 300);
+};
+
+// Optional: Allow tapping the dark background to close it
+document.getElementById('lightbox-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeLightbox();
+    }
+});

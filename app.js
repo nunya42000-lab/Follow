@@ -6632,10 +6632,14 @@ function applyMachineGridSizing(container, n) {
 		let bestScore = Infinity;
 		for (let cols = 1; cols <= n; cols++) {
 			const rows = Math.ceil(n / cols);
-			// Skip arrangements whose last row would be entirely empty (e.g. 3 machines as
-			// 4 cols x 1 row when 3 cols x 1 row already fits with no gap) - never worth an
-			// extra unused column.
-			if ((rows - 1) * cols >= n) continue;
+			// Only consider arrangements where every row is completely full (n divides evenly
+			// by cols) - the same rule validMachineGridShapes() already applies to the manual
+			// Cycle Layout button. The old test only rejected a shape whose LAST ROW WAS
+			// ENTIRELY EMPTY, which still let 3 machines land in a 2x2 with one dead cell; a
+			// hole in the grid both wastes the space and makes the machines uneven widths
+			// against each other. With max 4 machines this always leaves at least 1xN and Nx1
+			// available, so the loop can never come up empty.
+			if (n % cols !== 0) continue;
 			const cellRatio = (containerRatio / cols) / (1 / rows);
 			const score = Math.abs(cellRatio - 1.0);
 			if (score < bestScore) { bestScore = score; bestCols = cols; }
@@ -6643,8 +6647,20 @@ function applyMachineGridSizing(container, n) {
 		gridCols = bestCols;
 	}
 	container.className = `flex-grow grid gap-4 w-full max-w-5xl mx-auto grid-cols-${gridCols}`;
-	container.style.gridAutoRows = '1fr';
-	container.style.minHeight = '0';
+	// Rows are sized to their own content, NOT '1fr'. An equal-fractions row forces every
+	// machine card to exactly an equal share of the container's height no matter what the
+	// current Sequence Size / Row Max / UI Scale settings actually produce, which broke both
+	// ways at once: a card whose numbers need less than its share got padded out with dead
+	// space below them, while a card needing more than its share had its last rows of numbers
+	// clipped off behind the input footer. Content-sized rows let each card be exactly as tall
+	// as the settings say it should be, and align-content:start keeps any genuine leftover
+	// space pooled at the bottom instead of being injected between the rows.
+	container.style.gridAutoRows = 'min-content';
+	container.style.alignContent = 'start';
+	// minHeight must stay auto (not 0): as a flex child, 0 lets the container shrink below its
+	// own content, which is what allowed the bottom row to be cut off rather than pushing the
+	// page's scroll height out to fit.
+	container.style.minHeight = '';
 	return gridCols;
 }
 // Re-runs just the sizing (column count + grid-auto-rows), not a full renderUI(), specifically

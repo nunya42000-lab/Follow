@@ -475,8 +475,8 @@ const DEFAULT_GENERAL_TOGGLE_ORDER = [
 'autoBrightToggle', 'autoDarkToggle',
 'randomThemeToggle', 'headerThemeCycleToggle',
 'headerCycleInputToggle', 'headerModeSwitchToggle',
-'headerAddMachineToggle', 'bossToggle',
-'headerAutoFitToggle', 'headerZoomToggle', 'headerShrinkToggle', 'headerCycleLayoutToggle',
+'headerAddMachineToggle', 'headerCycleLayoutToggle',
+'headerAutoFitToggle', 'headerZoomToggle', 'headerShrinkToggle', 'bossToggle',
 'headerUiSizeToggle', 'headerSeqSizeToggle',
 'headerVolumeToggle', 'headerSpeedToggle',
 'autoHideHeaderToggle', 'headerInfiniteScrollToggle',
@@ -6657,10 +6657,14 @@ function applyMachineGridSizing(container, n) {
 	// space pooled at the bottom instead of being injected between the rows.
 	container.style.gridAutoRows = 'min-content';
 	container.style.alignContent = 'start';
-	// minHeight must stay auto (not 0): as a flex child, 0 lets the container shrink below its
-	// own content, which is what allowed the bottom row to be cut off rather than pushing the
-	// page's scroll height out to fit.
-	container.style.minHeight = '';
+	// minHeight stays 0 and the container scrolls its own overflow. Letting it size to content
+	// instead makes it push #app past its clientHeight, and renderUI()'s "keep the newest
+	// activity visible" branch then scrolls #app to the bottom on EVERY render - which in a
+	// short split pane drags the first row of numbers up behind the header after each input.
+	// Clamping the box here keeps #app un-scrolled, and overflow-y:auto means the rows that
+	// don't fit are still reachable instead of being silently clipped.
+	container.style.minHeight = '0';
+	container.style.overflowY = 'auto';
 	return gridCols;
 }
 // Re-runs just the sizing (column count + grid-auto-rows), not a full renderUI(), specifically

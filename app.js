@@ -469,13 +469,14 @@ const DEFAULT_HEADER_BTN_ORDER = [
     'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn',
     'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn',
     'headerspeeddownbtn', 'headercycleinputbtn',
-    'headernotepadbtn', 'headerpipbtn'
+    'headernotepadbtn', 'headerpipbtn', 'headersplitscreenbtn'
 ];
 const DEFAULT_GENERAL_TOGGLE_ORDER = [
 'autoBrightToggle', 'autoDarkToggle',
 'randomThemeToggle', 'headerThemeCycleToggle',
 'headerCycleInputToggle', 'headerModeSwitchToggle',
 'headerAddMachineToggle', 'bossToggle',
+'headerAutoFitToggle', 'headerZoomToggle', 'headerShrinkToggle', 'headerCycleLayoutToggle',
 'headerUiSizeToggle', 'headerSeqSizeToggle',
 'headerVolumeToggle', 'headerSpeedToggle',
 'autoHideHeaderToggle', 'headerInfiniteScrollToggle',
@@ -498,8 +499,7 @@ const DEFAULT_GENERAL_TOGGLE_ORDER = [
 'toneToggle', 'touchToggle',
 'handToggle', 'skeletonDebugToggle',
 'handsignalsToggle', 'handednessFlipToggle',
-'volgesToggle', 'speedToggle',
-''
+'volgesToggle', 'speedToggle'
 ];
 const CONFIG = {
 	MAX_MACHINES: 4,
@@ -762,41 +762,8 @@ const DEFAULT_APP = {
 	customTouchPresets: {},
 	customHandPresets: {},
 	activeMappingPreset: {'touch-preset-key9-select': '9_spatial','touch-preset-key12-select': '12_taps'},
-	headerBtnOrder: [
-    'headertimerbtn', 'headercounterbtn','headervoicebtn',
-    'headertonebtn', 'headertouchbtn', 'headerhandbtn',
-    'headerarcambtn', 'headerbiggerbtn', 'headerfullscreenbtn',
-    'headerpinnedbtn', 'headerdndbtn', 'headerupsidedownbtn',
-    'headerportraitlockbtn', 'headerlandscapelockbtn', 'headerswapbtn', 'headerplaybtn',
-    'headerdeletebtn', 'headerundobtn', 'headersettingsbtn', 'headerhelpbtn',
-    'headermodeswitchbtn', 'headerredeembtn', 'headersharebtn',
-    'headerthemecyclebtn', 'headeraddmachinebtn', 'headerautofitbtn', 'headerzoombtn', 'headershrinkbtn', 'headercyclelayoutbtn', 'headeruiupbtn',
-    'headeruidownbtn', 'headersequpbtn', 'headerseqdownbtn',
-    'headervolupbtn', 'headervoldownbtn', 'headerspeedupbtn',
-    'headerspeeddownbtn', 'headercycleinputbtn',
-    'headernotepadbtn', 'headerpipbtn'
-	],
-	generalToggleOrder: ['autoBrightToggle', 'autoDarkToggle', 'randomThemeToggle', 'headerThemeCycleToggle','headerCycleInputToggle', 'headerModeSwitchToggle','headerAddMachineToggle', 'bossToggle','headerAutoFitToggle', 'headerZoomToggle', 'headerShrinkToggle', 'headerCycleLayoutToggle','headerUiSizeToggle', 'headerSeqSizeToggle','headerVolumeToggle', 'headerSpeedToggle','autoHideHeaderToggle', 'headerInfiniteScrollToggle','flickHeaderToggle', 'restoreHeaderToggle','headerPlayToggle', 'headerDeleteToggle', 
-'headerSettingsToggle', 'headerHelpToggle', 
-'headerRedeemToggle', 'headerShareToggle',
-'hideIntroToggle', 'headerUndoToggle',
-'timerToggle', 'autotimerToggle',
-'counterToggle', 'autocounterToggle',
-'headerNotepadToggle', 'inputRegulatorToggle',
-'hapticsToggle',
-'upsidedownToggle', 'portraitLockToggle', 'landscapeLockToggle',
-'fullscreenToggle', 'biggerToggle',
-'ecoToggle', 'wakelockToggle',
-'positionSwapToggle', 'splitScreenToggle', 'landscapeInputResizeToggle', 'pipToggle',
-'dndToggle', 'pinnedModeToggle',
-'arcamToggle', 'arAutoCloseGeneralToggle',
-'voiceToggle', 'voicecommandsToggle',
-'toneToggle', 'touchToggle',
-'handToggle', 'skeletonDebugToggle',
-'handsignalsToggle', 'handednessFlipToggle',
-'volgesToggle', 'speedToggle',
-''
-	]
+	headerBtnOrder: [...DEFAULT_HEADER_BTN_ORDER],
+	generalToggleOrder: [...DEFAULT_GENERAL_TOGGLE_ORDER]
 };
 const SETTINGS_PRESETS = [
 	{ id: 'default', name: 'The Minimalist', code: 'm.xmhNj`V-16N$xovQJJ^`qG9_Wn:' },
@@ -860,7 +827,7 @@ const DEFAULT_MAPPINGS = {
 const BACKUP_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%()*+,-./:;=?@[]^_`{}';
 const AMBIENT_LIGHT_NIGHT_LUX = 5;
 const AMBIENT_LIGHT_SUNLIGHT_LUX = 4000;
-const _MODAL_IDS = ['settings-modal', 'help-modal', 'share-modal', 'comment-modal', 'redeem-modal', 'donate-modal', 'theme-editor-modal', 'game-setup-modal'];
+const _MODAL_IDS = ['settings-modal', 'help-modal', 'share-modal', 'comment-modal', 'redeem-modal', 'donate-modal', 'theme-editor-modal', 'game-setup-modal', 'lightbox-modal'];
 const firebaseConfig = {
 	apiKey: "AIzaSyCsXv-YfziJVtZ8sSraitLevSde51gEUN4",
 	authDomain: "follow-me-app-de3e9.firebaseapp.com",
@@ -915,7 +882,7 @@ let isTouchGesturePadVisible = false;
 // on a real device double-fires. Not needed on elements that only bind one event type.
 function dedupeTouchMouseHandler(fn, windowMs = 400) {
 	let lastFiredAt = 0;
-	return function guarded(e) {
+	return function guarded() {
 		const now = Date.now();
 		if (now - lastFiredAt < windowMs) return;
 		lastFiredAt = now;
@@ -1016,9 +983,9 @@ class TouchGestureEngine {
 				debug: false
 			}, config || {});
 		this.callbacks = Object.assign({
-				onTouchGesture: (data) => console.log('Gesture:', data),
-				onContinuous: (data) => console.log('Continuous:', data),
-				onDebug: (msg) => {}
+				onTouchGesture: () => {},
+				onContinuous: () => {},
+				onDebug: () => {}
 			}, callbacks || {});
 		this.activePointers = {};
 		this.history = [];
@@ -1276,7 +1243,6 @@ class TouchGestureEngine {
 						}
 					}
 					else {
-						const angle = this._getAngleDiff(segments[0].vec, segments[1].vec);
 						type = 'u_shape';
 						meta.winding = winding;
 					}
@@ -1331,7 +1297,6 @@ class TouchGestureEngine {
 		if (this.tapStack.active) {
 			clearTimeout(this.tapStack.timer); this.tapStack.active = false;
 			if (type === 'tap' && fingers === this.tapStack.fingers) {
-				const seqDist = Math.hypot(sc.x - this.tapStack.lastPos.x, sc.y - this.tapStack.lastPos.y);
 				this.tapStack.count++;
 				this.tapStack.posHistory.push(ec);
 				this.tapStack.lastPos = ec;
@@ -2624,7 +2589,6 @@ class SettingsManager {
 	}
 	initListeners() {
 		try {
-			const settingsModalEl = document.getElementById('settings-modal');
 			{
 				if (!window.__testAreaSetup) {
 					window.__testAreaSetup = true;
@@ -2870,7 +2834,7 @@ class SettingsManager {
 					}
 					if (!window.__testChecklists) {
 						window.__testChecklists = {};
-						const buildChecklist = (containerId, items, colorClass) => {
+						const buildChecklist = (containerId, items) => {
 							const container = document.getElementById(containerId);
 							if (!container) return null;
 							container.innerHTML = '';
@@ -3827,6 +3791,9 @@ class SettingsManager {
 		if (this.dom.handednessFlipToggle) this.dom.handednessFlipToggle.checked = !!this.appSettings.handednessFlip;
 		if (this.dom.voicecommandsToggle) this.dom.voicecommandsToggle.checked = !!this.appSettings.isVoiceCommandsEnabled;
 		if (this.dom.wakelockToggle) this.dom.wakelockToggle.checked = (typeof this.appSettings.isWakeLockEnabled === 'undefined') ? true : this.appSettings.isWakeLockEnabled;
+		if (this.dom.ecoToggle) this.dom.ecoToggle.checked = !!this.appSettings.isEcoModeEnabled;
+		const _sliderLock = document.getElementById('sliderLockToggle');
+		if (_sliderLock) _sliderLock.checked = !!this.appSettings.isSliderLockEnabled;
 		if (this.dom.randomThemeToggle) this.dom.randomThemeToggle.checked = !!this.appSettings.isRandomThemeEnabled;
 		if (this.dom.autoHideHeaderToggle) this.dom.autoHideHeaderToggle.checked = !!this.appSettings.isAutoHideHeaderEnabled;
 		if (this.dom.autoBrightToggle) this.dom.autoBrightToggle.checked = !!this.appSettings.isAutoBrightEnabled;
@@ -4162,7 +4129,7 @@ class SettingsManager {
 		}).filter(Boolean);
 	}
 	_generalToggleLabels() {
-		return { autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙', randomThemeToggle: 'Random Theme 🎲', headerThemeCycleToggle: 'Theme Cycle 🎨', headerCycleInputToggle: 'Cycle Input 🔀', headerModeSwitchToggle: 'Mode Switch 🎮', headerAddMachineToggle: 'Add Machine ➕', bossToggle: 'Boss Mode 🌑', headerAutoFitToggle: 'Auto Fit 📐', headerZoomToggle: 'Zoom 🔬', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', autoHideHeaderToggle: 'Auto Hide Header 👻', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️',flickHeaderToggle: 'Flick Header Buttons 💨', restoreHeaderToggle: 'Restore Header Gesture 🪄', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', hideIntroToggle: 'Hide Intro', headerUndoToggle: 'Undo ↩️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', upsidedownToggle: 'Upside Down 🙃', portraitLockToggle: 'Portrait Lock 🔒', landscapeLockToggle: 'Landscape Lock 🔐', fullscreenToggle: 'Full Screen 🔲', biggerToggle: 'Bigger Buttons', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', positionSwapToggle: 'Position Swap 🔄', splitScreenToggle: 'Split Screen 🖥️', landscapeInputResizeToggle: 'Adjust Input Area ↔️', pipToggle: 'Picture in Picture 🪟', dndToggle: 'Do Not Disturb 🔕', pinnedModeToggle: 'Pinned Mode 📌', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', };
+		return { autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙', randomThemeToggle: 'Random Theme 🎲', headerThemeCycleToggle: 'Theme Cycle 🎨', headerCycleInputToggle: 'Cycle Input 🔀', headerModeSwitchToggle: 'Mode Switch 🎮', headerAddMachineToggle: 'Add Machine ➕', bossToggle: 'Boss Mode 🌑', headerAutoFitToggle: 'Auto Fit 📐', headerZoomToggle: 'Zoom 🔬', headerShrinkToggle: 'Shrink 🤏', headerCycleLayoutToggle: 'Cycle Layout 🔲', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', autoHideHeaderToggle: 'Auto Hide Header 👻', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️',flickHeaderToggle: 'Flick Header Buttons 💨', restoreHeaderToggle: 'Restore Header Gesture 🪄', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', hideIntroToggle: 'Hide Intro', headerUndoToggle: 'Undo ↩️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', upsidedownToggle: 'Upside Down 🙃', portraitLockToggle: 'Portrait Lock 🔒', landscapeLockToggle: 'Landscape Lock 🔐', fullscreenToggle: 'Full Screen 🔲', biggerToggle: 'Bigger Buttons', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', positionSwapToggle: 'Position Swap 🔄', splitScreenToggle: 'Split Screen 🖥️', landscapeInputResizeToggle: 'Adjust Input Area ↔️', pipToggle: 'Picture in Picture 🪟', dndToggle: 'Do Not Disturb 🔕', pinnedModeToggle: 'Pinned Mode 📌', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', };
 	}
 	_moveGeneralToggle(id, direction) {
 		const grid = document.getElementById('general-toggle-grid');
@@ -4493,8 +4460,6 @@ class SettingsManager {
 			document.documentElement.style.removeProperty('--bigger-btn-size');
 			return;
 		}
-		const bucket = document.body.dataset.viewportBucket;
-		const isStacked = bucket === 'portrait';
 		const inputMode = document.body.dataset.inputMode;
 		if (inputMode !== 'key9' && inputMode !== 'key12') {
 			document.documentElement.style.removeProperty('--bigger-btn-size');
@@ -4628,12 +4593,6 @@ class SettingsManager {
 						row.scrollLeft -= setWidth;
 					}
 			});
-			row.addEventListener('click', (e) => {
-					const cloneBtn = e.target.closest('[data-clone-id]');
-					if (!cloneBtn) return;
-					const real = document.getElementById(cloneBtn.dataset.cloneId);
-					if (real) real.click();
-			});
 			const syncObserver = new MutationObserver((mutations) => {
 					const seen = new Set();
 					mutations.forEach(m => {
@@ -4731,7 +4690,6 @@ class SettingsManager {
 			if (restoreDefaultsBtn) restoreDefaultsBtn.onclick = () => this.restoreSensitivityDefaults();
 		}
 		this.bindMappingEvents();
-		return;
 	}
 	restoreSensitivityDefaults() {
 		if (this.appSettings.isSliderLockEnabled) {
@@ -4929,7 +4887,6 @@ class ToneEngine {
 			this.lastToneEndTime = 0;
 			this.currentTone = null;
 			this.loop();
-			console.log("🎵 Tone Cadence Engine: LISTENING");
 		} catch (e) {
 			console.error("Tone Engine failed to get microphone access:", e);
 			if (this.onDebug) this.onDebug({
@@ -4948,7 +4905,6 @@ class ToneEngine {
 			this.micSrc.disconnect();
 		}
 		this.currentTone = null;
-		console.log("🛑 Tone Cadence Engine: STOPPED");
 	}
 	_detectPitch(buffer, sampleRate) {
 		const SIZE = buffer.length;
@@ -6161,27 +6117,6 @@ function syncPipSequenceOnlyMode() {
 	document.body.classList.toggle('pip-sequence-only', isPipRestrictedBucket(bucket) && pipActive);
 	if (typeof renderUI === 'function') renderUI();
 }
-// Maps the curated header-button ids used in the Landscape/Split Screen configure modal's
-// checklist to their actual DOM element ids, so the person's per-viewport selection can
-// actually gate visibility (previously the checklist wrote appSettings.viewportProfiles[bucket]
-// .headerButtons but nothing read it - the 50%/33% curated set was hardcoded in CSS instead).
-const VP_HEADER_BUTTON_ID_MAP = {
-	timer: 'headertimerbtn', counter: 'headercounterbtn', play: 'headerplaybtn',
-	delete: 'headerdeletebtn', bigger: 'headerbiggerbtn', swap: 'headerswapbtn',
-	pip: 'headerpipbtn', touch: 'headertouchbtn'
-};
-// Every bucket can now show every header button it's individually toggled on in General - the
-// per-bucket curated allowlist this used to enforce (only a specific handful of buttons allowed
-// at 66%/50%/33%) added a second layer of "why isn't this button showing" on top of each
-// button's own General toggle, for a restriction that wasn't worth the confusion. Kept as a
-// real function (rather than deleting every call site) so it's a one-line no-op if this ever
-// needs to come back, but it no longer hides anything.
-function applyViewportHeaderButtonCuration(bucket) {
-	Object.keys(VP_HEADER_BUTTON_ID_MAP).forEach(curatedId => {
-		const el = document.getElementById(VP_HEADER_BUTTON_ID_MAP[curatedId]);
-		if (el) el.classList.remove('vp-curated-hidden');
-	});
-}
 
 function applyLandscapeInputWidth() {
 	const bucket = document.body.dataset.viewportBucket;
@@ -6216,9 +6151,7 @@ function applyLandscapeInputWidth() {
 }
 function applyViewportProfile() {
 	const bucket = detectViewportBucket();
-	const prevBucket = document.body.dataset.viewportBucket;
 	document.body.dataset.viewportBucket = bucket;
-	const profile = appSettings.viewportProfiles && appSettings.viewportProfiles[bucket];
 
 	// portraitSplitLayout ('stacked' vs side-by-side) no longer has anything left to compute -
 	// split50v (always stacked) and the portrait-shaped variants of split66/split33 that used to
@@ -6229,7 +6162,6 @@ function applyViewportProfile() {
 	delete document.body.dataset.portraitSplitLayout;
 
 	// 2. Curated header buttons and Custom Layout Triggers
-	applyViewportHeaderButtonCuration(bucket);
 	applyLandscapeInputWidth();
 	syncPipSequenceOnlyMode();
 
@@ -6890,7 +6822,7 @@ function renderUI() {
 	// (not inlined here) specifically so updateSequenceContainerOffset() can re-run just this
 	// part after its own delayed header-padding correction settles, without needing a full
 	// renderUI() (which would pointlessly recreate every card).
-	const gridCols = applyMachineGridSizing(container, settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? 1 : activeSeqs.length);
+	applyMachineGridSizing(container, settings.currentMode === CONFIG.MODES.UNIQUE_ROUNDS ? 1 : activeSeqs.length);
 	activeSeqs.forEach((seq, arrIdx) => {
 			const idx = activeIndices[arrIdx];
 			const card = document.createElement('div');
@@ -7397,7 +7329,6 @@ function initTouchGestureEngine() {
 				}
 			},
 			onContinuous: data => {
-				console.log("Continuous Gesture:", data.type, "Fingers:", data.fingers);
 				if (data.type === 'squiggle' && data.fingers === 1) {
 					if (appSettings.isDeleteTouchGestureEnabled) {
 						const now = Date.now();
@@ -7785,13 +7716,13 @@ function initGlobalListeners() {
 			headerUndoBtnEl.onclick = () => performUndo();
 		}
 		if (appSettings.showWelcomeScreen && modules.settings && !location.search.includes('vpPreview=1')) setTimeout(() => modules.settings.openSetup(), 500);
-		const handlePause = e => {
+		const handlePause = () => {
 			if (isDemoPlaying) {
 				isPlaybackPaused = true;
 				showToast("Paused ⏸️");
 			}
 		};
-		const handleResume = e => {
+		const handleResume = () => {
 			if (isPlaybackPaused) {
 				isPlaybackPaused = false;
 				showToast("Resumed ▶️");
@@ -7876,7 +7807,6 @@ function initGlobalListeners() {
 		const headerTimer = document.getElementById('headertimerbtn');
 		const headerCounter = document.getElementById('headercounterbtn');
 		const headerMic = document.getElementById('headervoicebtn');
-		const headerCam = document.getElementById('headerarcambtn');
 		const headerTouchGesture = document.getElementById('headertouchbtn');
 		const headerHand = document.getElementById('headerhandbtn');
 		if (headerHand) {
@@ -8845,14 +8775,12 @@ window.wakelockToggle = async function(enable) {
 			if (enable) {
 				screenWakeLock = await navigator.wakeLock.request('screen');
 				document.addEventListener('visibilitychange', reacquireWakeLock);
-				console.log('Wake Lock: ACTIVE 💡');
 			} else {
 				if (screenWakeLock) {
 					await screenWakeLock.release();
 					screenWakeLock = null;
 				}
 				document.removeEventListener('visibilitychange', reacquireWakeLock);
-				console.log('Wake Lock: RELEASED 🔋');
 			}
 		}
 	} catch (err) {
@@ -9220,7 +9148,6 @@ window.unlockBodyScroll = unlockBodyScroll;
 // so top-level function declarations don't auto-attach to window) can push unsaved slider/select
 // edits into the iframe and force it to re-render without a full page reload.
 window.applyViewportProfile = applyViewportProfile;
-window.applyViewportHeaderButtonCuration = applyViewportHeaderButtonCuration;
 window.applyLandscapeInputWidth = applyLandscapeInputWidth;
 window.getEffectiveHeaderScale = getEffectiveHeaderScale;
 window.getEffectiveNumberSize = getEffectiveNumberSize;
@@ -9521,7 +9448,6 @@ if (!window.__vpResizeListenerBound) {
 
 
 function initViewportProfilesUI() {
-	const buckets = ['landscape', 'split50h'];
 
 	// Every control commits the instant it changes (profile[key] = ...; then onCommit()),
 	// straight into appSettings.viewportProfiles[bucket] - no buffering, no Save button, no
@@ -10050,7 +9976,6 @@ const startApp = async () => {
 			if (testEl) testEl.textContent = text;
 	});
 	window.toneEngine = toneEngine;
-	let handGestureHistory = [];
 	let handGestureCooldownUntil = 0;
 	if (typeof VisionEngine !== 'function') {
 		console.warn('VisionEngine unavailable (wasm/vision_bundle.js not found) - hand tracking disabled.');
@@ -10153,7 +10078,6 @@ const startApp = async () => {
 			},
 			onCommand: cmd => {
 				if (!appSettings.isVoiceInputEnabled || !appSettings.isVoiceCommandsEnabled) {
-					console.log("Voice commands disabled (Voice Input or Voice Commands is off). Ignoring:", cmd);
 					return;
 				}
 				if (cmd === 'CMD_PLAY') {
@@ -10274,33 +10198,28 @@ if ('serviceWorker' in navigator && !location.search.includes('vpPreview=1')) {
 	});
 }
 window.openLightbox = function(src, caption) {
-    const modal = document.getElementById('lightbox-modal');
-    const img = document.getElementById('lightbox-img');
-    const cap = document.getElementById('lightbox-caption');
-    
-    img.src = src;
-    cap.textContent = caption;
-    
-    // Remove the hiding classes to fade in
-    modal.classList.remove('opacity-0', 'pointer-events-none');
+	const modal = document.getElementById('lightbox-modal');
+	const img = document.getElementById('lightbox-img');
+	const cap = document.getElementById('lightbox-caption');
+	if (!modal || !img || !cap) return;
+	img.src = src;
+	cap.textContent = caption;
+	modal.classList.remove('opacity-0', 'pointer-events-none');
+	if (window.lockBodyScroll) window.lockBodyScroll();
 };
-
 window.closeLightbox = function() {
-    const modal = document.getElementById('lightbox-modal');
-    const img = document.getElementById('lightbox-img');
-    
-    // Add the hiding classes back to fade out
-    modal.classList.add('opacity-0', 'pointer-events-none');
-    
-    // Clear the image source after the 300ms fade transition completes
-    setTimeout(() => {
-        img.src = '';
-    }, 300);
+	const modal = document.getElementById('lightbox-modal');
+	const img = document.getElementById('lightbox-img');
+	if (!modal || !img) return;
+	modal.classList.add('opacity-0', 'pointer-events-none');
+	if (window.unlockBodyScroll) window.unlockBodyScroll();
+	// Clear the image source after the 300ms fade transition completes
+	setTimeout(() => { img.src = ''; }, 300);
 };
-
-// Optional: Allow tapping the dark background to close it
-document.getElementById('lightbox-modal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeLightbox();
-    }
-});
+// Tapping the dark background closes it
+const _lightboxModal = document.getElementById('lightbox-modal');
+if (_lightboxModal) {
+	_lightboxModal.addEventListener('click', function(e) {
+		if (e.target === this) window.closeLightbox();
+	});
+}

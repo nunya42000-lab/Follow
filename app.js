@@ -1031,7 +1031,10 @@ class TouchGestureEngine {
 		t.addEventListener('contextmenu', e => e.preventDefault());
 	}
 	_handleDown(e) {
-		if (e.target.tagName === 'BUTTON' && !document.body.classList.contains('input-gestures-mode')) return;
+		// closest('button'), not tagName: a button containing nested markup (the theme editor's
+		// two-line <span> buttons, for instance) reports the SPAN as e.target, so a tagName test
+		// misses it and the press gets treated as the start of a body gesture.
+		if (e.target.closest && e.target.closest('button') && !document.body.classList.contains('input-gestures-mode')) return;
 		if (e.target.closest && e.target.closest('#header-btn-row')) return;
 		this.activePointers[e.pointerId] = {
 			id: e.pointerId,
@@ -1214,7 +1217,12 @@ class TouchGestureEngine {
 				const dir = this._getDirection(ec.x - sc.x, ec.y - sc.y);
 				if (endSpan < startSpan * 0.7) { type = 'pinch_swipe'; meta.dir = dir; }
 				else if (endSpan > startSpan * 1.3) { type = 'expand_swipe'; meta.dir = dir; }
-				this._emitTouchGesture(type, fingers, meta); return;
+				// Only claim the gesture if one of the two ratio tests actually matched. The span can
+				// clear the 30px test while still landing between 0.7x and 1.3x (200px -> 240px, say),
+				// which assigns no type at all - emitting unconditionally there reported the still-
+				// default 'tap', so a two-finger parallel swipe registered as a tap. Falling through
+				// instead lets the normal path/swipe analysis below classify it properly.
+				if (type !== 'tap') { this._emitTouchGesture(type, fingers, meta); return; }
 			}
 		}
 		if (type === 'tap' && pathLen > this._cfg('swipeThreshold')) {
@@ -2529,7 +2537,7 @@ class SettingsManager {
 	}
 	openThemeEditor() { if (!this.dom.editorModal) return; const activeId = this.appSettings.activeTheme; const source = this.appSettings.customThemes[activeId] || PREMADE_THEMES[activeId] || PREMADE_THEMES['default']; this.tempTheme = { ...source }; this.dom.edName.value = this.tempTheme.name; this.selectThemeTarget('bubble'); this.updatePreview(); this.dom.editorModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.editorModal.querySelector('div').classList.remove('scale-90'); }
 	updatePreview() { const t = this.tempTheme; if (!this.dom.edPreview) return; this.dom.edPreview.style.backgroundColor = t.bgMain; this.dom.edPreview.style.color = t.text; this.dom.edPreviewCard.style.backgroundColor = t.bgCard; this.dom.edPreviewCard.style.color = t.text; this.dom.edPreviewCard.style.border = '1px solid rgba(255,255,255,0.1)'; this.dom.edPreviewBtn.style.backgroundColor = t.bubble; this.dom.edPreviewBtn.style.color = t.text; const kp = document.getElementById('preview-keypad-btn'); if (kp) { kp.style.backgroundColor = t.btn; kp.style.color = t.text; } const hb = document.getElementById('preview-header-btn'); if (hb) { hb.style.backgroundColor = t.bubble; hb.style.color = '#fff'; } }
-	testVoice() { if (window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("Testing 1 2 3."); if (this.appSettings.runtimeSettings.selectedVoice) { const v = window.speechSynthesis.getVoices().find(voice => voice.name === this.appSettings.runtimeSettings.selectedVoice); if (v) u.voice = v; } let p = parseFloat(this.dom.voicePitch.value); let r = parseFloat(this.dom.voiceRate.value); let v = parseFloat(this.dom.voiceVolume.value); u.pitch = p; u.rate = r; u.volume = v; window.speechSynthesis.speak(u); } }
+	testVoice() { if (window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("Testing 1 2 3."); /* Chromium garbage-collects an utterance nothing still references, which can cut the audio off mid-sentence; parking it on a field keeps it alive until the next test replaces it. */ this._testUtterance = u; if (this.appSettings.runtimeSettings.selectedVoice) { const v = window.speechSynthesis.getVoices().find(voice => voice.name === this.appSettings.runtimeSettings.selectedVoice); if (v) u.voice = v; } let p = parseFloat(this.dom.voicePitch.value); let r = parseFloat(this.dom.voiceRate.value); let v = parseFloat(this.dom.voiceVolume.value); u.pitch = p; u.rate = r; u.volume = v; window.speechSynthesis.speak(u); } }
 	openShare() {
 		this.qrScale = 100;
 		if (this.updateQR) this.updateQR();
@@ -3388,16 +3396,9 @@ class SettingsManager {
 			const existingOnchange = this.dom.machines.onchange;
 			this.dom.machines.onchange = (e) => {
 				if (existingOnchange) existingOnchange(e);
-				const newCount = parseInt(e.target.value);
-				if (newCount > 1) {
-					const vpForRowMax = getViewportProfile();
-					if (vpForRowMax) {
-						vpForRowMax.rowMax = 'none';
-					} else {
-						this.appSettings.appRowMax = 'none';
-					}
-					if (this.dom.rowMax) this.dom.rowMax.value = 'none';
-				}
+				// Row Max is no longer overwritten here - getEffectiveRowMax() suppresses it while
+				// more than one machine is on screen and hands it straight back at one, so the
+				// user's stored choice survives the round trip.
 				renderUI();
 			};
 		}
@@ -4423,9 +4424,10 @@ class SettingsManager {
 	applyRowMax() {
 		const seqContainer = document.getElementById('sequence-container');
 		if (!seqContainer) return;
-		// Per-viewport Row Max overrides the global Row Max setting while that bucket is active.
-		const vp = (typeof getViewportProfile === 'function') ? getViewportProfile() : null;
-		const rowMax = (vp && vp.rowMax !== undefined && vp.rowMax !== null) ? String(vp.rowMax) : (this.appSettings.appRowMax || 'none');
+		// Per-viewport Row Max overrides the global setting while that bucket is active, and
+		// getEffectiveRowMax() additionally reports 'none' whenever more than one machine is on
+		// screen (see its comment) WITHOUT altering the stored value.
+		const rowMax = getEffectiveRowMax();
 		
 		if (rowMax === 'none') {
 			seqContainer.style.removeProperty('--row-max-width');
@@ -6046,6 +6048,24 @@ function getEffectiveGlobalUiScale() {
 	const vp = getViewportProfile();
 	return vp ? vp.uiScale : (appSettings.globalUiScale || 100);
 }
+// Row Max caps how many number cards fit on one row of a SINGLE machine's sequence. Once more
+// than one machine is on screen applyMachineGridSizing() is already dividing the space, and a live
+// Row Max fights it - wrapping each machine's numbers early and producing the cramped, uneven
+// layouts multi-machine mode exists to avoid. That used to be handled by writing 'none' straight
+// into the saved setting whenever a machine was added, which destroyed the user's real choice:
+// deleting back down to one machine left Row Max stuck on 'none' with nothing to restore from.
+// Resolving it here instead means the stored value is never touched - it just stops applying while
+// it would conflict, and returns on its own at one machine.
+function getEffectiveRowMax() {
+	const vp = (typeof getViewportProfile === 'function') ? getViewportProfile() : null;
+	const stored = (vp && vp.rowMax !== undefined && vp.rowMax !== null) ? String(vp.rowMax) : (appSettings.appRowMax || 'none');
+	const machines = (appSettings.runtimeSettings && appSettings.runtimeSettings.machineCount) || 1;
+	return machines > 1 ? 'none' : stored;
+}
+function getEffectiveRowMaxCount() {
+	const r = getEffectiveRowMax();
+	return (r && r !== 'none') ? parseInt(r, 10) : 5;
+}
 function getEffectiveSeqScaleMultiplier() {
 	const vp = getViewportProfile();
 	return vp ? vp.seqSize / 100 : (appSettings.uiScaleMultiplier || 1.0);
@@ -6883,7 +6903,10 @@ function renderUI() {
 					btnTrash.onclick = e => {
 						e.stopPropagation();
 						if (confirm(`Remove Machine ${idx + 1} entirely?`)) {
-							const countToRemove = state.sequences[idx].length;
+							// A machine added but never played into has no entry in state.sequences at all
+							// (they're created lazily on first input), so idx can be undefined here - reading
+							// .length off it is what threw "Cannot read properties of undefined".
+							const countToRemove = (state.sequences[idx] || []).length;
 							state.sequences.splice(idx, 1);
 							settings.machineCount--;
 							const sel = document.getElementById('machines-select');
@@ -7897,23 +7920,8 @@ function initGlobalListeners() {
 			const settings = getProfileSettings();
 			if (settings.machineCount >= CONFIG.MAX_MACHINES) { showToast(`Max ${CONFIG.MAX_MACHINES} machines 🛑`); return; }
 			settings.machineCount++;
-			// Row Max caps how many cards fit on one row PER MACHINE'S OWN sequence - once
-			// there's more than one machine on screen, the grid's own column/row layout
-			// (applyMachineGridSizing) is already deciding how space gets split, and a
-			// leftover Row Max fights that by also trying to wrap each individual machine's
-			// numbers early, often producing exactly the cramped, uneven-looking layouts
-			// this whole multi-machine feature was built to avoid. Turning it off (in
-			// whichever context is actually active - the live viewport profile in
-			// landscape/split, portrait's own setting otherwise) hands full control to the
-			// grid sizing instead.
-			const vpForRowMax = getViewportProfile();
-			if (vpForRowMax) {
-				vpForRowMax.rowMax = 'none';
-			} else {
-				appSettings.appRowMax = 'none';
-			}
-			const rowMaxSel = document.getElementById('row-max-select');
-			if (rowMaxSel) rowMaxSel.value = 'none';
+			// Row Max is suppressed by getEffectiveRowMax() while multiple machines are on
+			// screen rather than being written to disk here, so removing machines restores it.
 			const sel = document.getElementById('machines-select');
 			if (sel) sel.value = settings.machineCount;
 			renderUI();
@@ -7995,9 +8003,7 @@ function initGlobalListeners() {
 					- (parseFloat(getComputedStyle(container).paddingLeft) || 0)
 					- (parseFloat(getComputedStyle(container).paddingRight) || 0)
 					- cardPadding;
-				const vp = getViewportProfile();
-				const rowMaxSetting = vp ? vp.rowMax : appSettings.appRowMax;
-				const count = (rowMaxSetting && rowMaxSetting !== 'none') ? parseInt(rowMaxSetting, 10) : 5;
+				const count = getEffectiveRowMaxCount();
 				const gap = 8;
 				const rawCardSize = (containerWidth - gap * (count - 1)) / count;
 				const rawScale = rawCardSize / 40;
@@ -8165,8 +8171,7 @@ function initGlobalListeners() {
 					- (parseFloat(getComputedStyle(container).paddingLeft) || 0)
 					- (parseFloat(getComputedStyle(container).paddingRight) || 0)
 					- cardPadding;
-				const rowMaxSetting = vp ? vp.rowMax : appSettings.appRowMax;
-				const count = (rowMaxSetting && rowMaxSetting !== 'none') ? parseInt(rowMaxSetting, 10) : 5;
+				const count = getEffectiveRowMaxCount();
 				const gap = 8;
 				const rawCardSize = (containerWidth - gap * (count - 1)) / count;
 				const rawScale = rawCardSize / 40;

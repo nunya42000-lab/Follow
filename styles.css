@@ -257,6 +257,14 @@ body:not([data-viewport-bucket="portrait"])[data-rotate="0"] #app {padding-top: 
 		max-height: 100vh !important;
 		box-sizing: border-box !important;
 		overflow-y: auto !important;
+		/* Zero the base pb-32 here for the same reason the stacked rule above does. That 8rem
+		   buffer exists to keep the sequence clear of a footer sitting BELOW it - but in these
+		   side-by-side panes the footer is a column beside #app and reserves width, never height,
+		   so the padding is pure dead space at the bottom of the sequence column. On a full-height
+		   landscape screen it goes unnoticed; in a short split strip it's 128px of a ~190px pane,
+		   which shrinks the sequence area enough to push the newest row out of view and force a
+		   manual scroll after every input. */
+		padding-bottom: 0 !important;
 	}
 	#portrait-resize-handle {
 		display: none;

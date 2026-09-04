@@ -643,6 +643,11 @@ const DEFAULT_APP = {
 	showHeaderAddMachineBtn: false,
 	showHeaderShrinkBtn: false,
 	showHeaderCycleLayoutBtn: false,
+	// Autosize: on the first Play after it's switched on, runAutosizeSequence() sizes portrait,
+	// then real Landscape (via the orientation lock) and real Split Screen, running Auto Fit +
+	// Zoom twice in each, then switches itself off - re-running every launch would only recompute
+	// the same numbers.
+	isAutosizeEnabled: true,
 	showHeaderAutoFitBtn: false,
 	showHeaderZoomBtn: false,
 	showHeaderUiSizeBtns: false,
@@ -700,7 +705,6 @@ const DEFAULT_APP = {
 	voiceConfidenceThreshold: 50,
 	toneVolumeThreshold: -85,
 	isSliderLockEnabled: true,
-	isSettingsLockEnabled: false,
 	touchAnchorStillDistance: 15,
 	touchAnchorMinHoldTime: 150,
 	touchChordSimultaneityWindow: 50,
@@ -2016,7 +2020,7 @@ class SettingsManager {
 			tabs: document.querySelectorAll('.tab-btn'),
 			contents: document.querySelectorAll('.tab-content'),
 			helpModal: document.getElementById('help-modal'), setupModal: document.getElementById('game-setup-modal'), shareModal: document.getElementById('share-modal'), closeSetupBtn: document.getElementById('close-game-setup-modal'), quickSettings: document.getElementById('quick-open-settings'), quickHelp: document.getElementById('quick-open-help'), grantPermissionsBtn: document.getElementById('grant-permissions-btn'),
-			quickAutoplay: document.getElementById('quick-autoplay-toggle'), quickAudio: document.getElementById('quick-audio-toggle'), quickAutofit: document.getElementById('quick-autofit-toggle'), quickZoom: document.getElementById('quick-zoom-toggle'), dontShowWelcome: document.getElementById('dont-introToggle'), welcomeSettingsLockToggle: document.getElementById('welcome-settings-lock-toggle'),
+			quickAutoplay: document.getElementById('quick-autoplay-toggle'), quickAudio: document.getElementById('quick-audio-toggle'), quickAutosize: document.getElementById('quick-autosize-toggle'), dontShowWelcome: document.getElementById('dont-introToggle'),
 			quickResizeUp: document.getElementById('quick-resize-up'), quickResizeDown: document.getElementById('quick-resize-down'),
 			quickCardSizeUp: document.getElementById('quick-cardsize-up'), quickCardSizeDown: document.getElementById('quick-cardsize-down'),
 			openShareInside: document.getElementById('open-share-button'), closeShareBtn: document.getElementById('close-share'), closeHelpBtn: document.getElementById('close-help'), closeHelpBtnBottom: document.getElementById('close-help-btn-bottom'), openHelpBtn: document.getElementById('open-help-button'), promptDisplay: document.getElementById('prompt-display'), copyPromptBtn: document.getElementById('copy-prompt-btn'), generatePromptBtn: document.getElementById('generate-prompt-btn'),
@@ -3429,11 +3433,10 @@ class SettingsManager {
 		if (this.dom.audio) this.dom.audio.onchange = (e) => { this.appSettings.runtimeSettings.isAudioEnabled = e.target.checked; if (this.dom.quickAudio) this.dom.quickAudio.checked = e.target.checked; this.callbacks.onSave(); };
 		if (this.dom.quickAutoplay) this.dom.quickAutoplay.onchange = (e) => { this.appSettings.runtimeSettings.isAutoplayEnabled = e.target.checked; if (this.dom.autoplay) this.dom.autoplay.checked = e.target.checked; this.callbacks.onSave(); };
 		if (this.dom.quickAudio) this.dom.quickAudio.onchange = (e) => { this.appSettings.runtimeSettings.isAudioEnabled = e.target.checked; if (this.dom.audio) this.dom.audio.checked = e.target.checked; this.callbacks.onSave(); };
-		if (this.dom.quickAutofit) this.dom.quickAutofit.onchange = (e) => { this.appSettings.showHeaderAutoFitBtn = e.target.checked; if (this.dom.headerAutoFitToggle) this.dom.headerAutoFitToggle.checked = e.target.checked; this.updateHeaderVisibility(); this.callbacks.onSave(); };
-		if (this.dom.quickZoom) this.dom.quickZoom.onchange = (e) => { this.appSettings.showHeaderZoomBtn = e.target.checked; if (this.dom.headerZoomToggle) this.dom.headerZoomToggle.checked = e.target.checked; this.updateHeaderVisibility(); this.callbacks.onSave(); };
-		if (this.dom.headerAutoFitToggle) this.dom.headerAutoFitToggle.addEventListener('change', (e) => { if (this.dom.quickAutofit) this.dom.quickAutofit.checked = e.target.checked; });
-		if (this.dom.headerZoomToggle) this.dom.headerZoomToggle.addEventListener('change', (e) => { if (this.dom.quickZoom) this.dom.quickZoom.checked = e.target.checked; });
-		if (this.dom.welcomeSettingsLockToggle) this.dom.welcomeSettingsLockToggle.onchange = (e) => { this.appSettings.isSettingsLockEnabled = e.target.checked; this.applySettingsLockState(); this.callbacks.onSave(); };
+		if (this.dom.quickAutosize) this.dom.quickAutosize.onchange = (e) => {
+			this.appSettings.isAutosizeEnabled = e.target.checked;
+			this.callbacks.onSave();
+		};
 		if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = !e.target.checked; if (this.dom.showWelcome) this.dom.showWelcome.checked = e.target.checked; this.callbacks.onSave(); };
 		if (this.dom.showWelcome) this.dom.showWelcome.onchange = (e) => { this.appSettings.showWelcomeScreen = !e.target.checked; if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = e.target.checked; this.callbacks.onSave(); };
 		bind(this.dom.hapticMorse, 'isHapticMorseEnabled', false);
@@ -3641,14 +3644,6 @@ class SettingsManager {
 	populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
 	openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.initEcoModeConfigUI(); if (typeof initViewportProfilesUI === 'function') initViewportProfilesUI(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
 	openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); this.updateWelcomeSample(); }
-	applySettingsLockState() {
-		const locked = !!this.appSettings.isSettingsLockEnabled;
-		if (this.dom.welcomeSettingsLockToggle) this.dom.welcomeSettingsLockToggle.checked = locked;
-		if (this.dom.settingsModal) {
-			const card = this.dom.settingsModal.querySelector('.settings-modal-bg');
-			if (card) card.classList.toggle('settings-locked', locked);
-		}
-	}
 	updateWelcomeSample() {
 		const holder = document.getElementById('welcome-sample-sequence');
 		if (!holder) return;
@@ -3667,7 +3662,7 @@ class SettingsManager {
 				holder.appendChild(span);
 		});
 	}
-	closeSetup() { this.callbacks.onSave(); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); if (window.unlockBodyScroll) window.unlockBodyScroll(); }
+	closeSetup() { this.callbacks.onSave(); if (typeof armAutosize === 'function') armAutosize(); /* Autosize runs just after Play so it measures the real game layout rather than the welcome modal on top of it. */ setTimeout(() => { if (typeof runAutosizeSequence === 'function') runAutosizeSequence(); }, 420); this.dom.setupModal.classList.add('opacity-0'); this.dom.setupModal.querySelector('div').classList.add('scale-90'); setTimeout(() => this.dom.setupModal.classList.add('pointer-events-none'), 300); if (window.unlockBodyScroll) window.unlockBodyScroll(); }
 	generatePrompt() {
 		if (!this.dom.promptDisplay) return;
 		const ps = this.appSettings.runtimeSettings;
@@ -3712,8 +3707,7 @@ class SettingsManager {
 		if (this.dom.audio) this.dom.audio.checked = this.appSettings.runtimeSettings.isAudioEnabled;
 		if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = this.appSettings.runtimeSettings.isAutoplayEnabled;
 		if (this.dom.quickAudio) this.dom.quickAudio.checked = this.appSettings.runtimeSettings.isAudioEnabled;
-		if (this.dom.quickAutofit) this.dom.quickAutofit.checked = !!this.appSettings.showHeaderAutoFitBtn;
-		if (this.dom.quickZoom) this.dom.quickZoom.checked = !!this.appSettings.showHeaderZoomBtn;
+		if (this.dom.quickAutosize) this.dom.quickAutosize.checked = !!this.appSettings.isAutosizeEnabled;
 		if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !this.appSettings.showWelcomeScreen;
 		if (this.dom.showWelcome) this.dom.showWelcome.checked = !this.appSettings.showWelcomeScreen;
 		if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.runtimeSettings.isHapticMorseEnabled;
@@ -3841,7 +3835,6 @@ class SettingsManager {
 		if (this.dom.inputRegulatorToggle) this.dom.inputRegulatorToggle.checked = this.appSettings.isInputRegulatorEnabled !== false;
 		if (this.dom.headerHelpToggle) this.dom.headerHelpToggle.checked = !!this.appSettings.showHeaderHelpBtn;
 		if (this.dom.headerModeSwitchToggle) this.dom.headerModeSwitchToggle.checked = !!this.appSettings.showHeaderModeSwitchBtn;
-		this.applySettingsLockState();
 		if (this.dom.arSpeedSelect) {
 			const speedVal = this.appSettings.arPlaybackSpeed || 1.0;
 			this.dom.arSpeedSelect.value = String(speedVal);
@@ -5490,6 +5483,9 @@ async function importSettingsFromBackupCode(code) {
 	const merged = mergeWithDefaults(imported, DEFAULT_APP);
 	Object.keys(appSettings).forEach(k => delete appSettings[k]);
 	Object.assign(appSettings, merged);
+	// A preset/backup code brings its own sizing numbers, which were measured on whoever made
+	// it - re-arm Autosize so they get re-fitted to THIS screen on the next Play.
+	appSettings.isAutosizeEnabled = true;
 	saveState();
 	updateAllChrome();
 	if (modules.settings) modules.settings.updateUIFromSettings();
@@ -6167,6 +6163,106 @@ function applyLandscapeInputWidth() {
 		// FIX: Relies on the upgraded getter so stacked split33 uses 65% instead of falling back to 40%
 		const heightPct = Math.min(80, Math.max(20, getEffectiveInputAreaPct()));
 		document.documentElement.style.setProperty('--portrait-input-height', heightPct + 'vh');
+	}
+}
+// ---------------------------------------------------------------------------------------
+// Autosize
+// Drives the real Auto Fit / Zoom routines across all three layouts in one go, in this order:
+//   portrait  -> Auto Fit, Zoom, Auto Fit, Zoom
+//   Landscape Lock ON  -> same four -> Landscape Lock OFF
+//   Split Screen ON    -> same four -> Split Screen OFF
+// then switches itself off.
+//
+// Each pass runs the pair TWICE because the two feed each other: Auto Fit sizes the sequence
+// cards from the space left over by the input pad, and Zoom then resizes that pad - so a single
+// pass leaves the first of the two measuring against geometry the second has already changed.
+//
+// Driving the buckets for real (rather than just relabelling data-viewport-bucket) is what makes
+// the numbers trustworthy: Landscape Lock genuinely rotates the screen through the Orientation
+// API, and Split Screen genuinely reflows into the side-by-side layout, so both produce true
+// geometry to measure rather than a portrait-shaped guess wearing another bucket's name.
+function runAutosizePass() {
+	const fit = window.__runAutoFit;
+	const zoom = window.__runZoom;
+	if (typeof fit !== 'function' || typeof zoom !== 'function') return false;
+	for (let i = 0; i < 2; i++) {
+		try { fit(); } catch (e) { console.warn('Autosize: Auto Fit pass failed', e); }
+		try { zoom(); } catch (e) { console.warn('Autosize: Zoom pass failed', e); }
+	}
+	return true;
+}
+const autosizeDelay = ms => new Promise(r => setTimeout(r, ms));
+// Orientation changes are asynchronous and the device can take a moment; poll for the bucket we
+// asked for instead of guessing a fixed wait, but always give up rather than hang - a device that
+// refuses the orientation lock still gets sized for whatever it's actually showing.
+async function autosizeWaitForBucket(expected, timeoutMs = 1600) {
+	const started = Date.now();
+	while (Date.now() - started < timeoutMs) {
+		if ((document.body.dataset.viewportBucket || 'portrait') === expected) return true;
+		await autosizeDelay(80);
+	}
+	return false;
+}
+// Armed by the Play button. Autosize must not fire during boot: the welcome modal is still up,
+// and sizing should be something the person opted into on this launch rather than something that
+// silently happens before they've even seen the game.
+let autosizeArmed = false;
+let autosizeRunning = false;
+function armAutosize() { autosizeArmed = true; }
+async function runAutosizeSequence() {
+	if (!appSettings.isAutosizeEnabled || !autosizeArmed || autosizeRunning) return;
+	if (typeof window.__runAutoFit !== 'function' || typeof window.__runZoom !== 'function') return;
+	autosizeRunning = true;
+	// Remember what was already on so the sequence puts the device back exactly as it found it.
+	const hadLandscapeLock = (typeof isLandscapeLocked !== 'undefined') && isLandscapeLocked;
+	const hadSplit = !!window.__vpSplitScreenForced;
+	const splitBtn = document.getElementById('headersplitscreenbtn');
+	const setSplit = on => {
+		window.__vpSplitScreenForced = on;
+		if (splitBtn) splitBtn.classList.toggle('header-btn-active', on);
+		if (typeof applyViewportProfile === 'function') applyViewportProfile();
+	};
+	try {
+		// 1. Current (portrait) layout.
+		runAutosizePass();
+		await autosizeDelay(220);
+		// 2. Landscape, via the real orientation lock.
+		if (!hadLandscapeLock && typeof window.toggleLandscapeLock === 'function') {
+			window.toggleLandscapeLock();
+			const gotLandscape = await autosizeWaitForBucket('landscape');
+			await autosizeDelay(320);
+			// Only size it if the device ACTUALLY rotated. Where the orientation lock is refused
+			// (desktop browsers, or a phone with rotation disabled at the OS level) the layout is
+			// still portrait, and measuring it would write portrait geometry into the landscape
+			// profile - worse than leaving that profile alone for the real thing to size later.
+			if (gotLandscape) runAutosizePass();
+			else console.warn('Autosize: landscape lock did not take effect, skipping that pass');
+			await autosizeDelay(220);
+			window.toggleLandscapeLock();
+			await autosizeDelay(420);
+		}
+		// 3. Split Screen (the split50h profile - side-by-side even in a portrait-shaped pane).
+		if (!hadSplit) {
+			setSplit(true);
+			const gotSplit = await autosizeWaitForBucket('split50h');
+			await autosizeDelay(320);
+			if (gotSplit) runAutosizePass();
+			else console.warn('Autosize: split screen did not take effect, skipping that pass');
+			await autosizeDelay(220);
+			setSplit(false);
+			await autosizeDelay(320);
+		}
+	} catch (e) {
+		console.warn('Autosize sequence aborted', e);
+	} finally {
+		// Restore whatever was on beforehand, whether or not the sequence completed.
+		if (window.__vpSplitScreenForced !== hadSplit) setSplit(hadSplit);
+		autosizeRunning = false;
+		appSettings.isAutosizeEnabled = false;
+		const cb = document.getElementById('quick-autosize-toggle');
+		if (cb) cb.checked = false;
+		saveState();
+		if (typeof showToast === 'function') showToast('Autosize complete \u2705');
 	}
 }
 function applyViewportProfile() {
@@ -8003,6 +8099,9 @@ function initGlobalListeners() {
 					- (parseFloat(getComputedStyle(container).paddingLeft) || 0)
 					- (parseFloat(getComputedStyle(container).paddingRight) || 0)
 					- cardPadding;
+				// vp decides whether the result lands on the active viewport profile or the global
+				// portrait settings; it was lost when this block's old row-max lookup was collapsed.
+				const vp = getViewportProfile();
 				const count = getEffectiveRowMaxCount();
 				const gap = 8;
 				const rawCardSize = (containerWidth - gap * (count - 1)) / count;
@@ -8038,13 +8137,15 @@ function initGlobalListeners() {
 					appSettings.showHeaderAutoFitBtn = false;
 					if (modules.settings) modules.settings.updateHeaderVisibility();
 					if (modules.settings && modules.settings.dom.headerAutoFitToggle) modules.settings.dom.headerAutoFitToggle.checked = false;
-					if (modules.settings && modules.settings.dom.quickAutofit) modules.settings.dom.quickAutofit.checked = false;
 					saveState();
 					showToast('Auto Fit button hidden');
 					vibrate();
 				}, 600);
 			};
-			const endAutoFit = dedupeTouchMouseHandler(e => {
+			// Exposed so runAutosizePass() can drive the exact same routine the button does,
+		// rather than duplicating the fit maths in a second place that could drift.
+		window.__runAutoFit = runAutoFit;
+		const endAutoFit = dedupeTouchMouseHandler(e => {
 				if (e) e.preventDefault();
 				clearTimeout(autoFitTimer);
 				if (!autoFitWasLong) runAutoFit();
@@ -8215,13 +8316,13 @@ function initGlobalListeners() {
 					appSettings.showHeaderZoomBtn = false;
 					if (modules.settings) modules.settings.updateHeaderVisibility();
 					if (modules.settings && modules.settings.dom.headerZoomToggle) modules.settings.dom.headerZoomToggle.checked = false;
-					if (modules.settings && modules.settings.dom.quickZoom) modules.settings.dom.quickZoom.checked = false;
 					saveState();
 					showToast('Zoom button hidden');
 					vibrate();
 				}, 600);
 			};
-			const endZoom = dedupeTouchMouseHandler(e => {
+			window.__runZoom = runZoom;
+		const endZoom = dedupeTouchMouseHandler(e => {
 				if (e) e.preventDefault();
 				clearTimeout(zoomTimer);
 				if (!zoomWasLong) runZoom();

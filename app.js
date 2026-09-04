@@ -693,7 +693,6 @@ const DEFAULT_APP = {
 
 	headerPadding: 0,
 	inputsPadding: 0,
-	toneCalibration: {isCalibrated: false,notes: {}},
 	isPositionSwapEnabled: false,
 	isLandscapeInputResizeEnabled: false,
 	landscapeInputWidthPct: 50,
@@ -2762,39 +2761,6 @@ class SettingsManager {
 						stopBtn.onclick = () => {
 							if (window.toneSequenceTester) window.toneSequenceTester.stop();
 							if (progressEl) progressEl.textContent = 'Stopped';
-						};
-					}
-					const calibrationStatusEl = document.getElementById('tone-calibration-status');
-					const updateCalibrationStatus = () => {
-						if (!calibrationStatusEl) return;
-						const cal = appSettings.toneCalibration;
-						if (cal && cal.isCalibrated) {
-							const n = Object.keys(cal.notes || {}).length;
-							calibrationStatusEl.textContent = `Calibrated (${n}/8 notes captured)`;
-						} else {
-							calibrationStatusEl.textContent = 'Not yet calibrated — runs automatically on first session';
-						}
-					};
-					updateCalibrationStatus();
-					window.__updateToneCalibrationStatus = updateCalibrationStatus;
-					const recalBtn = document.getElementById('tone-recalibrate-btn');
-					if (recalBtn) {
-						recalBtn.onclick = async () => {
-							recalBtn.disabled = true;
-							disableInput(true);
-							await runToneCalibration();
-							disableInput(false);
-							recalBtn.disabled = false;
-							updateCalibrationStatus();
-						};
-					}
-					const removeCalBtn = document.getElementById('tone-remove-calibration-btn');
-					if (removeCalBtn) {
-						removeCalBtn.onclick = () => {
-							appSettings.toneCalibration = { isCalibrated: false, notes: {} };
-							saveState();
-							updateCalibrationStatus();
-							showToast('Tone calibration removed — standard tones restored 🗑️');
 						};
 					}
 					const touchTestContainer = document.getElementById('test-area-lock-container');
@@ -4944,18 +4910,10 @@ class ToneEngine {
 		}
 		return refinedLag > 0 ? sampleRate / refinedLag : -1;
 	}
-	_effectiveTones() {
-		const cal = (typeof appSettings !== 'undefined' && appSettings.toneCalibration && appSettings.toneCalibration.notes) || {};
-		return this.TONES.map(t => ({
-					n: t.n,
-					name: t.name,
-					f: (typeof cal[t.n] === 'number' ? cal[t.n] : t.f)
-		}));
-	}
 	_matchNearestTone(freq) {
 		let best = null,
 		bestDist = Infinity;
-		for (const t of this._effectiveTones()) {
+		for (const t of this.TONES) {
 			const dist = Math.abs(t.f - freq);
 			if (dist < bestDist) {
 				bestDist = dist;
@@ -4963,35 +4921,6 @@ class ToneEngine {
 			}
 		}
 		return (best && bestDist < best.f * 0.04) ? best : null;
-	}
-	_listenForPitch(targetIdealFreq, windowMs) {
-		const readings = [];
-		const start = performance.now();
-		return new Promise(resolve => {
-				const sample = () => {
-					const timeData = new Float32Array(this.analyser.fftSize);
-					this.analyser.getFloatTimeDomainData(timeData);
-					const freqData = new Float32Array(this.analyser.frequencyBinCount);
-					this.analyser.getFloatFrequencyData(freqData);
-					let maxVal = -Infinity;
-					for (let i = 0; i < freqData.length; i++)
-					if (freqData[i] > maxVal) maxVal = freqData[i];
-					if (maxVal > (appSettings.toneVolumeThreshold || this.audioThresh)) {
-						const freq = this._detectPitch(timeData, this.audioCtx.sampleRate);
-						if (freq > 0 && Math.abs(freq - targetIdealFreq) < targetIdealFreq * 0.3) {
-							readings.push(freq);
-						}
-					}
-					if (performance.now() - start >= windowMs) {
-						if (readings.length === 0) return resolve(null);
-						readings.sort((a, b) => a - b);
-						resolve(readings[Math.floor(readings.length / 2)]);
-					} else {
-						requestAnimationFrame(sample);
-					}
-				};
-				requestAnimationFrame(sample);
-		});
 	}
 	loop() {
 		if (!this.isActive) return;
@@ -5524,8 +5453,6 @@ function loadState() {
 			if (!appSettings.runtimeSettings.voicePresets) appSettings.runtimeSettings.voicePresets = {};
 			if (!appSettings.runtimeSettings.activeVoicePresetId) appSettings.runtimeSettings.activeVoicePresetId = 'standard';
 			if (!appSettings.touchResizeMode) appSettings.touchResizeMode = 'global';
-			if (!appSettings.toneCalibration || typeof appSettings.toneCalibration !== 'object') appSettings.toneCalibration = { isCalibrated: false, notes: {} };
-			if (!appSettings.toneCalibration.notes) appSettings.toneCalibration.notes = {};
 			if (!appSettings.runtimeSettings) appSettings.runtimeSettings = JSON.parse(JSON.stringify(appSettings.profiles[appSettings.activeProfileId]?.settings || DEFAULT_PROFILE_SETTINGS));
 			if (appSettings.runtimeSettings.currentMode === 'unique_rounds') appSettings.runtimeSettings.currentMode = 'unique';
 			const migratePause = v => (typeof v === 'string' ? 0 : v);
@@ -6359,53 +6286,17 @@ async function playPracticeSequenceViaTone() {
 	disableInput(true);
 	const tester = window.toneSequenceTester;
 	if (practiceSequence.length === 1) {
-		if (!appSettings.toneCalibration.isCalibrated) {
-			await runToneCalibration();
-		} else {
-			await tester.playSequence([2, 3, 4, 5, 6, 7, 8, 9], 200, 800);
-			await new Promise(r => setTimeout(r, 400));
-		}
+		// Plays the scale once as a warm-up. There is no calibration step: the tones Tone
+		// Cadence listens for come from the machine, they are fixed, and they are already in
+		// TONE_TABLE - there is nothing about this device or this person to learn.
+		await tester.playSequence([2, 3, 4, 5, 6, 7, 8, 9], 200, 800);
+		await new Promise(r => setTimeout(r, 400));
 	}
 	await tester.playSequence(practiceSequence, 200, 800);
 	await new Promise(r => setTimeout(r, 400));
 	await tester.playSequence(practiceSequence, 200, 800);
 	disableInput(false);
 	if (window.toneEngine && !window.toneEngine.isActive) window.toneEngine.start();
-}
-async function runToneCalibration() {
-	const tester = window.toneSequenceTester;
-	const engine = window.toneEngine;
-	if (!tester || !engine) return;
-	if (!engine.isActive) await engine.start();
-	if (!engine.isActive) {
-		await tester.playSequence([2, 3, 4, 5, 6, 7, 8, 9], 200, 800);
-		await new Promise(r => setTimeout(r, 400));
-		return;
-	}
-	if (engine.loopId) cancelAnimationFrame(engine.loopId);
-	showToast('🎵 Calibrating Tone Cadence — hum each note back as you hear it');
-	const sequence = [2, 3, 4, 5, 6, 7, 8, 9];
-	const results = {};
-	for (const n of sequence) {
-		const target = TONE_TABLE.find(t => t.n === n);
-		await tester.playTone(target.f, 200);
-		await new Promise(r => setTimeout(r, 250));
-		showToast(`🎵 Your turn: hum "${target.name}"`);
-		const freq = await engine._listenForPitch(target.f, 1800);
-		if (freq) {
-			results[n] = freq;
-			showToast(`✅ Got "${target.name}": ${Math.round(freq)}Hz`);
-		} else {
-			showToast(`⚠️ Didn't catch "${target.name}" — using the standard tone for it`);
-		}
-		await new Promise(r => setTimeout(r, 300));
-	}
-	appSettings.toneCalibration.notes = { ...appSettings.toneCalibration.notes, ...results };
-	appSettings.toneCalibration.isCalibrated = true;
-	saveState();
-	showToast('🎵 Calibration complete ✅');
-	engine.loop();
-	if (window.__updateToneCalibrationStatus) window.__updateToneCalibrationStatus();
 }
 function addValue(value) {
 	vibrate();

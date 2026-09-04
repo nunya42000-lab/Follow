@@ -1594,8 +1594,9 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 </div>
 </div>
 <div class="space-y-3">
-<strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Sizing Things Right</strong>
-<p class="text-xs opacity-90">The very first screen you see has "UI" and "Cards" +/- buttons with a live sample sequence underneath. Adjust both until the sample numbers fit neatly on one row - most people find 5 fits best. Since every device and screen is different, this is worth doing once up front rather than guessing through Settings later.</p>
+<strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Autosize 📐</strong>
+<p class="text-xs opacity-90"><strong>Autosize</strong> is a toggle on the welcome screen (checked by default). When you press Play, it automatically runs Auto Fit and Zoom twice each on every layout your device can show: portrait, real landscape (via screen rotation), and split-screen side-by-side. This sizes everything perfectly for your device and settings in one tap.</p>
+<p class="text-xs opacity-90">You can also manually adjust UI and Cards sizing on the welcome screen with the +/− buttons, or in Settings → Viewport Sizing, but Autosize handles the math for you.</p>eople find 5 fits best. Since every device and screen is different, this is worth doing once up front rather than guessing through Settings later.</p>
 </div>
 <div class="space-y-3">
 <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Avoiding Interruptions</strong>
@@ -1615,11 +1616,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Settings Presets 🎯</strong>
 <p class="text-xs opacity-90">Settings → Advanced → Settings Presets, right below Backup / Restore, has a dropdown of ready-made configurations. Pick one and tap Load to apply it immediately.</p>
 </div>
-<div class="space-y-3">
-<strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Lock Settings 🔒</strong>
-<p class="text-xs opacity-90">A checkbox on the welcome screen - turn it on to stop someone else from changing your setup mid-game. The 🏠 icon inside Settings takes you back to the welcome screen to turn it off again (Settings itself has no separate lock control any more - the welcome screen is the only place this lives).</p>
-</div>
-</div>
+
 <div id="tab-help-buttons" class="tab-content space-y-4">
 <div class="space-y-3">
 <strong class="text-white text-xs uppercase tracking-wider border-b border-white/10 block pb-1">Top Menu Icons</strong>
@@ -1633,7 +1630,8 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📷</span> <strong>AR Mode:</strong> Turn background transparent via rear camera (needs HTTPS).</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">⌨️</span> <strong>Bigger Buttons:</strong> Hide the UI and make every key perfectly square for maximum touch targets.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔄</span> <strong>Position Swap:</strong> Move the input keypad from the bottom of the screen to the top.</li>
-<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔲</span> <strong>Full Screen:</strong> Hide the browser's address bar and UI chrome.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🖥️</span> <strong>Split Screen:</strong> Arrange the sequence and input side-by-side in landscape, even on a portrait device in a narrow pane. Autosize uses this to measure and size the split profile.</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔲</span> <strong>Fullscreen:</strong> Hide the browser's address bar and UI chrome.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📌</span> <strong>Pinned Mode:</strong> Fullscreen plus a back-gesture block, so you can't accidentally swipe out mid-sequence. Always starts off when you open the app, even if it was on last time - turn it back on each session.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔕</span> <strong>Do Not Disturb:</strong> Silences toasts, vibration, and spoken audio. Always starts off when you open the app, even if it was on last time - turn it back on each session.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🙃</span> <strong>Upside Down:</strong> Flip the entire interface 180° (for a partner facing you).</li>
@@ -1647,7 +1645,7 @@ Tap or swipe anywhere in this box - give swipes plenty of room
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🎨</span> <strong>Theme Cycle:</strong> Step through every saved theme, one tap at a time.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">➕</span> <strong>Add Machine:</strong> Add another independent sequence (Simon mode), up to 4.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔲</span> <strong>Cycle Layout:</strong> With 2+ machines on screen, the layout auto-picks whichever arrangement keeps cards closest to square for the space you're in - usually right, but not always what you want (e.g. a short wide window might still get a 2x2 grid that pushes some machines below the fold instead of one tidy row). Tap to cycle through every layout that doesn't waste space for the current machine count (2 → 1x2, 2x1; 4 → 1x4, 2x2, 4x1). Long-press to go back to Automatic.</li>
-<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📐</span> <strong>Auto Fit:</strong> One tap sizes the sequence cards to the largest they can be while still fitting Row Max cards on a single row, in whichever view (Portrait, Landscape, Split Screen) you're actually in. Long-press to hide this button (turns its Settings toggle off).</li>
+<li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">📐</span> <strong>Auto Fit:</strong> Sizes the sequence cards to fit as many per row as your Row Max setting allows.</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔬</span> <strong>Zoom:</strong> One tap maximizes input button size, input font size, and sequence number size all at once, fit to whatever space is actually available right now. Long-press to hide this button (turns its Settings toggle off).</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🤏</span> <strong>Shrink:</strong> Zoom's opposite - one tap drops Sequence Size, Number Size, Input Font Size, and Button Size all to their real minimums at once. UI Scale and Header Size are deliberately left alone - UI Scale affects the whole interface, not just the sequence/input area this button is about, and Header Size turned out to be its own separate concern. Long-press to hide this button (turns its Settings toggle off).</li>
 <li class="flex items-center gap-2"><span class="bg-gray-800 p-1.5 rounded border border-gray-600">🔍±</span> <strong>UI Size:</strong> Two buttons that grow/shrink the whole interface. Long-press either one to jump straight to its max or min instead of stepping.</li>

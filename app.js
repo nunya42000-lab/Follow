@@ -5934,19 +5934,39 @@ function detectViewportBucket() {
 		window.__vpLastDetectedBucket = 'portrait';
 		return 'portrait';
 	}
-	// Portrait vs Landscape - but only ever call it Landscape when the window's dimensions
-	// genuinely match the device's own known full-screen size (see vpIsGenuinelyFullScreen).
-	// A reduced window that's still wider than it is tall is real OS-level split-screen in
-	// landscape orientation (this is the scenario the Split Screen button exists to force
-	// manually - detecting it automatically here means the person doesn't have to remember to
-	// press it every time). A reduced window that's taller than wide is either split-screen in
-	// portrait orientation or a device that's just genuinely narrow right now - both correctly
-	// fall back to Portrait, the safe default, same as before.
-	if (!vpIsGenuinelyFullScreen() && window.innerWidth > window.innerHeight) {
+	// Portrait vs Landscape vs a split pane, decided from the window's LONG edge measured
+	// against the longest this window has ever been.
+	//
+	// This used to ask vpIsGenuinelyFullScreen(), which also demands the SHORT side match the
+	// largest ever seen. Browser chrome eats a different amount of height in landscape than in
+	// portrait, so simply turning the phone sideways left the short side short, failed that
+	// test, and dropped a genuine landscape into split50h. Landscape Lock escaped it only
+	// because it forces real full-screen, where no chrome is subtracted at all.
+	//
+	// The long edge is the honest signal. Turned sideways the window still spans the device's
+	// full width and only its height is cut, so the width still reaches that maximum; a real
+	// side-by-side split cuts the width itself and cannot reach it. Held upright, a window
+	// wider than it is tall can only be an OS split (this is what the Split Screen button
+	// forces manually - detecting it here means not having to remember to press it). Anything
+	// else falls back to Portrait, the safe default.
+	//
+	// window.screen is deliberately not consulted: it reports the whole display, which does not
+	// match the window on desktop, in an embedded frame, or in any non-maximised context.
+	// Record this observation before reading, or the running maximum never advances: the only
+	// previous caller of vpUpdateMaxObservedDims() was vpIsGenuinelyFullScreen(), which this no
+	// longer uses. Without it vpGetMaxObservedDims() falls back to the CURRENT dimensions, which
+	// would make the comparison below trivially true for any window at all.
+	vpUpdateMaxObservedDims();
+	const { maxLong } = vpGetMaxObservedDims();
+	if (window.innerWidth >= maxLong * 0.9 && window.innerWidth > window.innerHeight) {
+		window.__vpLastDetectedBucket = 'landscape';
+		return 'landscape';
+	}
+	if (window.innerWidth > window.innerHeight) {
 		window.__vpLastDetectedBucket = 'split50h';
 		return 'split50h';
 	}
-	const result = vpIsGenuinelyFullScreen() && window.innerWidth >= window.innerHeight ? 'landscape' : 'portrait';
+	const result = 'portrait';
 	window.__vpLastDetectedBucket = result;
 	return result;
 }

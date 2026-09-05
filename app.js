@@ -890,9 +890,11 @@ function wireStepperLongPress(element, shortPressFn, longPressFn) {
 	if (!element) return;
 	let timer;
 	let wasLong = false;
+	let moved = false;
 	const start = e => {
 		if (e.type === 'mousedown' && e.button !== 0) return;
 		wasLong = false;
+		moved = false;
 		clearTimeout(timer);
 		timer = setTimeout(() => {
 			wasLong = true;
@@ -913,12 +915,21 @@ function wireStepperLongPress(element, shortPressFn, longPressFn) {
 		// whatever button state existed by then. That's exactly what rapid pressing looked
 		// like: occasional presses silently behaving like a long-press for no visible reason.
 		clearTimeout(timer);
-		if (!wasLong) dedupedShortPress();
+		// A finger that wandered off was scrolling, not pressing - neither the short press nor
+		// the long press should fire.
+		if (!wasLong && !moved) dedupedShortPress();
 	};
 	element.addEventListener('mousedown', start);
 	element.addEventListener('touchstart', start, { passive: true });
 	element.addEventListener('mouseup', end);
 	element.addEventListener('touchend', end);
+	element.addEventListener('touchmove', () => {
+		if (typeof window.touchIntentMovedRecently === 'function' || true) {
+			moved = true;
+			clearTimeout(timer);
+		}
+	}, { passive: true });
+	element.addEventListener('touchcancel', () => { moved = true; clearTimeout(timer); }, { passive: true });
 	element.addEventListener('mouseleave', () => clearTimeout(timer));
 }
 let simpleTimer = {
@@ -5997,9 +6008,30 @@ function getEffectiveRowMaxCount() {
 	const r = getEffectiveRowMax();
 	return (r && r !== 'none') ? parseInt(r, 10) : 5;
 }
+// Smallest value the Sequence Size dropdown offers; the reduction below never goes under it.
+const SEQ_SIZE_MIN_PCT = 50;
+// With more than one machine on screen each one gets a fraction of the space, so the cards have
+// to come down to suit. Like Row Max, this is applied as an EFFECTIVE value and never written to
+// the stored setting - dropping back to a single machine restores the original size by itself,
+// with nothing to remember and nothing that can be lost.
+function getMachineSeqSizeFactor() {
+	const machines = (appSettings.runtimeSettings && appSettings.runtimeSettings.machineCount) || 1;
+	if (machines <= 1) return 1;
+	// Picture in Picture already gives Machine 1 its own window, so two machines still have a
+	// full-size area each and nothing needs shrinking until a third arrives.
+	if (document.pictureInPictureElement && machines < 3) return 1;
+	const bucket = document.body.dataset.viewportBucket || 'portrait';
+	return bucket === 'split50h' ? 0.33 : 0.5;
+}
 function getEffectiveSeqScaleMultiplier() {
 	const vp = getViewportProfile();
-	return vp ? vp.seqSize / 100 : (appSettings.uiScaleMultiplier || 1.0);
+	const storedPct = vp ? vp.seqSize : ((appSettings.uiScaleMultiplier || 1.0) * 100);
+	const factor = getMachineSeqSizeFactor();
+	if (factor === 1) return storedPct / 100;
+	// Rounded DOWN to the dropdown's own 10% steps so the reduced figure is always a value the
+	// setting could actually hold, then floored at the minimum.
+	const reduced = Math.max(SEQ_SIZE_MIN_PCT, Math.floor(storedPct * factor / 10) * 10);
+	return reduced / 100;
 }
 function getEffectiveHeaderScale() {
 	const vp = getViewportProfile();
@@ -6617,6 +6649,14 @@ function applyPositionSwapOffsets(isActive) {
 // override is wanted again.
 let manualGridColsOverride = null;
 let manualGridOverrideKey = null;
+// Chosen per viewport bucket rather than derived from the container's aspect ratio, because the
+// best arrangement is a judgement about how the machines READ side by side, not purely a
+// space-filling calculation. Values are COLUMNS; rows follow from the machine count.
+const DEFAULT_MACHINE_LAYOUTS = {
+	portrait:  { 2: 2, 3: 1, 4: 2 },   // 2x1, 1x3, 2x2
+	landscape: { 2: 2, 3: 3, 4: 2 },   // 2x1, 3x1, 2x2
+	split50h:  { 2: 1, 3: 3, 4: 2 }    // 1x2, 3x1, 2x2
+};
 function applyMachineGridSizing(container, n) {
 	let gridCols;
 	const bucket = document.body.dataset.viewportBucket;
@@ -6625,14 +6665,14 @@ function applyMachineGridSizing(container, n) {
 		gridCols = manualGridColsOverride;
 	} else if (n <= 1) {
 		gridCols = 1;
+	} else if (DEFAULT_MACHINE_LAYOUTS[bucket] && DEFAULT_MACHINE_LAYOUTS[bucket][n]) {
+		gridCols = DEFAULT_MACHINE_LAYOUTS[bucket][n];
 	} else {
-		// #sequence-container's own width is capped by --row-max-width (see styles.css) -
-		// exactly the same trap that caused Auto Fit's original "container measuring its own
-		// artifact" bug earlier: that cap reflects how wide a single machine's row of number
-		// cards is allowed to grow, which has nothing to do with how much real horizontal
-		// space is actually available for arranging multiple machines side by side. Measuring
-		// #app's content box (its own width minus its own padding) instead gives the real,
-		// uncapped available space, the same fix Auto Fit already needed.
+		// Fallback only - reached when a bucket or machine count isn't in the table above.
+		// #sequence-container's own width is capped by --row-max-width (see styles.css), the
+		// same "container measuring its own artifact" trap Auto Fit hit: that cap describes how
+		// wide ONE machine's row of cards may grow, not how much space exists for arranging
+		// several side by side. Measure #app's content box for the real figure.
 		const appElForGrid = document.getElementById('app');
 		const containerRectForGrid = container.getBoundingClientRect();
 		let gridWidth = containerRectForGrid.width || 1;
@@ -6647,13 +6687,7 @@ function applyMachineGridSizing(container, n) {
 		let bestScore = Infinity;
 		for (let cols = 1; cols <= n; cols++) {
 			const rows = Math.ceil(n / cols);
-			// Only consider arrangements where every row is completely full (n divides evenly
-			// by cols) - the same rule validMachineGridShapes() already applies to the manual
-			// Cycle Layout button. The old test only rejected a shape whose LAST ROW WAS
-			// ENTIRELY EMPTY, which still let 3 machines land in a 2x2 with one dead cell; a
-			// hole in the grid both wastes the space and makes the machines uneven widths
-			// against each other. With max 4 machines this always leaves at least 1xN and Nx1
-			// available, so the loop can never come up empty.
+			// Only shapes where every row is full, matching validMachineGridShapes().
 			if (n % cols !== 0) continue;
 			const cellRatio = (containerRatio / cols) / (1 / rows);
 			const score = Math.abs(cellRatio - 1.0);
@@ -7597,7 +7631,44 @@ function initHeaderGestures() {
     });
 }
 
+// A touch that MOVES is a scroll or a drag, not a press. Touch events retarget to whatever
+// element the finger started on, so touchend (and the synthetic click after it) still land on
+// that button however far away the finger travelled - and because body sets touch-action:none
+// the browser never suppresses that click itself the way it would after a native scroll. The
+// result was that dragging across the header to scroll it could fire whichever button the
+// finger happened to start on; landing on Delete wiped the sequence.
+const TOUCH_INTENT_SLOP = 12;      // px of travel before a press is treated as a drag
+let touchIntentStart = null;
+let touchIntentMoved = false;
+let touchIntentEndedAt = 0;
+function touchIntentMovedRecently() {
+	// Only vouch for a click that follows an actual touch, so mouse and keyboard clicks (which
+	// never set these) are left completely alone.
+	return touchIntentMoved && (Date.now() - touchIntentEndedAt) < 700;
+}
+window.touchIntentMovedRecently = touchIntentMovedRecently;
+function initTouchIntentGuard() {
+	document.addEventListener('touchstart', e => {
+		if (e.touches.length !== 1) { touchIntentMoved = true; return; }
+		const t = e.touches[0];
+		touchIntentStart = { x: t.clientX, y: t.clientY };
+		touchIntentMoved = false;
+	}, { capture: true, passive: true });
+	document.addEventListener('touchmove', e => {
+		if (!touchIntentStart || !e.touches.length) return;
+		const t = e.touches[0];
+		if (Math.hypot(t.clientX - touchIntentStart.x, t.clientY - touchIntentStart.y) > TOUCH_INTENT_SLOP) touchIntentMoved = true;
+	}, { capture: true, passive: true });
+	document.addEventListener('touchend', () => { touchIntentEndedAt = Date.now(); }, { capture: true, passive: true });
+	// Capture phase, so the click is swallowed before it can reach any button's own handler.
+	document.addEventListener('click', e => {
+		if (!touchIntentMovedRecently()) return;
+		e.stopPropagation();
+		e.preventDefault();
+	}, { capture: true });
+}
 function initGlobalListeners() {
+	initTouchIntentGuard();
 	try {
         initHeaderGestures();
 		(() => {
@@ -7643,6 +7714,7 @@ function initGlobalListeners() {
 		document.querySelectorAll('button[data-action="play-demo"]').forEach(b => {
 				let wasPlaying = false;
 				let lpTriggered = false;
+				let demoMoved = false;
 				const handleDown = dedupeTouchMouseHandler(e => {
 					if (e && e.cancelable) {
 						e.preventDefault();
@@ -7673,10 +7745,14 @@ function initGlobalListeners() {
 						e.stopPropagation();
 					}
 					clearTimeout(timers.longPress);
-					if (!wasPlaying && !lpTriggered) {
+					// A finger that wandered off was scrolling the header, not pressing Play.
+					if (!wasPlaying && !lpTriggered && !demoMoved) {
 						playDemo();
 					}
 				});
+				const cancelDemoHold = () => { demoMoved = true; clearTimeout(timers.longPress); };
+				b.addEventListener('touchmove', cancelDemoHold, { passive: true });
+				b.addEventListener('touchcancel', cancelDemoHold, { passive: true });
 				b.addEventListener('mousedown', handleDown);
 				b.addEventListener('touchstart', handleDown, {
 						passive: false

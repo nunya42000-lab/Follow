@@ -7788,19 +7788,55 @@ function initGlobalListeners() {
 						modules.settings.openSettings();
 				});
 		});
+		// Delete is the one button where a mis-touch is destructive, so it is the one button that
+		// must not act on touchstart. Deleting the moment a finger lands means a drag across the
+		// header to scroll it wipes a character before any movement has even happened - there is
+		// nothing left for the global touch-intent guard to block, because Delete never waits for
+		// a click. The single delete is therefore deferred to RELEASE, and only happens if the
+		// finger stayed put. Speed-deleting still begins on the press, since holding still is
+		// itself the signal that the press was deliberate, and it too aborts the moment you move.
+		let deletePending = false;
+		let deleteMoved = false;
+		let deleteRepeated = false;
+		let deleteStartPt = null;
 		const startDelete = dedupeTouchMouseHandler(e => {
 			if (e) {
 				e.preventDefault();
 				e.stopPropagation();
 			}
-			snapshotForUndo();
-			handleBackspace(null);
+			deletePending = true;
+			deleteMoved = false;
+			deleteRepeated = false;
+			const pt = (e && e.touches && e.touches[0]) || e;
+			deleteStartPt = (pt && typeof pt.clientX === 'number') ? { x: pt.clientX, y: pt.clientY } : null;
 			if (!appSettings.isSpeedDeletingEnabled) return;
 			timers.initialDelay = setTimeout(() => {
+					if (deleteMoved) return;
+					// Held still long enough to mean it: take the first one now and keep going.
+					deleteRepeated = true;
+					snapshotForUndo();
+					handleBackspace(null);
 					timers.speedDelete = setInterval(() => handleBackspace(null), CONFIG.SPEED_DELETE_INTERVAL);
 				}, CONFIG.SPEED_DELETE_DELAY);
 		});
 		const stopDelete = () => {
+			clearTimeout(timers.initialDelay);
+			clearInterval(timers.speedDelete);
+			if (deletePending && !deleteMoved && !deleteRepeated) {
+				snapshotForUndo();
+				handleBackspace(null);
+			}
+			deletePending = false;
+		};
+		// Nobody holds a finger perfectly still, so a small wobble must not count as a drag - the
+		// same TOUCH_INTENT_SLOP the global guard uses applies here.
+		const cancelDelete = (e) => {
+			if (e && e.type === 'touchmove' && deleteStartPt && e.touches && e.touches[0]) {
+				const t = e.touches[0];
+				if (Math.hypot(t.clientX - deleteStartPt.x, t.clientY - deleteStartPt.y) <= TOUCH_INTENT_SLOP) return;
+			}
+			deleteMoved = true;
+			deletePending = false;
 			clearTimeout(timers.initialDelay);
 			clearInterval(timers.speedDelete);
 		};
@@ -7810,9 +7846,10 @@ function initGlobalListeners() {
 						passive: false
 				});
 				b.addEventListener('mouseup', stopDelete);
-				b.addEventListener('mouseleave', stopDelete);
+				b.addEventListener('mouseleave', cancelDelete);
 				b.addEventListener('touchend', stopDelete);
-				b.addEventListener('touchcancel', stopDelete);
+				b.addEventListener('touchmove', cancelDelete, { passive: true });
+				b.addEventListener('touchcancel', cancelDelete);
 		});
 		const headerDeleteBtnEl = document.getElementById('headerdeletebtn');
 		if (headerDeleteBtnEl) {
@@ -7821,9 +7858,10 @@ function initGlobalListeners() {
 					passive: false
 			});
 			headerDeleteBtnEl.addEventListener('mouseup', stopDelete);
-			headerDeleteBtnEl.addEventListener('mouseleave', stopDelete);
+			headerDeleteBtnEl.addEventListener('mouseleave', cancelDelete);
 			headerDeleteBtnEl.addEventListener('touchend', stopDelete);
-			headerDeleteBtnEl.addEventListener('touchcancel', stopDelete);
+			headerDeleteBtnEl.addEventListener('touchmove', cancelDelete, { passive: true });
+			headerDeleteBtnEl.addEventListener('touchcancel', cancelDelete);
 		}
 		const headerUndoBtnEl = document.getElementById('headerundobtn');
 		if (headerUndoBtnEl) {

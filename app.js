@@ -6021,7 +6021,7 @@ function getMachineSeqSizeFactor() {
 	// full-size area each and nothing needs shrinking until a third arrives.
 	if (document.pictureInPictureElement && machines < 3) return 1;
 	const bucket = document.body.dataset.viewportBucket || 'portrait';
-	return bucket === 'split50h' ? 0.33 : 0.5;
+	return bucket === 'split50h' ? 0.4 : 0.5;   // split: 60% reduction (40% remains); others: 50%
 }
 function getEffectiveSeqScaleMultiplier() {
 	const vp = getViewportProfile();

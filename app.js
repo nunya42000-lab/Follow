@@ -472,34 +472,22 @@ const DEFAULT_HEADER_BTN_ORDER = [
     'headernotepadbtn', 'headerpipbtn', 'headersplitscreenbtn'
 ];
 const DEFAULT_GENERAL_TOGGLE_ORDER = [
-'autoBrightToggle', 'autoDarkToggle',
-'randomThemeToggle', 'headerThemeCycleToggle',
-'headerCycleInputToggle', 'headerModeSwitchToggle',
-'headerAddMachineToggle', 'headerCycleLayoutToggle',
-'headerAutoFitToggle', 'headerZoomToggle', 'headerShrinkToggle', 'bossToggle',
-'headerUiSizeToggle', 'headerSeqSizeToggle',
-'headerVolumeToggle', 'headerSpeedToggle',
-'autoHideHeaderToggle', 'headerInfiniteScrollToggle',
-'flickHeaderToggle', 'restoreHeaderToggle',
-'headerPlayToggle', 'headerDeleteToggle', 
-'headerSettingsToggle', 'headerHelpToggle', 
-'headerRedeemToggle', 'headerShareToggle',
-'hideIntroToggle', 'headerUndoToggle',
-'timerToggle', 'autotimerToggle',
-'counterToggle', 'autocounterToggle',
-'headerNotepadToggle', 'inputRegulatorToggle',
-'hapticsToggle',
-'upsidedownToggle', 'portraitLockToggle', 'landscapeLockToggle',
-'fullscreenToggle', 'biggerToggle',
-'ecoToggle', 'wakelockToggle',
-'positionSwapToggle', 'splitScreenToggle', 'landscapeInputResizeToggle', 'pipToggle',
-'dndToggle', 'pinnedModeToggle',
-'arcamToggle', 'arAutoCloseGeneralToggle',
-'voiceToggle', 'voicecommandsToggle',
-'toneToggle', 'touchToggle',
-'handToggle', 'skeletonDebugToggle',
-'handsignalsToggle', 'handednessFlipToggle',
-'volgesToggle', 'speedToggle'
+	'autoBrightToggle', 'autoDarkToggle', 'randomThemeToggle', 'headerThemeCycleToggle',
+	'headerCycleInputToggle', 'headerModeSwitchToggle', 'headerAddMachineToggle', 'headerCycleLayoutToggle',
+	'autoHideHeaderToggle', 'headerInfiniteScrollToggle', 'flickHeaderToggle', 'restoreHeaderToggle',
+	'bossToggle', 'headerAutoFitToggle', 'headerZoomToggle', 'headerShrinkToggle',
+	'headerUiSizeToggle', 'headerSeqSizeToggle', 'headerVolumeToggle', 'volgesToggle',
+	'headerSpeedToggle', 'speedToggle', 'hideIntroToggle', 'landscapeInputResizeToggle',
+	'headerPlayToggle', 'headerDeleteToggle', 'headerUndoToggle', 'headerNotepadToggle',
+	'headerSettingsToggle', 'headerHelpToggle', 'headerRedeemToggle', 'headerShareToggle',
+	'timerToggle', 'autotimerToggle', 'counterToggle', 'autocounterToggle',
+	'autoplay-toggle', 'flash-toggle', 'audio-toggle', 'haptic-morse-toggle',
+	'ecoToggle', 'wakelockToggle', 'inputRegulatorToggle', 'hapticsToggle',
+	'fullscreenToggle', 'portraitLockToggle', 'landscapeLockToggle', 'pinnedModeToggle',
+	'biggerToggle', 'positionSwapToggle', 'splitScreenToggle', 'pipToggle',
+	'dndToggle', 'upsidedownToggle', 'arcamToggle', 'arAutoCloseGeneralToggle',
+	'voiceToggle', 'voicecommandsToggle', 'toneToggle', 'touchToggle',
+	'handToggle', 'handsignalsToggle', 'skeletonDebugToggle', 'handednessFlipToggle'
 ];
 const CONFIG = {
 	MAX_MACHINES: 4,
@@ -4089,7 +4077,7 @@ class SettingsManager {
 		}).filter(Boolean);
 	}
 	_generalToggleLabels() {
-		return { autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙', randomThemeToggle: 'Random Theme 🎲', headerThemeCycleToggle: 'Theme Cycle 🎨', headerCycleInputToggle: 'Cycle Input 🔀', headerModeSwitchToggle: 'Mode Switch 🎮', headerAddMachineToggle: 'Add Machine ➕', bossToggle: 'Boss Mode 🌑', headerAutoFitToggle: 'Auto Fit 📐', headerZoomToggle: 'Zoom 🔬', headerShrinkToggle: 'Shrink 🤏', headerCycleLayoutToggle: 'Cycle Layout 🔲', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', autoHideHeaderToggle: 'Auto Hide Header 👻', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️',flickHeaderToggle: 'Flick Header Buttons 💨', restoreHeaderToggle: 'Restore Header Gesture 🪄', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', hideIntroToggle: 'Hide Intro', headerUndoToggle: 'Undo ↩️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', upsidedownToggle: 'Upside Down 🙃', portraitLockToggle: 'Portrait Lock 🔒', landscapeLockToggle: 'Landscape Lock 🔐', fullscreenToggle: 'Full Screen 🔲', biggerToggle: 'Bigger Buttons', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', positionSwapToggle: 'Position Swap 🔄', splitScreenToggle: 'Split Screen 🖥️', landscapeInputResizeToggle: 'Adjust Input Area ↔️', pipToggle: 'Picture in Picture 🪟', dndToggle: 'Do Not Disturb 🔕', pinnedModeToggle: 'Pinned Mode 📌', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', };
+		return { 'autoplay-toggle': 'Autoplay', 'flash-toggle': 'Flash 👀', 'audio-toggle': 'Audio 👂', 'haptic-morse-toggle': 'Morse ✋', autoBrightToggle: 'Auto Bright ☀️', autoDarkToggle: 'Auto Dark 🌙', randomThemeToggle: 'Random Theme 🎲', headerThemeCycleToggle: 'Theme Cycle 🎨', headerCycleInputToggle: 'Cycle Input 🔀', headerModeSwitchToggle: 'Mode Switch 🎮', headerAddMachineToggle: 'Add Machine ➕', bossToggle: 'Boss Mode 🌑', headerAutoFitToggle: 'Auto Fit 📐', headerZoomToggle: 'Zoom 🔬', headerShrinkToggle: 'Shrink 🤏', headerCycleLayoutToggle: 'Cycle Layout 🔲', headerUiSizeToggle: 'UI Size 🔍±', headerSeqSizeToggle: 'Sequence Size 🔢±', headerVolumeToggle: 'Volume 🔊±', headerSpeedToggle: 'Speed 🐇±', autoHideHeaderToggle: 'Auto Hide Header 👻', headerInfiniteScrollToggle: 'Infinite Header Scroll ♾️',flickHeaderToggle: 'Flick Header Buttons 💨', restoreHeaderToggle: 'Restore Header Gesture 🪄', headerPlayToggle: 'Play ▶️', headerDeleteToggle: 'Delete ⌫', headerSettingsToggle: 'Settings ⚙️', headerHelpToggle: 'Help 📚', headerRedeemToggle: 'Redeem 🆔', headerShareToggle: 'Share 📤', hideIntroToggle: 'Hide Intro', headerUndoToggle: 'Undo ↩️', timerToggle: 'Timer ⏱️', autotimerToggle: 'Auto Timer 🚀', counterToggle: 'Counter #', autocounterToggle: 'Auto Counter ➕', headerNotepadToggle: 'Notepad 📝', inputRegulatorToggle: 'Input Regulator 🚦', hapticsToggle: 'Haptics 📳', upsidedownToggle: 'Upside Down 🙃', portraitLockToggle: 'Portrait Lock 🔒', landscapeLockToggle: 'Landscape Lock 🔐', fullscreenToggle: 'Full Screen 🔲', biggerToggle: 'Bigger Buttons', ecoToggle: 'Eco Mode 🔋', wakelockToggle: 'Wake Lock 💡', positionSwapToggle: 'Position Swap 🔄', splitScreenToggle: 'Split Screen 🖥️', landscapeInputResizeToggle: 'Adjust Input Area ↔️', pipToggle: 'Picture in Picture 🪟', dndToggle: 'Do Not Disturb 🔕', pinnedModeToggle: 'Pinned Mode 📌', arcamToggle: 'AR Mode 📸', arAutoCloseGeneralToggle: 'AR Auto Close 🚪', voiceToggle: 'Voice Input 🎤', voicecommandsToggle: 'Voice Commands', toneToggle: 'Tone Cadence Mode 🎵', touchToggle: 'Touch Gesture', handToggle: 'Hand Gestures 🖐️', skeletonDebugToggle: 'Hand Skeleton Overlay 🦴', handsignalsToggle: 'Hand Signals 🖐️', handednessFlipToggle: 'Swap Left/Right Hands 🔄', volgesToggle: 'Vol. Gesture 🔊', speedToggle: 'Speed Gesture ⚡', };
 	}
 	_moveGeneralToggle(id, direction) {
 		const grid = document.getElementById('general-toggle-grid');

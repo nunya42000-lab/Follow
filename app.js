@@ -521,6 +521,11 @@ const DEFAULT_PROFILE_SETTINGS = {
 	isHapticMorseEnabled: false,
 	playbackSpeed: 1.0,
 	pauseSetting: 200,
+	// Character shaping for the recorded voice pack. speechSynthesis pitch/rate cannot touch a
+	// sample, so these are the controls that actually do anything once a pack is loaded - the
+	// same nine the Voice Lab exposes, applied live instead of baked in at export.
+	voiceCharacter: 'Natural',
+	voiceFx: { rate: 1, formant: 0, drive: 0, ring: 0, ringDepth: 0, lowpass: 12000, highpass: 60, reverb: 0, tremolo: 0 },
 	voicePitch: 1.0,
 	voiceRate: 1.0,
 	voiceVolume: 1.0,
@@ -2539,6 +2544,74 @@ class SettingsManager {
 	}
 	openThemeEditor() { if (!this.dom.editorModal) return; const activeId = this.appSettings.activeTheme; const source = this.appSettings.customThemes[activeId] || PREMADE_THEMES[activeId] || PREMADE_THEMES['default']; this.tempTheme = { ...source }; this.dom.edName.value = this.tempTheme.name; this.selectThemeTarget('bubble'); this.updatePreview(); this.dom.editorModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.editorModal.querySelector('div').classList.remove('scale-90'); }
 	updatePreview() { const t = this.tempTheme; if (!this.dom.edPreview) return; this.dom.edPreview.style.backgroundColor = t.bgMain; this.dom.edPreview.style.color = t.text; this.dom.edPreviewCard.style.backgroundColor = t.bgCard; this.dom.edPreviewCard.style.color = t.text; this.dom.edPreviewCard.style.border = '1px solid rgba(255,255,255,0.1)'; this.dom.edPreviewBtn.style.backgroundColor = t.bubble; this.dom.edPreviewBtn.style.color = t.text; const kp = document.getElementById('preview-keypad-btn'); if (kp) { kp.style.backgroundColor = t.btn; kp.style.color = t.text; } const hb = document.getElementById('preview-header-btn'); if (hb) { hb.style.backgroundColor = t.bubble; hb.style.color = '#fff'; } }
+	// The nine controls, matching the Voice Lab's labels so the two read the same.
+	voiceFxSliderSpec() {
+		return [
+			{ k:'rate',      label:'Pitch / speed', min:0.5, max:2,     step:0.01, fmt:v=>v.toFixed(2)+'x' },
+			{ k:'formant',   label:'Throat size',   min:-12, max:12,    step:1,    fmt:v=>(v>0?'+':'')+v },
+			{ k:'drive',     label:'Grit',          min:0,   max:1,     step:0.01, fmt:v=>Math.round(v*100)+'%' },
+			{ k:'ring',      label:'Robot buzz',    min:0,   max:120,   step:1,    fmt:v=>v?v+'Hz':'off' },
+			{ k:'ringDepth', label:'Buzz depth',    min:0,   max:1,     step:0.01, fmt:v=>Math.round(v*100)+'%' },
+			{ k:'lowpass',   label:'Muffle',        min:800, max:12000, step:100,  fmt:v=>Math.round(v/100)/10+'kHz' },
+			{ k:'highpass',  label:'Thin out',      min:20,  max:400,   step:10,   fmt:v=>v+'Hz' },
+			{ k:'reverb',    label:'Room',          min:0,   max:1,     step:0.01, fmt:v=>Math.round(v*100)+'%' },
+			{ k:'tremolo',   label:'Wobble',        min:0,   max:9,     step:0.1,  fmt:v=>v?v.toFixed(1)+'Hz':'off' }
+		];
+	}
+	buildVoiceCharacterUI() {
+		const sel = document.getElementById('voice-character-select');
+		const host = document.getElementById('voice-fx-sliders');
+		if (!sel || !host || typeof VOICE_PRESETS === 'undefined') return;
+		const rs = this.appSettings.runtimeSettings;
+		if (!rs.voiceFx) rs.voiceFx = Object.assign({}, VOICE_PRESETS['Natural']);
+		sel.innerHTML = Object.keys(VOICE_PRESETS)
+			.map(k => `<option value="${k}">${k}</option>`).join('') + '<option value="Custom">Custom</option>';
+		sel.value = rs.voiceCharacter || 'Natural';
+		sel.onchange = () => {
+			const k = sel.value;
+			rs.voiceCharacter = k;
+			if (VOICE_PRESETS[k]) rs.voiceFx = Object.assign({}, VOICE_PRESETS[k]);
+			this.buildVoiceCharacterUI();
+			this.callbacks.onSave();
+			if (typeof speak === 'function') speak('1');
+		};
+		host.innerHTML = this.voiceFxSliderSpec().map(sp => {
+			const v = (rs.voiceFx[sp.k] !== undefined) ? rs.voiceFx[sp.k] : VOICE_PRESETS['Natural'][sp.k];
+			return `<div><div class="flex justify-between mb-1">
+				<label class="text-xs font-bold">${sp.label}</label>
+				<span id="vfx-val-${sp.k}" class="text-xs font-mono">${sp.fmt(v)}</span></div>
+				<input type="range" id="vfx-${sp.k}" min="${sp.min}" max="${sp.max}" step="${sp.step}" value="${v}"
+				 class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"></div>`;
+		}).join('');
+		this.voiceFxSliderSpec().forEach(sp => {
+			const el = document.getElementById('vfx-' + sp.k);
+			if (!el) return;
+			el.oninput = () => {
+				const val = parseFloat(el.value);
+				rs.voiceFx[sp.k] = val;
+				document.getElementById('vfx-val-' + sp.k).textContent = sp.fmt(val);
+				// Any hand-adjustment means it is no longer the named preset.
+				rs.voiceCharacter = 'Custom';
+				sel.value = 'Custom';
+			};
+			// Hear it once the finger lifts, rather than on every pixel of drag.
+			el.onchange = () => { this.callbacks.onSave(); if (typeof speak === 'function') speak('1'); };
+		});
+		const reset = document.getElementById('voice-fx-reset');
+		if (reset) reset.onclick = () => {
+			const k = VOICE_PRESETS[rs.voiceCharacter] ? rs.voiceCharacter : 'Natural';
+			rs.voiceCharacter = k;
+			rs.voiceFx = Object.assign({}, VOICE_PRESETS[k]);
+			this.buildVoiceCharacterUI(); this.callbacks.onSave();
+		};
+		const status = document.getElementById('voice-pack-status');
+		if (status && typeof window.voicePackStatus === 'function') {
+			const st = window.voicePackStatus();
+			status.textContent = st.state === 'ready'
+				? `${st.words} words loaded`
+				: (st.state === 'absent' ? 'no voice pack — browser voice' : 'loading…');
+		}
+	}
 	testVoice() { if (window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("Testing 1 2 3."); /* Chromium garbage-collects an utterance nothing still references, which can cut the audio off mid-sentence; parking it on a field keeps it alive until the next test replaces it. */ this._testUtterance = u; if (this.appSettings.runtimeSettings.selectedVoice) { const v = window.speechSynthesis.getVoices().find(voice => voice.name === this.appSettings.runtimeSettings.selectedVoice); if (v) u.voice = v; } let p = parseFloat(this.dom.voicePitch.value); let r = parseFloat(this.dom.voiceRate.value); let v = parseFloat(this.dom.voiceVolume.value); u.pitch = p; u.rate = r; u.volume = v; window.speechSynthesis.speak(u); } }
 	openShare() {
 		this.qrScale = 100;
@@ -3717,6 +3790,7 @@ class SettingsManager {
 		if (this.dom.quickAutoplay) this.dom.quickAutoplay.checked = this.appSettings.runtimeSettings.isAutoplayEnabled;
 		if (this.dom.quickAudio) this.dom.quickAudio.checked = this.appSettings.runtimeSettings.isAudioEnabled;
 		if (this.dom.quickAutosize) this.dom.quickAutosize.checked = !!this.appSettings.isAutosizeEnabled;
+		this.buildVoiceCharacterUI();
 		if (this.dom.dontShowWelcome) this.dom.dontShowWelcome.checked = !this.appSettings.showWelcomeScreen;
 		if (this.dom.showWelcome) this.dom.showWelcome.checked = !this.appSettings.showWelcomeScreen;
 		if (this.dom.hapticMorse) this.dom.hapticMorse.checked = this.appSettings.runtimeSettings.isHapticMorseEnabled;
@@ -5682,9 +5756,157 @@ function vibrateMorse(val) {
 	}
 	if (pattern.length > 0) navigator.vibrate(pattern);
 }
+/* A recorded voice pack, if one is present. Every word the game speaks is a short fixed token
+   (a pad value, or Correct/Wrong), so the whole vocabulary can be sampled - which is the only
+   way to get a real voice at all, since browsers expose no way to capture or process
+   speechSynthesis output. Loading is lazy and failure is silent: no pack simply means the
+   browser voice, exactly as before. */
+let voicePack = null;
+let voicePackState = 'idle';
+const voicePackBuffers = {};
+let voicePackCtx = null;
+let voicePackPlaying = null;
+async function loadVoicePack() {
+	if (voicePackState !== 'idle') return;
+	voicePackState = 'loading';
+	try {
+		const res = await fetch('voice-pack.json', { cache: 'force-cache' });
+		if (!res.ok) throw new Error('no pack');
+		const pack = await res.json();
+		if (!pack || !pack.words) throw new Error('malformed pack');
+		voicePack = pack;
+		voicePackState = 'ready';
+	} catch (e) {
+		voicePackState = 'absent';
+	}
+}
+/* Presets mirror the Voice Lab exactly, so a character chosen here sounds like the one
+   auditioned there. */
+const VOICE_PRESETS = {
+	'Natural':     { rate:1.00, ring:0,  ringDepth:0,    drive:0,    lowpass:12000, highpass:60,  formant:0,  reverb:0,    tremolo:0 },
+	'Chipmunk':    { rate:1.75, ring:0,  ringDepth:0,    drive:0,    lowpass:12000, highpass:200, formant:6,  reverb:0,    tremolo:0 },
+	'Little girl': { rate:1.34, ring:0,  ringDepth:0,    drive:0,    lowpass:11000, highpass:180, formant:4,  reverb:0.06, tremolo:0 },
+	'Batman':      { rate:0.82, ring:0,  ringDepth:0,    drive:0.45, lowpass:3200,  highpass:70,  formant:-5, reverb:0.26, tremolo:0 },
+	'Robot':       { rate:1.00, ring:46, ringDepth:0.85, drive:0.2,  lowpass:4200,  highpass:120, formant:0,  reverb:0.05, tremolo:0 },
+	'Giant':       { rate:0.62, ring:0,  ringDepth:0,    drive:0.15, lowpass:2600,  highpass:40,  formant:-8, reverb:0.42, tremolo:0 },
+	'Old man':     { rate:0.92, ring:0,  ringDepth:0,    drive:0.18, lowpass:3400,  highpass:90,  formant:-3, reverb:0.08, tremolo:5.5 },
+	'Ghost':       { rate:0.96, ring:0,  ringDepth:0,    drive:0,    lowpass:6000,  highpass:150, formant:2,  reverb:0.68, tremolo:3.2 },
+	'Announcer':   { rate:0.97, ring:0,  ringDepth:0,    drive:0.22, lowpass:9000,  highpass:80,  formant:-2, reverb:0.14, tremolo:0 }
+};
+function voiceFx() {
+	const f = (appSettings.runtimeSettings && appSettings.runtimeSettings.voiceFx) || {};
+	return Object.assign({}, VOICE_PRESETS['Natural'], f);
+}
+let _voiceImpulse = null, _voiceImpulseLen = -1;
+function voiceImpulse(ac, seconds) {
+	if (_voiceImpulse && Math.abs(_voiceImpulseLen - seconds) < 0.01) return _voiceImpulse;
+	const len = Math.max(1, Math.floor(ac.sampleRate * seconds));
+	const imp = ac.createBuffer(1, len, ac.sampleRate);
+	const d = imp.getChannelData(0);
+	for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.4);
+	_voiceImpulse = imp; _voiceImpulseLen = seconds;
+	return imp;
+}
+function voiceCurve(amount) {
+	const k = amount * 100, n = 1024, c = new Float32Array(n);
+	for (let i = 0; i < n; i++) { const x = i * 2 / n - 1; c[i] = (1 + k) * x / (1 + k * Math.abs(x)); }
+	return c;
+}
+/* The same graph the Voice Lab builds, so what was auditioned there is what plays here. */
+function buildVoiceChain(ac, buf, c, outNode) {
+	const src = ac.createBufferSource();
+	src.buffer = buf;
+	src.playbackRate.value = c.rate;
+	const hp = ac.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = c.highpass;
+	const lp = ac.createBiquadFilter(); lp.type = 'lowpass';  lp.frequency.value = c.lowpass;
+	const f1 = ac.createBiquadFilter(); f1.type = 'peaking'; f1.frequency.value = 700;  f1.Q.value = 0.9; f1.gain.value = c.formant;
+	const f2 = ac.createBiquadFilter(); f2.type = 'peaking'; f2.frequency.value = 1900; f2.Q.value = 0.9; f2.gain.value = c.formant * 0.8;
+	src.connect(hp); hp.connect(lp); lp.connect(f1); f1.connect(f2);
+	let tail = f2;
+	if (c.drive > 0) {
+		const sh = ac.createWaveShaper();
+		sh.curve = voiceCurve(c.drive); sh.oversample = '2x';
+		tail.connect(sh); tail = sh;
+	}
+	if (c.ring > 0 && c.ringDepth > 0) {
+		const dryR = ac.createGain(); dryR.gain.value = 1 - c.ringDepth;
+		const mod = ac.createGain(); mod.gain.value = 0;
+		const osc = ac.createOscillator(); osc.frequency.value = c.ring;
+		const depth = ac.createGain(); depth.gain.value = c.ringDepth;
+		osc.connect(depth); depth.connect(mod.gain);
+		tail.connect(dryR); tail.connect(mod);
+		const sum = ac.createGain(); dryR.connect(sum); mod.connect(sum);
+		osc.start(); tail = sum;
+	}
+	if (c.tremolo > 0) {
+		const t = ac.createGain(); t.gain.value = 0.75;
+		const osc = ac.createOscillator(); osc.frequency.value = c.tremolo;
+		const d = ac.createGain(); d.gain.value = 0.25;
+		osc.connect(d); d.connect(t.gain); osc.start();
+		tail.connect(t); tail = t;
+	}
+	const dry = ac.createGain(); dry.gain.value = 1 - Math.min(0.85, c.reverb);
+	tail.connect(dry); dry.connect(outNode);
+	if (c.reverb > 0) {
+		const conv = ac.createConvolver(); conv.buffer = voiceImpulse(ac, 0.25 + c.reverb * 1.3);
+		const wet = ac.createGain(); wet.gain.value = c.reverb;
+		tail.connect(conv); conv.connect(wet); wet.connect(outNode);
+	}
+	return src;
+}
+function voicePackAudioCtx() {
+	if (!voicePackCtx) voicePackCtx = new (window.AudioContext || window.webkitAudioContext)();
+	return voicePackCtx;
+}
+async function voicePackBuffer(word) {
+	if (voicePackBuffers[word]) return voicePackBuffers[word];
+	const entry = voicePack && voicePack.words[word];
+	if (!entry) return null;
+	const bin = atob(entry.wav);
+	const bytes = new Uint8Array(bin.length);
+	for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+	const buf = await voicePackAudioCtx().decodeAudioData(bytes.buffer);
+	voicePackBuffers[word] = buf;
+	return buf;
+}
+/* Returns true if the pack handled it. Mirrors speechSynthesis.cancel() by stopping whatever is
+   already sounding - without that, a fast sequence stacks words on top of each other. */
+function speakFromPack(text, volume) {
+	if (voicePackState !== 'ready') return false;
+	const key = String(text);
+	if (!voicePack.words[key]) return false;
+	voicePackBuffer(key).then(buf => {
+		if (!buf) return;
+		const ac = voicePackAudioCtx();
+		if (ac.state === 'suspended') ac.resume();
+		if (voicePackPlaying) { try { voicePackPlaying.stop(); } catch (e) {} }
+		const g = ac.createGain();
+		g.gain.value = Math.max(0, Math.min(1, volume));
+		g.connect(ac.destination);
+		const src = buildVoiceChain(ac, buf, voiceFx(), g);
+		src.onended = () => { if (voicePackPlaying === src) voicePackPlaying = null; };
+		voicePackPlaying = src;
+		src.start();
+	}).catch(() => {});
+	return true;
+}
+/* Small status hook so "is the voice pack actually loaded?" is answerable without guesswork,
+   both here and on a real device's console. */
+window.voicePackStatus = () => ({
+	state: voicePackState,
+	character: voicePack ? voicePack.character : null,
+	words: voicePack ? Object.keys(voicePack.words).length : 0,
+	decoded: Object.keys(voicePackBuffers).length
+});
+window.speakWord = (t) => speak(t);
 function speak(text) {
 	if (appSettings.isDndEnabled) return;
-	if (!appSettings.runtimeSettings.isAudioEnabled || !window.speechSynthesis) return;
+	if (!appSettings.runtimeSettings.isAudioEnabled) return;
+	const ecoOn = appSettings.isEcoModeEnabled && appSettings.ecoModeConfig;
+	const ecoMult = ecoOn ? Math.max(0.05, (appSettings.ecoModeConfig.volumePct || 100) / 100) : 1;
+	const vol = (appSettings.runtimeSettings.voiceVolume || 1.0) * ecoMult;
+	if (speakFromPack(text, vol)) return;
+	if (!window.speechSynthesis) return;
 	window.speechSynthesis.cancel();
 	const u = new SpeechSynthesisUtterance(text);
 	u.lang = 'en-US';
@@ -5695,9 +5917,7 @@ function speak(text) {
 	}
 	let p = appSettings.runtimeSettings.voicePitch || 1.0;
 	let r = appSettings.runtimeSettings.voiceRate || 1.0;
-	const ecoVoiceActive = appSettings.isEcoModeEnabled && appSettings.ecoModeConfig;
-	const ecoVoiceMult = ecoVoiceActive ? Math.max(0.05, (appSettings.ecoModeConfig.volumePct || 100) / 100) : 1;
-	u.volume = (appSettings.runtimeSettings.voiceVolume || 1.0) * ecoVoiceMult;
+	u.volume = vol;
 	u.pitch = Math.min(2, Math.max(0.1, p));
 	u.rate = Math.min(10, Math.max(0.1, r));
 	window.speechSynthesis.speak(u);
@@ -7911,7 +8131,8 @@ function initGlobalListeners() {
 		if (headerUndoBtnEl) {
 			headerUndoBtnEl.onclick = () => performUndo();
 		}
-		if (appSettings.showWelcomeScreen && modules.settings && !location.search.includes('vpPreview=1')) setTimeout(() => modules.settings.openSetup(), 500);
+		if (typeof loadVoicePack === 'function') loadVoicePack();
+	if (appSettings.showWelcomeScreen && modules.settings && !location.search.includes('vpPreview=1')) setTimeout(() => modules.settings.openSetup(), 500);
 		const handlePause = () => {
 			if (isDemoPlaying) {
 				isPlaybackPaused = true;

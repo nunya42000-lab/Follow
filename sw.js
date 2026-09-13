@@ -1,4 +1,4 @@
-const CACHE_NAME = 'follow-me-v212';
+const CACHE_NAME = 'follow-me-v214';
 
 const CRITICAL_ASSETS = [
     './',
@@ -9,6 +9,7 @@ const CRITICAL_ASSETS = [
 ];
 
 const OPTIONAL_ASSETS = [
+    './voice-pack.json',
     './icon192.png',
     './icon512.png',
       './01.png',

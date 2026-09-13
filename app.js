@@ -760,7 +760,7 @@ const SETTINGS_PRESETS = [
 	{ id: 'default', name: 'The Minimalist', code: 'm.xmhNj`V-16N$xovQJJ^`qG9_Wn:' },
 	// Default settings + these General-tab header buttons on: Delete, Settings, Counter, Auto
 	// Counter, Bigger Buttons, Wake Lock, Split Screen. Everything else stays at default.
-	{ id: 'multitasker', name: 'The Multi-Tasker', code: '3b.J^z:`0lz7GX!k5+UX[::3%hu}xN)$cw!u)mW`yiBhQ=#?I//ApiDG/k5$V,Ic+UJ+vcQCHXp=Sc8p=+[tlamkh^#NiST}{q[Deo+eE0R_x2AFE.x6]/0]3EyfT}3TOADhzkIFFS)O2k@{CW;Hv(.' },
+	{ id: 'multitasker', name: 'The Multi-Tasker', code: '3g.sI=#]=,scL@$a#hdUC,Rvx:@?TLw8;ct0T7HIkS.:bk.r:4dZW)pw/Y0!/@d5=;#rEa}P??ZJV^qPb(4aG:BuTON2_yY/?SVD6/S1%eJf#{4qz{eSn%ZqSeLIiE[{A(cQW*O/H,p4+WBxJ9m[X=+kIK.p!' },
 	// Default settings + these on: Infinite Header Scroll, Settings, Help, Redeem, Share, Undo,
 	// Timer, Auto Timer, Counter, Auto Counter, Notepad, Upside Down, Portrait Lock, Landscape
 	// Lock, Full Screen, Bigger Buttons, Wake Lock, Position Swap, Split Screen, Picture in
@@ -769,17 +769,16 @@ const SETTINGS_PRESETS = [
 	{ id: 'tester', name: 'The Tester', code: '7y.Cpj];VHoprgqc#0[KcBly/QF$0S28$On@L(A%V(R:]JzA7iCTn:nG+gU-ew.c2q3itY]LCV(a`2x7Uzh=roY8y;_F(xM0}/F-nmN;Aw5KJ}61SXT2=Lol+rA$(wvqJx;,0ie.1c4mEauiI07]mh5w!._[qcX7KU2hB[$$9zm:!%-e$3/7$1FrIL}E4Hf@cm.peE0HW+oz?/[+NcB_+Y^B4SOwacliz.9pzs;-M=uz``s[%D+gybd+Ttg4(16;c9-XsmVR9g@+oUojZZW_!`t3!n!tx1DO#7L-YG@x!=FDnE6vqwRZl{usJ_7Q$@(C{,?4V/=J]4N0S0ry}(v3bo7L0SoXZuhV%nqbFya' },
 	// Default settings + these on: Delete, Timer, Auto Timer, Counter, Auto Counter, Input
 	// Regulator, Portrait Lock, Bigger Buttons, Wake Lock. Everything else stays default.
-	{ id: 'speedster', name: 'The Speedster', code: '47.9sPz4I42vMLjn5+Gvl(q(uc7Z/vedhnXwK({zr+mK08^}Ga4s^#94!Ho*q`v4l0;=_3!jO:)jnB5]Wc:y-x207yvM[[x7e5e.k9:zb:t[Q=+,x#!tg=)zmpdJrl?t;0KsCeB/E0JiNbh(8D04OqM,AC+w{uLpX$s^U,),!b)YzAn`GHM4DUVsj8LcwdU' },
+	{ id: 'speedster', name: 'The Speedster', code: '3r.D:9k;=ic@{wEeqF?v`Xs!o-73ZI1[?Mki[{PcPUti=qsco$l!5+EdA%Q4uSgU;T0`a-as{*Ags.KK/%G^Mb_+B$ZD,,]dQ3S57hbk1Hxyn13BY{O!)s/dS`:NM:,+-$;rUGJW`UrjZQWMR4*xq5{^y7Mr02Y^,#z-orgP(oK' },
 	// Default settings + Row Max off everywhere (portrait, landscape, split50h) so multiple
 	// machines aren't fighting a fixed per-row cap, plus: Split Screen, Delete, Settings, Add
 	// Machine, Cycle Layout, UI Size, Sequence Size header buttons, Auto Counter, Wake Lock,
 	// Landscape Lock, Portrait Lock, Bigger Buttons, Picture in Picture, Infinite Header
 	// Scroll, and Touch Gesture input. Header/UI scale nudged up slightly, sequence/number/
 	// input sizing tuned per bucket for readability with several machines on screen at once.
-	{ id: 'multimachinist', name: 'The Multi Machinist', code: 'ob.a.KKH==5620zLp[#C^L0vwYh@IvTYA4}M*J?y8AE/RkD[JthGTO01Uy07eTzQd5H6TdtoRy.L582jBir*;hb(mkB)5LiB6#WVsNt}R,fmqq;0F`onO(m^Qj8X/GNxuc3d101k:pshg87--m?]0u_zU5IjZrSM*r;I?}mllMpAv,}vC7:WU:IxIbn2mR=Q(Ly#.rQC6hM]WE-sqISuM2wJ#l?NZgZFxG7qr7Q]Xc5Q+jCQn.EIWh#1kMB+BWmn.NK+/.H^iouYEpZf8n5!r12qy.E^8Om2^o;{@ud.@rED#!14e^u#/2JDo-%uTj[tI]J`r2^2vkqk+6R2UfH`DCDa5/et0ftc$.8]rwIdaN;ZbRR7t7ov7sOKYDBf3g9bt-aFIii7xqCNv}meKt%9hzDr2ZybcsTqw@cFL/hQcrf!,U8L/lO{,b3XghI.N!:1Eutz;?#glc`P97q)3v,=?4XLa2$6Zabk?aLClGIcA8@-cVSFYr^vA`MXH]Gfj.FVq=`H`54}ZodF;(_lyP8w!6KV{MCqDReBHsIf0Rp[3H+m5ynf4A,#?F;.O7%KwLjrAG}P%/cX7/=h0?6ZDO?$XDDFA(nY7*qAGU$A@,6sBzLGPq`1/Qt/E4%MZrd2%KZTyW=KarQA*i1mzg7@dx{+Qd[s3VUYsix!_]9:.C_MEyHQ:xv})Qni1x=F[)O8_#y=Xzp}!@h;)rGa,:xFu5gb}U}NjiRH%DEI1i=A$L[09GW2Jcp,cWX^*I}yEue8D%r$o5%H`*e^KR6KUMtS6LhoZxI#;i^o5@X=Tv@fYSg73+n]5K4osP]Wk3foAgWhJMhti;T%dZoIKv_bdA,XBeQ8JQ{Jh/;D0,VQAKvJ7.L$.Ase8bv6*[nsEe),*]^gyfK[+hzN(kNB{CLNlJI9,XBntP3X-ILAaU9m@j7i(F0.A,fxqtE=Uf#MvKTu^,wC[piUUh[_Vw3IbtlmQA)ya:li?3Hs=s*h(s7$@7b_L)6Q13][*)Gb?ao%nxKyYe]5r?X)@}(HAyE#jhky^pqRZFc`qIyD[^v/Ix9n#]2/}d#n{C+T)xpG@-]dN{56$9SdI0%)2Tg]' },
-{ id: 'pianist', name: 'The Pianist', code: '4y.1zBxna*Z$ExSA(-lqJGdo}$qfJ}ia$r%#@CItVyU[.IL.nflZ)2_%=-x8NGK}V,UcwJKZ-%0f4hICiv`CRl^$d;8h3/6{osg9.YDFX4vR5O[kBXfZ[gCCl@C4Fx11Z`L$+]zmvD3*WI978/(F{#NHTJ?,+i50]gryO!#(_[bh`Vy=9qS2gy^):FdahLB@K+5E{3N-Xd84:K:?bM/$/rh[{CEws6SKe' },
-{ id: 'professional', name: 'The Professional', code: '6h.D,mas,!MjamZjBW*zvr+`^bWON_*Vrr)Lj;v#pdhUr^oMwDUbG-Nt,S7[kI6j;B*0hi5wv$jU%npQR%0_1s/Q{#Vp=w^GzpK+I-;Z=0VQ?0hK]_U*B}JnpCYaH*IB#Ht`.l;,/@Vy1RtC7u{q!t}K,FWLY[Q*m}3{($pc5BfH3I6)pGquW_g*7g,5I$^[}GD$58^vSL0#]s%)}bH0i3?dQu}z+IE#iKf-x#W(H+U@y2k6t(:Z^uYsZsmv}K(5WmMcRcX%O}rSNBQkTlJ@xg-BW@ohR)4gG#hW=' },
-{ id: 'developer', name: 'The Developer', code: '4w.Gq1z8T*u%@+T{25SAdL-!.U^[8Qz}U7A8gvmoLe_,JtmO;.lOmAkp^6K%;h724N-S;2cS)rLF%]=oB``O66f@1NN$8]BBld9}#]FGhy)f{PApSj6j!rcgCs0{[Bcir-h?LJHEYQ]Pe[;`#@6p4pAeJg0D;!07*phcHBW??p=bE6V,X^6qA3`raciSCij+_#AjpE:6T/E[HvFugFqr[m[:#Sm54{' },
+	{ id: 'multimachinist', name: 'The Multi Machinist', code: 'no.2HTy?)2jT#M`F6i6v?srmb,Yo2]P4g)jxa1GP24fq_/]?ASM)O:;gk}vXroDX;5EX2!3BP#p}n8S_Uuyxr+ep}5qYD(.gQVTDCeVzIQrnsF?A.ZM5m4+O{:sgBYO6}q+nmhlCvZ/pT=yz44eSG]F?ixu91$`sa2Dpn=_j+;)g2tS+lcDbHh!X(@-;3E.CJdUmIh3gjvW{/-pg1KTgmz3+O=(0S;%}d0kIZPyxQONR]oJUSZC%7*={y6:yzUMt/ZJR.3tP]QI=iH^bKHhn)[8cip3dgOlo$8G/E=]sbthLP]SKpb:C10{6Dn;Jki!N[ALqq(#oj::QAmV_H@sa%I#+$k.5lDbF`tV@-=!+:,CNnmI2,$=58@XIo]1q.%[F=]FC-U`*D9m,%_NT#,Avn?`Ncuw5cmw]igdCD2trzo@pV6-:!8Z3}ii`aZ/sX{vy1G@!mXkL5fXsN},{fc#cnRWxL5LMB;/KdkwE%gG_P?:b,Mmi[fR./H[{P$2HP%/(+Iv5(nUIrT_/^K3y*{LK9*=_GgxzANeG57AeBw*:jxy^bc=*pm%Eqk,s=VLH,Sx79=xu}ebQIYkUIV)`No,-cwP3,@57HONik;U`Xrm+Kg*Iks+xy^{wgu3_{=Srz`86l6yItAM1F5K8+1EhqCu_Nt4RylD;wKW4ihtp)$bB3BuQJdu6kw+^S.]%5*t+6Y?!m*o)QAFno!u7/oseHd6pxzWq[iFXd%)(@S$XO%dfCIMzgmXuO#Kq=}hkT4=Z_4G??gP##-Gn-Wi4if}NR35am..2nB{r#//ENNz=M}L2yO=g4-m;euOLQgaCO,%$J%mT3%.@?$)@*wZY5VeO4@?FSVp!.sv1O`eBJS$5{+)86bEs;uh8q2Xe+sGf#fd=9XocojF[@-OEbtW?U;H]6m#R:`s03q_9yw;M%j;`a^Y]Qn,9=16vpcD3EX][`RuMKQ?uu#]gxB!vEPf(#8-{JZP-5o^l#4))6/@TO/P+-2Tv%aXPI1Qj9y4i{F2uvNM8,Ut0om9WP2lh-Xnh2PyEO04NmiZq,bgAMqpSxjaoes=$' },
+{ id: 'pianist', name: 'The Pianist', code: '4n.6xiXqcdd@UQ%ve5O#8s%d#M6Ki/J}YC3E($T:JOC5J/*B3{hP:!JV%Nbk6PZG$FM3rzh;u11+Henv2GH.sz$TFB`[]mP4F-`Wb,-n`vdRT$-pXs,y6J5)0O%f1ga7I+g{BJFc){s:0*J4saRg_9yqB4@YOLKKL8einYbei(*PV%b06r50fx(IAC?.gF1.F{K0-U^PqjkpKypILs.' },
+{ id: 'professional', name: 'The Professional', code: '5q.?*}R.CEoMN4`x+)8GsM!)b_*2X5o6}rDMQJEgS]7H8Tq(Q.!Z3a^C}A;9r,=q=,iVt/`E[.htjM.Tvhw8!W+TUxFSBK5!]@ab9Maa%uOFD#wXe;%J)6k$m8V}arB-2{F8Nk_v0Zm:TIdsxfW:1N7K+H{#g+pn.iGA1G^cG6oVGE9mGQy3Xt4x9]2{,eqd7),@U[GGs}k-E3*[B`GEb(:-TNu;(SJnXd63b/Wd+x8VbAhSg,Vo5RiWCyDnMcqtmo=' }
 ];
 const DEFAULT_MAPPINGS = {
 	'k9_1': 'tap',
@@ -3609,7 +3608,51 @@ class SettingsManager {
 	populateConfigDropdown() { const createOptions = () => Object.keys(this.appSettings.profiles).map(id => { const o = document.createElement('option'); o.value = id; o.textContent = this.appSettings.profiles[id].name; return o; }); if (this.dom.configSelect) { this.dom.configSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.configSelect.appendChild(opt)); this.dom.configSelect.value = this.appSettings.activeProfileId; } if (this.dom.quickConfigSelect) { this.dom.quickConfigSelect.innerHTML = ''; createOptions().forEach(opt => this.dom.quickConfigSelect.appendChild(opt)); this.dom.quickConfigSelect.value = this.appSettings.activeProfileId; } }
 	populateThemeDropdown() { const s = this.dom.themeSelect; if (!s) return; s.innerHTML = ''; const grp1 = document.createElement('optgroup'); grp1.label = "Built-in"; Object.keys(PREMADE_THEMES).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = PREMADE_THEMES[k].name; grp1.appendChild(el); }); s.appendChild(grp1); const grp2 = document.createElement('optgroup'); grp2.label = "My Themes"; Object.keys(this.appSettings.customThemes).forEach(k => { const el = document.createElement('option'); el.value = k; el.textContent = this.appSettings.customThemes[k].name; grp2.appendChild(el); }); s.appendChild(grp2); s.value = this.appSettings.activeTheme; }
 	openSettings() { this.populateConfigDropdown(); this.populateThemeDropdown(); this.updateUIFromSettings(); this.initEcoModeConfigUI(); if (typeof initViewportProfilesUI === 'function') initViewportProfilesUI(); this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.settingsModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); }
-	openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); this.updateWelcomeSample(); }
+	// The welcome screen's sample row exists to be sized by eye - "adjust until 5 numbers fit
+	// neatly on one row". That only tells the truth if the sample has the same usable width as
+	// the real sequence area, so the card is sized to match it rather than to a fixed max-w-lg.
+	// Measured from the machine card's own number row, which is the element the real cards wrap
+	// inside, then padding is added back so the INNER widths line up rather than the outer ones.
+	matchWelcomeWidthToSequence() {
+		const card = this.dom.setupModal && this.dom.setupModal.querySelector('div');
+		if (!card) return;
+		const container = document.getElementById('sequence-container');
+		if (!container) return;
+		let target = 0;
+		const machine = container.children[0];
+		const numRow = machine && [...machine.children].find(el => el.className && el.className.includes('flex-wrap') && el.className.includes('justify-center'));
+		if (numRow) target = numRow.getBoundingClientRect().width;
+		if (!target) {
+			// Nothing rendered yet: fall back to the container minus a machine card's padding.
+			const cs = getComputedStyle(container);
+			target = container.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0) - 32;
+		}
+		if (!(target > 0)) return;
+		const cardCS = getComputedStyle(card);
+		const sampleHolder = document.getElementById('welcome-sample-sequence');
+		let samplePad = 0;
+		if (sampleHolder) {
+			const sc = getComputedStyle(sampleHolder);
+			samplePad = (parseFloat(sc.paddingLeft) || 0) + (parseFloat(sc.paddingRight) || 0)
+				+ (parseFloat(sc.borderLeftWidth) || 0) + (parseFloat(sc.borderRightWidth) || 0);
+		}
+		// max-width means the CONTENT box unless border-box is in play, and this card is
+		// content-box - adding the card's own padding under content-box sizing counts it twice
+		// and the sample comes out wider than the sequence by exactly that much.
+		let chrome = 0;
+		if (cardCS.boxSizing === 'border-box') {
+			chrome = (parseFloat(cardCS.paddingLeft) || 0) + (parseFloat(cardCS.paddingRight) || 0)
+				+ (parseFloat(cardCS.borderLeftWidth) || 0) + (parseFloat(cardCS.borderRightWidth) || 0);
+		}
+		// Never let it collapse so far that the controls above stop fitting, nor spill off-screen.
+		const wanted = target + samplePad + chrome;
+		// A floor only to stop it collapsing to something unusable; the controls above wrap, so a
+		// narrow card is fine and is often the honest answer when Row Max keeps the sequence narrow.
+		const capped = Math.max(200, Math.min(wanted, window.innerWidth - 16));
+		card.style.maxWidth = capped + 'px';
+		card.style.width = '100%';
+	}
+	openSetup() { this.populateConfigDropdown(); this.updateUIFromSettings(); this.dom.setupModal.classList.remove('opacity-0', 'pointer-events-none'); this.dom.setupModal.querySelector('div').classList.remove('scale-90'); if (window.lockBodyScroll) window.lockBodyScroll(); this.matchWelcomeWidthToSequence(); this.updateWelcomeSample(); }
 	updateWelcomeSample() {
 		const holder = document.getElementById('welcome-sample-sequence');
 		if (!holder) return;

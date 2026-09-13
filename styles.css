@@ -396,8 +396,14 @@ body.input-gestures-mode #gesture-indicator { font-size: 1.2rem; font-weight: bo
    individual bucket rule above (easy to add five of and still miss the sixth). */
 
 body.hide-controls .control-row { display: none !important; }
+/* The plain "font-size: 2.2rem" that used to sit here never took effect: the base rule for
+   .btn-pad-number carries !important, so it won every time and the digits stayed at their normal
+   size while the buttons around them grew. Scaling the SAME expression keeps the number
+   proportional to the button and still honours the Input Font Size setting, and it needs
+   !important purely to outrank that base rule. Heavier weight too, since a big button with
+   thin digits reads as an empty circle. */
 body.hide-controls #pad-key9 .btn-pad-number,
-body.hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; width: min(100%, var(--bigger-btn-size, 999px)); font-size: 2.2rem; transition: all 0.3s ease; box-shadow: 0 8px 15px rgba(0,0,0,0.4); }
+body.hide-controls #pad-key12 .btn-pad-number { aspect-ratio: 1 / 1; height: auto; width: min(100%, var(--bigger-btn-size, 999px)); font-size: calc(2.2rem * var(--input-font-scale, 1)) !important; font-weight: 900; transition: all 0.3s ease; box-shadow: 0 8px 15px rgba(0,0,0,0.4); }
 body.hide-controls #piano-keys { height: 300px; transition: height 0.3s ease; }
 
 	body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #input-footer .max-w-md, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #input-footer .max-w-lg, body:not([data-viewport-bucket="portrait"])[data-rotate="0"].hide-controls #input-footer .max-w-2xl { max-width: 95vw !important; }

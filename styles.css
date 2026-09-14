@@ -489,7 +489,19 @@ body.ar-active #app { background: transparent !important; }
 body.ar-active .card, body.ar-active .btn-input, body.ar-active .number-box,
 body.ar-active .settings-modal-bg { background-color: rgba(18, 18, 18, 0.75) !important; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); border-color: rgba(255, 255, 255, 0.3); }
 body.ar-active header { background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 100%);}
-body.ar-active #ar-ui-layer { display: flex; } 
+body.ar-active #ar-ui-layer { display: flex; }
+/* The camera already fills the screen behind everything (z-index -1), and AR clears #app's
+   background - but never the input footer's. In portrait the footer is a short strip so the
+   camera still reads; in landscape and split the footer is a full-height COLUMN, so an opaque
+   background there hides the camera across half the screen and AR looks like it only works in
+   the sequence area. Clearing the footer and its panes lets the feed through everywhere, while
+   the buttons keep their own translucent backgrounds from the rule above and stay readable. */
+body.ar-active #input-footer,
+body.ar-active #input-footer > div,
+body.ar-active #pad-key9,
+body.ar-active #pad-key12,
+body.ar-active #pad-piano { background-color: transparent !important; background: transparent !important; }
+body.ar-active #input-footer { border-top-color: rgba(255,255,255,0.25) !important; box-shadow: none !important; }
 body[data-rotate="0"] { transform: none; }
 body[data-rotate="180"] { transform: rotate(180deg); }
 body[data-rotate="90"] {

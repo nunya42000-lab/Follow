@@ -2151,28 +2151,25 @@ class SettingsManager {
 		}
 	}
 	bindMappingEvents() {
-		const btnMapTouch = document.getElementById('btn-map-touch');
-		const btnMapHand = document.getElementById('btn-map-hand');
-		const sectionMapTouch = document.getElementById('section-map-touch');
-		const sectionMapHand = document.getElementById('section-map-hand');
-		if (btnMapTouch && btnMapHand && sectionMapTouch && sectionMapHand) {
-			btnMapTouch.onclick = () => {
-				btnMapTouch.classList.add('text-blue-400', 'border-b-2', 'border-blue-400');
-				btnMapTouch.classList.remove('text-gray-500');
-				btnMapHand.classList.remove('text-emerald-400', 'border-b-2', 'border-emerald-400');
-				btnMapHand.classList.add('text-gray-500');
-				sectionMapTouch.classList.remove('hidden');
-				sectionMapHand.classList.add('hidden');
+		/* Touch and hand mapping now live as two accordions on the Advanced tab, each holding a
+		   9-key / 12-key / piano tab strip. One delegated handler drives both, keyed on the kind
+		   and pad recorded on each button, so the two accordions cannot get out of step with each
+		   other and adding a fourth pad later needs no new wiring. */
+		document.querySelectorAll('.map-subtab').forEach(btn => {
+			btn.onclick = () => {
+				const kind = btn.dataset.mapKind, pad = btn.dataset.mapPad;
+				document.querySelectorAll(`.map-subtab[data-map-kind="${kind}"]`).forEach(b => {
+					const on = b.dataset.mapPad === pad;
+					b.classList.toggle('text-primary-app', on);
+					b.classList.toggle('border-b-2', on);
+					b.classList.toggle('border-current', on);
+					b.classList.toggle('text-gray-500', !on);
+				});
+				document.querySelectorAll(`.map-subpane[data-map-kind="${kind}"]`).forEach(pane => {
+					pane.classList.toggle('hidden', pane.dataset.mapPad !== pad);
+				});
 			};
-			btnMapHand.onclick = () => {
-				btnMapHand.classList.add('text-emerald-400', 'border-b-2', 'border-emerald-400');
-				btnMapHand.classList.remove('text-gray-500');
-				btnMapTouch.classList.remove('text-blue-400', 'border-b-2', 'border-blue-400');
-				btnMapTouch.classList.add('text-gray-500');
-				sectionMapHand.classList.remove('hidden');
-				sectionMapTouch.classList.add('hidden');
-			};
-		}
+		});
 		const LAYOUT_KEYS = {
 			key9: Array.from({ length: 9 }, (_, i) => `k9_${i + 1}`),
 			key12: Array.from({ length: 12 }, (_, i) => `k12_${i + 1}`),
@@ -6560,6 +6557,17 @@ function startPracticeRound() {
 	showToast(`Practice Round ${state.currentRound}`);
 	setTimeout(() => playPracticeSequence(), 1000);
 }
+/* Practice mode plays a sequence at you and asks you to repeat it, so the sequence has to be
+   perceivable - with Autoplay and Flash both off there is literally nothing to practise
+   against. Both are therefore treated as on whenever Practice is on, WITHOUT writing to the
+   stored settings, so the user's own choices come straight back when Practice is switched off.
+   Same approach as getEffectiveRowMax. */
+function practiceOverride(key) {
+	if (appSettings.runtimeSettings.isPracticeModeEnabled) return true;
+	return !!appSettings.runtimeSettings[key];
+}
+function isFlashOn()    { return practiceOverride('isFlashEnabled'); }
+function isAutoplayOn() { return practiceOverride('isAutoplayEnabled'); }
 function playPracticeSequence() {
 	if (appSettings.isToneCadenceEnabled && window.toneSequenceTester) {
 		playPracticeSequenceViaTone();
@@ -6576,7 +6584,7 @@ function playPracticeSequence() {
 		const val = practiceSequence[i];
 		const settings = getProfileSettings();
 		const key = document.querySelector(`#pad-${settings.currentInput} button[data-value="${val}"]`);
-		if (key && appSettings.runtimeSettings.isFlashEnabled) {
+		if (key && isFlashOn()) {
 			key.classList.add('flash-active');
 			setTimeout(() => key.classList.remove('flash-active'), 250 / speed);
 		}
@@ -6662,7 +6670,7 @@ function addValue(value) {
 	if (appSettings.isInputRegulatorEnabled && settings.currentMode === CONFIG.MODES.SIMON) lastMachineInputTime[targetIndex] = Date.now();
 	renderUI();
 	saveState();
-	if (appSettings.runtimeSettings.isAutoplayEnabled) {
+	if (isAutoplayOn()) {
 		if (settings.currentMode === CONFIG.MODES.SIMON) {
 			const justFilled = (state.nextSequenceIndex - 1) % settings.machineCount;
 			if (justFilled === settings.machineCount - 1) setTimeout(playDemo, 250);
@@ -7402,7 +7410,7 @@ function playDemo() {
 			const kVal = val;
 			const padId = `pad-${settings.currentInput}`;
 			const btn = document.querySelector(`#${padId} button[data-value="${kVal}"]`);
-			if (btn && appSettings.runtimeSettings.isFlashEnabled) {
+			if (btn && isFlashOn()) {
 				btn.classList.add('flash-active');
 				setTimeout(() => btn.classList.remove('flash-active'), 250 / speed);
 			}
